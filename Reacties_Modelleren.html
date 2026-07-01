@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Reactiemodellering — van snelheid tot evenwicht</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'Georgia', serif; background: #1a1a2e; color: #eee; overflow: hidden; }
+body { display: flex; flex-direction: column; }
+
+header {
+  background: #16213e;
+  border-bottom: 1px solid #2a2a4a;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+h1 { font-size: 1rem; color: #c9a84c; letter-spacing: 2px; white-space: nowrap; }
+header button {
+  padding: 5px 12px; border-radius: 5px; border: 1px solid #444;
+  background: #2a2a4a; color: #bbb; font-size: 0.78rem; cursor: pointer;
+}
+header button:hover { border-color: #c9a84c; color: #c9a84c; }
+#btn-example { border-style: dashed; }
+
+.main { flex: 1; display: grid; grid-template-columns: 305px 1fr 195px; overflow: hidden; }
+
+.panel { overflow-y: auto; padding: 10px; border-right: 1px solid #2a2a4a; scrollbar-width: thin; scrollbar-color: #333 transparent; }
+.panel::-webkit-scrollbar { width: 4px; }
+.panel::-webkit-scrollbar-thumb { background: #333; }
+.panel-right { border-left: 1px solid #2a2a4a; border-right: none; }
+
+.sec { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; color: #555;
+       border-bottom: 1px solid #2a2a4a; padding-bottom: 4px; margin: 12px 0 8px; }
+.sec:first-child { margin-top: 0; }
+
+/* ── Param inputs ── */
+.field-row { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; font-size: 0.8rem; }
+.field-row label { color: #999; min-width: 108px; }
+.field-row input[type=number] {
+  width: 76px; background: #2a2a4a; border: 1px solid #444;
+  border-radius: 5px; color: #eee; padding: 4px 7px; font-size: 0.8rem; outline: none;
+}
+.field-row input:focus { border-color: #c9a84c; }
+.field-row .unit { color: #555; font-size: 0.73rem; }
+
+/* ── Species table ── */
+#species-table { width: 100%; border-collapse: collapse; font-size: 0.76rem; margin-bottom: 6px; }
+#species-table th { color: #555; font-weight: normal; font-size: 0.66rem; text-align: left; padding: 2px 3px; }
+#species-table td { padding: 3px 2px; vertical-align: middle; }
+.spc-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.spc-inp {
+  background: #2a2a4a; border: 1px solid #3a3a5a; border-radius: 4px;
+  color: #eee; padding: 3px 5px; font-size: 0.76rem; outline: none;
+}
+.spc-inp:focus { border-color: #c9a84c; }
+.spc-name  { width: 48px; }
+.spc-coeff { width: 34px; }
+.spc-n0    { width: 44px; }
+.spc-role  { background: #2a2a4a; border: 1px solid #3a3a5a; border-radius: 4px; color: #eee; padding: 2px 3px; font-size: 0.73rem; outline: none; cursor: pointer; }
+.spc-del   { background: none; border: none; color: #444; cursor: pointer; font-size: 0.88rem; padding: 0 2px; }
+.spc-del:hover { color: #e06060; }
+#btn-add-spc { font-size: 0.73rem; padding: 4px 10px; border-radius: 5px; border: 1px dashed #444; background: none; color: #777; cursor: pointer; margin-top: 2px; }
+#btn-add-spc:hover { border-color: #c9a84c; color: #c9a84c; }
+
+/* ── Formula inputs (v_heen, v_terug, DEs) ── */
+.formula-row { margin-bottom: 10px; }
+.formula-lbl { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #aaa; margin-bottom: 3px; }
+.formula-lbl .hi { color: #c9a84c; font-family: monospace; }
+.f-status { width: 7px; height: 7px; border-radius: 50%; background: #333; flex-shrink: 0; }
+.f-status.ok { background: #2ecc71; }
+.f-status.err { background: #e74c3c; }
+
+.formula-inp {
+  width: 100%; background: #12122a; border: 1px solid #2a2a4a;
+  border-radius: 5px; color: #ddd; padding: 5px 8px;
+  font-size: 0.78rem; font-family: monospace; outline: none;
+}
+.formula-inp:focus { border-color: #c9a84c; }
+
+/* Insert chips */
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.chip {
+  font-size: 0.68rem; font-family: monospace; padding: 2px 7px;
+  border-radius: 10px; border: 1px solid #3a3a5a; background: #2a2a4a;
+  color: #aaa; cursor: pointer; user-select: none;
+}
+.chip:hover { border-color: #c9a84c; color: #c9a84c; }
+.chip.v { border-color: #555; color: #888; }
+.chip.v:hover { border-color: #c9a84c; color: #c9a84c; }
+
+/* ── Graph ── */
+.graph-area { position: relative; background: #1a1a2e; }
+#graph { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; }
+#tooltip {
+  position: absolute; background: rgba(22,33,62,0.96); border: 1px solid #444;
+  border-radius: 6px; padding: 8px 12px; font-size: 0.74rem; font-family: monospace;
+  pointer-events: none; display: none; z-index: 10; min-width: 130px; line-height: 1.9;
+}
+.tt-row { display: flex; justify-content: space-between; gap: 16px; }
+.tt-key { color: #666; }
+.tt-val { color: #c9a84c; }
+
+/* ── Right panel ── */
+.plot-item { display: flex; align-items: center; gap: 7px; font-size: 0.78rem; margin-bottom: 6px; }
+.plot-item input[type=checkbox] { accent-color: #c9a84c; cursor: pointer; width: 13px; height: 13px; }
+.plot-item label { cursor: pointer; }
+.plot-dash { width: 14px; height: 3px; border-radius: 2px; flex-shrink: 0; }
+
+.kv { display: flex; justify-content: space-between; font-size: 0.77rem; padding: 4px 0; border-bottom: 1px solid #1a1a2e; }
+.kv .k { color: #666; }
+.kv .v { color: #c9a84c; font-family: monospace; font-size: 0.74rem; }
+.log-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.76rem; color: #555; margin-top: 8px; cursor: pointer; }
+.log-toggle input { accent-color: #c9a84c; cursor: pointer; }
+
+/* ── Footer ── */
+footer {
+  background: #16213e; border-top: 1px solid #2a2a4a;
+  padding: 7px 16px; display: flex; gap: 10px; align-items: center; flex-shrink: 0;
+}
+footer button { padding: 6px 16px; border: none; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; }
+footer button:disabled { opacity: 0.3; cursor: default; }
+#btn-run      { background: #2ecc71; color: #111; }
+#btn-pause    { background: #e67e22; color: #111; }
+#btn-reset    { background: #2a2a4a; color: #aaa; border: 1px solid #444; }
+#btn-snapshot { background: #2a2a4a; color: #888; border: 1px solid #444; font-size: 0.75rem; padding: 5px 10px; }
+#btn-snapshot:hover { border-color: #c9a84c; color: #c9a84c; }
+#btn-clear-snap { background: none; color: #555; border: 1px solid #333; font-size: 0.75rem; padding: 5px 10px; }
+#btn-clear-snap:hover { border-color: #e06060; color: #e06060; }
+.speed-ctrl { display: flex; align-items: center; gap: 7px; font-size: 0.76rem; color: #555; margin-left: 14px; }
+.speed-ctrl input[type=range] { width: 76px; accent-color: #c9a84c; }
+.speed-ctrl .sv { color: #aaa; min-width: 32px; }
+.t-disp { font-size: 0.76rem; color: #444; margin-left: auto; }
+.t-disp span { color: #888; font-family: monospace; }
+.warn { font-size: 0.71rem; color: #e06060; margin-left: 6px; }
+
+/* ── Licht thema (screenshots/handleiding) ── */
+body.light { background: #ffffff; color: #222; }
+body.light header { background: #f2f2f7; border-bottom-color: #d8d8e0; }
+body.light h1 { color: #8a6d1f; }
+body.light header button { background: #ffffff; border-color: #c8c8d0; color: #555; }
+body.light header button:hover { border-color: #8a6d1f; color: #8a6d1f; }
+body.light .panel { border-right-color: #e0e0e8; scrollbar-color: #ccc transparent; }
+body.light .panel::-webkit-scrollbar-thumb { background: #ccc; }
+body.light .panel-right { border-left-color: #e0e0e8; }
+body.light .sec { color: #888; border-bottom-color: #e0e0e8; }
+body.light .field-row label { color: #555; }
+body.light .field-row input { background: #ffffff; border-color: #c8c8d0; color: #222; }
+body.light .field-row input:focus { border-color: #8a6d1f; }
+body.light .field-row .unit { color: #888; }
+body.light #species-table th { color: #888; }
+body.light .spc-inp, body.light .spc-role { background: #ffffff; border-color: #c8c8d0; color: #222; }
+body.light .spc-inp:focus { border-color: #8a6d1f; }
+body.light .spc-del { color: #bbb; }
+body.light .spc-del:hover { color: #c0392b; }
+body.light #btn-add-spc { border-color: #c8c8d0; color: #777; }
+body.light #btn-add-spc:hover { border-color: #8a6d1f; color: #8a6d1f; }
+body.light .formula-lbl { color: #555; }
+body.light .formula-lbl .hi { color: #8a6d1f; }
+body.light .f-status { background: #ccc; }
+body.light .formula-inp { background: #ffffff; border-color: #c8c8d0; color: #222; }
+body.light .formula-inp:focus { border-color: #8a6d1f; }
+body.light .chip { background: #f4f4f8; border-color: #c8c8d0; color: #555; }
+body.light .chip:hover, body.light .chip.v:hover { border-color: #8a6d1f; color: #8a6d1f; }
+body.light .chip.v { border-color: #bbb; color: #777; }
+body.light .graph-area { background: #ffffff; }
+body.light #tooltip { background: rgba(255,255,255,0.97); border-color: #bbb; color: #333; box-shadow: 0 2px 10px rgba(0,0,0,0.15); }
+body.light .tt-key { color: #888; }
+body.light .tt-val { color: #8a6d1f; }
+body.light .kv { border-bottom-color: #ececf2; }
+body.light .kv .k { color: #777; }
+body.light .kv .v { color: #8a6d1f; }
+body.light .log-toggle { color: #777; }
+body.light footer { background: #f2f2f7; border-top-color: #d8d8e0; }
+body.light #btn-reset { background: #ffffff; color: #555; border-color: #c8c8d0; }
+body.light #btn-snapshot { background: #ffffff; color: #666; border-color: #c8c8d0; }
+body.light #btn-snapshot:hover { border-color: #8a6d1f; color: #8a6d1f; }
+body.light #btn-clear-snap { color: #999; border-color: #ccc; }
+body.light #btn-clear-snap:hover { border-color: #c0392b; color: #c0392b; }
+body.light .speed-ctrl { color: #777; }
+body.light .speed-ctrl .sv { color: #555; }
+body.light .t-disp { color: #999; }
+body.light .t-disp span { color: #555; }
+body.light .warn { color: #c0392b; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Reactiemodellering — van snelheid tot evenwicht</h1>
+  <button id="btn-example">Laad Haber-Bosch voorbeeld</button>
+  <button id="btn-clear-all">Alles leegmaken</button>
+  <button id="btn-theme">🖨 Licht thema</button>
+</header>
+
+<div class="main">
+
+  <!-- LEFT PANEL -->
+  <div class="panel">
+
+    <div class="sec">Stoffen in de reactie</div>
+    <table id="species-table">
+      <thead><tr>
+        <th></th><th>Naam</th><th>Coëff</th><th>Rol</th><th>n₀ (mol)</th><th></th>
+      </tr></thead>
+      <tbody id="species-tbody"></tbody>
+    </table>
+    <button id="btn-add-spc">+ Stof toevoegen</button>
+
+    <div class="sec">Parameters</div>
+    <div class="field-row"><label>Temperatuur <i>T</i></label>
+      <input type="number" id="inp-T" min="100" max="2000" step="10" placeholder="bijv. 700"><span class="unit">K</span></div>
+    <div class="field-row"><label><i>E</i><sub>a,heen</sub></label>
+      <input type="number" id="inp-Ea1" min="0" max="500" step="1" placeholder="bijv. 80"><span class="unit">kJ/mol</span></div>
+    <div class="field-row"><label><i>E</i><sub>a,terug</sub></label>
+      <input type="number" id="inp-Ea2" min="0" max="500" step="1" placeholder="bijv. 172"><span class="unit">kJ/mol</span></div>
+    <div class="field-row"><label><i>A</i><sub>heen</sub></label>
+      <input type="number" id="inp-A1" min="0" step="any" placeholder="automatisch"><span class="unit">optioneel</span></div>
+    <div class="field-row"><label><i>A</i><sub>terug</sub></label>
+      <input type="number" id="inp-A2" min="0" step="any" placeholder="automatisch"><span class="unit">optioneel</span></div>
+    <div class="field-row" style="font-size:0.70rem;color:#444;margin-top:-4px;margin-left:114px" id="lbl-Afactor">A-factor: automatisch</div>
+    <div class="field-row"><label>Volume <i>V</i></label>
+      <input type="number" id="inp-V" min="0.001" max="1000" step="0.1" placeholder="bijv. 1.0"><span class="unit">L</span></div>
+    <div class="field-row"><label>Tolerantie</label>
+      <input type="number" id="inp-tol" min="1e-12" max="0.1" step="any" placeholder="bijv. 1e-6"><span class="unit">(relatief)</span></div>
+    <div class="field-row" style="font-size:0.72rem;color:#444;margin-top:-4px;margin-left:114px">Laat leeg → 10⁻⁶</div>
+
+    <div class="sec">Reactiesnelheden</div>
+
+    <div class="formula-row">
+      <div class="formula-lbl"><div class="f-status" id="fs-vheen"></div><span><span class="hi">v<sub>heen</sub></span> =</span></div>
+      <input class="formula-inp" id="inp-vheen" placeholder="bijv. k1 * [A] * [B]^2">
+      <div class="chips" id="chips-vheen"></div>
+    </div>
+
+    <div class="formula-row">
+      <div class="formula-lbl"><div class="f-status" id="fs-vterug"></div><span><span class="hi">v<sub>terug</sub></span> =</span></div>
+      <input class="formula-inp" id="inp-vterug" placeholder="bijv. k_1 * [C]">
+      <div class="chips" id="chips-vterug"></div>
+    </div>
+
+    <div class="sec">Reactiequotiënt</div>
+
+    <div class="formula-row">
+      <div class="formula-lbl"><div class="f-status" id="fs-Q"></div><span><span class="hi">Q</span> =</span></div>
+      <input class="formula-inp" id="inp-Q" placeholder="bijv. [C]^2 / ([A] * [B]^3)">
+      <div class="chips" id="chips-Q"></div>
+    </div>
+
+    <div class="sec">Differentiaalvergelijkingen</div>
+    <div id="de-fields"></div>
+
+  </div>
+
+  <!-- GRAPH -->
+  <div class="graph-area">
+    <canvas id="graph"></canvas>
+    <div id="tooltip"></div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel panel-right">
+    <div class="sec">Weergave in grafiek</div>
+    <div id="plot-checks"></div>
+    <label class="log-toggle"><input type="checkbox" id="chk-log"> Log-schaal</label>
+
+    <div class="sec">Actuele waarden</div>
+    <div class="kv"><span class="k">Q<sub>c</sub></span><span class="v" id="info-Q">—</span></div>
+    <div style="height:6px"></div>
+    <div id="conc-live"></div>
+  </div>
+</div>
+
+<footer>
+  <button id="btn-run">▶ Start</button>
+  <button id="btn-pause" disabled>⏸ Pauze</button>
+  <button id="btn-reset">↺ Reset</button>
+  <button id="btn-snapshot" title="Bewaar huidige grafiek als achtergrond">📷 Snapshot</button>
+  <button id="btn-clear-snap" title="Verwijder alle snapshots">✕ Snapshots</button>
+  <span class="warn" id="warn-box"></span>
+  <div class="speed-ctrl">
+    Snelheid: <input type="range" id="sl-speed" min="0" max="5" value="2">
+    <span class="sv" id="lbl-speed">20×</span>
+  </div>
+  <span id="t-disp" style="display:none"></span>
+  <span id="eq-note" style="display:none"></span>
+</footer>
+
+<script>
+const R_GAS = 8.314;
+const COLORS = ['#e74c3c','#3498db','#2ecc71','#f1c40f','#9b59b6','#e67e22','#1abc9c','#e91e63'];
+const Q_COLOR = '#c9a84c';
+
+// ── Thema: donker = standaard; licht voor screenshots/handleiding ──
+let lightTheme = false;
+const LIGHT_MAP = {
+  '#e74c3c':'#c0392b','#3498db':'#21618c','#2ecc71':'#1e8449','#f1c40f':'#b7950b',
+  '#9b59b6':'#7d3c98','#e67e22':'#ca6f1e','#1abc9c':'#148f77','#e91e63':'#c2185b',
+  '#c9a84c':'#8a6d1f'
+};
+function tc(c) { return lightTheme && LIGHT_MAP[c] ? LIGHT_MAP[c] : c; }
+function CV() {
+  return lightTheme
+    ? { bg:'#ffffff', watermark:'#bbbbbb', grid:'#dde1ea', axis:'#8a8a8a', axisTitle:'#666666',
+        xTick:'#777777', yTick:'#555555', cross:'rgba(0,0,0,0.20)', snapGrays:['#8a8a8a','#9a9a9a','#ababab'] }
+    : { bg:'#1a1a2e', watermark:'#333333', grid:'#222840', axis:'#333333', axisTitle:'#444444',
+        xTick:'#555555', yTick:'#888888', cross:'rgba(255,255,255,0.15)', snapGrays:['#666','#555','#444'] };
+}
+const SPEED_STEPS = [1, 5, 20, 100, 500, 2000];
+
+let speciesList = [];
+let nextId = 1;
+let simT = 0;
+let history = [];
+let running = false;
+let animId = null;
+let stepsPerFrame = 20;
+let mouseX = null, mouseY = null;
+let plotQ = true;
+let logScale = false;
+let snapshots = [];       // [{history, label}]
+let snapshotCount = 0;
+let eqDetectedAt = null;  // simT when Q stabilised
+let eqStopAt = null;      // simT to auto-stop
+
+// ── Helpers ──
+function P(id) { return parseFloat(document.getElementById(id).value); }
+function colorFor(i) { return COLORS[i % COLORS.length]; }
+
+// A = 10^(13 − 3*(n−1)) where n is total reaction order
+function computeAFactor(order) { return Math.pow(10, 13 - 3 * (order - 1)); }
+
+function forwardOrder()  { return speciesList.filter(s=>s.role==='reactant').reduce((a,s)=>a+s.coeff,0) || 1; }
+function backwardOrder() { return speciesList.filter(s=>s.role==='product' ).reduce((a,s)=>a+s.coeff,0) || 1; }
+
+function updateAFactorLabel() {
+  const m1 = P('inp-A1'), m2 = P('inp-A2');
+  const man1 = isFinite(m1) && m1 > 0, man2 = isFinite(m2) && m2 > 0;
+  const A1 = man1 ? m1 : computeAFactor(forwardOrder());
+  const A2 = man2 ? m2 : computeAFactor(backwardOrder());
+  const el = document.getElementById('lbl-Afactor');
+  if (el) el.textContent = `A\u2081 = ${A1.toExponential(1)} ${man1 ? '(ingevuld)' : '(auto)'}  |  A\u2082 = ${A2.toExponential(1)} ${man2 ? '(ingevuld)' : '(auto)'}`;
+}
+
+function A1v() {
+  const man = P('inp-A1');
+  return (isFinite(man) && man > 0) ? man : computeAFactor(forwardOrder());
+}
+function A2v() {
+  const man = P('inp-A2');
+  return (isFinite(man) && man > 0) ? man : computeAFactor(backwardOrder());
+}
+function k1v() {
+  const T = P('inp-T'), Ea1 = P('inp-Ea1');
+  if (!T || !Ea1 || T <= 0) return NaN;
+  return A1v() * Math.exp(-Ea1 * 1000 / (R_GAS * T));
+}
+function krv() {
+  const T = P('inp-T'), Ea2 = P('inp-Ea2');
+  if (!T || !Ea2 || T <= 0) return NaN;
+  return A2v() * Math.exp(-Ea2 * 1000 / (R_GAS * T));
+}
+
+// ── Q ──
+// Internal Q (stoichiometric, used only for equilibrium stop criterion)
+function computeQInternal(concArr) {
+  let num = 1, den = 1, hn = false, hd = false;
+  speciesList.forEach((s, i) => {
+    const c = Math.max(0, concArr[i]);
+    if (s.role === 'product')  { num *= Math.pow(c, s.coeff); hn = true; }
+    if (s.role === 'reactant') { den *= Math.pow(c, s.coeff); hd = true; }
+  });
+  if (!hn || !hd || den < 1e-30) return Infinity;
+  return num / den;
+}
+// User-defined Q (plotted in graph)
+function computeQ(concArr) {
+  const expr = document.getElementById('inp-Q').value;
+  if (!expr || !expr.trim()) return NaN;
+  const concMap = {};
+  speciesList.forEach((s, i) => { concMap[s.name] = Math.max(0, concArr[i]); });
+  return evalExpr(expr, concMap, 0, 0);
+}
+
+// ── Expression evaluator ──
+function evalExpr(expr, concMap, k1, kr, vheen, vterug) {
+  if (!expr || !expr.trim()) return NaN;
+  let e = expr;
+  for (const [name, val] of Object.entries(concMap)) {
+    const esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    e = e.replace(new RegExp(`\\[${esc}\\]`, 'g'), `(${val})`);
+  }
+  if (vheen  !== undefined) e = e.replace(/v_heen/g,  `(${vheen})`);
+  if (vterug !== undefined) e = e.replace(/v_terug/g, `(${vterug})`);
+  e = e.replace(/k_1/g, `(${kr})`).replace(/k1/g, `(${k1})`);
+  e = e.replace(/\^/g, '**');
+  try {
+    const r = new Function(`"use strict"; return (${e});`)();
+    return (isFinite(r) && !isNaN(r)) ? r : NaN;
+  } catch { return NaN; }
+}
+
+// ── RK45 (Dormand-Prince) ──
+// Butcher tableau coefficients
+const DP_A = [
+  [],
+  [1/5],
+  [3/40,       9/40],
+  [44/45,      -56/15,      32/9],
+  [19372/6561, -25360/2187, 64448/6561, -212/729],
+  [9017/3168,  -355/33,     46732/5247,  49/176,  -5103/18656],
+];
+const DP_B  = [35/384, 0, 500/1113, 125/192, -2187/6784, 11/84, 0];
+const DP_E  = [71/57600, 0, -71/16695, 71/1920, -17253/339200, 22/525, -1/40]; // error (b*-b)
+
+let rkH = 1e-4; // current adaptive step size, reset on each sim start
+
+function derivatives(conc) {
+  // Returns d[X]/dt array or null on error
+  const k1 = k1v(), kr = krv();
+  const concMap = {};
+  speciesList.forEach((s, i) => { concMap[s.name] = Math.max(0, conc[i]); });
+  const vheen  = evalExpr(document.getElementById('inp-vheen').value,  concMap, k1, kr);
+  const vterug = evalExpr(document.getElementById('inp-vterug').value, concMap, k1, kr);
+  if (isNaN(vheen) || isNaN(vterug)) return null;
+  const dcdt = speciesList.map(s => evalExpr(s.de_expr, concMap, k1, kr, vheen, vterug));
+  if (dcdt.some(isNaN)) return null;
+  return dcdt;
+}
+
+function vecAdd(a, k, s) { return a.map((x, i) => x + k[i] * s); }
+
+function rkStep(conc, h, tol) {
+  // Stage evaluations
+  const K = [];
+  K[0] = derivatives(conc);
+  if (!K[0]) return null;
+
+  for (let s = 1; s <= 5; s++) {
+    const row = DP_A[s];
+    let c = [...conc];
+    for (let j = 0; j < row.length; j++) c = vecAdd(c, K[j], h * row[j]);
+    K[s] = derivatives(c.map(x => Math.max(0, x)));
+    if (!K[s]) return null;
+  }
+
+  // 5th-order solution
+  const y5 = conc.map((x, i) => x + h * DP_B.slice(0,6).reduce((s, b, j) => s + b * K[j][i], 0));
+
+  // k7 for error estimate (FSAL)
+  K[6] = derivatives(y5.map(x => Math.max(0, x)));
+  if (!K[6]) return null;
+
+  // Error norm (mixed abs/rel scaling)
+  const atol = tol, rtol = tol;
+  let errSq = 0;
+  for (let i = 0; i < conc.length; i++) {
+    const e = h * DP_E.reduce((s, e, j) => s + e * K[j][i], 0);
+    const sc = atol + Math.max(Math.abs(conc[i]), Math.abs(y5[i])) * rtol;
+    errSq += (e / sc) ** 2;
+  }
+  const errNorm = Math.sqrt(errSq / conc.length);
+
+  // PI step-size controller
+  const factor = Math.min(5, Math.max(0.1, 0.9 * Math.pow(Math.max(errNorm, 1e-10), -0.2)));
+  const h_new = h * factor;
+
+  if (errNorm <= 1.0) {
+    return { conc: y5.map(x => Math.max(0, x)), h_new, accepted: true };
+  } else {
+    return { conc, h_new, accepted: false };
+  }
+}
+
+// ── Sim loop (RK45 adaptive) ──
+const EQ_TOL = 0.01; // |Q − K| / K < 1% → equilibrium
+
+function loop() {
+  const tol   = P('inp-tol') || 1e-6;
+  const H_MAX = 1e4;
+  let accepted = 0;
+
+  while (accepted < stepsPerFrame) {
+    const V    = P('inp-V') || 1;
+    const conc = speciesList.map(s => Math.max(0, s.n / V));
+    const res  = rkStep(conc, rkH, tol);
+
+    if (!res) { stopSim(); showWarn('Fout in vergelijking — controleer v of DV\'s'); return; }
+
+    const h_used = rkH;
+    // Plafond: max 1% van de verstreken tijd per stap, zodat de grafiek
+    // altijd ±100 punten per decade heeft — óók bij snel bereikte evenwichten.
+    // (Floor 1e-6 s voorkomt dat de sim bij t≈0 vastloopt.)
+    const H_PLOT = Math.max(1e-6, simT * 0.01);
+    rkH = Math.min(res.h_new, H_MAX, H_PLOT);
+
+    if (!res.accepted) continue;
+
+    simT += h_used;
+    speciesList.forEach((s, i) => { s.n = res.conc[i] * V; });
+    history.push({ t: simT, conc: [...res.conc], Q: computeQ(res.conc) });
+    accepted++;
+  }
+
+  // Decimate history: when > 5000 points, halve the older 4000
+  if (history.length > 5000) {
+    const keep = history.slice(-1000);
+    const old  = history.slice(0, -1000);
+    const thinned = old.filter((_, i) => i % 2 === 0);
+    history = [...thinned, ...keep];
+  }
+
+  // Auto-stop: |Q_intern − K| / K < 1%  (K = k1/kr, niet getoond aan leerling)
+  if (!eqDetectedAt) {
+    const k1 = k1v(), kr = krv();
+    if (isFinite(k1) && isFinite(kr) && kr > 0) {
+      const K = k1 / kr;
+      const Q = computeQInternal(speciesList.map(s => Math.max(0, s.n / (P('inp-V') || 1))));
+      if (isFinite(Q) && Q > 0 && Math.abs(Q - K) / K < EQ_TOL) {
+        eqDetectedAt = simT;
+        eqStopAt     = simT + simT / 4;
+      }
+    }
+  }
+  if (eqStopAt && simT >= eqStopAt) {
+    stopSim();
+    document.getElementById('eq-note').textContent = `Evenwicht ≈ ${eqDetectedAt.toFixed(2)} s`;
+    drawGraph();
+    return;
+  }
+
+  const V    = P('inp-V') || 1;
+  const conc = speciesList.map(s => Math.max(0, s.n / V));
+  document.getElementById('t-disp').textContent = simT.toFixed(3);
+  updateInfo(conc, computeQ(conc));
+  validateAll();
+  drawGraph();
+  animId = requestAnimationFrame(loop);
+}
+
+function showWarn(m) { document.getElementById('warn-box').textContent = m; }
+function clearWarn()  { document.getElementById('warn-box').textContent = ''; }
+
+function startSim() {
+  clearWarn();
+  if (!speciesList.length) { showWarn('Voeg stoffen toe'); return; }
+  if (!P('inp-T') || !P('inp-Ea1') || !P('inp-Ea2')) { showWarn('Vul T, Ea,heen en Ea,terug in'); return; }
+  eqDetectedAt = null; eqStopAt = null;
+  document.getElementById('eq-note').textContent = '';
+  rkH = 1e-6;
+  running = true;
+  document.getElementById('btn-run').disabled = true;
+  document.getElementById('btn-pause').disabled = false;
+  animId = requestAnimationFrame(loop);
+}
+
+function stopSim() {
+  running = false;
+  if (animId) { cancelAnimationFrame(animId); animId = null; }
+  document.getElementById('btn-run').disabled = false;
+  document.getElementById('btn-pause').disabled = true;
+}
+
+function resetSim() {
+  stopSim(); clearWarn();
+  simT = 0; history = []; rkH = 1e-6;
+  eqDetectedAt = null; eqStopAt = null;
+  document.getElementById('eq-note').textContent = '';
+  const V = P('inp-V') || 1;
+  speciesList.forEach(s => { s.n = s.n0 * V; });
+  document.getElementById('t-disp').textContent = '0.00';
+  const conc = speciesList.map(s => s.n0);
+  updateInfo(conc, computeQ(conc));
+  drawGraph();
+}
+
+// ── Species management ──
+function addSpecies(name='', coeff=1, role='reactant', n0=0, color=null, de='') {
+  const id = nextId++;
+  speciesList.push({ id, name, coeff, role, n0, n: n0 * (P('inp-V') || 1), color: color || colorFor(speciesList.length), de_expr: de });
+  renderSpeciesTable();
+  renderDEFields();
+  renderChips();
+  renderPlotChecks();
+  updateAFactorLabel();
+}
+
+function removeSpecies(id) {
+  speciesList = speciesList.filter(s => s.id !== id);
+  renderSpeciesTable();
+  renderDEFields();
+  renderChips();
+  renderPlotChecks();
+  updateAFactorLabel();
+  drawGraph();
+}
+
+function renderSpeciesTable() {
+  const tbody = document.getElementById('species-tbody');
+  tbody.innerHTML = '';
+  speciesList.forEach(s => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div class="spc-dot" style="background:${tc(s.color)}"></div></td>
+      <td><input class="spc-inp spc-name"  data-id="${s.id}" data-f="name"  value="${s.name}"  placeholder="naam"></td>
+      <td><input class="spc-inp spc-coeff" data-id="${s.id}" data-f="coeff" value="${s.coeff}" type="number" min="1" max="9" step="1"></td>
+      <td><select class="spc-role" data-id="${s.id}" data-f="role">
+            <option value="reactant" ${s.role==='reactant'?'selected':''}>React.</option>
+            <option value="product"  ${s.role==='product' ?'selected':''}>Prod.</option>
+          </select></td>
+      <td><input class="spc-inp spc-n0"   data-id="${s.id}" data-f="n0"    value="${s.n0}"    type="number" min="0" step="0.1"></td>
+      <td><button class="spc-del" data-id="${s.id}">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('[data-id]').forEach(el => {
+    const id = +el.dataset.id;
+    const field = el.dataset.f;
+    if (!field) return;
+    const ev = (el.tagName === 'SELECT' || el.type === 'number') ? 'change' : 'input';
+    el.addEventListener(ev, function() {
+      const s = speciesList.find(x => x.id === id);
+      if (!s) return;
+      if (field === 'name')  { s.name  = this.value; renderDEFields(); renderChips(); renderPlotChecks(); }
+      if (field === 'coeff') { s.coeff = Math.max(1, parseInt(this.value) || 1); updateAFactorLabel(); }
+      if (field === 'role')  { s.role  = this.value; renderPlotChecks(); updateAFactorLabel(); }
+      if (field === 'n0')    { s.n0 = parseFloat(this.value) || 0; s.n = s.n0 * (P('inp-V') || 1); }
+    });
+    if (el.classList.contains('spc-del')) el.addEventListener('click', () => removeSpecies(id));
+  });
+}
+
+// ── Insert chips ──
+function insertAt(input, text) {
+  const s = input.selectionStart, e = input.selectionEnd, v = input.value;
+  input.value = v.slice(0, s) + text + v.slice(e);
+  input.selectionStart = input.selectionEnd = s + text.length;
+  input.focus();
+  input.dispatchEvent(new Event('input'));
+}
+
+function makeChips(container, inputId, extras=[]) {
+  container.innerHTML = '';
+  const input = document.getElementById(inputId);
+
+  // Species chips
+  speciesList.forEach(s => {
+    if (!s.name) return;
+    const c = document.createElement('span');
+    c.className = 'chip';
+    c.style.borderColor = tc(s.color) + '88';
+    c.style.color = tc(s.color);
+    c.textContent = `[${s.name}]`;
+    c.addEventListener('click', () => insertAt(input, `[${s.name}]`));
+    container.appendChild(c);
+  });
+
+  // Extra chips (v_heen, v_terug for DE fields)
+  extras.forEach(txt => {
+    const c = document.createElement('span');
+    c.className = 'chip v';
+    c.textContent = txt;
+    c.addEventListener('click', () => insertAt(input, txt));
+    container.appendChild(c);
+  });
+}
+
+function renderChips() {
+  makeChips(document.getElementById('chips-vheen'),  'inp-vheen');
+  makeChips(document.getElementById('chips-vterug'), 'inp-vterug');
+  makeChips(document.getElementById('chips-Q'),      'inp-Q');
+  speciesList.forEach(s => {
+    const cont = document.getElementById(`chips-de-${s.id}`);
+    if (cont) makeChips(cont, `de-${s.id}`, ['v_heen', 'v_terug']);
+  });
+}
+
+// ── DE fields ──
+function renderDEFields() {
+  const container = document.getElementById('de-fields');
+  container.innerHTML = '';
+  speciesList.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'formula-row';
+    div.innerHTML = `
+      <div class="formula-lbl">
+        <div class="f-status" id="fs-de-${s.id}"></div>
+        <span>d[<span class="hi">${s.name || '?'}</span>]/dt =</span>
+      </div>
+      <input class="formula-inp" id="de-${s.id}" value="${s.de_expr}" placeholder="bijv. -2*v_heen + 2*v_terug">
+      <div class="chips" id="chips-de-${s.id}"></div>
+    `;
+    container.appendChild(div);
+    div.querySelector(`#de-${s.id}`).addEventListener('input', function() {
+      const sp = speciesList.find(x => x.id === s.id);
+      if (sp) sp.de_expr = this.value;
+      validateAll();
+    });
+  });
+  // Rebuild chips inside new DE rows
+  speciesList.forEach(s => {
+    const cont = document.getElementById(`chips-de-${s.id}`);
+    if (cont) makeChips(cont, `de-${s.id}`, ['v_heen', 'v_terug']);
+  });
+}
+
+// ── Validation ──
+function validateAll() {
+  const V = P('inp-V') || 1;
+  const k1 = k1v() || 1, kr = krv() || 1;
+  const conc = speciesList.map(s => Math.max(0.001, s.n / V));
+  const concMap = {};
+  speciesList.forEach((s, i) => { concMap[s.name] = conc[i]; });
+
+  const vh  = evalExpr(document.getElementById('inp-vheen').value,  concMap, k1, kr);
+  const vt  = evalExpr(document.getElementById('inp-vterug').value, concMap, k1, kr);
+  const qv  = evalExpr(document.getElementById('inp-Q').value,      concMap, 0,  0);
+
+  setStatus('fs-vheen',  !isNaN(vh));
+  setStatus('fs-vterug', !isNaN(vt));
+  setStatus('fs-Q',      !isNaN(qv));
+
+  speciesList.forEach(s => {
+    const val = evalExpr(s.de_expr, concMap, k1, kr, isNaN(vh) ? 0 : vh, isNaN(vt) ? 0 : vt);
+    setStatus(`fs-de-${s.id}`, !isNaN(val));
+  });
+}
+
+function setStatus(id, ok) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = 'f-status' + (ok ? ' ok' : ' err');
+}
+
+// ── Plot checks ──
+function renderPlotChecks() {
+  const container = document.getElementById('plot-checks');
+  container.innerHTML = '';
+
+  speciesList.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'plot-item';
+    div.innerHTML = `
+      <input type="checkbox" id="plot-${s.id}" checked>
+      <div class="plot-dash" style="background:${tc(s.color)}"></div>
+      <label for="plot-${s.id}" style="color:${tc(s.color)}">[${s.name || '?'}]</label>
+    `;
+    div.querySelector('input').addEventListener('change', drawGraph);
+    container.appendChild(div);
+  });
+
+  const qDiv = document.createElement('div');
+  qDiv.className = 'plot-item';
+  qDiv.innerHTML = `
+    <input type="checkbox" id="plot-Q" ${plotQ ? 'checked' : ''}>
+    <div class="plot-dash" style="background:${tc(Q_COLOR)}"></div>
+    <label for="plot-Q" style="color:${tc(Q_COLOR)}">Q</label>
+  `;
+  qDiv.querySelector('input').addEventListener('change', function() { plotQ = this.checked; drawGraph(); });
+  container.appendChild(qDiv);
+}
+
+// ── Info ──
+function fmt(n) {
+  if (n === undefined || isNaN(n) || !isFinite(n)) return '—';
+  if (Math.abs(n) >= 1e4 || (Math.abs(n) < 0.01 && n !== 0)) return n.toExponential(2);
+  return n.toPrecision(3);
+}
+
+function updateInfo(conc, Q) {
+  document.getElementById('info-Q').textContent = fmt(Q);
+  const live = document.getElementById('conc-live');
+  live.innerHTML = '';
+  speciesList.forEach((s, i) => {
+    const row = document.createElement('div');
+    row.className = 'kv';
+    row.innerHTML = `<span class="k" style="color:${tc(s.color)}">[${s.name}]</span><span class="v">${fmt(conc[i])}</span>`;
+    live.appendChild(row);
+  });
+}
+
+// ── Graph ──
+const canvas = document.getElementById('graph');
+const ctx = canvas.getContext('2d');
+const tooltip = document.getElementById('tooltip');
+
+new ResizeObserver(() => {
+  const r = canvas.parentElement.getBoundingClientRect();
+  canvas.width  = r.width  * devicePixelRatio;
+  canvas.height = r.height * devicePixelRatio;
+  canvas.style.width  = r.width  + 'px';
+  canvas.style.height = r.height + 'px';
+  drawGraph();
+}).observe(canvas.parentElement);
+
+canvas.addEventListener('mousemove', e => {
+  const r = canvas.getBoundingClientRect();
+  mouseX = (e.clientX - r.left) * devicePixelRatio;
+  mouseY = (e.clientY - r.top)  * devicePixelRatio;
+  drawGraph();
+  tooltip.style.left = (e.clientX - r.left + 16) + 'px';
+  tooltip.style.top  = (e.clientY - r.top  - 10) + 'px';
+});
+canvas.addEventListener('mouseleave', () => {
+  mouseX = null; tooltip.style.display = 'none'; drawGraph();
+});
+
+function fmtAxis(val) {
+  if (!isFinite(val)) return '';
+  if (Math.abs(val) >= 1e4 || (Math.abs(val) < 0.01 && val !== 0)) return val.toExponential(1);
+  return val.toFixed(Math.abs(val) < 1 ? 3 : 2);
+}
+
+function makeScale(min, max, fallMin, fallMax) {
+  let lo = isFinite(min) ? min : fallMin;
+  let hi = isFinite(max) ? max : fallMax;
+  if (lo === hi) { lo -= 0.5; hi += 0.5; }
+  const pad = (hi - lo) * 0.08;
+  return { lo: lo - pad, hi: hi + pad };
+}
+
+function drawGraph() {
+  const W = canvas.width, H = canvas.height;
+  const dp = devicePixelRatio;
+  const mg = { top: 16*dp, right: 56*dp, bottom: 38*dp, left: 58*dp };
+  const gW = W - mg.left - mg.right, gH = H - mg.top - mg.bottom;
+
+  ctx.fillStyle = CV().bg;
+  ctx.fillRect(0, 0, W, H);
+
+  const activeSeries = speciesList.filter(s => {
+    const el = document.getElementById(`plot-${s.id}`);
+    return el && el.checked;
+  });
+
+  const allHistories = [history, ...snapshots.map(s => s.history)].filter(h => h.length >= 2);
+
+  if (!allHistories.length) {
+    ctx.fillStyle = CV().watermark; ctx.font = `${12*dp}px Georgia`; ctx.textAlign = 'center';
+    ctx.fillText(speciesList.length ? 'Klik ▶ Start' : 'Voeg stoffen toe en stel parameters in', W/2, H/2);
+    drawAxes(ctx, mg, gW, gH, dp, {lo:0,hi:1}, {lo:0,hi:1}, 1, true);
+    return;
+  }
+
+  const tMax = Math.max(...allHistories.map(h => h[h.length-1].t)) || 1;
+
+  // Separate y-ranges for concentrations (left) and Q (right)
+  let cMin = Infinity, cMax = -Infinity, qMin = Infinity, qMax = -Infinity;
+  allHistories.forEach(hist => hist.forEach(h => {
+    activeSeries.forEach(s => {
+      const si = speciesList.indexOf(s);
+      if (si < 0 || si >= h.conc.length) return;
+      const raw = h.conc[si];
+      const v = logScale ? Math.log10(Math.max(1e-15, raw)) : raw;
+      if (isFinite(v)) { cMin = Math.min(cMin, v); cMax = Math.max(cMax, v); }
+    });
+    if (plotQ && isFinite(h.Q) && h.Q > 0 && h.Q < 1e15) {
+      const v = logScale ? Math.log10(Math.max(1e-15, h.Q)) : h.Q;
+      if (isFinite(v)) { qMin = Math.min(qMin, v); qMax = Math.max(qMax, v); }
+    }
+  }));
+
+  const scC = makeScale(cMin, cMax, 0, 1);
+  const scQ = makeScale(qMin, qMax, 0, 1);
+
+  const xS  = t => mg.left + (t / tMax) * gW;
+  const yCS = v => mg.top + gH - ((v - scC.lo) / (scC.hi - scC.lo)) * gH;
+  const yQS = v => mg.top + gH - ((v - scQ.lo) / (scQ.hi - scQ.lo)) * gH;
+
+  drawAxes(ctx, mg, gW, gH, dp, scC, scQ, tMax, false);
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(mg.left, mg.top, gW, gH); ctx.clip();
+
+  function drawLine(hist, dataFn, color, yScale, lineW) {
+    ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = (lineW || 1.8) * dp;
+    let first = true;
+    hist.forEach(h => {
+      const raw = dataFn(h);
+      if (raw === null || !isFinite(raw) || raw < 0) { first = true; return; }
+      const v = logScale ? Math.log10(Math.max(1e-15, raw)) : raw;
+      if (!isFinite(v)) { first = true; return; }
+      const x = xS(h.t), y = yScale(v);
+      first ? ctx.moveTo(x, y) : ctx.lineTo(x, y); first = false;
+    });
+    ctx.stroke();
+  }
+
+  // Snapshots (grey dashed)
+  const snapGrays = CV().snapGrays;
+  snapshots.forEach((snap, si) => {
+    const gray = snapGrays[si % snapGrays.length];
+    ctx.setLineDash([4*dp, 3*dp]);
+    speciesList.forEach((s, i) => drawLine(snap.history, h => h.conc[i], gray, yCS, 1.2));
+    if (plotQ) drawLine(snap.history, h => (isFinite(h.Q) && h.Q > 0 && h.Q < 1e15) ? h.Q : null, gray, yQS, 1.2);
+    ctx.setLineDash([]);
+    if (snap.history.length) {
+      const last = snap.history[snap.history.length - 1];
+      const lx = xS(last.t);
+      if (lx < mg.left + gW - 5*dp) {
+        ctx.fillStyle = gray; ctx.font = `${9*dp}px monospace`; ctx.textAlign = 'left';
+        ctx.fillText(snap.label, lx + 3*dp, mg.top + (si+1)*12*dp);
+      }
+    }
+  });
+
+  activeSeries.forEach(s => {
+    const si = speciesList.indexOf(s);
+    drawLine(history, h => h.conc[si], tc(s.color), yCS);
+  });
+  if (plotQ) drawLine(history, h => (isFinite(h.Q) && h.Q > 0 && h.Q < 1e15) ? h.Q : null, tc(Q_COLOR), yQS);
+  ctx.restore();
+
+  // Hover crosshair + tooltip
+  if (mouseX !== null && mouseX >= mg.left && mouseX <= mg.left + gW) {
+    const t_hov = (mouseX - mg.left) / gW * tMax;
+    let closest = history[0], minD = Infinity;
+    history.forEach(h => { const d = Math.abs(h.t - t_hov); if (d < minD) { minD = d; closest = h; } });
+
+    const hx = xS(closest.t);
+    ctx.save();
+    ctx.strokeStyle = CV().cross; ctx.lineWidth = dp;
+    ctx.setLineDash([4*dp, 4*dp]);
+    ctx.beginPath(); ctx.moveTo(hx, mg.top); ctx.lineTo(hx, mg.top + gH); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+
+    activeSeries.forEach(s => {
+      const si = speciesList.indexOf(s);
+      const raw = closest.conc[si]; if (raw < 0 || !isFinite(raw)) return;
+      const v = logScale ? Math.log10(Math.max(1e-15, raw)) : raw;
+      ctx.beginPath(); ctx.arc(hx, yCS(v), 4*dp, 0, Math.PI*2); ctx.fillStyle = tc(s.color); ctx.fill();
+    });
+    if (plotQ && isFinite(closest.Q) && closest.Q > 0 && closest.Q < 1e15) {
+      const v = logScale ? Math.log10(Math.max(1e-15, closest.Q)) : closest.Q;
+      ctx.beginPath(); ctx.arc(hx, yQS(v), 4*dp, 0, Math.PI*2); ctx.fillStyle = tc(Q_COLOR); ctx.fill();
+    }
+
+    let html = `<div class="tt-row"><span class="tt-key">t</span><span class="tt-val">${closest.t.toFixed(3)} s</span></div>`;
+    activeSeries.forEach(s => {
+      const si = speciesList.indexOf(s);
+      html += `<div class="tt-row"><span class="tt-key" style="color:${tc(s.color)}">[${s.name}]</span><span class="tt-val">${fmt(closest.conc[si])}</span></div>`;
+    });
+    if (plotQ) html += `<div class="tt-row"><span class="tt-key" style="color:${tc(Q_COLOR)}">Q</span><span class="tt-val">${fmt(closest.Q)}</span></div>`;
+    tooltip.innerHTML = html; tooltip.style.display = 'block';
+  }
+}
+
+function drawAxes(ctx, mg, gW, gH, dp, scC, scQ, tMax, empty) {
+  const TICKS = 5;
+  // Horizontal gridlines
+  ctx.strokeStyle = CV().grid; ctx.lineWidth = 1; ctx.setLineDash([3*dp, 5*dp]);
+  for (let i = 1; i <= TICKS; i++) {
+    const y = mg.top + gH - (i/TICKS) * gH;
+    ctx.beginPath(); ctx.moveTo(mg.left, y); ctx.lineTo(mg.left + gW, y); ctx.stroke();
+  }
+  // Vertical gridlines + x labels
+  for (let i = 1; i <= 6; i++) {
+    const x = mg.left + (i/6) * gW;
+    ctx.beginPath(); ctx.moveTo(x, mg.top); ctx.lineTo(x, mg.top + gH); ctx.stroke();
+    if (!empty) {
+      const val = (i/6) * tMax;
+      const s = val >= 1000 ? val.toExponential(0) : val.toFixed(val < 10 ? 1 : 0);
+      ctx.fillStyle = CV().xTick; ctx.font = `${9*dp}px monospace`; ctx.textAlign = 'center';
+      ctx.fillText(s, x, mg.top + gH + 14*dp);
+    }
+  }
+  ctx.setLineDash([]);
+
+  if (!empty) {
+    // Left axis labels (concentrations)
+    ctx.fillStyle = CV().yTick; ctx.font = `${9*dp}px monospace`; ctx.textAlign = 'right';
+    for (let i = 0; i <= TICKS; i++) {
+      const y = mg.top + gH - (i/TICKS) * gH;
+      const val = scC.lo + (i/TICKS) * (scC.hi - scC.lo);
+      ctx.fillText(fmtAxis(val), mg.left - 5*dp, y + 3*dp);
+    }
+    // Right axis labels (Q)
+    ctx.fillStyle = tc(Q_COLOR) + 'cc'; ctx.textAlign = 'left';
+    for (let i = 0; i <= TICKS; i++) {
+      const y = mg.top + gH - (i/TICKS) * gH;
+      const val = scQ.lo + (i/TICKS) * (scQ.hi - scQ.lo);
+      ctx.fillText(fmtAxis(val), mg.left + gW + 5*dp, y + 3*dp);
+    }
+  }
+
+  // Axis lines
+  ctx.strokeStyle = CV().axis; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(mg.left, mg.top); ctx.lineTo(mg.left, mg.top + gH);          // left
+  ctx.moveTo(mg.left, mg.top + gH); ctx.lineTo(mg.left + gW, mg.top + gH); // bottom
+  ctx.moveTo(mg.left + gW, mg.top); ctx.lineTo(mg.left + gW, mg.top + gH); // right
+  ctx.stroke();
+
+  // Axis titles
+  ctx.fillStyle = CV().axisTitle; ctx.font = `${10*dp}px Georgia`; ctx.textAlign = 'center';
+  ctx.fillText('t (s)', mg.left + gW/2, mg.top + gH + 28*dp);
+
+  ctx.save();
+  ctx.translate(13*dp, mg.top + gH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillStyle = CV().yTick;
+  ctx.fillText(logScale ? 'log [X] (mol/L)' : 'concentratie (mol/L)', 0, 0);
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(mg.left + gW + mg.right - 14*dp, mg.top + gH/2); ctx.rotate(Math.PI/2);
+  ctx.fillStyle = tc(Q_COLOR) + 'cc';
+  ctx.fillText(logScale ? 'log Q' : 'Q', 0, 0);
+  ctx.restore();
+}
+
+// ── Log scale ──
+document.getElementById('chk-log').addEventListener('change', function() { logScale = this.checked; drawGraph(); });
+
+// ── Speed ──
+document.getElementById('sl-speed').addEventListener('input', function() {
+  stepsPerFrame = SPEED_STEPS[+this.value];
+  document.getElementById('lbl-speed').textContent = stepsPerFrame + '×';
+});
+
+// ── v_heen / v_terug / Q live validation ──
+['inp-vheen','inp-vterug','inp-Q'].forEach(id => {
+  document.getElementById(id).addEventListener('input', validateAll);
+});
+
+// ── Parameter changes ──
+['inp-T','inp-Ea1','inp-Ea2','inp-A1','inp-A2','inp-V'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    updateAFactorLabel();
+    const conc = speciesList.map(s => Math.max(0, s.n / (P('inp-V') || 1)));
+    updateInfo(conc, computeQ(conc));
+    validateAll();
+  });
+});
+
+// ── Controls ──
+document.getElementById('btn-run').addEventListener('click', startSim);
+document.getElementById('btn-pause').addEventListener('click', stopSim);
+document.getElementById('btn-reset').addEventListener('click', resetSim);
+document.getElementById('btn-theme').addEventListener('click', function() {
+  lightTheme = !lightTheme;
+  document.body.classList.toggle('light', lightTheme);
+  this.textContent = lightTheme ? '\u{1F319} Donker thema' : '\u{1F5A8} Licht thema';
+  // huidige plot-vinkjes bewaren, want renderPlotChecks zet alles standaard aan
+  const plotState = {};
+  speciesList.forEach(s => { const el = document.getElementById(`plot-${s.id}`); if (el) plotState[s.id] = el.checked; });
+  renderSpeciesTable(); renderChips(); renderPlotChecks();
+  speciesList.forEach(s => { const el = document.getElementById(`plot-${s.id}`); if (el && s.id in plotState) el.checked = plotState[s.id]; });
+  const V = P('inp-V') || 1;
+  const conc = speciesList.map(s => Math.max(0, s.n / V));
+  updateInfo(conc, computeQ(conc));
+  drawGraph();
+});
+document.getElementById('btn-add-spc').addEventListener('click', () => addSpecies());
+
+// ── Example: Haber-Bosch ──
+document.getElementById('btn-example').addEventListener('click', () => {
+  stopSim(); speciesList = []; nextId = 1;
+  addSpecies('N₂',  1, 'reactant', 1.0, COLORS[0], '-v_heen + v_terug');
+  addSpecies('H₂',  3, 'reactant', 3.0, COLORS[1], '-3*v_heen + 3*v_terug');
+  addSpecies('NH₃', 2, 'product',  0.0, COLORS[2], '2*v_heen - 2*v_terug');
+  // Ea₁=80, Ea₂=172 → ΔH = 80-172 = -92 kJ/mol (exotherm)
+  // A₁ = 1e4 (orde 4), A₂ = 1e10 (orde 2) → K(800K) ≈ 1
+  document.getElementById('inp-T').value   = 800;
+  document.getElementById('inp-Ea1').value = 80;
+  document.getElementById('inp-Ea2').value = 172;
+  document.getElementById('inp-V').value   = 1.0;
+  document.getElementById('inp-vheen').value  = 'k1 * [N₂] * [H₂]^3';
+  document.getElementById('inp-vterug').value = 'k_1 * [NH₃]^2';
+  document.getElementById('inp-Q').value      = '[NH₃]^2 / ([N₂] * [H₂]^3)';
+  history = []; simT = 0; snapshots = []; snapshotCount = 0;
+  eqDetectedAt = null; eqStopAt = null;
+  document.getElementById('t-disp').textContent = '0.00';
+  document.getElementById('eq-note').textContent = '';
+  updateAFactorLabel();
+  renderChips();
+  validateAll();
+  const conc = speciesList.map(s => s.n0);
+  updateInfo(conc, computeQ(conc));
+  drawGraph();
+});
+
+// ── Clear all ──
+document.getElementById('btn-clear-all').addEventListener('click', () => {
+  stopSim(); speciesList = []; nextId = 1;
+  ['inp-T','inp-Ea1','inp-Ea2','inp-A1','inp-A2','inp-V','inp-vheen','inp-vterug','inp-Q'].forEach(id => document.getElementById(id).value = '');
+  renderSpeciesTable(); renderDEFields(); renderChips(); renderPlotChecks();
+  history = []; simT = 0; snapshots = []; snapshotCount = 0;
+  eqDetectedAt = null; eqStopAt = null;
+  document.getElementById('t-disp').textContent = '0.00';
+  document.getElementById('eq-note').textContent = '';
+  updateAFactorLabel();
+  updateInfo([], NaN); drawGraph();
+});
+
+// ── Snapshot ──
+document.getElementById('btn-snapshot').addEventListener('click', () => {
+  if (!history.length) return;
+  snapshotCount++;
+  snapshots.push({ history: [...history], label: `Run ${snapshotCount}` });
+  if (snapshots.length > 3) snapshots.shift();
+  drawGraph();
+});
+document.getElementById('btn-clear-snap').addEventListener('click', () => {
+  snapshots = []; drawGraph();
+});
+
+// ── Boot ──
+renderPlotChecks();
+drawGraph();
+updateInfo([], NaN);
+updateAFactorLabel();
+</script>
+</body>
+</html>
