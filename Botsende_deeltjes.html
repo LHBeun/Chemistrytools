@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Botsingssimulatie — reactiekinetiek</title>
+<style>
+  :root{
+    --bg:#ffffff; --panel:#f7f7f5; --panel-2:#f0f0ec; --line:#d8d6ce;
+    --text:#211f19; --text-dim:#6b6557;
+    --accent:#c1652f; --accent-dim:#a8623a;
+    --accent2:#2f8a78; --accent2-dim:#2f7a68;
+    --enzyme:#8a5bd6; --enzyme-dim:#c3aae8;
+    --surface:#b8503b; --surface-dim:#d99c8c;
+    --warn:#b8503b; --good:#2f8a78;
+    --mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text); font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:1180px; margin:0 auto; padding:22px 22px 50px;}
+
+  header.top{margin-bottom:18px;}
+  .eyebrow{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--accent); margin-bottom:6px;
+  }
+  h1{margin:0; font-size:25px; font-weight:650; letter-spacing:-0.01em;}
+  header.top p.sub{color:var(--text-dim); font-size:13.5px; line-height:1.55; max-width:760px; margin:10px 0 0;}
+
+  .layout{display:grid; grid-template-columns:1fr 320px; gap:18px;}
+  @media (max-width:880px){ .layout{grid-template-columns:1fr;} }
+
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:18px 20px; margin-bottom:16px;
+  }
+  .panel h2{font-size:14px; margin:0 0 10px; color:var(--text); font-weight:600;}
+  .panel p.sub{color:var(--text-dim); font-size:13px; line-height:1.55; margin:0 0 4px;}
+
+  .mode-row{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; align-items:center;}
+  .mode-btn{
+    background:var(--panel-2); border:1px solid var(--line); color:var(--text-dim);
+    font-family:var(--mono); font-size:12.5px; letter-spacing:.03em; padding:9px 16px;
+    border-radius:7px; cursor:pointer; transition:all .15s;
+  }
+  .mode-btn:hover:not(:disabled){border-color:var(--accent-dim); color:var(--text);}
+  .mode-btn.active{background:var(--accent-dim); border-color:var(--accent); color:#fff3ea;}
+  .mode-btn:disabled{opacity:.4; cursor:not-allowed;}
+
+  /* ---- arena / canvas ---- */
+  .arena-wrap{position:relative;}
+  #arena{
+    width:100%; aspect-ratio:4/3; background:var(--bg); border-radius:10px;
+    border:1px solid var(--line); display:block;
+  }
+  .arena-overlay{
+    position:absolute; top:0; left:0; right:0; padding:14px 16px; pointer-events:none;
+    display:flex; justify-content:space-between; align-items:flex-start;
+  }
+  .info-chip{
+    font-family:var(--mono); background:rgba(255,255,255,0.88); border:1px solid var(--line);
+    border-radius:8px; padding:8px 14px; backdrop-filter:blur(2px);
+  }
+  .info-chip .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim);}
+  .info-chip .val{font-size:15px; font-weight:600;}
+
+  .legend{display:flex; gap:14px; font-size:11.5px; color:var(--text-dim); margin-top:10px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:5px;}
+  .dot{width:9px; height:9px; border-radius:50%; display:inline-block;}
+
+  /* ---- rate bar (stand 1) ---- */
+  .rate-bar-wrap{margin-top:4px;}
+  .rate-bar-track{
+    height:130px; background:var(--panel-2); border-radius:8px; position:relative; overflow:hidden;
+    display:flex; align-items:flex-end; padding:0 0;
+  }
+  .rate-bar-fill{
+    width:100%; background:linear-gradient(180deg, var(--accent), var(--accent-dim));
+    border-radius:0; transition:height .15s ease-out;
+  }
+  .rate-bar-label{
+    display:flex; justify-content:space-between; align-items:baseline; margin-top:8px;
+    font-family:var(--mono);
+  }
+  .rate-bar-label .big{font-size:24px; font-weight:700; color:var(--accent);}
+
+  /* ---- rate-vs-time chart (stand 2) ---- */
+  #rate-chart{width:100%; height:170px; display:block;}
+
+  /* ---- knobs ---- */
+  .ctrl-group{margin-bottom:16px;}
+  .ctrl-group:last-child{margin-bottom:0;}
+  .ctrl-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;}
+  .ctrl-head label{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.03em; color:var(--text);
+    text-transform:uppercase;
+  }
+  .ctrl-head .readout{font-family:var(--mono); font-size:11px; color:var(--text-dim);}
+  input[type=range]{
+    width:100%; height:5px; -webkit-appearance:none; background:var(--panel-2);
+    border-radius:3px; outline:none; margin:6px 0 4px;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+    background:var(--accent); cursor:pointer; border:2px solid var(--bg);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:14px; height:14px; border-radius:50%; background:var(--accent); cursor:pointer;
+    border:2px solid var(--bg);
+  }
+  input[type=range]:disabled{opacity:.4;}
+  input[type=range]:disabled::-webkit-slider-thumb{background:var(--text-dim);}
+
+  #controls-wrap.locked{position:relative;}
+  #controls-wrap.locked .panel{opacity:.55; pointer-events:none;}
+  #controls-wrap.locked::before{
+    content:'Vergrendeld tijdens het verloop'; position:absolute; top:-2px; left:0; right:0;
+    text-align:center; font-family:var(--mono); font-size:11px; color:var(--text-dim);
+    letter-spacing:.04em; z-index:2; background:var(--bg); padding:4px 0;
+  }
+
+  .toggle-row{display:flex; gap:6px; margin-top:6px;}
+  .toggle-btn{
+    flex:1; background:var(--panel-2); border:1px solid var(--line); color:var(--text-dim);
+    font-family:var(--mono); font-size:11px; padding:7px 4px; border-radius:6px; cursor:pointer;
+    transition:all .15s;
+  }
+  .toggle-btn.active{background:var(--accent2-dim); border-color:var(--accent2); color:#eafff9;}
+  .toggle-btn:disabled{opacity:.4; cursor:not-allowed;}
+
+  .wear-bar{height:4px; background:var(--panel-2); border-radius:3px; overflow:hidden; margin-top:6px;}
+  .wear-fill{height:100%; width:100%; transition:width .3s;}
+
+  .btn{
+    background:var(--accent-dim); border:1px solid var(--accent); color:#fff3ea;
+    font-family:var(--mono); font-size:12.5px; padding:10px 18px; border-radius:7px;
+    cursor:pointer; transition:all .15s; width:100%;
+  }
+  .btn:hover:not(:disabled){background:var(--accent);}
+  .btn.ghost{background:transparent; border:1px solid var(--line); color:var(--text-dim);}
+  .btn.ghost:hover:not(:disabled){border-color:var(--accent-dim); color:var(--text);}
+  .btn:disabled{opacity:.4; cursor:not-allowed;}
+
+  footer.note{color:var(--text-dim); font-size:12px; text-align:center; margin-top:24px; line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="eyebrow">Reactiekinetiek · botsingstheorie</div>
+    <h1>Botsingssimulatie</h1>
+    <p class="sub">Verken hoe temperatuur, concentratie, katalysatoren en oriëntatie de reactiesnelheid bepalen — zichtbaar in de doos zelf, niet alleen in een getal.</p>
+  </header>
+
+  <div class="layout">
+    <div>
+      <div class="panel">
+        <div class="mode-row">
+          <button class="mode-btn active" id="btn-explore">Verkennen</button>
+          <button class="mode-btn" id="btn-run">Laat de reactie verlopen</button>
+          <button class="mode-btn ghost" id="btn-reset-run" style="display:none;">Reset</button>
+        </div>
+        <p class="sub" id="mode-sub">De doos is een meetinstrument: botsingen tellen voor de reactiesnelheid, maar verbruiken niets — pas de knoppen aan en zie het effect direct.</p>
+
+        <div class="arena-wrap">
+          <canvas id="arena" width="800" height="600"></canvas>
+          <div class="arena-overlay">
+            <div class="info-chip">
+              <div class="lbl">Deeltjes A / B</div>
+              <div class="val" id="count-val">— / —</div>
+            </div>
+            <div class="info-chip" style="text-align:right;">
+              <div class="lbl">Effectieve botsingskans zonder katalysator</div>
+              <div class="val" id="bare-chance-val">—</div>
+              <div class="lbl" id="cat-chance-row" style="margin-top:6px; display:none;">Effectieve botsingskans met katalysator</div>
+              <div class="val" id="cat-chance-val" style="display:none;">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <span><span class="dot" style="background:var(--accent);"></span> deeltje A</span>
+          <span><span class="dot" style="background:var(--accent2);"></span> deeltje B</span>
+          <span><span class="dot" style="background:var(--enzyme);"></span> enzym E (homogeen)</span>
+          <span><span class="dot" style="background:var(--surface);"></span> actieve plek (heterogeen)</span>
+        </div>
+      </div>
+
+      <div class="panel" id="rate-panel-explore">
+        <h2>Reactiesnelheid (huidige condities)</h2>
+        <div class="rate-bar-wrap">
+          <div class="rate-bar-track"><div class="rate-bar-fill" id="rate-bar-fill" style="height:0%;"></div></div>
+          <div class="rate-bar-label">
+            <span class="big"><span id="rate-bar-val">0.0</span> /s</span>
+            <span style="color:var(--text-dim); font-size:12px;" id="rate-bar-sub"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="rate-panel-run" style="display:none;">
+        <h2>Reactiesnelheid tijdens het verloop</h2>
+        <canvas id="rate-chart" width="760" height="170"></canvas>
+        <p class="sub" id="run-status" style="margin-top:8px;"></p>
+      </div>
+    </div>
+
+    <div id="controls-wrap">
+      <div class="panel">
+        <h2>Knoppen</h2>
+
+        <div class="ctrl-group">
+          <div class="ctrl-head"><label>Temperatuur</label><span class="readout"><span id="readout-T">325</span> K</span></div>
+          <input type="range" id="ctrl-T" min="250" max="500" value="325" step="1">
+        </div>
+
+        <div class="ctrl-group">
+          <div class="ctrl-head"><label>Concentratie A</label><span class="readout"><span id="readout-CA">0.40</span> M</span></div>
+          <input type="range" id="ctrl-CA" min="0.05" max="1.0" value="0.40" step="0.01">
+        </div>
+
+        <div class="ctrl-group">
+          <div class="ctrl-head"><label>Concentratie B</label><span class="readout"><span id="readout-CB">0.40</span> M</span></div>
+          <input type="range" id="ctrl-CB" min="0.05" max="1.0" value="0.40" step="0.01">
+        </div>
+
+        <div class="ctrl-group">
+          <div class="ctrl-head"><label>Oriëntatiefactor</label><span class="readout" id="readout-O">0.30</span></div>
+          <input type="range" id="ctrl-O" min="0" max="1" value="0.30" step="0.01">
+          <p class="sub" style="margin-top:6px; font-size:12px;">Het holle (donkere) deel van een deeltje stelt de reactieve groep voor. Hoe groter dat gedeelte, hoe groter de kans dat twee deeltjes elkaar daar precies raken bij een botsing.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Homogene katalysator <span style="color:var(--text-dim); font-weight:400;">(enzym)</span></h2>
+        <div class="toggle-row">
+          <button class="toggle-btn active" data-enz="0">geen</button>
+          <button class="toggle-btn" data-enz="1">weinig</button>
+          <button class="toggle-btn" data-enz="2">veel</button>
+        </div>
+        <p class="sub" style="margin-top:8px; font-size:12px;">Enzym-deeltjes (paars) binden tijdelijk aan een A of B en verhogen de reactiekans bij contact met een partner. Bij overschot substraat verzadigt het effect.</p>
+        <div class="wear-bar"><div class="wear-fill" id="enz-wear" style="background:var(--enzyme);"></div></div>
+      </div>
+
+      <div class="panel">
+        <h2>Heterogene katalysator <span style="color:var(--text-dim); font-weight:400;">(oppervlak)</span></h2>
+        <div class="toggle-row">
+          <button class="toggle-btn active" data-het="0">geen</button>
+          <button class="toggle-btn" data-het="1">1 plek</button>
+          <button class="toggle-btn" data-het="2">3 plekken</button>
+        </div>
+        <p class="sub" style="margin-top:8px; font-size:12px;">Actieve plek(ken) onderin de doos binden een A-deeltje. Een botsing met B daar heeft een verhoogde kans op reactie.</p>
+        <div class="wear-bar"><div class="wear-fill" id="het-wear" style="background:var(--surface);"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="note">
+    Stand "Verkennen": de doos meet de reactiesnelheid zonder iets te verbruiken. Stand "Laat de reactie verlopen": een eenmalige, echte doorloop waarbij reactanten daadwerkelijk verdwijnen.
+  </footer>
+</div>
+
+<script>
+// ============================================================
+// CONFIG & CONSTANTS
+// ============================================================
+const W = 800, H = 600;
+const R_BODY = 12;
+const R_HEAD_MIN = 1.5, R_HEAD_MAX = 9.5; // head radius range, driven by the O knob
+const HEAD_OFFSET_FRAC = 0.85; // head center sits at this fraction of R_BODY from the body center
+const BASE_SPEED = 150; // px/s at T=50 (mid slider), scaled by sqrt(T/50) elsewhere
+const WALL_BOUNCE_JITTER = 0.6; // radians, random nudge to heading on wall bounce
+const RATE_WINDOW_S = 3; // reaction rate = reactions in the last N seconds / N
+const ACTIVATION_ENERGY_BASE = 210;
+const SURFACE_STRIP_HEIGHT = 24; // px, height of the heterogeneous catalyst strip at the bottom
+const SURFACE_SITE_R = 9; // px, radius of an active site marker on the strip
+// How close a free B needs to get to a surface-bound A to attempt the catalyzed reaction. Only
+// slightly wider than a real body-to-body touch (R_BODY*2) -- earlier attempts at a much wider
+// radius reached the ~30% target but left a visible gap between B and the bound A at the moment
+// of a successful flash (the explosion would appear in empty space). This narrower margin (about
+// 10% of a body diameter) keeps that gap essentially imperceptible while still meaningfully
+// increasing how often a passing B actually gets evaluated against a bound A -- contact MOMENTS,
+// not the per-contact success chance, were the real bottleneck (confirmed: even a 100%
+// per-contact chance at the bare R_BODY*2 radius plateaued under 10%).
+const SURFACE_CONTACT_RADIUS = R_BODY*2.2;
+
+let rng = Math.random;
+
+function angleDiff(a,b){
+  let d = Math.abs(a-b) % (Math.PI*2);
+  if(d > Math.PI) d = Math.PI*2 - d;
+  return d;
+}
+
+// ============================================================
+// PARTICLE MODEL
+// ============================================================
+// A particle is a "figure-8": a body circle plus a smaller head circle riding on its rim in the
+// `heading` direction. The head's radius -- not an invisible angle margin -- IS the orientation
+// tolerance: a bigger head is physically easier to hit head-on-head, a tiny head demands a near-
+// perfect alignment. This makes the abstract "orientation factor" something the player can see
+// and reason about directly, rather than a hidden angular check happening off-screen.
+//
+// Color encodes kinetic energy per-particle (not just the global T knob): brighter/lighter =
+// faster right now. Because individual particle speeds carry their own random spread around the
+// mean set by T, particles at the "same" temperature still show a visible mix of brightness --
+// a small, honest preview of a Maxwell-Boltzmann-style speed distribution rather than a single
+// uniform glow that would misleadingly suggest every particle moves identically.
+function makeParticle(type, speedScale){
+  const angle = rng()*Math.PI*2;
+  const speed = BASE_SPEED*speedScale*(0.7+0.6*rng());
+  return {
+    type, // 'A' | 'B' | 'E' (enzyme)
+    x: R_BODY + rng()*(W-2*R_BODY),
+    y: R_BODY + rng()*(H-2*R_BODY),
+    vx: Math.cos(angle)*speed,
+    vy: Math.sin(angle)*speed,
+    heading: rng()*Math.PI*2,
+    alive: true,
+    boundTo: null, // for A/B: id of the enzyme currently bound to, else null
+    boundToSite: null, // for A: index into box.sites if bound to a surface site, else null
+    boundTimer: 0, // seconds remaining in the current binding, counts down to 0
+    id: ++particleIdCounter,
+  };
+}
+let particleIdCounter = 0;
+
+function speedOf(p){ return Math.hypot(p.vx, p.vy); }
+
+// Maps a particle's current kinetic energy (proportional to speed^2, not speed itself -- this is
+// what "kinetic energy" actually means physically) to a 0..1 "heat" value for color interpolation.
+// Calibrated so a particle at roughly the mean speed for T=50 sits near the middle of the range,
+// not pinned to either extreme -- the visible spread then comes from the per-particle speed
+// jitter baked in at spawn (see makeParticle) and from the natural variety collisions introduce
+// over time. Squaring widens the visual contrast between slow and fast particles compared to a
+// linear speed mapping, which is the correct physical behavior: energy grows quadratically with
+// speed, so a particle going twice as fast carries four times the kinetic energy, not two.
+function heatOf(p, refSpeed){
+  const s = speedOf(p);
+  const kineticEnergy = s*s;
+  const refEnergy = (refSpeed*1.35)*(refSpeed*1.35); // re-tuned reference point for the squared scale
+  return Math.max(0, Math.min(1, kineticEnergy/refEnergy));
+}
+
+function colorForParticle(p, heat){
+  // A: orange family (cool -> warm), B: teal family (cool -> warm), E: fixed purple regardless
+  // of speed (the enzyme's own kinetic energy isn't the point being taught here).
+  if(p.type === 'E') return '#8a5bd6';
+  const lerp = (a,b,t)=> Math.round(a+(b-a)*t);
+  if(p.type === 'A'){
+    // cool: pale tan-orange -> hot: deep saturated orange-red (darker = more energetic, for legibility on white)
+    const r = lerp(0xc8,0xb8,heat), g = lerp(0x8a,0x40,heat), b = lerp(0x5a,0x14,heat);
+    return `rgb(${r},${g},${b})`;
+  } else {
+    // cool: pale teal -> hot: deep saturated teal
+    const r = lerp(0x7a,0x0f,heat), g = lerp(0xb8,0x7a,heat), b = lerp(0xa6,0x5e,heat);
+    return `rgb(${r},${g},${b})`;
+  }
+}
+
+function headRadiusFromO(O){
+  return R_HEAD_MIN + (R_HEAD_MAX-R_HEAD_MIN)*(O/100);
+}
+
+function headPosition(p){
+  return {
+    x: p.x + Math.cos(p.heading)*R_BODY*HEAD_OFFSET_FRAC,
+    y: p.y + Math.sin(p.heading)*R_BODY*HEAD_OFFSET_FRAC,
+  };
+}
+
+// ============================================================
+// BOX — the simulation itself
+// ============================================================
+// `consumeOnReaction` is the single switch between the two modes the player sees:
+// - false (Verkennen / explore): a successful collision is logged for the rate measurement but
+//   nothing disappears -- the box behaves like a measuring instrument with a constant
+//   concentration, exactly matching what the C knob promises.
+// - true (Laat de reactie verlopen / run-to-completion): a successful collision actually consumes
+//   the two particles -- this is the one place the "reaction really happening" payoff lives.
+// Everything else in the physics (movement, collision detection, energy/head checks) is IDENTICAL
+// between the two modes; only what happens after a success differs. That keeps the two modes
+// honest reflections of the same underlying model rather than two different simulations.
+class Box{
+  constructor(opts){
+    this.T = opts.T; this.CA = opts.CA; this.CB = opts.CB; this.O = opts.O;
+    this.enzymeLevel = opts.enzymeLevel || 0; // 0=geen, 1=weinig, 2=veel
+    this.heterogeneLevel = opts.heterogeneLevel || 0; // 0=geen, 1=1 plek, 2=3 plekken
+    this.consumeOnReaction = !!opts.consumeOnReaction;
+    this.particles = [];
+    this.reactionLog = []; // sim-time seconds of recent successes (bare + catalyzed combined), for the rate measurement
+    this.bareCollisionLog = []; // sim-time seconds of every bare A-B body collision, success or not -- denominator for the bare success chance
+    this.bareSuccessLog = []; // sim-time seconds of bare (non-catalyzed) successes only -- numerator for the bare success chance
+    this.simTime = 0;
+    this.flashes = []; // {x,y,kind,age}: kind = 'success' | (nothing for plain bounces)
+    this.lastSpeedScale = this.speedScale();
+    this.enzymeWear = 0; // 0..1, how worn the enzyme pool collectively is
+    this.surfaceWear = 0; // 0..1, how worn the heterogeneous surface collectively is
+    this.sites = [];
+    this.rebuildSites();
+    this.rebuildParticles();
+  }
+
+  enzymeCount(){
+    // Calibrated so the overall (bare + catalyzed) success chance settles at roughly 30% at
+    // "veel", measured AFTER fixing the wear-pool scaling bug (see enzymeWear update in step()) --
+    // an earlier calibration done before that fix looked right only because un-scaled wear was
+    // silently suppressing the catalyzed route within seconds, masking how strong the route
+    // actually was at steady state.
+    return [0, 10, 25][this.enzymeLevel] || 0;
+  }
+
+  // The contact success chance an enzyme-bound particle gets when a free partner hits it. Fades
+  // toward the bare (non-catalyzed, energy/head-gated) outcome as wear approaches 1 -- the
+  // catalyst doesn't vanish abruptly, its advantage just erodes, which is what "slijtage" should
+  // feel like in the box rather than a hard cliff.
+  enzymeContactChance(){
+    const fresh = 0.70;
+    const worn = 0.04; // close to a typical bare-collision success rate, not literally 0
+    return fresh - (fresh-worn)*this.enzymeWear;
+  }
+
+  siteCount(){
+    // Reaching a comparable catalyst effect to the enzyme (which sits near ~30%) turned out not
+    // to be achievable here without an unacceptably wide (and visually broken) contact radius --
+    // a fixed-in-space site simply sees far fewer passing partners than a freely drifting enzyme.
+    // Settled for a smaller but still clearly visible boost (~15-20% overall success chance at
+    // "veel"), combined with the slightly widened SURFACE_CONTACT_RADIUS above.
+    return [0, 5, 15][this.heterogeneLevel] || 0;
+  }
+
+  surfaceContactChance(){
+    const fresh = 0.65;
+    const worn = 0.04;
+    return fresh - (fresh-worn)*this.surfaceWear;
+  }
+
+  rebuildSites(){
+    // Release anything currently bound to an existing site before replacing the array -- without
+    // this, a particle's boundToSite would briefly point at an index in a sites array that no
+    // longer has that site, relying on step()'s own defensive check to clean it up a frame late
+    // rather than being released the moment the player actually changes the catalyst setting.
+    for(const site of this.sites){
+      if(site.boundParticleId){
+        const sub = this.particles.find(p=>p.id===site.boundParticleId);
+        if(sub) this.releaseSiteBinding(site, sub, false);
+      }
+    }
+    const n = this.siteCount();
+    this.sites = [];
+    // Sites sit right at the strip's top edge -- where the wall keeping free particles out of the
+    // strip itself is -- rather than buried in the middle of the strip's height. That guarantees
+    // a free particle that's pressed up against that wall is actually within binding range; placing
+    // the site mid-strip left it just out of reach of anything that never enters the strip.
+    const y = H - R_BODY - SURFACE_STRIP_HEIGHT + SURFACE_SITE_R*0.6;
+    for(let i=0;i<n;i++){
+      const x = W*((i+1)/(n+1)); // evenly spaced along the strip
+      this.sites.push({x, y, boundParticleId:null});
+    }
+  }
+
+  speedScale(){ return Math.sqrt(Math.max(this.T,1)/50); }
+
+  headRadius(){ return headRadiusFromO(this.O); }
+
+  effectiveActivationEnergy(){ return ACTIVATION_ENERGY_BASE; } // overridden by subclass/mixins later for catalysts
+
+  // particles for ONE type, given that type's own concentration -- scaled up enough that even
+  // moderate settings produce a steady, visible stream of collisions rather than rare isolated
+  // events. Shared formula so A and B stay on the same density-to-particle-count curve; only the
+  // concentration value fed in differs.
+  targetCountFor(concentration){
+    return Math.round(20 + concentration*1.1);
+  }
+  targetCountA(){ return this.targetCountFor(this.CA); }
+  targetCountB(){ return this.targetCountFor(this.CB); }
+
+  rebuildParticles(){
+    const nA = this.targetCountA();
+    const nB = this.targetCountB();
+    this.particles = [];
+    const speedScale = this.speedScale();
+    for(let i=0;i<nA;i++) this.particles.push(makeParticle('A', speedScale));
+    for(let i=0;i<nB;i++) this.particles.push(makeParticle('B', speedScale));
+    const nEnz = this.enzymeCount();
+    for(let i=0;i<nEnz;i++) this.particles.push(makeParticle('E', speedScale*0.6)); // enzymes drift a bit slower, they're bulkier
+  }
+
+  syncEnzymeCount(){
+    const n = this.enzymeCount();
+    const current = this.particles.filter(p=>p.type==='E' && p.alive);
+    const speedScale = this.speedScale();
+    if(current.length < n){
+      for(let i=current.length;i<n;i++) this.particles.push(makeParticle('E', speedScale*0.6));
+    } else if(current.length > n){
+      let toRemove = current.length - n;
+      const byId = new Map(this.particles.map(p=>[p.id,p]));
+      for(const p of current){
+        if(toRemove<=0) break;
+        // A bound enzyme can't just vanish while still holding a substrate -- that substrate's
+        // boundTo would point at a particle that no longer exists. Release the binding cleanly
+        // first (same as a normal binding timing out with no reaction), then remove the enzyme.
+        // Without this, choosing "geen" right after a round of heavy use would leave every
+        // currently-bound enzyme stuck in the mixture forever, since the old code only ever
+        // removed enzymes that happened to be free at that exact instant.
+        if(p.boundTo !== null){
+          const sub = byId.get(p.boundTo);
+          if(sub) this.releaseBinding(p, sub, false);
+        }
+        p.alive=false; toRemove--;
+      }
+    }
+    this.particles = this.particles.filter(p=>p.alive);
+  }
+
+  resyncSpeeds(){
+    const scale = this.speedScale();
+    const ratio = scale / (this.lastSpeedScale || scale);
+    for(const p of this.particles){
+      p.vx *= ratio; p.vy *= ratio;
+    }
+    this.lastSpeedScale = scale;
+  }
+
+  syncParticleCount(){
+    const targets = {A: this.targetCountA(), B: this.targetCountB()};
+    const speedScale = this.speedScale();
+    const byId = new Map(this.particles.map(p=>[p.id,p]));
+    for(const type of ['A','B']){
+      const n = targets[type];
+      const current = this.particles.filter(p=>p.type===type && p.alive);
+      if(current.length < n){
+        for(let i=current.length;i<n;i++) this.particles.push(makeParticle(type, speedScale));
+      } else if(current.length > n){
+        let toRemove = current.length - n;
+        for(const p of current){
+          if(toRemove<=0) break;
+          // Release any binding cleanly first (same reasoning as syncEnzymeCount): a bound A/B
+          // would otherwise only get cleaned up once its own binding timer happens to run out,
+          // which could take up to ~1.8s and, on a single one-off slider nudge, might never get
+          // re-checked at all.
+          if(p.boundTo !== null){
+            const enzyme = byId.get(p.boundTo);
+            if(enzyme) this.releaseBinding(enzyme, p, false);
+          } else if(p.boundToSite !== null){
+            const site = this.sites[p.boundToSite];
+            if(site) this.releaseSiteBinding(site, p, false);
+          }
+          p.alive = false; toRemove--;
+        }
+      }
+    }
+    this.particles = this.particles.filter(p=>p.alive);
+  }
+
+  step(dt){
+    this.simTime += dt;
+
+    // free movement: anything not currently bound (to an enzyme OR a surface site) moves
+    // normally and bounces off walls. The bottom wall sits above the catalyst strip only when
+    // that strip actually exists -- with no heterogeneous catalyst selected, the box keeps its
+    // full height instead of needlessly reserving an unused margin.
+    const bottomWall = this.siteCount() > 0 ? H-R_BODY-SURFACE_STRIP_HEIGHT : H-R_BODY;
+    for(const p of this.particles){
+      if(!p.alive || p.boundTo || p.boundToSite !== null) continue;
+      p.x += p.vx*dt; p.y += p.vy*dt;
+      if(p.x < R_BODY){ p.x = R_BODY; p.vx = Math.abs(p.vx); p.heading += (rng()-0.5)*WALL_BOUNCE_JITTER; }
+      if(p.x > W-R_BODY){ p.x = W-R_BODY; p.vx = -Math.abs(p.vx); p.heading += (rng()-0.5)*WALL_BOUNCE_JITTER; }
+      if(p.y < R_BODY){ p.y = R_BODY; p.vy = Math.abs(p.vy); p.heading += (rng()-0.5)*WALL_BOUNCE_JITTER; }
+      if(p.y > bottomWall){ p.y = bottomWall; p.vy = -Math.abs(p.vy); p.heading += (rng()-0.5)*WALL_BOUNCE_JITTER; }
+    }
+
+    // bound substrate particles (A/B currently latched to an enzyme) ride along with their
+    // enzyme at a fixed offset -- visually a "dumbbell" pair drifting together -- and their
+    // binding timer counts down. When it hits zero with nothing having happened, they release
+    // with no reaction: a fresh random heading/velocity, free to move on their own again.
+    const byId = new Map(this.particles.map(p=>[p.id,p]));
+    for(const p of this.particles){
+      if(!p.alive || p.type==='E' || !p.boundTo) continue;
+      const enzyme = byId.get(p.boundTo);
+      if(!enzyme || !enzyme.alive){ p.boundTo=null; p.boundTimer=0; continue; }
+      p.x = enzyme.x + Math.cos(p._bindAngle)*(R_BODY*2.05);
+      p.y = enzyme.y + Math.sin(p._bindAngle)*(R_BODY*2.05);
+      p.boundTimer -= dt;
+      if(p.boundTimer <= 0){
+        this.releaseBinding(enzyme, p, false);
+      }
+    }
+
+    // particles bound to a fixed surface site simply sit at the site's position (the site itself
+    // never moves), with the same countdown-and-release-if-nothing-happens timer as the enzyme.
+    for(const p of this.particles){
+      if(!p.alive || p.boundToSite === null) continue;
+      const site = this.sites[p.boundToSite];
+      if(!site || site.boundParticleId !== p.id){ p.boundToSite = null; p.boundTimer=0; continue; }
+      p.x = site.x; p.y = site.y - R_BODY*0.4; // sits just above the strip, mostly visible above it
+      p.boundTimer -= dt;
+      if(p.boundTimer <= 0){
+        this.releaseSiteBinding(site, p, false);
+      }
+    }
+
+    // collisions among free (non-bound, non-enzyme) A/B particles -- the bare, uncatalyzed route,
+    // unchanged from before.
+    const freeAB = this.particles.filter(p=>p.alive && !p.boundTo && p.boundToSite===null && (p.type==='A'||p.type==='B'));
+    for(let i=0;i<freeAB.length;i++){
+      const a = freeAB[i];
+      if(!a.alive) continue;
+      for(let j=i+1;j<freeAB.length;j++){
+        const b = freeAB[j];
+        if(!b.alive) continue;
+        const dx=b.x-a.x, dy=b.y-a.y;
+        const distSq = dx*dx+dy*dy;
+        const minDist = R_BODY*2;
+        if(distSq < minDist*minDist && distSq > 0.0001){
+          this.resolveCollision(a,b,dx,dy,Math.sqrt(distSq));
+        }
+      }
+    }
+
+    // enzyme interactions: a free (unbound) enzyme can (a) bind to a free A/B it touches, or
+    // (b) if it's already bound, have its bound passenger contacted by a free particle of the
+    // OTHER type -- that contact is the catalyzed-reaction attempt.
+    const enzymes = this.particles.filter(p=>p.alive && p.type==='E');
+    for(const e of enzymes){
+      if(e.boundTo){
+        const bound = byId.get(e.boundTo);
+        if(bound && bound.alive){
+          const partnerType = bound.type === 'A' ? 'B' : 'A';
+          for(const partner of freeAB){
+            if(!partner.alive || partner.type !== partnerType || partner.boundTo || partner.boundToSite !== null) continue;
+            const dx=partner.x-bound.x, dy=partner.y-bound.y;
+            const dist = Math.hypot(dx,dy);
+            if(dist < R_BODY*2){
+              this.attemptCatalyzedReaction(e, bound, partner, dx, dy, dist);
+              break; // one contact attempt per enzyme per frame is enough
+            }
+          }
+        }
+      } else {
+        // look for a free A/B to grab
+        for(const sub of freeAB){
+          if(!sub.alive || sub.boundTo || sub.boundToSite !== null) continue;
+          const dx=sub.x-e.x, dy=sub.y-e.y;
+          const dist = Math.hypot(dx,dy);
+          if(dist < R_BODY*2){
+            this.bindToEnzyme(e, sub);
+            break;
+          }
+        }
+      }
+    }
+
+    // heterogeneous surface: each site only ever binds an A particle (the heterogeneous route is
+    // intentionally asymmetric -- the surface always grabs A specifically, unlike the enzyme
+    // which takes whichever of A/B touches it first). A bound site's A is then a fixed-position
+    // target a free B can contact for an elevated-chance reaction attempt, same shape as the
+    // enzyme route but anchored in space instead of drifting.
+    for(const site of this.sites){
+      if(site.boundParticleId){
+        const bound = byId.get(site.boundParticleId);
+        if(!bound || !bound.alive){ site.boundParticleId = null; continue; }
+        for(const partner of freeAB){
+          if(!partner.alive || partner.type !== 'B' || partner.boundTo || partner.boundToSite !== null) continue;
+          const dx=partner.x-bound.x, dy=partner.y-bound.y;
+          const dist = Math.hypot(dx,dy);
+          if(dist < SURFACE_CONTACT_RADIUS){
+            this.attemptSurfaceReaction(site, bound, partner, dx, dy, dist);
+            break;
+          }
+        }
+      } else {
+        for(const sub of freeAB){
+          if(!sub.alive || sub.type !== 'A' || sub.boundTo || sub.boundToSite !== null) continue;
+          const dx=sub.x-site.x, dy=sub.y-site.y;
+          const dist = Math.hypot(dx,dy);
+          if(dist < R_BODY+SURFACE_SITE_R){
+            this.bindToSite(site, sub);
+            break;
+          }
+        }
+      }
+    }
+
+    this.particles = this.particles.filter(p=>p.alive);
+
+    for(const f of this.flashes) f.age += dt;
+    this.flashes = this.flashes.filter(f=>f.age < 0.45);
+
+    const cutoff = this.simTime - RATE_WINDOW_S - 1;
+    if(this.reactionLog.length && this.reactionLog[0] < cutoff){
+      this.reactionLog = this.reactionLog.filter(t=>t >= cutoff);
+    }
+    if(this.bareCollisionLog.length && this.bareCollisionLog[0] < cutoff){
+      this.bareCollisionLog = this.bareCollisionLog.filter(t=>t >= cutoff);
+    }
+    if(this.bareSuccessLog.length && this.bareSuccessLog[0] < cutoff){
+      this.bareSuccessLog = this.bareSuccessLog.filter(t=>t >= cutoff);
+    }
+  }
+
+  bindToEnzyme(enzyme, sub){
+    enzyme.boundTo = sub.id;
+    sub.boundTo = enzyme.id;
+    sub._bindAngle = rng()*Math.PI*2; // fixed angle offset for the "dumbbell" visual, re-rolled each binding
+    sub.boundTimer = 1.0 + rng()*0.8; // 1.0-1.8s binding window
+  }
+
+  releaseBinding(enzyme, sub, reacted){
+    enzyme.boundTo = null;
+    sub.boundTo = null;
+    sub.boundTimer = 0;
+    if(!reacted){
+      // releases with a fresh random heading so it doesn't just sit there matching the enzyme's
+      // old velocity -- a clean restart of free movement.
+      const angle = rng()*Math.PI*2;
+      const speed = Math.hypot(sub.vx,sub.vy) || BASE_SPEED*this.speedScale();
+      sub.vx = Math.cos(angle)*speed; sub.vy = Math.sin(angle)*speed;
+    }
+  }
+
+  attemptCatalyzedReaction(enzyme, bound, partner, dx, dy, dist){
+    // physically separate them like a normal bounce first, so a failed attempt still behaves
+    // like a real collision rather than letting particles overlap forever.
+    const overlap = (R_BODY*2-dist)/2;
+    const nx = dx/dist, ny = dy/dist;
+    bound.x -= nx*overlap; bound.y -= ny*overlap; // also nudges the enzyme next frame via the offset re-application
+    partner.x += nx*overlap; partner.y += ny*overlap;
+    const rsn = (partner.vx*nx+partner.vy*ny);
+    if(rsn < 0){ partner.vx -= rsn*nx; partner.vy -= rsn*ny; }
+
+    if(rng() < this.enzymeContactChance()){
+      const a = bound.type==='A' ? bound : partner;
+      const b = bound.type==='A' ? partner : bound;
+      this.onSuccessfulReaction(a,b, {catalyzed:'homogeneous'});
+      this.releaseBinding(enzyme, bound, true);
+      // Wear accrues per successful catalyzed reaction, but scaled down by how many enzymes
+      // share the pool: with more enzymes working in parallel, each individual success should
+      // deplete the SHARED wear pool proportionally less, so the overall time-to-fully-worn stays
+      // roughly constant regardless of enzymeLevel. Without this scaling, raising enzymeCount()
+      // (done above to reach a visible ~30% catalyzed success rate) made the pool wear out within
+      // 20-30s instead of the intended ~100s of continuous heavy use.
+      const referenceEnzymeCount = 8; // the count this increment was originally tuned against
+      const wearIncrement = 0.0025 * (referenceEnzymeCount / Math.max(1, this.enzymeCount()));
+      this.enzymeWear = Math.min(1, this.enzymeWear + wearIncrement);
+    }
+    // failure: bound stays bound (timer keeps counting down from where it was), partner just
+    // bounced off like any other failed attempt -- no marker.
+  }
+
+  bindToSite(site, sub){
+    site.boundParticleId = sub.id;
+    sub.boundToSite = this.sites.indexOf(site);
+    sub.boundTimer = 1.0 + rng()*0.8; // same binding window shape as the enzyme, for consistency
+    // The bound A always presents its head straight up into the solution, away from the strip --
+    // a real surface-bound molecule has a fixed orientation set by how it's anchored, not a
+    // random one. This also makes a passing B's job geometrically simpler: only B's own heading
+    // needs to happen to point downward at the moment of contact, instead of both particles'
+    // headings needing to randomly align.
+    sub.heading = -Math.PI/2;
+  }
+
+  releaseSiteBinding(site, sub, reacted){
+    site.boundParticleId = null;
+    sub.boundToSite = null;
+    sub.boundTimer = 0;
+    if(!reacted){
+      const angle = rng()*Math.PI*2;
+      const speed = Math.hypot(sub.vx,sub.vy) || BASE_SPEED*this.speedScale();
+      sub.vx = Math.cos(angle)*speed; sub.vy = Math.sin(angle)*speed;
+      // nudge it off the strip surface so it doesn't immediately re-bind to the same site
+      sub.y -= R_BODY*1.5;
+    }
+  }
+
+  attemptSurfaceReaction(site, bound, partner, dx, dy, dist){
+    // Only push the partner apart if there's an actual body overlap (dist < R_BODY*2) -- contact
+    // attempts beyond that, out to SURFACE_CONTACT_RADIUS, represent the wider "local environment"
+    // a bound molecule reacts across, not a literal second collision, so they shouldn't shove the
+    // partner around. Without this guard, the widened radius would compute a NEGATIVE overlap and
+    // push the partner further away instead of resolving anything, which reads as the partner
+    // mysteriously flinching before it even touches the bound particle.
+    const nx = dx/dist, ny = dy/dist;
+    if(dist < R_BODY*2){
+      const overlap = (R_BODY*2-dist)/2;
+      partner.x += nx*overlap; partner.y += ny*overlap;
+      const rsn = (partner.vx*nx+partner.vy*ny);
+      if(rsn < 0){ partner.vx -= rsn*nx; partner.vy -= rsn*ny; }
+    }
+
+    if(rng() < this.surfaceContactChance()){
+      this.onSuccessfulReaction(bound, partner, {catalyzed:'heterogeneous'});
+      this.releaseSiteBinding(site, bound, true);
+      // Same reasoning as the enzyme wear scaling above: more sites sharing the pool means each
+      // individual success should deplete it proportionally less, keeping time-to-fully-worn
+      // roughly constant across heterogeneLevel.
+      const referenceSiteCount = 3; // the count this increment was originally tuned against
+      const siteWearIncrement = 0.0025 * (referenceSiteCount / Math.max(1, this.siteCount()));
+      this.surfaceWear = Math.min(1, this.surfaceWear + siteWearIncrement);
+      return true;
+    }
+    return false;
+    // failure: bound (A) stays on the site, partner just bounces off (if there was real body
+    // contact) or simply continues on its way (if the attempt was within the wider radius but
+    // not yet touching) -- no marker either way.
+  }
+
+  resolveCollision(a,b,dx,dy,dist){
+    const overlap = (R_BODY*2 - dist)/2;
+    const nx = dx/dist, ny = dy/dist;
+    a.x -= nx*overlap; a.y -= ny*overlap;
+    b.x += nx*overlap; b.y += ny*overlap;
+
+    const relVx = b.vx-a.vx, relVy = b.vy-a.vy;
+    const relSpeedAlongNormal = relVx*nx + relVy*ny;
+    if(relSpeedAlongNormal >= 0) return; // already separating, not a real impact this frame
+    a.vx += relSpeedAlongNormal*nx; a.vy += relSpeedAlongNormal*ny;
+    b.vx -= relSpeedAlongNormal*nx; b.vy -= relSpeedAlongNormal*ny;
+
+    if(a.type === b.type) return; // only A-B pairs can react; A-A/B-B always just bounce
+    this.bareCollisionLog.push(this.simTime);
+
+    const relSpeed = Math.hypot(relVx, relVy);
+    const collisionEnergy = 0.5*relSpeed*relSpeed*0.01;
+    const energyOk = collisionEnergy >= this.effectiveActivationEnergy();
+
+    // head-head overlap check: this IS the orientation factor now, expressed as geometry instead
+    // of a hidden angle margin -- two particles only react if their (variably-sized) heads are
+    // close enough together at the moment of body impact.
+    const headA = headPosition(a), headB = headPosition(b);
+    const headDist = Math.hypot(headB.x-headA.x, headB.y-headA.y);
+    const headRadius = this.headRadius();
+    const headsOverlap = headDist < headRadius*2;
+
+    if(energyOk && headsOverlap){
+      this.bareSuccessLog.push(this.simTime);
+      this.onSuccessfulReaction(a,b);
+    }
+    // failed attempts are visually identical to a plain A-A/B-B bounce: no marker at all.
+  }
+
+  onSuccessfulReaction(a,b,meta){
+    this.reactionLog.push(this.simTime);
+    this.flashes.push({x:(a.x+b.x)/2, y:(a.y+b.y)/2, kind:'success', age:0});
+    if(this.consumeOnReaction){
+      a.alive = false; b.alive = false;
+    }
+    // in explore mode, a and b simply remain -- already correct since we don't touch .alive here.
+  }
+
+  currentRate(){
+    const cutoff = this.simTime - RATE_WINDOW_S;
+    let count = 0;
+    for(let i=this.reactionLog.length-1;i>=0;i--){
+      if(this.reactionLog[i] >= cutoff) count++; else break;
+    }
+    return count / RATE_WINDOW_S;
+  }
+
+  // Effective chance that a bare A-B body collision actually reacts, measured directly from
+  // recent simulation outcomes rather than computed from a formula -- this stays automatically
+  // correct no matter how the energy/orientation logic above might later change, since it's
+  // reading the real outcomes of resolveCollision rather than re-deriving them.
+  bareSuccessChance(){
+    const cutoff = this.simTime - RATE_WINDOW_S;
+    const countIn = (log)=>{ let c=0; for(let i=log.length-1;i>=0;i--){ if(log[i]>=cutoff) c++; else break; } return c; };
+    const collisions = countIn(this.bareCollisionLog);
+    const successes = countIn(this.bareSuccessLog);
+    if(collisions === 0) return null; // not enough recent data to estimate -- caller should show e.g. "—"
+    return successes/collisions;
+  }
+
+  // Effective chance INCLUDING catalysts: of all A-B body collisions, what fraction of bound
+  // catalyzed contact-attempts succeed, blended with the bare rate by how much of the traffic
+  // currently goes through each route. Simpler and just as honest: total successes (bare +
+  // catalyzed) over total bare collisions -- since every catalyzed success also represents one
+  // fewer particle available for a bare collision, this ratio can exceed the bare chance exactly
+  // in proportion to how much the catalysts are contributing, without needing to model the two
+  // routes' traffic split explicitly.
+  totalSuccessChance(){
+    const cutoff = this.simTime - RATE_WINDOW_S;
+    const countIn = (log)=>{ let c=0; for(let i=log.length-1;i>=0;i--){ if(log[i]>=cutoff) c++; else break; } return c; };
+    const collisions = countIn(this.bareCollisionLog);
+    const allSuccesses = countIn(this.reactionLog);
+    if(collisions === 0) return null;
+    return allSuccesses/collisions;
+  }
+
+  countAlive(type){
+    return this.particles.filter(p=>p.alive && p.type===type).length;
+  }
+}
+
+
+// ============================================================
+// APP / UI CONTROLLER
+// ============================================================
+const canvas = document.getElementById('arena');
+const ctx = canvas.getContext('2d');
+const el = id => document.getElementById(id);
+
+const ui = {
+  ctrlT: el('ctrl-T'), ctrlCA: el('ctrl-CA'), ctrlCB: el('ctrl-CB'), ctrlO: el('ctrl-O'),
+  readoutT: el('readout-T'), readoutCA: el('readout-CA'), readoutCB: el('readout-CB'), readoutO: el('readout-O'),
+  countVal: el('count-val'), bareChanceVal: el('bare-chance-val'),
+  catChanceRow: el('cat-chance-row'), catChanceVal: el('cat-chance-val'),
+  rateBarFill: el('rate-bar-fill'), rateBarVal: el('rate-bar-val'), rateBarSub: el('rate-bar-sub'),
+  enzWear: el('enz-wear'), hetWear: el('het-wear'),
+  btnExplore: el('btn-explore'), btnRun: el('btn-run'), btnResetRun: el('btn-reset-run'),
+  modeSub: el('mode-sub'),
+  ratePanelExplore: el('rate-panel-explore'), ratePanelRun: el('rate-panel-run'),
+};
+
+// Physical units are what the player sees and sets (K for temperature, M for concentration);
+// the internal box.T/box.CA/box.CB stay on their original 0-100 scale, since all the collision-
+// rate tuning earlier was calibrated against that scale. These conversions are the only bridge
+// between "what the slider says" and "what the physics engine computes with" -- nothing about
+// the underlying balance changes, only the label the player reads.
+const T_MIN_K = 250, T_MAX_K = 500;
+const C_MIN_M = 0.05, C_MAX_M = 1.0;
+function kelvinToInternalT(kelvin){ return (kelvin-T_MIN_K)/(T_MAX_K-T_MIN_K)*100; }
+function molarToInternalC(molar){ return (molar-C_MIN_M)/(C_MAX_M-C_MIN_M)*100; }
+function factorToInternalO(factor){ return factor*100; }
+
+let box = new Box({
+  T: kelvinToInternalT(parseFloat(ui.ctrlT.value)),
+  CA: molarToInternalC(parseFloat(ui.ctrlCA.value)),
+  CB: molarToInternalC(parseFloat(ui.ctrlCB.value)),
+  O: factorToInternalO(parseFloat(ui.ctrlO.value)),
+  enzymeLevel:0, heterogeneLevel:0, consumeOnReaction:false,
+});
+let appMode = 'explore'; // 'explore' | 'run'
+let lastTs = null;
+
+// a small random-walk display value so the explore-mode bar doesn't read as a single dead,
+// perfectly flat number -- it's a live, slightly noisy reading of a quantity that genuinely does
+// fluctuate moment to moment (it's a sample of random collisions, not an exact analytic rate).
+let displayRate = 0;
+
+function updateKnobReadouts(){
+  ui.readoutT.textContent = Math.round(parseFloat(ui.ctrlT.value));
+  ui.readoutCA.textContent = parseFloat(ui.ctrlCA.value).toFixed(2);
+  ui.readoutCB.textContent = parseFloat(ui.ctrlCB.value).toFixed(2);
+  ui.readoutO.textContent = parseFloat(ui.ctrlO.value).toFixed(2);
+}
+
+ui.ctrlT.addEventListener('input', ()=>{
+  box.T = kelvinToInternalT(parseFloat(ui.ctrlT.value));
+  box.resyncSpeeds();
+  updateKnobReadouts();
+});
+ui.ctrlCA.addEventListener('input', ()=>{
+  box.CA = molarToInternalC(parseFloat(ui.ctrlCA.value));
+  box.syncParticleCount();
+  updateKnobReadouts();
+});
+ui.ctrlCB.addEventListener('input', ()=>{
+  box.CB = molarToInternalC(parseFloat(ui.ctrlCB.value));
+  box.syncParticleCount();
+  updateKnobReadouts();
+});
+ui.ctrlO.addEventListener('input', ()=>{
+  box.O = factorToInternalO(parseFloat(ui.ctrlO.value));
+  updateKnobReadouts();
+});
+
+document.querySelectorAll('[data-enz]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    box.enzymeLevel = parseInt(btn.dataset.enz);
+    box.enzymeWear = 0; // fresh enzymes when switching levels
+    box.syncEnzymeCount();
+    document.querySelectorAll('[data-enz]').forEach(b=>b.classList.toggle('active', b===btn));
+  });
+});
+document.querySelectorAll('[data-het]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    box.heterogeneLevel = parseInt(btn.dataset.het);
+    box.surfaceWear = 0; // fresh surface when switching levels
+    box.rebuildSites();
+    document.querySelectorAll('[data-het]').forEach(b=>b.classList.toggle('active', b===btn));
+  });
+});
+
+// ============================================================
+// RENDERING
+// ============================================================
+// Returns whichever Box the canvas/HUD should currently reflect: the persistent, non-consuming
+// explore box, or the one-shot consuming run box once "Laat de reactie verlopen" is active. The
+// explore box itself is never replaced or stepped while runBox exists, so switching back to
+// Verkennen always resumes exactly where exploration left off.
+function activeBox(){
+  return appMode === 'run' && runBox ? runBox : box;
+}
+
+function draw(){
+  const b = activeBox();
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0,0,W,H);
+
+  // heterogeneous catalyst strip, if active
+  if(b.sites.length > 0){
+    const stripTop = H - SURFACE_STRIP_HEIGHT;
+    const wear = b.surfaceWear;
+    const baseColor = [0xb8,0x50,0x3b]; // var(--surface)
+    const fadeColor = [0xd8,0xd6,0xce]; // var(--line), what it fades toward as it wears out
+    const lerp = (a,b,t)=>Math.round(a+(b-a)*t);
+    const r = lerp(baseColor[0],fadeColor[0],wear), g=lerp(baseColor[1],fadeColor[1],wear), bb=lerp(baseColor[2],fadeColor[2],wear);
+    ctx.fillStyle = `rgba(${r},${g},${bb},0.35)`;
+    ctx.fillRect(0, stripTop, W, SURFACE_STRIP_HEIGHT);
+    ctx.strokeStyle = `rgba(${r},${g},${bb},0.7)`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(0,stripTop); ctx.lineTo(W,stripTop); ctx.stroke();
+
+    for(const site of b.sites){
+      ctx.beginPath();
+      ctx.arc(site.x, H-SURFACE_STRIP_HEIGHT/2, SURFACE_SITE_R, 0, Math.PI*2);
+      ctx.fillStyle = site.boundParticleId ? `rgba(${r},${g},${bb},0.9)` : `rgba(${r},${g},${bb},0.45)`;
+      ctx.fill();
+    }
+  }
+
+  // enzyme "dumbbell" link lines (drawn before particles so particles sit on top)
+  const byId = new Map(b.particles.map(p=>[p.id,p]));
+  for(const p of b.particles){
+    if(p.alive && p.type==='E' && p.boundTo){
+      const sub = byId.get(p.boundTo);
+      if(sub && sub.alive){
+        ctx.beginPath();
+        ctx.moveTo(p.x,p.y); ctx.lineTo(sub.x,sub.y);
+        ctx.strokeStyle = 'rgba(138,91,214,0.55)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+  }
+  // surface-site link lines
+  for(const site of b.sites){
+    if(site.boundParticleId){
+      const sub = byId.get(site.boundParticleId);
+      if(sub && sub.alive){
+        ctx.beginPath();
+        ctx.moveTo(site.x, H-SURFACE_STRIP_HEIGHT/2); ctx.lineTo(sub.x,sub.y);
+        ctx.strokeStyle = 'rgba(184,80,59,0.55)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+  }
+
+  // particles: figure-8 shape, body + head, colored by per-particle kinetic energy
+  const refSpeed = BASE_SPEED*b.speedScale();
+  for(const p of b.particles){
+    if(!p.alive) continue;
+    const heat = heatOf(p, refSpeed);
+    const color = colorForParticle(p, heat);
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, R_BODY, 0, Math.PI*2);
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    if(p.type !== 'E'){
+      const head = headPosition(p);
+      const headR = b.headRadius();
+      ctx.beginPath();
+      ctx.arc(head.x, head.y, headR, 0, Math.PI*2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(head.x, head.y, headR, 0, Math.PI*2);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+  }
+
+  // explosion flashes for successful reactions
+  for(const f of b.flashes){
+    const t = f.age/0.45;
+    const alpha = Math.max(0, 1-t);
+    // a small burst: a bright core plus a few outward "fragment" streaks for a more dramatic
+    // "explosion" read than a single thin ring.
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, 4+t*6, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(224,150,20,${alpha})`;
+    ctx.fill();
+    for(let k=0;k<6;k++){
+      const ang = (k/6)*Math.PI*2 + t*1.5;
+      const len = 8+t*22;
+      ctx.beginPath();
+      ctx.moveTo(f.x, f.y);
+      ctx.lineTo(f.x+Math.cos(ang)*len, f.y+Math.sin(ang)*len);
+      ctx.strokeStyle = `rgba(47,150,90,${alpha*0.85})`;
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+    }
+  }
+}
+
+// ============================================================
+// HUD (shared + explore-specific)
+// ============================================================
+// Particle counts, effective collision chance, and wear bars stay meaningful in BOTH modes --
+// in run mode you specifically want to watch A/B deplete and wear accrue, so this part of the
+// HUD always reflects whichever box is currently active rather than being explore-only.
+function updateSharedHud(){
+  const b = activeBox();
+  ui.countVal.textContent = `${b.countAlive('A')} / ${b.countAlive('B')}`;
+
+  const bareChance = b.bareSuccessChance();
+  ui.bareChanceVal.textContent = bareChance === null ? '—' : Math.round(bareChance*100)+'%';
+
+  const catalystActive = b.enzymeLevel > 0 || b.heterogeneLevel > 0;
+  ui.catChanceRow.style.display = catalystActive ? '' : 'none';
+  ui.catChanceVal.style.display = catalystActive ? '' : 'none';
+  if(catalystActive){
+    const totalChance = b.totalSuccessChance();
+    ui.catChanceVal.textContent = totalChance === null ? '—' : Math.round(totalChance*100)+'%';
+  }
+
+  ui.enzWear.style.width = (b.enzymeLevel>0 ? Math.round((1-b.enzymeWear)*100) : 100)+'%';
+  ui.hetWear.style.width = (b.heterogeneLevel>0 ? Math.round((1-b.surfaceWear)*100) : 100)+'%';
+}
+
+function updateExploreHud(dt){
+  const trueRate = box.currentRate();
+  // gentle random walk toward the true measured rate, so the bar visibly trembles a little
+  // instead of snapping between window-quantized values -- still always settling near the truth.
+  displayRate += (trueRate - displayRate)*Math.min(1, dt*2) + (rng()-0.5)*0.05;
+  displayRate = Math.max(0, displayRate);
+
+  const maxBar = 12; // /s, scale the bar's full height represents -- tuned to the measured ceiling with both catalysts maxed
+  const pct = Math.min(100, (displayRate/maxBar)*100);
+  ui.rateBarFill.style.height = pct+'%';
+  ui.rateBarVal.textContent = displayRate.toFixed(2);
+
+  updateSharedHud();
+}
+
+// ============================================================
+// RUN MODE ("Laat de reactie verlopen")
+// ============================================================
+let runBox = null;
+let runStartTs = null; // sim-time (runBox.simTime) is used instead, but kept for clarity
+let runRateHistory = []; // {t, rate} samples for the chart, t = seconds since run start
+let runFinished = false;
+let runFinishReason = '';
+
+const MAX_RUN_DURATION = 120; // safety net: stop sampling/charting past this even if reactants linger
+const RUN_DEPLETION_THRESHOLD = 1; // particles -- "depleted" once a species has this few or fewer left
+
+function startRun(){
+  // Snapshot the explore box's current knob settings into a fresh, consuming Box. The explore
+  // box itself is left completely untouched and un-stepped while a run is active, so returning
+  // to Verkennen later resumes exactly where it was.
+  runBox = new Box({
+    T: box.T, CA: box.CA, CB: box.CB, O: box.O,
+    enzymeLevel: box.enzymeLevel, heterogeneLevel: box.heterogeneLevel,
+    consumeOnReaction: true,
+  });
+  runRateHistory = [];
+  runFinished = false;
+  runFinishReason = '';
+  appMode = 'run';
+
+  el('controls-wrap').classList.add('locked');
+  document.querySelectorAll('#controls-wrap input, #controls-wrap button').forEach(elm=>elm.disabled = true);
+
+  ui.btnExplore.classList.remove('active');
+  ui.btnRun.classList.add('active');
+  ui.btnResetRun.style.display = '';
+  ui.ratePanelExplore.style.display = 'none';
+  ui.ratePanelRun.style.display = '';
+  ui.modeSub.textContent = 'De reactie verloopt nu echt: reactanten worden verbruikt en het product bouwt op. Knoppen zijn vergrendeld tot je reset.';
+}
+
+function resetRun(){
+  runBox = null;
+  runRateHistory = [];
+  runFinished = false;
+  appMode = 'explore';
+
+  el('controls-wrap').classList.remove('locked');
+  document.querySelectorAll('#controls-wrap input, #controls-wrap button').forEach(elm=>elm.disabled = false);
+
+  ui.btnExplore.classList.add('active');
+  ui.btnRun.classList.remove('active');
+  ui.btnResetRun.style.display = 'none';
+  ui.ratePanelExplore.style.display = '';
+  ui.ratePanelRun.style.display = 'none';
+  ui.modeSub.textContent = 'De doos is een meetinstrument: botsingen tellen voor de reactiesnelheid, maar verbruiken niets — pas de knoppen aan en zie het effect direct.';
+}
+
+ui.btnExplore.addEventListener('click', ()=>{ if(appMode==='run') resetRun(); });
+ui.btnRun.addEventListener('click', ()=>{ if(appMode==='explore') startRun(); });
+ui.btnResetRun.addEventListener('click', resetRun);
+
+function drawRateChart(){
+  const canvas = el('rate-chart');
+  const rctx = canvas.getContext('2d');
+  const W2 = canvas.width, H2 = canvas.height;
+  rctx.clearRect(0,0,W2,H2);
+
+  const padding = {left:42, right:14, top:14, bottom:24};
+  const plotW = W2-padding.left-padding.right, plotH = H2-padding.top-padding.bottom;
+
+  if(runRateHistory.length < 2){
+    rctx.fillStyle = '#6b6557';
+    rctx.font = '12px monospace';
+    rctx.textAlign = 'center';
+    rctx.fillText('Bezig met meten...', W2/2, H2/2);
+    return;
+  }
+
+  const tMax = Math.max(1, runRateHistory[runRateHistory.length-1].t);
+  const maxRate = Math.max(0.01, ...runRateHistory.map(p=>p.rate))*1.15;
+
+  rctx.strokeStyle = '#8a8478';
+  rctx.lineWidth = 1;
+  rctx.beginPath();
+  rctx.moveTo(padding.left, padding.top); rctx.lineTo(padding.left, H2-padding.bottom);
+  rctx.lineTo(W2-padding.right, H2-padding.bottom);
+  rctx.stroke();
+
+  rctx.fillStyle = '#6b6557';
+  rctx.font = '10px monospace';
+  rctx.textAlign = 'right';
+  rctx.fillText(maxRate.toFixed(2)+' /s', padding.left-6, padding.top+4);
+  rctx.fillText('0', padding.left-6, H2-padding.bottom+2);
+  rctx.textAlign = 'center';
+  rctx.fillText('0', padding.left, H2-padding.bottom+14);
+  rctx.fillText(tMax.toFixed(0)+'s', W2-padding.right, H2-padding.bottom+14);
+
+  rctx.beginPath();
+  rctx.strokeStyle = '#c1652f';
+  rctx.lineWidth = 2.2;
+  runRateHistory.forEach((p,i)=>{
+    const x = padding.left + (p.t/tMax)*plotW;
+    const y = padding.top + plotH - (p.rate/maxRate)*plotH;
+    if(i===0) rctx.moveTo(x,y); else rctx.lineTo(x,y);
+  });
+  rctx.stroke();
+}
+
+function updateRunHud(){
+  updateSharedHud();
+  drawRateChart();
+
+  const status = el('run-status');
+  if(runFinished){
+    status.textContent = runFinishReason;
+  } else {
+    status.textContent = `Bezig — t = ${runBox.simTime.toFixed(1)}s`;
+  }
+}
+
+// ============================================================
+// MAIN LOOP
+// ============================================================
+function tick(ts){
+  if(lastTs===null) lastTs = ts;
+  let dt = (ts-lastTs)/1000;
+  lastTs = ts;
+  dt = Math.min(dt, 0.05);
+
+  if(appMode === 'run' && runBox){
+    if(!runFinished){
+      runBox.step(dt);
+      runRateHistory.push({t: runBox.simTime, rate: runBox.currentRate()});
+
+      const aLeft = runBox.countAlive('A'), bLeft = runBox.countAlive('B');
+      if(aLeft <= RUN_DEPLETION_THRESHOLD){
+        runFinished = true; runFinishReason = `Klaar — reactant A is (bijna) op na ${runBox.simTime.toFixed(1)}s.`;
+      } else if(bLeft <= RUN_DEPLETION_THRESHOLD){
+        runFinished = true; runFinishReason = `Klaar — reactant B is (bijna) op na ${runBox.simTime.toFixed(1)}s.`;
+      } else if(runBox.simTime >= MAX_RUN_DURATION){
+        runFinished = true; runFinishReason = `Gestopt na ${MAX_RUN_DURATION}s — de reactie loopt nog door, maar erg langzaam.`;
+      }
+    }
+    draw();
+    updateRunHud();
+  } else {
+    box.step(dt);
+    draw();
+    updateExploreHud(dt);
+  }
+
+  requestAnimationFrame(tick);
+}
+updateKnobReadouts();
+requestAnimationFrame(tick);
+
+</script>
+</body>
+</html>

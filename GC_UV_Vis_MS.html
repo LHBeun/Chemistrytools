@@ -1,0 +1,2777 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analysemethoden — Spectroscopie, MS &amp; Chromatografie</title>
+<style>
+  :root {
+    --panel-bg: #ffffff;
+    --panel-bg-light: #f7f7f5;
+    --panel-border: #d8d8d4;
+    --accent: #2f8a5b;
+    --accent-dim: #a8dfc4;
+    --warn: #b8672e;
+    --text-light: #1c1e1f;
+    --text-dim: #5f6469;
+    --mono: 'IBM Plex Mono', 'Courier New', monospace;
+    --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    background: var(--panel-bg);
+    color: var(--text-light);
+    min-height: 100vh;
+  }
+
+  .app-shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+
+  /* ---------- Header ---------- */
+  .app-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--panel-border);
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .app-title {
+    font-family: var(--mono);
+    font-size: 1.4rem;
+    letter-spacing: 0.5px;
+    color: var(--accent);
+    margin: 0;
+  }
+  .app-title .dim { color: var(--text-dim); font-weight: 400; }
+
+  .mode-toggle {
+    display: flex;
+    gap: 2px;
+    background: var(--panel-bg-light);
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    padding: 3px;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+  }
+  .mode-toggle button {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+  }
+  .mode-toggle button.active {
+    background: var(--accent-dim);
+    color: #0c1310;
+    font-weight: 600;
+  }
+
+  /* ---------- Tabs ---------- */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: var(--panel-bg-light);
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+    padding: 10px 18px;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { color: var(--text-light); }
+  .tab-btn.active {
+    background: var(--accent-dim);
+    color: #0c1310;
+    border-color: var(--accent-dim);
+  }
+
+  /* ---------- Module panel ---------- */
+  .module-panel { display: none; }
+  .module-panel.active { display: block; }
+
+  /* ---------- Sub-tabs (binnen Chromatografie) ---------- */
+  .subtabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--panel-border);
+    padding-bottom: 10px;
+  }
+  .subtab-btn {
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+    padding: 6px 14px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .subtab-btn:hover { color: var(--text-light); }
+  .subtab-btn.active {
+    background: var(--accent-dim);
+    color: #0c1310;
+    border-color: var(--accent-dim);
+  }
+  .chrom-subpanel { display: none; }
+  .chrom-subpanel.active { display: block; }
+
+  .panel-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 860px) {
+    .panel-grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--panel-bg-light);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 18px 20px;
+  }
+  .card h2 {
+    font-size: 0.95rem;
+    font-family: var(--mono);
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 14px 0;
+  }
+
+  /* ---------- Graph card (always white bg for screenshots) ---------- */
+  .graph-card {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid var(--panel-border);
+  }
+  .graph-card svg { display: block; width: 100%; height: auto; }
+  .graph-meta {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: #555;
+    margin-top: 6px;
+    text-align: right;
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    background: var(--accent-dim);
+    color: #0c1310;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: #8fd6b3; }
+  .btn.secondary {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent-dim);
+  }
+  .btn.secondary:hover { background: rgba(127,217,168,0.1); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+
+  /* ---------- Form elements ---------- */
+  label { font-size: 0.85rem; color: var(--text-dim); display: block; margin-bottom: 4px; }
+  input[type="text"], input[type="number"], select, textarea {
+    width: 100%;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    color: var(--text-light);
+    padding: 8px 10px;
+    border-radius: 5px;
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .field-group { margin-bottom: 14px; }
+
+  /* ---------- Question / feedback blocks ---------- */
+  .question-block {
+    border-top: 1px solid var(--panel-border);
+    padding-top: 14px;
+    margin-top: 14px;
+  }
+  .question-block:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+  .question-text {
+    font-size: 0.92rem;
+    color: var(--text-light);
+    margin-bottom: 8px;
+    line-height: 1.45;
+  }
+  .feedback {
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    display: none;
+  }
+  .feedback.correct {
+    background: rgba(127,217,168,0.12);
+    border: 1px solid var(--accent-dim);
+    color: var(--accent);
+    display: block;
+  }
+  .feedback.incorrect {
+    background: rgba(232,150,74,0.12);
+    border: 1px solid var(--warn);
+    color: var(--warn);
+    display: block;
+  }
+  .feedback.info {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+    display: block;
+  }
+
+  .hint-toggle {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    cursor: pointer;
+    text-decoration: underline;
+    margin-top: 4px;
+    display: inline-block;
+  }
+  .hint-box {
+    display: none;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    background: var(--panel-bg);
+    border-left: 2px solid var(--accent-dim);
+    padding: 8px 10px;
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+  .hint-box.show { display: block; }
+
+  /* ---------- Opgave mode specific ---------- */
+  .opgave-meta-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+  }
+  .opgave-question-text {
+    font-size: 1rem;
+    color: var(--text-light);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .opgave-answer-space {
+    border: 1px dashed var(--panel-border);
+    border-radius: 6px;
+    min-height: 70px;
+    margin-top: 10px;
+  }
+
+  .small-note {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+
+  .docent-answer-section {
+    margin-top: 18px;
+    padding: 14px 16px;
+    background: rgba(232,150,74,0.06);
+    border: 1px dashed var(--warn);
+    border-radius: 6px;
+  }
+  .docent-answer-title {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--warn);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 10px;
+  }
+  .docent-answer-table {
+    width: 100%;
+    font-size: 0.85rem;
+    border-collapse: collapse;
+  }
+  .docent-answer-table td {
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--panel-border);
+    color: var(--text-light);
+    vertical-align: top;
+  }
+  .docent-answer-table td:first-child {
+    font-family: var(--mono);
+    color: var(--accent);
+    white-space: nowrap;
+    font-weight: 600;
+  }
+  .docent-answer-table tr:last-child td { border-bottom: none; }
+  .docent-compound-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  /* ---------- GC controls ---------- */
+  .gc-controls-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  @media (max-width: 720px) {
+    .gc-controls-grid { grid-template-columns: 1fr; }
+  }
+
+  .gc-order-row {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0 4px;
+  }
+  .gc-order-row select { margin-bottom: 0; }
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+    margin: 8px 0 4px;
+  }
+  .range-readout {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--accent);
+    text-align: right;
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <div class="app-header">
+    <h1 class="app-title">ANALYSEMETHODEN <span class="dim">// MS · GC/TLC · UV-Vis</span></h1>
+    <div class="mode-toggle">
+      <button id="mode-oefen" class="active" onclick="setMode('oefen')">Oefenmodus</button>
+      <button id="mode-opgave" onclick="setMode('opgave')">Opgavemodus</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="ms" onclick="setTab('ms')">Massaspectrometrie</button>
+    <button class="tab-btn" data-tab="gc" onclick="setTab('gc')">Chromatografie</button>
+    <button class="tab-btn" data-tab="uvvis" onclick="setTab('uvvis')">UV-Vis</button>
+  </div>
+
+  <!-- ============ MS MODULE ============ -->
+  <div class="module-panel active" id="panel-ms">
+
+    <!-- OEFENMODUS -->
+    <div id="ms-oefen-view">
+      <div class="panel-grid">
+        <div class="card graph-card-wrap">
+          <h2 style="color:#2f8a5b">Spectrum</h2>
+          <div class="graph-card">
+            <svg id="ms-svg" viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg"></svg>
+            <div class="graph-meta" id="ms-graph-meta"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn" onclick="generateMsSpectrum()">Nieuw spectrum</button>
+            <button class="btn secondary" onclick="toggleMsAnswers()">Toon/verberg uitleg</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Redeneer mee</h2>
+          <div id="ms-questions"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPGAVEMODUS -->
+    <div id="ms-opgave-view" style="display:none">
+      <div class="card">
+        <div class="opgave-meta-bar">
+          <span>MASSASPECTROMETRIE — OPGAVE</span>
+          <button class="btn secondary" onclick="generateMsSpectrum()">Genereer nieuwe opgave</button>
+        </div>
+        <div class="opgave-question-text" id="ms-opgave-text">
+          Hieronder is het massaspectrum weergegeven van een onbekende verbinding.
+        </div>
+        <div class="graph-card">
+          <svg id="ms-svg-opgave" viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <div class="opgave-answer-space"></div>
+        <div class="small-note">Opgavemodus toont alleen het spectrum en de vraagstelling — geen antwoorden of hints op het grafiek zelf. Geschikt om direct te schermafbeelden voor een toets (knip dan boven de docentensectie hieronder af).</div>
+
+        <div class="docent-answer-section">
+          <div class="docent-answer-title">▾ Antwoordmodel (alleen voor jou — niet meeknippen in de screenshot)</div>
+          <div id="ms-docent-answer"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ GC/TLC MODULE ============ -->
+  <div class="module-panel" id="panel-gc">
+
+    <div class="subtabs">
+      <button class="subtab-btn active" data-subtab="gc" onclick="setChromSubTab('gc')">Gaschromatografie (GC)</button>
+      <button class="subtab-btn" data-subtab="tlc" onclick="setChromSubTab('tlc')">Dunnelaagchromatografie (TLC)</button>
+    </div>
+
+    <!-- ===== GC SUB-PANEL ===== -->
+    <div class="chrom-subpanel active" id="chromsub-gc">
+
+    <!-- OEFENMODUS -->
+    <div id="gc-oefen-view">
+      <div class="card" style="margin-bottom:18px;">
+        <h2>Simulator-instellingen</h2>
+        <div class="gc-controls-grid">
+          <div class="field-group">
+            <label>Oventemperatuur (°C)</label>
+            <input type="range" id="gc-temp" min="40" max="160" value="90" step="5" oninput="onGcSettingChange()">
+            <div class="range-readout" id="gc-temp-readout">90 °C</div>
+          </div>
+          <div class="field-group">
+            <label>Draaggassnelheid (mL/min)</label>
+            <input type="range" id="gc-flow" min="5" max="80" value="30" step="1" oninput="onGcSettingChange()">
+            <div class="range-readout" id="gc-flow-readout">30 mL/min</div>
+          </div>
+          <div class="field-group">
+            <label>Kolommateriaal (stationaire fase)</label>
+            <select id="gc-column" onchange="onGcSettingChange()">
+              <option value="apolar">Apolair (bijv. dimethylpolysiloxaan)</option>
+              <option value="polar">Polair (bijv. polyethyleenglycol)</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn" onclick="generateGcMixture()">Nieuw mengsel</button>
+        </div>
+        <div class="small-note" style="margin-top:10px;">Modelvereenvoudiging: in deze simulator is een kookpuntverschil kleiner dan 10°C niet onderscheidend voor de elutievolgorde (kookpunten worden afgerond op tientallen voordat ze de berekening ingaan) — net zoals je op dit niveau ook geen onderscheid zou maken tussen bijvoorbeeld 56°C en 64°C zonder verder rekenwerk.</div>
+      </div>
+
+      <div class="panel-grid">
+        <div class="card">
+          <h2 style="color:#2f8a5b">Chromatogram</h2>
+          <div class="graph-card">
+            <svg id="gc-svg" viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg"></svg>
+            <div class="graph-meta" id="gc-graph-meta"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn secondary" onclick="toggleGcAnswers()">Toon/verberg pieklabels</button>
+          </div>
+          <div class="small-note" id="gc-mixture-note"></div>
+        </div>
+
+        <div class="card">
+          <h2>Redeneer mee</h2>
+          <div id="gc-questions"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPGAVEMODUS -->
+    <div id="gc-opgave-view" style="display:none">
+      <div class="card">
+        <div class="opgave-meta-bar">
+          <span>GASCHROMATOGRAFIE — OPGAVE</span>
+          <button class="btn secondary" onclick="generateGcMixture()">Genereer nieuwe opgave</button>
+        </div>
+        <div class="opgave-question-text" id="gc-opgave-text"></div>
+        <div class="graph-card">
+          <svg id="gc-svg-opgave" viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <div class="opgave-answer-space"></div>
+        <div class="small-note">Opgavemodus toont alleen het chromatogram en de vraagstelling. Geschikt om direct te schermafbeelden (knip boven de docentensectie hieronder af).</div>
+        <div class="docent-answer-section">
+          <div class="docent-answer-title">▾ Antwoordmodel (alleen voor jou — niet meeknippen in de screenshot)</div>
+          <div id="gc-docent-answer"></div>
+        </div>
+      </div>
+    </div>
+
+    </div>
+    <!-- ===== EINDE GC SUB-PANEL ===== -->
+
+    <!-- ===== TLC SUB-PANEL ===== -->
+    <div class="chrom-subpanel" id="chromsub-tlc">
+
+      <!-- OEFENMODUS -->
+      <div id="tlc-oefen-view">
+        <div class="card" style="margin-bottom:18px;">
+          <h2>Plaat- en eluensinstellingen</h2>
+          <div class="gc-controls-grid">
+            <div class="field-group">
+              <label>Stationaire fase (plaat)</label>
+              <select id="tlc-stationary" onchange="onTlcSettingChange()">
+                <option value="silica">Silica (polair, normale fase)</option>
+                <option value="c18">C18 (apolair, omgekeerde fase)</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label>Polariteit eluens (loopvloeistof)</label>
+              <input type="range" id="tlc-eluent" min="0" max="10" value="4" step="1" oninput="onTlcSettingChange()">
+              <div class="range-readout" id="tlc-eluent-readout">4 / 10</div>
+            </div>
+            <div class="field-group">
+              <label>Detectiemethode</label>
+              <select id="tlc-detection" onchange="onTlcSettingChange()">
+                <option value="uv">UV-lamp (254 nm)</option>
+                <option value="iodine">Jodiumdamp</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn" onclick="generateTlcMixture()">Nieuw mengsel</button>
+          </div>
+        </div>
+
+        <div class="panel-grid">
+          <div class="card">
+            <h2 style="color:#2f8a5b">TLC-plaat</h2>
+            <div class="graph-card">
+              <svg id="tlc-svg" viewBox="0 0 320 420" xmlns="http://www.w3.org/2000/svg"></svg>
+              <div class="graph-meta" id="tlc-graph-meta"></div>
+            </div>
+            <div class="btn-row">
+              <button class="btn secondary" onclick="toggleTlcAnswers()">Toon/verberg vleklabels</button>
+            </div>
+            <div class="small-note" id="tlc-mixture-note"></div>
+          </div>
+
+          <div class="card">
+            <h2>Redeneer mee</h2>
+            <div id="tlc-questions"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPGAVEMODUS -->
+      <div id="tlc-opgave-view" style="display:none">
+        <div class="card">
+          <div class="opgave-meta-bar">
+            <span>DUNNELAAGCHROMATOGRAFIE — OPGAVE</span>
+            <button class="btn secondary" onclick="generateTlcMixture()">Genereer nieuwe opgave</button>
+          </div>
+          <div class="opgave-question-text" id="tlc-opgave-text"></div>
+          <div class="graph-card">
+            <svg id="tlc-svg-opgave" viewBox="0 0 320 420" xmlns="http://www.w3.org/2000/svg"></svg>
+          </div>
+          <div class="opgave-answer-space"></div>
+          <div class="small-note">Opgavemodus toont alleen de plaat en de vraagstelling. Geschikt om direct te schermafbeelden (knip boven de docentensectie hieronder af).</div>
+          <div class="docent-answer-section">
+            <div class="docent-answer-title">▾ Antwoordmodel (alleen voor jou — niet meeknippen in de screenshot)</div>
+            <div id="tlc-docent-answer"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- ===== EINDE TLC SUB-PANEL ===== -->
+
+  </div>
+
+  <!-- ============ UV-VIS MODULE ============ -->
+  <div class="module-panel" id="panel-uvvis">
+
+    <div class="subtabs">
+      <button class="subtab-btn active" data-subtab="basis" onclick="setUvvisLevel('basis')">Basis (1 stof)</button>
+      <button class="subtab-btn" data-subtab="gevorderd" onclick="setUvvisLevel('gevorderd')">Gevorderd (2 stoffen, 1 golflengte)</button>
+      <button class="subtab-btn" data-subtab="expert" onclick="setUvvisLevel('expert')">Expert (2 stoffen, 2 golflengtes)</button>
+    </div>
+
+    <!-- OEFENMODUS -->
+    <div id="uvvis-oefen-view">
+      <div class="panel-grid">
+        <div class="card">
+          <h2 style="color:#2f8a5b">Spectrum</h2>
+          <div class="graph-card">
+            <svg id="uvvis-spectrum-svg" viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg"></svg>
+            <div class="graph-meta" id="uvvis-spectrum-meta"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn" onclick="generateUvvisCase()">Nieuw geval</button>
+            <button class="btn secondary" onclick="toggleUvvisSpectrumAnswers()">Toon/verberg λmax</button>
+          </div>
+          <div class="small-note" id="uvvis-case-note"></div>
+        </div>
+
+        <div class="card">
+          <h2 style="color:#2f8a5b">IJkreeks</h2>
+          <div class="graph-card">
+            <svg id="uvvis-calib-svg" viewBox="0 0 480 360" xmlns="http://www.w3.org/2000/svg"></svg>
+          </div>
+          <div class="small-note">Meetpunten van bekende concentraties bij de gekozen golflengte. Wordt zichtbaar bij vraag 2.</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px;">
+        <h2>Redeneer mee</h2>
+        <div id="uvvis-questions"></div>
+      </div>
+    </div>
+
+    <!-- OPGAVEMODUS -->
+    <div id="uvvis-opgave-view" style="display:none">
+      <div class="card">
+        <div class="opgave-meta-bar">
+          <span>UV-VIS — OPGAVE</span>
+          <button class="btn secondary" onclick="generateUvvisCase()">Genereer nieuwe opgave</button>
+        </div>
+        <div class="opgave-question-text" id="uvvis-opgave-text"></div>
+        <div class="graph-card">
+          <svg id="uvvis-spectrum-svg-opgave" viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <div class="opgave-answer-space"></div>
+        <div class="small-note">Opgavemodus toont alleen het spectrum en de vraagstelling. Geschikt om direct te schermafbeelden (knip boven de docentensectie hieronder af).</div>
+        <div class="docent-answer-section">
+          <div class="docent-answer-title">▾ Antwoordmodel (alleen voor jou — niet meeknippen in de screenshot)</div>
+          <div id="uvvis-docent-answer"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+/* =========================================================================
+   GLOBAL STATE
+========================================================================= */
+let currentMode = 'oefen';
+let currentTab = 'ms';
+let msAnswersVisible = false;
+let msCurrentData = null;
+
+/* =========================================================================
+   MODE / TAB SWITCHING
+========================================================================= */
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('mode-oefen').classList.toggle('active', mode === 'oefen');
+  document.getElementById('mode-opgave').classList.toggle('active', mode === 'opgave');
+  document.getElementById('ms-oefen-view').style.display = mode === 'oefen' ? 'block' : 'none';
+  document.getElementById('ms-opgave-view').style.display = mode === 'opgave' ? 'block' : 'none';
+  document.getElementById('gc-oefen-view').style.display = mode === 'oefen' ? 'block' : 'none';
+  document.getElementById('gc-opgave-view').style.display = mode === 'opgave' ? 'block' : 'none';
+  document.getElementById('tlc-oefen-view').style.display = mode === 'oefen' ? 'block' : 'none';
+  document.getElementById('tlc-opgave-view').style.display = mode === 'opgave' ? 'block' : 'none';
+  document.getElementById('uvvis-oefen-view').style.display = mode === 'oefen' ? 'block' : 'none';
+  document.getElementById('uvvis-opgave-view').style.display = mode === 'opgave' ? 'block' : 'none';
+  if (msCurrentData) renderMsOpgaveSvg(msCurrentData);
+  if (gcCurrentData) renderGcOpgave();
+  if (tlcCurrentData) renderTlcOpgave();
+  if (uvvisCurrentData) renderUvvisOpgave();
+}
+
+function setTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.getElementById('panel-ms').classList.toggle('active', tab === 'ms');
+  document.getElementById('panel-gc').classList.toggle('active', tab === 'gc');
+  document.getElementById('panel-uvvis').classList.toggle('active', tab === 'uvvis');
+}
+
+function setChromSubTab(subtab) {
+  document.querySelectorAll('.subtab-btn').forEach(b => b.classList.toggle('active', b.dataset.subtab === subtab));
+  document.getElementById('chromsub-gc').classList.toggle('active', subtab === 'gc');
+  document.getElementById('chromsub-tlc').classList.toggle('active', subtab === 'tlc');
+}
+
+/* =========================================================================
+   MS MODULE — DATA: MOLECULE LIBRARY
+   Elke stof heeft fragmenten met een 'gen' (generatie): 1 = direct uit M+,
+   2 = ontstaat verder uit een specifiek generatie-1-fragment (parentMz
+   wordt gebruikt om de boomstructuur te volgen). Dit geeft rijkere,
+   realistischere spectra met meer dan 2-3 pieken.
+========================================================================= */
+const MS_LIBRARY = [
+  {
+    name: '1-broompropaan', formula: 'C3H7Br', M: 122, halogen: {type:'Br', count:1},
+    fragments: [
+      {gen:1, parentMz:122, lossLabel:'verlies van Br', lossMass:79, stability:2, note:'vormt het propylkation (C3H7+), de hoofdpiek'},
+      {gen:1, parentMz:122, lossLabel:'verlies van CH3', lossMass:15, stability:1, note:'minder gangbare splitsing, kleinere piek, behoudt Br'}
+    ]
+  },
+  {
+    name: '2-chloorbutaan', formula: 'C4H9Cl', M: 92, halogen: {type:'Cl', count:1},
+    fragments: [
+      {gen:1, parentMz:92, lossLabel:'verlies van Cl', lossMass:35, stability:2, note:'vormt het secundaire butylkation (C4H9+), vaak de hoofdpiek'},
+      {gen:1, parentMz:92, lossLabel:'verlies van CH3', lossMass:15, stability:1, note:'behoudt Cl, kleinere piek'},
+      {gen:2, parentMz:57, lossLabel:'verlies van C2H4 (vanuit C4H9+)', lossMass:28, stability:1, note:'herschikking tot C2H5+ (m/z 29)'}
+    ]
+  },
+  {
+    name: 'broomethaan', formula: 'C2H5Br', M: 108, halogen:{type:'Br', count:1},
+    fragments: [
+      {gen:1, parentMz:108, lossLabel:'verlies van Br', lossMass:79, stability:1, note:'vormt het ethylkation (C2H5+), de hoofdpiek'}
+    ]
+  },
+  {
+    name: 'butanal', formula:'C4H8O', M:72, halogen:null,
+    fragments: [
+      {gen:1, parentMz:72, lossLabel:'verlies van CHO', lossMass:29, stability:1, note:'alfa-splitsing geeft het propylkation C3H7+ (m/z 43), vaak de hoofdpiek'},
+      {gen:1, parentMz:72, lossLabel:'verlies van C3H7', lossMass:43, stability:1, note:'dezelfde alfa-splitsing, maar nu blijft de lading op het andere fragment: het acylium-ion HCO+ (m/z 29)'},
+      {gen:1, parentMz:72, lossLabel:'verlies van C2H4 (McLafferty-achtig)', lossMass:28, stability:0, note:'geeft m/z 44, kenmerkend voor aldehyden met een voldoende lange keten'}
+    ]
+  },
+  {
+    name: 'butaan-2-on', altNames: ['butanon'], formula:'C4H8O', M:72, halogen:null,
+    fragments: [
+      {gen:1, parentMz:72, lossLabel:'verlies van CH3', lossMass:15, stability:2, note:'geeft het stabiele acylium-ion CH3-C≡O+ (m/z 57)'},
+      {gen:1, parentMz:72, lossLabel:'verlies van C2H5', lossMass:29, stability:1, note:'geeft acylium-ion m/z 43 (CH3CO+), vaak de hoofdpiek'},
+      {gen:2, parentMz:43, lossLabel:'verlies van CO (vanuit CH3CO+)', lossMass:28, stability:0, note:'geeft m/z 15 (CH3+)'},
+      {gen:2, parentMz:57, lossLabel:'verlies van CO (vanuit C2H5CO+)', lossMass:28, stability:0, note:'geeft m/z 29 (C2H5+)'}
+    ]
+  },
+  {
+    name: 'pentaan-2-on', formula:'C5H10O', M:86, halogen:null,
+    fragments: [
+      {gen:1, parentMz:86, lossLabel:'verlies van C3H7', lossMass:43, stability:1, note:'geeft acylium CH3CO+ (m/z 43), vaak hoofdpiek'},
+      {gen:1, parentMz:86, lossLabel:'verlies van CH3', lossMass:15, stability:1, note:'geeft acylium m/z 71'},
+      {gen:2, parentMz:43, lossLabel:'verlies van CO (vanuit CH3CO+)', lossMass:28, stability:0, note:'geeft m/z 15 (CH3+)'},
+      {gen:1, parentMz:86, lossLabel:'verlies van C2H4 (McLafferty)', lossMass:28, stability:0, note:'geeft m/z 58, kenmerkend voor ketonen met voldoende lange keten'}
+    ]
+  },
+  {
+    name: 'propaan-1-ol', formula:'C3H8O', M:60, halogen:null,
+    fragments: [
+      {gen:1, parentMz:60, lossLabel:'verlies van H2O', lossMass:18, stability:0, note:'geeft m/z 42'},
+      {gen:1, parentMz:60, lossLabel:'verlies van CH2OH', lossMass:31, stability:1, note:'geeft het propylkation m/z 29, vaak de hoofdpiek'},
+      {gen:2, parentMz:42, lossLabel:'verlies van CH3 (vanuit m/z 42)', lossMass:15, stability:0, note:'geeft m/z 27'}
+    ]
+  },
+  {
+    name: 'butaan-2-ol', formula:'C4H10O', M:74, halogen:null,
+    fragments: [
+      {gen:1, parentMz:74, lossLabel:'verlies van H2O', lossMass:18, stability:0, note:'directe eliminatie uit M⁺, geeft m/z 56'},
+      {gen:1, parentMz:74, lossLabel:'verlies van CH3', lossMass:15, stability:2, note:'geeft het stabiele geoxygeneerde ion m/z 59'},
+      {gen:1, parentMz:74, lossLabel:'verlies van C2H5', lossMass:29, stability:2, note:'geeft m/z 45, vaak de hoofdpiek'},
+      {gen:2, parentMz:59, lossLabel:'verlies van H2O (vanuit m/z 59)', lossMass:18, stability:0, note:'geeft m/z 41'},
+      {gen:2, parentMz:45, lossLabel:'verlies van H2O (vanuit m/z 45)', lossMass:18, stability:0, note:'geeft m/z 27'}
+    ]
+  },
+  {
+    name: '2-methylpropaan-2-ol', formula:'C4H10O', M:74, halogen:null,
+    fragments: [
+      {gen:1, parentMz:74, lossLabel:'verlies van H2O', lossMass:18, stability:0, note:'directe eliminatie uit M⁺, geeft m/z 56 (kleine piek; de alfa-splitsing naar m/z 59 domineert bij dit sterk tertiaire alcohol)'},
+      {gen:1, parentMz:74, lossLabel:'verlies van CH3', lossMass:15, stability:3, note:'geeft een zeer stabiel tertiair, geoxygeneerd carbokation m/z 59 — de hoofdpiek (M⁺ zelf is hier zwak of afwezig)'},
+      {gen:2, parentMz:59, lossLabel:'verlies van H2O (vanuit m/z 59)', lossMass:18, stability:0, note:'geeft m/z 41, een herkenbare vervolgpiek'},
+      {gen:2, parentMz:59, lossLabel:'verlies van CH2O (vanuit m/z 59)', lossMass:30, stability:0, note:'geeft m/z 29, kleine piek'}
+    ]
+  },
+  {
+    name: 'butaan', formula:'C4H10', M:58, halogen:null,
+    fragments: [
+      {gen:1, parentMz:58, lossLabel:'verlies van CH3', lossMass:15, stability:1, note:'geeft C3H7+ (m/z 43)'},
+      {gen:1, parentMz:58, lossLabel:'verlies van C2H5', lossMass:29, stability:1, note:'geeft C2H5+ (m/z 29)'}
+    ]
+  },
+  {
+    name: 'hexaan', formula:'C6H14', M:86, halogen:null,
+    fragments: [
+      {gen:1, parentMz:86, lossLabel:'verlies van CH3', lossMass:15, stability:1, note:'geeft m/z 71'},
+      {gen:1, parentMz:86, lossLabel:'verlies van C2H5', lossMass:29, stability:1, note:'geeft m/z 57'},
+      {gen:1, parentMz:86, lossLabel:'verlies van C3H7', lossMass:43, stability:1, note:'geeft m/z 43, vaak de hoofdpiek (stabiele reeks CnH2n+1+)'},
+      {gen:1, parentMz:86, lossLabel:'verlies van C4H9', lossMass:57, stability:1, note:'geeft m/z 29'}
+    ]
+  }
+];
+
+/* =========================================================================
+   MS MODULE — SPECTRUM GENERATION
+========================================================================= */
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function toggleHint(id) { document.getElementById(id).classList.toggle('show'); }
+
+function buildMsPeaks(mol) {
+  let peaks = [];
+
+  // Molecular ion peak. Sommige stoffen (vooral tert-alcoholen) hebben een zwakke/afwezige M+.
+  let mIntensity;
+  if (mol.formula.endsWith('O') && mol.fragments.some(f => f.stability === 3)) {
+    mIntensity = randInt(2, 12); // zwak of bijna afwezig M+ (tert-alcohol-achtig)
+  } else if (mol.halogen) {
+    mIntensity = randInt(35, 55);
+  } else {
+    mIntensity = randInt(15, 40);
+  }
+  peaks.push({ mz: mol.M, intensity: mIntensity, label: 'M+', isMolIon: true, gen: 0 });
+
+  // Generatie 1: direct vanuit M+
+  const gen1 = mol.fragments.filter(f => f.gen === 1);
+  gen1.forEach(f => {
+    let mz = f.parentMz - f.lossMass;
+    let base = [40, 60, 75, 95][f.stability] || 50;
+    let intensity = Math.max(10, Math.min(100, base + randInt(-10, 10)));
+    peaks.push({ mz, intensity, label: 'm/z ' + mz, isFragment: true, lossInfo: f, gen: 1 });
+  });
+
+  // Generatie 2: ontstaat verder uit een gen-1 fragment (parentMz moet matchen met een bestaande piek)
+  const gen2 = mol.fragments.filter(f => f.gen === 2);
+  gen2.forEach(f => {
+    let parentPeak = peaks.find(p => p.mz === f.parentMz && p.gen === 1);
+    if (!parentPeak) return; // parent fragment niet aanwezig in dit model, sla over
+    let mz = f.parentMz - f.lossMass;
+    // gen-2 fragmenten zijn altijd een fractie van hun parent-intensiteit (secundair verval)
+    let fraction = 0.25 + Math.random() * 0.35; // 25-60% van parent
+    let intensity = Math.max(5, Math.round(parentPeak.intensity * fraction));
+    peaks.push({ mz, intensity, label: 'm/z ' + mz, isFragment: true, lossInfo: f, gen: 2, parentMz: f.parentMz });
+  });
+
+  // ruis: iets meer pieken voor een realistischer, drukker spectrum
+  let noiseCount = randInt(3, 5);
+  for (let i = 0; i < noiseCount; i++) {
+    let mz = randInt(14, mol.M - 3);
+    if (peaks.some(p => Math.abs(p.mz - mz) < 2)) continue;
+    peaks.push({ mz, intensity: randInt(4, 15), label: '', isNoise: true });
+  }
+
+  if (mol.halogen) {
+    let ratio = mol.halogen.type === 'Cl' ? 0.32 : 0.97;
+    let molIon = peaks.find(p => p.isMolIon);
+    peaks.push({ mz: mol.M + 2, intensity: Math.round(molIon.intensity * ratio), label: 'M+2', isIsotope: true });
+
+    // isotoop-satellieten op elk fragment dat het halogeen nog bevat
+    // (een fragment "verliest" het halogeen alleen als de lossLabel zelf Cl of Br noemt)
+    peaks.filter(p => p.isFragment).forEach(p => {
+      const losesHalogen = p.lossInfo.lossLabel.includes('Br') || p.lossInfo.lossLabel.includes('Cl');
+      if (!losesHalogen) {
+        peaks.push({ mz: p.mz + 2, intensity: Math.round(p.intensity * ratio), label: '+2', isIsotope: true });
+      }
+    });
+  }
+
+  let maxI = Math.max(...peaks.map(p => p.intensity));
+  peaks.forEach(p => p.intensity = Math.round((p.intensity / maxI) * 100));
+
+  peaks.sort((a, b) => a.mz - b.mz);
+  return peaks;
+}
+
+function generateMsSpectrum() {
+  const mol = pick(MS_LIBRARY);
+  const peaks = buildMsPeaks(mol);
+  msCurrentData = { mol, peaks };
+  msAnswersVisible = false;
+  renderMsSvg(msCurrentData, 'ms-svg', false);
+  renderMsOpgaveSvg(msCurrentData);
+  renderMsQuestions(msCurrentData);
+  document.getElementById('ms-graph-meta').textContent = '';
+}
+
+/* =========================================================================
+   MS MODULE — SVG RENDERING (white background, screenshot-ready)
+========================================================================= */
+function renderMsSvg(data, svgId, highlightAnswers) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  const W = 640, H = 360;
+  const marginL = 50, marginR = 20, marginT = 20, marginB = 45;
+  const plotW = W - marginL - marginR;
+  const plotH = H - marginT - marginB;
+
+  // Combineer pieken die op (vrijwel) dezelfde m/z liggen tot één getekende lijn,
+  // zodat overlappende fragment/isotoop-pieken niet dubbel op elkaar getekend worden.
+  let drawPeaks = [];
+  data.peaks.slice().sort((a,b) => a.mz - b.mz).forEach(p => {
+    let existing = drawPeaks.find(d => Math.abs(d.mz - p.mz) < 0.5);
+    if (existing) {
+      // hoogste intensiteit en belangrijkste classificatie wint de visuele weergave
+      if (p.intensity > existing.intensity) {
+        existing.intensity = p.intensity;
+      }
+      existing.isMolIon = existing.isMolIon || p.isMolIon;
+      existing.isFragment = existing.isFragment || p.isFragment;
+      existing.isIsotope = existing.isIsotope && p.isIsotope; // alleen 'puur isotoop' als alle samenvallende pieken isotoop zijn
+      if (p.isFragment) existing.lossInfo = p.lossInfo;
+    } else {
+      drawPeaks.push(Object.assign({}, p));
+    }
+  });
+
+  const maxMz = Math.max(...drawPeaks.map(p => p.mz)) + 8;
+  const xScale = mz => marginL + (mz / maxMz) * plotW;
+  const yScale = inten => marginT + plotH - (inten / 100) * plotH;
+
+  let svgContent = '';
+
+  svgContent += `<line x1="${marginL}" y1="${marginT}" x2="${marginL}" y2="${marginT+plotH}" stroke="#222" stroke-width="1.2"/>`;
+  svgContent += `<line x1="${marginL}" y1="${marginT+plotH}" x2="${marginL+plotW}" y2="${marginT+plotH}" stroke="#222" stroke-width="1.2"/>`;
+
+  [0, 50, 100].forEach(v => {
+    let y = yScale(v);
+    svgContent += `<line x1="${marginL-4}" y1="${y}" x2="${marginL}" y2="${y}" stroke="#222" stroke-width="1"/>`;
+    svgContent += `<text x="${marginL-8}" y="${y+4}" font-size="11" text-anchor="end" font-family="monospace" fill="#333">${v}</text>`;
+  });
+  svgContent += `<text x="14" y="${marginT+plotH/2}" font-size="11" font-family="sans-serif" fill="#333" transform="rotate(-90 14 ${marginT+plotH/2})">Relatieve intensiteit (%)</text>`;
+
+  let step = maxMz > 100 ? 20 : 10;
+  for (let mz = 0; mz <= maxMz; mz += step) {
+    let x = xScale(mz);
+    svgContent += `<line x1="${x}" y1="${marginT+plotH}" x2="${x}" y2="${marginT+plotH+4}" stroke="#222" stroke-width="1"/>`;
+    svgContent += `<text x="${x}" y="${marginT+plotH+17}" font-size="10" text-anchor="middle" font-family="monospace" fill="#333">${mz}</text>`;
+  }
+  svgContent += `<text x="${marginL+plotW/2}" y="${H-6}" font-size="11" text-anchor="middle" font-family="sans-serif" fill="#333">m/z</text>`;
+
+  drawPeaks.forEach(p => {
+    let x = xScale(p.mz);
+    let y = yScale(p.intensity);
+    let color = '#222';
+    if (highlightAnswers) {
+      if (p.isMolIon) color = '#2563eb';
+      else if (p.isFragment) color = '#16a34a';
+      else if (p.isIsotope) color = '#d97706';
+      else color = '#999';
+    } else if (p.isNoise) {
+      color = '#999';
+    }
+    svgContent += `<line x1="${x}" y1="${marginT+plotH}" x2="${x}" y2="${y}" stroke="${color}" stroke-width="2"/>`;
+    if (p.intensity > 8 || p.isMolIon) {
+      svgContent += `<text x="${x}" y="${y-5}" font-size="9.5" text-anchor="middle" font-family="monospace" fill="${color}">${p.mz}</text>`;
+    }
+  });
+
+  svg.innerHTML = svgContent;
+}
+
+function renderMsOpgaveSvg(data) {
+  if (!data) return;
+  renderMsSvg(data, 'ms-svg-opgave', false);
+  document.getElementById('ms-opgave-text').textContent =
+    'Hieronder is het massaspectrum weergegeven van een onbekende verbinding (molmassa en formule niet gegeven). Bepaal de molecuulpiek, identificeer minstens twee karakteristieke fragmentpieken en geef aan welke groep of welk atoom hieruit verloren is gegaan. Geef vervolgens aan welke verbinding dit zou kunnen zijn.';
+
+  const mol = data.mol;
+  const molPeak = data.peaks.find(p => p.isMolIon);
+  const fragPeaks = data.peaks.filter(p => p.isFragment).sort((a,b) => b.mz - a.mz);
+
+  let rows = `<tr><td>M⁺ = ${mol.M}</td><td>Molecuulpiek (intensiteit in dit spectrum: ${molPeak.intensity}%)</td></tr>`;
+  fragPeaks.forEach(p => {
+    const parentMz = p.lossInfo.parentMz;
+    const parentDesc = parentMz === mol.M ? 'M⁺' : `m/z ${parentMz}`;
+    rows += `<tr><td>m/z ${p.mz}</td><td>${p.lossInfo.lossLabel} (vanuit ${parentDesc}, Δm = ${parentMz - p.mz}) — ${p.lossInfo.note}</td></tr>`;
+  });
+
+  document.getElementById('ms-docent-answer').innerHTML = `
+    <div class="docent-compound-name">${mol.name} (${mol.formula})</div>
+    <table class="docent-answer-table">${rows}</table>
+  `;
+}
+
+function toggleMsAnswers() {
+  msAnswersVisible = !msAnswersVisible;
+  renderMsSvg(msCurrentData, 'ms-svg', msAnswersVisible);
+  if (msAnswersVisible) {
+    const mol = msCurrentData.mol;
+    document.getElementById('ms-graph-meta').textContent = `${mol.name} (${mol.formula}), M = ${mol.M}`;
+  } else {
+    document.getElementById('ms-graph-meta').textContent = '';
+  }
+}
+
+/* =========================================================================
+   MS MODULE — QUESTIONS (oefenmodus)
+========================================================================= */
+function renderMsQuestions(data) {
+  const container = document.getElementById('ms-questions');
+  const mol = data.mol;
+  const fragPeaks = data.peaks.filter(p => p.isFragment);
+
+  let html = '';
+
+  html += `
+    <div class="question-block">
+      <div class="question-text">1. Welke piek hoort bij de molecuulpiek (M⁺), en wat is de molaire massa van de verbinding?</div>
+      <input type="number" id="ms-q1-input" placeholder="m/z waarde">
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkMsQ1()">Check</button>
+        <button class="btn secondary" onclick="showMsAnswer('q1')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="ms-q1-feedback"></div>
+    </div>`;
+
+  fragPeaks.forEach((fp, idx) => {
+    const parentMz = fp.lossInfo.parentMz;
+    const parentLabel = parentMz === mol.M ? `de molecuulpiek (m/z ${parentMz})` : `de piek bij m/z ${parentMz}`;
+    html += `
+    <div class="question-block">
+      <div class="question-text">${idx+2}. Bij m/z = ${fp.mz} is er een opvallende piek.</div>
+      <label>Massaverschil met ${parentLabel}</label>
+      <input type="number" id="ms-q-frag-${idx}-mass" placeholder="massaverschil">
+      <label>Welk fragment (atoom of groep) is hierbij verloren?</label>
+      <input type="text" id="ms-q-frag-${idx}-input" placeholder="bijv. 'CH3' of 'Br'">
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkMsFragment(${idx}, ${fp.mz})">Check</button>
+        <button class="btn secondary" onclick="showMsAnswer('frag-${idx}')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="ms-frag-${idx}-feedback"></div>
+    </div>`;
+  });
+
+  html += `
+    <div class="question-block">
+      <div class="question-text">${fragPeaks.length+2}. Welke verbinding past het best bij dit volledige spectrum? Geef de systematische (IUPAC-)naam — de brutoformule alleen is niet genoeg om tussen isomeren te kiezen.</div>
+      <input type="text" id="ms-q-final-input" placeholder="systematische naam, bijv. butaan-2-ol">
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkMsFinal()">Check</button>
+        <button class="btn secondary" onclick="showMsAnswer('final')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="ms-final-feedback"></div>
+    </div>`;
+
+  container.innerHTML = html;
+}
+
+function checkMsQ1() {
+  const val = parseInt(document.getElementById('ms-q1-input').value);
+  const fb = document.getElementById('ms-q1-feedback');
+  const correct = msCurrentData.mol.M;
+  if (val === correct) {
+    fb.className = 'feedback correct';
+    fb.textContent = `Klopt — de molecuulpiek ligt bij m/z = ${correct}, dus de molaire massa is ${correct} g/mol.`;
+  } else {
+    fb.className = 'feedback incorrect';
+    fb.textContent = `Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
+  }
+}
+
+function checkMsFragment(idx, mz) {
+  const massInput = parseFloat(document.getElementById(`ms-q-frag-${idx}-mass`).value);
+  const fragInput = document.getElementById(`ms-q-frag-${idx}-input`).value.toLowerCase();
+  const fb = document.getElementById(`ms-frag-${idx}-feedback`);
+  const peak = msCurrentData.peaks.find(p => p.isFragment && p.mz === mz);
+  if (!peak) return;
+  const fragInfo = peak.lossInfo;
+  const correctMass = fragInfo.parentMz - mz;
+
+  const massOk = massInput === correctMass;
+  const keyTerms = fragInfo.lossLabel.toLowerCase().match(/[a-z0-9]+/g) || [];
+  const fragOk = keyTerms.some(t => t.length > 1 && fragInput.includes(t));
+
+  if (massOk && fragOk) {
+    fb.className = 'feedback correct';
+    fb.textContent = `Goed geredeneerd — dit is ${fragInfo.lossLabel}. ${fragInfo.note}.`;
+  } else {
+    fb.className = 'feedback incorrect';
+    fb.textContent = `Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
+  }
+}
+
+function checkMsFinal() {
+  const input = document.getElementById('ms-q-final-input').value.toLowerCase().replace(/\s/g, '');
+  const fb = document.getElementById('ms-final-feedback');
+  const mol = msCurrentData.mol;
+  const validNames = [mol.name, ...(mol.altNames || [])].map(n => n.toLowerCase().replace(/\s/g, ''));
+  const nameMatch = validNames.includes(input);
+
+  if (nameMatch) {
+    fb.className = 'feedback correct';
+    fb.textContent = `Correct! Dit spectrum hoort bij ${mol.name} (${mol.formula}).`;
+  } else {
+    fb.className = 'feedback incorrect';
+    fb.textContent = `Nog niet juist. Let op: de brutoformule alleen is niet genoeg om tussen isomeren te kiezen — denk aan de exacte structuur. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
+  }
+}
+
+function showMsAnswer(which) {
+  const mol = msCurrentData.mol;
+  if (which === 'q1') {
+    const fb = document.getElementById('ms-q1-feedback');
+    fb.className = 'feedback info';
+    fb.textContent = `Antwoord: de molecuulpiek ligt bij m/z = ${mol.M} (M⁺), dus de molaire massa is ${mol.M} g/mol.`;
+    return;
+  }
+  if (which === 'final') {
+    const fb = document.getElementById('ms-final-feedback');
+    fb.className = 'feedback info';
+    fb.textContent = `Antwoord: dit spectrum hoort bij ${mol.name} (${mol.formula}).`;
+    return;
+  }
+  // fragment vragen: which = 'frag-IDX'
+  const idx = parseInt(which.split('-')[1]);
+  const fragPeaks = msCurrentData.peaks.filter(p => p.isFragment);
+  const fp = fragPeaks[idx];
+  const fb = document.getElementById(`ms-frag-${idx}-feedback`);
+  const fragInfo = fp.lossInfo;
+  fb.className = 'feedback info';
+  fb.textContent = `Antwoord: massaverschil = ${fragInfo.parentMz} − ${fp.mz} = ${fragInfo.parentMz - fp.mz}. Dit is ${fragInfo.lossLabel}. ${fragInfo.note}.`;
+}
+
+/* =========================================================================
+   GC MODULE — DATA: STOFFENBIBLIOTHEEK (echte kookpunten en polariteit)
+   polarity: 0 (zeer apolair) .. 10 (zeer polair), kwalitatieve inschaling
+========================================================================= */
+const GC_LIBRARY = [
+  { name: 'pentaan', formula: 'C5H12', bp: 36, polarity: 0, sensitivity: 0.8 },
+  { name: 'hexaan', formula: 'C6H14', bp: 69, polarity: 0, sensitivity: 0.85 },
+  { name: 'heptaan', formula: 'C7H16', bp: 98, polarity: 0, sensitivity: 0.9 },
+  { name: 'cyclohexaan', formula: 'C6H12', bp: 81, polarity: 1, sensitivity: 0.95 },
+  { name: 'benzeen', formula: 'C6H6', bp: 80, polarity: 2, sensitivity: 1.3 },
+  { name: 'tolueen', formula: 'C7H8', bp: 111, polarity: 2, sensitivity: 1.35 },
+  { name: 'dichloormethaan', formula: 'CH2Cl2', bp: 40, polarity: 5, sensitivity: 0.6 },
+  { name: 'ethylacetaat', formula: 'C4H8O2', bp: 77, polarity: 6, sensitivity: 1.1 },
+  { name: 'aceton', formula: 'C3H6O', bp: 56, polarity: 7, sensitivity: 1.0 },
+  { name: 'ethanol', formula: 'C2H6O', bp: 78, polarity: 9, sensitivity: 0.7 },
+  { name: 'propaan-1-ol', formula: 'C3H8O', bp: 97, polarity: 9, sensitivity: 0.75 },
+  { name: 'methanol', formula: 'CH4O', bp: 65, polarity: 10, sensitivity: 0.55 },
+  { name: 'water', formula: 'H2O', bp: 100, polarity: 10, sensitivity: 0.1 }
+];
+
+// Classificatie voor de gestructureerde mengselselectie: een duidelijke kloof
+// tussen "apolair" en "polair" (polariteit 5 als grens, niets daar middenin
+// gebruikt voor deze selectie) zodat de categorieën nooit ambigu zijn.
+const GC_APOLAR = GC_LIBRARY.filter(c => c.polarity <= 2);
+const GC_POLAR = GC_LIBRARY.filter(c => c.polarity >= 6);
+
+// Kiest 3 stoffen volgens een van de 4 structuurvarianten die altijd precies
+// één "veilige" kolom opleveren (zie ontwerptoelichting): twee stoffen delen
+// één eigenschap (kookpunt OF polariteit), de derde stof wijkt op die ene
+// eigenschap af. Retourneert {compounds, safeColumn}.
+function gcSelectStructuredMixture() {
+  function pickLowHigh(pool) {
+    const sorted = pool.slice().sort((a,b) => a.bp - b.bp);
+    const low = sorted[randInt(0, Math.floor(sorted.length/2) - 1)];
+    const high = sorted[randInt(Math.ceil(sorted.length/2), sorted.length - 1)];
+    return { low, high };
+  }
+
+  // Validatie: alleen rond de standaard-startinstelling (90°C, 30 mL/min) moet
+  // de volgorde op de gekozen "veilige" kolom eenduidig en stabiel zijn. Bij
+  // extreme instellingen (zeer hoge temperatuur/snelheid) mag de volgorde
+  // wisselen — dat is een bewust geaccepteerd, leerzaam randgeval (de leerling
+  // ontdekt zelf dat te extreme instellingen het onderscheid laten verdwijnen).
+  const CHECK_TEMPS = [80, 90, 100];
+  const CHECK_FLOWS = [25, 30, 35];
+
+  function getOrderAndMinGap(compounds, temp, flow, column) {
+    const rts = compounds.map(c => ({ name: c.name, rt: gcRetentionTime(c, { temp, flow, column }) }))
+      .sort((a,b) => a.rt - b.rt);
+    let minGap = Infinity;
+    for (let i = 1; i < rts.length; i++) minGap = Math.min(minGap, rts[i].rt - rts[i-1].rt);
+    return { order: rts.map(c => c.name).join('>'), minGap };
+  }
+
+  function isStableNearDefault(compounds, column) {
+    let referenceOrder = null;
+    for (const temp of CHECK_TEMPS) {
+      for (const flow of CHECK_FLOWS) {
+        const { order } = getOrderAndMinGap(compounds, temp, flow, column);
+        if (referenceOrder === null) {
+          referenceOrder = order;
+        } else if (order !== referenceOrder) {
+          return false;
+        }
+      }
+    }
+    // Bij de EXACTE standaardinstelling moeten de retentietijden ook voldoende
+    // ver uit elkaar liggen — een stabiele maar verwaarloosbaar kleine afstand
+    // is voor een leerling in de praktijk niet te onderscheiden.
+    const { minGap } = getOrderAndMinGap(compounds, 90, 30, column);
+    return minGap >= 0.3;
+  }
+
+  // Controleert dat de NIET-gekozen kolom bij de standaardinstelling duidelijk
+  // minder geschikt is — anders zou de vraag "welke kolom kies je" geen knoop
+  // hebben om door te hakken, omdat beide kolommen toch goed zouden werken.
+  // "Minder geschikt" = kleinere minimumafstand tussen retentietijden (op deze
+  // schaal: minstens een factor 2 kleiner dan op de veilige kolom).
+  function otherColumnIsClearlyWorse(compounds, safeColumn) {
+    const otherColumn = safeColumn === 'polar' ? 'apolar' : 'polar';
+    const { minGap: safeGap } = getOrderAndMinGap(compounds, 90, 30, safeColumn);
+    const { minGap: otherGap } = getOrderAndMinGap(compounds, 90, 30, otherColumn);
+    return otherGap < safeGap / 2;
+  }
+
+  for (let attempt = 0; attempt < 80; attempt++) {
+    const variant = randInt(1, 4);
+    let compounds, safeColumn;
+
+    if (variant === 1) {
+      // (laag,apolair), (hoog,apolair), (hoog,polair) -> polaire kolom veilig
+      const apolarPair = pickLowHigh(GC_APOLAR);
+      const polarHigh = GC_POLAR.slice().sort((a,b)=>b.bp-a.bp)[randInt(0, Math.floor(GC_POLAR.length/2))];
+      compounds = [apolarPair.low, apolarPair.high, polarHigh];
+      safeColumn = 'polar';
+    } else if (variant === 2) {
+      // (laag,apolair), (laag,polair), (hoog,polair) -> polaire kolom veilig
+      const polarPair = pickLowHigh(GC_POLAR);
+      const apolarLow = GC_APOLAR.slice().sort((a,b)=>a.bp-b.bp)[randInt(0, Math.floor(GC_APOLAR.length/2))];
+      compounds = [apolarLow, polarPair.low, polarPair.high];
+      safeColumn = 'polar';
+    } else if (variant === 3) {
+      // (hoog,apolair), (laag,apolair), (laag,polair) -> apolaire kolom veilig
+      const apolarPair = pickLowHigh(GC_APOLAR);
+      const polarLow = GC_POLAR.slice().sort((a,b)=>a.bp-b.bp)[randInt(0, Math.floor(GC_POLAR.length/2))];
+      compounds = [apolarPair.high, apolarPair.low, polarLow];
+      safeColumn = 'apolar';
+    } else {
+      // (hoog,apolair), (hoog,polair), (laag,polair) -> apolaire kolom veilig
+      const polarPair = pickLowHigh(GC_POLAR);
+      const apolarHigh = GC_APOLAR.slice().sort((a,b)=>b.bp-a.bp)[randInt(0, Math.floor(GC_APOLAR.length/2))];
+      compounds = [apolarHigh, polarPair.high, polarPair.low];
+      safeColumn = 'apolar';
+    }
+
+    if (isStableNearDefault(compounds, safeColumn) && otherColumnIsClearlyWorse(compounds, safeColumn)) {
+      return { compounds, safeColumn };
+    }
+  }
+
+  // Fallback (zou met deze bibliotheek niet mogen voorkomen, maar voor de
+  // zekerheid): geef een eenvoudig, gegarandeerd geldig drietal terug.
+  return {
+    compounds: [GC_APOLAR[0], GC_APOLAR[GC_APOLAR.length-1], GC_POLAR[GC_POLAR.length-1]],
+    safeColumn: 'polar'
+  };
+}
+
+// Vaste, losse interne-standaardstoffen — bewust apart van GC_LIBRARY, zodat een
+// interne standaard nooit per ongeluk samenvalt met een stof die al (onbekend)
+// in het monster aanwezig is. Dit zijn fictieve maar realistisch klinkende namen
+// voor stoffen die in de praktijk als IS gekozen worden (homologen/analogen).
+const GC_IS_LIBRARY = [
+  { name: '4-methyl-2-pentanol (IS)', bp: 132, polarity: 7, sensitivity: 0.9 },
+  { name: 'nonaan (IS)', bp: 151, polarity: 0, sensitivity: 0.95 },
+  { name: '1-chloorhexaan (IS)', bp: 134, polarity: 4, sensitivity: 0.8 }
+];
+
+/* =========================================================================
+   GC MODULE — RETENTIETIJD- EN PIEKVORM-MODEL
+========================================================================= */
+let gcCurrentData = null;
+let gcAnswersVisible = false;
+
+function gcGetSettings() {
+  return {
+    temp: parseFloat(document.getElementById('gc-temp').value),
+    flow: parseFloat(document.getElementById('gc-flow').value),
+    column: document.getElementById('gc-column').value
+  };
+}
+
+// Berekent retentietijd (in min) voor 1 stof, gegeven simulator-instellingen.
+// Model (vereenvoudigd, kwalitatief correct):
+// - lager kookpunt -> vluchtiger -> korter op de kolom
+// - hogere temperatuur -> alles vluchtiger -> alle retentietijden korter, verschillen kleiner
+// - polariteit-match tussen stof en kolom -> extra vertraging (sterkere interactie stationaire fase)
+// - hogere flow -> korter op de kolom voor iedereen (minder tijd om te interacteren)
+function gcRetentionTime(compound, settings) {
+  const { temp, flow, column } = settings;
+
+  // Vluchtigheid (hoofdeffect): hoe verder de oventemperatuur ONDER het kookpunt
+  // ligt, hoe trager de stof door de kolom gaat. Vloeiende exponentiële relatie
+  // (geen harde ondergrens) zodat het kookpuntverschil tussen stoffen nooit
+  // wegvalt of van volgorde wisselt, ook niet bij hoge oventemperatuur.
+  //
+  // Vereenvoudiging (zichtbaar voor de leerling, zie toelichting bij de
+  // simulator-instellingen): het kookpunt wordt afgerond op de dichtstbijzijnde
+  // 10°C voordat het de berekening ingaat. Een kookpuntverschil kleiner dan
+  // 10°C is in dit model dus niet onderscheidend — net zoals je op dit niveau
+  // ook niet zou verwachten dat een leerling 56°C en 64°C als "duidelijk
+  // verschillend" beoordeelt zonder verder rekenwerk.
+  const roundedBp = Math.round(compound.bp / 10) * 10;
+  const deltaT = roundedBp - temp;
+  let volatilityFactor = Math.exp(deltaT / 35);
+  let baseRT = 0.5 + volatilityFactor * 2.3;
+
+  // Polariteit (secundair, modererend effect): een goede match met de kolom
+  // vertraagt een stof extra, maar mag het kookpunt-effect niet overheersen.
+  const columnPolarity = column === 'polar' ? 9 : 0.5;
+  const polarityMatch = 10 - Math.abs(compound.polarity - columnPolarity); // 0..10
+  let polarityFactor = 1 + (polarityMatch / 10) * 0.35; // tot ~1.35x, bewust beperkt
+
+  let rt = baseRT * polarityFactor;
+
+  // flow: hogere flow -> sneller door de kolom (minder tijd), schaal omgekeerd
+  rt = rt * (30 / flow);
+
+  return Math.max(0.4, rt);
+}
+
+// Van Deemter-achtige piekbreedte: U-vormig in functie van flow.
+// Te laag -> longitudinale diffusie verbreedt. Te hoog -> geen evenwichtstijd, ook breder.
+// Optimum rond een 'ideale' flow, breder ervoor en erna.
+function gcPeakWidth(rt, settings) {
+  const { flow } = settings;
+  const optimalFlow = 30;
+  const deviation = Math.abs(flow - optimalFlow) / optimalFlow; // 0 bij optimum
+  // basisbreedte schaalt licht met retentietijd (latere pieken iets breder, realistisch)
+  const baseWidth = 0.10 + rt * 0.025;
+  const vanDeemterPenalty = deviation * deviation * 0.35; // kwadratisch: ver van optimum = duidelijk breder
+  return baseWidth + vanDeemterPenalty;
+}
+
+/* =========================================================================
+   GC MODULE — MIXTURE GENERATION
+========================================================================= */
+// Piekoppervlak: voor een Gaussiaan is oppervlak = hoogte * breedte * sqrt(2*pi) * sigma-achtige
+// constante. We gebruiken een vereenvoudigde, maar interne consistente formule:
+// oppervlak is recht evenredig met (concentratie * sensitivity), met realistische ruis.
+function gcComputePeakArea(concentration, sensitivity) {
+  const noise = 0.92 + Math.random() * 0.16; // +/-8% meetruis
+  return concentration * sensitivity * 12 * noise; // schaalfactor 12 = arbitraire eenheid
+}
+
+function generateGcMixture() {
+  const { compounds: baseCompounds, safeColumn } = gcSelectStructuredMixture();
+  const compounds = baseCompounds.map(c => Object.assign({}, c, {
+    concentration: randInt(5, 50) // onbekende concentratie in het monster, mmol/L
+  }));
+
+  // Kies één stof uit het mengsel als 'doelstof' voor de kwantificeringsvraag,
+  // en een vaste, losse IS (nooit een mengselcomponent zelf).
+  const targetCompound = pick(compounds);
+  const isCompound = pick(GC_IS_LIBRARY);
+  const isConcentration = randInt(10, 30); // bekende, toegevoegde IS-concentratie, zelfde in calibratie en monster
+
+  // Calibratiemeting: bekende concentratie van de doelstof + dezelfde IS-concentratie,
+  // onder dezelfde GC-condities. Hieruit volgt de responsfactor.
+  const calibTargetConcentration = randInt(10, 40); // bekende concentratie in de calibratiemeting
+  const calibTargetArea = gcComputePeakArea(calibTargetConcentration, targetCompound.sensitivity);
+  const calibIsArea = gcComputePeakArea(isConcentration, isCompound.sensitivity);
+  const responseFactor = (calibTargetArea / calibTargetConcentration) / (calibIsArea / isConcentration);
+
+  // Monstermeting: dezelfde IS-concentratie toegevoegd, doelstof-concentratie is "onbekend"
+  // (maar in de simulatie wel vastgelegd op targetCompound.concentration, om consistent te zijn).
+  const sampleTargetArea = gcComputePeakArea(targetCompound.concentration, targetCompound.sensitivity);
+  const sampleIsArea = gcComputePeakArea(isConcentration, isCompound.sensitivity);
+
+  gcCurrentData = {
+    compounds,
+    safeColumn,
+    quant: {
+      targetCompound, isCompound, isConcentration,
+      calibTargetConcentration, calibTargetArea, calibIsArea, responseFactor,
+      sampleTargetArea, sampleIsArea
+    }
+  };
+  gcAnswersVisible = false;
+  renderGcChromatogram('gc-svg', false);
+  renderGcOpgave();
+  renderGcQuestions();
+  document.getElementById('gc-graph-meta').textContent = '';
+  document.getElementById('gc-mixture-note').textContent =
+    'Mengsel van: ' + compounds.map(c => c.name).join(', ') + ' — kookpunten en polariteit zijn echte/realistische waarden.';
+}
+
+function onGcSettingChange() {
+  document.getElementById('gc-temp-readout').textContent = document.getElementById('gc-temp').value + ' °C';
+  document.getElementById('gc-flow-readout').textContent = document.getElementById('gc-flow').value + ' mL/min';
+  if (gcCurrentData) {
+    renderGcChromatogram('gc-svg', gcAnswersVisible);
+    renderGcOpgave();
+    if (gcAnswersVisible) {
+      const peaks = (gcCurrentData.computedPeaks || []).slice().sort((a,b)=>a.rt-b.rt);
+      document.getElementById('gc-graph-meta').textContent = peaks.map(p => `${p.name}: t=${p.rt.toFixed(2)} min`).join('  |  ');
+    }
+  }
+}
+
+/* =========================================================================
+   GC MODULE — SVG RENDERING (Gaussian peaks, white background)
+========================================================================= */
+function gcGaussianAt(x, center, width, height) {
+  // standaarddeviatie afgeleid van 'width' (FWHM-achtig, vereenvoudigd)
+  const sigma = width / 2.355;
+  return height * Math.exp(-((x - center) ** 2) / (2 * sigma * sigma));
+}
+
+function renderGcChromatogram(svgId, highlightAnswers) {
+  const svg = document.getElementById(svgId);
+  if (!svg || !gcCurrentData) return;
+  const settings = gcGetSettings();
+  const W = 640, H = 360;
+  const marginL = 55, marginR = 20, marginT = 20, marginB = 45;
+  const plotW = W - marginL - marginR;
+  const plotH = H - marginT - marginB;
+
+  // bereken retentietijd + breedte per stof
+  const peaks = gcCurrentData.compounds.map(c => {
+    const rt = gcRetentionTime(c, settings);
+    const width = gcPeakWidth(rt, settings);
+    const height = randInt(55, 95); // basishoogte met wat variatie, genormaliseerd later
+    return Object.assign({}, c, { rt, width, height });
+  });
+
+  const maxRT = Math.max(...peaks.map(p => p.rt)) + Math.max(...peaks.map(p => p.width)) * 2 + 0.5;
+  const xScale = t => marginL + (t / maxRT) * plotW;
+  const yScale = h => marginT + plotH - (h / 100) * plotH;
+
+  let svgContent = '';
+  svgContent += `<line x1="${marginL}" y1="${marginT}" x2="${marginL}" y2="${marginT+plotH}" stroke="#222" stroke-width="1.2"/>`;
+  svgContent += `<line x1="${marginL}" y1="${marginT+plotH}" x2="${marginL+plotW}" y2="${marginT+plotH}" stroke="#222" stroke-width="1.2"/>`;
+
+  // x-as ticks (tijd in min)
+  let step = maxRT > 12 ? 2 : 1;
+  for (let t = 0; t <= maxRT; t += step) {
+    let x = xScale(t);
+    svgContent += `<line x1="${x}" y1="${marginT+plotH}" x2="${x}" y2="${marginT+plotH+4}" stroke="#222" stroke-width="1"/>`;
+    svgContent += `<text x="${x}" y="${marginT+plotH+17}" font-size="10" text-anchor="middle" font-family="monospace" fill="#333">${t.toFixed(0)}</text>`;
+  }
+  svgContent += `<text x="${marginL+plotW/2}" y="${H-6}" font-size="11" text-anchor="middle" font-family="sans-serif" fill="#333">retentietijd (min)</text>`;
+  svgContent += `<text x="14" y="${marginT+plotH/2}" font-size="11" font-family="sans-serif" fill="#333" transform="rotate(-90 14 ${marginT+plotH/2})">signaal</text>`;
+
+  // bereken som van gaussians over een fijn grid, teken als lopende lijn (chromatogram-stijl)
+  const steps = 400;
+  let pathPoints = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = (i / steps) * maxRT;
+    let y = 2; // kleine baseline
+    peaks.forEach(p => { y += gcGaussianAt(t, p.rt, p.width, p.height); });
+    pathPoints.push([xScale(t), yScale(Math.min(y, 100))]);
+  }
+  let pathD = 'M ' + pathPoints.map(pt => pt[0].toFixed(1) + ' ' + pt[1].toFixed(1)).join(' L ');
+  svgContent += `<path d="${pathD}" fill="none" stroke="#222" stroke-width="1.8"/>`;
+
+  // pieklabels (alleen als highlightAnswers aan staat)
+  if (highlightAnswers) {
+    peaks.forEach((p, idx) => {
+      const x = xScale(p.rt);
+      const peakHeightVal = p.height + 2;
+      const y = yScale(Math.min(peakHeightVal, 100));
+      const colors = ['#2563eb', '#16a34a', '#d97706', '#9333ea'];
+      const color = colors[idx % colors.length];
+      svgContent += `<line x1="${x}" y1="${marginT+plotH}" x2="${x}" y2="${y-4}" stroke="${color}" stroke-width="1" stroke-dasharray="2,2"/>`;
+      svgContent += `<text x="${x}" y="${y-8}" font-size="10" text-anchor="middle" font-family="sans-serif" fill="${color}" font-weight="600">${p.name}</text>`;
+    });
+  }
+
+  svg.innerHTML = svgContent;
+  gcCurrentData.computedPeaks = peaks;
+}
+
+function renderGcOpgave() {
+  if (!gcCurrentData) return;
+  renderGcChromatogram('gc-svg-opgave', false);
+  const settings = gcGetSettings();
+  document.getElementById('gc-opgave-text').textContent =
+    `Onderstaand chromatogram is verkregen bij een oventemperatuur van ${settings.temp} °C, een draaggassnelheid van ${settings.flow} mL/min en een ${settings.column === 'polar' ? 'polaire' : 'apolaire'} kolom. Het mengsel bevat de volgende stoffen: ${gcCurrentData.compounds.map(c=>c.name).join(', ')}. Bepaal welke piek bij welke stof hoort, op basis van kookpunt en polariteit.`;
+
+  const peaks = gcCurrentData.computedPeaks || [];
+  let rows = peaks.slice().sort((a,b)=>a.rt-b.rt).map(p =>
+    `<tr><td>t = ${p.rt.toFixed(2)} min</td><td>${p.name} (kookpunt ${p.bp} °C, polariteit ${p.polarity}/10)</td></tr>`
+  ).join('');
+  document.getElementById('gc-docent-answer').innerHTML = `<table class="docent-answer-table">${rows}</table>`;
+}
+
+function toggleGcAnswers() {
+  gcAnswersVisible = !gcAnswersVisible;
+  renderGcChromatogram('gc-svg', gcAnswersVisible);
+  if (gcAnswersVisible) {
+    const peaks = (gcCurrentData.computedPeaks || []).slice().sort((a,b)=>a.rt-b.rt);
+    document.getElementById('gc-graph-meta').textContent = peaks.map(p => `${p.name}: t=${p.rt.toFixed(2)} min`).join('  |  ');
+  } else {
+    document.getElementById('gc-graph-meta').textContent = '';
+  }
+}
+
+/* =========================================================================
+   GC MODULE — QUESTIONS (oefenmodus)
+========================================================================= */
+function renderGcQuestions() {
+  const container = document.getElementById('gc-questions');
+  const compounds = gcCurrentData.compounds;
+  let html = '';
+
+  html += `
+    <div class="question-block">
+      <div class="question-text">1a. Het mengsel bevat: ${compounds.map(c=>c.name).join(', ')}. Op slechts één van de twee kolomtypes is de elutievolgorde met kookpunt en polariteit samen eenduidig te beredeneren. Welke kolom geeft een goede, voorspelbare scheiding?</div>
+      <select id="gc-q1a-input">
+        <option value="">— kies een kolom —</option>
+        <option value="apolar">Apolaire kolom</option>
+        <option value="polar">Polaire kolom</option>
+      </select>
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkGcQ1a()">Check</button>
+        <button class="btn secondary" onclick="showGcAnswer('q1a')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="gc-q1a-feedback"></div>
+    </div>`;
+
+  html += `
+    <div class="question-block">
+      <div class="question-text">1b. Stel de kolom-instelling op de door jou gekozen kolom in, en geef de elutievolgorde (van vroeg naar laat).</div>
+      <div class="btn-row">
+        <button class="btn secondary" onclick="toggleHint('gc-bp-info')">Toon kookpunten</button>
+        <button class="btn secondary" onclick="toggleHint('gc-pol-info')">Toon relatieve polariteit</button>
+      </div>
+      <div class="hint-box" id="gc-bp-info">${compounds.map(c=>`${c.name}: ${c.bp} °C`).join(' — ')}</div>
+      <div class="hint-box" id="gc-pol-info">${compounds.map(c=>`${c.name}: ${c.polarity}/10`).join(' — ')}</div>
+      <div class="gc-order-row">
+        <select id="gc-q1-pos0"><option value="">1e</option>${compounds.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select>
+        <select id="gc-q1-pos1"><option value="">2e</option>${compounds.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select>
+        <select id="gc-q1-pos2"><option value="">3e</option>${compounds.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select>
+      </div>
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkGcQ1()">Check</button>
+        <button class="btn secondary" onclick="showGcAnswer('q1')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="gc-q1-feedback"></div>
+    </div>`;
+
+  html += `
+    <div class="question-block">
+      <div class="question-text">2. Zoek (met de temperatuur-slider, bij de huidige draaggassnelheid) de <strong>hoogste</strong> oventemperatuur waarbij alle opeenvolgende pieken nog minstens 1,0 minuut van elkaar gescheiden zijn (dus de kortst mogelijke analyse met behoud van scheiding). Welke temperatuur heb je gevonden?</div>
+      <input type="text" id="gc-q2-input" placeholder="temperatuur (°C), of 'geen oplossing' als dat het geval is">
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkGcQ2()">Check</button>
+        <button class="btn secondary" onclick="showGcAnswer('q2')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="gc-q2-feedback"></div>
+    </div>`;
+
+  // ---- Kwantificering via interne standaard ----
+  const q = gcCurrentData.quant;
+  html += `
+    <div class="question-block">
+      <div class="question-text" style="color:#2f8a5b; font-weight:600;">Kwantificering met interne standaard
+        <span class="hint-toggle" onclick="toggleHint('gc-is-explainer')" style="margin-left:8px;">uitleg interne-standaardmethode</span>
+      </div>
+      <div class="hint-box" id="gc-is-explainer">Directe vergelijking van piekoppervlakken zou aannemen dat elke injectie exact even groot is en de detector voor elke stof even gevoelig reageert — in de praktijk varieert het injectievolume net iets per meting, en heeft elke stof een eigen detectorrespons. Door een bekende hoeveelheid interne standaard (IS) toe te voegen aan zowel de calibratiemeting als het monster, en de oppervlakte-verhouding (in plaats van het absolute oppervlak) te gebruiken, vallen die toevallige variaties tussen metingen weg. De IS is altijd een aparte stof die niet van nature in het monster voorkomt.</div>
+      <div class="question-text" style="margin-top:10px;">We willen de concentratie van <strong>${q.targetCompound.name}</strong> in het monster bepalen. Daarvoor is eerst een <strong>calibratiemeting</strong> gedaan: een bekende concentratie van ${q.targetCompound.name} (${q.calibTargetConcentration} mmol/L) is samen met ${q.isConcentration} mmol/L van de interne standaard ${q.isCompound.name} gemeten, onder dezelfde GC-condities.</div>
+      <table class="docent-answer-table" style="margin-bottom:10px;">
+        <tr><td>Piekoppervlak ${q.targetCompound.name}</td><td>${q.calibTargetArea.toFixed(1)}</td></tr>
+        <tr><td>Piekoppervlak ${q.isCompound.name} (IS)</td><td>${q.calibIsArea.toFixed(1)}</td></tr>
+      </table>
+    </div>`;
+
+  html += `
+    <div class="question-block">
+      <div class="question-text">3. Bereken de responsfactor RF, gedefinieerd als RF = (A<sub>X</sub>/c<sub>X</sub>) / (A<sub>IS</sub>/c<sub>IS</sub>), uit deze calibratiemeting.</div>
+      <input type="number" id="gc-q4-input" step="0.01" placeholder="RF">
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkGcQ4()">Check</button>
+        <button class="btn secondary" onclick="showGcAnswer('q4')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="gc-q4-feedback"></div>
+    </div>`;
+
+  html += `
+    <div class="question-block">
+      <div class="question-text">4. Nu wordt ${q.isConcentration} mmol/L van dezelfde interne standaard toegevoegd aan het onbekende monster, en onder dezelfde condities gemeten. Gemeten piekoppervlakken: ${q.targetCompound.name} = ${q.sampleTargetArea.toFixed(1)}, ${q.isCompound.name} (IS) = ${q.sampleIsArea.toFixed(1)}. Bereken de concentratie van ${q.targetCompound.name} in het monster, met behulp van de RF die je in de vorige vraag hebt bepaald.</div>
+      <input type="number" id="gc-q5-input" step="0.1" placeholder="concentratie (mmol/L)">
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkGcQ5()">Check</button>
+        <button class="btn secondary" onclick="showGcAnswer('q5')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="gc-q5-feedback"></div>
+    </div>`;
+
+  container.innerHTML = html;
+}
+
+function checkGcQ2() {
+  const val = document.getElementById('gc-q2-input').value.trim();
+  const fb = document.getElementById('gc-q2-feedback');
+  const flow = parseFloat(document.getElementById('gc-flow').value);
+  const column = document.getElementById('gc-column').value;
+  const optimalTemp = gcFindOptimalTemp(flow, column);
+
+  if (optimalTemp === null) {
+    const noneAnswer = val.toLowerCase().includes('geen') || val.toLowerCase().includes('niet mogelijk') || val.toLowerCase().includes('onmogelijk');
+    if (noneAnswer) {
+      fb.className = 'feedback correct';
+      fb.textContent = `Klopt — bij deze instellingen liggen twee stoffen op deze kolom zo dicht bij elkaar dat zelfs bij de laagste temperatuur geen voldoende scheiding (≥1,0 min) haalbaar is.`;
+    } else {
+      fb.className = 'feedback incorrect';
+      fb.textContent = `Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
+    }
+    return;
+  }
+
+  const numVal = parseFloat(val);
+  if (Math.abs(numVal - optimalTemp) <= 15) {
+    fb.className = 'feedback correct';
+    fb.textContent = `Klopt — bij de huidige snelheid en kolom ligt de hoogste temperatuur met nog voldoende scheiding rond ${optimalTemp} °C.`;
+  } else {
+    fb.className = 'feedback incorrect';
+    fb.textContent = `Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
+  }
+}
+
+// Zoekt (in stappen van 5°C, het slider-interval) de hoogste temperatuur waarbij
+// alle opeenvolgende retentietijden nog >= 1,0 min uit elkaar liggen.
+// Retourneert null als zelfs bij de laagste temperatuur (40°C) geen voldoende
+// scheiding haalbaar is — dat kan voorkomen als twee stoffen op deze kolom
+// gewoon te dicht bij elkaar liggen, wat een leerzame conclusie op zich is.
+const GC_MIN_GAP = 1.0;
+
+function gcFindOptimalTemp(flow, column) {
+  function minGapAt(t) {
+    const settings = { temp: t, flow, column };
+    const rts = gcCurrentData.compounds.map(c => gcRetentionTime(c, settings)).sort((a,b) => a-b);
+    if (rts.length < 2) return Infinity;
+    let minGap = Infinity;
+    for (let i = 1; i < rts.length; i++) {
+      minGap = Math.min(minGap, rts[i] - rts[i-1]);
+    }
+    return minGap;
+  }
+
+  if (minGapAt(40) < GC_MIN_GAP) return null; // ook bij de laagste temperatuur geen voldoende scheiding
+
+  let best = 40;
+  for (let t = 40; t <= 160; t += 5) {
+    if (minGapAt(t) >= GC_MIN_GAP) {
+      best = t;
+    } else {
+      break;
+    }
+  }
+  return best;
+}
+
+function checkGcQ1a() {
+  const input = document.getElementById('gc-q1a-input').value;
+  const fb = document.getElementById('gc-q1a-feedback');
+  const safeColumn = gcCurrentData.safeColumn;
+  const correctTerm = safeColumn === 'polar' ? 'polaire' : 'apolaire';
+
+  if (input === safeColumn) {
+    fb.className = 'feedback correct';
+    fb.textContent = `Klopt — de ${correctTerm} kolom geeft hier een eenduidige volgorde.`;
+  } else {
+    fb.className = 'feedback incorrect';
+    fb.textContent = `Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
+  }
+}
+
+function checkGcQ1() {
+  const chosen = [
+    document.getElementById('gc-q1-pos0').value,
+    document.getElementById('gc-q1-pos1').value,
+    document.getElementById('gc-q1-pos2').value
+  ];
+  const fb = document.getElementById('gc-q1-feedback');
+  const settings = gcGetSettings();
+  const sorted = gcCurrentData.compounds.slice()
+    .map(c => Object.assign({}, c, { rt: gcRetentionTime(c, settings) }))
+    .sort((a,b) => a.rt - b.rt);
+
+  const allFilled = chosen.every(v => v !== '');
+  const noDuplicates = new Set(chosen).size === chosen.length;
+  const inOrder = allFilled && noDuplicates && chosen.every((name, i) => name === sorted[i].name);
+
+  if (inOrder) {
+    fb.className = 'feedback correct';
+    fb.textContent = `Klopt — de elutievolgorde bij deze instellingen is: ${sorted.map(c=>c.name).join(' → ')}.`;
+  } else {
+    fb.className = 'feedback incorrect';
+    fb.textContent = `Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
+  }
+}
+
+function checkGcQ4() {
+  const val = parseFloat(document.getElementById('gc-q4-input').value);
+  const fb = document.getElementById('gc-q4-feedback');
+  const q = gcCurrentData.quant;
+  const correct = q.responseFactor;
+  if (Math.abs(val - correct) / correct < 0.05) {
+    fb.className = 'feedback correct';
+    fb.textContent = `Klopt — RF ≈ ${correct.toFixed(2)}.`;
+  } else {
+    fb.className = 'feedback incorrect';
+    fb.textContent = `Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
+  }
+}
+
+function checkGcQ5() {
+  const val = parseFloat(document.getElementById('gc-q5-input').value);
+  const fb = document.getElementById('gc-q5-feedback');
+  const q = gcCurrentData.quant;
+  // c_X = (A_X * c_IS) / (A_IS * RF)
+  const correct = (q.sampleTargetArea * q.isConcentration) / (q.sampleIsArea * q.responseFactor);
+  if (Math.abs(val - correct) / correct < 0.08) {
+    fb.className = 'feedback correct';
+    fb.textContent = `Klopt — de concentratie van ${q.targetCompound.name} in het monster is ongeveer ${correct.toFixed(1)} mmol/L.`;
+  } else {
+    fb.className = 'feedback incorrect';
+    fb.textContent = `Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
+  }
+}
+
+function showGcAnswer(which) {
+  const settings = gcGetSettings();
+  const q = gcCurrentData.quant;
+  if (which === 'q1a') {
+    const safeColumn = gcCurrentData.safeColumn;
+    const correctTerm = safeColumn === 'polar' ? 'polaire' : 'apolaire';
+    const sortedOnSafe = gcCurrentData.compounds.slice()
+      .map(c => Object.assign({}, c, { rt: gcRetentionTime(c, { temp: settings.temp, flow: settings.flow, column: safeColumn }) }))
+      .sort((a,b) => a.rt - b.rt);
+    const fb = document.getElementById('gc-q1a-feedback');
+    fb.className = 'feedback info';
+    fb.textContent = `Antwoord: de ${correctTerm} kolom. Op deze kolom werken het kookpunt-effect en het polariteit-effect bij elke stof in dezelfde richting (of zijn ze bij hoogstens één stof gemengd, zonder een andere stof om mee te wisselen), waardoor de volgorde eenduidig is: ${sortedOnSafe.map(c=>c.name).join(' → ')}. Op de andere kolom werken kookpunt en polariteit bij twee stoffen tegen elkaar in, wat zonder rekenwerk niet te voorspellen is.`;
+    return;
+  }
+  if (which === 'q1') {
+    const sorted = gcCurrentData.compounds.slice()
+      .map(c => Object.assign({}, c, { rt: gcRetentionTime(c, settings) }))
+      .sort((a,b) => a.rt - b.rt);
+    const fb = document.getElementById('gc-q1-feedback');
+    fb.className = 'feedback info';
+    fb.textContent = `Antwoord: ${sorted.map(c => `${c.name} (kookpunt ${c.bp}°C, polariteit ${c.polarity}/10)`).join(' → ')}. Bij een ${settings.column === 'polar' ? 'polaire' : 'apolaire'} kolom elueren stoffen die qua polariteit goed bij de kolom passen later (sterkere interactie met de stationaire fase), naast het algemene effect van het kookpunt (vluchtiger = sneller).`;
+    return;
+  }
+  if (which === 'q2') {
+    const flow = parseFloat(document.getElementById('gc-flow').value);
+    const column = document.getElementById('gc-column').value;
+    const optimalTemp = gcFindOptimalTemp(flow, column);
+    const fb = document.getElementById('gc-q2-feedback');
+    fb.className = 'feedback info';
+    if (optimalTemp === null) {
+      fb.textContent = `Antwoord: er is geen temperatuur binnen het bereik waarbij alle stoffen voldoende gescheiden zijn — zelfs bij de laagste oventemperatuur (40 °C) liggen twee stoffen al binnen 0,5 min van elkaar. Op deze kolom (bij deze snelheid) is dit mengsel niet goed te scheiden; een andere kolom, een langere kolom, of een aangepaste snelheid zou nodig zijn.`;
+    } else {
+      const rts = gcCurrentData.compounds.map(c => Object.assign({}, c, {
+        rt: gcRetentionTime(c, { temp: optimalTemp, flow, column })
+      })).sort((a,b) => a.rt - b.rt);
+      fb.textContent = `Antwoord: bij de huidige snelheid en kolom is ${optimalTemp} °C de hoogste temperatuur waarbij alle opeenvolgende pieken nog minstens 0,5 min uit elkaar liggen. Retentietijden bij die temperatuur: ${rts.map(c => `${c.name} = ${c.rt.toFixed(2)} min`).join(', ')}. Boven deze temperatuur worden alle stoffen vluchtiger en elueren ze sneller en dichter bij elkaar, waardoor de scheiding verloren gaat.`;
+    }
+    return;
+  }
+  if (which === 'q4') {
+    const fb = document.getElementById('gc-q4-feedback');
+    fb.className = 'feedback info';
+    fb.textContent = `Antwoord: RF = (A_X / c_X) / (A_IS / c_IS) = (${q.calibTargetArea.toFixed(1)} / ${q.calibTargetConcentration}) / (${q.calibIsArea.toFixed(1)} / ${q.isConcentration}) ≈ ${q.responseFactor.toFixed(2)}.`;
+    return;
+  }
+  if (which === 'q5') {
+    const correct = (q.sampleTargetArea * q.isConcentration) / (q.sampleIsArea * q.responseFactor);
+    const fb = document.getElementById('gc-q5-feedback');
+    fb.className = 'feedback info';
+    fb.textContent = `Antwoord: c_X = (A_X · c_IS) / (A_IS · RF) = (${q.sampleTargetArea.toFixed(1)} × ${q.isConcentration}) / (${q.sampleIsArea.toFixed(1)} × ${q.responseFactor.toFixed(2)}) ≈ ${correct.toFixed(1)} mmol/L.`;
+    return;
+  }
+}
+
+/* =========================================================================
+   TLC MODULE — DATA: STOFFENBIBLIOTHEEK
+   polarity: 0 (apolair) .. 10 (polair). uvActive: zichtbaar onder UV-lamp
+   (aromatische/geconjugeerde stoffen); jodiumdamp kleurt vrijwel alles aan.
+========================================================================= */
+const TLC_LIBRARY = [
+  { name: 'naftaleen', polarity: 1, uvActive: true },
+  { name: 'tolueen', polarity: 2, uvActive: true },
+  { name: 'benzoëzuur', polarity: 6, uvActive: true },
+  { name: 'cholesterol', polarity: 3, uvActive: false },
+  { name: 'palmitinezuur', polarity: 4, uvActive: false },
+  { name: 'cyclohexanol', polarity: 6, uvActive: false },
+  { name: '1-octanol', polarity: 4, uvActive: false },
+  { name: 'aniline', polarity: 5, uvActive: true },
+  { name: 'azijnzuur', polarity: 8, uvActive: false },
+  { name: 'glucose', polarity: 9, uvActive: false }
+];
+
+let tlcCurrentData = null;
+let tlcAnswersVisible = false;
+
+function tlcGetSettings() {
+  return {
+    stationary: document.getElementById('tlc-stationary').value,
+    eluentPolarity: parseFloat(document.getElementById('tlc-eluent').value),
+    detection: document.getElementById('tlc-detection').value
+  };
+}
+
+// Rf-model: tussen 0 en 1.
+// - Normale fase (silica, polair): apolaire stof heeft weinig affiniteit met de plaat
+//   -> loopt makkelijker mee -> hogere Rf. Polaire stof "plakt" -> lagere Rf.
+// - Omgekeerde fase (C18, apolair): precies omgekeerd -> polaire stof heeft hogere Rf.
+// - Polairder eluens duwt in beide gevallen alles wat verder mee (algemeen hogere Rf).
+function tlcComputeRf(compound, settings) {
+  const { stationary, eluentPolarity } = settings;
+
+  // Affiniteit met de PLAAT (stationaire fase): hoger = meer vasthouden.
+  let affinityWithPlate = stationary === 'silica' ? compound.polarity : (10 - compound.polarity);
+
+  // Oplosvermogen van het eluens voor deze specifieke stof: maximaal als de
+  // polariteit van eluens en stof goed matchen ("like dissolves like" voor de
+  // mobiele fase), net als bij affinityWithPlate voor de stationaire fase.
+  let affinityWithEluent = 10 - Math.abs(compound.polarity - eluentPolarity);
+
+  // Basis-mobiliteit (relatief, per stof): verhouding eluens-affiniteit t.o.v. plaat-affiniteit.
+  let mobility = affinityWithEluent / (affinityWithEluent + affinityWithPlate + 1);
+
+  // Algeheel "elutievermogen" van het eluens, ONAFHANKELIJK van de specifieke stof:
+  // te apolair (eluentPolarity laag) geeft weinig oplossend vermogen voor de meeste
+  // organische stoffen -> alles blijft laag. Te polair geeft te sterk oplossend
+  // vermogen -> alles loopt mee naar boven. Dit dempt mobility extra bij de
+  // uitersten, ongeacht de stofpolariteit, zodat er een binnenliggend optimum
+  // voor de SPREAD tussen stoffen ontstaat (niet alleen voor de Rf zelf).
+  let globalElutionPower = eluentPolarity / 10; // 0 (geen vermogen) .. 1 (vol vermogen)
+
+  let rf = 0.05 + globalElutionPower * (0.05 + mobility * 0.85);
+
+  // kleine realistische ruis
+  rf += (Math.random() - 0.5) * 0.025;
+
+  return Math.min(0.95, Math.max(0.03, rf));
+}
+
+function generateTlcMixture() {
+  const n = randInt(2, 4);
+  const shuffled = TLC_LIBRARY.slice().sort(() => Math.random() - 0.5);
+  const compounds = shuffled.slice(0, n);
+  tlcCurrentData = { compounds };
+  tlcAnswersVisible = false;
+  renderTlcPlate('tlc-svg', false);
+  renderTlcOpgave();
+  renderTlcQuestions();
+  document.getElementById('tlc-graph-meta').textContent = '';
+  document.getElementById('tlc-mixture-note').textContent =
+    'Mengsel van: ' + compounds.map(c => c.name).join(', ') + '.';
+}
+
+function onTlcSettingChange() {
+  document.getElementById('tlc-eluent-readout').textContent = document.getElementById('tlc-eluent').value + ' / 10';
+  if (tlcCurrentData) {
+    renderTlcPlate('tlc-svg', tlcAnswersVisible);
+    renderTlcOpgave();
+    if (tlcAnswersVisible) {
+      const spots = (tlcCurrentData.computedSpots || []).slice().sort((a,b) => b.rf - a.rf);
+      document.getElementById('tlc-graph-meta').textContent = spots.map(s => `${s.name}: Rf=${s.rf.toFixed(2)}`).join('  |  ');
+    }
+  }
+}
+
+/* =========================================================================
+   TLC MODULE — SVG RENDERING (plaat met vlekken, witte achtergrond)
+========================================================================= */
+function renderTlcPlate(svgId, highlightAnswers) {
+  const svg = document.getElementById(svgId);
+  if (!svg || !tlcCurrentData) return;
+  const settings = tlcGetSettings();
+  const W = 320, H = 420;
+  const plateTop = 50, plateBottom = 380, plateLeft = 40, plateRight = 280;
+  const plateHeight = plateBottom - plateTop;
+
+  const spots = tlcCurrentData.compounds.map((c, idx) => {
+    const rf = tlcComputeRf(c, settings);
+    return Object.assign({}, c, { rf });
+  });
+  tlcCurrentData.computedSpots = spots;
+
+  const laneCount = spots.length;
+  const laneWidth = (plateRight - plateLeft) / laneCount;
+
+  let svgContent = '';
+
+  // plaat-omlijning
+  svgContent += `<rect x="${plateLeft}" y="${plateTop}" width="${plateRight-plateLeft}" height="${plateHeight}" fill="#fafafa" stroke="#333" stroke-width="1.5"/>`;
+
+  // loopfront-lijn (boven)
+  svgContent += `<line x1="${plateLeft}" y1="${plateTop}" x2="${plateRight}" y2="${plateTop}" stroke="#2563eb" stroke-width="1.2" stroke-dasharray="4,3"/>`;
+  svgContent += `<text x="${plateRight+4}" y="${plateTop+4}" font-size="9" font-family="monospace" fill="#2563eb">loopfront</text>`;
+
+  // startlijn (onder)
+  svgContent += `<line x1="${plateLeft}" y1="${plateBottom}" x2="${plateRight}" y2="${plateBottom}" stroke="#999" stroke-width="1" stroke-dasharray="3,3"/>`;
+  svgContent += `<text x="${plateRight+4}" y="${plateBottom+4}" font-size="9" font-family="monospace" fill="#999">start</text>`;
+
+  // vlekken
+  spots.forEach((s, idx) => {
+    const laneCenterX = plateLeft + laneWidth * (idx + 0.5);
+    const spotY = plateBottom - s.rf * plateHeight;
+    // detectie: UV toont alleen uvActive stoffen, jodium toont alles
+    const visible = settings.detection === 'iodine' || s.uvActive;
+    const spotColor = settings.detection === 'iodine' ? '#7a5c1e' : '#7c3aed';
+    const spotOpacity = visible ? 0.75 : 0;
+
+    svgContent += `<ellipse cx="${laneCenterX}" cy="${spotY}" rx="11" ry="7" fill="${spotColor}" opacity="${spotOpacity}" stroke="${visible ? '#333' : 'none'}" stroke-width="0.5"/>`;
+
+    // startpunt-markering (kleine stip onderaan elke baan)
+    svgContent += `<circle cx="${laneCenterX}" cy="${plateBottom}" r="2" fill="#333"/>`;
+
+    if (highlightAnswers) {
+      svgContent += `<text x="${laneCenterX}" y="${spotY-12}" font-size="9" text-anchor="middle" font-family="sans-serif" fill="#111" font-weight="600">${s.name}</text>`;
+      svgContent += `<text x="${laneCenterX}" y="${spotY+20}" font-size="8.5" text-anchor="middle" font-family="monospace" fill="#555">Rf=${s.rf.toFixed(2)}</text>`;
+    }
+  });
+
+  svgContent += `<text x="${(plateLeft+plateRight)/2}" y="${H-12}" font-size="10" text-anchor="middle" font-family="sans-serif" fill="#333">${laneCount} banen — ${settings.stationary === 'silica' ? 'silica (polair)' : 'C18 (apolair)'} / eluens polariteit ${settings.eluentPolarity}/10</text>`;
+
+  svg.innerHTML = svgContent;
+}
+
+function renderTlcOpgave() {
+  if (!tlcCurrentData) return;
+  renderTlcPlate('tlc-svg-opgave', false);
+  const settings = tlcGetSettings();
+  document.getElementById('tlc-opgave-text').textContent =
+    `Onderstaande TLC-plaat is ontwikkeld met een ${settings.stationary === 'silica' ? 'silica (polaire)' : 'C18 (apolaire)'} stationaire fase, een eluens met polariteit ${settings.eluentPolarity}/10, en gedetecteerd met ${settings.detection === 'uv' ? 'een UV-lamp' : 'jodiumdamp'}. Het mengsel bevat: ${tlcCurrentData.compounds.map(c=>c.name).join(', ')}. Bepaal welke vlek bij welke stof hoort, en bereken de Rf-waarden.`;
+
+  const spots = (tlcCurrentData.computedSpots || []).slice().sort((a,b) => b.rf - a.rf);
+  let rows = spots.map(s =>
+    `<tr><td>Rf = ${s.rf.toFixed(2)}</td><td>${s.name} (polariteit ${s.polarity}/10, ${s.uvActive ? 'UV-actief' : 'niet UV-actief'})</td></tr>`
+  ).join('');
+  document.getElementById('tlc-docent-answer').innerHTML = `<table class="docent-answer-table">${rows}</table>`;
+}
+
+function toggleTlcAnswers() {
+  tlcAnswersVisible = !tlcAnswersVisible;
+  renderTlcPlate('tlc-svg', tlcAnswersVisible);
+  if (tlcAnswersVisible) {
+    const spots = (tlcCurrentData.computedSpots || []).slice().sort((a,b) => b.rf - a.rf);
+    document.getElementById('tlc-graph-meta').textContent = spots.map(s => `${s.name}: Rf=${s.rf.toFixed(2)}`).join('  |  ');
+  } else {
+    document.getElementById('tlc-graph-meta').textContent = '';
+  }
+}
+
+/* =========================================================================
+   TLC MODULE — QUESTIONS (oefenmodus)
+========================================================================= */
+function renderTlcQuestions() {
+  const container = document.getElementById('tlc-questions');
+  const compounds = tlcCurrentData.compounds;
+  let html = '';
+
+  html += `
+    <div class="question-block">
+      <div class="question-text">1. Het mengsel bevat: ${compounds.map(c=>c.name).join(', ')}. Geef de volgorde van Rf-waarden (hoogste naar laagste) zoals je die verwacht op een <strong>silica</strong>-plaat, én zoals je die verwacht op een <strong>C18</strong>-plaat (bij gelijk blijvend eluens).</div>
+      <label style="margin-top:6px;">Volgorde op silica (hoogste → laagste Rf)</label>
+      <div class="gc-order-row">
+        <select id="tlc-q1a-pos0"><option value="">1e</option>${compounds.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select>
+        <select id="tlc-q1a-pos1"><option value="">2e</option>${compounds.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select>
+        <select id="tlc-q1a-pos2"><option value="">3e</option>${compounds.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select>
+      </div>
+      <label style="margin-top:10px;">Volgorde op C18 (hoogste → laagste Rf)</label>
+      <div class="gc-order-row">
+        <select id="tlc-q1b-pos0"><option value="">1e</option>${compounds.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select>
+        <select id="tlc-q1b-pos1"><option value="">2e</option>${compounds.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select>
+        <select id="tlc-q1b-pos2"><option value="">3e</option>${compounds.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select>
+      </div>
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkTlcQ1()">Check</button>
+        <button class="btn secondary" onclick="showTlcAnswer('q1')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="tlc-q1-feedback"></div>
+    </div>`;
+
+  html += `
+    <div class="question-block">
+      <div class="question-text">2. Welke eluens-polariteit (0-10, huidige stationaire fase aanhoudend) geeft het <strong>grootste relatieve verschil</strong> tussen de Rf-waarden van deze stoffen — dus de beste scheiding op de plaat? Stel de schuifregelaar in en geef de waarde die jij het beste vindt.</div>
+      <input type="number" id="tlc-q2-input" min="0" max="10" step="1" placeholder="eluens-polariteit (0-10)">
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkTlcQ2()">Check</button>
+        <button class="btn secondary" onclick="showTlcAnswer('q2')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="tlc-q2-feedback"></div>
+    </div>`;
+
+  container.innerHTML = html;
+}
+
+function checkTlcQ1() {
+  const chosenSilica = [
+    document.getElementById('tlc-q1a-pos0').value,
+    document.getElementById('tlc-q1a-pos1').value,
+    document.getElementById('tlc-q1a-pos2').value
+  ];
+  const chosenC18 = [
+    document.getElementById('tlc-q1b-pos0').value,
+    document.getElementById('tlc-q1b-pos1').value,
+    document.getElementById('tlc-q1b-pos2').value
+  ];
+  const fb = document.getElementById('tlc-q1-feedback');
+
+  function expectedOrder(stationary) {
+    return tlcCurrentData.compounds.slice().sort((a,b) => {
+      const affA = stationary === 'silica' ? a.polarity : (10 - a.polarity);
+      const affB = stationary === 'silica' ? b.polarity : (10 - b.polarity);
+      return affA - affB; // laagste affiniteit met plaat = hoogste Rf, dus eerst in de lijst
+    });
+  }
+
+  function checkOrder(chosen, sorted) {
+    const allFilled = chosen.every(v => v !== '');
+    const noDuplicates = new Set(chosen).size === chosen.length;
+    return allFilled && noDuplicates && chosen.every((name, i) => name === sorted[i].name);
+  }
+
+  const silicaOk = checkOrder(chosenSilica, expectedOrder('silica'));
+  const c18Ok = checkOrder(chosenC18, expectedOrder('c18'));
+
+  if (silicaOk && c18Ok) {
+    fb.className = 'feedback correct';
+    fb.textContent = `Klopt — beide volgordes zijn correct (en let op: ze zijn precies omgekeerd aan elkaar).`;
+  } else {
+    fb.className = 'feedback incorrect';
+    let msg = 'Nog niet (helemaal) juist: ';
+    if (!silicaOk) msg += 'de silica-volgorde klopt nog niet. ';
+    if (!c18Ok) msg += 'de C18-volgorde klopt nog niet. ';
+    msg += 'Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.';
+    fb.textContent = msg;
+  }
+}
+
+// Zoekt (stappen van 1, het slider-interval) welke eluens-polariteit het grootste
+// relatieve verschil tussen de hoogste en laagste Rf-waarde geeft (beste scheiding).
+function tlcFindBestEluent(stationary) {
+  let bestEluent = 0, bestSpread = -1;
+  for (let e = 0; e <= 10; e += 1) {
+    const rfs = tlcCurrentData.compounds.map(c => {
+      let affinityWithPlate = stationary === 'silica' ? c.polarity : (10 - c.polarity);
+      let affinityWithEluent = 10 - Math.abs(c.polarity - e);
+      let mobility = affinityWithEluent / (affinityWithEluent + affinityWithPlate + 1);
+      let globalElutionPower = e / 10;
+      let rf = 0.05 + globalElutionPower * (0.05 + mobility * 0.85);
+      return Math.min(0.95, Math.max(0.03, rf));
+    });
+    const spread = Math.max(...rfs) - Math.min(...rfs);
+    if (spread > bestSpread) {
+      bestSpread = spread;
+      bestEluent = e;
+    }
+  }
+  return bestEluent;
+}
+
+function checkTlcQ2() {
+  const val = parseFloat(document.getElementById('tlc-q2-input').value);
+  const fb = document.getElementById('tlc-q2-feedback');
+  const settings = tlcGetSettings();
+  const bestEluent = tlcFindBestEluent(settings.stationary);
+
+  if (Math.abs(val - bestEluent) <= 1) {
+    fb.className = 'feedback correct';
+    fb.textContent = `Klopt — bij deze stoffen en stationaire fase geeft een eluens-polariteit van ${bestEluent}/10 het grootste relatieve verschil tussen de Rf-waarden.`;
+  } else {
+    fb.className = 'feedback incorrect';
+    fb.textContent = `Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
+  }
+}
+
+function showTlcAnswer(which) {
+  const settings = tlcGetSettings();
+  if (which === 'q1') {
+    function expectedOrder(stationary) {
+      return tlcCurrentData.compounds.slice().sort((a,b) => {
+        const affA = stationary === 'silica' ? a.polarity : (10 - a.polarity);
+        const affB = stationary === 'silica' ? b.polarity : (10 - b.polarity);
+        return affA - affB;
+      });
+    }
+    const silicaOrder = expectedOrder('silica');
+    const c18Order = expectedOrder('c18');
+    const fb = document.getElementById('tlc-q1-feedback');
+    fb.className = 'feedback info';
+    fb.textContent = `Antwoord — silica (hoogste→laagste Rf): ${silicaOrder.map(c=>c.name).join(' → ')}. C18 (hoogste→laagste Rf): ${c18Order.map(c=>c.name).join(' → ')}. Op silica heeft de meest apolaire stof de hoogste Rf (minste affiniteit met de polaire plaat); op C18 is dat precies omgekeerd.`;
+    return;
+  }
+  if (which === 'q2') {
+    const bestEluent = tlcFindBestEluent(settings.stationary);
+    const fb = document.getElementById('tlc-q2-feedback');
+    fb.className = 'feedback info';
+    fb.textContent = `Antwoord: een eluens-polariteit van ${bestEluent}/10 geeft hier de beste scheiding (grootste relatieve Rf-verschil) op deze stationaire fase. Een te apolair of te polair eluens duwt alle stoffen samen naar een vergelijkbare (te lage of te hoge) Rf, waardoor de vlekken dichter bij elkaar komen.`;
+    return;
+  }
+}
+
+/* =========================================================================
+   UV-VIS MODULE — DATA: STOFFENBIBLIOTHEEK
+   Elke stof heeft 1 of 2 absorptiepieken: {center: golflengte (nm), width:
+   breedte (nm), epsilon: molaire extinctiecoëfficiënt (L/mol/cm) op die piek}.
+   Realistische, herkenbare stoffen met hun werkelijke karakteristieke kleur
+   en absorptiegebied.
+========================================================================= */
+const UVVIS_LIBRARY = [
+  {
+    name: 'kaliumpermanganaat (KMnO4)', color: 'paars',
+    peaks: [{ center: 525, width: 35, epsilon: 2200 }]
+  },
+  {
+    name: 'methyleenblauw', color: 'blauw',
+    peaks: [{ center: 665, width: 30, epsilon: 95000 }, { center: 290, width: 25, epsilon: 30000 }]
+  },
+  {
+    name: 'koper(II)sulfaat (CuSO4-oplossing)', color: 'lichtblauw',
+    peaks: [{ center: 810, width: 90, epsilon: 12 }]
+  },
+  {
+    name: 'fenolftaleïne (basisch, roze)', color: 'roze',
+    peaks: [{ center: 552, width: 40, epsilon: 31000 }]
+  },
+  {
+    name: 'tartrazine (E102, gele kleurstof)', color: 'geel',
+    peaks: [{ center: 426, width: 30, epsilon: 21000 }, { center: 257, width: 20, epsilon: 18000 }]
+  },
+  {
+    name: 'allurarood (E129)', color: 'rood',
+    peaks: [{ center: 504, width: 35, epsilon: 26000 }]
+  },
+  {
+    name: 'broomthymolblauw (basisch)', color: 'blauw',
+    peaks: [{ center: 617, width: 30, epsilon: 38000 }, { center: 433, width: 25, epsilon: 10000 }]
+  },
+  {
+    name: 'chloorfyl-a', color: 'groen',
+    peaks: [{ center: 663, width: 22, epsilon: 90000 }, { center: 430, width: 25, epsilon: 105000 }]
+  },
+  {
+    name: 'nikkel(II)nitraat (Ni²⁺-oplossing)', color: 'groen',
+    peaks: [{ center: 395, width: 30, epsilon: 5 }, { center: 720, width: 60, epsilon: 6 }]
+  },
+  {
+    name: 'indigokarmijn (E132)', color: 'blauw',
+    peaks: [{ center: 610, width: 28, epsilon: 20000 }]
+  }
+];
+
+// Losse, volledig op maat ontworpen stofparen specifiek voor het EXPERT-niveau.
+// Elk paar is zo ontworpen dat: bij λ1 (piek van A) alleen A noemenswaardig
+// absorbeert (schoon), en bij λ2 (piek van B) BEIDE stoffen duidelijk
+// absorberen — exact het scenario van overlappende, brede absorptiebanden
+// zoals bij allurarood/fenolftaleïne. Dit voorkomt afhankelijkheid van
+// toevallige combinaties uit de algemene bibliotheek.
+const UVVIS_EXPERT_PAIRS = [
+  {
+    compoundA: { name: 'fenolftaleïne (basisch, roze)', color: 'roze', peaks: [{ center: 552, width: 70, epsilon: 31000 }] },
+    compoundB: { name: 'allurarood (E129)', color: 'rood', peaks: [{ center: 504, width: 40, epsilon: 26000 }] }
+  },
+  {
+    compoundA: { name: 'broomthymolblauw (basisch)', color: 'blauw', peaks: [{ center: 630, width: 75, epsilon: 38000 }] },
+    compoundB: { name: 'indigokarmijn (E132)', color: 'donkerblauw', peaks: [{ center: 575, width: 40, epsilon: 22000 }] }
+  },
+  {
+    compoundA: { name: 'kleurstof X', color: 'oranje', peaks: [{ center: 480, width: 80, epsilon: 18000 }] },
+    compoundB: { name: 'kleurstof Y', color: 'paars', peaks: [{ center: 435, width: 38, epsilon: 24000 }] }
+  },
+  {
+    compoundA: { name: 'kleurstof P', color: 'geel', peaks: [{ center: 610, width: 90, epsilon: 15000 }] },
+    compoundB: { name: 'kleurstof Q', color: 'cyaan', peaks: [{ center: 560, width: 40, epsilon: 28000 }] }
+  }
+];
+
+let uvvisCurrentData = null;
+let uvvisAnswersVisible = false;
+let uvvisLevel = 'basis';
+
+/* =========================================================================
+   UV-VIS MODULE — ABSORPTIE-MODEL (Beer-Lambert + Gaussiaanse pieken)
+========================================================================= */
+function uvvisAbsorbanceAt(compound, wavelength, concentration, pathLength) {
+  // Som van Gaussiaanse pieken; epsilon op het piekcentrum, vloeiend aflopend.
+  let totalEpsilon = 0;
+  compound.peaks.forEach(p => {
+    const sigma = p.width / 2.355;
+    totalEpsilon += p.epsilon * Math.exp(-((wavelength - p.center) ** 2) / (2 * sigma * sigma));
+  });
+  return totalEpsilon * concentration * pathLength; // A = ε·c·l
+}
+
+function uvvisFindLambdaMax(compound) {
+  // Piek met de hoogste epsilon (bij c=1, l=1 is epsilon zelf representatief voor de hoogte)
+  return compound.peaks.slice().sort((a,b) => b.epsilon - a.epsilon)[0].center;
+}
+
+// Zoekt een golflengte waar compoundA significant absorbeert maar compoundB
+// nauwelijks (< 5% van compoundA's epsilon op dat punt) — voor de
+// gevorderd/expert-niveaus. Doorzoekt 200-800 nm in stappen van 5 nm.
+function uvvisFindCleanWavelength(compoundA, compoundB) {
+  const maxEpsA = Math.max(...compoundA.peaks.map(p => p.epsilon));
+  let best = null, bestScore = -1;
+  for (let wl = 200; wl <= 800; wl += 5) {
+    const epsA = uvvisEpsilonAt(compoundA, wl);
+    const epsB = uvvisEpsilonAt(compoundB, wl);
+    // eis: schoon (B nauwelijks aanwezig) EN praktisch meetbaar signaal voor A
+    // (minstens 40% van A's eigen maximale epsilon — anders is het punt zelf
+    // ook al te zwak om een betrouwbare ijkreeks op te bouwen)
+    if (epsA >= maxEpsA * 0.4 && epsB < epsA * 0.05) {
+      if (epsA > bestScore) { bestScore = epsA; best = wl; }
+    }
+  }
+  return best;
+}
+
+function uvvisEpsilonAt(compound, wavelength) {
+  let total = 0;
+  compound.peaks.forEach(p => {
+    const sigma = p.width / 2.355;
+    total += p.epsilon * Math.exp(-((wavelength - p.center) ** 2) / (2 * sigma * sigma));
+  });
+  return total;
+}
+
+/* =========================================================================
+   UV-VIS MODULE — CASE GENERATION
+========================================================================= */
+function uvvisGetSettings() {
+  return { level: uvvisLevel };
+}
+
+function setUvvisLevel(level) {
+  uvvisLevel = level;
+  document.querySelectorAll('#panel-uvvis .subtab-btn').forEach(b => b.classList.toggle('active', b.dataset.subtab === level));
+  generateUvvisCase();
+}
+
+function uvvisGenerateCalibPoints(compound, wavelength, pathLength) {
+  // Concentratiereeks wordt afgeleid van de epsilon op deze golflengte, zodat
+  // de hoogste ijkpunt-absorbantie altijd rond 1.0 blijft (realistisch
+  // meetbereik voor een spectrofotometer; boven ~1.2 wordt een meting
+  // onbetrouwbaar omdat er te weinig licht doorgelaten wordt).
+  const epsAtWl = uvvisEpsilonAt(compound, wavelength);
+  const maxConcentration = 1.0 / (epsAtWl * pathLength); // geeft A ≈ 1.0 bij de hoogste concentratie
+  const fractions = [0.2, 0.4, 0.6, 0.8, 1.0];
+  const concentrations = fractions.map(f => maxConcentration * f * (randInt(90, 110) / 100));
+  return concentrations.map(c => {
+    const trueA = uvvisAbsorbanceAt(compound, wavelength, c, pathLength);
+    const noisyA = Math.max(0.01, Math.min(1.15, trueA * (0.96 + Math.random() * 0.08)));
+    return { concentration: c, absorbance: noisyA };
+  }).sort((a,b) => a.concentration - b.concentration);
+}
+
+function generateUvvisCase() {
+  const pathLength = 1; // cm, standaard cuvet
+
+  if (uvvisLevel === 'basis') {
+    const compound = pick(UVVIS_LIBRARY);
+    const lambdaMax = uvvisFindLambdaMax(compound);
+    const calibPoints = uvvisGenerateCalibPoints(compound, lambdaMax, pathLength);
+    const maxCalibC = calibPoints[calibPoints.length - 1].concentration;
+    const sampleConcentration = maxCalibC * (randInt(30, 90) / 100); // binnen het ijkbereik
+    const sampleAbsorbance = uvvisAbsorbanceAt(compound, lambdaMax, sampleConcentration, pathLength) * (0.97 + Math.random()*0.06);
+
+    uvvisCurrentData = {
+      level: 'basis', compoundA: compound, compoundB: null,
+      lambdaMax, lambda1: lambdaMax, lambda2: null,
+      calibPoints, sampleConcentration, sampleAbsorbance, pathLength
+    };
+  } else if (uvvisLevel === 'gevorderd') {
+    // 2 stoffen, zoek een golflengte waar slechts 1 van de 2 een signaal geeft
+    function maxEpsRatioOk(a, b) {
+      const maxA = Math.max(...a.peaks.map(p => p.epsilon));
+      const maxB = Math.max(...b.peaks.map(p => p.epsilon));
+      return Math.max(maxA, maxB) / Math.min(maxA, maxB) <= 10;
+    }
+
+    let compoundA, compoundB, cleanWavelength;
+    let attempts = 0;
+    do {
+      compoundA = pick(UVVIS_LIBRARY);
+      compoundB = pick(UVVIS_LIBRARY);
+      attempts++;
+    } while (
+      attempts < 150 && (
+        compoundA.name === compoundB.name ||
+        !maxEpsRatioOk(compoundA, compoundB) ||
+        (cleanWavelength = uvvisFindCleanWavelength(compoundA, compoundB)) === null
+      )
+    );
+
+    const lambda1 = cleanWavelength;
+    const calibPoints = uvvisGenerateCalibPoints(compoundA, lambda1, pathLength);
+    const maxCalibCA = calibPoints[calibPoints.length - 1].concentration;
+    const sampleConcA = maxCalibCA * (randInt(30, 90) / 100);
+    const sampleAbsLambda1 = uvvisAbsorbanceAt(compoundA, lambda1, sampleConcA, pathLength) * (0.97 + Math.random()*0.06);
+
+    uvvisCurrentData = {
+      level: 'gevorderd', compoundA, compoundB,
+      lambdaMax: uvvisFindLambdaMax(compoundA), lambda1, lambda2: null,
+      calibPoints, calibPointsB: null, calibPointsA_at2: null,
+      sampleConcentration: sampleConcA, sampleConcB: null,
+      sampleAbsorbance: sampleAbsLambda1, sampleAbsLambda2: null,
+      pathLength
+    };
+  } else {
+    // expert: gebruikt losse, op maat ontworpen paren (zie UVVIS_EXPERT_PAIRS)
+    // waarbij λ1 schoon is voor A, en bij λ2 beide stoffen substantieel
+    // absorberen — exact het scenario met overlappende, brede banden.
+    const pairDef = pick(UVVIS_EXPERT_PAIRS);
+    const compoundA = pairDef.compoundA, compoundB = pairDef.compoundB;
+
+    const lambda1 = uvvisFindLambdaMax(compoundA);
+    const lambda2 = uvvisFindLambdaMax(compoundB);
+
+    const calibPoints = uvvisGenerateCalibPoints(compoundA, lambda1, pathLength);
+    const maxCalibCA = calibPoints[calibPoints.length - 1].concentration;
+
+    const calibPointsB = uvvisGenerateCalibPoints(compoundB, lambda2, pathLength);
+    const calibPointsA_at2 = uvvisGenerateCalibPoints(compoundA, lambda2, pathLength);
+    const maxCalibCB = calibPointsB[calibPointsB.length - 1].concentration;
+
+    // Concentraties zo kiezen dat de SOM van beide bijdragen bij λ2 nooit
+    // boven ~1.05 uitkomt (ruimte latend voor meetruis tot de 1.2-grens).
+    let sampleConcA = maxCalibCA * (randInt(30, 70) / 100);
+    let sampleConcB = maxCalibCB * (randInt(30, 70) / 100);
+    let absA_at2 = uvvisAbsorbanceAt(compoundA, lambda2, sampleConcA, pathLength);
+    let absB_at2 = uvvisAbsorbanceAt(compoundB, lambda2, sampleConcB, pathLength);
+    let total = absA_at2 + absB_at2;
+    if (total > 1.05) {
+      const scale = 1.05 / total;
+      sampleConcA *= scale; sampleConcB *= scale;
+      absA_at2 *= scale; absB_at2 *= scale;
+    }
+    const sampleAbsLambda2 = (absA_at2 + absB_at2) * (0.97 + Math.random()*0.06);
+    const sampleAbsLambda1 = uvvisAbsorbanceAt(compoundA, lambda1, sampleConcA, pathLength) * (0.97 + Math.random()*0.06);
+
+    uvvisCurrentData = {
+      level: 'expert', compoundA, compoundB,
+      lambdaMax: lambda1, lambda1: lambda1, lambda2: lambda2,
+      calibPoints, calibPointsB, calibPointsA_at2,
+      sampleConcentration: sampleConcA, sampleConcB,
+      sampleAbsorbance: sampleAbsLambda1, sampleAbsLambda2,
+      pathLength
+    };
+  }
+
+  uvvisAnswersVisible = false;
+  renderUvvisSpectrum('uvvis-spectrum-svg', false);
+  renderUvvisOpgave();
+  renderUvvisQuestions();
+  document.getElementById('uvvis-spectrum-meta').textContent = '';
+  const d = uvvisCurrentData;
+  document.getElementById('uvvis-case-note').textContent = d.compoundB
+    ? `Mengsel van: ${d.compoundA.name} en ${d.compoundB.name}.`
+    : `Stof: ${d.compoundA.name}.`;
+}
+
+/* =========================================================================
+   UV-VIS MODULE — SVG RENDERING: ABSORPTIESPECTRUM (witte achtergrond)
+========================================================================= */
+function renderUvvisSpectrum(svgId, highlightAnswers) {
+  const svg = document.getElementById(svgId);
+  if (!svg || !uvvisCurrentData) return;
+  const d = uvvisCurrentData;
+  const W = 640, H = 360;
+  const marginL = 55, marginR = 20, marginT = 20, marginB = 45;
+  const plotW = W - marginL - marginR;
+  const plotH = H - marginT - marginB;
+  const minWl = 250, maxWl = 750;
+
+  const xScale = wl => marginL + ((wl - minWl) / (maxWl - minWl)) * plotW;
+
+  // bereken maximale epsilon over het bereik voor normalisatie
+  const compounds = d.compoundB ? [d.compoundA, d.compoundB] : [d.compoundA];
+  let maxEps = 0;
+  for (let wl = minWl; wl <= maxWl; wl += 2) {
+    compounds.forEach(c => { maxEps = Math.max(maxEps, uvvisEpsilonAt(c, wl)); });
+  }
+  const yScale = eps => marginT + plotH - (eps / maxEps) * plotH * 0.92;
+
+  let svgContent = '';
+  svgContent += `<line x1="${marginL}" y1="${marginT}" x2="${marginL}" y2="${marginT+plotH}" stroke="#222" stroke-width="1.2"/>`;
+  svgContent += `<line x1="${marginL}" y1="${marginT+plotH}" x2="${marginL+plotW}" y2="${marginT+plotH}" stroke="#222" stroke-width="1.2"/>`;
+
+  for (let wl = 300; wl <= 700; wl += 100) {
+    const x = xScale(wl);
+    svgContent += `<line x1="${x}" y1="${marginT+plotH}" x2="${x}" y2="${marginT+plotH+4}" stroke="#222" stroke-width="1"/>`;
+    svgContent += `<text x="${x}" y="${marginT+plotH+17}" font-size="10" text-anchor="middle" font-family="monospace" fill="#333">${wl}</text>`;
+  }
+  svgContent += `<text x="${marginL+plotW/2}" y="${H-6}" font-size="11" text-anchor="middle" font-family="sans-serif" fill="#333">golflengte (nm)</text>`;
+  svgContent += `<text x="14" y="${marginT+plotH/2}" font-size="11" font-family="sans-serif" fill="#333" transform="rotate(-90 14 ${marginT+plotH/2})">molaire extinctie (relatief)</text>`;
+
+  const colors = ['#2563eb', '#dc2626'];
+  compounds.forEach((c, idx) => {
+    let pathPoints = [];
+    for (let wl = minWl; wl <= maxWl; wl += 2) {
+      pathPoints.push([xScale(wl), yScale(uvvisEpsilonAt(c, wl))]);
+    }
+    const pathD = 'M ' + pathPoints.map(p => p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L ');
+    svgContent += `<path d="${pathD}" fill="none" stroke="${colors[idx]}" stroke-width="2"/>`;
+  });
+
+  // legenda: altijd zichtbaar, ook zonder highlightAnswers, zodat direct
+  // duidelijk is welke curve bij welke stof hoort.
+  compounds.forEach((c, idx) => {
+    svgContent += `<rect x="${marginL+10}" y="${marginT+10+idx*16}" width="10" height="10" fill="${colors[idx]}"/>`;
+    svgContent += `<text x="${marginL+24}" y="${marginT+19+idx*16}" font-size="10" font-family="sans-serif" fill="#222">${c.name}</text>`;
+  });
+
+  if (highlightAnswers) {
+    compounds.forEach((c, idx) => {
+      const lm = uvvisFindLambdaMax(c);
+      const x = xScale(lm);
+      const y = yScale(uvvisEpsilonAt(c, lm));
+      svgContent += `<line x1="${x}" y1="${marginT+plotH}" x2="${x}" y2="${y}" stroke="${colors[idx]}" stroke-width="1" stroke-dasharray="3,3"/>`;
+      svgContent += `<text x="${x}" y="${y-8}" font-size="10" text-anchor="middle" font-family="sans-serif" fill="${colors[idx]}" font-weight="600">λmax=${lm}</text>`;
+    });
+  }
+
+  svg.innerHTML = svgContent;
+}
+
+/* =========================================================================
+   UV-VIS MODULE — SVG RENDERING: IJKREEKS
+========================================================================= */
+function renderUvvisCalib(svgId, calibPoints, options) {
+  const svg = document.getElementById(svgId);
+  if (!svg || !calibPoints) return;
+  options = options || {};
+  const W = 480, H = 360;
+  const marginL = 60, marginR = 20, marginT = 20, marginB = 50;
+  const plotW = W - marginL - marginR;
+  const plotH = H - marginT - marginB;
+
+  const secondSet = options.secondCalibPoints || null;
+  const allPointsForScale = secondSet ? calibPoints.concat(secondSet) : calibPoints;
+  const maxC = Math.max(...allPointsForScale.map(p => p.concentration)) * 1.15;
+  const maxA = Math.max(...allPointsForScale.map(p => p.absorbance)) * 1.15;
+  const xScale = c => marginL + (c / maxC) * plotW;
+  const yScale = a => marginT + plotH - (a / maxA) * plotH;
+
+  let svgContent = '';
+  svgContent += `<line x1="${marginL}" y1="${marginT}" x2="${marginL}" y2="${marginT+plotH}" stroke="#222" stroke-width="1.2"/>`;
+  svgContent += `<line x1="${marginL}" y1="${marginT+plotH}" x2="${marginL+plotW}" y2="${marginT+plotH}" stroke="#222" stroke-width="1.2"/>`;
+  svgContent += `<text x="${marginL+plotW/2}" y="${H-8}" font-size="10.5" text-anchor="middle" font-family="sans-serif" fill="#333">concentratie (mol/L)</text>`;
+  svgContent += `<text x="16" y="${marginT+plotH/2}" font-size="10.5" font-family="sans-serif" fill="#333" transform="rotate(-90 16 ${marginT+plotH/2})">absorbantie A</text>`;
+
+  // x-as ticks
+  for (let i = 0; i <= 4; i++) {
+    const c = (maxC/4)*i;
+    const x = xScale(c);
+    svgContent += `<line x1="${x}" y1="${marginT+plotH}" x2="${x}" y2="${marginT+plotH+4}" stroke="#222" stroke-width="1"/>`;
+    svgContent += `<text x="${x}" y="${marginT+plotH+16}" font-size="8.5" text-anchor="middle" font-family="monospace" fill="#333">${c.toExponential(1)}</text>`;
+  }
+  // y-as ticks
+  for (let i = 0; i <= 4; i++) {
+    const a = (maxA/4)*i;
+    const y = yScale(a);
+    svgContent += `<line x1="${marginL-4}" y1="${y}" x2="${marginL}" y2="${y}" stroke="#222" stroke-width="1"/>`;
+    svgContent += `<text x="${marginL-8}" y="${y+3}" font-size="9" text-anchor="end" font-family="monospace" fill="#333">${a.toFixed(2)}</text>`;
+  }
+
+  function drawSeries(points, color, label, textY) {
+    points.forEach(p => {
+      const x = xScale(p.concentration), y = yScale(p.absorbance);
+      svgContent += `<circle cx="${x}" cy="${y}" r="4" fill="${color}"/>`;
+    });
+    const sumXY = points.reduce((s,p) => s + p.concentration*p.absorbance, 0);
+    const sumXX = points.reduce((s,p) => s + p.concentration*p.concentration, 0);
+    const slope = sumXY / sumXX;
+    // Trendlijn loopt alleen over het EIGEN concentratiebereik van deze dataset
+    // (niet over de volle breedte van de gedeelde as), zodat hij precies door
+    // de eigen meetpunten heen loopt, ook als de twee reeksen een heel
+    // verschillend concentratiebereik hebben.
+    const ownMaxC = Math.max(...points.map(p => p.concentration)) * 1.08;
+    const x2 = ownMaxC, y2 = slope*ownMaxC;
+    svgContent += `<line x1="${xScale(0)}" y1="${yScale(0)}" x2="${xScale(x2)}" y2="${yScale(Math.min(y2,maxA))}" stroke="${color}" stroke-width="1.5" stroke-dasharray="5,3"/>`;
+
+    const meanA = points.reduce((s,p)=>s+p.absorbance,0) / points.length;
+    const ssTot = points.reduce((s,p)=>s+(p.absorbance-meanA)**2, 0);
+    const ssRes = points.reduce((s,p)=>s+(p.absorbance - slope*p.concentration)**2, 0);
+    const rSquared = ssTot > 0 ? 1 - ssRes/ssTot : 1;
+    svgContent += `<text x="${marginL+12}" y="${textY}" font-size="10" font-family="monospace" fill="${color}" font-weight="600">${label}: A = ${slope.toExponential(3)} · c  (R²=${rSquared.toFixed(3)})</text>`;
+    return slope;
+  }
+
+  const label1 = options.seriesLabel || '';
+  drawSeries(calibPoints, '#2563eb', label1, marginT + 16);
+  if (secondSet) {
+    drawSeries(secondSet, '#dc2626', options.secondSeriesLabel || '', marginT + 32);
+  }
+
+  if (options.showSample) {
+    const sx = xScale(options.sampleConcentration), sy = yScale(options.sampleAbsorbance);
+    svgContent += `<circle cx="${sx}" cy="${sy}" r="5" fill="none" stroke="#d97706" stroke-width="2"/>`;
+    svgContent += `<text x="${sx+8}" y="${sy-6}" font-size="9" font-family="sans-serif" fill="#d97706">monster</text>`;
+  }
+
+  svg.innerHTML = svgContent;
+  return slope;
+}
+
+function renderUvvisOpgave() {
+  if (!uvvisCurrentData) return;
+  renderUvvisSpectrum('uvvis-spectrum-svg-opgave', false);
+  const d = uvvisCurrentData;
+
+  let text = '';
+  let answerHtml = '';
+
+  if (d.level === 'basis') {
+    text = `Hierboven is het UV-Vis-absorptiespectrum van ${d.compoundA.name} weergegeven. Bepaal λmax, stel met de gegeven ijkreeks-meetpunten een calibratielijn op, en bereken de concentratie van het monster.`;
+    answerHtml = `<div class="docent-compound-name">${d.compoundA.name}</div>
+      <p>λmax = ${d.lambdaMax} nm</p>
+      <table class="docent-answer-table">
+        ${d.calibPoints.map(p => `<tr><td>c = ${p.concentration.toExponential(2)} mol/L</td><td>A = ${p.absorbance.toFixed(3)}</td></tr>`).join('')}
+        <tr><td>Monster</td><td>A = ${d.sampleAbsorbance.toFixed(3)} → c ≈ ${d.sampleConcentration.toExponential(2)} mol/L</td></tr>
+      </table>`;
+  } else if (d.level === 'gevorderd') {
+    text = `Het monster bevat een mengsel van ${d.compoundA.name} en ${d.compoundB.name}. Kies een golflengte waarbij slechts één van de twee stoffen absorbeert, stel daar de ijkreeks op, en bepaal de concentratie van die stof in het monster.`;
+    answerHtml = `<div class="docent-compound-name">${d.compoundA.name} + ${d.compoundB.name}</div>
+      <p>Schone golflengte voor ${d.compoundA.name}: λ = ${d.lambda1} nm</p>
+      <table class="docent-answer-table">
+        ${d.calibPoints.map(p => `<tr><td>c = ${p.concentration.toExponential(2)} mol/L</td><td>A = ${p.absorbance.toFixed(3)}</td></tr>`).join('')}
+        <tr><td>Monster bij λ=${d.lambda1}</td><td>A = ${d.sampleAbsorbance.toFixed(3)} → c(${d.compoundA.name}) ≈ ${d.sampleConcentration.toExponential(2)} mol/L</td></tr>
+      </table>`;
+  } else {
+    text = `Het monster bevat een mengsel van ${d.compoundA.name} en ${d.compoundB.name}. Gebruik twee golflengtes: bij λ₁ absorbeert alleen ${d.compoundA.name}, bij λ₂ absorberen beide stoffen. Bepaal beide concentraties.`;
+    answerHtml = `<div class="docent-compound-name">${d.compoundA.name} + ${d.compoundB.name}</div>
+      <p>λ₁ (schoon voor ${d.compoundA.name}) = ${d.lambda1} nm — λ₂ (λmax van ${d.compoundB.name}) = ${d.lambda2} nm</p>
+      <table class="docent-answer-table">
+        <tr><td>Monster bij λ₁</td><td>A = ${d.sampleAbsorbance.toFixed(3)} → c(${d.compoundA.name}) ≈ ${d.sampleConcentration.toExponential(2)} mol/L</td></tr>
+        <tr><td>Monster bij λ₂</td><td>A = ${d.sampleAbsLambda2.toFixed(3)} (bijdrage beide stoffen)</td></tr>
+        <tr><td>Na aftrek bijdrage ${d.compoundA.name}</td><td>c(${d.compoundB.name}) ≈ ${d.sampleConcB.toExponential(2)} mol/L</td></tr>
+      </table>`;
+  }
+
+  document.getElementById('uvvis-opgave-text').textContent = text;
+  document.getElementById('uvvis-docent-answer').innerHTML = answerHtml;
+}
+
+function toggleUvvisSpectrumAnswers() {
+  uvvisAnswersVisible = !uvvisAnswersVisible;
+  renderUvvisSpectrum('uvvis-spectrum-svg', uvvisAnswersVisible);
+}
+
+/* =========================================================================
+   UV-VIS MODULE — QUESTIONS (oefenmodus)
+========================================================================= */
+function renderUvvisQuestions() {
+  const container = document.getElementById('uvvis-questions');
+  const d = uvvisCurrentData;
+  let html = '';
+
+  if (d.level === 'basis') {
+    html += `
+    <div class="question-block">
+      <div class="question-text">1. Bepaal λmax van ${d.compoundA.name} uit het spectrum.</div>
+      <input type="number" id="uvvis-q1-input" placeholder="λmax (nm)">
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkUvvisLambdaMax()">Check</button>
+        <button class="btn secondary" onclick="showUvvisAnswer('lambdamax')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="uvvis-q1-feedback"></div>
+    </div>`;
+
+    html += `
+    <div class="question-block">
+      <div class="question-text">2. Toon de ijkreeks en bepaal de concentratie van het monster (absorbantie A = ${d.sampleAbsorbance.toFixed(3)} bij λmax).</div>
+      <div class="btn-row">
+        <button class="btn secondary" onclick="showUvvisCalibGraph()">Toon ijkreeks</button>
+      </div>
+      <input type="text" id="uvvis-q2-input" placeholder="concentratie (mol/L), bijv. 5.2e-5">
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkUvvisConcentration('q2', uvvisCurrentData.sampleConcentration)">Check</button>
+        <button class="btn secondary" onclick="showUvvisAnswer('concentration')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="uvvis-q2-feedback"></div>
+    </div>`;
+  } else if (d.level === 'gevorderd') {
+    html += `
+    <div class="question-block">
+      <div class="question-text">1. Welke golflengte kies je om ${d.compoundA.name} te kwantificeren zonder storing van ${d.compoundB.name}?</div>
+      <input type="number" id="uvvis-q1-input" placeholder="golflengte (nm)">
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkUvvisCleanWavelength()">Check</button>
+        <button class="btn secondary" onclick="showUvvisAnswer('cleanwl')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="uvvis-q1-feedback"></div>
+    </div>`;
+
+    html += `
+    <div class="question-block">
+      <div class="question-text">2. Toon de ijkreeks bij die golflengte en bepaal de concentratie van ${d.compoundA.name} in het monster (A = ${d.sampleAbsorbance.toFixed(3)}).</div>
+      <div class="btn-row">
+        <button class="btn secondary" onclick="showUvvisCalibGraph()">Toon ijkreeks</button>
+      </div>
+      <input type="text" id="uvvis-q2-input" placeholder="concentratie (mol/L)">
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkUvvisConcentration('q2', uvvisCurrentData.sampleConcentration)">Check</button>
+        <button class="btn secondary" onclick="showUvvisAnswer('concentration')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="uvvis-q2-feedback"></div>
+    </div>`;
+  } else {
+    // expert
+    html += `
+    <div class="question-block">
+      <div class="question-text">1. Welke golflengte (λ₁) kies je om ${d.compoundA.name} apart te kwantificeren, zonder storing van ${d.compoundB.name}?</div>
+      <input type="number" id="uvvis-q1-input" placeholder="λ₁ (nm)">
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkUvvisCleanWavelength()">Check</button>
+        <button class="btn secondary" onclick="showUvvisAnswer('cleanwl')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="uvvis-q1-feedback"></div>
+    </div>`;
+
+    html += `
+    <div class="question-block">
+      <div class="question-text">2. Toon de ijkreeks bij λ₁ en bepaal de concentratie van ${d.compoundA.name} in het monster (A bij λ₁ = ${d.sampleAbsorbance.toFixed(3)}).</div>
+      <div class="btn-row">
+        <button class="btn secondary" onclick="showUvvisCalibGraph()">Toon ijkreeks</button>
+      </div>
+      <input type="text" id="uvvis-q2-input" placeholder="concentratie ${d.compoundA.name} (mol/L)">
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkUvvisConcentration('q2', uvvisCurrentData.sampleConcentration)">Check</button>
+        <button class="btn secondary" onclick="showUvvisAnswer('concentration')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="uvvis-q2-feedback"></div>
+    </div>`;
+
+    html += `
+    <div class="question-block">
+      <div class="question-text">3. Bij λ₂ = ${d.lambda2} nm (λmax van ${d.compoundB.name}) wordt een totale absorbantie van A = ${d.sampleAbsLambda2.toFixed(3)} gemeten — hier draagt ${d.compoundA.name} óók aan bij. Trek de bijdrage van ${d.compoundA.name} (met de concentratie uit vraag 2) af, en bepaal de concentratie van ${d.compoundB.name}.</div>
+      <div class="btn-row">
+        <button class="btn secondary" onclick="showUvvisCalibGraphB()">Toon ijkreeksen bij λ₂ (${d.compoundA.name} en ${d.compoundB.name})</button>
+      </div>
+      <input type="text" id="uvvis-q3-input" placeholder="concentratie ${d.compoundB.name} (mol/L)">
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkUvvisConcentration('q3', uvvisCurrentData.sampleConcB)">Check</button>
+        <button class="btn secondary" onclick="showUvvisAnswer('concentrationB')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="uvvis-q3-feedback"></div>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function checkUvvisLambdaMax() {
+  const val = parseFloat(document.getElementById('uvvis-q1-input').value);
+  const fb = document.getElementById('uvvis-q1-feedback');
+  const correct = uvvisCurrentData.lambdaMax;
+  if (Math.abs(val - correct) <= 10) {
+    fb.className = 'feedback correct';
+    fb.textContent = `Klopt — λmax ligt rond ${correct} nm.`;
+  } else {
+    fb.className = 'feedback incorrect';
+    fb.textContent = `Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
+  }
+}
+
+function checkUvvisCleanWavelength() {
+  const val = parseFloat(document.getElementById('uvvis-q1-input').value);
+  const fb = document.getElementById('uvvis-q1-feedback');
+  const d = uvvisCurrentData;
+  const epsA = uvvisEpsilonAt(d.compoundA, val);
+  const epsB = uvvisEpsilonAt(d.compoundB, val);
+  const valid = epsA > 0 && epsB < epsA * 0.08;
+  if (valid) {
+    fb.className = 'feedback correct';
+    fb.textContent = `Klopt — bij ${val} nm absorbeert ${d.compoundA.name} duidelijk, terwijl ${d.compoundB.name} daar nauwelijks signaal geeft.`;
+  } else {
+    fb.className = 'feedback incorrect';
+    fb.textContent = `Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
+  }
+}
+
+function showUvvisCalibGraph() {
+  const d = uvvisCurrentData;
+  renderUvvisCalib('uvvis-calib-svg', d.calibPoints, {
+    showSample: true, sampleConcentration: d.sampleConcentration, sampleAbsorbance: d.sampleAbsorbance,
+    seriesLabel: d.compoundA.name
+  });
+}
+
+function showUvvisCalibGraphB() {
+  const d = uvvisCurrentData;
+  // Bij λ2 zijn er TWEE ijklijnen nodig: zuiver A bij λ2 (om de A-bijdrage te
+  // kunnen berekenen) én zuiver B bij λ2 (om c_B te bepalen na aftrek).
+  renderUvvisCalib('uvvis-calib-svg', d.calibPointsA_at2, {
+    showSample: false,
+    seriesLabel: `${d.compoundA.name} bij ${d.lambda2} nm`,
+    secondCalibPoints: d.calibPointsB,
+    secondSeriesLabel: `${d.compoundB.name} bij ${d.lambda2} nm`
+  });
+}
+
+function checkUvvisConcentration(fieldPrefix, correctValue) {
+  const val = parseFloat(document.getElementById(`uvvis-${fieldPrefix}-input`).value);
+  const fb = document.getElementById(`uvvis-${fieldPrefix}-feedback`);
+  if (Math.abs(val - correctValue) / correctValue < 0.15) {
+    fb.className = 'feedback correct';
+    fb.textContent = `Klopt — de concentratie is ongeveer ${correctValue.toExponential(2)} mol/L.`;
+  } else {
+    fb.className = 'feedback incorrect';
+    fb.textContent = `Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
+  }
+}
+
+function showUvvisAnswer(which) {
+  const d = uvvisCurrentData;
+  if (which === 'lambdamax') {
+    const fb = document.getElementById('uvvis-q1-feedback');
+    fb.className = 'feedback info';
+    fb.textContent = `Antwoord: λmax = ${d.lambdaMax} nm.`;
+    return;
+  }
+  if (which === 'cleanwl') {
+    const fb = document.getElementById('uvvis-q1-feedback');
+    fb.className = 'feedback info';
+    fb.textContent = `Antwoord: λ = ${d.lambda1} nm. Hier absorbeert ${d.compoundA.name} duidelijk, terwijl ${d.compoundB.name} daar vrijwel geen signaal geeft (zie de twee curves in het spectrum).`;
+    return;
+  }
+  if (which === 'concentration') {
+    const fb = document.getElementById('uvvis-q2-feedback');
+    fb.className = 'feedback info';
+    const slope = d.calibPoints.reduce((s,p)=>s+p.concentration*p.absorbance,0) / d.calibPoints.reduce((s,p)=>s+p.concentration*p.concentration,0);
+    fb.textContent = `Antwoord: uit de ijkreeks volgt A = ${slope.toExponential(2)} × c (rechte lijn door de oorsprong, Beer-Lambert). Met A = ${d.sampleAbsorbance.toFixed(3)} volgt c ≈ ${d.sampleConcentration.toExponential(2)} mol/L.`;
+    return;
+  }
+  if (which === 'concentrationB') {
+    const fb = document.getElementById('uvvis-q3-feedback');
+    fb.className = 'feedback info';
+    const slopeA_at2 = d.calibPointsA_at2.reduce((s,p)=>s+p.concentration*p.absorbance,0) / d.calibPointsA_at2.reduce((s,p)=>s+p.concentration*p.concentration,0);
+    const absAat2 = slopeA_at2 * d.sampleConcentration;
+    const remaining = d.sampleAbsLambda2 - absAat2;
+    const slopeB = d.calibPointsB.reduce((s,p)=>s+p.concentration*p.absorbance,0) / d.calibPointsB.reduce((s,p)=>s+p.concentration*p.concentration,0);
+    const recoveredCB = remaining / slopeB;
+    fb.textContent = `Antwoord: uit de ijklijn van ${d.compoundA.name} bij λ₂ (A = ${slopeA_at2.toExponential(2)} × c) volgt de bijdrage van ${d.compoundA.name} bij λ₂: A = ${slopeA_at2.toExponential(2)} × ${d.sampleConcentration.toExponential(2)} ≈ ${absAat2.toFixed(3)}. Resterende absorbantie voor ${d.compoundB.name}: ${d.sampleAbsLambda2.toFixed(3)} − ${absAat2.toFixed(3)} = ${remaining.toFixed(3)}. Met de ijklijn van ${d.compoundB.name} bij λ₂ (A = ${slopeB.toExponential(2)} × c) volgt c(${d.compoundB.name}) ≈ ${recoveredCB.toExponential(2)} mol/L.`;
+    return;
+  }
+}
+
+
+generateMsSpectrum();
+generateGcMixture();
+generateTlcMixture();
+generateUvvisCase();
+</script>
+
+</body>
+</html>

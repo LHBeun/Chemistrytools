@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eiwitten — VWO 5/6</title>
+<style>
+:root{--bg:#f6f5f2;--sf:#fff;--bd:#e0ddd6;--bds:#bfbcb4;--tx:#1c1b18;--mu:#6b6860;--fa:#a09d96;
+--bl:#185FA5;--blb:#E6F1FB;--bld:#0C447C;--gn:#2d6a10;--gnb:#eaf3de;--gnd:#1a4209;
+--am:#7a4500;--amb:#faeeda;--amd:#4a2900;--rd:#a32d2d;--rdb:#fcebeb;--rdd:#501313;
+--pu:#534AB7;--pub:#EEEDFE;--tl:#0F6E56;--tlb:#E1F5EE;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);font-size:14px;line-height:1.5;}
+header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+header h1{font-size:15px;font-weight:600;}
+.tab-bar{display:flex;gap:2px;margin-left:auto;}
+.tab{padding:6px 16px;border-radius:6px;border:none;background:transparent;color:var(--mu);font-size:13px;cursor:pointer;font-weight:500;transition:all .12s;}
+.tab:hover{background:var(--bg);}
+.tab.active{background:var(--blb);color:var(--bl);}
+.layout{display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 50px);}
+.sidebar{background:var(--sf);border-right:1px solid var(--bd);padding:12px 8px;overflow-y:auto;}
+.slbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--fa);padding:8px 8px 4px;}
+.pbtn{display:flex;align-items:flex-start;gap:7px;padding:6px 9px;border-radius:7px;border:none;background:transparent;cursor:pointer;text-align:left;width:100%;color:var(--mu);font-size:12px;transition:background .1s;}
+.pbtn:hover{background:var(--bg);}
+.pbtn.active{background:var(--blb);color:var(--bl);font-weight:500;}
+.pbadge{min-width:18px;height:18px;border-radius:9px;background:var(--bg);color:var(--fa);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;border:1px solid var(--bd);}
+.pbtn.active .pbadge{background:var(--bl);color:#fff;border-color:var(--bl);}
+.pname{font-size:12px;line-height:1.3;}
+.psub{font-size:10px;color:var(--fa);}
+.pbtn.active .psub{color:var(--bl);opacity:.75;}
+.main{padding:18px 20px;overflow-y:auto;height:calc(100vh - 50px);}
+.panel{display:none;}
+.panel.active{display:block;}
+.ptitle{font-size:18px;font-weight:600;margin-bottom:3px;}
+.psub2{font-size:13px;color:var(--mu);line-height:1.6;margin-bottom:12px;max-width:600px;}
+.pbadge2{display:inline-flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--bd);border-radius:5px;padding:3px 9px;font-size:11px;color:var(--mu);margin-bottom:14px;}
+.stitle{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fa);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--bd);}
+/* Two-column layout: content + codon table */
+.work-layout{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start;}
+.codon-table-panel{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:12px;max-height:calc(100vh - 180px);overflow-y:auto;position:sticky;top:0;}
+.codon-table-panel h3{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--fa);margin-bottom:8px;}
+.ctbl{border-collapse:collapse;font-size:11px;width:100%;}
+.ctbl th{background:var(--bg);padding:4px 6px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--mu);border:1px solid var(--bd);text-align:left;}
+.ctbl td{padding:3px 6px;border:1px solid var(--bd);font-family:'Courier New',monospace;font-size:11px;}
+.ctbl td.lbl{font-family:-apple-system,sans-serif;color:var(--mu);font-size:10px;}
+.ctbl tr:hover td{background:var(--bg);}
+.stoprow{color:var(--rd);font-weight:700;}
+/* mRNA display */
+.mrna-strip{font-family:'Courier New',monospace;display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;}
+.cbox{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.cseq{padding:5px 7px;border-radius:5px;background:var(--sf);border:1px solid var(--bd);font-size:12px;min-width:40px;text-align:center;cursor:pointer;transition:all .12s;letter-spacing:.04em;}
+.cseq:hover{border-color:var(--bl);background:var(--blb);}
+.cseq.sel{border-color:var(--bl);background:var(--blb);color:var(--bld);font-weight:600;}
+.cseq.ok{border-color:var(--gn);background:var(--gnb);color:var(--gnd);}
+.cseq.shake{animation:shake .3s ease;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.caa{font-size:9px;color:var(--fa);min-width:40px;text-align:center;}
+.caa.ok{color:var(--gn);font-weight:600;}
+/* AA palette text (translatie lees-tab) */
+.aa-palette{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;}
+.aa-chip{padding:4px 9px;border-radius:5px;border:1px solid var(--bd);background:var(--sf);cursor:pointer;font-size:11px;font-family:'Courier New',monospace;transition:all .1s;}
+.aa-chip:hover{border-color:var(--bl);background:var(--blb);}
+.aa-chip.sel{border-color:var(--bl);background:var(--blb);color:var(--bld);font-weight:600;}
+/* AA structure grid */
+.aa-struct-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px;}
+.aa-struct-card{border:1.5px solid var(--bd);border-radius:8px;padding:4px;cursor:pointer;transition:all .15s;background:var(--sf);display:flex;flex-direction:column;align-items:center;gap:2px;}
+.aa-struct-card:hover{border-color:var(--bl);background:var(--blb);}
+.aa-struct-card.sel{border-color:var(--bl);background:var(--blb);box-shadow:0 0 0 2px var(--blb);}
+.aa-struct-card.used{opacity:.35;pointer-events:none;}
+.aa-struct-name{font-size:10px;font-weight:600;color:var(--tx);}
+.aa-struct-full{font-size:9px;color:var(--fa);}
+/* Peptide builder */
+.peptide-build-area{display:flex;gap:0;align-items:center;flex-wrap:wrap;margin-bottom:16px;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;}
+.pep-slot{width:90px;height:120px;border:1.5px dashed var(--bds);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:all .15s;position:relative;}
+.pep-slot.filled{border-style:solid;border-color:var(--bl);background:var(--blb);}
+.pep-slot.ok{border-color:var(--gn);background:var(--gnb);}
+.pep-slot.wrong{border-color:var(--rd);background:var(--rdb);animation:shake .3s ease;}
+.pep-slot-name{font-size:12px;font-weight:700;color:var(--bl);}
+.pep-slot-placeholder{font-size:11px;color:var(--fa);text-align:center;line-height:1.4;}
+.pep-bond{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 2px;}
+.pep-bond-line{font-size:11px;color:var(--mu);white-space:nowrap;}
+/* Water animation */
+.water-anim{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;color:var(--rd);opacity:0;transition:opacity .3s;}
+.water-anim.show{opacity:1;animation:flyup 1.2s ease forwards;}
+@keyframes flyup{0%{opacity:1;transform:translateY(0)}80%{opacity:1;transform:translateY(-20px)}100%{opacity:0;transform:translateY(-30px)}}
+/* Mutation display */
+.seq-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:10px;}
+.mrna-mut{font-family:'Courier New',monospace;display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px;}
+.mc{padding:5px 7px;border-radius:5px;border:1px solid var(--bd);background:var(--sf);text-align:center;min-width:40px;font-size:12px;letter-spacing:.04em;}
+.mc.mutated{border-color:var(--rd);background:var(--rdb);color:var(--rdd);font-weight:600;}
+.mc.shifted{border-color:var(--rd);background:var(--rdb);color:var(--rdd);}
+.mc.insertion{border-color:var(--pu);background:var(--pub);color:var(--pu);font-weight:600;}
+.mc.deleted{opacity:.3;text-decoration:line-through;}
+.aa-row{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:5px;}
+.ap{padding:3px 7px;border-radius:4px;font-size:11px;font-family:'Courier New',monospace;}
+.ap-o{background:var(--sf);border:1px solid var(--bd);}
+.ap-c{background:var(--rdb);border:1px solid var(--rd);color:var(--rdd);font-weight:600;}
+.ap-s{background:var(--gnb);border:1px solid var(--gn);color:var(--gnd);}
+.ap-x{background:#501313;color:#fff;font-weight:700;}
+.ap-f{background:var(--rdb);border:1px solid var(--rd);color:var(--rdd);font-size:10px;}
+.mtype-btn{padding:5px 12px;border-radius:6px;border:1px solid var(--bd);background:var(--sf);color:var(--mu);font-size:12px;cursor:pointer;font-weight:500;transition:all .12s;}
+.mtype-btn:hover{border-color:var(--bl);color:var(--bl);}
+.mtype-btn.active{background:var(--blb);border-color:var(--bl);color:var(--bl);}
+.mut-card{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:11px 14px;font-size:12px;line-height:1.7;color:var(--mu);margin-top:10px;}
+.mut-card strong{color:var(--tx);}
+.mtag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;margin-right:5px;}
+.t-miss{background:var(--amb);color:var(--amd);}
+.t-none{background:var(--rdb);color:var(--rdd);}
+.t-sil{background:var(--gnb);color:var(--gnd);}
+.t-frame{background:#501313;color:#fff;}
+.t-indel{background:var(--pub);color:var(--pu);}
+/* Controls */
+.btn{padding:6px 14px;border-radius:6px;border:1px solid var(--bds);background:var(--sf);color:var(--tx);font-size:12px;cursor:pointer;font-weight:500;transition:all .12s;}
+.btn:hover{border-color:var(--bl);color:var(--bl);background:var(--blb);}
+.btn-p{background:var(--bl);color:#fff;border-color:var(--bl);}
+.btn-p:hover{background:var(--bld);color:#fff;}
+.btn-g{border-color:var(--bd);color:var(--mu);}
+.cr{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
+.fb{border-radius:7px;padding:9px 13px;font-size:12px;line-height:1.6;margin-top:8px;}
+.fb.ok{background:var(--gnb);border:1px solid var(--gn);color:var(--gnd);}
+.fb.err{background:var(--rdb);border:1px solid var(--rd);color:var(--rdd);}
+.fb.inf{background:var(--blb);border:1px solid var(--bl);color:var(--bld);}
+/* Activity */
+.act-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.scard{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:14px;}
+.scard h3{font-size:13px;font-weight:600;margin-bottom:10px;}
+.sl-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.sl-row label{font-size:11px;color:var(--mu);min-width:16px;}
+input[type=range]{flex:1;accent-color:var(--bl);}
+.sl-val{font-size:13px;font-weight:600;min-width:48px;text-align:right;}
+.act-bar{height:24px;border-radius:4px;background:var(--bg);border:1px solid var(--bd);overflow:hidden;margin:3px 0 8px;}
+.act-inner{height:100%;transition:width .3s;display:flex;align-items:center;padding-left:7px;}
+.act-lbl{font-size:11px;font-weight:600;color:#fff;white-space:nowrap;}
+.fold-bar{height:18px;background:var(--bg);border-radius:4px;border:1px solid var(--bd);overflow:hidden;margin:3px 0 7px;}
+.fold-in{height:100%;background:var(--tlb);transition:width .4s;display:flex;align-items:center;padding-left:7px;}
+.fold-lbl{font-size:10px;font-weight:600;color:var(--tl);}
+.chart-canvas{width:100%;height:150px;border-radius:7px;border:1px solid var(--bd);display:block;margin-top:7px;}
+.leg{display:flex;gap:10px;flex-wrap:wrap;margin-top:5px;}
+.leg-i{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--mu);}
+.leg-dot{width:9px;height:9px;border-radius:50%;}
+.psel{padding:6px 10px;border-radius:6px;border:1px solid var(--bds);background:var(--sf);color:var(--tx);font-size:12px;min-width:220px;}
+.ctg-table{width:100%;font-size:11px;border-collapse:collapse;}
+.ctg-table th{background:var(--bg);padding:3px 7px;text-align:left;font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;border-bottom:1px solid var(--bd);}
+.ctg-table td{padding:3px 7px;border-bottom:1px solid var(--bd);font-family:'Courier New',monospace;}
+.ctg-table td.lbl{font-family:-apple-system,sans-serif;color:var(--mu);}
+.cp{color:var(--bl);font-weight:600;}
+.cn{color:var(--rd);font-weight:600;}
+.cz{color:var(--fa);}
+.cbar{height:18px;display:flex;border-radius:4px;overflow:hidden;margin:5px 0;}
+.cseg{display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;transition:width .3s;}
+/* Inner tabs replaced by permanent side-by-side */
+.trans-main{display:flex;flex-direction:column;gap:0;}
+.mode-tabs{display:flex;gap:0;border-bottom:1px solid var(--bd);margin-bottom:14px;}
+.mtab{padding:7px 14px;border:none;background:transparent;color:var(--mu);font-size:12px;cursor:pointer;font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.mtab:hover{color:var(--tx);}
+.mtab.active{color:var(--bl);border-bottom-color:var(--bl);}
+.mpanel{display:none;}
+.mpanel.active{display:block;}
+</style>
+</head>
+<body>
+<header>
+  <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M4 11 Q7 5 11 11 Q15 17 18 11" stroke="#185FA5" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="4" cy="11" r="2" fill="#185FA5"/><circle cx="18" cy="11" r="2" fill="#3B6D11"/></svg>
+  <h1>Eiwitten — Structuur &amp; Functie</h1>
+  <div class="tab-bar">
+    <button class="tab active" onclick="showTab('translatie')">Translatie &amp; codons</button>
+    <button class="tab" onclick="showTab('mutaties')">Mutaties</button>
+    <button class="tab" onclick="showTab('activiteit')">Enzymactiviteit</button>
+    <button class="tab" onclick="showTab('neerslag')">Neerslag</button>
+  </div>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main">
+    <div class="panel active" id="tab-translatie"><div id="trans-content"></div></div>
+    <div class="panel" id="tab-mutaties"><div id="mut-content"></div></div>
+    <div class="panel" id="tab-activiteit">
+      <div class="ptitle" style="margin-bottom:4px">Enzymactiviteit</div>
+      <div class="psub2">Hoe beïnvloeden pH en temperatuur de activiteit? Gebaseerd op literatuurwaarden per eiwit.</div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:11px;color:var(--mu);display:block;margin-bottom:5px">Kies een enzym</label>
+        <select class="psel" id="act-sel" onchange="updateActivity()"></select>
+      </div>
+      <div class="act-grid">
+        <div class="scard">
+          <h3>🌡 Temperatuur</h3>
+          <div class="sl-row"><label>T</label><input type="range" min="0" max="100" value="37" id="t-sl" oninput="updateActivity()"><span class="sl-val" id="t-val">37 °C</span></div>
+          <div style="font-size:10px;color:var(--fa);margin-bottom:2px">Relatieve activiteit</div>
+          <div class="act-bar"><div class="act-inner" id="t-bar" style="background:var(--bl)"><span class="act-lbl" id="t-bar-lbl"></span></div></div>
+          <div style="font-size:10px;color:var(--fa);margin-bottom:2px">% eiwit gevouwen</div>
+          <div class="fold-bar"><div class="fold-in" id="fold-bar"><span class="fold-lbl" id="fold-lbl"></span></div></div>
+          <canvas class="chart-canvas" id="t-chart"></canvas>
+          <div class="leg"><div class="leg-i"><div class="leg-dot" style="background:#185FA5"></div>Arrhenius</div><div class="leg-i"><div class="leg-dot" style="background:#E24B4A"></div>Denaturatie</div><div class="leg-i"><div class="leg-dot" style="background:#639922"></div>Netto</div></div>
+        </div>
+        <div class="scard">
+          <h3>⚗ pH</h3>
+          <div class="sl-row"><label>pH</label><input type="range" min="0" max="14" step="0.1" value="7" id="ph-sl" oninput="updateActivity()"><span class="sl-val" id="ph-val">pH 7.0</span></div>
+          <div style="font-size:10px;color:var(--fa);margin-bottom:2px">Relatieve activiteit</div>
+          <div class="act-bar"><div class="act-inner" id="ph-bar" style="background:var(--gn)"><span class="act-lbl" id="ph-bar-lbl"></span></div></div>
+          <canvas class="chart-canvas" id="ph-chart"></canvas>
+          <div class="leg"><div class="leg-i"><div class="leg-dot" style="background:var(--gn)"></div>Activiteit</div><div class="leg-i"><div class="leg-dot" style="background:var(--bl)"></div>Huidige pH</div></div>
+        </div>
+      </div>
+      <div class="scard">
+        <h3 style="margin-bottom:10px">Ladingsverdeling als functie van pH — volledig eiwit</h3>
+        <div style="overflow-x:auto"><table class="ctg-table" id="ctg-table"></table></div>
+        <div style="margin-top:9px">
+          <div style="font-size:10px;color:var(--fa);margin-bottom:3px">Netto lading (getoonde residuen)</div>
+          <div class="cbar" id="cbar"></div>
+          <div style="font-size:13px;font-weight:600" id="total-ch"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel" id="tab-neerslag">
+  <div class="ptitle" style="margin-bottom:3px">Neerslag van eiwitten</div>
+  <div class="psub2">Verken hoe pH en temperatuur bepalen welke eiwitten neerslaan of denatureren.</div>
+  <div class="mode-tabs" style="margin-bottom:18px">
+    <button class="mtab active" id="nt-ph" onclick="swNeer('ph')">pH — isoëlektrisch neerslaan</button>
+    <button class="mtab" id="nt-t" onclick="swNeer('t')">Temperatuur — denaturatie</button>
+  </div>
+  <div class="mpanel active" id="np-ph">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:16px">
+      <div class="scard">
+        <h3 style="margin-bottom:10px">Kies een groep</h3>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+          <button class="mtype-btn active" id="grp-milk-ph" onclick="setGrp('ph','milk')">🥛 Melkeiwitten</button>
+          <button class="mtype-btn" id="grp-egg-ph" onclick="setGrp('ph','egg')">🥚 Kippenei-eiwitten</button>
+          <button class="mtype-btn" id="grp-both-ph" onclick="setGrp('ph','both')">Alles</button>
+        </div>
+        <div class="sl-row"><label style="font-size:11px;color:var(--mu);min-width:20px">pH</label><input type="range" min="0" max="14" step="0.1" value="6.8" id="ph-neer-sl" oninput="updNeerPH()"><span class="sl-val" id="ph-neer-val">pH 6.8</span></div>
+        <div style="font-size:10px;color:var(--fa);margin-bottom:10px">Links = zuur, rechts = basisch</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-g" style="font-size:11px" onclick="animScenario('yoghurt')">Yoghurt maken</button>
+          <button class="btn btn-g" style="font-size:11px" onclick="animScenario('kaas')">Kaasstremsel</button>
+          <button class="btn btn-g" style="font-size:11px" onclick="animScenario('maag')">Maagzuur</button>
+          <button class="btn btn-g" style="font-size:11px" onclick="animScenario('reset-ph')">Reset</button>
+        </div>
+      </div>
+      <div class="scard">
+        <h3 style="margin-bottom:8px">Isoëlektrisch neerslaan</h3>
+        <div style="font-size:12px;color:var(--mu);line-height:1.7">Bij het <strong>isoëlektrisch punt (pI)</strong> is de netto lading nul. Zonder elektrostatische afstoting klonteren eiwitten samen en slaan neer.<br><br>pH &lt; pI → <span style="color:var(--bl);font-weight:600">positief geladen</span><br>pH &gt; pI → <span style="color:var(--rd);font-weight:600">negatief geladen</span><br>pH ≈ pI → <span style="color:var(--am);font-weight:600">netto lading ≈ 0 → neerslag</span></div>
+      </div>
+    </div>
+    <div id="ph-protein-bars"></div>
+  </div>
+  <div class="mpanel" id="np-t">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:16px">
+      <div class="scard">
+        <h3 style="margin-bottom:10px">Kies een groep</h3>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+          <button class="mtype-btn active" id="grp-milk-t" onclick="setGrp('t','milk')">🥛 Melkeiwitten</button>
+          <button class="mtype-btn" id="grp-egg-t" onclick="setGrp('t','egg')">🥚 Kippenei-eiwitten</button>
+          <button class="mtype-btn" id="grp-both-t" onclick="setGrp('t','both')">Alles</button>
+        </div>
+        <div class="sl-row"><label style="font-size:11px;color:var(--mu);min-width:20px">T</label><input type="range" min="20" max="100" value="20" id="t-neer-sl" oninput="updNeerT()"><span class="sl-val" id="t-neer-val">20 °C</span></div>
+        <div style="font-size:10px;color:var(--fa);margin-bottom:10px">Sleep omhoog om te verhitten</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-g" style="font-size:11px" onclick="animScenario('pocheer')">Ei pocheren (65°C)</button>
+          <button class="btn btn-g" style="font-size:11px" onclick="animScenario('hardgekookt')">Hardgekookt (100°C)</button>
+          <button class="btn btn-g" style="font-size:11px" onclick="animScenario('pasteur')">Pasteurisatie (72°C)</button>
+          <button class="btn btn-g" style="font-size:11px" onclick="animScenario('reset-t')">Reset</button>
+        </div>
+      </div>
+      <div class="scard">
+        <h3 style="margin-bottom:8px">Denaturatie door verhitting</h3>
+        <div style="font-size:12px;color:var(--mu);line-height:1.7">Bij verhitting worden <strong>niet-covalente bindingen</strong> verbroken. De keten ontvouwt en aggregeert.<br><br><strong>T<sub>d</sub></strong> = temperatuur waarbij 50% ontvouwen is. Daarboven is het proces in de praktijk <span style="color:var(--rd);font-weight:600">onomkeerbaar</span> door aggregatie — behalve bij eiwitten met ↺-markering.</div>
+      </div>
+    </div>
+    <div id="t-protein-bars"></div>
+  </div>
+</div>
+  </main>
+</div>
+<script>
+// ── CODON TABLE ──────────────────────────────────────────────────────────────
+const CT={UUU:'Phe',UUC:'Phe',UUA:'Leu',UUG:'Leu',CUU:'Leu',CUC:'Leu',CUA:'Leu',CUG:'Leu',AUU:'Ile',AUC:'Ile',AUA:'Ile',AUG:'Met',GUU:'Val',GUC:'Val',GUA:'Val',GUG:'Val',UCU:'Ser',UCC:'Ser',UCA:'Ser',UCG:'Ser',CCU:'Pro',CCC:'Pro',CCA:'Pro',CCG:'Pro',ACU:'Thr',ACC:'Thr',ACA:'Thr',ACG:'Thr',GCU:'Ala',GCC:'Ala',GCA:'Ala',GCG:'Ala',UAU:'Tyr',UAC:'Tyr',UAA:'Stop',UAG:'Stop',CAU:'His',CAC:'His',CAA:'Gln',CAG:'Gln',AAU:'Asn',AAC:'Asn',AAA:'Lys',AAG:'Lys',GAU:'Asp',GAC:'Asp',GAA:'Glu',GAG:'Glu',UGU:'Cys',UGC:'Cys',UGA:'Stop',UGG:'Trp',CGU:'Arg',CGC:'Arg',CGA:'Arg',CGG:'Arg',AGU:'Ser',AGC:'Ser',AGA:'Arg',AGG:'Arg',GGU:'Gly',GGC:'Gly',GGA:'Gly',GGG:'Gly'};
+const AA_FULL={Ala:'Alanine',Arg:'Arginine',Asn:'Asparagine',Asp:'Aspartaat',Cys:'Cysteïne',Gln:'Glutamine',Glu:'Glutamaat',Gly:'Glycine',His:'Histidine',Ile:'Isoleucine',Leu:'Leucine',Lys:'Lysine',Met:'Methionine',Phe:'Fenylalanine',Pro:'Proline',Ser:'Serine',Thr:'Threonine',Trp:'Tryptofaan',Tyr:'Tyrosine',Val:'Valine'};
+
+// ── AMINO ACID PROPERTIES ────────────────────────────────────────────────────
+// ch: charge sign (0=neutral, +1=basic, -1=acidic), pKa of side chain
+const AA_CH={Arg:{ch:1,pKa:12.5},His:{ch:1,pKa:6.0},Lys:{ch:1,pKa:10.5},Asp:{ch:-1,pKa:3.9},Glu:{ch:-1,pKa:4.1}};
+
+// ── SVG STRUCTURES ────────────────────────────────────────────────────────────
+// Each returns SVG content (100x130 viewBox)
+// Backbone: H2N on top-left, Cα in center, COOH on bottom-left, R group on right
+function bbSVG(side){
+  // backbone atoms
+  const b=`<text x="8" y="44" font-size="9" fill="#185FA5" font-weight="600">H₂N</text>
+<line x1="30" y1="40" x2="44" y2="55" stroke="#333" stroke-width="1.2"/>
+<text x="40" y="70" font-size="9" fill="#333">Cα</text>
+<line x1="48" y1="72" x2="36" y2="90" stroke="#333" stroke-width="1.2"/>
+<text x="10" y="104" font-size="9" fill="#a32d2d">COOH</text>
+<line x1="50" y1="62" x2="68" y2="62" stroke="#333" stroke-width="1.2"/>`;
+  return b+side;
+}
+
+const AA_SVG={
+Gly: bbSVG(`<text x="70" y="66" font-size="9" fill="#555">H</text>`),
+Ala: bbSVG(`<text x="70" y="66" font-size="9" fill="#555">CH₃</text>`),
+Val: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH</text><line x1="84" y1="58" x2="84" y2="50" stroke="#555" stroke-width="1"/><text x="86" y="49" font-size="8" fill="#555">CH₃</text><line x1="84" y1="58" x2="92" y2="66" stroke="#555" stroke-width="1"/><text x="86" y="76" font-size="8" fill="#555">CH₃</text>`),
+Leu: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH₂</text><line x1="84" y1="58" x2="84" y2="48" stroke="#555" stroke-width="1"/><text x="72" y="48" font-size="8" fill="#555">CH</text><line x1="80" y1="44" x2="74" y2="36" stroke="#555" stroke-width="1"/><text x="62" y="35" font-size="7" fill="#555">CH₃</text><line x1="80" y1="44" x2="88" y2="36" stroke="#555" stroke-width="1"/><text x="86" y="35" font-size="7" fill="#555">CH₃</text>`),
+Ile: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH</text><line x1="84" y1="58" x2="92" y2="50" stroke="#555" stroke-width="1"/><text x="90" y="49" font-size="7" fill="#555">CH₃</text><line x1="84" y1="58" x2="84" y2="68" stroke="#555" stroke-width="1"/><text x="72" y="78" font-size="8" fill="#555">CH₂</text><line x1="84" y1="74" x2="84" y2="84" stroke="#555" stroke-width="1"/><text x="72" y="93" font-size="7" fill="#555">CH₃</text>`),
+Pro: `<text x="8" y="44" font-size="9" fill="#185FA5" font-weight="600">HN</text><line x1="24" y1="40" x2="40" y2="55" stroke="#333" stroke-width="1.2"/><text x="38" y="70" font-size="9" fill="#333">Cα</text><line x1="45" y1="72" x2="36" y2="88" stroke="#333" stroke-width="1.2"/><text x="10" y="101" font-size="9" fill="#a32d2d">COOH</text><ellipse cx="60" cy="52" rx="18" ry="14" fill="none" stroke="#555" stroke-width="1.2"/><line x1="42" y1="62" x2="44" y2="52" stroke="#333" stroke-width="1.2"/><line x1="22" y1="40" x2="42" y2="46" stroke="#555" stroke-width="1.2"/>`,
+Phe: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH₂</text><line x1="84" y1="57" x2="84" y2="47" stroke="#555" stroke-width="1"/><polygon points="84,36 76,44 76,54 84,58 92,54 92,44" fill="none" stroke="#555" stroke-width="1.1"/><line x1="76" y1="49" x2="92" y2="49" stroke="#555" stroke-width="0.7" stroke-dasharray="2,1"/>`),
+Trp: bbSVG(`<text x="68" y="60" font-size="9" fill="#555">CH₂</text><line x1="82" y1="57" x2="82" y2="48" stroke="#555" stroke-width="1"/><polygon points="82,37 74,43 74,55 80,58 86,55 88,43" fill="none" stroke="#555" stroke-width="1.1"/><line x1="82" y1="43" x2="95" y2="36" stroke="#555" stroke-width="1"/><line x1="95" y1="36" x2="100" y2="44" stroke="#555" stroke-width="1"/><line x1="100" y1="44" x2="94" y2="54" stroke="#555" stroke-width="1"/><line x1="88" y1="51" x2="94" y2="54" stroke="#555" stroke-width="1"/><text x="87" y="30" font-size="7" fill="#185FA5">NH</text>`),
+Met: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH₂</text><line x1="84" y1="57" x2="84" y2="47" stroke="#555" stroke-width="1"/><text x="72" y="46" font-size="8" fill="#555">CH₂</text><line x1="84" y1="42" x2="84" y2="32" stroke="#555" stroke-width="1"/><text x="75" y="31" font-size="8" fill="#d97706">S</text><line x1="86" y1="28" x2="94" y2="24" stroke="#555" stroke-width="1"/><text x="90" y="23" font-size="7" fill="#555">CH₃</text>`),
+Ser: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH₂</text><line x1="84" y1="57" x2="84" y2="47" stroke="#555" stroke-width="1"/><text x="74" y="46" font-size="9" fill="#2d6a10" font-weight="600">OH</text>`),
+Thr: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH</text><line x1="84" y1="57" x2="84" y2="47" stroke="#555" stroke-width="1"/><text x="74" y="46" font-size="9" fill="#2d6a10" font-weight="600">OH</text><line x1="84" y1="57" x2="95" y2="65" stroke="#555" stroke-width="1"/><text x="90" y="74" font-size="8" fill="#555">CH₃</text>`),
+Cys: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH₂</text><line x1="84" y1="57" x2="84" y2="47" stroke="#555" stroke-width="1"/><text x="74" y="46" font-size="9" fill="#d97706" font-weight="600">SH</text>`),
+Tyr: bbSVG(`<text x="68" y="60" font-size="9" fill="#555">CH₂</text><line x1="82" y1="57" x2="82" y2="47" stroke="#555" stroke-width="1"/><polygon points="82,36 74,42 74,52 82,56 90,52 90,42" fill="none" stroke="#555" stroke-width="1.1"/><line x1="74" y1="47" x2="90" y2="47" stroke="#555" stroke-width="0.7" stroke-dasharray="2,1"/><line x1="90" y1="47" x2="98" y2="43" stroke="#555" stroke-width="1"/><text x="96" y="41" font-size="8" fill="#2d6a10" font-weight="600">OH</text>`),
+Asn: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH₂</text><line x1="84" y1="57" x2="84" y2="47" stroke="#555" stroke-width="1"/><text x="72" y="44" font-size="8" fill="#555">C</text><line x1="78" y1="40" x2="78" y2="32" stroke="#555" stroke-width="1"/><text x="74" y="31" font-size="7" fill="#a32d2d">=O</text><line x1="80" y1="40" x2="90" y2="36" stroke="#555" stroke-width="1"/><text x="86" y="34" font-size="8" fill="#185FA5">NH₂</text>`),
+Gln: bbSVG(`<text x="68" y="60" font-size="9" fill="#555">CH₂</text><line x1="82" y1="57" x2="82" y2="47" stroke="#555" stroke-width="1"/><text x="70" y="46" font-size="8" fill="#555">CH₂</text><line x1="82" y1="42" x2="82" y2="32" stroke="#555" stroke-width="1"/><text x="70" y="30" font-size="7" fill="#555">C</text><line x1="76" y1="26" x2="74" y2="18" stroke="#555" stroke-width="1"/><text x="68" y="17" font-size="7" fill="#a32d2d">=O</text><line x1="76" y1="26" x2="86" y2="22" stroke="#555" stroke-width="1"/><text x="83" y="21" font-size="7" fill="#185FA5">NH₂</text>`),
+Asp: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH₂</text><line x1="84" y1="57" x2="84" y2="47" stroke="#555" stroke-width="1"/><text x="72" y="44" font-size="8" fill="#555">C</text><line x1="78" y1="40" x2="78" y2="31" stroke="#555" stroke-width="1.3"/><text x="72" y="30" font-size="7" fill="#a32d2d">=O</text><line x1="80" y1="40" x2="91" y2="36" stroke="#555" stroke-width="1"/><text x="84" y="34" font-size="8" fill="#a32d2d" font-weight="600">OH</text>`),
+Glu: bbSVG(`<text x="68" y="60" font-size="9" fill="#555">CH₂</text><line x1="82" y1="57" x2="82" y2="47" stroke="#555" stroke-width="1"/><text x="70" y="46" font-size="8" fill="#555">CH₂</text><line x1="82" y1="42" x2="82" y2="32" stroke="#555" stroke-width="1"/><text x="70" y="30" font-size="7" fill="#555">C</text><line x1="76" y1="26" x2="74" y2="17" stroke="#555" stroke-width="1.3"/><text x="66" y="16" font-size="7" fill="#a32d2d">=O</text><line x1="76" y1="26" x2="87" y2="22" stroke="#555" stroke-width="1"/><text x="82" y="21" font-size="8" fill="#a32d2d" font-weight="600">OH</text>`),
+Lys: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH₂</text><line x1="82" y1="57" x2="82" y2="48" stroke="#555" stroke-width="1"/><text x="70" y="47" font-size="8" fill="#555">CH₂</text><line x1="82" y1="43" x2="82" y2="34" stroke="#555" stroke-width="1"/><text x="70" y="33" font-size="7" fill="#555">CH₂</text><line x1="82" y1="29" x2="82" y2="20" stroke="#555" stroke-width="1"/><text x="70" y="19" font-size="7" fill="#555">CH₂</text><line x1="82" y1="15" x2="82" y2="8" stroke="#555" stroke-width="1"/><text x="70" y="8" font-size="8" fill="#185FA5" font-weight="600">NH₂</text>`),
+Arg: bbSVG(`<text x="68" y="60" font-size="9" fill="#555">CH₂</text><line x1="80" y1="57" x2="80" y2="48" stroke="#555" stroke-width="1"/><text x="68" y="47" font-size="8" fill="#555">CH₂</text><line x1="80" y1="43" x2="80" y2="34" stroke="#555" stroke-width="1"/><text x="68" y="33" font-size="7" fill="#555">CH₂</text><line x1="80" y1="29" x2="80" y2="21" stroke="#555" stroke-width="1"/><text x="68" y="20" font-size="8" fill="#185FA5">NH</text><line x1="80" y1="17" x2="88" y2="11" stroke="#555" stroke-width="1"/><text x="72" y="10" font-size="7" fill="#555">C</text><line x1="79" y1="7" x2="75" y2="0" stroke="#555" stroke-width="1.3"/><text x="60" y="1" font-size="7" fill="#185FA5">=NH</text><line x1="82" y1="8" x2="93" y2="4" stroke="#555" stroke-width="1"/><text x="89" y="3" font-size="7" fill="#185FA5">NH₂</text>`),
+His: bbSVG(`<text x="68" y="60" font-size="9" fill="#555">CH₂</text><line x1="82" y1="57" x2="82" y2="47" stroke="#555" stroke-width="1"/><polygon points="82,36 75,42 78,52 86,52 89,42" fill="none" stroke="#555" stroke-width="1.1"/><text x="65" y="42" font-size="7" fill="#185FA5">N</text><text x="87" y="52" font-size="7" fill="#185FA5">NH</text>`)
+};
+
+// ── PROTEIN DATA ─────────────────────────────────────────────────────────────
+// ch: ALL ionizable residues in the full protein with counts [aa, n]
+// Based on literature pI and composition
+const PROTEINS=[
+{id:'hbb',name:'Hemoglobine β',abbr:'HBB',disease:'Sikkelcelanemie',desc:'De β-keten van hemoglobine transporteert zuurstof. Eén aminozuurwisseling (Glu→Val) veroorzaakt sikkelcelanemie.',startPos:1,mrna:'GUG CAC CUG ACU CCU GAG GAG AAG UCU GCU',
+muts:[{pos:5,type:'missense',change:'GAG→GUG',res:'Glu→Val',name:'HbS-mutatie',dis:'Sikkelcelanemie',desc:'Glu is hydrofiel; Val is hydrofoob. HbS-moleculen klonteren samen bij lage O₂.'},{pos:5,type:'silent',change:'GAG→GAA',res:'Glu→Glu',name:'Stille mutatie',dis:'Geen effect',desc:'Beide coderen voor Glu.'},{pos:5,type:'nonsense',change:'GAG→UAG',res:'Glu→Stop',name:'Nonsense',dis:'Afgekapt eiwit',desc:'Stopcodon op positie 6.'},{pos:2,type:'frameshift',change:'+U na CAC',res:'Frameshift',name:'Insertie (+1)',dis:'Frameshifting',desc:'Extra base verschuift leesraam na positie 2.'}],
+act:{Topt:37,pH:7.4,phw:1.8,Tw:12,Td:58},
+ch:[['Asp',10],['Glu',16],['Arg',3],['His',9],['Lys',11]]},
+{id:'ins',name:'Insuline B-keten',abbr:'INS',disease:'Diabetes mellitus',desc:'B-keten van insuline reguleert bloedglucose. Twee ketens verbonden door disulfidebruggen.',startPos:1,mrna:'UUU GUG AAU CAA CAU CUG UGU GGU UCU CAU',
+muts:[{pos:1,type:'missense',change:'UUU→GUU',res:'Phe→Val',name:'F1V',dis:'Minder receptor-binding',desc:'Phe op positie 1 is essentieel voor receptorherkenning.'},{pos:7,type:'missense',change:'UGU→GGU',res:'Cys→Gly',name:'C7G',dis:'Geen disulfidebrug',desc:'Cys vormt disulfidebruggen. Gly kan dit niet.'},{pos:3,type:'silent',change:'AAU→AAC',res:'Asn→Asn',name:'Stille mutatie',dis:'Geen effect',desc:'Beide coderen voor Asn.'},{pos:4,type:'frameshift',change:'−C van UGU',res:'Deletie',name:'Deletie (−1)',dis:'Frameshifting',desc:'Verlies van één base verschuift leesraam.'}],
+act:{Topt:37,pH:5.4,phw:1.5,Tw:10,Td:55},
+ch:[['Glu',4],['Asp',2],['Arg',1],['His',2],['Lys',1]]},
+{id:'tp53',name:'p53 tumorsuppressor',abbr:'TP53',disease:'Kanker (hotspot)',desc:'p53 bewaakt het genoom. Hotspot-mutaties komen voor bij ~50% van alle kankers.',startPos:171,mrna:'GUG GUG CGC UGU CCU CAU CAU GAG CGC UGU',
+muts:[{pos:3,type:'missense',change:'CGC→CAC',res:'Arg→His',name:'R175H',dis:'Verlies tumorsuppressie',desc:'Meest voorkomende oncogene p53-mutatie.'},{pos:3,type:'missense',change:'CGC→UGG',res:'Arg→Trp',name:'R175W',dis:'Verlies tumorsuppressie',desc:'Trp heeft grote aromatische zijketen die structuur verstoort.'},{pos:3,type:'nonsense',change:'CGC→UGA',res:'Arg→Stop',name:'R175*',dis:'Afgekapt eiwit',desc:'Stopcodon vóór DNA-bindend domein.'},{pos:6,type:'frameshift',change:'+G na CAU',res:'Frameshift',name:'Insertie (+1)',dis:'Frameshifting',desc:'Insertie na positie 176.'}],
+act:{Topt:37,pH:6.8,phw:1.5,Tw:10,Td:42},
+ch:[['Asp',42],['Glu',32],['Arg',14],['His',8],['Lys',24]]},
+{id:'cftr',name:'CFTR',abbr:'CFTR',disease:'Cystic Fibrosis',desc:'CFTR is een chloride-kanaal. ΔF508 (verlies 3 basen = verlies Phe) is meest voorkomende CF-mutatie.',startPos:505,mrna:'AUU AUC GCU AGU ACU GGU AAU GUG GGU UCU',
+muts:[{pos:4,type:'indel',change:'−AGU (3 basen)',res:'ΔSer508',name:'ΔF508-analoog',dis:'Taaislijmziekte',desc:'Verlies van 3 basen = verlies van 1 aminozuur. Leesraam intact (in-frame deletie).'},{pos:2,type:'silent',change:'AUC→AUU',res:'Ile→Ile',name:'Stille mutatie',dis:'Geen effect',desc:'Beide coderen voor Ile.'},{pos:1,type:'missense',change:'AUU→GUU',res:'Ile→Val',name:'I505V',dis:'Milde klasse-IV',desc:'Ile en Val zijn beide apolair.'},{pos:5,type:'frameshift',change:'+A na ACU',res:'Frameshift',name:'Insertie (+1)',dis:'Ernstige CF',desc:'Frameshift leidt tot voortijdig stopcodon.'}],
+act:{Topt:37,pH:7.4,phw:1.5,Tw:8,Td:48},
+ch:[['Asp',68],['Glu',81],['Arg',56],['His',28],['Lys',68]]},
+{id:'pah',name:'Fenylalaninehydroxylase',abbr:'PAH',disease:'PKU',desc:'PAH zet Phe om in Tyr. R408W is meest voorkomende PKU-mutatie in Europa.',startPos:403,mrna:'AAG GCU CUG AAU CGG CAG AUU CGG GAG CCU',
+muts:[{pos:5,type:'missense',change:'CGG→UGG',res:'Arg→Trp',name:'R408W',dis:'Klassieke PKU',desc:'Trp is groter en hydrofober dan Arg. Destabiliseert active site.'},{pos:5,type:'silent',change:'CGG→CGC',res:'Arg→Arg',name:'Stille mutatie',dis:'Geen effect',desc:'Beide coderen voor Arg.'},{pos:5,type:'nonsense',change:'CGG→UGA',res:'Arg→Stop',name:'R408*',dis:'Ernstige PKU',desc:'Stopcodon op positie 408.'},{pos:3,type:'frameshift',change:'−G van CUG',res:'Deletie',name:'Deletie (−1)',dis:'Frameshifting',desc:'Frameshift na positie 405.'}],
+act:{Topt:37,pH:6.8,phw:1.5,Tw:11,Td:50},
+ch:[['Asp',33],['Glu',29],['Arg',22],['His',17],['Lys',20]]},
+{id:'lyz',name:'Lysozym',abbr:'LYZ',disease:'Amyloïdose (variant)',desc:'Lysozym knipt bacteriële celwanden. Eerste enzym waarvan 3D-structuur werd opgehelderd (1965).',startPos:35,mrna:'AAU UCU ACU GAU UAU GGU AUU CUG CAA AUU',
+muts:[{pos:4,type:'missense',change:'GAU→GCU',res:'Asp→Ala',name:'D38A',dis:'Geen activiteit',desc:'Asp38 is catalytisch residu. Ala elimineert activiteit volledig.'},{pos:5,type:'silent',change:'UAU→UAC',res:'Tyr→Tyr',name:'Stille mutatie',dis:'Geen effect',desc:'Beide coderen voor Tyr.'},{pos:1,type:'missense',change:'AAU→GAU',res:'Asn→Asp',name:'N35D',dis:'Amyloïdose',desc:'Kleine ladingswisseling veroorzaakt aggregatie.'},{pos:6,type:'frameshift',change:'+C na GGU',res:'Frameshift',name:'Insertie (+1)',dis:'Verlies activiteit',desc:'Frameshift na positie 40.'}],
+act:{Topt:50,pH:5.2,phw:2.0,Tw:15,Td:72},
+ch:[['Asp',7],['Glu',2],['Arg',11],['His',1],['Lys',6]]},
+{id:'mb',name:'Myoglobine',abbr:'MB',disease:'Rhabdomyolyse-marker',desc:'Myoglobine slaat zuurstof op in spierweefsel. Evolutionair verwant aan hemoglobine.',startPos:1,mrna:'GUG CUG UCU GAG GGU GAG UGG CAG CUG GUG',
+muts:[{pos:4,type:'missense',change:'GAG→GCG',res:'Glu→Ala',name:'E4A',dis:'Minder oplosbaarheid',desc:'Glu is hydrofiel; Ala is apolair.'},{pos:7,type:'missense',change:'UGG→UGU',res:'Trp→Cys',name:'W7C',dis:'Structuurverstoring',desc:'Trp7 essentieel voor heem-binding.'},{pos:4,type:'silent',change:'GAG→GAA',res:'Glu→Glu',name:'Stille mutatie',dis:'Geen effect',desc:'Beide coderen voor Glu.'},{pos:3,type:'frameshift',change:'+G na UCU',res:'Frameshift',name:'Insertie (+1)',dis:'Frameshifting',desc:'Frameshift na positie 3.'}],
+act:{Topt:37,pH:7.0,phw:2.0,Tw:12,Td:68},
+ch:[['Asp',13],['Glu',9],['Arg',6],['His',12],['Lys',19]]},
+{id:'cytc',name:'Cytochroom c',abbr:'CYCS',disease:'Apoptose-regulatie',desc:'Centrale rol in mitochondriale ademhaling en apoptose. Evolutionair sterk geconserveerd.',startPos:1,mrna:'GGU GAU GUG GAA AAG GGU AAG AAG AUU UUU',
+muts:[{pos:4,type:'missense',change:'GAA→GCA',res:'Glu→Ala',name:'E4A',dis:'Minder elektronentransport',desc:'Glu4 betrokken bij interacties met cytochroom c oxidase.'},{pos:5,type:'missense',change:'AAG→AAU',res:'Lys→Asn',name:'K5N',dis:'Minder heem-binding',desc:'Lys5 coördineert aan heem-ijzeratoom.'},{pos:4,type:'silent',change:'GAA→GAG',res:'Glu→Glu',name:'Stille mutatie',dis:'Geen effect',desc:'GAA en GAG zijn beide Glu-codons.'},{pos:2,type:'frameshift',change:'−G van GAU',res:'Deletie',name:'Deletie (−1)',dis:'Frameshifting',desc:'Frameshift na positie 2.'}],
+act:{Topt:37,pH:10.0,phw:1.8,Tw:10,Td:82},
+ch:[['Asp',3],['Glu',4],['Arg',2],['His',3],['Lys',19]]},
+{id:'kras',name:'KRAS onco-eiwit',abbr:'KRAS',disease:'Kanker (oncogen)',desc:'KRAS is een GTPase. G12D is meest voorkomende oncogene mutatie bij pancreaskanker.',startPos:10,mrna:'GGU GGU GUG GGU AAG UCU GCU CUG ACU AUU',
+muts:[{pos:3,type:'missense',change:'GGU→GAU',res:'Gly→Asp',name:'G12D',dis:'Oncogeen geactiveerd',desc:'Gly12 essentieel voor GTP-hydrolyse. G12D blokkeert hydrolyse permanent.'},{pos:3,type:'missense',change:'GGU→GUU',res:'Gly→Val',name:'G12V',dis:'Oncogeen geactiveerd',desc:'G12V blokkeert eveneens GTP-hydrolyse.'},{pos:3,type:'silent',change:'GGU→GGC',res:'Gly→Gly',name:'Stille mutatie',dis:'Geen effect',desc:'Beide coderen voor Gly.'},{pos:5,type:'frameshift',change:'+A na AAG',res:'Frameshift',name:'Insertie (+1)',dis:'Inactief eiwit',desc:'Frameshift inactiveert KRAS.'}],
+act:{Topt:37,pH:7.2,phw:1.8,Tw:11,Td:52},
+ch:[['Asp',9],['Glu',8],['Arg',7],['His',1],['Lys',6]]},
+{id:'ttr',name:'Transthyretine',abbr:'TTR',disease:'Amyloïdose',desc:'TTR transporteert thyroxine. V30M veroorzaakt hereditaire amyloïdose (hATTR).',startPos:26,mrna:'GGU UCU CCU GGU GUG GGU GAG UGG AUG GAG',
+muts:[{pos:5,type:'missense',change:'GUG→AUG',res:'Val→Met',name:'V30M',dis:'hATTR amyloïdose',desc:'Val→Met destabiliseert het tetrameer dat uiteenvalt in amyloïde fibrillen.'},{pos:5,type:'silent',change:'GUG→GUA',res:'Val→Val',name:'Stille mutatie',dis:'Geen effect',desc:'Beide coderen voor Val.'},{pos:5,type:'nonsense',change:'GUG→UAG',res:'Val→Stop',name:'V30*',dis:'Afgekapt eiwit',desc:'Stopcodon op positie 30.'},{pos:3,type:'frameshift',change:'+C na CCU',res:'Frameshift',name:'Insertie (+1)',dis:'Frameshifting',desc:'Frameshift na positie 28.'}],
+act:{Topt:37,pH:5.4,phw:1.5,Tw:10,Td:56},
+ch:[['Asp',5],['Glu',9],['Arg',8],['His',4],['Lys',15]]},
+{id:'adh',name:'Alcoholdehydrogenase',abbr:'ADH1B',disease:'Alcoholmetabolisme',desc:'ADH1B zet ethanol om in acetaldehyde. R47H (ADH1B*2) metaboliseert ethanol 40× sneller.',startPos:45,mrna:'AUU CGG ACU GUG GUG AAG GUG CCU GUG CAU',
+muts:[{pos:2,type:'missense',change:'CGG→CAU',res:'Arg→His',name:'R47H (ADH1B*2)',dis:'Snel metabolisme',desc:'His verandert geometrie actieve centrum: 40× snellere omzetting.'},{pos:2,type:'silent',change:'CGG→CGC',res:'Arg→Arg',name:'Stille mutatie',dis:'Geen effect',desc:'Beide coderen voor Arg.'},{pos:2,type:'nonsense',change:'CGG→UAG',res:'Arg→Stop',name:'R47*',dis:'Geen ADH-activiteit',desc:'Stopcodon op positie 47.'},{pos:6,type:'frameshift',change:'+U na AAG',res:'Frameshift',name:'Insertie (+1)',dis:'Frameshifting',desc:'Frameshift na positie 50.'}],
+act:{Topt:37,pH:8.0,phw:2.5,Tw:12,Td:58},
+ch:[['Asp',22],['Glu',20],['Arg',17],['His',6],['Lys',16]]},
+{id:'col1',name:'Collageen α1(I)',abbr:'COL1A1',disease:'Osteogenesis imperfecta',desc:'Collageen heeft Gly-X-Y repeats. Elke vervanging van Gly verstoort de drievoudige helix.',startPos:55,mrna:'GGU CCU CCU GGU GCU CCU GGU UUU CCU GGU',
+muts:[{pos:1,type:'missense',change:'GGU→UCU',res:'Gly→Ser',name:'G55S',dis:'Osteogenesis imperfecta',desc:'Gly is het kleinste aminozuur — de enige die past in de kern van de drievoudige helix.'},{pos:4,type:'missense',change:'GGU→AGU',res:'Gly→Ser',name:'G58S',dis:'Osteogenesis imperfecta',desc:'Elk Gly in Gly-X-Y kan een OI-mutatie veroorzaken.'},{pos:1,type:'silent',change:'GGU→GGC',res:'Gly→Gly',name:'Stille mutatie',dis:'Geen effect',desc:'Beide coderen voor Gly.'},{pos:4,type:'frameshift',change:'+A na GGU',res:'Frameshift',name:'Insertie (+1)',dis:'Ernstige OI',desc:'Frameshift vernietigt repetitieve structuur.'}],
+act:{Topt:37,pH:7.4,phw:1.2,Tw:8,Td:41},
+ch:[['Asp',48],['Glu',84],['Arg',52],['His',6],['Lys',42]]},
+{id:'rho',name:'Rhodopsine',abbr:'RHO',disease:'Retinitis pigmentosa',desc:'Lichtsensitief eiwit in staafjes. G90D veroorzaakt constitutieve activering en nachtblindheid.',startPos:86,mrna:'GGU GAU GAG GCU GAG UUU UAU GUG CCU UUU',
+muts:[{pos:1,type:'missense',change:'GGU→GAU',res:'Gly→Asp',name:'G90D',dis:'Nachtblindheid',desc:'Asp mimeert geactiveerde toestand — rhodopsine is permanent "aan".'},{pos:3,type:'missense',change:'GAG→GCG',res:'Glu→Ala',name:'E92A',dis:'Minder chromofoor-binding',desc:'Glu92 participeert in retinal-bindingszak.'},{pos:4,type:'silent',change:'GCU→GCC',res:'Ala→Ala',name:'Stille mutatie',dis:'Geen effect',desc:'Beide coderen voor Ala.'},{pos:5,type:'frameshift',change:'+C na GAG',res:'Frameshift',name:'Insertie (+1)',dis:'Retinitis pigmentosa',desc:'Frameshift na positie 90.'}],
+act:{Topt:37,pH:6.5,phw:1.5,Tw:10,Td:48},
+ch:[['Asp',28],['Glu',29],['Arg',14],['His',8],['Lys',16]]},
+{id:'dmd',name:'Dystrofine',abbr:'DMD',disease:'Duchenne / Becker',desc:'Dystrofine verbindt cytoskelet met extracellulaire matrix. Frameshifts → Duchenne; in-frame → Becker.',startPos:10,mrna:'AUG CUG GAG GAU CUG CCU CCU CCU CCU GAG',
+muts:[{pos:3,type:'missense',change:'GAG→GCG',res:'Glu→Ala',name:'E12A',dis:'Milde Becker',desc:'Beperkt effect op structurele functie.'},{pos:3,type:'nonsense',change:'GAG→UAG',res:'Glu→Stop',name:'E12*',dis:'Duchenne',desc:'Voortijdig stopcodon.'},{pos:3,type:'silent',change:'GAG→GAA',res:'Glu→Glu',name:'Stille mutatie',dis:'Geen effect',desc:'Stille mutatie.'},{pos:2,type:'frameshift',change:'−G van CUG',res:'Deletie',name:'Deletie (−1)',dis:'Duchenne',desc:'Meest voorkomend mechanisme bij Duchenne.'}],
+act:{Topt:37,pH:7.0,phw:1.5,Tw:10,Td:45},
+ch:[['Asp',140],['Glu',165],['Arg',145],['His',48],['Lys',138]]},
+{id:'brca1',name:'BRCA1',abbr:'BRCA1',disease:'Borstkanker',desc:'BRCA1 repareert DNA-dubbelstrengsbreuken. Verlies verhoogt risico op borst-/eierstokkanker tot ~70%.',startPos:22,mrna:'CAG UCU UCU ACU GGU AAU ACU AUU GUG AAG',
+muts:[{pos:6,type:'missense',change:'AAU→GAU',res:'Asn→Asp',name:'N27D',dis:'Licht verhoogd risico',desc:'Negatieve lading in RING-domein interactievlak.'},{pos:6,type:'nonsense',change:'AAU→UAA',res:'Asn→Stop',name:'N27*',dis:'Hoog kankerrisico',desc:'Voortijdig stopcodon op positie 27.'},{pos:4,type:'silent',change:'ACU→ACC',res:'Thr→Thr',name:'Stille mutatie',dis:'Geen effect',desc:'Beide coderen voor Thr.'},{pos:9,type:'frameshift',change:'−AG (185delAG)',res:'Frameshift',name:'185delAG',dis:'Borstkanker',desc:'Meest voorkomende BRCA1-mutatie (Ashkenazi). Twee basen weg → frameshift.'}],
+act:{Topt:37,pH:7.0,phw:1.5,Tw:10,Td:52},
+ch:[['Asp',92],['Glu',117],['Arg',77],['His',34],['Lys',84]]},
+{id:'ada',name:'Adenosinedeaminase',abbr:'ADA',disease:'ADA-SCID',desc:'ADA zet adenosine om in inosine. Deficiëntie doodt lymfocyten. Eerste ziekte behandeld met gentherapie.',startPos:1,mrna:'AUG GCU GCU GCU CAU CCU GGU AAG AAG CUG',
+muts:[{pos:5,type:'missense',change:'CAU→CGU',res:'His→Arg',name:'H5R',dis:'ADA-SCID',desc:'His5 coördineert zinkion. Arg elimineert katalytische activiteit.'},{pos:5,type:'silent',change:'CAU→CAC',res:'His→His',name:'Stille mutatie',dis:'Geen effect',desc:'Beide coderen voor His.'},{pos:5,type:'missense',change:'CAU→UAU',res:'His→Tyr',name:'H5Y',dis:'Partiële activiteit',desc:'Tyr kan gedeeltelijk functie overnemen.'},{pos:7,type:'frameshift',change:'+U na GGU',res:'Frameshift',name:'Insertie (+1)',dis:'Ernstige SCID',desc:'Frameshift na positie 7.'}],
+act:{Topt:37,pH:7.2,phw:2.0,Tw:12,Td:50},
+ch:[['Asp',17],['Glu',20],['Arg',13],['His',7],['Lys',21]]},
+{id:'g6pd',name:'G6PD',abbr:'G6PD',disease:'Favisme',desc:'G6PD beschermt rode bloedcellen tegen oxidatieve stress. Deficiëntie veroorzaakt hemolyse.',startPos:122,mrna:'AUU AAG UCU GAG UUU ACU AUU GGU GAG CUG',
+muts:[{pos:3,type:'missense',change:'UCU→CCU',res:'Ser→Pro',name:'S124P',dis:'G6PD-deficiëntie',desc:'Pro introduceert knik die NADP⁺-binding verstoort.'},{pos:3,type:'silent',change:'UCU→AGU',res:'Ser→Ser',name:'Stille mutatie',dis:'Geen effect',desc:'Beide coderen voor Ser.'},{pos:4,type:'missense',change:'GAG→AAG',res:'Glu→Lys',name:'E127K',dis:'Klasse-II deficiëntie',desc:'Ladingswisseling − naar + destabiliseert actief dimeer.'},{pos:1,type:'frameshift',change:'+C na AUU',res:'Frameshift',name:'Insertie (+1)',dis:'Ernstige deficiëntie',desc:'Frameshift na positie 122.'}],
+act:{Topt:37,pH:8.0,phw:2.0,Tw:12,Td:52},
+ch:[['Asp',40],['Glu',44],['Arg',35],['His',14],['Lys',39]]},
+{id:'alt',name:'Alanineaminotransferase',abbr:'ALT/GPT',disease:'Levermarker (ALAT)',desc:'ALT is een leverenzym. Verhoogde ALAT in bloed is gevoelige marker voor leverschade.',startPos:1,mrna:'AUG UCU GAG CUG GGU GAU CAU UGG CUG UUU',
+muts:[{pos:3,type:'missense',change:'GAG→GCG',res:'Glu→Ala',name:'E3A',dis:'Minder activiteit',desc:'Glu3 stabiliseert PLP-cofactorbindingsdomein.'},{pos:3,type:'silent',change:'GAG→GAA',res:'Glu→Glu',name:'Stille mutatie',dis:'Geen effect',desc:'Beide coderen voor Glu.'},{pos:6,type:'missense',change:'GAU→AAU',res:'Asp→Asn',name:'D6N',dis:'Minder substraatbinding',desc:'Asp coördineert pyridoxaalfosfaat.'},{pos:4,type:'frameshift',change:'+G na CUG',res:'Frameshift',name:'Insertie (+1)',dis:'Inactief eiwit',desc:'Frameshift na positie 4.'}],
+act:{Topt:37,pH:7.4,phw:1.8,Tw:10,Td:55},
+ch:[['Asp',37],['Glu',38],['Arg',30],['His',16],['Lys',31]]},
+{id:'lct',name:'Lactase',abbr:'LCT',disease:'Lactose-intolerantie',desc:'Lactase knipt lactose in glucose en galactose. Na zuigelingenperiode daalt expressie bij de meeste mensen.',startPos:1274,mrna:'CUG UUU CAA GCU ACU CUG UGG UCU CGU CCU',
+muts:[{pos:3,type:'missense',change:'CAA→GAA',res:'Gln→Glu',name:'Q1276E',dis:'Minder activiteit',desc:'Glu introduceert negatieve lading.'},{pos:3,type:'silent',change:'CAA→CAG',res:'Gln→Gln',name:'Stille mutatie',dis:'Geen effect',desc:'Beide coderen voor Gln.'},{pos:5,type:'missense',change:'ACU→GCU',res:'Thr→Ala',name:'T1278A',dis:'Klasse-III variant',desc:'Thr verlies vermindert katalytische snelheid.'},{pos:2,type:'frameshift',change:'−U van UUU',res:'Deletie',name:'Deletie (−1)',dis:'Ernstige intolerantie',desc:'Frameshiftdeletie.'}],
+act:{Topt:37,pH:6.0,phw:1.8,Tw:10,Td:52},
+ch:[['Asp',112],['Glu',118],['Arg',84],['His',36],['Lys',96]]},
+{id:'hba',name:'Hemoglobine α-keten',abbr:'HBA',disease:'α-thalassemie',desc:'De α-keten is de tweede hemoglobine-keten. Vergelijk met HBB.',startPos:1,mrna:'GUG CUC ACU GCU GAA AAU GCC AUC GCC GCU',
+muts:[{pos:4,type:'missense',change:'GAA→GCA',res:'Glu→Ala',name:'E4A',dis:'α-thalassemie',desc:'Glu4 betrokken bij interacties met β-keten.'},{pos:4,type:'silent',change:'GAA→GAG',res:'Glu→Glu',name:'Stille mutatie',dis:'Geen effect',desc:'Beide coderen voor Glu.'},{pos:4,type:'nonsense',change:'GAA→UAA',res:'Glu→Stop',name:'E4*',dis:'Ernstige α-thalassemie',desc:'Stopcodon op positie 4.'},{pos:6,type:'frameshift',change:'+G na GCC',res:'Frameshift',name:'Insertie (+1)',dis:'α-thalassemie',desc:'Frameshift na positie 9.'}],
+act:{Topt:37,pH:7.4,phw:1.8,Tw:12,Td:60},
+ch:[['Asp',11],['Glu',10],['Arg',3],['His',10],['Lys',11]]}
+];
+
+// ── CODON TABLE HTML ──────────────────────────────────────────────────────────
+function buildCT(){
+  const g=[{a:'Ala',c:['GCU','GCC','GCA','GCG']},{a:'Arg',c:['CGU','CGC','CGA','CGG','AGA','AGG']},{a:'Asn',c:['AAU','AAC']},{a:'Asp',c:['GAU','GAC']},{a:'Cys',c:['UGU','UGC']},{a:'Gln',c:['CAA','CAG']},{a:'Glu',c:['GAA','GAG']},{a:'Gly',c:['GGU','GGC','GGA','GGG']},{a:'His',c:['CAU','CAC']},{a:'Ile',c:['AUU','AUC','AUA']},{a:'Leu',c:['UUA','UUG','CUU','CUC','CUA','CUG']},{a:'Lys',c:['AAA','AAG']},{a:'Met',c:['AUG']},{a:'Phe',c:['UUU','UUC']},{a:'Pro',c:['CCU','CCC','CCA','CCG']},{a:'Ser',c:['UCU','UCC','UCA','UCG','AGU','AGC']},{a:'Thr',c:['ACU','ACC','ACA','ACG']},{a:'Trp',c:['UGG']},{a:'Tyr',c:['UAU','UAC']},{a:'Val',c:['GUU','GUC','GUA','GUG']},{a:'Stop',c:['UAA','UAG','UGA']}];
+  return '<table class="ctbl"><thead><tr><th>Aminozuur</th><th>Afk.</th><th>mRNA-codons</th></tr></thead><tbody>'+
+    g.map(r=>`<tr><td class="lbl">${r.a==='Stop'?'Stopcodons':(AA_FULL[r.a]||r.a)}</td><td>${r.a==='Stop'?'—':r.a}</td><td class="${r.a==='Stop'?'stoprow':''}">${r.c.map(c=>`<span style="margin-right:5px">${c}</span>`).join('')}</td></tr>`).join('')+
+    '</tbody></table>';
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let curP=0, curTab='translatie';
+const tSt=PROTEINS.map(()=>({selAA:null,slots:new Array(10).fill(null),selCodon:null}));
+const mSt=PROTEINS.map(()=>({selMut:null}));
+let pepSlots=[null,null,null];
+const AA_LIST=['Ala','Arg','Asn','Asp','Cys','Gln','Glu','Gly','His','Ile','Leu','Lys','Met','Phe','Pro','Ser','Thr','Trp','Tyr','Val'];
+
+// ── SIDEBAR ───────────────────────────────────────────────────────────────────
+function buildSB(){
+  document.getElementById('sidebar').innerHTML='<div class="slbl">20 Eiwitten</div>'+
+    PROTEINS.map((p,i)=>`<button class="pbtn${i===0?' active':''}" id="pb-${i}" onclick="selP(${i})"><div class="pbadge" id="pbd-${i}">${i+1}</div><div><div class="pname">${p.name}</div><div class="psub">${p.abbr}</div></div></button>`).join('');
+}
+function selP(i){curP=i;document.querySelectorAll('.pbtn').forEach((b,j)=>b.classList.toggle('active',j===i));renderTab();}
+
+// ── MAIN TABS ─────────────────────────────────────────────────────────────────
+function showTab(t){
+  curTab=t;
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['translatie','mutaties','activiteit','neerslag'][i]===t));
+  document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  renderTab();
+  if(t==='neerslag'){updNeerPH();updNeerT();}
+}
+function renderTab(){if(curTab==='translatie')renderTrans();else if(curTab==='mutaties')renderMut();else initAct();}
+
+// ── CODON TABLE PANEL HTML ────────────────────────────────────────────────────
+function ctPanel(){return `<div class="codon-table-panel"><h3>Codonentabel</h3>${buildCT()}</div>`;}
+
+// ── TRANSLATIE ────────────────────────────────────────────────────────────────
+function renderTrans(){
+  const p=PROTEINS[curP]; const cs=p.mrna.split(' '); const st=tSt[curP];
+  const codonStrip=cs.map((c,i)=>`<div class="cbox"><div class="cseq${st.slots[i]?' ok':''}" id="cs-${i}" onclick="selCodon(${i})">${c}</div><div class="caa${st.slots[i]?' ok':''}" id="ca-${i}">${st.slots[i]||'?'}</div></div>`).join('');
+  const aaChips=AA_LIST.map(a=>`<div class="aa-chip${st.selAA===a?' sel':''}" onclick="pickAA('${a}')">${a}</div>`).join('')+`<div class="aa-chip${st.selAA==='Stop'?' sel':''}" onclick="pickAA('Stop')" style="color:var(--rd)">Stop ■</div>`;
+
+  // Peptide structures for bouw-tab
+  const structGrid=AA_LIST.map(a=>`<div class="aa-struct-card${pepSlots.includes(a)&&!pepSlots.every(s=>s===a)?' used':''}" onclick="addPep('${a}')" id="asc-${a}">
+    <svg viewBox="0 0 100 130" width="80" height="104" xmlns="http://www.w3.org/2000/svg">${AA_SVG[a]||''}</svg>
+    <div class="aa-struct-name">${a}</div><div class="aa-struct-full">${AA_FULL[a]||''}</div>
+  </div>`).join('');
+
+  const pep=PROTEINS[curP].mrna.split(' ').slice(3,6).map(c=>CT[c]||'?');
+
+  document.getElementById('trans-content').innerHTML=`
+    <div class="ptitle" style="margin-bottom:3px">${p.name}</div>
+    <div class="psub2">${p.desc}</div>
+    <div class="pbadge2"><strong>Positie</strong> ${p.startPos}–${p.startPos+9} · <strong>Gen</strong> ${p.abbr}</div>
+    <div class="mode-tabs">
+      <button class="mtab active" id="mt-lees" onclick="swMode('lees')">mRNA lezen</button>
+      <button class="mtab" id="mt-bouw" onclick="swMode('bouw')">Tripeptide bouwen</button>
+    </div>
+    <div class="work-layout">
+      <div>
+        <div class="mpanel active" id="mp-lees">
+          <div class="stitle">mRNA-sequentie — positie ${p.startPos} t/m ${p.startPos+9}</div>
+          <div class="mrna-strip">${codonStrip}</div>
+          <div class="stitle" style="margin-top:14px">Kies het aminozuur voor het geselecteerde codon</div>
+          <div class="aa-palette">${aaChips}</div>
+          <div class="cr">
+            <button class="btn btn-p" onclick="assignAA()">Wijs toe</button>
+            <button class="btn btn-g" onclick="resetTrans()">Opnieuw</button>
+            <button class="btn btn-g" onclick="revealAll()">Onthul alles</button>
+          </div>
+          <div id="tfb"></div>
+        </div>
+        <div class="mpanel" id="mp-bouw">
+          <div class="stitle">Klik drie aminozuren — bouw het tripeptide op positie ${p.startPos+3}–${p.startPos+5}</div>
+          <div class="peptide-build-area" id="pep-area">
+            <div class="pep-slot" id="ps-0" onclick="clrPep(0)"><div class="pep-slot-placeholder">Klik een<br>structuur</div></div>
+            <div class="pep-bond"><span class="pep-bond-line">— peptide —</span><br><span class="water-anim" id="w0">H₂O ↑</span></div>
+            <div class="pep-slot" id="ps-1" onclick="clrPep(1)"><div class="pep-slot-placeholder">Klik een<br>structuur</div></div>
+            <div class="pep-bond"><span class="pep-bond-line">— peptide —</span><br><span class="water-anim" id="w1">H₂O ↑</span></div>
+            <div class="pep-slot" id="ps-2" onclick="clrPep(2)"><div class="pep-slot-placeholder">Klik een<br>structuur</div></div>
+          </div>
+          <div class="cr">
+            <button class="btn btn-p" onclick="checkPep()">Controleer</button>
+            <button class="btn btn-g" onclick="clrPepAll()">Wis alles</button>
+          </div>
+          <div id="pepfb"></div>
+          <div class="stitle" style="margin-top:16px">Kies een aminozuur (klik op de structuurformule)</div>
+          <div class="aa-struct-grid">${structGrid}</div>
+        </div>
+      </div>
+      ${ctPanel()}
+    </div>
+  `;
+}
+
+function swMode(m){
+  ['lees','bouw'].forEach(x=>{document.getElementById('mt-'+x).classList.toggle('active',x===m);document.getElementById('mp-'+x).classList.toggle('active',x===m);});
+  if(m==='bouw'){pepSlots=[null,null,null];updPepSlots();}
+}
+
+// Translatie: codon lezen
+function selCodon(i){
+  const st=tSt[curP]; if(st.slots[i]) return;
+  st.selCodon=i;
+  document.querySelectorAll('.cseq').forEach((el,j)=>{if(!tSt[curP].slots[j])el.classList.toggle('sel',j===i);});
+}
+function pickAA(aa){tSt[curP].selAA=aa;document.querySelectorAll('.aa-chip').forEach(el=>el.classList.toggle('sel',el.textContent.trim()===aa||el.textContent.trim().startsWith(aa+' ')));}
+function assignAA(){
+  const st=tSt[curP]; const p=PROTEINS[curP]; const cs=p.mrna.split(' ');
+  if(st.selCodon===null){showFb('tfb','Klik eerst op een codon.','inf');return;}
+  if(!st.selAA){showFb('tfb','Selecteer eerst een aminozuur.','inf');return;}
+  const cor=CT[cs[st.selCodon]];
+  if(st.selAA===cor){
+    st.slots[st.selCodon]=cor;
+    const se=document.getElementById('cs-'+st.selCodon), ae=document.getElementById('ca-'+st.selCodon);
+    if(se){se.classList.remove('sel');se.classList.add('ok');}
+    if(ae){ae.textContent=cor;ae.classList.add('ok');}
+    st.selCodon=null;
+    showFb('tfb',st.slots.every(s=>s)?'Uitstekend! Alle codons correct vertaald 🎉':'✓ Correct — '+cor,'ok');
+  } else {
+    const se=document.getElementById('cs-'+st.selCodon);
+    if(se){se.classList.add('shake');setTimeout(()=>se.classList.remove('shake'),400);}
+    showFb('tfb','Niet correct. Het codon is '+cs[st.selCodon]+'. Zie de codonentabel.','err');
+  }
+}
+function resetTrans(){tSt[curP]={selAA:null,slots:new Array(10).fill(null),selCodon:null};renderTrans();}
+function revealAll(){const p=PROTEINS[curP];tSt[curP].slots=p.mrna.split(' ').map(c=>CT[c]||'?');renderTrans();}
+
+// Peptide bouwen
+function addPep(aa){
+  const i=pepSlots.indexOf(null); if(i===-1) return;
+  pepSlots[i]=aa; updPepSlots();
+  if(i>0){
+    // Show water animation for bond i-1
+    const w=document.getElementById('w'+(i-1)); if(w){w.classList.remove('show');void w.offsetWidth;w.classList.add('show');setTimeout(()=>w.classList.remove('show'),1300);}
+  }
+}
+function clrPep(i){pepSlots[i]=null;updPepSlots();}
+function clrPepAll(){pepSlots=[null,null,null];updPepSlots();const f=document.getElementById('pepfb');if(f)f.innerHTML='';}
+function updPepSlots(){
+  [0,1,2].forEach(i=>{
+    const el=document.getElementById('ps-'+i); if(!el) return;
+    if(pepSlots[i]){
+      const aa=pepSlots[i];
+      el.innerHTML=`<svg viewBox="0 0 100 130" width="64" height="83" xmlns="http://www.w3.org/2000/svg">${AA_SVG[aa]||''}</svg><div class="pep-slot-name">${aa}</div>`;
+      el.classList.add('filled'); el.classList.remove('ok','wrong');
+    } else {
+      el.innerHTML='<div class="pep-slot-placeholder">Klik een<br>structuur</div>';
+      el.classList.remove('filled','ok','wrong');
+    }
+  });
+  // Grey out used cards
+  AA_LIST.forEach(a=>{
+    const cnt=pepSlots.filter(s=>s===a).length;
+    const card=document.getElementById('asc-'+a); if(!card) return;
+    card.classList.toggle('used',cnt>=pepSlots.filter(s=>s!==null).filter(s=>s===a).length+1 && pepSlots.filter(s=>s===null).length===0);
+    // simpler: grey if all slots full and this aa fills last slot
+    card.classList.toggle('used',pepSlots.indexOf(null)===-1);
+  });
+}
+function checkPep(){
+  const p=PROTEINS[curP]; const cs=p.mrna.split(' ');
+  const cor=cs.slice(3,6).map(c=>CT[c]||'?');
+  let ok=true;
+  [0,1,2].forEach(i=>{const el=document.getElementById('ps-'+i);if(!el)return;const r=pepSlots[i]===cor[i];el.classList.add(r?'ok':'wrong');if(!r)ok=false;});
+  const fb=document.getElementById('pepfb');
+  if(ok){if(fb)fb.innerHTML=`<div class="fb ok">✓ Juist! Het tripeptide is ~${cor.join('-')}~, ook wel ${cor.map(a=>AA_FULL[a]||a).join('-')}.</div>`;}
+  else{const h=cor.map((a,i)=>pepSlots[i]!==a?`Positie ${i+1}: ${cs[3+i]} codeert voor ${a} (${AA_FULL[a]||a})`:null).filter(Boolean).join('; ');if(fb)fb.innerHTML=`<div class="fb err">Niet helemaal. ${h}</div>`;}
+}
+function showFb(id,msg,type){const el=document.getElementById(id);if(el)el.innerHTML=`<div class="fb ${type}">${msg}</div>`;}
+
+// ── MUTATIES ──────────────────────────────────────────────────────────────────
+function renderMut(){
+  const p=PROTEINS[curP]; const cs=p.mrna.split(' '); const st=mSt[curP];
+  const origAA=cs.map(c=>CT[c]||'?');
+  const mbBtns=p.muts.map((m,i)=>`<button class="mtype-btn${st.selMut===i?' active':''}" onclick="selMut(${i})">${m.name}</button>`).join('');
+  let mutDisplay=`<div style="color:var(--fa);font-size:12px;padding-top:20px">Kies een mutatietype hierboven.</div>`;
+  if(st.selMut!==null) mutDisplay=buildMutDisp(p,cs,origAA,p.muts[st.selMut]);
+
+  document.getElementById('mut-content').innerHTML=`
+    <div class="ptitle" style="margin-bottom:3px">${p.name} — Mutaties</div>
+    <div class="psub2">${p.desc}</div>
+    <div class="stitle">Kies een mutatievorm</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">${mbBtns}</div>
+    <div class="work-layout">
+      <div>
+        <div class="seq-grid">
+          <div>
+            <div class="stitle">Originele sequentie</div>
+            <div style="font-size:10px;color:var(--fa);margin-bottom:4px">mRNA</div>
+            <div class="mrna-mut">${cs.map(c=>`<div class="mc">${c}</div>`).join('')}</div>
+            <div style="font-size:10px;color:var(--fa);margin-bottom:3px;margin-top:7px">Aminozuren</div>
+            <div class="aa-row">${origAA.map(a=>`<div class="ap ap-o">${a}</div>`).join('')}</div>
+          </div>
+          <div>
+            <div class="stitle">Na mutatie</div>
+            ${mutDisplay}
+          </div>
+        </div>
+        <div id="mut-expl"></div>
+      </div>
+      ${ctPanel()}
+    </div>
+  `;
+  if(st.selMut!==null) showMutExpl(p.muts[st.selMut]);
+}
+
+function buildMutDisp(p,cs,oAA,m){
+  const mc=[...cs]; const ma=[...oAA];
+  if(m.type==='missense'||m.type==='silent'||m.type==='nonsense'){
+    const to=m.change.split('→')[1]; mc[m.pos-1]=to; ma[m.pos-1]=CT[to]||'Stop';
+    const mrH=mc.map((c,i)=>`<div class="mc${i===m.pos-1?' mutated':''}">${c}</div>`).join('');
+    const aaH=ma.map((a,i)=>{let cl='ap-o';if(i===m.pos-1)cl=m.type==='silent'?'ap-s':a==='Stop'?'ap-x':'ap-c';return `<div class="ap ${cl}">${a}</div>`;}).join('');
+    return `<div style="font-size:10px;color:var(--fa);margin-bottom:4px">mRNA</div><div class="mrna-mut">${mrH}</div><div style="font-size:10px;color:var(--fa);margin-bottom:3px;margin-top:7px">Aminozuren</div><div class="aa-row">${aaH}</div>`;
+  } else if(m.type==='frameshift'){
+    const ia=m.pos-1; const flat=mc.join(''); const ins=ia*3+3;
+    const nf=flat.slice(0,ins)+'X'+flat.slice(ins);
+    const nc=[]; for(let i=0;i<10;i++) nc.push(nf.slice(i*3,i*3+3));
+    const na=nc.map(c=>c.includes('X')?'?':(CT[c]||'?'));
+    const mrH=nc.map((c,i)=>`<div class="mc${c.includes('X')?' insertion':i>ia?' shifted':''}">${c}</div>`).join('');
+    const aaH=na.map((a,i)=>`<div class="ap${i>ia?' ap-f':' ap-o'}">${a}</div>`).join('');
+    return `<div style="font-size:10px;color:var(--fa);margin-bottom:4px">mRNA (leesraam verschoven)</div><div class="mrna-mut">${mrH}</div><div style="font-size:10px;color:var(--fa);margin-bottom:3px;margin-top:7px">Aminozuren</div><div class="aa-row">${aaH}</div><div style="font-size:10px;color:var(--fa);margin-top:4px">Rood = leesraam verschoven</div>`;
+  } else if(m.type==='indel'){
+    mc.splice(m.pos-1,1); const na2=mc.map(c=>CT[c]||'?');
+    while(mc.length<10){mc.push('---');na2.push('—');}
+    const mrH=mc.map((c,i)=>`<div class="mc${c==='---'?' deleted':''}">${c}</div>`).join('');
+    const aaH=na2.map(a=>`<div class="ap ap-o">${a}</div>`).join('');
+    return `<div style="font-size:10px;color:var(--fa);margin-bottom:4px">mRNA (in-frame deletie)</div><div class="mrna-mut">${mrH}</div><div style="font-size:10px;color:var(--fa);margin-bottom:3px;margin-top:7px">Aminozuren</div><div class="aa-row">${aaH}</div><div style="font-size:10px;color:var(--fa);margin-top:4px">Één AA verdwijnt — leesraam intact</div>`;
+  }
+  return '';
+}
+function showMutExpl(m){
+  const tags={missense:'t-miss',nonsense:'t-none',silent:'t-sil',frameshift:'t-frame',indel:'t-indel'};
+  const names={missense:'Missense',nonsense:'Nonsense',silent:'Stille mutatie',frameshift:'Frameshift',indel:'In-frame deletie'};
+  const el=document.getElementById('mut-expl');
+  if(el) el.innerHTML=`<div class="mut-card"><span class="mtag ${tags[m.type]||''}">${names[m.type]||m.type}</span><strong>${m.name}</strong> — ${m.dis}<br><br>${m.desc}</div>`;
+}
+function selMut(i){mSt[curP].selMut=i;renderMut();}
+
+// ── ACTIVITEIT ────────────────────────────────────────────────────────────────
+let actP=0;
+function initAct(){
+  const sel=document.getElementById('act-sel');
+  if(sel&&!sel.children.length) PROTEINS.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.name+' ('+p.abbr+')';sel.appendChild(o);});
+  drawTC(); drawPH(); updateActivity();
+}
+function updateActivity(){
+  const sel=document.getElementById('act-sel'); if(sel) actP=parseInt(sel.value)||0;
+  const p=PROTEINS[actP];
+  const T=parseInt(document.getElementById('t-sl')?.value||37);
+  const pH=parseFloat(document.getElementById('ph-sl')?.value||7);
+  document.getElementById('t-val').textContent=T+' °C';
+  document.getElementById('ph-val').textContent='pH '+pH.toFixed(1);
+  const {net,den}=tAct(p,T);
+  setBar('t-bar',Math.round(net*100)); setBar('ph-bar',Math.round(phAct(p,pH)*100));
+  document.getElementById('t-bar-lbl').textContent=Math.round(net*100)+'%';
+  document.getElementById('ph-bar-lbl').textContent=Math.round(phAct(p,pH)*100)+'%';
+  const fd=document.getElementById('fold-bar'); const fl=document.getElementById('fold-lbl');
+  if(fd) fd.style.width=Math.round(den*100)+'%'; if(fl) fl.textContent=Math.round(den*100)+'% gevouwen';
+  drawTC(p,T); drawPH(p,pH); updCTG(p,pH);
+}
+function setBar(id,pct){const b=document.getElementById(id); if(b) b.style.width=pct+'%';}
+function tAct(p,T){const{Topt,Tw,Td}=p.act;const arr=1/(1+Math.exp(-(T-(Topt-Tw*1.5))/(Tw*0.5)));const den=1/(1+Math.exp((T-Td)/(Tw*0.4)));return{arr,den,net:arr*den};}
+function phAct(p,pH){const{pH:po,phw}=p.act;return Math.exp(-Math.pow(pH-po,2)/(2*phw*phw));}
+function chAtPH(aa,pH){const d=AA_CH[aa]; if(!d) return 0;if(d.ch>0) return 1/(1+Math.pow(10,pH-d.pKa));return -1/(1+Math.pow(10,d.pKa-pH));}
+
+function drawChart(canvasId, drawFn){
+  const c=document.getElementById(canvasId); if(!c) return;
+  const W=c.offsetWidth||360,H=150,dpr=window.devicePixelRatio||1;
+  c.width=W*dpr; c.height=H*dpr;
+  const ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
+  const pad={l:34,r:8,t:8,b:22}; const pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='#e0ddd6'; ctx.lineWidth=0.5;
+  for(let i=0;i<=4;i++){const y=pad.t+(ph/4)*i;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+pw,y);ctx.stroke();}
+  drawFn(ctx,pad,pw,ph,W,H);
+  ctx.strokeStyle='#bfbcb4';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+ph);ctx.lineTo(pad.l+pw,pad.t+ph);ctx.stroke();
+}
+
+function drawTC(p,curT){
+  p=p||PROTEINS[actP];
+  drawChart('t-chart',(ctx,pad,pw,ph,W,H)=>{
+    const dl=(col,fn)=>{ctx.beginPath();ctx.strokeStyle=col;ctx.lineWidth=1.5;for(let T=0;T<=100;T+=0.5){const x=pad.l+(T/100)*pw,v=fn(T),y=pad.t+ph*(1-v);T===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();};
+    dl('#E24B4A',T=>tAct(p,T).den); dl('#185FA5',T=>tAct(p,T).arr); dl('#639922',T=>tAct(p,T).net);
+    if(curT!==undefined){const{net}=tAct(p,curT);const x=pad.l+(curT/100)*pw,y=pad.t+ph*(1-net);ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle='#1c1b18';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();}
+    ctx.fillStyle='#6b6860';ctx.font='9px sans-serif';ctx.textAlign='center';
+    [0,20,40,60,80,100].forEach(T=>ctx.fillText(T+'°',pad.l+(T/100)*pw,H-4));
+    ctx.textAlign='right';[0,.5,1].forEach(v=>ctx.fillText(Math.round(v*100)+'%',pad.l-2,pad.t+ph*(1-v)+3));
+  });
+}
+function drawPH(p,curPH){
+  p=p||PROTEINS[actP];
+  drawChart('ph-chart',(ctx,pad,pw,ph,W,H)=>{
+    ctx.beginPath();ctx.strokeStyle='#639922';ctx.lineWidth=1.5;
+    for(let pH=0;pH<=14;pH+=0.1){const x=pad.l+(pH/14)*pw,v=phAct(p,pH),y=pad.t+ph*(1-v);pH===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+    ctx.stroke();
+    if(curPH!==undefined){const x=pad.l+(curPH/14)*pw,v=phAct(p,curPH),y=pad.t+ph*(1-v);ctx.strokeStyle='#185FA5';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+ph);ctx.stroke();ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle='#185FA5';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();}
+    ctx.fillStyle='#6b6860';ctx.font='9px sans-serif';ctx.textAlign='center';
+    [0,2,4,6,7,8,10,12,14].forEach(v=>ctx.fillText(v,pad.l+(v/14)*pw,H-4));
+    ctx.textAlign='right';[0,.5,1].forEach(v=>ctx.fillText(Math.round(v*100)+'%',pad.l-2,pad.t+ph*(1-v)+3));
+  });
+}
+
+function updCTG(p,pH){
+  const tbl=document.getElementById('ctg-table'); if(!tbl) return;
+  let total=0;
+  let rows='<thead><tr><th>Residu</th><th>Type</th><th>n</th><th>pKa</th><th>Lading/residu</th><th>Bijdrage</th></tr></thead><tbody>';
+  p.ch.forEach(([aa,n])=>{
+    const d=AA_CH[aa]; const ch=chAtPH(aa,pH); const tot=ch*n; total+=tot;
+    const type=d.ch>0?'Basisch':'Zuur'; const pka=d.pKa;
+    const cls=tot>0.05?'cp':tot<-0.05?'cn':'cz';
+    rows+=`<tr><td>${aa}</td><td class="lbl">${type}</td><td>${n}</td><td class="lbl">${pka}</td><td class="${cls}">${ch>=0?'+':''}${ch.toFixed(2)}</td><td class="${cls}">${tot>=0?'+':''}${tot.toFixed(1)}</td></tr>`;
+  });
+  rows+='</tbody>';
+  tbl.innerHTML=rows;
+  const tel=document.getElementById('total-ch');
+  const cls=total>0.1?'cp':total<-0.1?'cn':'cz';
+  if(tel) tel.innerHTML=`Netto lading: <span class="${cls}" style="font-size:16px;margin-left:6px">${total>=0?'+':''}${total.toFixed(1)}</span>`;
+  const bar=document.getElementById('cbar'); if(!bar) return;
+  const pos=p.ch.filter(([aa])=>AA_CH[aa]?.ch>0).reduce((s,[aa,n])=>s+Math.max(0,chAtPH(aa,pH))*n,0);
+  const neg=p.ch.filter(([aa])=>AA_CH[aa]?.ch<0).reduce((s,[aa,n])=>s+Math.abs(Math.min(0,chAtPH(aa,pH)))*n,0);
+  const tot2=pos+neg||1;
+  bar.innerHTML=`<div class="cseg" style="width:${pos/tot2*100}%;background:var(--blb);color:var(--bld)">+${pos.toFixed(0)}</div><div class="cseg" style="width:${neg/tot2*100}%;background:var(--rdb);color:var(--rdd)">${(-neg).toFixed(0)}</div>`;
+}
+
+// ── NEERSLAG DATA ─────────────────────────────────────────────────────────────
+const NEERSLAG_PROTEINS=[
+{id:'as1cas',name:'αS1-Caseïne',group:'milk',pI:4.94,Td:80,role:'Hoofdeiwit melkmicel (38%)',reversible:false,desc:'Grootste fractie caseïne. Vormt micellen. Slaat neer bij pH ≈ 4.9 — basis van kwark en yoghurt.'},
+{id:'bcas',name:'β-Caseïne',group:'milk',pI:5.14,Td:80,role:'Micelvorming (36%)',reversible:false,desc:'Amphifiel eiwit met hydrofobe staart. Kern van caseïnemicellen. Slaat neer iets boven αS1.'},
+{id:'kcas',name:'κ-Caseïne',group:'milk',pI:5.60,Td:80,role:'Micelstabilisatie (15%)',reversible:false,desc:'Buitenkant van de micel. Wordt geknipt door stremsel (chymosine) → micel destabiliseert → kaas. Hoogste pI van de caseïnes.'},
+{id:'blg',name:'β-Lactoglobuline',group:'milk',pI:5.13,Td:65,role:'Weiprotein (50% van wei)',reversible:false,desc:'Niet aanwezig in moedermelk. Hittelabiel: denatureert bij 65°C en bindt aan κ-caseïne. Verantwoordelijk voor het "gekookte melk"-aroma.'},
+{id:'ala',name:'α-Lactalbumine',group:'milk',pI:4.80,Td:62,role:'Ca²⁺-bindend weiprotein',reversible:true,desc:'Kan na denaturatie terugvouwen als Ca²⁺ aanwezig is. Laagste Td maar reversibel. Speelt rol in lactosesynthese.'},
+{id:'oval',name:'Ovalbumine',group:'egg',pI:4.54,Td:63,role:'54% van eiwit',reversible:false,desc:'Meest abundante kippeneiwit-eiwit. Stolt als eerste bij verhitting. Glycoproteïne met N-gebonden suikerketen.'},
+{id:'ovotrans',name:'Ovotransferrine',group:'egg',pI:6.05,Td:57,role:'IJzerbinding (12%)',reversible:false,desc:'Bindt Fe³⁺ heel sterk. Zonder ijzer gevoelig voor hitte; met ijzer stabiel. Antibacterieel door ijzeronttrekking.'},
+{id:'ovomuc',name:'Ovomucoid',group:'egg',pI:4.10,Td:70,role:'Trypsineremmer (11%)',reversible:false,desc:'Laagste pI van alle eiwit-eiwitten. Remt trypsine en andere proteasen. Hitteresistenter dan ovalbumine.'},
+{id:'lyzegg',name:'Lysozym (eiwit)',group:'egg',pI:10.70,Td:72,role:'Antibacterieel (3.5%)',reversible:true,desc:'Sterk basisch — pI 10.7! Compleet anders dan alle andere eiwitten hier. Knipt bacteriële celwanden. Blijft bij maag-pH (2) juist oplosbaar.'},
+{id:'vitell',name:'Vitelline (dooier)',group:'egg',pI:5.90,Td:70,role:'Dooierstructuur',reversible:false,desc:'Structuureiwit van dooiermembraan. Hogere Td dan eiwit-eiwitten — dooier stolt bij hogere temperatuur.'},
+{id:'phosvit',name:'Phosvitin (dooier)',group:'egg',pI:4.00,Td:75,role:'IJzerbinding in dooier',reversible:false,desc:'Meest gefosforyleerde eiwit ooit gevonden (~10% fosfor). Sterk negatief geladen. Bindt ijzer sterker dan ovotransferrine.'},
+];
+
+let neerGrpPH='milk',neerGrpT='milk',neerAnimating=false;
+
+function swNeer(tab){
+  ['ph','t'].forEach(x=>{document.getElementById('nt-'+x).classList.toggle('active',x===tab);document.getElementById('np-'+x).classList.toggle('active',x===tab);});
+  if(tab==='ph') updNeerPH(); else updNeerT();
+}
+
+function setGrp(mode,grp){
+  if(mode==='ph'){neerGrpPH=grp;['milk','egg','both'].forEach(g=>document.getElementById('grp-'+g+'-ph').classList.toggle('active',g===grp));updNeerPH();}
+  else{neerGrpT=grp;['milk','egg','both'].forEach(g=>document.getElementById('grp-'+g+'-t').classList.toggle('active',g===grp));updNeerT();}
+}
+
+function filtP(grp){return grp==='both'?NEERSLAG_PROTEINS:NEERSLAG_PROTEINS.filter(p=>p.group===grp);}
+
+function updNeerPH(){
+  const sl=document.getElementById('ph-neer-sl');if(!sl)return;
+  const pH=parseFloat(sl.value);
+  document.getElementById('ph-neer-val').textContent='pH '+pH.toFixed(1);
+  renderPHBars(pH);
+}
+
+function updNeerT(){
+  const sl=document.getElementById('t-neer-sl');if(!sl)return;
+  const T=parseInt(sl.value);
+  document.getElementById('t-neer-val').textContent=T+' °C';
+  renderTBars(T);
+}
+
+function renderPHBars(pH){
+  const el=document.getElementById('ph-protein-bars');if(!el)return;
+  const proteins=[...filtP(neerGrpPH)].sort((a,b)=>a.pI-b.pI);
+  let html='<div class="stitle">Eiwitten gesorteerd op isoëlektrisch punt (pI)</div><div style="display:grid;gap:8px;">';
+  proteins.forEach(p=>{
+    const dist=Math.abs(pH-p.pI);
+    const neer=dist<0.4, dicht=dist<0.8;
+    const sc=neer?'var(--rd)':dicht?'var(--am)':'var(--gn)';
+    const sl2=neer?'⬤ NEERSLAG':dicht?'◐ Bijna pI':'○ Oplosbaar';
+    const cc=pH<p.pI?'var(--bl)':pH>p.pI?'var(--rd)':'var(--am)';
+    const ct=pH<p.pI?'positief':pH>p.pI?'negatief':'nul';
+    const pIpct=Math.max(0,Math.min(100,((p.pI-0)/14)*100));
+    const pHpct=Math.max(0,Math.min(100,((pH-0)/14)*100));
+    const gl=p.group==='milk'?'🥛':'🥚';
+    html+=`<div style="background:var(--sf);border:1.5px solid ${neer?'var(--rd)':dicht?'#EF9F27':'var(--bd)'};border-radius:9px;padding:11px 14px;transition:border-color .3s;">
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
+        <span style="font-size:13px;font-weight:600">${gl} ${p.name}</span>
+        <span style="font-size:10px;color:var(--fa)">${p.role}</span>
+        <span style="margin-left:auto;font-size:11px;font-weight:700;color:${sc}">${sl2}</span>
+      </div>
+      <div style="position:relative;height:22px;background:var(--bg);border-radius:4px;border:1px solid var(--bd);margin-bottom:6px;margin-top:16px;">
+        <div style="position:absolute;inset:0;border-radius:4px;background:linear-gradient(90deg,#E6F1FB 0%,#eaf3de 45%,#eaf3de 55%,#fcebeb 100%);opacity:.6;"></div>
+        <div style="position:absolute;top:0;bottom:0;left:${pIpct}%;width:2px;background:var(--am);"></div>
+        <div style="position:absolute;top:-16px;left:${pIpct}%;transform:translateX(-50%);font-size:9px;color:var(--am);font-weight:700;white-space:nowrap">pI ${p.pI}</div>
+        <div style="position:absolute;top:2px;bottom:2px;left:${pHpct}%;width:3px;background:var(--tx);border-radius:2px;transform:translateX(-50%);transition:left .15s;"></div>
+        <div style="position:absolute;left:3px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--bl)">pH 0</div>
+        <div style="position:absolute;right:3px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--rd)">pH 14</div>
+      </div>
+      <div style="display:flex;gap:12px;font-size:11px;color:var(--mu);">
+        <span>Lading bij pH ${pH.toFixed(1)}: <strong style="color:${cc}">${ct}</strong></span>
+        <span ${neer?'style="color:var(--rd);font-weight:600"':''}>|pH − pI| = ${dist.toFixed(2)}</span>
+        ${p.reversible?'<span style="color:var(--tl)">↺ reversibel</span>':''}
+      </div>
+      ${neer?`<div style="margin-top:6px;font-size:11px;color:var(--rd);background:var(--rdb);border-radius:4px;padding:4px 8px;">${p.desc}</div>`:''}
+    </div>`;
+  });
+  el.innerHTML=html+'</div>';
+}
+
+function renderTBars(T){
+  const el=document.getElementById('t-protein-bars');if(!el)return;
+  const proteins=[...filtP(neerGrpT)].sort((a,b)=>a.Td-b.Td);
+  let html='<div class="stitle">Eiwitten gesorteerd op denaturatietemperatuur (T<sub>d</sub>)</div><div style="display:grid;gap:8px;">';
+  proteins.forEach(p=>{
+    const denat=T>=p.Td, warm=T>=p.Td-5;
+    const sc=denat?'var(--rd)':warm?'var(--am)':'var(--gn)';
+    const sl2=denat?'⬤ GEDENATUREERD':warm?'◐ Bijna Td':'○ Natief';
+    const Tdpct=Math.max(0,Math.min(100,((p.Td-20)/80)*100));
+    const Tpct=Math.max(0,Math.min(100,((T-20)/80)*100));
+    const pctD=Math.round(100/(1+Math.exp(-(T-p.Td)/2)));
+    const gl=p.group==='milk'?'🥛':'🥚';
+    html+=`<div style="background:var(--sf);border:1.5px solid ${denat?'var(--rd)':warm?'#EF9F27':'var(--bd)'};border-radius:9px;padding:11px 14px;transition:border-color .3s;">
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
+        <span style="font-size:13px;font-weight:600">${gl} ${p.name}</span>
+        <span style="font-size:10px;color:var(--fa)">${p.role}</span>
+        <span style="margin-left:auto;font-size:11px;font-weight:700;color:${sc}">${sl2}</span>
+      </div>
+      <div style="position:relative;height:22px;background:var(--bg);border-radius:4px;border:1px solid var(--bd);margin-bottom:6px;margin-top:16px;">
+        <div style="position:absolute;inset:0;border-radius:4px;background:linear-gradient(90deg,#E6F1FB 40%,#faeeda 65%,#fcebeb 100%);opacity:.5;"></div>
+        <div style="position:absolute;top:0;bottom:0;left:${Tdpct}%;width:2px;background:var(--rd);"></div>
+        <div style="position:absolute;top:-16px;left:${Tdpct}%;transform:translateX(-50%);font-size:9px;color:var(--rd);font-weight:700;white-space:nowrap">T<sub>d</sub> ${p.Td}°C</div>
+        <div style="position:absolute;top:2px;bottom:2px;left:${Tpct}%;width:3px;background:var(--tx);border-radius:2px;transform:translateX(-50%);transition:left .15s;"></div>
+        <div style="position:absolute;left:3px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--mu)">20°C</div>
+        <div style="position:absolute;right:3px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--rd)">100°C</div>
+      </div>
+      <div style="height:8px;background:var(--bg);border-radius:4px;border:1px solid var(--bd);overflow:hidden;margin-bottom:6px;">
+        <div style="height:100%;width:${pctD}%;background:${denat?'var(--rd)':warm?'#EF9F27':'var(--bl)'};transition:width .3s;border-radius:4px;"></div>
+      </div>
+      <div style="display:flex;gap:12px;font-size:11px;color:var(--mu);">
+        <span>% gedenatureerd: <strong style="color:${sc}">${pctD}%</strong></span>
+        <span>T<sub>d</sub> = ${p.Td}°C</span>
+        ${p.reversible?'<span style="color:var(--tl)">↺ reversibel bij afkoeling</span>':'<span style="color:var(--fa)">✗ onomkeerbaar</span>'}
+      </div>
+      ${denat?`<div style="margin-top:6px;font-size:11px;color:var(--rd);background:var(--rdb);border-radius:4px;padding:4px 8px;">${p.desc}</div>`:''}
+    </div>`;
+  });
+  el.innerHTML=html+'</div>';
+}
+
+function animScenario(sc){
+  const phSl=document.getElementById('ph-neer-sl');
+  const tSl=document.getElementById('t-neer-sl');
+  const scenarios={
+    yoghurt:{type:'ph',from:6.8,to:4.2,steps:35},
+    kaas:{type:'ph',from:6.8,to:4.6,steps:25},
+    maag:{type:'ph',from:6.8,to:2.0,steps:40},
+    pocheer:{type:'t',from:20,to:65,steps:30},
+    hardgekookt:{type:'t',from:20,to:100,steps:45},
+    pasteur:{type:'t',from:20,to:72,steps:35},
+    'reset-ph':{type:'ph',from:parseFloat(phSl?.value||6.8),to:6.8,steps:15},
+    'reset-t':{type:'t',from:parseInt(tSl?.value||20),to:20,steps:15},
+  };
+  const s=scenarios[sc];if(!s||neerAnimating)return;
+  neerAnimating=true;
+  const slider=s.type==='ph'?phSl:tSl;
+  const updFn=s.type==='ph'?updNeerPH:updNeerT;
+  let step=0;
+  const iv=setInterval(()=>{
+    step++;
+    const t=step/s.steps, ease=t<0.5?2*t*t:-1+(4-2*t)*t;
+    const val=s.from+(s.to-s.from)*ease;
+    slider.value=s.type==='ph'?val.toFixed(1):Math.round(val);
+    updFn();
+    if(step>=s.steps){clearInterval(iv);neerAnimating=false;}
+  },35);
+}
+
+buildSB(); renderTrans();
+</script>
+</body>
+</html>

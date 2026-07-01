@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Procesblokschema Tool — Scheikunde</title>
+
+<!-- ============================================================
+     Fabric.js via CDN (canvas-bibliotheek voor drag&drop, groepen,
+     tekst-editing en PNG-export). Versie 5.3.0, stabiel.
+     ============================================================ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+
+<style>
+  /* ============================================================
+     ALGEMENE STIJL — licht, rustig, schools thema
+     ============================================================ */
+  :root{
+    --bg-app: #eef1f4;
+    --bg-panel: #ffffff;
+    --border: #d7dce2;
+    --text-main: #263238;
+    --text-sub: #607080;
+    --accent: #2e6da4;
+    --accent-hover: #245686;
+    --recycle: #6a1b9a;
+    --danger: #c62828;
+    --radius: 8px;
+  }
+  *{ box-sizing: border-box; }
+  html,body{
+    margin:0; padding:0; height:100%;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: var(--bg-app);
+    color: var(--text-main);
+  }
+  #app{
+    display:flex; flex-direction:column; height:100vh;
+  }
+
+  /* ---------- Topbalk / toolbar ---------- */
+  #topbar{
+    display:flex; align-items:center; gap:10px;
+    padding: 10px 16px;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  #topbar h1{
+    font-size: 16px; margin:0 16px 0 0; font-weight:600; color: var(--text-main);
+    white-space:nowrap;
+  }
+  #topbar .spacer{ flex:1; }
+  .tool-btn{
+    display:inline-flex; align-items:center; gap:6px;
+    background: #f4f6f8; border:1px solid var(--border); color: var(--text-main);
+    padding: 7px 12px; border-radius: var(--radius); cursor:pointer;
+    font-size: 13px; transition: background .15s, border-color .15s;
+  }
+  .tool-btn:hover{ background:#e8edf2; }
+  .tool-btn.active{ background: var(--accent); color:#fff; border-color: var(--accent-hover); }
+  .tool-btn.active.recycle-active{ background: var(--recycle); border-color:#4a1268; }
+  .tool-btn.danger:hover{ background:#fdecea; border-color:var(--danger); color:var(--danger); }
+  #fileLoadLabel{ position:relative; overflow:hidden; }
+  #fileLoadInput{
+    position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%;
+  }
+
+  /* ---------- Hoofdlayout: zijbalk + canvas ---------- */
+  #main{ flex:1; display:flex; overflow:hidden; }
+
+  /* ---------- Zijbalk met blokpalet ---------- */
+  #sidebar{
+    width: 220px; flex-shrink:0;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border);
+    padding: 14px 12px; overflow-y:auto;
+  }
+  #sidebar h2{
+    font-size: 12px; text-transform:uppercase; letter-spacing:.05em;
+    color: var(--text-sub); margin: 4px 0 10px;
+  }
+  .palette-item{
+    display:flex; align-items:center; gap:10px;
+    background: var(--bg, #f4f6f8);
+    border: 1.5px solid var(--c, var(--border));
+    border-radius: var(--radius);
+    padding: 9px 10px; margin-bottom: 8px;
+    cursor: grab; user-select:none;
+    font-size: 13px; font-weight:500;
+  }
+  .palette-item:active{ cursor:grabbing; }
+  .palette-item .pal-icon{ font-size:18px; line-height:1; }
+  #sidebar .hint{
+    font-size: 12px; color: var(--text-sub); line-height:1.5; margin-top: 18px;
+    border-top: 1px solid var(--border); padding-top: 12px;
+  }
+  #sidebar .hint b{ color: var(--text-main); }
+
+  /* ---------- Canvasgebied ---------- */
+  #canvasScrollArea{
+    flex:1; overflow:auto; position:relative;
+    background-color:#fafbfc;
+    /* Grid-achtergrond puur visueel via CSS — geen fabric-objecten nodig */
+    background-image:
+      linear-gradient(to right, #e3e7eb 1px, transparent 1px),
+      linear-gradient(to bottom, #e3e7eb 1px, transparent 1px);
+    background-size: 20px 20px; /* = GRID_SIZE in de JS, bij wijziging beide aanpassen */
+  }
+
+  #statusbar{
+    padding: 6px 16px; font-size: 12px; color: var(--text-sub);
+    background: var(--bg-panel); border-top:1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ================= TOPBALK ================= -->
+  <div id="topbar">
+    <h1>🧪 Procesblokschema Tool</h1>
+
+    <button id="btnConnect" class="tool-btn" title="Klik op twee blokken om ze te verbinden">🔗 Verbinden</button>
+    <button id="btnRecycle" class="tool-btn" title="Klik op een blok of een bestaande lijn, daarna nogmaals op een blok of lijn">♻️ Recyclestroom</button>
+    <button id="btnUndo" class="tool-btn" title="Ctrl+Z">↩️ Ongedaan maken</button>
+
+    <div class="spacer"></div>
+
+    <button id="btnSaveJson" class="tool-btn" title="Opslaan om later verder te werken">💾 Opslaan (.json)</button>
+    <label id="fileLoadLabel" class="tool-btn" title="Eerder opgeslagen schema laden">
+      📂 Laden (.json)
+      <input type="file" id="fileLoadInput" accept="application/json,.json">
+    </label>
+    <button id="btnExportPng" class="tool-btn" title="Exporteren als afbeelding om in te leveren">🖼️ Exporteer PNG</button>
+    <button id="btnClear" class="tool-btn danger" title="Verwijder het hele schema">🗑️ Wis alles</button>
+  </div>
+
+  <!-- ================= HOOFDGEBIED ================= -->
+  <div id="main">
+
+    <!-- ---------- Zijbalk met blokken ---------- -->
+    <div id="sidebar">
+      <h2>Blokken (sleep naar canvas)</h2>
+
+      <div class="palette-item" draggable="true" data-type="invoer" style="--c:#2e7d32; --bg:#e8f5e9">
+        <span class="pal-icon">📥</span><span>Invoer</span>
+      </div>
+      <div class="palette-item" draggable="true" data-type="reactievat" style="--c:#1565c0; --bg:#e3f2fd">
+        <span class="pal-icon">⚗️</span><span>Reactievat</span>
+      </div>
+      <div class="palette-item" draggable="true" data-type="scheiding" style="--c:#e65100; --bg:#fff3e0">
+        <span class="pal-icon">🔻</span><span>Scheidingsmethode</span>
+      </div>
+      <div class="palette-item" draggable="true" data-type="product" style="--c:#00695c; --bg:#e0f2f1">
+        <span class="pal-icon">📦</span><span>Product</span>
+      </div>
+      <div class="palette-item" draggable="true" data-type="afval" style="--c:#6d4c41; --bg:#efebe9">
+        <span class="pal-icon">🗑️</span><span>Afval</span>
+      </div>
+
+      <div class="hint">
+        <b>Invoer / Product / Afval</b> zijn vaste blokken (parallellogram-vorm, net als bij stroomdiagrammen) — de tekst erin staat vast en hoeft niet bewerkt te worden.<br><br>
+        <b>Reactievat / Scheiding</b> bewerk je door te dubbelklikken op het blok.<br><br>
+        <b>Lijn bewerken:</b> dubbelklik op een lijn om het label (stofnaam, temperatuur, druk) te wijzigen.<br><br>
+        <b>Verbinden:</b> klik op "🔗 Verbinden", klik daarna op het eerste en dan het tweede blok.<br><br>
+        <b>Recyclestroom:</b> klik op "♻️ Recyclestroom". Klik éérst op het blok waar de recyclestroom <i>vandaan</i> komt, en daarna op het blok of het punt op een bestaande lijn waar hij weer <i>instroomt</i> — de volgorde bepaalt de pijlrichting. De lijn loopt altijd via een vaste hoogte bovenlangs alle blokken, zodat hij nooit dwars door het schema snijdt.<br><br>
+        <b>Verwijderen:</b> selecteer een blok of lijn en druk op Delete/Backspace (verwijdert ook recyclestromen die erop aftakken).<br><br>
+        <b>Uitlijnen:</b> blokken klikken automatisch vast op het raster.<br><br>
+        <b>Annuleren:</b> Escape breekt een verbinding/recyclestroom die je aan het tekenen bent af.
+      </div>
+    </div>
+
+    <!-- ---------- Canvas ---------- -->
+    <div id="canvasScrollArea">
+      <canvas id="mainCanvas" width="2200" height="1300"></canvas>
+    </div>
+  </div>
+
+  <div id="statusbar">
+    Tip: gebruik <b>Reactievat</b> voor reactoren, <b>Scheidingsmethode</b> voor filters/destillatiekolommen e.d.,
+    en onderscheid je twee soorten uitstroom met <b>Product</b> (gewenst) en <b>Afval</b> (ongewenst/bijproduct).
+    Een <b>recyclestroom</b> is geen apart blok, maar een paarse gestippelde lijn die van een blok óf van een
+    bestaand lijn-punt (bijv. de bodemstroom van een kolom) terugloopt naar een blok óf een instromende lijn
+    (bijv. de verse voeding van de reactor).
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   PROCESBLOKSCHEMA TOOL
+   ---------------------------------------------------------------------
+   Opbouw van dit script (zoek op de kopjes hieronder om iets aan te
+   passen):
+     1. CONFIGURATIE       — bloktypes, kleuren, afmetingen, grid
+     2. CANVAS INIT         — fabric.js canvas aanmaken
+     3. BLOK-ICONEN         — tekenfuncties per bloktype (hier voeg je
+                               nieuwe iconen toe)
+     4. BLOKKEN AANMAKEN    — createBlock(), label lezen/schrijven
+     5. VERBINDINGEN        — haakse lijnen tussen "eindpunten". Een
+                               eindpunt is óf een blok, óf een knooppunt
+                               (aftakpunt) op een bestaande lijn — dat
+                               laatste is hoe een recyclestroom werkt.
+     6. SELECTEREN/VERWIJDEREN
+     7. GESCHIEDENIS (undo)
+     8. OPSLAAN / LADEN (JSON) EN PNG-EXPORT
+     9. DRAG&DROP VANUIT ZIJBALK
+    10. EVENT-KOPPELINGEN (muis, toetsenbord, knoppen)
+   ===================================================================== */
+
+
+/* ---------------------------------------------------------------------
+   1. CONFIGURATIE
+   Wil je een nieuw bloktype toevoegen? Voeg hier een regel toe aan
+   BLOCK_TYPES, schrijf een "case" in buildIconShapes() (§3), en voeg
+   een .palette-item toe in de HTML hierboven.
+   --------------------------------------------------------------------- */
+const GRID_SIZE = 20;   // moet gelijk zijn aan background-size in de CSS hierboven
+const BLOCK_W   = 150;  // standaardbreedte van een blok (px)
+const BLOCK_H   = 90;   // standaardhoogte van een blok (px)
+
+// shape: 'rect' (apparaat) of 'parallelogram' (stroom het systeem in/uit —
+//        klassiek flowchart-symbool voor input/output, spreekt voor zich
+//        zonder pijl-icoon nodig te hebben)
+// editable: false => vaste tekst, dubbelklikken doet niets (voor Invoer/
+//           Product/Afval hoeft niets aangepast te worden)
+const BLOCK_TYPES = {
+  invoer:     { label: 'Invoer',     color: '#2e7d32', fill: '#e8f5e9', shape: 'parallelogram', editable: false },
+  reactievat: { label: 'Reactievat', color: '#1565c0', fill: '#e3f2fd', shape: 'rect',           editable: true  },
+  scheiding:  { label: 'Scheiding',  color: '#e65100', fill: '#fff3e0', shape: 'rect',           editable: true  },
+  product:    { label: 'Product',    color: '#00695c', fill: '#e0f2f1', shape: 'parallelogram', editable: false },
+  afval:      { label: 'Afval',      color: '#6d4c41', fill: '#efebe9', shape: 'parallelogram', editable: false },
+};
+
+const COLOR_NORMAL  = '#455a64'; // kleur van een gewone stofstroom-lijn
+const COLOR_RECYCLE = '#6a1b9a'; // kleur van een recyclestroom-lijn (paars, gestippeld)
+
+function snap(v){ return Math.round(v / GRID_SIZE) * GRID_SIZE; }
+
+
+/* ---------------------------------------------------------------------
+   2. CANVAS INIT
+   --------------------------------------------------------------------- */
+const canvas = new fabric.Canvas('mainCanvas', {
+  backgroundColor: '#ffffff',   // altijd wit, ook belangrijk voor de PNG-export
+  selection: true,              // rubber-band selecteren toestaan
+  preserveObjectStacking: true,
+});
+// Nauwkeuriger klikken op dunne lijnen (nodig om een aftakpunt te kunnen kiezen):
+canvas.perPixelTargetFind = true;
+canvas.targetFindTolerance = 6;
+
+// ---- Interne datamodellen (bron van waarheid naast de fabric-objecten zelf) ----
+// Een "connection" (verbinding/stroom) heeft een `from`- en `to`-eindpunt.
+// Elk eindpunt is een REFERENTIE-object van een van deze twee vormen:
+//   { kind:'block',    id: <blockId> }                — vast aan een blok
+//   { kind:'junction', lineId: <connId>, t: <0..1> }   — een punt op t/m
+//                                                          lengte van een
+//                                                          bestaande lijn
+// Dit tweede type is hoe een recyclestroom kan "aftappen" van of
+// "invoegen" in een bestaande stofstroom-lijn.
+let connections   = [];   // [{id, from, to, label, recycle, points}]
+let blockIdSeq    = 1;
+let connIdSeq     = 1;
+
+let connectMode        = false; // "Verbinden": blok-naar-blok
+let recycleMode         = false; // "Recyclestroom": blok/lijn-naar-blok/lijn
+let pendingSource       = null;  // eerst aangeklikte blok tijdens Verbinden
+let pendingRecycleSource = null; // eerst gekozen eindpunt-referentie tijdens Recyclestroom
+let pendingMarker       = null;  // tijdelijk paars bolletje ter feedback tijdens Recyclestroom
+
+
+/* ---------------------------------------------------------------------
+   3. BLOK-ICONEN
+   Simpele, geometrische iconen opgebouwd uit fabric-vormen (geen
+   externe afbeeldingen nodig). Coördinaten zijn lokaal t.o.v. de
+   linkerbovenhoek van het blok (0,0) tot (w,h).
+   Wil je een eigen icoon? Voeg een nieuwe "case" toe met fabric-
+   vormen (Rect, Circle, Line, Triangle, of een Path met eigen SVG-pad).
+   --------------------------------------------------------------------- */
+function buildIconShapes(type, w, h, color){
+  const shapes = [];
+  const common = { selectable:false, evented:false, fill:'transparent', stroke:color, strokeWidth:2 };
+
+  switch(type){
+    // Invoer/Product/Afval hebben geen apart icoon meer: hun parallellogram-
+    // vorm (zie createBlock) toont al dat het een in-/uitgaande stroom is.
+
+    case 'reactievat':
+      // Kolf: rondje (bol) met smalle hals erboven
+      shapes.push(new fabric.Rect(Object.assign({}, common, { left:w/2-5, top:14, width:10, height:14 })));
+      shapes.push(new fabric.Circle(Object.assign({}, common, { left:w/2-15, top:22, radius:15 })));
+      break;
+
+    case 'scheiding':
+      // Kolom met "schotels" — staat symbool voor filter/destillatie/e.d.
+      shapes.push(new fabric.Rect(Object.assign({}, common, { left:w/2-11, top:12, width:22, height:36 })));
+      shapes.push(new fabric.Line([w/2-11, 22, w/2+11, 22], { stroke:color, strokeWidth:1, selectable:false, evented:false }));
+      shapes.push(new fabric.Line([w/2-11, 32, w/2+11, 32], { stroke:color, strokeWidth:1, selectable:false, evented:false }));
+      shapes.push(new fabric.Line([w/2-11, 42, w/2+11, 42], { stroke:color, strokeWidth:1, selectable:false, evented:false }));
+      break;
+  }
+  return shapes;
+}
+
+
+/* ---------------------------------------------------------------------
+   4. BLOKKEN AANMAKEN
+   --------------------------------------------------------------------- */
+function createBlock(type, left, top, label){
+  const cfg = BLOCK_TYPES[type];
+  if(!cfg){ console.warn('Onbekend bloktype:', type); return null; }
+  const w = BLOCK_W, h = BLOCK_H;
+
+  let bg;
+  if(cfg.shape === 'parallelogram'){
+    // Klassiek input/output-symbool: schuine rechthoek. De schuinte (skew)
+    // kun je hieronder aanpassen; de bounding box blijft gewoon 0..w / 0..h,
+    // dus de verbindingslijnen (§5) hoeven hier niets van te weten.
+    const skew = 22;
+    bg = new fabric.Polygon(
+      [ {x:skew, y:0}, {x:w, y:0}, {x:w-skew, y:h}, {x:0, y:h} ],
+      { left:0, top:0, fill:cfg.fill, stroke:cfg.color, strokeWidth:2 }
+    );
+  } else {
+    bg = new fabric.Rect({
+      left:0, top:0, width:w, height:h, rx:10, ry:10,
+      fill: cfg.fill, stroke: cfg.color, strokeWidth:2,
+    });
+  }
+
+  const icon = buildIconShapes(type, w, h, cfg.color); // [] voor typen zonder icoon
+  const hasIcon = icon.length > 0;
+
+  // Bij niet-bewerkbare typen (Invoer/Product/Afval) altijd het vaste label
+  // gebruiken, ook als er per ongeluk een ander label werd meegegeven
+  // (bv. bij het laden van een oud .json-bestand).
+  const labelText = cfg.editable ? (label || cfg.label) : cfg.label;
+
+  // Textbox i.p.v. Text: laat lange labels binnen het blok afbreken i.p.v. overlopen.
+  // Zonder icoon (parallellogram-blokken) staat het label gecentreerd; mét
+  // icoon (apparaat-blokken) staat het onderin, onder het icoon.
+  const text = new fabric.Textbox(labelText, {
+    left: w/2, top: hasIcon ? h-22 : h/2, originX:'center', originY:'center',
+    width: w-36, fontSize:12, fontFamily:'"Segoe UI", Arial, sans-serif',
+    fill:'#263238', textAlign:'center', editable:false,
+  });
+
+  const group = new fabric.Group([bg, ...icon, text], {
+    left: snap(left), top: snap(top),
+    hasControls: false,     // geen resize-handles: houdt alle blokken gelijke afmeting (belangrijk voor de verbindingslijnen)
+    hasRotatingPoint: false,
+    lockRotation: true,
+    hoverCursor: (connectMode || recycleMode) ? 'crosshair' : 'move',
+  });
+  group.objType   = 'block';
+  group.blockType = type;
+  group.blockId   = 'b' + (blockIdSeq++);
+  group.lockMovementX = connectMode || recycleMode;
+  group.lockMovementY = connectMode || recycleMode;
+
+  canvas.add(group);
+  return group;
+}
+
+function findBlockById(id){
+  return canvas.getObjects().find(o => o.objType === 'block' && o.blockId === id);
+}
+
+// Hoogste punt (kleinste y) van alle blokken op het canvas — recyclestromen
+// lopen altijd via een lijn boven dit punt, zodat ze nooit dwars door een
+// ander blok heen snijden (net als in een "echte" PFD-tekening).
+function getCanvasBlocksTopY(){
+  const blocks = canvas.getObjects().filter(o => o.objType === 'block');
+  if(blocks.length === 0) return 0;
+  return Math.min(...blocks.map(b => b.top));
+}
+function getBlockLabel(block){
+  const t = block._objects.find(o => o.type === 'textbox');
+  return t ? t.text : '';
+}
+function setBlockLabel(block, newText){
+  const t = block._objects.find(o => o.type === 'textbox');
+  if(t){ t.set('text', newText); block.addWithUpdate(); canvas.requestRenderAll(); }
+}
+
+
+/* ---------------------------------------------------------------------
+   5. VERBINDINGEN (haakse lijnen die automatisch meebewegen)
+   --------------------------------------------------------------------- */
+function getPorts(block){
+  const w = block.getScaledWidth(), h = block.getScaledHeight();
+  const left = block.left, top = block.top;
+  return {
+    top:    { x:left + w/2, y:top       },
+    bottom: { x:left + w/2, y:top + h   },
+    left:   { x:left,       y:top + h/2 },
+    right:  { x:left + w,   y:top + h/2 },
+  };
+}
+
+// Kiest de meest logische zijde van een blok om een lijn te laten starten/eindigen,
+// gegeven het (ongeveer) punt waar de lijn naartoe/vandaan gaat.
+function pickPortForBlock(block, towardPoint){
+  const ports = getPorts(block);
+  const c = block.getCenterPoint();
+  const dx = towardPoint.x - c.x, dy = towardPoint.y - c.y;
+  if(Math.abs(dx) >= Math.abs(dy)) return dx >= 0 ? ports.right : ports.left;
+  return dy >= 0 ? ports.bottom : ports.top;
+}
+
+// Geeft het punt op fractie t (0..1) van de totale lengte van een haakse lijn (polyline-punten)
+function pointAtFraction(points, t){
+  if(!points || points.length < 2) return points ? points[0] : null;
+  const segLens = [];
+  let total = 0;
+  for(let i=0;i<points.length-1;i++){
+    const len = Math.hypot(points[i+1].x-points[i].x, points[i+1].y-points[i].y);
+    segLens.push(len); total += len;
+  }
+  if(total === 0) return points[0];
+  let dist = Math.min(1, Math.max(0, t)) * total;
+  for(let i=0;i<segLens.length;i++){
+    if(dist <= segLens[i] || i === segLens.length-1){
+      const segT = segLens[i] > 0 ? Math.min(1, Math.max(0, dist/segLens[i])) : 0;
+      return {
+        x: points[i].x + (points[i+1].x - points[i].x) * segT,
+        y: points[i].y + (points[i+1].y - points[i].y) * segT,
+      };
+    }
+    dist -= segLens[i];
+  }
+  return points[points.length-1];
+}
+
+// Omgekeerde van pointAtFraction: gegeven een klikpunt, zoek de dichtstbijzijnde
+// fractie t langs een bestaande haakse lijn (gebruikt om een aftakpunt te kiezen).
+function nearestFractionOnPolyline(points, clickPoint){
+  const segLens = [];
+  let total = 0;
+  for(let i=0;i<points.length-1;i++){
+    const len = Math.hypot(points[i+1].x-points[i].x, points[i+1].y-points[i].y);
+    segLens.push(len); total += len;
+  }
+  let bestDist = Infinity, bestT = 0, cum = 0;
+  for(let i=0;i<points.length-1;i++){
+    const a = points[i], b = points[i+1], segLen = segLens[i];
+    let segT = 0;
+    if(segLen > 0){
+      const dx = b.x-a.x, dy = b.y-a.y;
+      segT = ((clickPoint.x-a.x)*dx + (clickPoint.y-a.y)*dy) / (segLen*segLen);
+      segT = Math.min(1, Math.max(0, segT));
+    }
+    const projX = a.x + (b.x-a.x)*segT, projY = a.y + (b.y-a.y)*segT;
+    const dist = Math.hypot(clickPoint.x-projX, clickPoint.y-projY);
+    if(dist < bestDist){
+      bestDist = dist;
+      bestT = total > 0 ? (cum + segT*segLen) / total : 0;
+    }
+    cum += segLen;
+  }
+  return bestT;
+}
+
+// Bouwt een haaks lijnpad (max. 2 bochten) tussen twee punten
+function computeOrthoPoints(fromPoint, toPoint, horizontalFirst){
+  if(horizontalFirst){
+    const midX = (fromPoint.x + toPoint.x) / 2;
+    return [ fromPoint, {x:midX, y:fromPoint.y}, {x:midX, y:toPoint.y}, toPoint ];
+  } else {
+    const midY = (fromPoint.y + toPoint.y) / 2;
+    return [ fromPoint, {x:fromPoint.x, y:midY}, {x:toPoint.x, y:midY}, toPoint ];
+  }
+}
+
+// Ruwe schatting van de locatie van een eindpunt-referentie (voor richtingsbepaling)
+function approxAnchor(ref){
+  if(ref.kind === 'block'){
+    const b = findBlockById(ref.id);
+    return b ? b.getCenterPoint() : {x:0, y:0};
+  }
+  if(ref.kind === 'junction'){
+    const c = connections.find(x => x.id === ref.lineId);
+    if(c && c.points && c.points.length) return pointAtFraction(c.points, ref.t);
+    return {x:0, y:0};
+  }
+  return {x:0, y:0};
+}
+
+// Berekent het exacte start-/eindpunt van een eindpunt-referentie.
+// forRecycleTop=true => bij een blok altijd de bovenkant gebruiken (nodig
+// om de "bovenlangs"-route van een recyclestroom te laten kloppen).
+function resolveEndpointPoint(ref, towardAnchor, forRecycleTop){
+  if(ref.kind === 'block'){
+    const block = findBlockById(ref.id);
+    if(!block) return null;
+    return forRecycleTop ? getPorts(block).top : pickPortForBlock(block, towardAnchor);
+  }
+  if(ref.kind === 'junction'){
+    const targetConn = connections.find(c => c.id === ref.lineId);
+    if(!targetConn || !targetConn.points) return null;
+    return pointAtFraction(targetConn.points, ref.t);
+  }
+  return null;
+}
+
+function removeConnectionVisuals(connId){
+  canvas.getObjects().filter(o => o.connId === connId).forEach(o => canvas.remove(o));
+}
+
+function addJunctionDot(point, color, connId){
+  // Klein knooppuntje op de lijn waarop wordt afgetakt/ingevoegd
+  const dot = new fabric.Circle({
+    left:point.x-4, top:point.y-4, radius:4,
+    fill:color, stroke:'#ffffff', strokeWidth:1,
+    selectable:false, evented:false,
+  });
+  dot.objType = 'connJunctionDot';
+  dot.connId  = connId;
+  canvas.add(dot);
+}
+
+function renderConnection(conn){
+  removeConnectionVisuals(conn.id);
+
+  const toAnchor   = approxAnchor(conn.to);
+  const fromAnchor = approxAnchor(conn.from);
+  const fromPoint  = resolveEndpointPoint(conn.from, toAnchor, conn.recycle);
+  const toPoint    = resolveEndpointPoint(conn.to, fromAnchor, conn.recycle);
+  if(!fromPoint || !toPoint) return; // eindpunt (blok/lijn) bestaat niet meer
+
+  let pts;
+  if(conn.recycle){
+    // Recyclestroom: altijd via een vaste hoogte bovenlangs alle blokken heen,
+    // zodat de lijn nooit dwars door een ander blok snijdt. RECYCLE_MARGIN
+    // hieronder aanpassen om de lijn hoger/lager boven de blokken te laten lopen.
+    const RECYCLE_MARGIN = 40;
+    const clearanceY = Math.min(
+      getCanvasBlocksTopY() - RECYCLE_MARGIN,
+      fromPoint.y - 20,
+      toPoint.y - 20
+    );
+    pts = [ fromPoint, {x:fromPoint.x, y:clearanceY}, {x:toPoint.x, y:clearanceY}, toPoint ];
+  } else {
+    const horizontalFirst = Math.abs(toPoint.x - fromPoint.x) >= Math.abs(toPoint.y - fromPoint.y);
+    pts = computeOrthoPoints(fromPoint, toPoint, horizontalFirst);
+  }
+  conn.points = pts; // bewaren zodat andere lijnen hierop kunnen aftakken (§5, junction)
+
+  const color = conn.recycle ? COLOR_RECYCLE : COLOR_NORMAL;
+
+  // De lijn zelf
+  const line = new fabric.Polyline(pts, {
+    fill:'', stroke:color, strokeWidth:2.5,
+    strokeDashArray: conn.recycle ? [8,5] : null,
+    selectable:true, hasControls:false, hasBorders:true,
+    lockMovementX:true, lockMovementY:true,
+    objectCaching:false, hoverCursor:'pointer',
+  });
+  line.objType = 'connLine';
+  line.connId  = conn.id;
+  canvas.add(line);
+  canvas.sendToBack(line); // lijnen achter de blokken tekenen
+
+  // Pijlpunt aan het eindpunt, in de richting van het laatste stuk lijn
+  const p1 = pts[pts.length-2], p2 = pts[pts.length-1];
+  const angleDeg = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180/Math.PI + 90;
+  const arrow = new fabric.Triangle({
+    left:p2.x, top:p2.y, originX:'center', originY:'center',
+    width:12, height:14, fill:color, angle:angleDeg,
+    selectable:false, evented:false,
+  });
+  arrow.objType = 'connArrow';
+  arrow.connId  = conn.id;
+  canvas.add(arrow);
+
+  // Knooppuntjes tekenen waar deze lijn op een ándere lijn aftakt/invoegt
+  if(conn.from.kind === 'junction') addJunctionDot(fromPoint, color, conn.id);
+  if(conn.to.kind === 'junction')   addJunctionDot(toPoint, color, conn.id);
+
+  // Label (stofnaam / temperatuur / druk) op het midden van de lijn
+  if(conn.label){
+    const midPoint = pts.length >= 4
+      ? { x:(pts[1].x + pts[2].x)/2, y:(pts[1].y + pts[2].y)/2 }
+      : { x:(p1.x + p2.x)/2, y:(p1.y + p2.y)/2 };
+    const labelObj = new fabric.Text(conn.label, {
+      left: midPoint.x, top: midPoint.y - 10, originX:'center', originY:'center',
+      fontSize:12, fontFamily:'"Segoe UI", Arial, sans-serif',
+      fill: color, backgroundColor:'#ffffff',
+      selectable:false, evented:false,
+    });
+    labelObj.objType = 'connLabel';
+    labelObj.connId  = conn.id;
+    canvas.add(labelObj);
+  }
+}
+
+// Meerdere doorloop-rondes: een knooppunt-lijn (junction) kan afhangen van een
+// andere lijn die zelf pas in dezelfde ronde is (her)berekend. 3 rondes is
+// ruim voldoende voor realistische schema's (aftakking-op-aftakking komt
+// zelden dieper dan 1 niveau voor).
+function updateAllConnections(){
+  for(let pass = 0; pass < 3; pass++){
+    connections.forEach(renderConnection);
+  }
+}
+
+function addConnection(fromRef, toRef, label, recycle){
+  if(!fromRef || !toRef) return;
+  if(JSON.stringify(fromRef) === JSON.stringify(toRef)) return; // zelfde punt: negeren
+  const dup = connections.some(c =>
+    JSON.stringify(c.from) === JSON.stringify(fromRef) &&
+    JSON.stringify(c.to)   === JSON.stringify(toRef));
+  if(dup) return;
+  const conn = { id:'c'+(connIdSeq++), from:fromRef, to:toRef, label: label || '', recycle: !!recycle };
+  connections.push(conn);
+  renderConnection(conn);
+}
+
+function deleteConnection(connId){
+  removeConnectionVisuals(connId);
+  connections = connections.filter(c => c.id !== connId);
+  // Cascade: verwijder ook lijnen die op déze lijn aftakten/invoegden (junction)
+  const dependents = connections.filter(c =>
+    (c.from.kind === 'junction' && c.from.lineId === connId) ||
+    (c.to.kind   === 'junction' && c.to.lineId   === connId));
+  dependents.forEach(d => deleteConnection(d.id));
+}
+
+
+/* ---------------------------------------------------------------------
+   6. SELECTEREN / VERWIJDEREN
+   --------------------------------------------------------------------- */
+function deleteObject(obj){
+  if(obj.objType === 'block'){
+    const toDelete = connections.filter(c =>
+      (c.from.kind === 'block' && c.from.id === obj.blockId) ||
+      (c.to.kind   === 'block' && c.to.id   === obj.blockId));
+    toDelete.forEach(c => deleteConnection(c.id));
+    canvas.remove(obj);
+  } else if(obj.objType === 'connLine'){
+    deleteConnection(obj.connId);
+  }
+}
+
+function deleteSelected(){
+  const active = canvas.getActiveObject();
+  if(!active) return;
+  if(active.type === 'activeSelection'){
+    active.getObjects().slice().forEach(deleteObject);
+  } else {
+    deleteObject(active);
+  }
+  canvas.discardActiveObject();
+  canvas.requestRenderAll();
+  updateAllConnections();
+  pushHistory();
+}
+
+function clearPendingMarker(){
+  if(pendingMarker){ canvas.remove(pendingMarker); pendingMarker = null; }
+}
+function showPendingMarker(point, color){
+  clearPendingMarker();
+  pendingMarker = new fabric.Circle({
+    left:point.x-6, top:point.y-6, radius:6,
+    fill:color, opacity:0.85, selectable:false, evented:false,
+  });
+  canvas.add(pendingMarker);
+  canvas.requestRenderAll();
+}
+function cancelPendingActions(){
+  pendingSource = null;
+  pendingRecycleSource = null;
+  clearPendingMarker();
+  canvas.discardActiveObject();
+  canvas.requestRenderAll();
+}
+
+
+/* ---------------------------------------------------------------------
+   7. GESCHIEDENIS (eenvoudige undo)
+   --------------------------------------------------------------------- */
+function exportState(){
+  const blocks = canvas.getObjects()
+    .filter(o => o.objType === 'block')
+    .map(b => ({ id:b.blockId, type:b.blockType, left:b.left, top:b.top, label:getBlockLabel(b) }));
+  const conns = connections.map(c => ({ id:c.id, from:c.from, to:c.to, label:c.label, recycle:!!c.recycle }));
+  return { blocks, connections: conns };
+}
+
+function loadState(state){
+  canvas.clear();
+  canvas.backgroundColor = '#ffffff';
+  connections = [];
+  let maxB = 0, maxC = 0;
+
+  (state.blocks || []).forEach(b => {
+    const grp = createBlock(b.type, b.left, b.top, b.label);
+    if(grp){
+      grp.blockId = b.id; // oorspronkelijke id behouden zodat verbindingen blijven kloppen
+      const n = parseInt(String(b.id).replace(/\D/g,''), 10) || 0;
+      if(n > maxB) maxB = n;
+    }
+  });
+  blockIdSeq = maxB + 1;
+
+  (state.connections || []).forEach(c => {
+    connections.push({ id:c.id, from:c.from, to:c.to, label:c.label || '', recycle: !!c.recycle });
+    const n = parseInt(String(c.id).replace(/\D/g,''), 10) || 0;
+    if(n > maxC) maxC = n;
+  });
+  connIdSeq = maxC + 1;
+
+  updateAllConnections();
+  canvas.requestRenderAll();
+}
+
+function pushHistory(){
+  try{
+    historyStack.push(JSON.stringify(exportState()));
+    if(historyStack.length > 40) historyStack.shift();
+  }catch(e){ console.error('Kon geschiedenis niet opslaan:', e); }
+}
+let historyStack = [];
+
+function undo(){
+  if(historyStack.length < 2) return; // niets meer om naar terug te gaan
+  historyStack.pop();
+  const prev = historyStack[historyStack.length - 1];
+  loadState(JSON.parse(prev));
+}
+
+
+/* ---------------------------------------------------------------------
+   8. OPSLAAN / LADEN (JSON) EN PNG-EXPORT
+   --------------------------------------------------------------------- */
+function downloadBlob(content, filename, mime){
+  const blob = new Blob([content], { type: mime });
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function saveJson(){
+  canvas.discardActiveObject(); canvas.requestRenderAll();
+  const json = JSON.stringify(exportState(), null, 2);
+  downloadBlob(json, 'procesblokschema.json', 'application/json');
+}
+
+function loadJsonFile(file){
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const state = JSON.parse(e.target.result);
+      loadState(state);
+      pushHistory();
+    }catch(err){
+      alert('Dit bestand kon niet worden gelezen als geldig schema-bestand (.json).');
+      console.error(err);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function exportPng(){
+  canvas.discardActiveObject();
+  canvas.requestRenderAll();
+  // multiplier:2 geeft een scherpere afbeelding voor inleveren/printen
+  const dataUrl = canvas.toDataURL({ format:'png', multiplier:2, quality:1 });
+  const a = document.createElement('a');
+  a.href = dataUrl; a.download = 'procesblokschema.png';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+
+/* ---------------------------------------------------------------------
+   9. DRAG&DROP VANUIT ZIJBALK
+   (Let op: native HTML5-drag&drop werkt het meest betrouwbaar met muis;
+   op touch-only tablets kan dit beperkt werken — voor gebruik op
+   schoollaptops met muis/trackpad is dit geen probleem.)
+   --------------------------------------------------------------------- */
+document.querySelectorAll('.palette-item').forEach(item => {
+  item.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('blockType', item.dataset.type);
+    e.dataTransfer.effectAllowed = 'copy';
+  });
+});
+
+const dropZone = canvas.wrapperEl; // element dat fabric zelf om de <canvas> heen zet
+dropZone.addEventListener('dragover', e => e.preventDefault());
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  const type = e.dataTransfer.getData('blockType');
+  if(!type) return;
+  const rect = canvas.upperCanvasEl.getBoundingClientRect();
+  const x = e.clientX - rect.left - BLOCK_W/2;
+  const y = e.clientY - rect.top  - BLOCK_H/2;
+  createBlock(type, x, y);
+  canvas.requestRenderAll();
+  pushHistory();
+});
+
+
+/* ---------------------------------------------------------------------
+   10. EVENT-KOPPELINGEN
+   --------------------------------------------------------------------- */
+
+// Blokken vastklikken op het raster + lijnen live bijwerken tijdens slepen
+canvas.on('object:moving', function(opt){
+  const t = opt.target;
+  if(t && t.objType === 'block'){
+    t.set({ left: snap(t.left), top: snap(t.top) });
+  }
+  updateAllConnections();
+});
+
+// Na elke voltooide wijziging (drag klaar, etc.): lijnen kloppend maken + geschiedenis bijwerken
+canvas.on('object:modified', function(){
+  updateAllConnections();
+  pushHistory();
+});
+
+// Dubbelklik = tekst bewerken (blok-label of lijn-label)
+canvas.on('mouse:dblclick', function(opt){
+  const target = opt.target;
+  if(!target) return;
+  if(target.objType === 'block'){
+    const cfg = BLOCK_TYPES[target.blockType];
+    if(!cfg || cfg.editable === false) return; // vast label: niets te bewerken
+    const val = window.prompt('Tekst in blok:', getBlockLabel(target));
+    if(val !== null){ setBlockLabel(target, val); pushHistory(); }
+  } else if(target.objType === 'connLine'){
+    const conn = connections.find(c => c.id === target.connId);
+    const val = window.prompt('Label voor deze lijn (stofnaam, temperatuur, druk):', conn ? conn.label : '');
+    if(val !== null && conn){ conn.label = val; renderConnection(conn); pushHistory(); }
+  }
+});
+
+// Klikken tijdens "Verbinden"-modus: eerste blok = bron, tweede blok = doel
+canvas.on('mouse:down', function(opt){
+
+  if(connectMode){
+    const target = opt.target;
+    if(!target || target.objType !== 'block'){
+      pendingSource = null; canvas.discardActiveObject(); canvas.requestRenderAll();
+      return;
+    }
+    if(!pendingSource){
+      pendingSource = target;
+      canvas.setActiveObject(target);
+    } else if(pendingSource !== target){
+      const label = window.prompt('Label voor deze verbinding (stofnaam, temperatuur, druk) — leeg mag ook:', '');
+      addConnection({kind:'block', id:pendingSource.blockId}, {kind:'block', id:target.blockId}, label || '', false);
+      pendingSource = null;
+      canvas.discardActiveObject();
+      pushHistory();
+    }
+    canvas.requestRenderAll();
+    return;
+  }
+
+  if(recycleMode){
+    const target = opt.target;
+    const pointer = canvas.getPointer(opt.e);
+    let ref = null, anchor = null;
+
+    if(target && target.objType === 'block'){
+      ref = { kind:'block', id: target.blockId };
+      anchor = target.getCenterPoint();
+    } else if(target && target.objType === 'connLine'){
+      const t = nearestFractionOnPolyline(target.points, pointer);
+      ref = { kind:'junction', lineId: target.connId, t: t };
+      anchor = pointAtFraction(target.points, t);
+    }
+
+    if(!ref){
+      // Klik op leeg canvas: annuleer de bezig-zijnde recyclestroom
+      cancelPendingActions();
+      return;
+    }
+
+    if(!pendingRecycleSource){
+      pendingRecycleSource = ref;
+      showPendingMarker(anchor, COLOR_RECYCLE);
+    } else if(JSON.stringify(pendingRecycleSource) !== JSON.stringify(ref)){
+      const label = window.prompt('Label voor deze recyclestroom (stofnaam, temperatuur, druk) — leeg mag ook:', '');
+      addConnection(pendingRecycleSource, ref, label || '', true);
+      pendingRecycleSource = null;
+      clearPendingMarker();
+      pushHistory();
+    }
+    canvas.requestRenderAll();
+  }
+});
+
+// Toetsenbord: Delete/Backspace verwijdert selectie, Ctrl+Z is ongedaan maken, Escape annuleert
+document.addEventListener('keydown', function(e){
+  const tag = (document.activeElement && document.activeElement.tagName) || '';
+  if(tag === 'INPUT' || tag === 'TEXTAREA') return; // niet ingrijpen tijdens typen elders op de pagina
+
+  if(e.key === 'Delete' || e.key === 'Backspace'){
+    deleteSelected();
+    e.preventDefault();
+  }
+  if(e.ctrlKey && e.key.toLowerCase() === 'z'){
+    undo();
+    e.preventDefault();
+  }
+  if(e.key === 'Escape'){
+    cancelPendingActions();
+  }
+});
+
+// Knoppen in de toolbar — "Verbinden" en "Recyclestroom" sluiten elkaar uit
+function refreshBlockLockState(){
+  const locked = connectMode || recycleMode;
+  canvas.getObjects().filter(o => o.objType === 'block').forEach(b => {
+    b.lockMovementX = locked;
+    b.lockMovementY = locked;
+    b.hoverCursor = locked ? 'crosshair' : 'move';
+  });
+}
+
+document.getElementById('btnConnect').addEventListener('click', function(){
+  connectMode = !connectMode;
+  if(connectMode){
+    recycleMode = false;
+    document.getElementById('btnRecycle').classList.remove('active','recycle-active');
+  }
+  cancelPendingActions();
+  this.classList.toggle('active', connectMode);
+  refreshBlockLockState();
+  canvas.requestRenderAll();
+});
+
+document.getElementById('btnRecycle').addEventListener('click', function(){
+  recycleMode = !recycleMode;
+  if(recycleMode){
+    connectMode = false;
+    document.getElementById('btnConnect').classList.remove('active');
+  }
+  cancelPendingActions();
+  this.classList.toggle('active', recycleMode);
+  this.classList.toggle('recycle-active', recycleMode);
+  refreshBlockLockState();
+  canvas.requestRenderAll();
+});
+
+document.getElementById('btnUndo').addEventListener('click', undo);
+
+document.getElementById('btnClear').addEventListener('click', function(){
+  if(!confirm('Weet je zeker dat je het hele schema wilt wissen?')) return;
+  canvas.clear();
+  canvas.backgroundColor = '#ffffff';
+  connections = [];
+  blockIdSeq = 1; connIdSeq = 1;
+  pushHistory();
+});
+
+document.getElementById('btnSaveJson').addEventListener('click', saveJson);
+document.getElementById('btnExportPng').addEventListener('click', exportPng);
+
+document.getElementById('fileLoadInput').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(file) loadJsonFile(file);
+  e.target.value = ''; // zelfde bestand later opnieuw kunnen kiezen
+});
+
+// Startpunt van de geschiedenis (lege canvas)
+pushHistory();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atoombouw — kern, schillen en verval</title>
+<style>
+  :root{
+    --bg:#ffffff; --panel:#f7f7f5; --panel-2:#f0f0ec; --line:#d8d6ce;
+    --text:#211f19; --text-dim:#6b6557;
+    --accent:#c1652f; --accent-dim:#a8623a;
+    --accent2:#2f8a78; --accent2-dim:#2f7a68;
+    --proton:#c1652f; --neutron:#8a8478; --electron:#2f8a78;
+    --warn:#b8503b; --good:#2f8a78;
+    --mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text); font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:1140px; margin:0 auto; padding:22px 22px 50px;}
+
+  header.top{margin-bottom:18px;}
+  .eyebrow{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--accent); margin-bottom:6px;
+  }
+  h1{margin:0; font-size:25px; font-weight:650; letter-spacing:-0.01em;}
+  header.top p.sub{color:var(--text-dim); font-size:13.5px; line-height:1.55; max-width:760px; margin:10px 0 0;}
+
+  nav.stages{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
+  .stage-btn{
+    background:var(--panel); border:1px solid var(--line); color:var(--text-dim);
+    font-family:var(--mono); font-size:12px; letter-spacing:.02em; padding:9px 14px;
+    border-radius:7px; cursor:pointer; transition:all .15s; display:flex; align-items:center; gap:7px;
+  }
+  .stage-btn .num{
+    width:18px; height:18px; border-radius:50%; background:var(--panel-2); display:inline-flex;
+    align-items:center; justify-content:center; font-size:10.5px;
+  }
+  .stage-btn.active{background:var(--accent-dim); border-color:var(--accent); color:#fff3ea;}
+  .stage-btn.active .num{background:rgba(255,255,255,0.2);}
+
+  .mode-row{display:flex; gap:8px; margin-bottom:16px;}
+  .mode-btn{
+    background:var(--panel-2); border:1px solid var(--line); color:var(--text-dim);
+    font-family:var(--mono); font-size:12px; padding:8px 14px; border-radius:7px; cursor:pointer;
+  }
+  .mode-btn.active{background:var(--accent2-dim); border-color:var(--accent2); color:#eafff8;}
+
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:20px 22px; margin-bottom:16px;
+  }
+  .panel h2{font-size:15px; margin:0 0 10px; color:var(--text); font-weight:600;}
+  .panel p.sub{color:var(--text-dim); font-size:13px; line-height:1.6; margin:0 0 12px;}
+
+  .layout{display:grid; grid-template-columns:1fr 320px; gap:18px;}
+  @media (max-width:860px){ .layout{grid-template-columns:1fr;} }
+
+  #nucleus-canvas, #atom-canvas, #decay-canvas{width:100%; height:340px; display:block; background:var(--bg); border-radius:10px; border:1px solid var(--line);}
+
+  .ctrl-group{margin-bottom:18px;}
+  .ctrl-group:last-child{margin-bottom:0;}
+  .ctrl-head label{font-family:var(--mono); font-size:11.5px; letter-spacing:.03em; color:var(--text); display:block; margin-bottom:6px;}
+  .num-input{
+    width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    font-family:var(--mono); font-size:16px; padding:9px 10px; border-radius:7px; outline:none;
+  }
+  .num-input:focus{border-color:var(--accent-dim);}
+  .num-input.incorrect{border-color:var(--warn);}
+
+  .legend{display:flex; gap:16px; font-size:12px; color:var(--text-dim); margin-top:10px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:11px; height:11px; border-radius:50%; display:inline-block;}
+
+  .answer-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:6px 0 14px;}
+  .answer-field label{display:block; font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:4px; text-transform:uppercase; letter-spacing:.04em;}
+  .answer-field input{
+    width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    font-family:var(--mono); font-size:15px; padding:9px 10px; border-radius:7px; outline:none;
+  }
+  .answer-field input:focus{border-color:var(--accent-dim);}
+  .answer-field input.correct{border-color:var(--good); background:rgba(95,180,162,0.1);}
+  .answer-field input.incorrect{border-color:var(--warn); background:rgba(214,104,90,0.1);}
+
+  .notation-display{
+    font-family:var(--mono); text-align:center; padding:16px; background:var(--panel-2);
+    border-radius:8px; margin:10px 0;
+  }
+  .notation-display .big{font-size:34px; position:relative; display:inline-block; padding:0 10px;}
+  .notation-display .super{position:absolute; top:-6px; left:100%; font-size:16px; color:var(--accent);}
+  .notation-display .sub{position:absolute; bottom:-4px; left:100%; font-size:16px; color:var(--accent2);}
+  .notation-display .charge{position:absolute; top:-6px; right:-18px; font-size:14px; color:var(--warn);}
+  .notation-display .arrow{font-size:24px; color:var(--text-dim); margin:0 18px; vertical-align:middle;}
+
+  .feedback{border-radius:8px; padding:12px 16px; margin-top:14px; font-size:13.5px; line-height:1.6; display:none;}
+  .feedback.show{display:block;}
+  .feedback.correct{background:rgba(95,180,162,0.12); border:1px solid var(--good); color:var(--text);}
+  .feedback.incorrect{background:rgba(214,104,90,0.12); border:1px solid var(--warn); color:var(--text);}
+  .feedback.info{background:rgba(226,129,79,0.10); border:1px solid var(--accent-dim); color:var(--text);}
+
+  .stability-box{border-radius:8px; padding:14px 16px; margin-top:6px; font-family:var(--mono); font-size:13px;}
+  .stability-box.stable{background:rgba(95,180,162,0.10); border:1px solid var(--good);}
+  .stability-box.unstable{background:rgba(214,104,90,0.10); border:1px solid var(--warn);}
+  .stability-box.unknown{background:var(--panel-2); border:1px solid var(--line); color:var(--text-dim);}
+  .stability-box .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-dim); margin-bottom:4px;}
+
+  .size-box{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:16px 18px; margin-top:14px;
+  }
+  .size-box .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-dim); margin-bottom:8px;}
+  .size-row{display:flex; justify-content:space-between; font-family:var(--mono); font-size:13px; padding:5px 0; border-bottom:1px solid var(--line);}
+  .size-row:last-child{border-bottom:none;}
+  .size-row .v{color:var(--accent);}
+  .scale-bar-wrap{margin-top:12px;}
+  .scale-bar{height:10px; background:var(--line); border-radius:5px; position:relative; overflow:hidden;}
+  .scale-bar .fill{position:absolute; left:0; top:0; height:100%; background:var(--accent); border-radius:5px;}
+
+  .shell-row{display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap;}
+  .shell-row .shell-lbl{font-family:var(--mono); font-size:12px; color:var(--text-dim); width:62px;}
+  .shell-row input{
+    width:74px; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    font-family:var(--mono); font-size:14px; padding:7px 8px; border-radius:6px; outline:none; text-align:center;
+  }
+  .shell-row input.correct{border-color:var(--good);}
+  .shell-row input.incorrect{border-color:var(--warn);}
+  .shell-row .max-hint{font-family:var(--mono); font-size:11px; color:var(--text-dim);}
+
+  .btn{
+    background:var(--accent-dim); border:1px solid var(--accent); color:#fff3ea;
+    font-family:var(--mono); font-size:12.5px; padding:10px 20px; border-radius:7px;
+    cursor:pointer; transition:all .15s;
+  }
+  .btn:hover:not(:disabled){background:var(--accent);}
+  .btn.ghost{background:transparent; border:1px solid var(--line); color:var(--text-dim);}
+  .btn.ghost:hover:not(:disabled){border-color:var(--accent-dim); color:var(--text);}
+  .btn:disabled{opacity:.4; cursor:not-allowed;}
+
+  .task-box{
+    background:rgba(226,129,79,0.08); border:1px solid var(--accent-dim); border-radius:8px;
+    padding:14px 16px; margin-bottom:16px;
+  }
+  .task-box .lbl{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--accent); margin-bottom:6px;}
+  .task-box .desc{font-size:14px; line-height:1.5;}
+
+  footer.note{color:var(--text-dim); font-size:12px; text-align:center; margin-top:24px; line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="eyebrow">Atoombouw · Bohr-model</div>
+    <h1>Bouw zelf een atoom</h1>
+    <p class="sub">Stel de kern samen uit protonen en neutronen, verdeel de elektronen over de schillen, en ontdek hoe instabiele kernen vervallen.</p>
+  </header>
+
+  <nav class="stages" id="stage-nav"></nav>
+  <div class="mode-row" id="mode-row"></div>
+
+  <div id="stage-content"></div>
+
+  <footer class="note">
+    Stabiliteit, halveringstijd en verval komen uit BINAS tabel 25 (isotopen). Niet elke denkbare combinatie van protonen en neutronen staat daarin — dat betekent niet automatisch dat die combinatie onmogelijk is, alleen dat ze niet in de tabel is opgenomen.
+  </footer>
+</div>
+
+<script>
+// Gegenereerd uit BINAS tabel 25, key = "protonen_neutronen".
+const ISOTOPE_LOOKUP = {"0_1": {"symbol": "n", "massNumber": 1, "stable": false, "halfLife": "10,2 min", "decay": "β⁻ en p⁺"}, "1_0": {"symbol": "H", "massNumber": 1, "stable": true, "halfLife": null, "decay": null}, "1_1": {"symbol": "H", "massNumber": 2, "stable": true, "halfLife": null, "decay": null}, "1_2": {"symbol": "H", "massNumber": 3, "stable": false, "halfLife": "12,3 y", "decay": "β⁻ 0,018"}, "2_1": {"symbol": "He", "massNumber": 3, "stable": true, "halfLife": null, "decay": null}, "2_2": {"symbol": "He", "massNumber": 4, "stable": true, "halfLife": null, "decay": null}, "2_4": {"symbol": "He", "massNumber": 6, "stable": false, "halfLife": "0,807 s", "decay": "β⁻ 3,5"}, "3_3": {"symbol": "Li", "massNumber": 6, "stable": true, "halfLife": null, "decay": null}, "3_4": {"symbol": "Li", "massNumber": 7, "stable": true, "halfLife": null, "decay": null}, "3_5": {"symbol": "Li", "massNumber": 8, "stable": false, "halfLife": "0,838 s", "decay": "β⁻ 12,0"}, "4_3": {"symbol": "Be", "massNumber": 7, "stable": false, "halfLife": "54 d", "decay": "γ, K-vangst"}, "4_4": {"symbol": "Be", "massNumber": 8, "stable": false, "halfLife": "10⁻¹⁶ s", "decay": "2 α"}, "4_5": {"symbol": "Be", "massNumber": 9, "stable": true, "halfLife": null, "decay": null}, "4_6": {"symbol": "Be", "massNumber": 10, "stable": false, "halfLife": "1,5·10⁶ y", "decay": "β⁻ 0,555"}, "5_3": {"symbol": "B", "massNumber": 8, "stable": false, "halfLife": "0,770 s", "decay": "β⁺ 14"}, "5_5": {"symbol": "B", "massNumber": 10, "stable": true, "halfLife": null, "decay": null}, "5_6": {"symbol": "B", "massNumber": 11, "stable": true, "halfLife": null, "decay": null}, "5_7": {"symbol": "B", "massNumber": 12, "stable": false, "halfLife": "0,020 s", "decay": "β⁻ 13,4, γ"}, "6_4": {"symbol": "C", "massNumber": 10, "stable": false, "halfLife": "19,2 s", "decay": "β⁺ 2,2"}, "6_5": {"symbol": "C", "massNumber": 11, "stable": false, "halfLife": "20,4 min", "decay": "β⁺ 0,95, K-vangst"}, "6_6": {"symbol": "C", "massNumber": 12, "stable": true, "halfLife": null, "decay": null}, "6_7": {"symbol": "C", "massNumber": 13, "stable": true, "halfLife": null, "decay": null}, "6_8": {"symbol": "C", "massNumber": 14, "stable": false, "halfLife": "5730 y", "decay": "β⁻ 0,156"}, "7_5": {"symbol": "N", "massNumber": 12, "stable": false, "halfLife": "0,0110 s", "decay": "β⁺ 16,6"}, "7_6": {"symbol": "N", "massNumber": 13, "stable": false, "halfLife": "9,97 min", "decay": "β⁺ 0,92"}, "7_7": {"symbol": "N", "massNumber": 14, "stable": true, "halfLife": null, "decay": null}, "7_8": {"symbol": "N", "massNumber": 15, "stable": true, "halfLife": null, "decay": null}, "7_9": {"symbol": "N", "massNumber": 16, "stable": false, "halfLife": "7,13 s", "decay": "β⁻ 10,0, γ"}, "8_7": {"symbol": "O", "massNumber": 15, "stable": false, "halfLife": "122 s", "decay": "β⁺ 1,7"}, "8_8": {"symbol": "O", "massNumber": 16, "stable": true, "halfLife": null, "decay": null}, "8_9": {"symbol": "O", "massNumber": 17, "stable": true, "halfLife": null, "decay": null}, "8_10": {"symbol": "O", "massNumber": 18, "stable": true, "halfLife": null, "decay": null}, "8_11": {"symbol": "O", "massNumber": 19, "stable": false, "halfLife": "26,9 s", "decay": "β⁻ 3,0, γ"}, "9_10": {"symbol": "F", "massNumber": 19, "stable": true, "halfLife": null, "decay": null}, "10_10": {"symbol": "Ne", "massNumber": 20, "stable": true, "halfLife": null, "decay": null}, "10_11": {"symbol": "Ne", "massNumber": 21, "stable": true, "halfLife": null, "decay": null}, "10_12": {"symbol": "Ne", "massNumber": 22, "stable": true, "halfLife": null, "decay": null}, "10_14": {"symbol": "Ne", "massNumber": 24, "stable": false, "halfLife": "3,38 min", "decay": "β⁻ 1,4, γ"}, "11_11": {"symbol": "Na", "massNumber": 22, "stable": false, "halfLife": "2,6 y", "decay": "β⁺ 1,8, γ"}, "11_12": {"symbol": "Na", "massNumber": 23, "stable": true, "halfLife": null, "decay": null}, "11_13": {"symbol": "Na", "massNumber": 24, "stable": false, "halfLife": "14,96 h", "decay": "β⁻ 1,39, γ"}, "12_10": {"symbol": "Mg", "massNumber": 22, "stable": false, "halfLife": "3,9 s", "decay": "β⁺ 4,8, K-vangst"}, "12_12": {"symbol": "Mg", "massNumber": 24, "stable": true, "halfLife": null, "decay": null}, "12_13": {"symbol": "Mg", "massNumber": 25, "stable": true, "halfLife": null, "decay": null}, "12_14": {"symbol": "Mg", "massNumber": 26, "stable": true, "halfLife": null, "decay": null}, "12_15": {"symbol": "Mg", "massNumber": 27, "stable": false, "halfLife": "20,9 h", "decay": "β⁻ 0,460"}, "13_13": {"symbol": "Al", "massNumber": 26, "stable": false, "halfLife": "7,17·10⁷ y", "decay": "β⁺ 2,99"}, "13_14": {"symbol": "Al", "massNumber": 27, "stable": true, "halfLife": null, "decay": null}, "13_15": {"symbol": "Al", "massNumber": 28, "stable": false, "halfLife": "2,4 min", "decay": "β⁻ 3,0, γ"}, "14_14": {"symbol": "Si", "massNumber": 28, "stable": true, "halfLife": null, "decay": null}, "14_15": {"symbol": "Si", "massNumber": 29, "stable": true, "halfLife": null, "decay": null}, "14_16": {"symbol": "Si", "massNumber": 30, "stable": true, "halfLife": null, "decay": null}, "14_17": {"symbol": "Si", "massNumber": 31, "stable": false, "halfLife": "2,6 h", "decay": "β⁻ 1,48"}, "14_18": {"symbol": "Si", "massNumber": 32, "stable": false, "halfLife": "150 y", "decay": "β⁻ 0,21"}, "15_15": {"symbol": "P", "massNumber": 30, "stable": false, "halfLife": "2,50 min", "decay": "β⁺ 3,5"}, "15_16": {"symbol": "P", "massNumber": 31, "stable": true, "halfLife": null, "decay": null}, "15_17": {"symbol": "P", "massNumber": 32, "stable": false, "halfLife": "14,3 d", "decay": "β⁻ 1,72"}, "15_18": {"symbol": "P", "massNumber": 33, "stable": false, "halfLife": "25,3 d", "decay": "β⁻ 0,26"}, "16_16": {"symbol": "S", "massNumber": 32, "stable": true, "halfLife": null, "decay": null}, "16_17": {"symbol": "S", "massNumber": 33, "stable": true, "halfLife": null, "decay": null}, "16_18": {"symbol": "S", "massNumber": 34, "stable": true, "halfLife": null, "decay": null}, "16_19": {"symbol": "S", "massNumber": 35, "stable": false, "halfLife": "87,3 d", "decay": "β⁻ 0,167"}, "16_20": {"symbol": "S", "massNumber": 36, "stable": true, "halfLife": null, "decay": null}, "16_22": {"symbol": "S", "massNumber": 38, "stable": false, "halfLife": "2,84 h", "decay": "β⁻ 1,10"}, "17_17": {"symbol": "Cl", "massNumber": 34, "stable": false, "halfLife": "1,53 s", "decay": "β⁺ 4,5, γ"}, "17_18": {"symbol": "Cl", "massNumber": 35, "stable": true, "halfLife": null, "decay": null}, "17_19": {"symbol": "Cl", "massNumber": 36, "stable": false, "halfLife": "3,01·10⁵ y", "decay": "β⁻ 0,66, β⁺, K-vangst"}, "17_20": {"symbol": "Cl", "massNumber": 37, "stable": true, "halfLife": null, "decay": null}, "17_21": {"symbol": "Cl", "massNumber": 38, "stable": false, "halfLife": "37,2 min", "decay": "β⁻ 4,81, γ"}, "17_22": {"symbol": "Cl", "massNumber": 39, "stable": false, "halfLife": "55,5 min", "decay": "β⁻ 2,5"}, "18_18": {"symbol": "Ar", "massNumber": 36, "stable": true, "halfLife": null, "decay": null}, "18_19": {"symbol": "Ar", "massNumber": 37, "stable": false, "halfLife": "35,0 d", "decay": "K-vangst"}, "18_20": {"symbol": "Ar", "massNumber": 38, "stable": true, "halfLife": null, "decay": null}, "18_21": {"symbol": "Ar", "massNumber": 39, "stable": false, "halfLife": "269 y", "decay": "β⁻ 0,565"}, "18_22": {"symbol": "Ar", "massNumber": 40, "stable": true, "halfLife": null, "decay": null}, "19_20": {"symbol": "K", "massNumber": 39, "stable": true, "halfLife": null, "decay": null}, "19_21": {"symbol": "K", "massNumber": 40, "stable": false, "halfLife": "1,28·10⁹ y", "decay": "β⁻ 1,33, K-vangst, γ"}, "19_22": {"symbol": "K", "massNumber": 41, "stable": true, "halfLife": null, "decay": null}, "19_23": {"symbol": "K", "massNumber": 42, "stable": false, "halfLife": "12,4 h", "decay": "β⁻ 3,55, γ"}, "20_20": {"symbol": "Ca", "massNumber": 40, "stable": true, "halfLife": null, "decay": null}, "20_21": {"symbol": "Ca", "massNumber": 41, "stable": false, "halfLife": "1,1·10⁵ y", "decay": "K-vangst"}, "20_22": {"symbol": "Ca", "massNumber": 42, "stable": true, "halfLife": null, "decay": null}, "20_23": {"symbol": "Ca", "massNumber": 43, "stable": true, "halfLife": null, "decay": null}, "20_24": {"symbol": "Ca", "massNumber": 44, "stable": true, "halfLife": null, "decay": null}, "20_25": {"symbol": "Ca", "massNumber": 45, "stable": false, "halfLife": "163 d", "decay": "β⁻ 0,256"}, "20_26": {"symbol": "Ca", "massNumber": 46, "stable": true, "halfLife": null, "decay": null}, "20_27": {"symbol": "Ca", "massNumber": 47, "stable": false, "halfLife": "4,54 d", "decay": "β⁻ 1,4, γ"}, "20_28": {"symbol": "Ca", "massNumber": 48, "stable": true, "halfLife": null, "decay": null}, "21_20": {"symbol": "Sc", "massNumber": 41, "stable": false, "halfLife": "0,60 s", "decay": "β⁺ 4,94"}, "22_22": {"symbol": "Ti", "massNumber": 44, "stable": false, "halfLife": "0,67 y", "decay": "K-vangst"}, "23_27": {"symbol": "V", "massNumber": 50, "stable": false, "halfLife": "1·10¹⁷ y", "decay": "β⁻, γ"}, "23_28": {"symbol": "V", "massNumber": 51, "stable": true, "halfLife": null, "decay": null}, "24_27": {"symbol": "Cr", "massNumber": 51, "stable": false, "halfLife": "27,7 d", "decay": "γ, K-vangst"}, "24_28": {"symbol": "Cr", "massNumber": 52, "stable": true, "halfLife": null, "decay": null}, "24_29": {"symbol": "Cr", "massNumber": 53, "stable": true, "halfLife": null, "decay": null}, "25_29": {"symbol": "Mn", "massNumber": 54, "stable": false, "halfLife": "312 d", "decay": "K-vangst, γ"}, "25_30": {"symbol": "Mn", "massNumber": 55, "stable": true, "halfLife": null, "decay": null}, "26_28": {"symbol": "Fe", "massNumber": 54, "stable": true, "halfLife": null, "decay": null}, "26_29": {"symbol": "Fe", "massNumber": 55, "stable": false, "halfLife": "2,7 y", "decay": "K-vangst"}, "26_30": {"symbol": "Fe", "massNumber": 56, "stable": true, "halfLife": null, "decay": null}, "26_31": {"symbol": "Fe", "massNumber": 57, "stable": true, "halfLife": null, "decay": null}, "26_32": {"symbol": "Fe", "massNumber": 58, "stable": true, "halfLife": null, "decay": null}, "26_33": {"symbol": "Fe", "massNumber": 59, "stable": false, "halfLife": "45 d", "decay": "β⁻ 1,56, γ"}, "27_29": {"symbol": "Co", "massNumber": 56, "stable": false, "halfLife": "77 d", "decay": "β⁺ 1,5, γ, K-vangst"}, "27_30": {"symbol": "Co", "massNumber": 57, "stable": false, "halfLife": "272 d", "decay": "K-vangst, γ"}, "27_31": {"symbol": "Co", "massNumber": 58, "stable": false, "halfLife": "70,9 d", "decay": "β⁺ 0,58, γ, K-vangst"}, "27_32": {"symbol": "Co", "massNumber": 59, "stable": true, "halfLife": null, "decay": null}, "27_33": {"symbol": "Co", "massNumber": 60, "stable": false, "halfLife": "5,27 y", "decay": "β⁻ 0,315 (0,12% 1,48), γ"}, "28_30": {"symbol": "Ni", "massNumber": 58, "stable": true, "halfLife": null, "decay": null}, "28_32": {"symbol": "Ni", "massNumber": 60, "stable": true, "halfLife": null, "decay": null}, "28_33": {"symbol": "Ni", "massNumber": 61, "stable": true, "halfLife": null, "decay": null}, "28_34": {"symbol": "Ni", "massNumber": 62, "stable": true, "halfLife": null, "decay": null}, "28_35": {"symbol": "Ni", "massNumber": 63, "stable": false, "halfLife": "100 y", "decay": "β⁻ 0,062"}, "28_36": {"symbol": "Ni", "massNumber": 64, "stable": true, "halfLife": null, "decay": null}, "28_37": {"symbol": "Ni", "massNumber": 65, "stable": false, "halfLife": "2,5 h", "decay": "β⁻ 2,10, γ"}, "29_34": {"symbol": "Cu", "massNumber": 63, "stable": true, "halfLife": null, "decay": null}, "29_35": {"symbol": "Cu", "massNumber": 64, "stable": false, "halfLife": "12,7 h", "decay": "β⁻ 0,573, β⁺, K-vangst"}, "29_36": {"symbol": "Cu", "massNumber": 65, "stable": true, "halfLife": null, "decay": null}, "30_34": {"symbol": "Zn", "massNumber": 64, "stable": true, "halfLife": null, "decay": null}, "30_35": {"symbol": "Zn", "massNumber": 65, "stable": false, "halfLife": "244 d", "decay": "β⁺ 0,33, K-vangst, γ"}, "30_36": {"symbol": "Zn", "massNumber": 66, "stable": true, "halfLife": null, "decay": null}, "30_37": {"symbol": "Zn", "massNumber": 67, "stable": true, "halfLife": null, "decay": null}, "30_38": {"symbol": "Zn", "massNumber": 68, "stable": true, "halfLife": null, "decay": null}, "30_39": {"symbol": "Zn", "massNumber": 69, "stable": false, "halfLife": "56 min", "decay": "β⁻ 0,90"}, "30_40": {"symbol": "Zn", "massNumber": 70, "stable": true, "halfLife": null, "decay": null}, "31_36": {"symbol": "Ga", "massNumber": 67, "stable": false, "halfLife": "3,26 d", "decay": "K-vangst, γ"}, "31_38": {"symbol": "Ga", "massNumber": 69, "stable": true, "halfLife": null, "decay": null}, "31_40": {"symbol": "Ga", "massNumber": 71, "stable": true, "halfLife": null, "decay": null}, "31_41": {"symbol": "Ga", "massNumber": 72, "stable": false, "halfLife": "14,1 h", "decay": "β⁻ 3,16"}, "32_42": {"symbol": "Ge", "massNumber": 74, "stable": true, "halfLife": null, "decay": null}, "33_41": {"symbol": "As", "massNumber": 74, "stable": false, "halfLife": "18 d", "decay": "β⁻ 1,4, β⁺ 0,94, γ"}, "33_42": {"symbol": "As", "massNumber": 75, "stable": true, "halfLife": null, "decay": null}, "33_43": {"symbol": "As", "massNumber": 76, "stable": false, "halfLife": "1,08 d", "decay": "β⁻ 2,97"}, "33_44": {"symbol": "As", "massNumber": 77, "stable": false, "halfLife": "40 h", "decay": "β⁻ 0,68"}, "34_46": {"symbol": "Se", "massNumber": 80, "stable": true, "halfLife": null, "decay": null}, "35_44": {"symbol": "Br", "massNumber": 79, "stable": true, "halfLife": null, "decay": null}, "35_45": {"symbol": "Br", "massNumber": 80, "stable": false, "halfLife": "17,7 min", "decay": "β⁻ 2,0, β⁺"}, "35_46": {"symbol": "Br", "massNumber": 81, "stable": true, "halfLife": null, "decay": null}, "35_47": {"symbol": "Br", "massNumber": 82, "stable": false, "halfLife": "35,3 h", "decay": "β⁻ 0,465, γ"}, "35_52": {"symbol": "Br", "massNumber": 87, "stable": false, "halfLife": "55 s", "decay": "β⁻ 8,0, γ"}, "36_44": {"symbol": "Kr", "massNumber": 80, "stable": true, "halfLife": null, "decay": null}, "36_45": {"symbol": "Kr", "massNumber": 81, "stable": false, "halfLife": "2,3·10⁵ y", "decay": "K-vangst"}, "36_46": {"symbol": "Kr", "massNumber": 82, "stable": true, "halfLife": null, "decay": null}, "36_47": {"symbol": "Kr", "massNumber": 83, "stable": true, "halfLife": null, "decay": null}, "36_48": {"symbol": "Kr", "massNumber": 84, "stable": true, "halfLife": null, "decay": null}, "36_49": {"symbol": "Kr", "massNumber": 85, "stable": false, "halfLife": "10,7 y", "decay": "β⁻ 0,85"}, "36_50": {"symbol": "Kr", "massNumber": 86, "stable": true, "halfLife": null, "decay": null}, "36_51": {"symbol": "Kr", "massNumber": 87, "stable": false, "halfLife": "76,3 min", "decay": "β⁻ 3,8, γ"}, "36_53": {"symbol": "Kr", "massNumber": 89, "stable": false, "halfLife": "3,2 min", "decay": "β⁻ 4,0"}, "37_44": {"symbol": "Rb", "massNumber": 81, "stable": false, "halfLife": "4,6 h", "decay": "β⁻ 1,05, K-vangst, γ"}, "37_48": {"symbol": "Rb", "massNumber": 85, "stable": true, "halfLife": null, "decay": null}, "37_49": {"symbol": "Rb", "massNumber": 86, "stable": false, "halfLife": "18,6 d", "decay": "β⁻ 1,77, γ"}, "37_50": {"symbol": "Rb", "massNumber": 87, "stable": false, "halfLife": "4,8·10¹⁰ y", "decay": "β⁻ 0,274"}, "38_49": {"symbol": "Sr", "massNumber": 87, "stable": true, "halfLife": null, "decay": null}, "38_50": {"symbol": "Sr", "massNumber": 88, "stable": true, "halfLife": null, "decay": null}, "38_51": {"symbol": "Sr", "massNumber": 89, "stable": false, "halfLife": "51 d", "decay": "β⁻ 1,5, γ"}, "38_52": {"symbol": "Sr", "massNumber": 90, "stable": false, "halfLife": "28 y", "decay": "β⁻ 0,6"}, "38_56": {"symbol": "Sr", "massNumber": 94, "stable": false, "halfLife": "1,3 min", "decay": "β⁻ 2,1, γ"}, "39_49": {"symbol": "Y", "massNumber": 88, "stable": false, "halfLife": "107 d", "decay": "β⁺ 0,83, γ"}, "39_50": {"symbol": "Y", "massNumber": 89, "stable": true, "halfLife": null, "decay": null}, "39_51": {"symbol": "Y", "massNumber": 90, "stable": false, "halfLife": "64 h", "decay": "β⁻ 2,3, γ"}, "40_50": {"symbol": "Zr", "massNumber": 90, "stable": true, "halfLife": null, "decay": null}, "41_52": {"symbol": "Nb", "massNumber": 93, "stable": true, "halfLife": null, "decay": null}, "42_57": {"symbol": "Mo", "massNumber": 99, "stable": false, "halfLife": "65,9 h", "decay": "β⁻ 1,23, γ"}, "43_56": {"symbol": "Tc", "massNumber": 99, "stable": false, "halfLife": "2,1·10⁵ y", "decay": "β⁻ 0,32"}, "44_58": {"symbol": "Ru", "massNumber": 102, "stable": true, "halfLife": null, "decay": null}, "44_59": {"symbol": "Ru", "massNumber": 103, "stable": false, "halfLife": "40 d", "decay": "β⁻ 6,84, γ"}, "44_60": {"symbol": "Ru", "massNumber": 104, "stable": true, "halfLife": null, "decay": null}, "45_58": {"symbol": "Rh", "massNumber": 103, "stable": true, "halfLife": null, "decay": null}, "46_61": {"symbol": "Pd", "massNumber": 107, "stable": true, "halfLife": null, "decay": null}, "47_60": {"symbol": "Ag", "massNumber": 107, "stable": true, "halfLife": null, "decay": null}, "47_61": {"symbol": "Ag", "massNumber": 108, "stable": false, "halfLife": "2,37 min", "decay": "β⁻ 1,49, γ"}, "47_62": {"symbol": "Ag", "massNumber": 109, "stable": true, "halfLife": null, "decay": null}, "47_63": {"symbol": "Ag", "massNumber": 110, "stable": false, "halfLife": "25 s", "decay": "β⁻ 2,8"}, "48_60": {"symbol": "Cd", "massNumber": 108, "stable": true, "halfLife": null, "decay": null}, "48_61": {"symbol": "Cd", "massNumber": 109, "stable": false, "halfLife": "463 d", "decay": "K-vangst, γ"}, "48_62": {"symbol": "Cd", "massNumber": 110, "stable": true, "halfLife": null, "decay": null}, "49_62": {"symbol": "In", "massNumber": 111, "stable": false, "halfLife": "2,8 d", "decay": "K-vangst, γ"}, "49_64": {"symbol": "In", "massNumber": 113, "stable": true, "halfLife": null, "decay": null}, "49_65": {"symbol": "In", "massNumber": 114, "stable": false, "halfLife": "72 s", "decay": "β⁻ 2,0, K-vangst"}, "49_66": {"symbol": "In", "massNumber": 115, "stable": false, "halfLife": "4,4·10¹⁴ y", "decay": "γ"}, "49_67": {"symbol": "In", "massNumber": 116, "stable": false, "halfLife": "13 s", "decay": "β⁻ 2,8"}, "50_63": {"symbol": "Sn", "massNumber": 113, "stable": false, "halfLife": "115 d", "decay": "K-vangst, γ"}, "50_65": {"symbol": "Sn", "massNumber": 115, "stable": true, "halfLife": null, "decay": null}, "50_66": {"symbol": "Sn", "massNumber": 116, "stable": true, "halfLife": null, "decay": null}, "50_70": {"symbol": "Sn", "massNumber": 120, "stable": true, "halfLife": null, "decay": null}, "50_71": {"symbol": "Sn", "massNumber": 121, "stable": false, "halfLife": "27,1 h", "decay": "β⁻ 0,4"}, "51_70": {"symbol": "Sb", "massNumber": 121, "stable": true, "halfLife": null, "decay": null}, "51_71": {"symbol": "Sb", "massNumber": 122, "stable": false, "halfLife": "2,72 d", "decay": "β⁻, β⁺ 1,98, γ"}, "51_72": {"symbol": "Sb", "massNumber": 123, "stable": true, "halfLife": null, "decay": null}, "52_76": {"symbol": "Te", "massNumber": 128, "stable": true, "halfLife": null, "decay": null}, "53_70": {"symbol": "I", "massNumber": 123, "stable": false, "halfLife": "13,2 h", "decay": "K-vangst, γ"}, "53_72": {"symbol": "I", "massNumber": 125, "stable": false, "halfLife": "59 d", "decay": "K-vangst, γ"}, "53_74": {"symbol": "I", "massNumber": 127, "stable": true, "halfLife": null, "decay": null}, "53_75": {"symbol": "I", "massNumber": 128, "stable": false, "halfLife": "25,0 min", "decay": "β⁻ 2,02, γ"}, "53_78": {"symbol": "I", "massNumber": 131, "stable": false, "halfLife": "8,0 d", "decay": "β⁻ 0,60, γ"}, "54_74": {"symbol": "Xe", "massNumber": 128, "stable": true, "halfLife": null, "decay": null}, "54_78": {"symbol": "Xe", "massNumber": 132, "stable": true, "halfLife": null, "decay": null}, "54_79": {"symbol": "Xe", "massNumber": 133, "stable": false, "halfLife": "5,2 d", "decay": "β⁻ 0,35, γ"}, "54_86": {"symbol": "Xe", "massNumber": 140, "stable": false, "halfLife": "16 s", "decay": "β⁻, γ"}, "55_78": {"symbol": "Cs", "massNumber": 133, "stable": true, "halfLife": null, "decay": null}, "55_82": {"symbol": "Cs", "massNumber": 137, "stable": false, "halfLife": "30 y", "decay": "β⁻ 1,17, γ"}, "56_77": {"symbol": "Ba", "massNumber": 133, "stable": false, "halfLife": "10,8 y", "decay": "K-vangst, γ"}, "56_81": {"symbol": "Ba", "massNumber": 137, "stable": true, "halfLife": null, "decay": null}, "56_82": {"symbol": "Ba", "massNumber": 138, "stable": true, "halfLife": null, "decay": null}, "56_84": {"symbol": "Ba", "massNumber": 140, "stable": false, "halfLife": "12,8 d", "decay": "β⁻ 1,02, γ"}, "56_88": {"symbol": "Ba", "massNumber": 144, "stable": false, "halfLife": "11,9 s", "decay": "β⁻"}, "57_81": {"symbol": "La", "massNumber": 138, "stable": false, "halfLife": "1,1·10¹¹ y", "decay": "β⁻ 0,21, K-vangst"}, "57_83": {"symbol": "La", "massNumber": 140, "stable": false, "halfLife": "1,7 d", "decay": "β⁻ 1,35, γ"}, "58_81": {"symbol": "Ce", "massNumber": 139, "stable": false, "halfLife": "138 d", "decay": "K-vangst, γ"}, "58_82": {"symbol": "Ce", "massNumber": 140, "stable": true, "halfLife": null, "decay": null}, "58_83": {"symbol": "Ce", "massNumber": 141, "stable": false, "halfLife": "32 d", "decay": "β⁻ 0,56, γ"}, "58_84": {"symbol": "Ce", "massNumber": 142, "stable": false, "halfLife": "5·10¹⁵ y", "decay": null}, "59_82": {"symbol": "Pr", "massNumber": 141, "stable": true, "halfLife": null, "decay": null}, "60_82": {"symbol": "Nd", "massNumber": 142, "stable": true, "halfLife": null, "decay": null}, "61_84": {"symbol": "Pm", "massNumber": 145, "stable": false, "halfLife": "17,7 y", "decay": "α, K-vangst"}, "62_85": {"symbol": "Sm", "massNumber": 147, "stable": false, "halfLife": "17,7 y", "decay": "α 2,1, β⁻ 0,210, γ"}, "63_89": {"symbol": "Eu", "massNumber": 152, "stable": false, "halfLife": "13,5 y", "decay": "β⁻, K-vangst"}, "64_94": {"symbol": "Gd", "massNumber": 158, "stable": true, "halfLife": null, "decay": null}, "65_93": {"symbol": "Tb", "massNumber": 158, "stable": false, "halfLife": "180 y", "decay": "β⁻, K-vangst"}, "66_88": {"symbol": "Dy", "massNumber": 154, "stable": false, "halfLife": "3·10⁶ y", "decay": "α"}, "67_96": {"symbol": "Ho", "massNumber": 163, "stable": false, "halfLife": "4570 y", "decay": "K-vangst"}, "68_101": {"symbol": "Er", "massNumber": 169, "stable": false, "halfLife": "9,40 d", "decay": "β⁻"}, "69_102": {"symbol": "Tm", "massNumber": 171, "stable": false, "halfLife": "1,92 y", "decay": "β⁻"}, "70_99": {"symbol": "Yb", "massNumber": 169, "stable": false, "halfLife": "32,03 d", "decay": "K-vangst"}, "71_105": {"symbol": "Lu", "massNumber": 176, "stable": false, "halfLife": "2,2·10¹⁰ y", "decay": "β⁻ 0,430, γ"}, "72_108": {"symbol": "Hf", "massNumber": 180, "stable": true, "halfLife": null, "decay": null}, "72_109": {"symbol": "Hf", "massNumber": 181, "stable": false, "halfLife": "43 d", "decay": "β⁻ 0,41, γ"}, "73_108": {"symbol": "Ta", "massNumber": 181, "stable": true, "halfLife": null, "decay": null}, "73_109": {"symbol": "Ta", "massNumber": 182, "stable": false, "halfLife": "115 d", "decay": "β⁻ 0,53, γ"}, "74_110": {"symbol": "W", "massNumber": 184, "stable": true, "halfLife": null, "decay": null}, "74_111": {"symbol": "W", "massNumber": 185, "stable": false, "halfLife": "74 d", "decay": "β⁻ 0,43"}, "74_112": {"symbol": "W", "massNumber": 186, "stable": true, "halfLife": null, "decay": null}, "75_108": {"symbol": "Re", "massNumber": 183, "stable": false, "halfLife": "70 d", "decay": "K-vangst"}, "76_115": {"symbol": "Os", "massNumber": 191, "stable": false, "halfLife": "6,0 y", "decay": "β⁻"}, "77_114": {"symbol": "Ir", "massNumber": 191, "stable": true, "halfLife": null, "decay": null}, "77_115": {"symbol": "Ir", "massNumber": 192, "stable": false, "halfLife": "74 d", "decay": "β⁻, β⁺, γ"}, "77_116": {"symbol": "Ir", "massNumber": 193, "stable": true, "halfLife": null, "decay": null}, "78_117": {"symbol": "Pt", "massNumber": 195, "stable": true, "halfLife": null, "decay": null}, "79_113": {"symbol": "Au", "massNumber": 192, "stable": false, "halfLife": "4,0 h", "decay": "β⁻ 1,9, K-vangst, γ"}, "79_118": {"symbol": "Au", "massNumber": 197, "stable": true, "halfLife": null, "decay": null}, "80_122": {"symbol": "Hg", "massNumber": 202, "stable": true, "halfLife": null, "decay": null}, "80_123": {"symbol": "Hg", "massNumber": 203, "stable": false, "halfLife": "46,5 d", "decay": "β⁻ 0,208, γ"}, "80_124": {"symbol": "Hg", "massNumber": 204, "stable": true, "halfLife": null, "decay": null}, "80_125": {"symbol": "Hg", "massNumber": 205, "stable": false, "halfLife": "5,5 min", "decay": "β⁻ 1,75"}, "81_122": {"symbol": "Tl", "massNumber": 203, "stable": true, "halfLife": null, "decay": null}, "81_123": {"symbol": "Tl", "massNumber": 204, "stable": false, "halfLife": "2,7 y", "decay": "β⁻ 0,76, K-vangst"}, "81_124": {"symbol": "Tl", "massNumber": 205, "stable": true, "halfLife": null, "decay": null}, "81_125": {"symbol": "Tl", "massNumber": 206, "stable": false, "halfLife": "4,2 min", "decay": "β⁺ 1,8"}, "81_126": {"symbol": "Tl", "massNumber": 207, "stable": false, "halfLife": "4,76 min", "decay": "β⁻ 1,47, γ"}, "81_127": {"symbol": "Tl", "massNumber": 208, "stable": false, "halfLife": "3,1 min", "decay": "β⁻ 1,82, γ"}, "81_128": {"symbol": "Tl", "massNumber": 209, "stable": false, "halfLife": "2,2 min", "decay": "β⁻ 1,8"}, "81_129": {"symbol": "Tl", "massNumber": 210, "stable": false, "halfLife": "1,32 min", "decay": "β⁻ 1,80"}, "82_122": {"symbol": "Pb", "massNumber": 204, "stable": false, "halfLife": "1,4·10¹⁷ y", "decay": "γ"}, "82_124": {"symbol": "Pb", "massNumber": 206, "stable": true, "halfLife": null, "decay": null}, "82_125": {"symbol": "Pb", "massNumber": 207, "stable": true, "halfLife": null, "decay": null}, "82_126": {"symbol": "Pb", "massNumber": 208, "stable": true, "halfLife": null, "decay": null}, "82_127": {"symbol": "Pb", "massNumber": 209, "stable": false, "halfLife": "3,3 h", "decay": "β⁻ 0,72"}, "82_128": {"symbol": "Pb", "massNumber": 210, "stable": false, "halfLife": "22,6 y", "decay": "β⁻ 0,025, γ"}, "82_129": {"symbol": "Pb", "massNumber": 211, "stable": false, "halfLife": "36,1 min", "decay": "β⁻ 0,5, γ"}, "82_130": {"symbol": "Pb", "massNumber": 212, "stable": false, "halfLife": "10,6 h", "decay": "β⁻ 0,59, γ"}, "82_132": {"symbol": "Pb", "massNumber": 214, "stable": false, "halfLife": "26,8 min", "decay": "β⁻ 0,65, γ"}, "83_124": {"symbol": "Bi", "massNumber": 207, "stable": false, "halfLife": "35 y", "decay": "K-vangst, γ"}, "83_126": {"symbol": "Bi", "massNumber": 209, "stable": true, "halfLife": null, "decay": null}, "83_127": {"symbol": "Bi", "massNumber": 210, "stable": false, "halfLife": "5,0 d", "decay": "α 5,0, β⁻, γ"}, "83_128": {"symbol": "Bi", "massNumber": 211, "stable": false, "halfLife": "2,16 min", "decay": "α 6,62, β⁻, γ"}, "83_129": {"symbol": "Bi", "massNumber": 212, "stable": false, "halfLife": "60,6 min", "decay": "α 6,09, β⁻, γ"}, "83_130": {"symbol": "Bi", "massNumber": 213, "stable": false, "halfLife": "46,5 min", "decay": "β⁻ 1,2, α"}, "83_131": {"symbol": "Bi", "massNumber": 214, "stable": false, "halfLife": "19,7 min", "decay": "β⁻ 3,3, α 5,50"}, "84_125": {"symbol": "Po", "massNumber": 209, "stable": false, "halfLife": "102 y", "decay": "α 4,09"}, "84_126": {"symbol": "Po", "massNumber": 210, "stable": false, "halfLife": "138 d", "decay": "α 5,4, γ"}, "84_127": {"symbol": "Po", "massNumber": 211, "stable": false, "halfLife": "0,5 s", "decay": "α 7,434"}, "84_128": {"symbol": "Po", "massNumber": 212, "stable": false, "halfLife": "3·10⁻⁷ s", "decay": "α 8,776"}, "84_129": {"symbol": "Po", "massNumber": 213, "stable": false, "halfLife": "3,2·10⁻⁶ s", "decay": "α 8,3"}, "84_130": {"symbol": "Po", "massNumber": 214, "stable": false, "halfLife": "1,6·10⁻⁴ s", "decay": "α 7,68"}, "84_131": {"symbol": "Po", "massNumber": 215, "stable": false, "halfLife": "1,83·10⁻³ s", "decay": "α 7,365"}, "84_132": {"symbol": "Po", "massNumber": 216, "stable": false, "halfLife": "0,158 s", "decay": "α 6,774, β⁻"}, "84_134": {"symbol": "Po", "massNumber": 218, "stable": false, "halfLife": "3,05 min", "decay": "α 5,998, β⁻"}, "85_130": {"symbol": "At", "massNumber": 215, "stable": false, "halfLife": "10⁻⁴ s", "decay": "α 8,04"}, "85_131": {"symbol": "At", "massNumber": 216, "stable": false, "halfLife": "3·10⁻⁴ s", "decay": "α 7,64"}, "85_132": {"symbol": "At", "massNumber": 217, "stable": false, "halfLife": "2·10⁻³ s", "decay": "α 7,0"}, "85_133": {"symbol": "At", "massNumber": 218, "stable": false, "halfLife": "2 s", "decay": "α 6,63"}, "86_132": {"symbol": "Rn", "massNumber": 218, "stable": false, "halfLife": "1,9·10⁻³ s", "decay": "α 8,1"}, "86_133": {"symbol": "Rn", "massNumber": 219, "stable": false, "halfLife": "3,92 s", "decay": "α 6,824"}, "86_134": {"symbol": "Rn", "massNumber": 220, "stable": false, "halfLife": "55,6 s", "decay": "α 6,4"}, "86_136": {"symbol": "Rn", "massNumber": 222, "stable": false, "halfLife": "3,825 d", "decay": "α 5,486"}, "87_134": {"symbol": "Fr", "massNumber": 221, "stable": false, "halfLife": "4,8 min", "decay": "α 6,3"}, "87_136": {"symbol": "Fr", "massNumber": 223, "stable": false, "halfLife": "21 min", "decay": "β⁻ 1,2, γ"}, "87_137": {"symbol": "Fr", "massNumber": 224, "stable": false, "halfLife": "3,0 min", "decay": "β⁻ 2,8, γ"}, "88_135": {"symbol": "Ra", "massNumber": 223, "stable": false, "halfLife": "11,2 d", "decay": "α 5,719, γ"}, "88_136": {"symbol": "Ra", "massNumber": 224, "stable": false, "halfLife": "3,64 d", "decay": "α 5,7"}, "88_138": {"symbol": "Ra", "massNumber": 226, "stable": false, "halfLife": "1,60·10³ y", "decay": "α 4,79, γ"}, "88_140": {"symbol": "Ra", "massNumber": 228, "stable": false, "halfLife": "5,75 y", "decay": "β⁻ 0,046"}, "89_136": {"symbol": "Ac", "massNumber": 225, "stable": false, "halfLife": "10,0 d", "decay": "α 5,8"}, "89_138": {"symbol": "Ac", "massNumber": 227, "stable": false, "halfLife": "27,7 y", "decay": "β⁻ 0,04, γ, α 4,94"}, "89_139": {"symbol": "Ac", "massNumber": 228, "stable": false, "halfLife": "6,13 h", "decay": "β⁻, γ, α 4,54"}, "90_137": {"symbol": "Th", "massNumber": 227, "stable": false, "halfLife": "18,7 d", "decay": "α 6,05, γ"}, "90_138": {"symbol": "Th", "massNumber": 228, "stable": false, "halfLife": "1,9 y", "decay": "α 5,42, γ"}, "90_139": {"symbol": "Th", "massNumber": 229, "stable": false, "halfLife": "7900 y", "decay": "α 5,02"}, "90_140": {"symbol": "Th", "massNumber": 230, "stable": false, "halfLife": "7,5·10⁴ y", "decay": "α 4,68, γ"}, "90_141": {"symbol": "Th", "massNumber": 231, "stable": false, "halfLife": "1,06 d", "decay": "β⁻ 0,302, γ"}, "90_142": {"symbol": "Th", "massNumber": 232, "stable": false, "halfLife": "1,4·10¹⁰ y", "decay": "α 3,98, γ"}, "90_143": {"symbol": "Th", "massNumber": 233, "stable": false, "halfLife": "22,2 min", "decay": "β⁻ 1,23"}, "90_144": {"symbol": "Th", "massNumber": 234, "stable": false, "halfLife": "24,1 d", "decay": "β⁻ 0,192, γ"}, "91_140": {"symbol": "Pa", "massNumber": 231, "stable": false, "halfLife": "3,25·10⁴ y", "decay": "α 4,66"}, "91_142": {"symbol": "Pa", "massNumber": 233, "stable": false, "halfLife": "27,0 d", "decay": "β⁻ 0,53"}, "91_143": {"symbol": "Pa", "massNumber": 234, "stable": false, "halfLife": "6,69 h", "decay": "β⁻ 2,2"}, "92_141": {"symbol": "U", "massNumber": 233, "stable": false, "halfLife": "1,6·10⁵ y", "decay": "α 4,83, β⁻, K-vangst"}, "92_142": {"symbol": "U", "massNumber": 234, "stable": false, "halfLife": "2,5·10⁵ y", "decay": "α 4,76"}, "92_143": {"symbol": "U", "massNumber": 235, "stable": false, "halfLife": "7,04·10⁸ y", "decay": "α 4,52"}, "92_144": {"symbol": "U", "massNumber": 236, "stable": false, "halfLife": "2,34·10⁷ y", "decay": "α 4,49, γ"}, "92_146": {"symbol": "U", "massNumber": 238, "stable": false, "halfLife": "4,46·10⁹ y", "decay": "α 4,18, γ"}, "93_144": {"symbol": "Np", "massNumber": 237, "stable": false, "halfLife": "2,14·10⁶ y", "decay": "α 4,77, γ"}, "93_146": {"symbol": "Np", "massNumber": 239, "stable": false, "halfLife": "2,4 d", "decay": "β⁻ 0,57, γ"}, "94_145": {"symbol": "Pu", "massNumber": 239, "stable": false, "halfLife": "2,4·10⁴ y", "decay": "α 5,2, γ"}, "94_146": {"symbol": "Pu", "massNumber": 240, "stable": false, "halfLife": "6,5·10³ y", "decay": "α 5,1"}, "94_147": {"symbol": "Pu", "massNumber": 241, "stable": false, "halfLife": "14 y", "decay": "α 4,91, β⁻"}, "94_150": {"symbol": "Pu", "massNumber": 244, "stable": false, "halfLife": "8,2·10⁷ y", "decay": "α 4,7"}, "95_146": {"symbol": "Am", "massNumber": 241, "stable": false, "halfLife": "432 y", "decay": "α 5,6, γ"}, "95_148": {"symbol": "Am", "massNumber": 243, "stable": false, "halfLife": "7,4·10³ y", "decay": "α 5,4, γ"}, "96_149": {"symbol": "Cm", "massNumber": 245, "stable": false, "halfLife": "8,5·10³ y", "decay": "α 5,6, γ"}, "96_151": {"symbol": "Cm", "massNumber": 247, "stable": false, "halfLife": "1,6·10⁷ y", "decay": "α 5,4, γ"}, "97_150": {"symbol": "Bk", "massNumber": 247, "stable": false, "halfLife": "1400 y", "decay": "α"}, "98_153": {"symbol": "Cf", "massNumber": 251, "stable": false, "halfLife": "898 y", "decay": "α, β⁻, K-vangst"}, "99_153": {"symbol": "Es", "massNumber": 252, "stable": false, "halfLife": "1,29 y", "decay": "α, β⁻, K-vangst"}, "100_149": {"symbol": "Fm", "massNumber": 249, "stable": false, "halfLife": "3 min", "decay": "α 7,5, K-vangst"}, "100_157": {"symbol": "Fm", "massNumber": 257, "stable": false, "halfLife": "100 d", "decay": "α 6,5, γ"}, "101_154": {"symbol": "Md", "massNumber": 255, "stable": false, "halfLife": "27 min", "decay": "α 7,30, K-vangst, α 7,2"}, "101_156": {"symbol": "Md", "massNumber": 257, "stable": false, "halfLife": "5,5 h", "decay": "K-vangst"}, "102_157": {"symbol": "No", "massNumber": 259, "stable": false, "halfLife": "58 min", "decay": "α, K-vangst"}, "103_154": {"symbol": "Lr", "massNumber": 257, "stable": false, "halfLife": "0,7 s", "decay": "α 8,6, K-vangst"}, "104_155": {"symbol": "Rf", "massNumber": 259, "stable": false, "halfLife": "3 s", "decay": "α 9,2"}, "104_156": {"symbol": "Rf", "massNumber": 260, "stable": false, "halfLife": "20·10⁻³ s", "decay": "splijting"}, "105_155": {"symbol": "Db", "massNumber": 260, "stable": false, "halfLife": "1,5 s", "decay": "α 9,1"}, "105_157": {"symbol": "Db", "massNumber": 262, "stable": false, "halfLife": "34 s", "decay": "α 8,5, splijting"}, "106_153": {"symbol": "Sg", "massNumber": 259, "stable": false, "halfLife": "0,5 s", "decay": "α 9,6, splijting"}, "106_157": {"symbol": "Sg", "massNumber": 263, "stable": false, "halfLife": "0,8 s", "decay": "α 9,1, splijting"}, "107_154": {"symbol": "Bh", "massNumber": 261, "stable": false, "halfLife": "12·10⁻³ s", "decay": "α 10,4, splijting"}, "108_159": {"symbol": "Hs", "massNumber": 267, "stable": false, "halfLife": "60·10⁻³ s", "decay": "α 9,8"}, "109_159": {"symbol": "Mt", "massNumber": 268, "stable": false, "halfLife": "0,07 s", "decay": "α 10"}, "110_161": {"symbol": "Ds", "massNumber": 271, "stable": false, "halfLife": "0,06 s", "decay": "α"}, "111_161": {"symbol": "Rg", "massNumber": 272, "stable": false, "halfLife": "1,5·10⁻³ s", "decay": "α"}, "112_165": {"symbol": "Cn", "massNumber": 277, "stable": false, "halfLife": "0,24·10⁻³ s", "decay": "α"}};
+const ELEMENT_SYMBOLS = {"0": "n", "1": "H", "2": "He", "3": "Li", "4": "Be", "5": "B", "6": "C", "7": "N", "8": "O", "9": "F", "10": "Ne", "11": "Na", "12": "Mg", "13": "Al", "14": "Si", "15": "P", "16": "S", "17": "Cl", "18": "Ar", "19": "K", "20": "Ca", "21": "Sc", "22": "Ti", "23": "V", "24": "Cr", "25": "Mn", "26": "Fe", "27": "Co", "28": "Ni", "29": "Cu", "30": "Zn", "31": "Ga", "32": "Ge", "33": "As", "34": "Se", "35": "Br", "36": "Kr", "37": "Rb", "38": "Sr", "39": "Y", "40": "Zr", "41": "Nb", "42": "Mo", "43": "Tc", "44": "Ru", "45": "Rh", "46": "Pd", "47": "Ag", "48": "Cd", "49": "In", "50": "Sn", "51": "Sb", "52": "Te", "53": "I", "54": "Xe", "55": "Cs", "56": "Ba", "57": "La", "58": "Ce", "59": "Pr", "60": "Nd", "61": "Pm", "62": "Sm", "63": "Eu", "64": "Gd", "65": "Tb", "66": "Dy", "67": "Ho", "68": "Er", "69": "Tm", "70": "Yb", "71": "Lu", "72": "Hf", "73": "Ta", "74": "W", "75": "Re", "76": "Os", "77": "Ir", "78": "Pt", "79": "Au", "80": "Hg", "81": "Tl", "82": "Pb", "83": "Bi", "84": "Po", "85": "At", "86": "Rn", "87": "Fr", "88": "Ra", "89": "Ac", "90": "Th", "91": "Pa", "92": "U", "93": "Np", "94": "Pu", "95": "Am", "96": "Cm", "97": "Bk", "98": "Cf", "99": "Es", "100": "Fm", "101": "Md", "102": "No", "103": "Lr", "104": "Rf", "105": "Db", "106": "Sg", "107": "Bh", "108": "Hs", "109": "Mt", "110": "Ds", "111": "Rg", "112": "Cn"};
+// Nederlandse elementnamen 1-36 (schools Nederlands, bv. titaan i.p.v. titanium).
+const ELEMENT_NAMES = {"1": "Waterstof", "2": "Helium", "3": "Lithium", "4": "Beryllium", "5": "Boor", "6": "Koolstof", "7": "Stikstof", "8": "Zuurstof", "9": "Fluor", "10": "Neon", "11": "Natrium", "12": "Magnesium", "13": "Aluminium", "14": "Silicium", "15": "Fosfor", "16": "Zwavel", "17": "Chloor", "18": "Argon", "19": "Kalium", "20": "Calcium", "21": "Scandium", "22": "Titaan", "23": "Vanadium", "24": "Chroom", "25": "Mangaan", "26": "IJzer", "27": "Kobalt", "28": "Nikkel", "29": "Koper", "30": "Zink", "31": "Gallium", "32": "Germanium", "33": "Arsenicum", "34": "Seleen", "35": "Broom", "36": "Krypton"};
+
+// Correcte schoolse Bohr-elektronenconfiguraties, element 1 t/m 36.
+const BOHR_CONFIG = {"1": [1], "2": [2], "3": [2, 1], "4": [2, 2], "5": [2, 3], "6": [2, 4], "7": [2, 5], "8": [2, 6], "9": [2, 7], "10": [2, 8], "11": [2, 8, 1], "12": [2, 8, 2], "13": [2, 8, 3], "14": [2, 8, 4], "15": [2, 8, 5], "16": [2, 8, 6], "17": [2, 8, 7], "18": [2, 8, 8], "19": [2, 8, 8, 1], "20": [2, 8, 8, 2], "21": [2, 8, 9, 2], "22": [2, 8, 10, 2], "23": [2, 8, 11, 2], "24": [2, 8, 13, 1], "25": [2, 8, 13, 2], "26": [2, 8, 14, 2], "27": [2, 8, 15, 2], "28": [2, 8, 16, 2], "29": [2, 8, 18, 1], "30": [2, 8, 18, 2], "31": [2, 8, 18, 3], "32": [2, 8, 18, 4], "33": [2, 8, 18, 5], "34": [2, 8, 18, 6], "35": [2, 8, 18, 7], "36": [2, 8, 18, 8]};
+
+// Alfa/beta-vervalgegevens, afgeleid uit BINAS tabel 25.
+const DECAY_ISOTOPES = [{"protons": 1, "neutrons": 2, "symbol": "H", "massNumber": 3, "halfLife": "12,3 y", "decayType": "beta_min", "newProtons": 2, "newNeutrons": 1, "newMassNumber": 3, "newSymbol": "He"}, {"protons": 2, "neutrons": 4, "symbol": "He", "massNumber": 6, "halfLife": "0,807 s", "decayType": "beta_min", "newProtons": 3, "newNeutrons": 3, "newMassNumber": 6, "newSymbol": "Li"}, {"protons": 3, "neutrons": 5, "symbol": "Li", "massNumber": 8, "halfLife": "0,838 s", "decayType": "beta_min", "newProtons": 4, "newNeutrons": 4, "newMassNumber": 8, "newSymbol": "Be"}, {"protons": 4, "neutrons": 6, "symbol": "Be", "massNumber": 10, "halfLife": "1,5·10⁶ y", "decayType": "beta_min", "newProtons": 5, "newNeutrons": 5, "newMassNumber": 10, "newSymbol": "B"}, {"protons": 5, "neutrons": 3, "symbol": "B", "massNumber": 8, "halfLife": "0,770 s", "decayType": "beta_plus", "newProtons": 4, "newNeutrons": 4, "newMassNumber": 8, "newSymbol": "Be"}, {"protons": 5, "neutrons": 7, "symbol": "B", "massNumber": 12, "halfLife": "0,020 s", "decayType": "beta_min", "newProtons": 6, "newNeutrons": 6, "newMassNumber": 12, "newSymbol": "C"}, {"protons": 6, "neutrons": 4, "symbol": "C", "massNumber": 10, "halfLife": "19,2 s", "decayType": "beta_plus", "newProtons": 5, "newNeutrons": 5, "newMassNumber": 10, "newSymbol": "B"}, {"protons": 6, "neutrons": 5, "symbol": "C", "massNumber": 11, "halfLife": "20,4 min", "decayType": "beta_plus", "newProtons": 5, "newNeutrons": 6, "newMassNumber": 11, "newSymbol": "B"}, {"protons": 6, "neutrons": 8, "symbol": "C", "massNumber": 14, "halfLife": "5730 y", "decayType": "beta_min", "newProtons": 7, "newNeutrons": 7, "newMassNumber": 14, "newSymbol": "N"}, {"protons": 7, "neutrons": 5, "symbol": "N", "massNumber": 12, "halfLife": "0,0110 s", "decayType": "beta_plus", "newProtons": 6, "newNeutrons": 6, "newMassNumber": 12, "newSymbol": "C"}, {"protons": 7, "neutrons": 6, "symbol": "N", "massNumber": 13, "halfLife": "9,97 min", "decayType": "beta_plus", "newProtons": 6, "newNeutrons": 7, "newMassNumber": 13, "newSymbol": "C"}, {"protons": 7, "neutrons": 9, "symbol": "N", "massNumber": 16, "halfLife": "7,13 s", "decayType": "beta_min", "newProtons": 8, "newNeutrons": 8, "newMassNumber": 16, "newSymbol": "O"}, {"protons": 8, "neutrons": 7, "symbol": "O", "massNumber": 15, "halfLife": "122 s", "decayType": "beta_plus", "newProtons": 7, "newNeutrons": 8, "newMassNumber": 15, "newSymbol": "N"}, {"protons": 8, "neutrons": 11, "symbol": "O", "massNumber": 19, "halfLife": "26,9 s", "decayType": "beta_min", "newProtons": 9, "newNeutrons": 10, "newMassNumber": 19, "newSymbol": "F"}, {"protons": 10, "neutrons": 14, "symbol": "Ne", "massNumber": 24, "halfLife": "3,38 min", "decayType": "beta_min", "newProtons": 11, "newNeutrons": 13, "newMassNumber": 24, "newSymbol": "Na"}, {"protons": 11, "neutrons": 11, "symbol": "Na", "massNumber": 22, "halfLife": "2,6 y", "decayType": "beta_plus", "newProtons": 10, "newNeutrons": 12, "newMassNumber": 22, "newSymbol": "Ne"}, {"protons": 11, "neutrons": 13, "symbol": "Na", "massNumber": 24, "halfLife": "14,96 h", "decayType": "beta_min", "newProtons": 12, "newNeutrons": 12, "newMassNumber": 24, "newSymbol": "Mg"}, {"protons": 12, "neutrons": 10, "symbol": "Mg", "massNumber": 22, "halfLife": "3,9 s", "decayType": "beta_plus", "newProtons": 11, "newNeutrons": 11, "newMassNumber": 22, "newSymbol": "Na"}, {"protons": 12, "neutrons": 15, "symbol": "Mg", "massNumber": 27, "halfLife": "20,9 h", "decayType": "beta_min", "newProtons": 13, "newNeutrons": 14, "newMassNumber": 27, "newSymbol": "Al"}, {"protons": 13, "neutrons": 13, "symbol": "Al", "massNumber": 26, "halfLife": "7,17·10⁷ y", "decayType": "beta_plus", "newProtons": 12, "newNeutrons": 14, "newMassNumber": 26, "newSymbol": "Mg"}, {"protons": 13, "neutrons": 15, "symbol": "Al", "massNumber": 28, "halfLife": "2,4 min", "decayType": "beta_min", "newProtons": 14, "newNeutrons": 14, "newMassNumber": 28, "newSymbol": "Si"}, {"protons": 14, "neutrons": 17, "symbol": "Si", "massNumber": 31, "halfLife": "2,6 h", "decayType": "beta_min", "newProtons": 15, "newNeutrons": 16, "newMassNumber": 31, "newSymbol": "P"}, {"protons": 14, "neutrons": 18, "symbol": "Si", "massNumber": 32, "halfLife": "150 y", "decayType": "beta_min", "newProtons": 15, "newNeutrons": 17, "newMassNumber": 32, "newSymbol": "P"}, {"protons": 15, "neutrons": 15, "symbol": "P", "massNumber": 30, "halfLife": "2,50 min", "decayType": "beta_plus", "newProtons": 14, "newNeutrons": 16, "newMassNumber": 30, "newSymbol": "Si"}, {"protons": 15, "neutrons": 17, "symbol": "P", "massNumber": 32, "halfLife": "14,3 d", "decayType": "beta_min", "newProtons": 16, "newNeutrons": 16, "newMassNumber": 32, "newSymbol": "S"}, {"protons": 15, "neutrons": 18, "symbol": "P", "massNumber": 33, "halfLife": "25,3 d", "decayType": "beta_min", "newProtons": 16, "newNeutrons": 17, "newMassNumber": 33, "newSymbol": "S"}, {"protons": 16, "neutrons": 19, "symbol": "S", "massNumber": 35, "halfLife": "87,3 d", "decayType": "beta_min", "newProtons": 17, "newNeutrons": 18, "newMassNumber": 35, "newSymbol": "Cl"}, {"protons": 16, "neutrons": 22, "symbol": "S", "massNumber": 38, "halfLife": "2,84 h", "decayType": "beta_min", "newProtons": 17, "newNeutrons": 21, "newMassNumber": 38, "newSymbol": "Cl"}, {"protons": 17, "neutrons": 17, "symbol": "Cl", "massNumber": 34, "halfLife": "1,53 s", "decayType": "beta_plus", "newProtons": 16, "newNeutrons": 18, "newMassNumber": 34, "newSymbol": "S"}, {"protons": 17, "neutrons": 19, "symbol": "Cl", "massNumber": 36, "halfLife": "3,01·10⁵ y", "decayType": "beta_min", "newProtons": 18, "newNeutrons": 18, "newMassNumber": 36, "newSymbol": "Ar"}, {"protons": 17, "neutrons": 21, "symbol": "Cl", "massNumber": 38, "halfLife": "37,2 min", "decayType": "beta_min", "newProtons": 18, "newNeutrons": 20, "newMassNumber": 38, "newSymbol": "Ar"}, {"protons": 17, "neutrons": 22, "symbol": "Cl", "massNumber": 39, "halfLife": "55,5 min", "decayType": "beta_min", "newProtons": 18, "newNeutrons": 21, "newMassNumber": 39, "newSymbol": "Ar"}, {"protons": 18, "neutrons": 21, "symbol": "Ar", "massNumber": 39, "halfLife": "269 y", "decayType": "beta_min", "newProtons": 19, "newNeutrons": 20, "newMassNumber": 39, "newSymbol": "K"}, {"protons": 19, "neutrons": 21, "symbol": "K", "massNumber": 40, "halfLife": "1,28·10⁹ y", "decayType": "beta_min", "newProtons": 20, "newNeutrons": 20, "newMassNumber": 40, "newSymbol": "Ca"}, {"protons": 19, "neutrons": 23, "symbol": "K", "massNumber": 42, "halfLife": "12,4 h", "decayType": "beta_min", "newProtons": 20, "newNeutrons": 22, "newMassNumber": 42, "newSymbol": "Ca"}, {"protons": 20, "neutrons": 25, "symbol": "Ca", "massNumber": 45, "halfLife": "163 d", "decayType": "beta_min", "newProtons": 21, "newNeutrons": 24, "newMassNumber": 45, "newSymbol": "Sc"}, {"protons": 20, "neutrons": 27, "symbol": "Ca", "massNumber": 47, "halfLife": "4,54 d", "decayType": "beta_min", "newProtons": 21, "newNeutrons": 26, "newMassNumber": 47, "newSymbol": "Sc"}, {"protons": 21, "neutrons": 20, "symbol": "Sc", "massNumber": 41, "halfLife": "0,60 s", "decayType": "beta_plus", "newProtons": 20, "newNeutrons": 21, "newMassNumber": 41, "newSymbol": "Ca"}, {"protons": 23, "neutrons": 27, "symbol": "V", "massNumber": 50, "halfLife": "1·10¹⁷ y", "decayType": "beta_min", "newProtons": 24, "newNeutrons": 26, "newMassNumber": 50, "newSymbol": "Cr"}, {"protons": 26, "neutrons": 33, "symbol": "Fe", "massNumber": 59, "halfLife": "45 d", "decayType": "beta_min", "newProtons": 27, "newNeutrons": 32, "newMassNumber": 59, "newSymbol": "Co"}, {"protons": 27, "neutrons": 29, "symbol": "Co", "massNumber": 56, "halfLife": "77 d", "decayType": "beta_plus", "newProtons": 26, "newNeutrons": 30, "newMassNumber": 56, "newSymbol": "Fe"}, {"protons": 27, "neutrons": 31, "symbol": "Co", "massNumber": 58, "halfLife": "70,9 d", "decayType": "beta_plus", "newProtons": 26, "newNeutrons": 32, "newMassNumber": 58, "newSymbol": "Fe"}, {"protons": 27, "neutrons": 33, "symbol": "Co", "massNumber": 60, "halfLife": "5,27 y", "decayType": "beta_min", "newProtons": 28, "newNeutrons": 32, "newMassNumber": 60, "newSymbol": "Ni"}, {"protons": 28, "neutrons": 35, "symbol": "Ni", "massNumber": 63, "halfLife": "100 y", "decayType": "beta_min", "newProtons": 29, "newNeutrons": 34, "newMassNumber": 63, "newSymbol": "Cu"}, {"protons": 28, "neutrons": 37, "symbol": "Ni", "massNumber": 65, "halfLife": "2,5 h", "decayType": "beta_min", "newProtons": 29, "newNeutrons": 36, "newMassNumber": 65, "newSymbol": "Cu"}, {"protons": 29, "neutrons": 35, "symbol": "Cu", "massNumber": 64, "halfLife": "12,7 h", "decayType": "beta_min", "newProtons": 30, "newNeutrons": 34, "newMassNumber": 64, "newSymbol": "Zn"}, {"protons": 30, "neutrons": 35, "symbol": "Zn", "massNumber": 65, "halfLife": "244 d", "decayType": "beta_plus", "newProtons": 29, "newNeutrons": 36, "newMassNumber": 65, "newSymbol": "Cu"}, {"protons": 30, "neutrons": 39, "symbol": "Zn", "massNumber": 69, "halfLife": "56 min", "decayType": "beta_min", "newProtons": 31, "newNeutrons": 38, "newMassNumber": 69, "newSymbol": "Ga"}, {"protons": 31, "neutrons": 41, "symbol": "Ga", "massNumber": 72, "halfLife": "14,1 h", "decayType": "beta_min", "newProtons": 32, "newNeutrons": 40, "newMassNumber": 72, "newSymbol": "Ge"}, {"protons": 33, "neutrons": 41, "symbol": "As", "massNumber": 74, "halfLife": "18 d", "decayType": "beta_min", "newProtons": 34, "newNeutrons": 40, "newMassNumber": 74, "newSymbol": "Se"}, {"protons": 33, "neutrons": 43, "symbol": "As", "massNumber": 76, "halfLife": "1,08 d", "decayType": "beta_min", "newProtons": 34, "newNeutrons": 42, "newMassNumber": 76, "newSymbol": "Se"}, {"protons": 33, "neutrons": 44, "symbol": "As", "massNumber": 77, "halfLife": "40 h", "decayType": "beta_min", "newProtons": 34, "newNeutrons": 43, "newMassNumber": 77, "newSymbol": "Se"}, {"protons": 35, "neutrons": 45, "symbol": "Br", "massNumber": 80, "halfLife": "17,7 min", "decayType": "beta_min", "newProtons": 36, "newNeutrons": 44, "newMassNumber": 80, "newSymbol": "Kr"}, {"protons": 35, "neutrons": 47, "symbol": "Br", "massNumber": 82, "halfLife": "35,3 h", "decayType": "beta_min", "newProtons": 36, "newNeutrons": 46, "newMassNumber": 82, "newSymbol": "Kr"}, {"protons": 35, "neutrons": 52, "symbol": "Br", "massNumber": 87, "halfLife": "55 s", "decayType": "beta_min", "newProtons": 36, "newNeutrons": 51, "newMassNumber": 87, "newSymbol": "Kr"}, {"protons": 36, "neutrons": 49, "symbol": "Kr", "massNumber": 85, "halfLife": "10,7 y", "decayType": "beta_min", "newProtons": 37, "newNeutrons": 48, "newMassNumber": 85, "newSymbol": "Rb"}, {"protons": 36, "neutrons": 51, "symbol": "Kr", "massNumber": 87, "halfLife": "76,3 min", "decayType": "beta_min", "newProtons": 37, "newNeutrons": 50, "newMassNumber": 87, "newSymbol": "Rb"}, {"protons": 36, "neutrons": 53, "symbol": "Kr", "massNumber": 89, "halfLife": "3,2 min", "decayType": "beta_min", "newProtons": 37, "newNeutrons": 52, "newMassNumber": 89, "newSymbol": "Rb"}, {"protons": 37, "neutrons": 44, "symbol": "Rb", "massNumber": 81, "halfLife": "4,6 h", "decayType": "beta_min", "newProtons": 38, "newNeutrons": 43, "newMassNumber": 81, "newSymbol": "Sr"}, {"protons": 37, "neutrons": 49, "symbol": "Rb", "massNumber": 86, "halfLife": "18,6 d", "decayType": "beta_min", "newProtons": 38, "newNeutrons": 48, "newMassNumber": 86, "newSymbol": "Sr"}, {"protons": 37, "neutrons": 50, "symbol": "Rb", "massNumber": 87, "halfLife": "4,8·10¹⁰ y", "decayType": "beta_min", "newProtons": 38, "newNeutrons": 49, "newMassNumber": 87, "newSymbol": "Sr"}, {"protons": 38, "neutrons": 51, "symbol": "Sr", "massNumber": 89, "halfLife": "51 d", "decayType": "beta_min", "newProtons": 39, "newNeutrons": 50, "newMassNumber": 89, "newSymbol": "Y"}, {"protons": 38, "neutrons": 52, "symbol": "Sr", "massNumber": 90, "halfLife": "28 y", "decayType": "beta_min", "newProtons": 39, "newNeutrons": 51, "newMassNumber": 90, "newSymbol": "Y"}, {"protons": 38, "neutrons": 56, "symbol": "Sr", "massNumber": 94, "halfLife": "1,3 min", "decayType": "beta_min", "newProtons": 39, "newNeutrons": 55, "newMassNumber": 94, "newSymbol": "Y"}, {"protons": 39, "neutrons": 49, "symbol": "Y", "massNumber": 88, "halfLife": "107 d", "decayType": "beta_plus", "newProtons": 38, "newNeutrons": 50, "newMassNumber": 88, "newSymbol": "Sr"}, {"protons": 39, "neutrons": 51, "symbol": "Y", "massNumber": 90, "halfLife": "64 h", "decayType": "beta_min", "newProtons": 40, "newNeutrons": 50, "newMassNumber": 90, "newSymbol": "Zr"}, {"protons": 42, "neutrons": 57, "symbol": "Mo", "massNumber": 99, "halfLife": "65,9 h", "decayType": "beta_min", "newProtons": 43, "newNeutrons": 56, "newMassNumber": 99, "newSymbol": "Tc"}, {"protons": 43, "neutrons": 56, "symbol": "Tc", "massNumber": 99, "halfLife": "2,1·10⁵ y", "decayType": "beta_min", "newProtons": 44, "newNeutrons": 55, "newMassNumber": 99, "newSymbol": "Ru"}, {"protons": 44, "neutrons": 59, "symbol": "Ru", "massNumber": 103, "halfLife": "40 d", "decayType": "beta_min", "newProtons": 45, "newNeutrons": 58, "newMassNumber": 103, "newSymbol": "Rh"}, {"protons": 47, "neutrons": 61, "symbol": "Ag", "massNumber": 108, "halfLife": "2,37 min", "decayType": "beta_min", "newProtons": 48, "newNeutrons": 60, "newMassNumber": 108, "newSymbol": "Cd"}, {"protons": 47, "neutrons": 63, "symbol": "Ag", "massNumber": 110, "halfLife": "25 s", "decayType": "beta_min", "newProtons": 48, "newNeutrons": 62, "newMassNumber": 110, "newSymbol": "Cd"}, {"protons": 49, "neutrons": 65, "symbol": "In", "massNumber": 114, "halfLife": "72 s", "decayType": "beta_min", "newProtons": 50, "newNeutrons": 64, "newMassNumber": 114, "newSymbol": "Sn"}, {"protons": 49, "neutrons": 67, "symbol": "In", "massNumber": 116, "halfLife": "13 s", "decayType": "beta_min", "newProtons": 50, "newNeutrons": 66, "newMassNumber": 116, "newSymbol": "Sn"}, {"protons": 50, "neutrons": 71, "symbol": "Sn", "massNumber": 121, "halfLife": "27,1 h", "decayType": "beta_min", "newProtons": 51, "newNeutrons": 70, "newMassNumber": 121, "newSymbol": "Sb"}, {"protons": 51, "neutrons": 71, "symbol": "Sb", "massNumber": 122, "halfLife": "2,72 d", "decayType": "beta_min", "newProtons": 52, "newNeutrons": 70, "newMassNumber": 122, "newSymbol": "Te"}, {"protons": 53, "neutrons": 75, "symbol": "I", "massNumber": 128, "halfLife": "25,0 min", "decayType": "beta_min", "newProtons": 54, "newNeutrons": 74, "newMassNumber": 128, "newSymbol": "Xe"}, {"protons": 53, "neutrons": 78, "symbol": "I", "massNumber": 131, "halfLife": "8,0 d", "decayType": "beta_min", "newProtons": 54, "newNeutrons": 77, "newMassNumber": 131, "newSymbol": "Xe"}, {"protons": 54, "neutrons": 79, "symbol": "Xe", "massNumber": 133, "halfLife": "5,2 d", "decayType": "beta_min", "newProtons": 55, "newNeutrons": 78, "newMassNumber": 133, "newSymbol": "Cs"}, {"protons": 54, "neutrons": 86, "symbol": "Xe", "massNumber": 140, "halfLife": "16 s", "decayType": "beta_min", "newProtons": 55, "newNeutrons": 85, "newMassNumber": 140, "newSymbol": "Cs"}, {"protons": 55, "neutrons": 82, "symbol": "Cs", "massNumber": 137, "halfLife": "30 y", "decayType": "beta_min", "newProtons": 56, "newNeutrons": 81, "newMassNumber": 137, "newSymbol": "Ba"}, {"protons": 56, "neutrons": 84, "symbol": "Ba", "massNumber": 140, "halfLife": "12,8 d", "decayType": "beta_min", "newProtons": 57, "newNeutrons": 83, "newMassNumber": 140, "newSymbol": "La"}, {"protons": 56, "neutrons": 88, "symbol": "Ba", "massNumber": 144, "halfLife": "11,9 s", "decayType": "beta_min", "newProtons": 57, "newNeutrons": 87, "newMassNumber": 144, "newSymbol": "La"}, {"protons": 57, "neutrons": 81, "symbol": "La", "massNumber": 138, "halfLife": "1,1·10¹¹ y", "decayType": "beta_min", "newProtons": 58, "newNeutrons": 80, "newMassNumber": 138, "newSymbol": "Ce"}, {"protons": 57, "neutrons": 83, "symbol": "La", "massNumber": 140, "halfLife": "1,7 d", "decayType": "beta_min", "newProtons": 58, "newNeutrons": 82, "newMassNumber": 140, "newSymbol": "Ce"}, {"protons": 58, "neutrons": 83, "symbol": "Ce", "massNumber": 141, "halfLife": "32 d", "decayType": "beta_min", "newProtons": 59, "newNeutrons": 82, "newMassNumber": 141, "newSymbol": "Pr"}, {"protons": 61, "neutrons": 84, "symbol": "Pm", "massNumber": 145, "halfLife": "17,7 y", "decayType": "alpha", "newProtons": 59, "newNeutrons": 82, "newMassNumber": 141, "newSymbol": "Pr"}, {"protons": 62, "neutrons": 85, "symbol": "Sm", "massNumber": 147, "halfLife": "17,7 y", "decayType": "alpha", "newProtons": 60, "newNeutrons": 83, "newMassNumber": 143, "newSymbol": "Nd"}, {"protons": 63, "neutrons": 89, "symbol": "Eu", "massNumber": 152, "halfLife": "13,5 y", "decayType": "beta_min", "newProtons": 64, "newNeutrons": 88, "newMassNumber": 152, "newSymbol": "Gd"}, {"protons": 65, "neutrons": 93, "symbol": "Tb", "massNumber": 158, "halfLife": "180 y", "decayType": "beta_min", "newProtons": 66, "newNeutrons": 92, "newMassNumber": 158, "newSymbol": "Dy"}, {"protons": 66, "neutrons": 88, "symbol": "Dy", "massNumber": 154, "halfLife": "3·10⁶ y", "decayType": "alpha", "newProtons": 64, "newNeutrons": 86, "newMassNumber": 150, "newSymbol": "Gd"}, {"protons": 68, "neutrons": 101, "symbol": "Er", "massNumber": 169, "halfLife": "9,40 d", "decayType": "beta_min", "newProtons": 69, "newNeutrons": 100, "newMassNumber": 169, "newSymbol": "Tm"}, {"protons": 69, "neutrons": 102, "symbol": "Tm", "massNumber": 171, "halfLife": "1,92 y", "decayType": "beta_min", "newProtons": 70, "newNeutrons": 101, "newMassNumber": 171, "newSymbol": "Yb"}, {"protons": 71, "neutrons": 105, "symbol": "Lu", "massNumber": 176, "halfLife": "2,2·10¹⁰ y", "decayType": "beta_min", "newProtons": 72, "newNeutrons": 104, "newMassNumber": 176, "newSymbol": "Hf"}, {"protons": 72, "neutrons": 109, "symbol": "Hf", "massNumber": 181, "halfLife": "43 d", "decayType": "beta_min", "newProtons": 73, "newNeutrons": 108, "newMassNumber": 181, "newSymbol": "Ta"}, {"protons": 73, "neutrons": 109, "symbol": "Ta", "massNumber": 182, "halfLife": "115 d", "decayType": "beta_min", "newProtons": 74, "newNeutrons": 108, "newMassNumber": 182, "newSymbol": "W"}, {"protons": 74, "neutrons": 111, "symbol": "W", "massNumber": 185, "halfLife": "74 d", "decayType": "beta_min", "newProtons": 75, "newNeutrons": 110, "newMassNumber": 185, "newSymbol": "Re"}, {"protons": 76, "neutrons": 115, "symbol": "Os", "massNumber": 191, "halfLife": "6,0 y", "decayType": "beta_min", "newProtons": 77, "newNeutrons": 114, "newMassNumber": 191, "newSymbol": "Ir"}, {"protons": 77, "neutrons": 115, "symbol": "Ir", "massNumber": 192, "halfLife": "74 d", "decayType": "beta_min", "newProtons": 78, "newNeutrons": 114, "newMassNumber": 192, "newSymbol": "Pt"}, {"protons": 79, "neutrons": 113, "symbol": "Au", "massNumber": 192, "halfLife": "4,0 h", "decayType": "beta_min", "newProtons": 80, "newNeutrons": 112, "newMassNumber": 192, "newSymbol": "Hg"}, {"protons": 80, "neutrons": 123, "symbol": "Hg", "massNumber": 203, "halfLife": "46,5 d", "decayType": "beta_min", "newProtons": 81, "newNeutrons": 122, "newMassNumber": 203, "newSymbol": "Tl"}, {"protons": 80, "neutrons": 125, "symbol": "Hg", "massNumber": 205, "halfLife": "5,5 min", "decayType": "beta_min", "newProtons": 81, "newNeutrons": 124, "newMassNumber": 205, "newSymbol": "Tl"}, {"protons": 81, "neutrons": 123, "symbol": "Tl", "massNumber": 204, "halfLife": "2,7 y", "decayType": "beta_min", "newProtons": 82, "newNeutrons": 122, "newMassNumber": 204, "newSymbol": "Pb"}, {"protons": 81, "neutrons": 125, "symbol": "Tl", "massNumber": 206, "halfLife": "4,2 min", "decayType": "beta_plus", "newProtons": 80, "newNeutrons": 126, "newMassNumber": 206, "newSymbol": "Hg"}, {"protons": 81, "neutrons": 126, "symbol": "Tl", "massNumber": 207, "halfLife": "4,76 min", "decayType": "beta_min", "newProtons": 82, "newNeutrons": 125, "newMassNumber": 207, "newSymbol": "Pb"}, {"protons": 81, "neutrons": 127, "symbol": "Tl", "massNumber": 208, "halfLife": "3,1 min", "decayType": "beta_min", "newProtons": 82, "newNeutrons": 126, "newMassNumber": 208, "newSymbol": "Pb"}, {"protons": 81, "neutrons": 128, "symbol": "Tl", "massNumber": 209, "halfLife": "2,2 min", "decayType": "beta_min", "newProtons": 82, "newNeutrons": 127, "newMassNumber": 209, "newSymbol": "Pb"}, {"protons": 81, "neutrons": 129, "symbol": "Tl", "massNumber": 210, "halfLife": "1,32 min", "decayType": "beta_min", "newProtons": 82, "newNeutrons": 128, "newMassNumber": 210, "newSymbol": "Pb"}, {"protons": 82, "neutrons": 127, "symbol": "Pb", "massNumber": 209, "halfLife": "3,3 h", "decayType": "beta_min", "newProtons": 83, "newNeutrons": 126, "newMassNumber": 209, "newSymbol": "Bi"}, {"protons": 82, "neutrons": 128, "symbol": "Pb", "massNumber": 210, "halfLife": "22,6 y", "decayType": "beta_min", "newProtons": 83, "newNeutrons": 127, "newMassNumber": 210, "newSymbol": "Bi"}, {"protons": 82, "neutrons": 129, "symbol": "Pb", "massNumber": 211, "halfLife": "36,1 min", "decayType": "beta_min", "newProtons": 83, "newNeutrons": 128, "newMassNumber": 211, "newSymbol": "Bi"}, {"protons": 82, "neutrons": 130, "symbol": "Pb", "massNumber": 212, "halfLife": "10,6 h", "decayType": "beta_min", "newProtons": 83, "newNeutrons": 129, "newMassNumber": 212, "newSymbol": "Bi"}, {"protons": 82, "neutrons": 132, "symbol": "Pb", "massNumber": 214, "halfLife": "26,8 min", "decayType": "beta_min", "newProtons": 83, "newNeutrons": 131, "newMassNumber": 214, "newSymbol": "Bi"}, {"protons": 83, "neutrons": 127, "symbol": "Bi", "massNumber": 210, "halfLife": "5,0 d", "decayType": "alpha", "newProtons": 81, "newNeutrons": 125, "newMassNumber": 206, "newSymbol": "Tl"}, {"protons": 83, "neutrons": 128, "symbol": "Bi", "massNumber": 211, "halfLife": "2,16 min", "decayType": "alpha", "newProtons": 81, "newNeutrons": 126, "newMassNumber": 207, "newSymbol": "Tl"}, {"protons": 83, "neutrons": 129, "symbol": "Bi", "massNumber": 212, "halfLife": "60,6 min", "decayType": "alpha", "newProtons": 81, "newNeutrons": 127, "newMassNumber": 208, "newSymbol": "Tl"}, {"protons": 83, "neutrons": 130, "symbol": "Bi", "massNumber": 213, "halfLife": "46,5 min", "decayType": "beta_min", "newProtons": 84, "newNeutrons": 129, "newMassNumber": 213, "newSymbol": "Po"}, {"protons": 83, "neutrons": 131, "symbol": "Bi", "massNumber": 214, "halfLife": "19,7 min", "decayType": "beta_min", "newProtons": 84, "newNeutrons": 130, "newMassNumber": 214, "newSymbol": "Po"}, {"protons": 84, "neutrons": 125, "symbol": "Po", "massNumber": 209, "halfLife": "102 y", "decayType": "alpha", "newProtons": 82, "newNeutrons": 123, "newMassNumber": 205, "newSymbol": "Pb"}, {"protons": 84, "neutrons": 126, "symbol": "Po", "massNumber": 210, "halfLife": "138 d", "decayType": "alpha", "newProtons": 82, "newNeutrons": 124, "newMassNumber": 206, "newSymbol": "Pb"}, {"protons": 84, "neutrons": 127, "symbol": "Po", "massNumber": 211, "halfLife": "0,5 s", "decayType": "alpha", "newProtons": 82, "newNeutrons": 125, "newMassNumber": 207, "newSymbol": "Pb"}, {"protons": 84, "neutrons": 128, "symbol": "Po", "massNumber": 212, "halfLife": "3·10⁻⁷ s", "decayType": "alpha", "newProtons": 82, "newNeutrons": 126, "newMassNumber": 208, "newSymbol": "Pb"}, {"protons": 84, "neutrons": 129, "symbol": "Po", "massNumber": 213, "halfLife": "3,2·10⁻⁶ s", "decayType": "alpha", "newProtons": 82, "newNeutrons": 127, "newMassNumber": 209, "newSymbol": "Pb"}, {"protons": 84, "neutrons": 130, "symbol": "Po", "massNumber": 214, "halfLife": "1,6·10⁻⁴ s", "decayType": "alpha", "newProtons": 82, "newNeutrons": 128, "newMassNumber": 210, "newSymbol": "Pb"}, {"protons": 84, "neutrons": 131, "symbol": "Po", "massNumber": 215, "halfLife": "1,83·10⁻³ s", "decayType": "alpha", "newProtons": 82, "newNeutrons": 129, "newMassNumber": 211, "newSymbol": "Pb"}, {"protons": 84, "neutrons": 132, "symbol": "Po", "massNumber": 216, "halfLife": "0,158 s", "decayType": "alpha", "newProtons": 82, "newNeutrons": 130, "newMassNumber": 212, "newSymbol": "Pb"}, {"protons": 84, "neutrons": 134, "symbol": "Po", "massNumber": 218, "halfLife": "3,05 min", "decayType": "alpha", "newProtons": 82, "newNeutrons": 132, "newMassNumber": 214, "newSymbol": "Pb"}, {"protons": 85, "neutrons": 130, "symbol": "At", "massNumber": 215, "halfLife": "10⁻⁴ s", "decayType": "alpha", "newProtons": 83, "newNeutrons": 128, "newMassNumber": 211, "newSymbol": "Bi"}, {"protons": 85, "neutrons": 131, "symbol": "At", "massNumber": 216, "halfLife": "3·10⁻⁴ s", "decayType": "alpha", "newProtons": 83, "newNeutrons": 129, "newMassNumber": 212, "newSymbol": "Bi"}, {"protons": 85, "neutrons": 132, "symbol": "At", "massNumber": 217, "halfLife": "2·10⁻³ s", "decayType": "alpha", "newProtons": 83, "newNeutrons": 130, "newMassNumber": 213, "newSymbol": "Bi"}, {"protons": 85, "neutrons": 133, "symbol": "At", "massNumber": 218, "halfLife": "2 s", "decayType": "alpha", "newProtons": 83, "newNeutrons": 131, "newMassNumber": 214, "newSymbol": "Bi"}, {"protons": 86, "neutrons": 132, "symbol": "Rn", "massNumber": 218, "halfLife": "1,9·10⁻³ s", "decayType": "alpha", "newProtons": 84, "newNeutrons": 130, "newMassNumber": 214, "newSymbol": "Po"}, {"protons": 86, "neutrons": 133, "symbol": "Rn", "massNumber": 219, "halfLife": "3,92 s", "decayType": "alpha", "newProtons": 84, "newNeutrons": 131, "newMassNumber": 215, "newSymbol": "Po"}, {"protons": 86, "neutrons": 134, "symbol": "Rn", "massNumber": 220, "halfLife": "55,6 s", "decayType": "alpha", "newProtons": 84, "newNeutrons": 132, "newMassNumber": 216, "newSymbol": "Po"}, {"protons": 86, "neutrons": 136, "symbol": "Rn", "massNumber": 222, "halfLife": "3,825 d", "decayType": "alpha", "newProtons": 84, "newNeutrons": 134, "newMassNumber": 218, "newSymbol": "Po"}, {"protons": 87, "neutrons": 134, "symbol": "Fr", "massNumber": 221, "halfLife": "4,8 min", "decayType": "alpha", "newProtons": 85, "newNeutrons": 132, "newMassNumber": 217, "newSymbol": "At"}, {"protons": 87, "neutrons": 136, "symbol": "Fr", "massNumber": 223, "halfLife": "21 min", "decayType": "beta_min", "newProtons": 88, "newNeutrons": 135, "newMassNumber": 223, "newSymbol": "Ra"}, {"protons": 87, "neutrons": 137, "symbol": "Fr", "massNumber": 224, "halfLife": "3,0 min", "decayType": "beta_min", "newProtons": 88, "newNeutrons": 136, "newMassNumber": 224, "newSymbol": "Ra"}, {"protons": 88, "neutrons": 135, "symbol": "Ra", "massNumber": 223, "halfLife": "11,2 d", "decayType": "alpha", "newProtons": 86, "newNeutrons": 133, "newMassNumber": 219, "newSymbol": "Rn"}, {"protons": 88, "neutrons": 136, "symbol": "Ra", "massNumber": 224, "halfLife": "3,64 d", "decayType": "alpha", "newProtons": 86, "newNeutrons": 134, "newMassNumber": 220, "newSymbol": "Rn"}, {"protons": 88, "neutrons": 138, "symbol": "Ra", "massNumber": 226, "halfLife": "1,60·10³ y", "decayType": "alpha", "newProtons": 86, "newNeutrons": 136, "newMassNumber": 222, "newSymbol": "Rn"}, {"protons": 88, "neutrons": 140, "symbol": "Ra", "massNumber": 228, "halfLife": "5,75 y", "decayType": "beta_min", "newProtons": 89, "newNeutrons": 139, "newMassNumber": 228, "newSymbol": "Ac"}, {"protons": 89, "neutrons": 136, "symbol": "Ac", "massNumber": 225, "halfLife": "10,0 d", "decayType": "alpha", "newProtons": 87, "newNeutrons": 134, "newMassNumber": 221, "newSymbol": "Fr"}, {"protons": 89, "neutrons": 138, "symbol": "Ac", "massNumber": 227, "halfLife": "27,7 y", "decayType": "beta_min", "newProtons": 90, "newNeutrons": 137, "newMassNumber": 227, "newSymbol": "Th"}, {"protons": 89, "neutrons": 139, "symbol": "Ac", "massNumber": 228, "halfLife": "6,13 h", "decayType": "beta_min", "newProtons": 90, "newNeutrons": 138, "newMassNumber": 228, "newSymbol": "Th"}, {"protons": 90, "neutrons": 137, "symbol": "Th", "massNumber": 227, "halfLife": "18,7 d", "decayType": "alpha", "newProtons": 88, "newNeutrons": 135, "newMassNumber": 223, "newSymbol": "Ra"}, {"protons": 90, "neutrons": 138, "symbol": "Th", "massNumber": 228, "halfLife": "1,9 y", "decayType": "alpha", "newProtons": 88, "newNeutrons": 136, "newMassNumber": 224, "newSymbol": "Ra"}, {"protons": 90, "neutrons": 139, "symbol": "Th", "massNumber": 229, "halfLife": "7900 y", "decayType": "alpha", "newProtons": 88, "newNeutrons": 137, "newMassNumber": 225, "newSymbol": "Ra"}, {"protons": 90, "neutrons": 140, "symbol": "Th", "massNumber": 230, "halfLife": "7,5·10⁴ y", "decayType": "alpha", "newProtons": 88, "newNeutrons": 138, "newMassNumber": 226, "newSymbol": "Ra"}, {"protons": 90, "neutrons": 141, "symbol": "Th", "massNumber": 231, "halfLife": "1,06 d", "decayType": "beta_min", "newProtons": 91, "newNeutrons": 140, "newMassNumber": 231, "newSymbol": "Pa"}, {"protons": 90, "neutrons": 142, "symbol": "Th", "massNumber": 232, "halfLife": "1,4·10¹⁰ y", "decayType": "alpha", "newProtons": 88, "newNeutrons": 140, "newMassNumber": 228, "newSymbol": "Ra"}, {"protons": 90, "neutrons": 143, "symbol": "Th", "massNumber": 233, "halfLife": "22,2 min", "decayType": "beta_min", "newProtons": 91, "newNeutrons": 142, "newMassNumber": 233, "newSymbol": "Pa"}, {"protons": 90, "neutrons": 144, "symbol": "Th", "massNumber": 234, "halfLife": "24,1 d", "decayType": "beta_min", "newProtons": 91, "newNeutrons": 143, "newMassNumber": 234, "newSymbol": "Pa"}, {"protons": 91, "neutrons": 140, "symbol": "Pa", "massNumber": 231, "halfLife": "3,25·10⁴ y", "decayType": "alpha", "newProtons": 89, "newNeutrons": 138, "newMassNumber": 227, "newSymbol": "Ac"}, {"protons": 91, "neutrons": 142, "symbol": "Pa", "massNumber": 233, "halfLife": "27,0 d", "decayType": "beta_min", "newProtons": 92, "newNeutrons": 141, "newMassNumber": 233, "newSymbol": "U"}, {"protons": 91, "neutrons": 143, "symbol": "Pa", "massNumber": 234, "halfLife": "6,69 h", "decayType": "beta_min", "newProtons": 92, "newNeutrons": 142, "newMassNumber": 234, "newSymbol": "U"}, {"protons": 92, "neutrons": 141, "symbol": "U", "massNumber": 233, "halfLife": "1,6·10⁵ y", "decayType": "alpha", "newProtons": 90, "newNeutrons": 139, "newMassNumber": 229, "newSymbol": "Th"}, {"protons": 92, "neutrons": 142, "symbol": "U", "massNumber": 234, "halfLife": "2,5·10⁵ y", "decayType": "alpha", "newProtons": 90, "newNeutrons": 140, "newMassNumber": 230, "newSymbol": "Th"}, {"protons": 92, "neutrons": 143, "symbol": "U", "massNumber": 235, "halfLife": "7,04·10⁸ y", "decayType": "alpha", "newProtons": 90, "newNeutrons": 141, "newMassNumber": 231, "newSymbol": "Th"}, {"protons": 92, "neutrons": 144, "symbol": "U", "massNumber": 236, "halfLife": "2,34·10⁷ y", "decayType": "alpha", "newProtons": 90, "newNeutrons": 142, "newMassNumber": 232, "newSymbol": "Th"}, {"protons": 92, "neutrons": 146, "symbol": "U", "massNumber": 238, "halfLife": "4,46·10⁹ y", "decayType": "alpha", "newProtons": 90, "newNeutrons": 144, "newMassNumber": 234, "newSymbol": "Th"}, {"protons": 93, "neutrons": 144, "symbol": "Np", "massNumber": 237, "halfLife": "2,14·10⁶ y", "decayType": "alpha", "newProtons": 91, "newNeutrons": 142, "newMassNumber": 233, "newSymbol": "Pa"}, {"protons": 93, "neutrons": 146, "symbol": "Np", "massNumber": 239, "halfLife": "2,4 d", "decayType": "beta_min", "newProtons": 94, "newNeutrons": 145, "newMassNumber": 239, "newSymbol": "Pu"}, {"protons": 94, "neutrons": 145, "symbol": "Pu", "massNumber": 239, "halfLife": "2,4·10⁴ y", "decayType": "alpha", "newProtons": 92, "newNeutrons": 143, "newMassNumber": 235, "newSymbol": "U"}, {"protons": 94, "neutrons": 146, "symbol": "Pu", "massNumber": 240, "halfLife": "6,5·10³ y", "decayType": "alpha", "newProtons": 92, "newNeutrons": 144, "newMassNumber": 236, "newSymbol": "U"}, {"protons": 94, "neutrons": 147, "symbol": "Pu", "massNumber": 241, "halfLife": "14 y", "decayType": "alpha", "newProtons": 92, "newNeutrons": 145, "newMassNumber": 237, "newSymbol": "U"}, {"protons": 94, "neutrons": 150, "symbol": "Pu", "massNumber": 244, "halfLife": "8,2·10⁷ y", "decayType": "alpha", "newProtons": 92, "newNeutrons": 148, "newMassNumber": 240, "newSymbol": "U"}, {"protons": 95, "neutrons": 146, "symbol": "Am", "massNumber": 241, "halfLife": "432 y", "decayType": "alpha", "newProtons": 93, "newNeutrons": 144, "newMassNumber": 237, "newSymbol": "Np"}, {"protons": 95, "neutrons": 148, "symbol": "Am", "massNumber": 243, "halfLife": "7,4·10³ y", "decayType": "alpha", "newProtons": 93, "newNeutrons": 146, "newMassNumber": 239, "newSymbol": "Np"}, {"protons": 96, "neutrons": 149, "symbol": "Cm", "massNumber": 245, "halfLife": "8,5·10³ y", "decayType": "alpha", "newProtons": 94, "newNeutrons": 147, "newMassNumber": 241, "newSymbol": "Pu"}, {"protons": 96, "neutrons": 151, "symbol": "Cm", "massNumber": 247, "halfLife": "1,6·10⁷ y", "decayType": "alpha", "newProtons": 94, "newNeutrons": 149, "newMassNumber": 243, "newSymbol": "Pu"}, {"protons": 97, "neutrons": 150, "symbol": "Bk", "massNumber": 247, "halfLife": "1400 y", "decayType": "alpha", "newProtons": 95, "newNeutrons": 148, "newMassNumber": 243, "newSymbol": "Am"}, {"protons": 98, "neutrons": 153, "symbol": "Cf", "massNumber": 251, "halfLife": "898 y", "decayType": "alpha", "newProtons": 96, "newNeutrons": 151, "newMassNumber": 247, "newSymbol": "Cm"}, {"protons": 99, "neutrons": 153, "symbol": "Es", "massNumber": 252, "halfLife": "1,29 y", "decayType": "alpha", "newProtons": 97, "newNeutrons": 151, "newMassNumber": 248, "newSymbol": "Bk"}, {"protons": 100, "neutrons": 149, "symbol": "Fm", "massNumber": 249, "halfLife": "3 min", "decayType": "alpha", "newProtons": 98, "newNeutrons": 147, "newMassNumber": 245, "newSymbol": "Cf"}, {"protons": 100, "neutrons": 157, "symbol": "Fm", "massNumber": 257, "halfLife": "100 d", "decayType": "alpha", "newProtons": 98, "newNeutrons": 155, "newMassNumber": 253, "newSymbol": "Cf"}, {"protons": 101, "neutrons": 154, "symbol": "Md", "massNumber": 255, "halfLife": "27 min", "decayType": "alpha", "newProtons": 99, "newNeutrons": 152, "newMassNumber": 251, "newSymbol": "Es"}, {"protons": 102, "neutrons": 157, "symbol": "No", "massNumber": 259, "halfLife": "58 min", "decayType": "alpha", "newProtons": 100, "newNeutrons": 155, "newMassNumber": 255, "newSymbol": "Fm"}, {"protons": 103, "neutrons": 154, "symbol": "Lr", "massNumber": 257, "halfLife": "0,7 s", "decayType": "alpha", "newProtons": 101, "newNeutrons": 152, "newMassNumber": 253, "newSymbol": "Md"}, {"protons": 104, "neutrons": 155, "symbol": "Rf", "massNumber": 259, "halfLife": "3 s", "decayType": "alpha", "newProtons": 102, "newNeutrons": 153, "newMassNumber": 255, "newSymbol": "No"}, {"protons": 105, "neutrons": 155, "symbol": "Db", "massNumber": 260, "halfLife": "1,5 s", "decayType": "alpha", "newProtons": 103, "newNeutrons": 153, "newMassNumber": 256, "newSymbol": "Lr"}, {"protons": 105, "neutrons": 157, "symbol": "Db", "massNumber": 262, "halfLife": "34 s", "decayType": "alpha", "newProtons": 103, "newNeutrons": 155, "newMassNumber": 258, "newSymbol": "Lr"}, {"protons": 106, "neutrons": 153, "symbol": "Sg", "massNumber": 259, "halfLife": "0,5 s", "decayType": "alpha", "newProtons": 104, "newNeutrons": 151, "newMassNumber": 255, "newSymbol": "Rf"}, {"protons": 106, "neutrons": 157, "symbol": "Sg", "massNumber": 263, "halfLife": "0,8 s", "decayType": "alpha", "newProtons": 104, "newNeutrons": 155, "newMassNumber": 259, "newSymbol": "Rf"}, {"protons": 107, "neutrons": 154, "symbol": "Bh", "massNumber": 261, "halfLife": "12·10⁻³ s", "decayType": "alpha", "newProtons": 105, "newNeutrons": 152, "newMassNumber": 257, "newSymbol": "Db"}, {"protons": 108, "neutrons": 159, "symbol": "Hs", "massNumber": 267, "halfLife": "60·10⁻³ s", "decayType": "alpha", "newProtons": 106, "newNeutrons": 157, "newMassNumber": 263, "newSymbol": "Sg"}, {"protons": 109, "neutrons": 159, "symbol": "Mt", "massNumber": 268, "halfLife": "0,07 s", "decayType": "alpha", "newProtons": 107, "newNeutrons": 157, "newMassNumber": 264, "newSymbol": "Bh"}, {"protons": 110, "neutrons": 161, "symbol": "Ds", "massNumber": 271, "halfLife": "0,06 s", "decayType": "alpha", "newProtons": 108, "newNeutrons": 159, "newMassNumber": 267, "newSymbol": "Hs"}, {"protons": 111, "neutrons": 161, "symbol": "Rg", "massNumber": 272, "halfLife": "1,5·10⁻³ s", "decayType": "alpha", "newProtons": 109, "newNeutrons": 159, "newMassNumber": 268, "newSymbol": "Mt"}, {"protons": 112, "neutrons": 165, "symbol": "Cn", "massNumber": 277, "halfLife": "0,24·10⁻³ s", "decayType": "alpha", "newProtons": 110, "newNeutrons": 163, "newMassNumber": 273, "newSymbol": "Ds"}];
+
+// ============================================================
+// APP STATE
+// ============================================================
+const el = id => document.getElementById(id);
+const STAGES = ['kern', 'schillen', 'verval'];
+const STAGE_LABELS = { kern: 'Kern bouwen', schillen: 'Elektronenschillen', verval: 'Alfa- en betaverval' };
+let currentStageIdx = 0;
+let stageMode = { kern: 'verkennen', schillen: 'verkennen', verval: 'verkennen' }; // 'verkennen' | 'opdracht'
+
+let protons = null, neutrons = null, electronCount = null; // null = nog niets ingevuld
+let shellCount = null;
+let shellAnswers = [];
+
+let nucleusTask = null; // {protons, neutrons, electronCount, description} when in opdracht mode
+let shellTask = null;
+let decayTask = null;
+
+function goToStage(idx){
+  currentStageIdx = idx;
+  renderAll();
+}
+
+function setMode(mode){
+  stageMode[STAGES[currentStageIdx]] = mode;
+  renderAll();
+}
+
+function renderStageNav(){
+  const nav = el('stage-nav');
+  nav.innerHTML = '';
+  STAGES.forEach((stageId, idx)=>{
+    const btn = document.createElement('button');
+    btn.className = 'stage-btn' + (idx===currentStageIdx ? ' active' : '');
+    btn.innerHTML = `<span class="num">${idx+1}</span> ${STAGE_LABELS[stageId]}`;
+    btn.addEventListener('click', ()=>{ currentStageIdx = idx; renderAll(); });
+    nav.appendChild(btn);
+  });
+
+  const modeRow = el('mode-row');
+  modeRow.innerHTML = '';
+  const stageId = STAGES[currentStageIdx];
+  ['verkennen','opdracht'].forEach(mode=>{
+    const btn = document.createElement('button');
+    btn.className = 'mode-btn' + (stageMode[stageId]===mode ? ' active' : '');
+    btn.textContent = mode === 'verkennen' ? 'Verkennen' : 'Opdracht';
+    btn.addEventListener('click', ()=> setMode(mode));
+    modeRow.appendChild(btn);
+  });
+}
+
+function renderAll(){
+  renderStageNav();
+  const content = el('stage-content');
+  content.innerHTML = '';
+  const stageId = STAGES[currentStageIdx];
+  const mode = stageMode[stageId];
+  if(stageId === 'kern') renderNucleusStage(content, mode);
+  else if(stageId === 'schillen') renderShellStage(content, mode);
+  else if(stageId === 'verval') renderDecayStage(content, mode);
+}
+
+// ============================================================
+// NUCLEUS DRAWING (static -- no animation, just a packed cluster)
+// ============================================================
+function packedNucleusPositions(nP, nN){
+  // Deterministic, evenly-spread packing in a roughly circular cluster, alternating proton/
+  // neutron placement so the two colors visually interleave rather than clumping by type --
+  // closer to how a real nucleus has protons and neutrons distributed throughout its volume.
+  const total = nP + nN;
+  const positions = [];
+  if(total === 0) return positions;
+  const cols = Math.ceil(Math.sqrt(total*1.3));
+  const spacing = 14; // tight enough that 9px-radius spheres genuinely overlap, like a real packed cluster
+  const offsetX = -((cols-1)*spacing)/2;
+  let i = 0;
+  let pLeft = nP, nLeft = nN;
+  const order = [];
+  while(pLeft>0 || nLeft>0){
+    if(pLeft/(pLeft+nLeft||1) >= nLeft/(pLeft+nLeft||1) && pLeft>0){ order.push('p'); pLeft--; }
+    else if(nLeft>0){ order.push('n'); nLeft--; }
+    else { order.push('p'); pLeft--; }
+  }
+  for(const type of order){
+    const col = i % cols, row = Math.floor(i/cols);
+    const jitterX = ((i*37)%7-3);
+    const jitterY = ((i*53)%7-3);
+    positions.push({
+      x: offsetX + col*spacing + jitterX,
+      y: row*spacing - (Math.ceil(total/cols)*spacing)/2 + jitterY,
+      type,
+    });
+    i++;
+  }
+  return positions;
+}
+
+// Draws one nucleon as a glossy 3D-looking sphere: a radial gradient from an offset highlight
+// (top-left) through the base color to a darker rim. This is what gives the "ball pit" look of
+// the reference image, instead of a flat circle with a thin outline.
+function drawNucleonSphere(ctx, x, y, r, baseColor){
+  const grad = ctx.createRadialGradient(x-r*0.35, y-r*0.35, r*0.15, x, y, r);
+  grad.addColorStop(0, baseColor.highlight);
+  grad.addColorStop(0.55, baseColor.mid);
+  grad.addColorStop(1, baseColor.edge);
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI*2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+}
+
+const PROTON_SPHERE_COLORS = { highlight:'#ffb486', mid:'#c1652f', edge:'#a85a30' };
+const NEUTRON_SPHERE_COLORS = { highlight:'#c9c3b5', mid:'#6b6557', edge:'#6b6557' };
+
+// Draws just the packed nucleon spheres at (cx,cy) -- no canvas clear, no background fill. Used
+// both by the standalone nucleus view (stage 1, via drawNucleus below) and inline as part of a
+// larger scene (stage 2's atom-with-shells view) where clearing the canvas here would erase
+// whatever else was already drawn (the shell rings, in that regression -- drawNucleus used to
+// always wipe the canvas, which silently erased the shells drawn just before it).
+function drawNucleusParticles(ctx, cx, cy, nP, nN, scale){
+  scale = scale || 1;
+  const positions = packedNucleusPositions(nP, nN);
+  const r = 9*scale;
+  for(const p of positions){
+    if(p.type !== 'n') continue;
+    drawNucleonSphere(ctx, cx+p.x*scale, cy+p.y*scale, r, NEUTRON_SPHERE_COLORS);
+  }
+  for(const p of positions){
+    if(p.type !== 'p') continue;
+    drawNucleonSphere(ctx, cx+p.x*scale, cy+p.y*scale, r, PROTON_SPHERE_COLORS);
+  }
+}
+
+function drawNucleus(canvasId, nP, nN, opts){
+  opts = opts || {};
+  const canvas = el(canvasId);
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0,0,W,H);
+  const cx = (opts.cx!==undefined) ? opts.cx : W/2;
+  const cy = (opts.cy!==undefined) ? opts.cy : H/2;
+  drawNucleusParticles(ctx, cx, cy, nP, nN);
+}
+
+// ============================================================
+// SIZE / SCALE CALCULATIONS
+// ============================================================
+const R0_FM = 1.2;
+const ATOM_DIAMETER_PM = 200;
+
+function nuclearDiameterFm(massNumber){
+  return 2 * R0_FM * Math.pow(massNumber, 1/3);
+}
+
+function renderSizeBox(container, massNumber){
+  const nucleusD = nuclearDiameterFm(massNumber);
+  const atomD_fm = ATOM_DIAMETER_PM * 1000;
+  const ratio = atomD_fm / nucleusD;
+  const box = document.createElement('div');
+  box.className = 'size-box';
+  box.innerHTML = `
+    <div class="lbl">Hoe groot is dit eigenlijk?</div>
+    <div class="size-row"><span>Diameter van de kern</span><span class="v">${nucleusD.toFixed(1)} fm</span></div>
+    <div class="size-row"><span>Diameter van het hele atoom</span><span class="v">~${ATOM_DIAMETER_PM} pm (${atomD_fm.toLocaleString('nl-NL')} fm)</span></div>
+    <div class="size-row"><span>Verhouding</span><span class="v">1 : ${Math.round(ratio).toLocaleString('nl-NL')}</span></div>
+    <p class="sub" style="margin-top:10px; margin-bottom:0;">Vrijwel elk atoom heeft ongeveer dezelfde diameter, of het nu 1 of 100 elektronen heeft — alleen de kern verandert flink van grootte. Het atoom is dus voor het overgrote deel lege ruimte: zou de kern zo groot zijn als een knikker (1 cm), dan zou de buitenste elektronenschil zich op honderden meters afstand bevinden.</p>
+  `;
+  container.appendChild(box);
+}
+
+// ============================================================
+// STAGE 1: NUCLEUS
+// ============================================================
+function renderNucleusStage(content, mode){
+  if(mode === 'opdracht' && !nucleusTask) nucleusTask = generateNucleusTask();
+  if(mode === 'verkennen') nucleusTask = null;
+
+  const panel = document.createElement('div');
+  panel.className = 'panel';
+
+  let taskHtml = '';
+  if(mode === 'opdracht' && nucleusTask){
+    taskHtml = `
+      <div class="task-box">
+        <div class="lbl">Opdracht</div>
+        <div class="desc">${nucleusTask.description}</div>
+      </div>
+    `;
+  }
+
+  panel.innerHTML = `
+    <h2>1. Bouw de kern</h2>
+    <p class="sub">${mode==='opdracht' ? 'Vul de aantallen in die bij de opdracht passen.' : 'Vul het aantal protonen en neutronen in. Vul daarna zelf in welk element dit is, wat het massagetal en atoomnummer zijn — en check of de kern stabiel is.'}</p>
+    ${taskHtml}
+    <div class="layout">
+      <div>
+        <canvas id="nucleus-canvas" width="350" height="340"></canvas>
+        <div class="legend">
+          <span><span class="dot" style="background:var(--proton);"></span> proton</span>
+          <span><span class="dot" style="background:var(--neutron);"></span> neutron</span>
+        </div>
+      </div>
+      <div>
+        <div class="ctrl-group">
+          <div class="ctrl-head"><label>Aantal protonen</label></div>
+          <input type="number" id="ctrl-protons" class="num-input" min="1" placeholder="vul in...">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-head"><label>Aantal neutronen</label></div>
+          <input type="number" id="ctrl-neutrons" class="num-input" min="0" placeholder="vul in...">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-head"><label>Aantal elektronen</label></div>
+          <input type="number" id="ctrl-electrons" class="num-input" min="0" placeholder="vul in...">
+        </div>
+      </div>
+    </div>
+
+    <h2 style="margin-top:4px;">Vul zelf in</h2>
+    <div class="answer-grid">
+      <div class="answer-field">
+        <label>Symbool</label>
+        <input type="text" id="ans-symbol" placeholder="bv. C" maxlength="3">
+      </div>
+      <div class="answer-field">
+        <label>Massagetal</label>
+        <input type="number" id="ans-massnumber" placeholder="bv. 12">
+      </div>
+      <div class="answer-field">
+        <label>Atoomnummer</label>
+        <input type="number" id="ans-atomicnumber" placeholder="bv. 6">
+      </div>
+      <div class="answer-field">
+        <label>Lading (0 als neutraal)</label>
+        <input type="text" id="ans-charge" placeholder="bv. 2+ of 1- of 0">
+      </div>
+    </div>
+    <button class="btn" id="check-nucleus-btn">Controleer</button>
+    <div class="feedback" id="nucleus-feedback"></div>
+
+    <div class="notation-display" id="notation-display" style="display:none;"></div>
+    <div class="stability-box" id="stability-box" style="display:none;"></div>
+    <div id="size-box-container"></div>
+
+    <div style="margin-top:16px; text-align:right;">
+      <button class="btn ghost" id="nucleus-next-btn" disabled>Verder naar de elektronenschillen →</button>
+    </div>
+  `;
+  content.appendChild(panel);
+
+  function syncInputsFromState(){
+    el('ctrl-protons').value = protons===null ? '' : protons;
+    el('ctrl-neutrons').value = neutrons===null ? '' : neutrons;
+    el('ctrl-electrons').value = electronCount===null ? '' : electronCount;
+  }
+  syncInputsFromState();
+
+  function redrawNucleus(){
+    drawNucleus('nucleus-canvas', protons||0, neutrons||0);
+  }
+  redrawNucleus();
+
+  function onKnobChange(){
+    const pVal = el('ctrl-protons').value;
+    const nVal = el('ctrl-neutrons').value;
+    const eVal = el('ctrl-electrons').value;
+    protons = pVal==='' ? null : parseInt(pVal);
+    neutrons = nVal==='' ? null : parseInt(nVal);
+    electronCount = eVal==='' ? null : parseInt(eVal);
+    redrawNucleus();
+    el('notation-display').style.display = 'none';
+    el('stability-box').style.display = 'none';
+    el('size-box-container').innerHTML = '';
+    el('nucleus-feedback').className = 'feedback';
+    el('nucleus-next-btn').disabled = true;
+  }
+
+  el('ctrl-protons').addEventListener('input', onKnobChange);
+  el('ctrl-neutrons').addEventListener('input', onKnobChange);
+  el('ctrl-electrons').addEventListener('input', onKnobChange);
+
+  el('check-nucleus-btn').addEventListener('click', ()=> checkNucleusAnswer(mode));
+  el('nucleus-next-btn').addEventListener('click', ()=> goToStage(1));
+}
+
+function generateNucleusTask(){
+  const z = 1 + Math.floor(Math.random()*36);
+  const name = ELEMENT_NAMES[String(z)];
+  const flavor = Math.random();
+  if(flavor < 0.34){
+    return { description: `Bouw een neutraal atoom van ${name}. Kies zelf een aantal neutronen dat een bestaande isotoop volgens BINAS oplevert.`, targetProtons: z, requireNeutral: true };
+  } else if(flavor < 0.67){
+    const charge = (Math.random()<0.5?1:2) * (Math.random()<0.5?1:-1);
+    const chargeStr = charge===0?'0':(charge>0?`${charge}+`:`${-charge}-`);
+    return { description: `Bouw een ion van ${name} met lading ${chargeStr}.`, targetProtons: z, targetCharge: charge };
+  } else {
+    return { description: `Bouw een instabiele isotoop van ${name} — kies een aantal neutronen waarbij de kern volgens BINAS radioactief is.`, targetProtons: z, requireUnstable: true };
+  }
+}
+
+function checkNucleusAnswer(mode){
+  const symbolInput = el('ans-symbol').value.trim();
+  const massInput = parseInt(el('ans-massnumber').value);
+  const atomicInput = parseInt(el('ans-atomicnumber').value);
+  const chargeInput = el('ans-charge').value.trim();
+
+  if(protons===null || neutrons===null || electronCount===null){
+    const fb = el('nucleus-feedback');
+    fb.className = 'feedback show info';
+    fb.textContent = 'Vul eerst het aantal protonen, neutronen en elektronen in.';
+    return;
+  }
+
+  const correctSymbol = ELEMENT_SYMBOLS[String(protons)] || null;
+  const correctMass = protons + neutrons;
+  const correctAtomic = protons;
+  const netCharge = protons - electronCount;
+  const correctChargeStr = netCharge === 0 ? '0' : (netCharge > 0 ? `${netCharge}+` : `${-netCharge}-`);
+
+  let allCorrect = true;
+
+  const symbolOk = correctSymbol && symbolInput.toLowerCase() === correctSymbol.toLowerCase();
+  el('ans-symbol').classList.toggle('correct', !!symbolOk);
+  el('ans-symbol').classList.toggle('incorrect', !symbolOk);
+  if(!symbolOk) allCorrect = false;
+
+  const massOk = massInput === correctMass;
+  el('ans-massnumber').classList.toggle('correct', massOk);
+  el('ans-massnumber').classList.toggle('incorrect', !massOk);
+  if(!massOk) allCorrect = false;
+
+  const atomicOk = atomicInput === correctAtomic;
+  el('ans-atomicnumber').classList.toggle('correct', atomicOk);
+  el('ans-atomicnumber').classList.toggle('incorrect', !atomicOk);
+  if(!atomicOk) allCorrect = false;
+
+  const normalizedChargeInput = chargeInput.replace(/\s+/g,'').replace(/^0\+?$/, '0');
+  const chargeOk = normalizedChargeInput === correctChargeStr;
+  el('ans-charge').classList.toggle('correct', chargeOk);
+  el('ans-charge').classList.toggle('incorrect', !chargeOk);
+  if(!chargeOk) allCorrect = false;
+
+  const fb = el('nucleus-feedback');
+
+  if(!correctSymbol){
+    fb.className = 'feedback show info';
+    fb.textContent = `Geen element met atoomnummer ${protons} bekend in deze tool (geverifieerd bereik: 1-36 voor de schillenstap; de kern zelf kent BINAS tot en met atoomnummer 112).`;
+    return;
+  }
+
+  fb.className = 'feedback show ' + (allCorrect ? 'correct' : 'incorrect');
+  fb.textContent = allCorrect ? 'Helemaal goed!' : 'Nog niet alles klopt — controleer de gemarkeerde velden (rood = fout, groen = goed).';
+
+  if(allCorrect){
+    showNotationAndStability(correctSymbol, correctMass, correctAtomic, correctChargeStr);
+    if(mode === 'opdracht' && nucleusTask){
+      checkNucleusTaskSatisfied(fb);
+    }
+    el('nucleus-next-btn').disabled = false;
+  }
+}
+
+function checkNucleusTaskSatisfied(fb){
+  const t = nucleusTask;
+  let taskOk = true;
+  let extra = '';
+  if(t.targetProtons !== protons){
+    taskOk = false; extra = `De opdracht vroeg om atoomnummer ${t.targetProtons}, dit is atoomnummer ${protons}.`;
+  } else if(t.requireNeutral && protons !== electronCount){
+    taskOk = false; extra = 'De opdracht vroeg om een neutraal atoom (protonen = elektronen).';
+  } else if(t.targetCharge !== undefined){
+    const actualCharge = protons - electronCount;
+    if(actualCharge !== t.targetCharge){ taskOk = false; extra = `De opdracht vroeg om lading ${t.targetCharge>0?t.targetCharge+'+':(-t.targetCharge)+'-'}, dit atoom heeft lading ${actualCharge===0?'0':(actualCharge>0?actualCharge+'+':(-actualCharge)+'-')}.`; }
+  } else if(t.requireUnstable){
+    const info = ISOTOPE_LOOKUP[`${protons}_${neutrons}`];
+    if(!info || info.stable){ taskOk = false; extra = 'De opdracht vroeg om een instabiele isotoop — deze combinatie is stabiel of onbekend.'; }
+  }
+  if(taskOk){
+    fb.textContent += ' En de opdracht is voltooid!';
+  } else {
+    fb.className = 'feedback show incorrect';
+    fb.textContent = 'De notatie klopt, maar dit voldoet nog niet aan de opdracht: ' + extra;
+  }
+}
+
+function showNotationAndStability(symbol, massNumber, atomicNumber, chargeStr){
+  const notation = el('notation-display');
+  notation.style.display = '';
+  const chargeHtml = chargeStr !== '0' ? `<span class="charge">${chargeStr}</span>` : '';
+  notation.innerHTML = `
+    <span class="big">
+      <span class="super">${massNumber}</span>
+      <span class="sub">${atomicNumber}</span>
+      ${symbol}${chargeHtml}
+    </span>
+  `;
+
+  const key = `${protons}_${neutrons}`;
+  const info = ISOTOPE_LOOKUP[key];
+  const box = el('stability-box');
+  box.style.display = '';
+  if(!info){
+    box.className = 'stability-box unknown';
+    box.innerHTML = `<div class="lbl">Stabiliteit</div>Deze isotoop (${symbol}-${massNumber}) staat niet in BINAS tabel 25. Dat betekent niet dat hij onbestaanbaar is — alleen dat hij niet in deze referentietabel is opgenomen (vaak omdat hij té kortlevend of nooit waargenomen is).`;
+  } else if(info.stable){
+    box.className = 'stability-box stable';
+    box.innerHTML = `<div class="lbl">Stabiliteit</div>Stabiel — geen radioactief verval bekend.`;
+  } else {
+    box.className = 'stability-box unstable';
+    box.innerHTML = `<div class="lbl">Stabiliteit</div>Instabiel. Halveringstijd: <b>${info.halfLife}</b>. Verval: ${info.decay}.`;
+  }
+
+  const sizeContainer = el('size-box-container');
+  sizeContainer.innerHTML = '';
+  renderSizeBox(sizeContainer, massNumber);
+}
+
+// ============================================================
+// ATOM (NUCLEUS + SHELLS) ANIMATION
+// ============================================================
+const SHELL_MAX = [2, 8, 18, 32];
+let atomElectrons = [];
+let atomAnimRunning = false;
+let atomLastTs = null;
+
+function rebuildAtomElectrons(){
+  atomElectrons = [];
+  shellAnswers.forEach((countStr, shellIdx)=>{
+    const count = parseInt(countStr) || 0;
+    for(let i=0;i<count;i++){
+      atomElectrons.push({
+        shellIdx,
+        angle: (i/count)*Math.PI*2 + Math.random()*0.3,
+        speed: 0.6 / (shellIdx+1.3),
+      });
+    }
+  });
+}
+
+function stepAtom(dt){
+  for(const e of atomElectrons) e.angle += e.speed*dt;
+}
+
+function drawAtom(){
+  const canvas = el('atom-canvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height, cx=W/2, cy=H/2;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0,0,W,H);
+
+  const baseRadius = 46;
+  const ringGap = 30;
+  const nShells = Math.max(shellAnswers.length, 1);
+  for(let s=0; s<nShells; s++){
+    const r = baseRadius + s*ringGap;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(155,148,134,0.35)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Scale the nucleus down as it gets bigger, so it always fits comfortably inside shell 1
+  // (radius baseRadius) regardless of how many nucleons it has -- without this, a nucleus much
+  // past ~12 nucleons would grow larger than the innermost shell and hide it completely.
+  const totalNucleons = (protons||0)+(neutrons||0);
+  const unscaledNucleusRadius = totalNucleons>0 ? Math.max(23, Math.ceil(Math.sqrt(totalNucleons*1.3))*14/2 + 9) : 9;
+  const targetNucleusRadius = baseRadius - 10; // comfortable margin so shell 1 stays visibly clear of the nucleus
+  const nucleusScale = Math.min(1, targetNucleusRadius/unscaledNucleusRadius);
+
+  drawNucleusParticles(ctx, cx, cy, protons||0, neutrons||0, nucleusScale);
+
+  for(const e of atomElectrons){
+    const r = baseRadius + e.shellIdx*ringGap;
+    const x = cx + Math.cos(e.angle)*r;
+    const y = cy + Math.sin(e.angle)*r;
+    ctx.beginPath();
+    ctx.arc(x, y, 6, 0, Math.PI*2);
+    ctx.fillStyle = '#2f8a78';
+    ctx.fill();
+  }
+}
+
+function atomTick(ts){
+  if(!atomAnimRunning) return;
+  if(atomLastTs===null) atomLastTs = ts;
+  const dt = Math.min((ts-atomLastTs)/1000, 0.05);
+  atomLastTs = ts;
+  stepAtom(dt);
+  drawAtom();
+  requestAnimationFrame(atomTick);
+}
+
+// ============================================================
+// STAGE 2: ELECTRON SHELLS
+// ============================================================
+function renderShellStage(content, mode){
+  if(protons===null || electronCount===null){
+    const panel = document.createElement('div');
+    panel.className = 'panel';
+    panel.innerHTML = `
+      <h2>2. Verdeel de elektronen over de schillen</h2>
+      <p class="sub">Bouw eerst een kern in stap 1 — deze stap gebruikt het aantal elektronen dat je daar instelt.</p>
+      <button class="btn ghost" id="shell-back-to-nucleus">← Naar de kern</button>
+    `;
+    content.appendChild(panel);
+    el('shell-back-to-nucleus').addEventListener('click', ()=> goToStage(0));
+    return;
+  }
+
+  if(mode === 'opdracht' && !shellTask) shellTask = generateShellTask();
+  if(mode === 'verkennen') shellTask = null;
+
+  const panel = document.createElement('div');
+  panel.className = 'panel';
+
+  const totalElectrons = mode==='opdracht' ? shellTask.electronCount : electronCount;
+
+  let taskHtml = '';
+  if(mode === 'opdracht' && shellTask){
+    taskHtml = `
+      <div class="task-box">
+        <div class="lbl">Opdracht</div>
+        <div class="desc">${shellTask.description}</div>
+      </div>
+    `;
+  }
+
+  panel.innerHTML = `
+    <h2>2. Verdeel de elektronen over de schillen</h2>
+    <p class="sub">Dit atoom/ion heeft <b>${totalElectrons}</b> elektronen. Kies eerst hoeveel schillen er elektronen bevatten, vul daarna per schil het aantal in. De verdeling moet kloppen met de echte vulvolgorde — niet elke combinatie die optelt tot ${totalElectrons} is geldig.</p>
+    ${taskHtml}
+
+    <div class="ctrl-group">
+      <div class="ctrl-head"><label>Aantal schillen met elektronen</label></div>
+      <input type="number" id="ctrl-shellcount" class="num-input" min="1" max="4" placeholder="vul in...">
+    </div>
+
+    <div id="shell-inputs"></div>
+
+    <button class="btn" id="check-shells-btn">Controleer</button>
+    <div class="feedback" id="shell-feedback"></div>
+
+    <div class="layout" style="margin-top:18px;">
+      <div>
+        <canvas id="atom-canvas" width="500" height="340"></canvas>
+      </div>
+      <div>
+        <p class="sub">De animatie toont je verdeling pas nadat hij is goedgekeurd. Zo zie je nooit een onjuiste verdeling als een correct atoommodel.</p>
+        <div id="shell-size-box-container"></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px; display:flex; justify-content:space-between;">
+      <button class="btn ghost" id="shell-back-btn">← Terug naar de kern</button>
+      <button class="btn ghost" id="shell-restart-btn">Begin opnieuw met een ander atoom</button>
+    </div>
+  `;
+  content.appendChild(panel);
+
+  function renderShellInputs(){
+    const raw = el('ctrl-shellcount').value;
+    const n = raw==='' ? 0 : parseInt(raw);
+    shellCount = raw==='' ? null : n;
+    const wrap = el('shell-inputs');
+    wrap.innerHTML = '';
+    const shellNames = ['K (schil 1)', 'L (schil 2)', 'M (schil 3)', 'N (schil 4)'];
+    for(let i=0;i<n;i++){
+      const row = document.createElement('div');
+      row.className = 'shell-row';
+      const existing = shellAnswers[i] !== undefined ? shellAnswers[i] : '';
+      row.innerHTML = `
+        <span class="shell-lbl">${shellNames[i]}</span>
+        <input type="number" min="0" max="${SHELL_MAX[i]}" data-shell="${i}" value="${existing}" placeholder="0">
+        <span class="max-hint">max ${SHELL_MAX[i]}</span>
+      `;
+      wrap.appendChild(row);
+    }
+    shellAnswers = shellAnswers.slice(0, n);
+    while(shellAnswers.length < n) shellAnswers.push('');
+  }
+
+  el('ctrl-shellcount').addEventListener('input', ()=>{
+    renderShellInputs();
+    el('shell-feedback').className = 'feedback';
+  });
+
+  el('check-shells-btn').addEventListener('click', ()=> checkShellAnswer(mode, totalElectrons));
+  el('shell-back-btn').addEventListener('click', ()=> goToStage(0));
+  el('shell-restart-btn').addEventListener('click', ()=>{
+    shellCount = null; shellAnswers = []; shellTask = null;
+    goToStage(0);
+  });
+
+  renderShellInputs();
+
+  atomElectrons = [];
+  atomAnimRunning = true;
+  atomLastTs = null;
+  requestAnimationFrame(atomTick);
+  drawAtom();
+}
+
+function generateShellTask(){
+  const z = 1 + Math.floor(Math.random()*36);
+  const name = ELEMENT_NAMES[String(z)];
+  return { description: `Verdeel de elektronen van het neutrale atoom ${name} over de schillen.`, electronCount: z, targetConfig: BOHR_CONFIG[String(z)] };
+}
+
+function checkShellAnswer(mode, expectedTotal){
+  const n = shellCount;
+  const inputs = document.querySelectorAll('#shell-inputs input[data-shell]');
+  const values = [];
+  inputs.forEach(inp=>{
+    const idx = parseInt(inp.dataset.shell);
+    values[idx] = inp.value==='' ? NaN : parseInt(inp.value);
+  });
+  shellAnswers = values.map(v=>isNaN(v)?'':String(v));
+
+  if(values.some(v=>isNaN(v)) || !n){
+    const fb = el('shell-feedback');
+    fb.className = 'feedback show info';
+    fb.textContent = 'Vul eerst het aantal schillen en voor elke schil een aantal elektronen in.';
+    return;
+  }
+
+  const total = values.reduce((a,b)=>a+(b||0), 0);
+  const reference = BOHR_CONFIG[String(expectedTotal)];
+
+  let correct = false;
+  let message = '';
+
+  if(total !== expectedTotal){
+    message = `Het totaal (${total}) klopt nog niet met het aantal elektronen van dit atoom/ion (${expectedTotal}).`;
+  } else if(reference){
+    correct = values.length === reference.length && values.every((v,i)=>v===reference[i]);
+    message = correct
+      ? 'Helemaal goed! Dit is de juiste verdeling.'
+      : 'Het totaal klopt, maar de verdeling over de schillen volgt niet de juiste vulvolgorde. Denk aan: de buitenste schil heeft nooit meer dan 8 elektronen, en een binnenste schil mag pas verder vullen dan 8 zodra er al een schil daarbuiten elektronen bevat.';
+  } else {
+    message = `Voor ${expectedTotal} elektronen heeft deze tool geen referentieconfiguratie (buiten het geverifieerde bereik van element 1-36). Zorg dat elke schil binnen zijn maximum blijft en dat de buitenste schil niet meer dan 8 elektronen heeft.`;
+  }
+
+  document.querySelectorAll('#shell-inputs input[data-shell]').forEach(inp=>{
+    if(reference){
+      inp.classList.toggle('correct', correct);
+      inp.classList.toggle('incorrect', !correct && total===expectedTotal);
+    }
+  });
+
+  const fb = el('shell-feedback');
+  fb.className = 'feedback show ' + (correct ? 'correct' : (total===expectedTotal && !reference ? 'info' : 'incorrect'));
+  fb.textContent = message;
+
+  if(correct){
+    rebuildAtomElectrons();
+    drawAtom();
+    const sizeContainer = el('shell-size-box-container');
+    sizeContainer.innerHTML = '';
+    const massNumber = (protons||0) + (neutrons||0);
+    renderSizeBox(sizeContainer, massNumber);
+  }
+}
+
+// ============================================================
+// HALF-LIFE PARSING (for the decay chart's auto-scaled time axis)
+// ============================================================
+// BINAS half-life strings look like "5730 y", "0,807 s", "4,46·10⁹ y", "10⁻¹⁶ s" -- this turns
+// any of those into a plain number of seconds, handling the Dutch decimal comma, the "·10^n"
+// scientific notation (with unicode superscript digits), and the bare "10^n" form with no
+// explicit multiplying factor.
+const SUPERSCRIPT_MAP = {'\u2070':'0','\u00b9':'1','\u00b2':'2','\u00b3':'3','\u2074':'4','\u2075':'5','\u2076':'6','\u2077':'7','\u2078':'8','\u2079':'9','\u207b':'-'};
+function normalizeSuperscripts(s){
+  return s.split('').map(ch=>SUPERSCRIPT_MAP[ch]!==undefined?SUPERSCRIPT_MAP[ch]:ch).join('');
+}
+function parseHalfLifeToSeconds(s){
+  if(!s) return null;
+  s = normalizeSuperscripts(s);
+  s = s.replace(/,/g, '.');
+  s = s.replace(/(\d|^)\u00b710(-?\d+)/, '$1e$2');
+  s = s.replace(/(^|\s)10(-?\d+)/, '$11e$2');
+  const m = s.match(/^([0-9.e+-]+)\s*([a-zA-Z]+)$/);
+  if(!m) return null;
+  const value = parseFloat(m[1]);
+  const unit = m[2];
+  const mult = {s:1, min:60, h:3600, d:86400, y:365.25*86400};
+  if(!(unit in mult) || isNaN(value)) return null;
+  return value * mult[unit];
+}
+
+
+// ============================================================
+// STAGE 3: ALPHA/BETA DECAY
+// ============================================================
+let decayPicked = null; // the chosen DECAY_ISOTOPES entry in verkennen mode
+let decayUserAnswer = { newProtons: '', newNeutrons: '', particle: '' };
+
+function decayTypeLabel(t){
+  return t==='alpha' ? '\u03b1 (alfa)' : (t==='beta_min' ? '\u03b2\u207b (beta-min)' : '\u03b2\u207a (beta-plus)');
+}
+function decayParticleNotation(t){
+  if(t==='alpha') return { mass:4, charge:2, symbol:'\u03b1' };
+  if(t==='beta_min') return { mass:0, charge:-1, symbol:'\u03b2\u207b' };
+  return { mass:0, charge:1, symbol:'\u03b2\u207a' };
+}
+
+function renderDecayStage(content, mode){
+  const panel = document.createElement('div');
+  panel.className = 'panel';
+  content.appendChild(panel);
+
+  if(mode === 'verkennen'){
+    renderDecayExplore(panel);
+  } else {
+    renderDecayTask(panel);
+  }
+}
+
+// ---------- VERKENNEN ----------
+function renderDecayExplore(panel){
+  if(!decayPicked) decayPicked = DECAY_ISOTOPES[Math.floor(Math.random()*DECAY_ISOTOPES.length)];
+  const d = decayPicked;
+
+  panel.innerHTML = `
+    <h2>3. Verkennen — alfa- en betaverval</h2>
+    <p class="sub">Deze instabiele kern is gekozen uit BINAS tabel 25. Bekijk welk deeltje wordt uitgezonden en welke nieuwe kern ontstaat.</p>
+
+    <div class="notation-display">
+      <span class="big">
+        <span class="super">${d.massNumber}</span>
+        <span class="sub">${d.protons}</span>
+        ${d.symbol}
+      </span>
+      <span class="arrow">→</span>
+      <span class="big">
+        <span class="super">${d.newMassNumber}</span>
+        <span class="sub">${d.newProtons}</span>
+        ${d.newSymbol}
+      </span>
+      <span class="arrow">+</span>
+      <span class="big">${decayParticleNotation(d.decayType).symbol}</span>
+    </div>
+
+    <div class="stability-box unstable">
+      <div class="lbl">Vervaltype</div>
+      ${decayTypeLabel(d.decayType)} — halveringstijd ${d.halfLife}
+    </div>
+
+    <p class="sub" style="margin-top:14px;">
+      ${d.decayType==='alpha'
+        ? 'Bij alfaverval verlaat een heliumkern (2 protonen + 2 neutronen) de kern: het atoomnummer daalt met 2, het massagetal met 4.'
+        : d.decayType==='beta_min'
+          ? 'Bij beta-min-verval valt een neutron in de kern uiteen tot een proton en een elektron: het atoomnummer stijgt met 1, het massagetal blijft gelijk.'
+          : 'Bij beta-plus-verval valt een proton in de kern uiteen tot een neutron en een positron: het atoomnummer daalt met 1, het massagetal blijft gelijk.'}
+    </p>
+
+    <h2 style="margin-top:18px;">Hoeveelheid in de tijd</h2>
+    <canvas id="decay-canvas" width="700" height="280"></canvas>
+    <p class="sub" style="margin-top:8px; font-size:12px;">De tijdas loopt automatisch tot 5 halveringstijden — na die tijd is nog maar zo'n 3% van de oorspronkelijke hoeveelheid over.</p>
+
+    <div style="margin-top:16px;">
+      <button class="btn" id="decay-next-random">Toon een andere instabiele kern</button>
+    </div>
+  `;
+
+  drawDecayChart(d);
+
+  el('decay-next-random').addEventListener('click', ()=>{
+    let next;
+    do { next = DECAY_ISOTOPES[Math.floor(Math.random()*DECAY_ISOTOPES.length)]; } while(next===decayPicked && DECAY_ISOTOPES.length>1);
+    decayPicked = next;
+    renderAll();
+  });
+}
+
+// Picks a human-friendly time unit for the x-axis based on the half-life's own scale, instead of
+// always plotting in seconds -- a half-life of billions of years would otherwise produce
+// meaningless axis labels like "1.4e17 s".
+function pickTimeUnit(totalSeconds){
+  const y = 365.25*86400;
+  if(totalSeconds < 120) return {div:1, label:'s'};
+  if(totalSeconds < 7200) return {div:60, label:'min'};
+  if(totalSeconds < 172800) return {div:3600, label:'h'};
+  if(totalSeconds < 90*86400) return {div:86400, label:'d'};
+  return {div:y, label:'jaar'};
+}
+
+function drawDecayChart(d){
+  const canvas = el('decay-canvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0,0,W,H);
+
+  const halfLifeSeconds = parseHalfLifeToSeconds(d.halfLife);
+  const padding = {left:48, right:14, top:14, bottom:28};
+  const plotW = W-padding.left-padding.right, plotH = H-padding.top-padding.bottom;
+
+  if(!halfLifeSeconds){
+    ctx.fillStyle = '#6b6557';
+    ctx.font = '12px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('Halveringstijd kon niet worden omgezet naar een tijdschaal.', W/2, H/2);
+    return;
+  }
+
+  const tMaxSeconds = halfLifeSeconds*5;
+  const unit = pickTimeUnit(tMaxSeconds);
+
+  ctx.strokeStyle = '#8a8478';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padding.left, padding.top); ctx.lineTo(padding.left, H-padding.bottom);
+  ctx.lineTo(W-padding.right, H-padding.bottom);
+  ctx.stroke();
+
+  ctx.fillStyle = '#6b6557';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText('100%', padding.left-6, padding.top+4);
+  ctx.fillText('0%', padding.left-6, H-padding.bottom+2);
+  ctx.textAlign = 'center';
+  ctx.fillText('0', padding.left, H-padding.bottom+14);
+  const endValue = tMaxSeconds/unit.div;
+  const endLabel = endValue >= 100000
+    ? endValue.toExponential(1).replace('+','').replace('e', '\u00d710^')
+    : endValue.toLocaleString('nl-NL', {maximumFractionDigits: endValue<10?1:0});
+  ctx.fillText(endLabel+' '+unit.label, W-padding.right, H-padding.bottom+14);
+
+  // mark each half-life with a faint vertical guide and label, so the halving pattern is visible
+  for(let n=1;n<=5;n++){
+    const t = halfLifeSeconds*n;
+    const x = padding.left + (t/tMaxSeconds)*plotW;
+    ctx.strokeStyle = 'rgba(155,148,134,0.18)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x,padding.top); ctx.lineTo(x,H-padding.bottom); ctx.stroke();
+  }
+
+  ctx.beginPath();
+  ctx.strokeStyle = '#c1652f';
+  ctx.lineWidth = 2.2;
+  const steps = 200;
+  for(let i=0;i<=steps;i++){
+    const t = (i/steps)*tMaxSeconds;
+    const fraction = Math.pow(0.5, t/halfLifeSeconds);
+    const x = padding.left + (t/tMaxSeconds)*plotW;
+    const y = padding.top + plotH*(1-fraction);
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+}
+
+// ---------- OPDRACHT ----------
+function renderDecayTask(panel){
+  if(!decayTask) decayTask = DECAY_ISOTOPES[Math.floor(Math.random()*DECAY_ISOTOPES.length)];
+  const d = decayTask;
+
+  panel.innerHTML = `
+    <h2>3. Opdracht — stel de vervalvergelijking op</h2>
+    <div class="task-box">
+      <div class="lbl">Opdracht</div>
+      <div class="desc">Deze kern is instabiel en vervalt via ${decayTypeLabel(d.decayType)}. Bepaal welke nieuwe kern ontstaat.</div>
+    </div>
+
+    <div class="notation-display">
+      <span class="big">
+        <span class="super">${d.massNumber}</span>
+        <span class="sub">${d.protons}</span>
+        ${d.symbol}
+      </span>
+      <span class="arrow">→</span>
+      <span class="big">?</span>
+      <span class="arrow">+</span>
+      <span class="big">${decayParticleNotation(d.decayType).symbol}</span>
+    </div>
+
+    <div class="answer-grid">
+      <div class="answer-field">
+        <label>Nieuw atoomnummer</label>
+        <input type="number" id="decay-ans-protons" placeholder="vul in...">
+      </div>
+      <div class="answer-field">
+        <label>Nieuw massagetal</label>
+        <input type="number" id="decay-ans-massnumber" placeholder="vul in...">
+      </div>
+      <div class="answer-field">
+        <label>Symbool van het nieuwe element</label>
+        <input type="text" id="decay-ans-symbol" placeholder="bv. N" maxlength="3">
+      </div>
+    </div>
+
+    <button class="btn" id="check-decay-btn">Controleer</button>
+    <div class="feedback" id="decay-feedback"></div>
+
+    <div style="margin-top:16px;">
+      <button class="btn ghost" id="decay-new-task-btn">Nieuwe opdracht</button>
+    </div>
+  `;
+
+  el('check-decay-btn').addEventListener('click', ()=> checkDecayTask(d));
+  el('decay-new-task-btn').addEventListener('click', ()=>{
+    decayTask = DECAY_ISOTOPES[Math.floor(Math.random()*DECAY_ISOTOPES.length)];
+    renderAll();
+  });
+}
+
+function checkDecayTask(d){
+  const pInput = parseInt(el('decay-ans-protons').value);
+  const mInput = parseInt(el('decay-ans-massnumber').value);
+  const sInput = el('decay-ans-symbol').value.trim();
+
+  let allCorrect = true;
+  const pOk = pInput === d.newProtons;
+  el('decay-ans-protons').classList.toggle('correct', pOk);
+  el('decay-ans-protons').classList.toggle('incorrect', !pOk);
+  if(!pOk) allCorrect = false;
+
+  const mOk = mInput === d.newMassNumber;
+  el('decay-ans-massnumber').classList.toggle('correct', mOk);
+  el('decay-ans-massnumber').classList.toggle('incorrect', !mOk);
+  if(!mOk) allCorrect = false;
+
+  const sOk = sInput.toLowerCase() === d.newSymbol.toLowerCase();
+  el('decay-ans-symbol').classList.toggle('correct', sOk);
+  el('decay-ans-symbol').classList.toggle('incorrect', !sOk);
+  if(!sOk) allCorrect = false;
+
+  const fb = el('decay-feedback');
+  fb.className = 'feedback show ' + (allCorrect ? 'correct' : 'incorrect');
+  if(allCorrect){
+    fb.textContent = `Helemaal goed! ${d.symbol}-${d.massNumber} vervalt via ${decayTypeLabel(d.decayType)} naar ${d.newSymbol}-${d.newMassNumber}.`;
+  } else {
+    const hint = d.decayType==='alpha'
+      ? 'Bij alfaverval: atoomnummer -2, massagetal -4.'
+      : d.decayType==='beta_min'
+        ? 'Bij beta-min-verval: atoomnummer +1, massagetal blijft gelijk.'
+        : 'Bij beta-plus-verval: atoomnummer -1, massagetal blijft gelijk.';
+    fb.textContent = 'Nog niet helemaal goed. ' + hint;
+  }
+}
+
+renderAll();
+
+</script>
+</body>
+</html>

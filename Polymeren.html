@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polymeren — Rekenen & Structuren</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f7f7f5;--sf:#fff;--sf2:#f0f0ec;--bd:#d8d8d2;--bd2:#c0c0b8;
+  --tx:#1a1a18;--tx2:#5a5a55;--tx3:#8a8a84;
+  --bl:#1a5fa8;--blb:#e8f0fa;--gn:#1a7a4a;--gnb:#e6f4ed;
+  --rd:#a83030;--rdb:#faeaea;--am:#8a6010;--amb:#fdf4e0;
+  --pu:#6030a8;--pub:#f0e8fa;
+  --r:8px;--rl:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx);font-size:15px;line-height:1.6;}
+.page{max-width:800px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+.header{text-align:center;margin-bottom:1.5rem;}
+.header h1{font-size:25px;font-weight:600;margin-bottom:4px;}
+.header p{font-size:14px;color:var(--tx2);}
+.tabs{display:flex;gap:0;justify-content:center;margin-bottom:1.5rem;}
+.tabs button{padding:9px 22px;font-size:14px;font-weight:500;border:1px solid var(--bd2);background:var(--sf);cursor:pointer;color:var(--tx2);}
+.tabs button:first-child{border-radius:var(--r) 0 0 var(--r);}
+.tabs button:last-child{border-radius:0 var(--r) var(--r) 0;border-left:none;}
+.tabs button.on{background:var(--blb);color:var(--bl);border-color:var(--bl);font-weight:600;}
+.panel{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);padding:1.5rem;margin-bottom:1.25rem;}
+.badge{display:inline-block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:20px;margin-bottom:.75rem;}
+.badge.add{background:var(--blb);color:var(--bl);}
+.badge.cond{background:var(--pub);color:var(--pu);}
+h2{font-size:17px;font-weight:600;margin-bottom:.75rem;}
+.opgave-text{font-size:15px;line-height:1.7;margin-bottom:1rem;}
+.given{background:var(--sf2);border-radius:var(--r);padding:.75rem 1rem;margin:1rem 0;font-size:14px;line-height:1.9;}
+.answer-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:.75rem 0;}
+.answer-row label{font-size:14px;}
+input[type="text"],input[type="number"]{padding:8px 11px;font-size:14px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--sf);color:var(--tx);width:130px;}
+input:focus{outline:none;border-color:var(--bl);box-shadow:0 0 0 3px rgba(26,95,168,.1);}
+.btn{padding:8px 16px;font-size:14px;font-weight:600;border:1px solid var(--bl);border-radius:var(--r);background:var(--bl);color:#fff;cursor:pointer;transition:opacity .15s;}
+.btn:hover{opacity:.9;}
+.btn-sec{background:var(--sf2);color:var(--tx);border-color:var(--bd2);}
+.feedback{font-size:14px;padding:10px 14px;border-radius:var(--r);margin-top:1rem;display:none;}
+.feedback.correct{background:var(--gnb);color:var(--gn);border:1px solid #b8e0cb;display:block;}
+.feedback.wrong{background:var(--rdb);color:var(--rd);border:1px solid #f0c0c0;display:block;}
+.feedback.hint{background:var(--amb);color:var(--am);border:1px solid #e8d090;display:block;}
+.feedback .work{font-size:13px;margin-top:8px;line-height:1.7;color:var(--tx2);}
+.controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1rem;}
+.ctrl{display:flex;flex-direction:column;gap:4px;}
+.ctrl label{font-size:13px;color:var(--tx2);}
+.ctrl select{padding:6px 10px;font-size:14px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--sf);}
+.hint-note{font-size:12px;color:var(--tx3);margin-top:8px;}
+.struct-box{background:var(--sf2);border-radius:var(--r);padding:1.25rem;margin:1rem 0;text-align:center;overflow-x:auto;}
+.tab-content{display:none;}
+.tab-content.on{display:block;}
+.moltable-note{font-size:12px;color:var(--tx3);margin-top:1rem;border-top:1px solid var(--bd);padding-top:.75rem;}
+.thermo-row{display:flex;gap:8px;flex-wrap:wrap;margin:.5rem 0;}
+.thermo-btn{padding:7px 18px;font-size:13px;font-weight:600;border:1.5px solid var(--bd2);border-radius:var(--r);background:var(--sf);color:var(--tx2);cursor:pointer;transition:all .12s;}
+.thermo-btn:hover{border-color:var(--bl);color:var(--bl);}
+.thermo-btn.sel{border-color:var(--bl);background:var(--blb);color:var(--bl);}
+.answer-reveal{background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r);padding:1rem 1.25rem;margin-top:1rem;display:none;}
+.answer-reveal.show{display:block;}
+.answer-reveal h3{font-size:13px;font-weight:700;margin-bottom:.75rem;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em;}
+.mono-card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:.6rem 1rem;margin-bottom:.4rem;}
+.mono-naam{font-size:14px;font-weight:600;color:var(--bl);margin-bottom:2px;}
+.mono-formule{font-size:12px;color:var(--tx3);}
+.mono-struct{font-family:'Courier New',monospace;font-size:13px;color:var(--tx);margin-top:3px;}
+.q-section{margin-top:1.25rem;border-top:1px solid var(--bd);padding-top:1rem;}
+.q-label{font-size:14px;font-weight:600;margin-bottom:.4rem;}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="header">
+  <h1>Polymeren</h1>
+  <p>Rekenen aan polymeren en structuren herkennen — VWO bovenbouw.</p>
+</header>
+<div class="tabs">
+  <button id="tab-reken" class="on" onclick="switchTab('reken')">Rekenen</button>
+  <button id="tab-struct" onclick="switchTab('struct')">Structuren</button>
+</div>
+
+<!-- REKEN TAB -->
+<div id="content-reken" class="tab-content on">
+  <div class="panel">
+    <div class="controls">
+      <div class="ctrl"><label>Type polymeer</label>
+        <select id="polyType"><option value="additie">Additie</option><option value="condensatie">Condensatie</option><option value="random">Willekeurig</option></select>
+      </div>
+      <div class="ctrl"><label>Gevraagd</label>
+        <select id="askType"><option value="M">Molmassa M</option><option value="n">Polymerisatiegraad n</option><option value="ratio">Molverhouding</option><option value="random">Willekeurig</option></select>
+      </div>
+      <button class="btn" onclick="newRekenOpgave()">Nieuwe opgave</button>
+    </div>
+  </div>
+  <div class="panel" id="rekenOpgave" style="display:none;">
+    <span class="badge" id="rekenBadge"></span>
+    <h2 id="rekenTitle"></h2>
+    <div class="opgave-text" id="rekenVraag"></div>
+    <div class="given" id="rekenGegeven"></div>
+    <div class="answer-row">
+      <label id="rekenLabel"></label>
+      <input type="text" id="rekenInput" placeholder="antwoord">
+      <span id="rekenUnit" style="font-size:14px;color:var(--tx2);"></span>
+      <button class="btn" onclick="checkReken()">Controleer</button>
+      <button class="btn btn-sec" onclick="revealReken()">Toon uitwerking</button>
+    </div>
+    <div class="hint-note" id="rekenHint"></div>
+    <div class="feedback" id="rekenFb"></div>
+    <div class="moltable-note">
+      Atoommassa's: H=1,008 · C=12,011 · N=14,007 · O=15,999 · Cl=35,45 · F=18,998 g/mol.<br>
+      Bij condensatie: n monomeren → (n−1) bindingen → (n−1) afgesplitste watermoleculen.
+    </div>
+  </div>
+</div>
+
+<!-- STRUCT TAB -->
+<div id="content-struct" class="tab-content">
+  <div class="panel">
+    <div class="controls">
+      <div class="ctrl"><label>Type</label>
+        <select id="structType">
+          <option value="random">Willekeurig</option>
+          <option value="additie">Additie</option>
+          <option value="condensatie">Condensatie</option>
+        </select>
+      </div>
+      <button class="btn" onclick="newStructOpgave()">Nieuwe opgave</button>
+    </div>
+  </div>
+  <div class="panel" id="structOpgave" style="display:none;">
+    <h2>Analyseer dit polymeer</h2>
+    <div class="opgave-text" id="structVraag"></div>
+    <div class="struct-box" id="structDisplay"></div>
+
+    <div class="q-section">
+      <div class="q-label">Monomeer(en) — vul de systematische naam(en) in:</div>
+      <div class="answer-row">
+        <input type="text" id="structInput" placeholder="naam-A + naam-B, of één naam" style="width:340px;">
+      </div>
+      <div class="q-label" style="margin-top:.75rem;">Thermoplast of thermoharder?</div>
+      <div class="thermo-row">
+        <button class="thermo-btn" id="tb-thermo" onclick="selThermo('thermoplast')">Thermoplast</button>
+        <button class="thermo-btn" id="tb-hard" onclick="selThermo('thermoharder')">Thermoharder</button>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:1rem;">
+        <button class="btn" onclick="checkAll()">Controleer</button>
+        <button class="btn btn-sec" onclick="revealAll()">Toon antwoord</button>
+      </div>
+    </div>
+    <div class="hint-note" id="structHint"></div>
+    <div class="feedback" id="structFb"></div>
+    <div class="answer-reveal" id="answerReveal"></div>
+  </div>
+</div>
+</div>
+<script>
+"use strict";
+const MW={H:1.008,C:12.011,N:14.007,O:15.999,Cl:35.45,F:18.998};
+function molarMass(f){let m=0;const re=/([A-Z][a-z]?)(\d*)/g;let mt;while((mt=re.exec(f))!==null){if(!MW[mt[1]])continue;m+=MW[mt[1]]*(mt[2]?parseInt(mt[2]):1);}return m;}
+function gcd(a,b){return b===0?a:gcd(b,Math.abs(a%b));}
+function fmtF(f){return f.replace(/(\d+)/g,'<sub>$1</sub>');}
+const rnd=n=>Math.floor(Math.random()*n);
+const pick=a=>a[rnd(a.length)];
+const Y=55;
+
+// ── SVG helpers ───────────────────────────────────────────────────────────────
+function txt(x,y,s,opt=''){return `<text x="${x}" y="${y}" ${opt}>${s}</text>`;}
+function hline(x1,x2,y){return `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#1a1a18" stroke-width="1.5"/>`;}
+function bracket(x,side){
+  const top=Y-20,bot=Y+10,w=8;
+  if(side==='[')return `<path d="M${x+w},${top} L${x},${top} L${x},${bot} L${x+w},${bot}" fill="none" stroke="#888" stroke-width="1.8"/>`;
+  return `<path d="M${x},${top} L${x+w},${top} L${x+w},${bot} L${x},${bot}" fill="none" stroke="#888" stroke-width="1.8"/>`;
+}
+function subN(x,y){return `<text x="${x}" y="${y}" font-size="12" fill="#555">n</text>`;}
+function tilde(x){return txt(x,Y,'~','fill="#555" font-size="18"');}
+function benzene(cx,cy,r=20){
+  const pts=[];for(let i=0;i<6;i++){const a=(i*60-90)*Math.PI/180;pts.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}
+  const hex=pts.map((p,i)=>`${i===0?'M':'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ')+'Z';
+  return `<path d="${hex}" fill="none" stroke="#1a1a18" stroke-width="1.5"/>
+          <circle cx="${cx}" cy="${cy}" r="${(r*.55).toFixed(1)}" fill="none" stroke="#1a1a18" stroke-width="1.2"/>`;
+}
+function svgWrap(inner,W,H=80){
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="'Courier New',monospace" font-size="14" fill="#1a1a18">${inner}</svg>`;
+}
+
+const CONN=10;
+function node(x,lbl){const w=lbl.length*8+4;return{x,w,svg:txt(x,Y,lbl)};}
+
+function buildPoly(units){
+  // units: array of {lbl, sub?} where sub is a downward substituent
+  // returns SVG string
+  let x=8,parts='',H=80;
+  parts+=tilde(x);x+=18;
+  parts+=bracket(x,'[');x+=12;
+  units.forEach((u,i)=>{
+    const lbl=u.lbl;
+    const w=lbl.length*8+2;
+    parts+=txt(x,Y,lbl);
+    if(u.sub){
+      parts+=`<line x1="${x+w/2}" y1="${Y+2}" x2="${x+w/2}" y2="${Y+16}" stroke="#1a1a18" stroke-width="1.2"/>`;
+      parts+=txt(x+w/2-u.sub.length*3,Y+28,u.sub,'font-size="11"');
+      H=96;
+    }
+    x+=w;
+    if(i<units.length-1){parts+=hline(x,x+CONN,Y-5);x+=CONN;}
+  });
+  parts+=bracket(x,']');x+=12;
+  parts+=subN(x,Y+6);x+=14;
+  parts+=tilde(x);x+=18;
+  return svgWrap(parts,x+8,H);
+}
+
+function buildPolyDieen(sub){
+  let x=8,parts='';
+  parts+=tilde(x);x+=18;
+  parts+=bracket(x,'[');x+=12;
+  // CH2-
+  parts+=txt(x,Y,'CH₂');x+=32;
+  parts+=hline(x,x+CONN,Y-5);x+=CONN;
+  // CH= (double bond follows)
+  parts+=txt(x,Y,'CH');x+=18;
+  // double bond
+  parts+=`<line x1="${x}" y1="${Y-9}" x2="${x+CONN}" y2="${Y-9}" stroke="#1a1a18" stroke-width="1.5"/>`;
+  parts+=`<line x1="${x}" y1="${Y-5}" x2="${x+CONN}" y2="${Y-5}" stroke="#1a1a18" stroke-width="1.5"/>`;
+  x+=CONN;
+  // =C(sub)- or =CH-
+  if(sub){
+    parts+=txt(x,Y,'C');
+    parts+=`<line x1="${x+8}" y1="${Y-8}" x2="${x+8}" y2="${Y-22}" stroke="#1a1a18" stroke-width="1.2"/>`;
+    parts+=txt(x+2,Y-28,sub,'font-size="11"');
+    x+=16;
+  } else {
+    parts+=txt(x,Y,'CH');x+=20;
+  }
+  parts+=hline(x,x+CONN,Y-5);x+=CONN;
+  parts+=txt(x,Y,'CH₂');x+=32;
+  parts+=bracket(x,']');x+=12;
+  parts+=subN(x,Y+6);x+=14;
+  parts+=tilde(x);x+=18;
+  return svgWrap(parts,x+8,90);
+}
+
+function buildPolyBenz(prefix,suffix,hasBenz,H=90){
+  // For polyester/polyamide with optional benzene ring
+  let x=8,parts='';
+  parts+=tilde(x);x+=18;
+  parts+=bracket(x,'[');x+=12;
+  if(prefix){parts+=txt(x,Y,prefix);x+=prefix.length*8+2;parts+=hline(x,x+CONN,Y-5);x+=CONN;}
+  if(hasBenz){parts+=benzene(x+22,Y-5,20);x+=50;if(suffix){parts+=hline(x,x+CONN,Y-5);x+=CONN;}}
+  if(suffix){parts+=txt(x,Y,suffix);x+=suffix.length*8+2;}
+  parts+=bracket(x,']');x+=12;
+  parts+=subN(x,Y+6);x+=14;
+  parts+=tilde(x);x+=18;
+  return svgWrap(parts,x+8,H);
+}
+
+// ── MONOMER DATA ──────────────────────────────────────────────────────────────
+
+const ADDITIE_ETHEEN=[
+  {naam:'etheen',formule:'C2H4',
+   polySVG:()=>buildPoly([{lbl:'CH₂'},{lbl:'CH₂'}]),
+   monoStruct:'CH₂=CH₂',thermo:'thermoplast',
+   thermoUitleg:'Lineaire keten zonder vrije reactieve groepen — thermoplastisch.'},
+  {naam:'propeen',formule:'C3H6',
+   polySVG:()=>buildPoly([{lbl:'CH₂'},{lbl:'CH',sub:'CH₃'}]),
+   monoStruct:'CH₂=CH−CH₃',thermo:'thermoplast',
+   thermoUitleg:'Lineaire keten — thermoplastisch.'},
+  {naam:'chlooretheen',formule:'C2H3Cl',
+   polySVG:()=>buildPoly([{lbl:'CH₂'},{lbl:'CH',sub:'Cl'}]),
+   monoStruct:'CH₂=CH−Cl',thermo:'thermoplast',
+   thermoUitleg:'PVC — lineaire keten — thermoplastisch.'},
+  {naam:'ethenylbenzeen',aliassen:['fenyletheen','styreen'],formule:'C8H8',
+   polySVG:()=>buildPoly([{lbl:'CH₂'},{lbl:'CH',sub:'C₆H₅'}]),
+   monoStruct:'CH₂=CH−C₆H₅',thermo:'thermoplast',
+   thermoUitleg:'Polystyreen — lineaire keten — thermoplast.'},
+  {naam:'tetrafluoretheen',formule:'C2F4',
+   polySVG:()=>buildPoly([{lbl:'CF₂'},{lbl:'CF₂'}]),
+   monoStruct:'CF₂=CF₂',thermo:'thermoplast',
+   thermoUitleg:'PTFE (Teflon) — lineaire keten — thermoplastisch.'},
+  {naam:'methyl-2-propenoaat',formule:'C4H6O2',
+   polySVG:()=>buildPoly([{lbl:'CH₂'},{lbl:'CH',sub:'COOCH₃'}]),
+   monoStruct:'CH₂=CH−COOCH₃ (methyl-2-propenoaat)',thermo:'thermoplast',
+   thermoUitleg:'Lineaire keten — thermoplastisch.'},
+];
+
+const ADDITIE_DIEEN=[
+  {naam:'1,3-butadieen',formule:'C4H6',
+   polySVG:()=>buildPolyDieen(null),
+   monoStruct:'CH₂=CH−CH=CH₂ (1,3-butadieen)',thermo:'thermoplast',
+   thermoUitleg:'Polybutadieen is als zodanig een thermoplast. De dubbele bindingen in de keten zijn nog aanwezig en kunnen door vulkanisatie met zwavel crosslinks vormen → thermoharder. Gevulkaniseerd polybutadieen is dus een thermoharder.'},
+  {naam:'2-methyl-1,3-butadieen',formule:'C5H8',
+   polySVG:()=>buildPolyDieen('CH₃'),
+   monoStruct:'CH₂=C(CH₃)−CH=CH₂ (2-methyl-1,3-butadieen / isopreen)',thermo:'thermoplast',
+   thermoUitleg:'Polyisopreen (natuurrubber) is als zodanig een thermoplast. Door vulkanisatie met zwavel reageren de dubbele bindingen in de keten met zwavelbindingen → crosslinks → thermoharder. Gevulkaniseerd rubber is dus een thermoharder.'},
+  {naam:'2-chloor-1,3-butadieen',formule:'C4H5Cl',
+   polySVG:()=>buildPolyDieen('Cl'),
+   monoStruct:'CH₂=CCl−CH=CH₂ (2-chloor-1,3-butadieen)',thermo:'thermoplast',
+   thermoUitleg:'Neopreen (polychlorobuteen) is als zodanig een thermoplast. De dubbele bindingen in de keten kunnen door vulkanisatie met zwavel crosslinks vormen → thermoharder. Ongevulkaniseerd neopreen is thermoplastisch elastomeer.'},
+];
+
+const POLYESTER_2=[
+  {namen:['ethaan-1,2-diol','ethaandizuur'],formules:['C2H6O2','C2H4O4'],
+   polySVG:()=>buildPoly([{lbl:'O'},{lbl:'CH₂'},{lbl:'CH₂'},{lbl:'O'},{lbl:'CO'},{lbl:'CO'}]),
+   monoStructs:['HO−CH₂−CH₂−OH (ethaan-1,2-diol)','HOOC−COOH'],
+   thermo:'thermoplast',thermoUitleg:'Twee bifunctionele monomeren — alle groepen reageren — lineaire keten — thermoplast.'},
+  {namen:['ethaan-1,2-diol','benzeen-1,4-dizuur'],formules:['C2H6O2','C8H6O4'],
+   polySVG:()=>buildPolyBenz('O−CH₂−CH₂−O−CO','CO',true),
+   monoStructs:['HO−CH₂−CH₂−OH (ethaan-1,2-diol)','1,4-C₆H₄(COOH)₂'],
+   thermo:'thermoplast',thermoUitleg:'PET — lineaire keten — thermoplast.'},
+  {namen:['propaan-1,3-diol','propaandizuur'],formules:['C3H8O2','C3H4O4'],
+   polySVG:()=>buildPoly([{lbl:'O'},{lbl:'(CH₂)₃'},{lbl:'O'},{lbl:'CO'},{lbl:'CH₂'},{lbl:'CO'}]),
+   monoStructs:['HO−(CH₂)₃−OH (propaan-1,3-diol)','HOOC−CH₂−COOH'],
+   thermo:'thermoplast',thermoUitleg:'Lineaire keten — thermoplast.'},
+  {namen:['butaan-1,4-diol','butaandizuur'],formules:['C4H10O2','C4H6O4'],
+   polySVG:()=>buildPoly([{lbl:'O'},{lbl:'(CH₂)₄'},{lbl:'O'},{lbl:'CO'},{lbl:'(CH₂)₂'},{lbl:'CO'}]),
+   monoStructs:['HO−(CH₂)₄−OH (butaan-1,4-diol)','HOOC−(CH₂)₂−COOH'],
+   thermo:'thermoplast',thermoUitleg:'PBS — lineaire keten — thermoplast.'},
+  {namen:['butaan-1,4-diol','benzeen-1,4-dizuur'],formules:['C4H10O2','C8H6O4'],
+   polySVG:()=>buildPolyBenz('O−(CH₂)₄−O−CO','CO',true),
+   monoStructs:['HO−(CH₂)₄−OH (butaan-1,4-diol)','1,4-C₆H₄(COOH)₂'],
+   thermo:'thermoplast',thermoUitleg:'PBT — lineaire keten — thermoplast.'},
+  // THERMOHARDERS
+  {namen:['propaan-1,2,3-triol','benzeen-1,2-dizuur'],formules:['C3H8O3','C8H6O4'],
+   polySVG:()=>buildPolyBenz('O−CH₂−CH(OH)−CH₂−O−CO','CO',true,100),
+   monoStructs:['HO−CH₂−CH(OH)−CH₂−OH (propaan-1,2,3-triol / glycerol)','1,2-C₆H₄(COOH)₂ (benzeen-1,2-dizuur / ftaalzuur)'],
+   thermo:'thermoharder',thermoUitleg:'Propaan-1,2,3-triol heeft 3 OH-groepen; benzeen-1,2-dizuur heeft slechts 2 COOH-groepen. Na elke reactie blijft er een vrije OH-groep over op de glycerol-eenheid. Die kan reageren met een COOH-groep van een naburige keten → crosslinks → thermoharder (alkydehars).'},
+  {namen:['propaan-1,2,3-triol','hexaandizuur'],formules:['C3H8O3','C6H10O4'],
+   polySVG:()=>buildPoly([{lbl:'O−CH₂−CH(OH)−CH₂−O−CO'},{lbl:'(CH₂)₄'},{lbl:'CO'}]),
+   monoStructs:['HO−CH₂−CH(OH)−CH₂−OH (propaan-1,2,3-triol / glycerol)','HOOC−(CH₂)₄−COOH (hexaandizuur)'],
+   thermo:'thermoharder',thermoUitleg:'Propaan-1,2,3-triol heeft 3 OH-groepen maar hexaandizuur slechts 2 COOH-groepen. Per glyceroleenheid blijft één OH vrij voor crosslinking — thermoharder.'},
+  {namen:['2,2-bis(hydroxymethyl)propaan-1,3-diol','butaandizuur'],formules:['C5H12O4','C4H6O4'],
+   polySVG:()=>buildPoly([{lbl:'O−CH₂−C(CH₂OH)₂−CH₂−O−CO'},{lbl:'(CH₂)₂'},{lbl:'CO'}]),
+   monoStructs:['HO−CH₂−C(CH₂OH)₂−CH₂−OH (2,2-bis(hydroxymethyl)propaan-1,3-diol, 4× OH)','HOOC−(CH₂)₂−COOH (butaandizuur)'],
+   thermo:'thermoharder',thermoUitleg:'Pentaerytritol heeft 4 OH-groepen; butaandizuur heeft 2 COOH-groepen. Per pentaerytritoleenheid blijven 2 OH-groepen vrij voor crosslinks → sterk gecrosslinkt netwerk → thermoharder.'},
+  {namen:['2-hydroxypropaan-1,2,3-tricarbonzuur','ethaan-1,2-diol'],formules:['C6H8O7','C2H6O2'],
+   polySVG:()=>buildPoly([{lbl:'O−CH₂−CH₂−O−CO−CH₂−C(COOH)(OH)−CH₂−CO'}]),
+   monoStructs:['HOOC−CH₂−C(OH)(COOH)−CH₂−COOH (2-hydroxypropaan-1,2,3-tricarbonzuur / citroenzuur, 3× COOH + 1 OH)','HO−CH₂−CH₂−OH (ethaan-1,2-diol)'],
+   thermo:'thermoharder',thermoUitleg:'Citroenzuur heeft 3 COOH-groepen en 1 OH-groep; ethaandiol heeft 2 OH-groepen. Per citroenzuureenheid blijft 1 COOH-groep vrij na reactie met de twee OH-groepen van ethaandiol → crosslinks → thermoharder.'},
+];
+
+const POLYAMIDE_2=[
+  {namen:['hexaan-1,6-diamine','hexaandizuur'],formules:['C6H16N2','C6H10O4'],
+   polySVG:()=>buildPoly([{lbl:'NH'},{lbl:'(CH₂)₆'},{lbl:'NH'},{lbl:'CO'},{lbl:'(CH₂)₄'},{lbl:'CO'}]),
+   monoStructs:['H₂N−(CH₂)₆−NH₂ (hexaan-1,6-diamine)','HOOC−(CH₂)₄−COOH (hexaandizuur)'],
+   thermo:'thermoplast',thermoUitleg:'Nylon-6,6 — lineaire keten — thermoplast.'},
+  {namen:['butaan-1,4-diamine','butaandizuur'],formules:['C4H12N2','C4H6O4'],
+   polySVG:()=>buildPoly([{lbl:'NH'},{lbl:'(CH₂)₄'},{lbl:'NH'},{lbl:'CO'},{lbl:'(CH₂)₂'},{lbl:'CO'}]),
+   monoStructs:['H₂N−(CH₂)₄−NH₂ (butaan-1,4-diamine)','HOOC−(CH₂)₂−COOH (butaandizuur)'],
+   thermo:'thermoplast',thermoUitleg:'Nylon-4,4 — lineaire keten — thermoplast.'},
+  {namen:['hexaan-1,6-diamine','benzeen-1,4-dizuur'],formules:['C6H16N2','C8H6O4'],
+   polySVG:()=>buildPolyBenz('NH−(CH₂)₆−NH−CO','CO',true),
+   monoStructs:['H₂N−(CH₂)₆−NH₂ (hexaan-1,6-diamine)','1,4-C₆H₄(COOH)₂ (benzeen-1,4-dizuur / tereftaalzuur)'],
+   thermo:'thermoplast',thermoUitleg:'Kevlar — rigide aromatische keten — thermoplast (extreem hoge smelttemperatuur).'},
+  {namen:['butaan-1,4-diamine','benzeen-1,4-dizuur'],formules:['C4H12N2','C8H6O4'],
+   polySVG:()=>buildPolyBenz('NH−(CH₂)₄−NH−CO','CO',true),
+   monoStructs:['H₂N−(CH₂)₄−NH₂ (butaan-1,4-diamine)','1,4-C₆H₄(COOH)₂ (benzeen-1,4-dizuur)'],
+   thermo:'thermoplast',thermoUitleg:'Aromatisch polyamide — thermoplast.'},
+  {namen:['propaan-1,3-diamine','propaandizuur'],formules:['C3H10N2','C3H4O4'],
+   polySVG:()=>buildPoly([{lbl:'NH'},{lbl:'(CH₂)₃'},{lbl:'NH'},{lbl:'CO'},{lbl:'CH₂'},{lbl:'CO'}]),
+   monoStructs:['H₂N−(CH₂)₃−NH₂ (propaan-1,3-diamine)','HOOC−CH₂−COOH (propaandizuur / malonzuur)'],
+   thermo:'thermoplast',thermoUitleg:'Lineaire keten — thermoplast.'},
+];
+
+const POLYESTER_1=[
+  {naam:'2-hydroxyethaan-1-zuur',formule:'C2H4O3',
+   polySVG:()=>buildPoly([{lbl:'O'},{lbl:'CH₂'},{lbl:'CO'}]),
+   monoStruct:'HO−CH₂−COOH (2-hydroxyethaan-1-zuur)',thermo:'thermoplast',
+   thermoUitleg:'PGA — lineaire keten — thermoplast (biologisch afbreekbaar hechtdraad).'},
+  {naam:'2-hydroxypropaanzuur',formule:'C3H6O3',
+   polySVG:()=>buildPoly([{lbl:'O'},{lbl:'CH(CH₃)'},{lbl:'CO'}]),
+   monoStruct:'HO−CH(CH₃)−COOH',thermo:'thermoplast',
+   thermoUitleg:'PLA (polymelkzuur) — bioplastic — thermoplast.'},
+  {naam:'6-hydroxyhexaanzuur',formule:'C6H12O3',
+   polySVG:()=>buildPoly([{lbl:'O'},{lbl:'(CH₂)₅'},{lbl:'CO'}]),
+   monoStruct:'HO−(CH₂)₅−COOH',thermo:'thermoplast',
+   thermoUitleg:'Polycaprolacton — thermoplast.'},
+];
+
+const POLYAMIDE_1=[
+  {naam:'6-aminohexaanzuur',formule:'C6H13NO2',
+   polySVG:()=>buildPoly([{lbl:'NH'},{lbl:'(CH₂)₅'},{lbl:'CO'}]),
+   monoStruct:'H₂N−(CH₂)₅−COOH',thermo:'thermoplast',
+   thermoUitleg:'Nylon-6 — lineaire keten — thermoplast.'},
+  {naam:'4-aminobutaanzuur',formule:'C4H9NO2',
+   polySVG:()=>buildPoly([{lbl:'NH'},{lbl:'(CH₂)₃'},{lbl:'CO'}]),
+   monoStruct:'H₂N−(CH₂)₃−COOH',thermo:'thermoplast',
+   thermoUitleg:'Nylon-4 — lineaire keten — thermoplast.'},
+  {naam:'2-aminoethaan-1-zuur',formule:'C2H5NO2',
+   polySVG:()=>buildPoly([{lbl:'NH'},{lbl:'CH₂'},{lbl:'CO'}]),
+   monoStruct:'H₂N−CH₂−COOH (glycine)',thermo:'thermoplast',
+   thermoUitleg:'Polyglycinamide — lineaire keten — thermoplast.'},
+];
+
+const ALL_POOLS={
+  'additie-etheen':ADDITIE_ETHEEN,
+  'additie-dieen':ADDITIE_DIEEN,
+  'polyester-2':POLYESTER_2,
+  'polyester-1':POLYESTER_1,
+  'polyamide-2':POLYAMIDE_2,
+  'polyamide-1':POLYAMIDE_1,
+};
+
+// ── REKEN MODULE ──────────────────────────────────────────────────────────────
+const COPRIME=[[1,1],[1,2],[1,3],[2,1],[2,3],[3,1],[3,2]];
+let R=null;
+
+function genRekenScenario(){
+  let type=document.getElementById('polyType').value;
+  if(type==='random')type=Math.random()<0.5?'additie':'condensatie';
+  let ask=document.getElementById('askType').value;
+  if(ask==='random')ask=pick(['M','n','ratio']);
+  if(type==='condensatie'&&ask==='ratio')ask=pick(['M','n']);
+  const[p,q]=pick(COPRIME);
+  const k=p+q, n=(rnd(8)+2)*k*(rnd(30)+20);
+  const nClean=Math.round(n/k)*k, nA=nClean*p/k, nB=nClean*q/k;
+  if(type==='additie'){
+    const pool=[...ADDITIE_ETHEEN,...ADDITIE_DIEEN];
+    const mA=pick(pool); let mB;do{mB=pick(pool);}while(mB.naam===mA.naam);
+    const Ma=molarMass(mA.formule),Mb=molarMass(mB.formule);
+    return{type,ask,p,q,n:nClean,nA,nB,mA,mB,Ma,Mb,M:nA*Ma+nB*Mb,split:null};
+  } else {
+    const allCond=[
+      ...POLYESTER_2.map(s=>({mA:{naam:s.namen[0],formule:s.formules[0]},mB:{naam:s.namen[1],formule:s.formules[1]},split:'H2O'})),
+      ...POLYAMIDE_2.map(s=>({mA:{naam:s.namen[0],formule:s.formules[0]},mB:{naam:s.namen[1],formule:s.formules[1]},split:'H2O'})),
+      ...POLYESTER_1.map(s=>({mA:{naam:s.naam,formule:s.formule},mB:null,split:'H2O'})),
+      ...POLYAMIDE_1.map(s=>({mA:{naam:s.naam,formule:s.formule},mB:null,split:'H2O'})),
+    ];
+    const sys=pick(allCond);
+    const isSingle=!sys.mB;
+    const nCond=Math.round(nClean/2)*2;
+    const ncA=isSingle?nCond:nCond/2, ncB=isSingle?0:nCond/2;
+    const Ma=molarMass(sys.mA.formule), Mb=isSingle?0:molarMass(sys.mB.formule);
+    const Ms=molarMass('H2O');
+    const M=isSingle?ncA*Ma-(nCond-1)*Ms:ncA*Ma+ncB*Mb-(nCond-1)*Ms;
+    return{type,ask,p:1,q:isSingle?0:1,n:nCond,nA:ncA,nB:ncB,mA:sys.mA,mB:sys.mB,Ma,Mb,M,Ms,isSingle};
+  }
+}
+
+function newRekenOpgave(){
+  R=genRekenScenario();
+  document.getElementById('rekenOpgave').style.display='block';
+  const badge=document.getElementById('rekenBadge');
+  badge.className='badge '+(R.type==='additie'?'add':'cond');
+  badge.textContent=R.type==='additie'?'Additiepolymeer':'Condensatiepolymeer';
+  const Mar=R.Ma.toFixed(2), Mbr=R.mB?R.Mb.toFixed(2):'—';
+  let mono=`Monomeer A: <b>${R.mA.naam}</b> (${fmtF(R.mA.formule)}, M=${Mar} g/mol)`;
+  if(R.mB)mono+=`<br>Monomeer B: <b>${R.mB.naam}</b> (${fmtF(R.mB.formule)}, M=${Mbr} g/mol)`;
+  if(R.type==='condensatie')mono+=`<br>Afsplitsing: water (H₂O, M=${R.Ms.toFixed(2)} g/mol)`;
+  let vraag='',gegeven='',label='',unit='',hint='';
+  const verh=R.mB?` in molverhouding <b>${R.p}:${R.q}</b>`:'';
+  if(R.ask==='M'){
+    vraag=`Een ${R.type}polymeer${verh} heeft polymerisatiegraad <b>n = ${R.n}</b>. Bereken de molmassa.`;
+    gegeven=mono+(R.mB?`<br>Molverhouding A:B = <b>${R.p}:${R.q}</b>`:'')+`<br>n = <b>${R.n}</b>`;
+    label='M (g/mol) ='; unit='g/mol'; hint='Tel massa\'s op'+(R.type==='condensatie'?', trek (n−1)×M(H₂O) af.':'.');
+  } else if(R.ask==='n'){
+    vraag=`Een ${R.type}polymeer${verh} heeft molmassa <b>${R.M.toFixed(0)} g/mol</b>. Bereken n.`;
+    gegeven=mono+(R.mB?`<br>Molverhouding A:B = <b>${R.p}:${R.q}</b>`:'')+`<br>M = <b>${R.M.toFixed(0)} g/mol</b>`;
+    label='n ='; unit='monomeren'; hint='Druk M uit in n en los op.';
+  } else {
+    vraag=`Een additiecopolymeer uit A en B heeft n=<b>${R.n}</b> en M=<b>${R.M.toFixed(0)} g/mol</b>. Bepaal de molverhouding A:B.`;
+    gegeven=mono+`<br>n=<b>${R.n}</b><br>M=<b>${R.M.toFixed(0)} g/mol</b>`;
+    label='A:B ='; unit='bijv. 1:2'; hint='Massabalans → nA, nB → vereenvoudig.';
+  }
+  document.getElementById('rekenVraag').innerHTML=vraag;
+  document.getElementById('rekenGegeven').innerHTML=gegeven;
+  document.getElementById('rekenLabel').textContent=label;
+  document.getElementById('rekenUnit').textContent=unit;
+  document.getElementById('rekenHint').textContent='Tip: '+hint;
+  const inp=document.getElementById('rekenInput');inp.value='';inp.disabled=false;
+  const fb=document.getElementById('rekenFb');fb.className='feedback';fb.textContent='';
+}
+
+function checkReken(){
+  const fb=document.getElementById('rekenFb');
+  const raw=document.getElementById('rekenInput').value.trim().replace(',','.');
+  if(!raw){fb.className='feedback wrong';fb.textContent='Voer een antwoord in.';return;}
+  let ok=false;
+  if(R.ask==='M')ok=Math.abs(parseFloat(raw)-R.M)/R.M<0.005;
+  else if(R.ask==='n')ok=Math.abs(parseFloat(raw)-R.n)<=1;
+  else{const m=raw.match(/(\d+)\s*[:：]\s*(\d+)/);if(m){const g=gcd(parseInt(m[1]),parseInt(m[2]));ok=parseInt(m[1])/g===R.p&&parseInt(m[2])/g===R.q;}}
+  if(ok){fb.className='feedback correct';fb.innerHTML='✓ Correct!';document.getElementById('rekenInput').disabled=true;}
+  else{fb.className='feedback wrong';fb.textContent='✗ Niet juist — probeer opnieuw of bekijk de uitwerking.';}
+}
+
+function revealReken(){
+  const fb=document.getElementById('rekenFb');fb.className='feedback hint';
+  const Mar=R.Ma.toFixed(2),Mbr=R.mB?R.Mb.toFixed(2):'—';
+  let w='';
+  if(R.type==='additie'){
+    if(R.ask==='M')w=`nA=${R.nA}, nB=${R.nB}<br>M=${R.nA}×${Mar}+${R.nB}×${Mbr}=<b>${R.M.toFixed(0)} g/mol</b>`;
+    else if(R.ask==='n'){const avg=(R.p*R.Ma+R.q*R.Mb)/(R.p+R.q);w=`gem=${avg.toFixed(2)}<br>n=${R.M.toFixed(0)}/${avg.toFixed(2)}=<b>${R.n}</b>`;}
+    else w=`nA=${R.nA}, nB=${R.nB} → <b>${R.p}:${R.q}</b>`;
+  } else {
+    if(R.ask==='M')w=`nA=${R.nA}${R.mB?', nB='+R.nB:''}; bindingen=${R.n-1}<br>M=${R.nA}×${Mar}${R.mB?'+'+R.nB+'×'+Mbr:''}−${R.n-1}×${R.Ms.toFixed(2)}=<b>${R.M.toFixed(0)} g/mol</b>`;
+    else if(R.ask==='n'){const avg=R.mB?(R.Ma+R.Mb)/2:R.Ma;w=`n=(M+${R.Ms.toFixed(2)})/(${avg.toFixed(2)})=<b>${R.n}</b>`;}
+    else w=`nA=${R.nA}, nB=${R.nB} → <b>${R.p}:${R.q}</b>`;
+  }
+  fb.innerHTML='<b>Uitwerking:</b><div class="work">'+w+'</div>';
+}
+
+// ── STRUCT MODULE ─────────────────────────────────────────────────────────────
+let ST=null, thermoSel=null;
+
+function newStructOpgave(){
+  let type=document.getElementById('structType').value;
+  if(type==='random')type=Math.random()<0.5?'additie':'condensatie';
+  if(type==='additie')type=Math.random()<0.5?'additie-etheen':'additie-dieen';
+  if(type==='condensatie')type=pick(['polyester-2','polyester-1','polyamide-2','polyamide-1']);
+  const pool=ALL_POOLS[type];
+  const mono=pick(pool);
+  thermoSel=null;
+  document.querySelectorAll('.thermo-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('structOpgave').style.display='block';
+  const isSingle=type.endsWith('-1')||type==='additie-etheen'||type==='additie-dieen';
+  const isAdd=type.startsWith('additie');
+  let namen,monoCards,thermo,thermoUitleg,polySVG;
+  if(isSingle&&!type.startsWith('poly')){
+    namen=[mono.naam];
+    monoCards=[{naam:mono.naam,formule:mono.formule,struct:mono.monoStruct}];
+    thermo=mono.thermo;thermoUitleg=mono.thermoUitleg;polySVG=mono.polySVG();
+  } else if(type==='polyester-1'||type==='polyamide-1'){
+    namen=[mono.naam];
+    monoCards=[{naam:mono.naam,formule:mono.formule,struct:mono.monoStruct}];
+    thermo=mono.thermo;thermoUitleg=mono.thermoUitleg;polySVG=mono.polySVG();
+  } else {
+    namen=mono.namen;
+    monoCards=mono.namen.map((n,i)=>({naam:n,formule:mono.formules[i],struct:mono.monoStructs[i]}));
+    thermo=mono.thermo;thermoUitleg=mono.thermoUitleg;polySVG=mono.polySVG();
+  }
+  // Verzamel aliassen per monomeer voor checkAll
+  const aliasMap = {};
+  [mono].forEach(m => {
+    const entries = m.namen ? m.namen.map((n,i)=>({naam:n,aliassen:ALL_POOLS[type].find(x=>(x.naam===n||x.namen?.includes(n)))?.aliassen||[]})) : [{naam:m.naam,aliassen:m.aliassen||[]}];
+    entries.forEach(e=>{ aliasMap[normNaam(e.naam)]=(e.aliassen||[]).map(normNaam); });
+  });
+  ST={namen,monoCards,thermo,thermoUitleg,aliasMap};
+  const meervoud=namen.length>1;
+  document.getElementById('structVraag').innerHTML=
+    `Hieronder zie je een stuk van een polymeer. Uit welk${meervoud?'e monomeren zijn':'  monomeer is'} het opgebouwd? Geef de systematische naam${meervoud?'(men)':''}. Is het een thermoplast of een thermoharder?`;
+  document.getElementById('structDisplay').innerHTML=polySVG;
+  document.getElementById('structHint').textContent=isAdd
+    ?'Tip: zoek de herhalende eenheid. Bij additie via etheen: herstel de C=C. Bij 1,4-additie: let op de dubbele binding in de keten.'
+    :'Tip: zoek de ester- of amidebinding. Splits en herstel de functionele groepen van de monomeren. Kijk ook naar het aantal functionele groepen per monomeer.';
+  document.getElementById('structInput').value='';
+  document.getElementById('structInput').disabled=false;
+  document.getElementById('structFb').className='feedback';
+  document.getElementById('structFb').textContent='';
+  document.getElementById('answerReveal').className='answer-reveal';
+}
+
+function selThermo(v){
+  thermoSel=v;
+  document.getElementById('tb-thermo').classList.toggle('sel',v==='thermoplast');
+  document.getElementById('tb-hard').classList.toggle('sel',v==='thermoharder');
+}
+
+function normNaam(s){return s.toLowerCase().replace(/\s+/g,'').replace(/[–—]/g,'-').replace(/[()\/]/g,'').trim();}
+
+function checkAll(){
+  if(!ST)return;
+  const fb=document.getElementById('structFb');
+  const raw=document.getElementById('structInput').value;
+  if(!raw.trim()){fb.className='feedback wrong';fb.textContent='Voer een antwoord in.';return;}
+  if(!thermoSel){fb.className='feedback wrong';fb.textContent='Kies ook thermoplast of thermoharder.';return;}
+  const given=raw.split(/[,+]/).map(normNaam).filter(Boolean);
+  const expected=ST.namen.map(normNaam);
+  // Elk gegeven antwoord moet overeenkomen met een verwachte naam of een alias ervan
+  const monoOk=given.length===expected.length&&expected.every(e=>
+    given.some(g=>g===e||(ST.aliasMap[e]||[]).includes(g)));
+  const thermoOk=thermoSel===ST.thermo;
+  if(monoOk&&thermoOk){
+    fb.className='feedback correct';
+    fb.innerHTML='✓ Correct! Monomeer(en) en thermoplast/thermoharder kloppen allebei.';
+    showReveal();
+  } else {
+    let msg='✗ Niet helemaal: ';
+    if(!monoOk)msg+='monomeer(en) niet correct. ';
+    if(!thermoOk)msg+=`thermoplast/thermoharder niet correct.`;
+    fb.className='feedback wrong';fb.innerHTML=msg;
+  }
+}
+
+function revealAll(){
+  if(!ST)return;
+  const fb=document.getElementById('structFb');
+  fb.className='feedback hint';
+  fb.innerHTML=`Antwoord: <b>${ST.namen.join(' + ')}</b> — <b>${ST.thermo}</b>`;
+  showReveal();
+}
+
+function showReveal(){
+  const el=document.getElementById('answerReveal');
+  el.className='answer-reveal show';
+  let html='<h3>Monomeer(en) — systematische naam en structuur</h3>';
+  ST.monoCards.forEach(c=>{
+    html+=`<div class="mono-card">
+      <div class="mono-naam">${c.naam}</div>
+      <div class="mono-formule">${fmtF(c.formule)}</div>
+      <div class="mono-struct">${c.struct}</div>
+    </div>`;
+  });
+  const isHard=ST.thermo==='thermoharder';
+  html+=`<div style="margin-top:.75rem;font-size:13px;color:var(--tx2);background:${isHard?'var(--amb)':'var(--gnb)'};border-radius:var(--r);padding:8px 12px;">
+    <b>${isHard?'Thermoharder':'Thermoplast'}:</b> ${ST.thermoUitleg}
+  </div>`;
+  el.innerHTML=html;
+}
+
+function switchTab(t){
+  ['reken','struct'].forEach(x=>{
+    document.getElementById('tab-'+x).classList.toggle('on',x===t);
+    document.getElementById('content-'+x).classList.toggle('on',x===t);
+  });
+}
+
+newRekenOpgave();
+</script>
+</body>
+</html>

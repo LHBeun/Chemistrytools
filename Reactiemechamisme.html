@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reactiemechanisme — snelheidsbepalende stap</title>
+<style>
+  :root{
+    --bg:#15140f; --panel:#1c1b15; --panel-2:#22211a; --line:#333126;
+    --text:#ece6d6; --text-dim:#9b9486;
+    --accent:#e2814f; --accent-dim:#8a5236;
+    --accent2:#5fb4a2; --accent2-dim:#386b61;
+    --purple:#c9a6e8; --purple-dim:#7c5e96;
+    --warn:#d6685a; --good:#5fb4a2;
+    --mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text); font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:1100px; margin:0 auto; padding:22px 22px 50px;}
+
+  header.top{margin-bottom:18px;}
+  .eyebrow{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--accent); margin-bottom:6px;
+  }
+  h1{margin:0; font-size:25px; font-weight:650; letter-spacing:-0.01em;}
+  header.top p.sub{color:var(--text-dim); font-size:13.5px; line-height:1.55; max-width:760px; margin:10px 0 0;}
+
+  nav.stages{display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;}
+  .stage-btn{
+    background:var(--panel); border:1px solid var(--line); color:var(--text-dim);
+    font-family:var(--mono); font-size:12px; letter-spacing:.02em; padding:9px 14px;
+    border-radius:7px; cursor:pointer; transition:all .15s; display:flex; align-items:center; gap:7px;
+  }
+  .stage-btn .num{
+    width:18px; height:18px; border-radius:50%; background:var(--panel-2); display:inline-flex;
+    align-items:center; justify-content:center; font-size:10.5px;
+  }
+  .stage-btn.active{background:var(--accent-dim); border-color:var(--accent); color:#fff3ea;}
+  .stage-btn.active .num{background:rgba(255,255,255,0.2);}
+  .stage-btn.done .num{background:var(--good); color:#0d1f1a;}
+  .stage-btn:disabled{opacity:.4; cursor:not-allowed;}
+
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:20px 22px; margin-bottom:16px;
+  }
+  .panel h2{font-size:15px; margin:0 0 10px; color:var(--text); font-weight:600;}
+  .panel p.sub{color:var(--text-dim); font-size:13px; line-height:1.6; margin:0 0 12px;}
+
+  .layout{display:grid; grid-template-columns:1fr 280px; gap:18px;}
+  @media (max-width:820px){ .layout{grid-template-columns:1fr;} }
+
+  #chart{width:100%; height:280px; display:block;}
+
+  .legend{display:flex; gap:16px; font-size:12px; color:var(--text-dim); margin-top:10px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .swatch{width:14px; height:3px; border-radius:2px; display:inline-block;}
+
+  .ctrl-group{margin-bottom:18px;}
+  .ctrl-group:last-child{margin-bottom:0;}
+  .ctrl-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;}
+  .ctrl-head label{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.03em; color:var(--text);
+  }
+  .ctrl-head .readout{font-family:var(--mono); font-size:11px; color:var(--text-dim);}
+  input[type=range]{
+    width:100%; height:5px; -webkit-appearance:none; background:var(--panel-2);
+    border-radius:3px; outline:none; margin:6px 0 4px;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+    background:var(--accent); cursor:pointer; border:2px solid var(--bg);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:14px; height:14px; border-radius:50%; background:var(--accent); cursor:pointer;
+    border:2px solid var(--bg);
+  }
+
+  .rate-readout{
+    font-family:var(--mono); background:var(--panel-2); border:1px solid var(--line);
+    border-radius:8px; padding:12px 14px; text-align:center; margin-top:6px;
+  }
+  .rate-readout .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim);}
+  .rate-readout .val{font-size:22px; font-weight:700; color:var(--accent); margin-top:2px;}
+
+  table.data-table{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:13px; margin-top:8px;}
+  table.data-table th, table.data-table td{padding:9px 12px; text-align:center; border-bottom:1px solid var(--line);}
+  table.data-table th{color:var(--text-dim); font-size:11px; text-transform:uppercase; letter-spacing:.04em; font-weight:500;}
+  table.data-table td{color:var(--text);}
+  table.data-table tr:hover td{background:var(--panel-2);}
+
+  .mc-row{display:flex; gap:10px; margin:10px 0 18px; flex-wrap:wrap;}
+  .mc-btn{
+    background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    font-family:var(--mono); font-size:13px; padding:10px 18px; border-radius:8px; cursor:pointer;
+    transition:all .15s;
+  }
+  .mc-btn:hover{border-color:var(--accent-dim);}
+  .mc-btn.selected{background:var(--accent-dim); border-color:var(--accent); color:#fff3ea;}
+  .mc-btn.correct{background:var(--good); border-color:var(--good); color:#0d1f1a;}
+  .mc-btn.incorrect{background:var(--warn); border-color:var(--warn); color:#2a0e0b;}
+
+  .tile-row{display:flex; gap:10px; margin:10px 0; flex-wrap:wrap;}
+  .tile-btn{
+    background:var(--panel-2); border:2px solid var(--line); color:var(--text);
+    font-family:var(--mono); font-size:18px; font-weight:700; width:56px; height:56px;
+    border-radius:10px; cursor:pointer; transition:all .15s;
+  }
+  .tile-btn:hover{border-color:var(--accent-dim);}
+  .tile-btn.disabled{opacity:.35; cursor:not-allowed;}
+
+  .slot-row{display:flex; gap:8px; align-items:center; margin:14px 0; min-height:56px; flex-wrap:wrap;}
+  .slot{
+    width:56px; height:56px; border:2px dashed var(--line); border-radius:10px;
+    display:flex; align-items:center; justify-content:center; font-family:var(--mono);
+    font-size:18px; font-weight:700; color:var(--text-dim);
+  }
+  .slot.filled{border-style:solid; border-color:var(--accent); color:var(--text); background:var(--panel-2);}
+  .plus{font-family:var(--mono); font-size:18px; color:var(--text-dim);}
+  .arrow{font-family:var(--mono); font-size:20px; color:var(--text-dim); margin:0 6px;}
+
+  .btn{
+    background:var(--accent-dim); border:1px solid var(--accent); color:#fff3ea;
+    font-family:var(--mono); font-size:12.5px; padding:10px 20px; border-radius:7px;
+    cursor:pointer; transition:all .15s;
+  }
+  .btn:hover:not(:disabled){background:var(--accent);}
+  .btn.ghost{background:transparent; border:1px solid var(--line); color:var(--text-dim);}
+  .btn.ghost:hover:not(:disabled){border-color:var(--accent-dim); color:var(--text);}
+  .btn:disabled{opacity:.4; cursor:not-allowed;}
+
+  .feedback{
+    border-radius:8px; padding:12px 16px; margin-top:14px; font-size:13.5px; line-height:1.6;
+    display:none;
+  }
+  .feedback.show{display:block;}
+  .feedback.correct{background:rgba(95,180,162,0.12); border:1px solid var(--good); color:var(--text);}
+  .feedback.incorrect{background:rgba(214,104,90,0.12); border:1px solid var(--warn); color:var(--text);}
+
+  .step-box{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:8px;
+    padding:12px 16px; margin:8px 0; font-family:var(--mono); font-size:14px;
+  }
+  .step-box .k-label{color:var(--text-dim); font-size:11.5px; margin-top:4px;}
+  .step-box.rds{border-color:var(--accent); background:rgba(226,129,79,0.08);}
+  .step-box.rds .k-label{color:var(--accent);}
+
+  footer.note{color:var(--text-dim); font-size:12px; text-align:center; margin-top:24px; line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="eyebrow">Reactiekinetiek · mechanismen</div>
+    <h1>Wat bepaalt de reactiesnelheid?</h1>
+    <p class="sub">In deze simulatie achterhaal je het reactiemechanisme door de snelheidsbepalende stap te bepalen.</p>
+  </header>
+
+  <div class="panel" id="overall-eq-banner" style="padding:14px 22px; margin-bottom:14px; text-align:center;">
+    <span style="font-family:var(--mono); font-size:11px; color:var(--text-dim); letter-spacing:.04em; text-transform:uppercase;">Totale reactievergelijking</span>
+    <div id="overall-eq-text" style="font-family:var(--mono); font-size:19px; margin-top:4px; color:var(--text);"></div>
+  </div>
+
+  <nav class="stages" id="stage-nav"></nav>
+
+  <div id="stage-content"></div>
+
+  <footer class="note">
+    Elk experiment is een onafhankelijke simulatie met dezelfde verborgen reactiestappen — alleen de startconcentraties verschillen. De snelheid wordt afgelezen nadat het tussenproduct een stabiel niveau heeft bereikt, niet meteen bij t=0.
+  </footer>
+</div>
+
+<script>
+// ============================================================
+// MECHANISM DEFINITIONS
+// ============================================================
+// Each mechanism is pure data: a list of elementary steps (reactants, products, rate constant).
+// The simulation engine below builds the ODEs automatically from this, so adding a new mechanism
+// to this array is the ONLY thing needed to extend the tool to more presets later -- no new
+// integration code, no new chart code, nothing else to touch.
+const MECHANISMS = [
+  {
+    id: 'A-then-AB',
+    label: 'Mechanisme 1',
+    steps: [
+      { reactants: ['A'], products: ['I'], k: 0.05, label: 'A → I' },
+      { reactants: ['I', 'B'], products: ['P'], k: 5.0, label: 'I + B → P' },
+    ],
+    rdsIndex: 0, // which step in `steps` is rate-determining
+    expectedOrder: { A: 1, B: 0 },
+    expectedRdsParticles: ['A'], // what the mechanism-builder answer should contain
+    tableExperiments: [
+      { A0: 1, B0: 1 }, { A0: 2, B0: 1 }, { A0: 3, B0: 1 },
+      { A0: 2, B0: 1 }, { A0: 2, B0: 2 }, { A0: 2, B0: 3 },
+    ],
+  },
+];
+
+// ============================================================
+// GENERIC ODE SIMULATION ENGINE
+// ============================================================
+// Given a mechanism's steps and a set of initial concentrations, integrate forward in time with
+// fixed-step Euler integration. dt is small enough (0.001) that Euler's error stays negligible
+// for the rate constants used here -- a fancier integrator (RK4) would add code complexity this
+// tool doesn't need given how smooth and non-stiff these particular rate laws are.
+function collectSpecies(steps){
+  const species = new Set();
+  for(const s of steps){
+    for(const r of s.reactants) species.add(r);
+    for(const p of s.products) species.add(p);
+  }
+  return Array.from(species).sort();
+}
+
+// Derives the overall reaction equation by summing every elementary step: count how many times
+// each species appears as a reactant minus how many times as a product, across all steps. A
+// species whose net count is zero (produced exactly as often as it's consumed, like an
+// intermediate) drops out entirely -- that's the standard way an overall equation is built from
+// a mechanism, and doing it generically here means a newly added mechanism gets a correct overall
+// equation for free, with no per-mechanism authoring needed.
+function overallEquationParts(steps){
+  const net = {};
+  for(const s of steps){
+    for(const r of s.reactants) net[r] = (net[r]||0) - 1;
+    for(const p of s.products) net[p] = (net[p]||0) + 1;
+  }
+  const reactantParts = [], productParts = [];
+  for(const sp of Object.keys(net).sort()){
+    const n = net[sp];
+    if(n === 0) continue;
+    const coeff = Math.abs(n) === 1 ? '' : Math.abs(n)+' ';
+    if(n < 0) reactantParts.push(coeff+sp);
+    else productParts.push(coeff+sp);
+  }
+  return {reactantParts, productParts};
+}
+
+function overallEquationHtml(steps){
+  const {reactantParts, productParts} = overallEquationParts(steps);
+  return reactantParts.join(' + ') + ' → ' + productParts.join(' + ');
+}
+
+// The rate law of a single elementary step always follows directly from its reactants: rate =
+// k * [reactant1] * [reactant2] * ... -- that's what "elementary step" means, unlike the overall
+// reaction's rate law, which generally can't be read off the overall equation's stoichiometry at
+// all (that's the whole point of this tool). Repeated reactants (e.g. A + A) collapse into a
+// power, e.g. k[A]^2, matching standard rate-law notation.
+function stepRateLawHtml(step, stepIndex){
+  const counts = {};
+  for(const r of step.reactants) counts[r] = (counts[r]||0) + 1;
+  const factors = Object.keys(counts).sort().map(sp=>{
+    const n = counts[sp];
+    return n === 1 ? `[${sp}]` : `[${sp}]<sup>${n}</sup>`;
+  });
+  return `v${stepIndex+1} = k${stepIndex+1}` + (factors.length ? ' · ' + factors.join(' · ') : '');
+}
+
+function simulateMechanism(steps, initialConcentrations, tMax, dt){
+  const species = collectSpecies(steps);
+  let conc = {};
+  for(const sp of species) conc[sp] = initialConcentrations[sp] || 0;
+
+  const history = [{t:0, conc:{...conc}}];
+  let t = 0;
+  const nSteps = Math.round(tMax/dt);
+  for(let i=0;i<nSteps;i++){
+    const rates = steps.map(s=>{
+      let r = s.k;
+      for(const reactant of s.reactants) r *= conc[reactant];
+      return r;
+    });
+    const deltas = {};
+    for(const sp of species) deltas[sp] = 0;
+    steps.forEach((s,idx)=>{
+      const r = rates[idx];
+      for(const reactant of s.reactants) deltas[reactant] -= r;
+      for(const product of s.products) deltas[product] += r;
+    });
+    for(const sp of species){
+      conc[sp] = Math.max(0, conc[sp] + deltas[sp]*dt);
+    }
+    t += dt;
+    history.push({t, conc:{...conc}});
+  }
+  return history;
+}
+
+// Measures the rate of P formation in a "quasi-steady-state window" (t=0.5 to t=1.0 by default)
+// rather than literally at t=0. Right at t=0 the intermediate I hasn't built up yet, so dP/dt is
+// dominated by how fast I happens to be accumulating rather than by the rate-determining step --
+// an unfair, noisy read for a learner trying to deduce a rate law. Waiting until I has reached a
+// stable level (the window below) gives a rate that genuinely reflects the RDS, matching how a
+// real kinetics experiment would be measured (not literally instantaneously at mixing).
+function measureRate(steps, initialConcentrations, windowStart=0.5, windowEnd=1.0, dt=0.001){
+  const history = simulateMechanism(steps, initialConcentrations, windowEnd, dt);
+  const i0 = Math.round(windowStart/dt), i1 = Math.round(windowEnd/dt);
+  const P0 = history[i0].conc['P'] || 0;
+  const P1 = history[i1].conc['P'] || 0;
+  return (P1-P0)/(history[i1].t-history[i0].t);
+}
+
+// ============================================================
+// APP STATE
+// ============================================================
+const el = id => document.getElementById(id);
+const currentMechanism = MECHANISMS[0];
+
+const STAGES = ['verkennen', 'tabel-orde', 'mechanisme'];
+const STAGE_LABELS = {
+  verkennen: 'Verkennen',
+  'tabel-orde': 'Tabel & orde bepalen',
+  mechanisme: 'Mechanisme',
+};
+let currentStageIdx = 0;
+let unlockedStageIdx = 0; // can't jump ahead of what's been reached
+let answers = { orderA: null, orderB: null, rdsTiles: [] };
+
+function renderStageNav(){
+  const nav = el('stage-nav');
+  nav.innerHTML = '';
+  STAGES.forEach((stageId, idx)=>{
+    const btn = document.createElement('button');
+    btn.className = 'stage-btn' + (idx===currentStageIdx ? ' active' : '') + (idx < unlockedStageIdx ? ' done' : '');
+    btn.disabled = idx > unlockedStageIdx;
+    btn.innerHTML = `<span class="num">${idx+1}</span> ${STAGE_LABELS[stageId]}`;
+    btn.addEventListener('click', ()=>{ currentStageIdx = idx; renderAll(); });
+    nav.appendChild(btn);
+  });
+}
+
+function goToStage(idx){
+  currentStageIdx = idx;
+  unlockedStageIdx = Math.max(unlockedStageIdx, idx);
+  renderAll();
+}
+
+function renderAll(){
+  el('overall-eq-text').textContent = overallEquationHtml(currentMechanism.steps);
+  renderStageNav();
+  const content = el('stage-content');
+  content.innerHTML = '';
+  const stageId = STAGES[currentStageIdx];
+  if(stageId === 'verkennen') renderExploreStage(content);
+  else if(stageId === 'tabel-orde') renderTableOrderStage(content);
+  else if(stageId === 'mechanisme') renderMechanismStage(content);
+}
+
+// ============================================================
+// CHART DRAWING (shared helper, used by explore + reveal stages)
+// ============================================================
+const SPECIES_COLORS = { A: '#e2814f', B: '#5fb4a2', I: '#c9a6e8', P: '#ece6d6' };
+const SPECIES_LABELS = { A: '[A]', B: '[B]', I: '[I] (tussenproduct)', P: '[P] (product)' };
+
+// B's legend swatch echoes the dashed line style used in the chart (see drawConcentrationChart)
+// with a repeating gradient, so the legend doesn't show a solid swatch for a line that's
+// actually dashed -- that mismatch would be confusing right when a learner is trying to tell two
+// overlapping lines apart.
+function legendSwatchStyle(sp){
+  if(sp === 'B'){
+    return `background:repeating-linear-gradient(90deg, ${SPECIES_COLORS.B} 0, ${SPECIES_COLORS.B} 5px, transparent 5px, transparent 8px);`;
+  }
+  return `background:${SPECIES_COLORS[sp]};`;
+}
+
+function drawConcentrationChart(canvas, history, options){
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  const padding = {left:42, right:48, top:14, bottom:28};
+  const plotW = W-padding.left-padding.right, plotH = H-padding.top-padding.bottom;
+
+  const allSpecies = options.species || ['A','B','I','P'];
+  // The intermediate I gets its OWN scale on a right-hand axis: across a long enough time range
+  // to show A/B/P fully decaying/forming, I itself can stay two orders of magnitude smaller than
+  // the others (it's consumed about as fast as it's produced). Sharing one axis would flatten I
+  // into an invisible line near the bottom -- exactly the species this chart most needs to keep
+  // visible, since "it appears and disappears" is the whole point of calling it an intermediate.
+  const mainSpecies = allSpecies.filter(sp=>sp!=='I');
+  const hasI = allSpecies.includes('I');
+
+  let maxConc = 0;
+  for(const h of history){
+    for(const sp of mainSpecies) maxConc = Math.max(maxConc, h.conc[sp]||0);
+  }
+  maxConc = maxConc*1.1 || 1;
+
+  let maxConcI = 0;
+  if(hasI){
+    for(const h of history) maxConcI = Math.max(maxConcI, h.conc['I']||0);
+    maxConcI = maxConcI*1.15 || 1;
+  }
+
+  const tMax = history[history.length-1].t || 1;
+
+  // axes
+  ctx.strokeStyle = '#333126';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padding.left, padding.top); ctx.lineTo(padding.left, H-padding.bottom);
+  ctx.lineTo(W-padding.right, H-padding.bottom);
+  if(hasI){ ctx.moveTo(W-padding.right, padding.top); ctx.lineTo(W-padding.right, H-padding.bottom); }
+  ctx.stroke();
+
+  // left y-axis labels (main species)
+  ctx.fillStyle = '#9b9486';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText(maxConc.toFixed(2), padding.left-6, padding.top+4);
+  ctx.fillText('0', padding.left-6, H-padding.bottom+2);
+  ctx.textAlign = 'center';
+  ctx.fillText('0', padding.left, H-padding.bottom+14);
+  ctx.fillText(tMax.toFixed(0)+'s', W-padding.right, H-padding.bottom+14);
+
+  // right y-axis labels (I, its own scale), tinted to match I's line color so it's clear which
+  // axis belongs to which line
+  if(hasI){
+    ctx.fillStyle = SPECIES_COLORS['I'];
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(maxConcI.toFixed(3), W-padding.right+6, padding.top+4);
+    ctx.fillText('0', W-padding.right+6, H-padding.bottom+2);
+  }
+
+  // lines
+  // B is dashed, everything else solid: when A and B happen to track each other almost exactly
+  // (e.g. equal starting concentrations in a mechanism where they're consumed at the same rate),
+  // their lines would otherwise sit exactly on top of each other and B would be invisible even
+  // though it's right there. A distinct dash pattern keeps both readable regardless of how close
+  // their values get, without needing to nudge concentrations apart artificially.
+  for(const sp of allSpecies){
+    const useI = sp === 'I';
+    const scale = useI ? maxConcI : maxConc;
+    ctx.beginPath();
+    ctx.strokeStyle = SPECIES_COLORS[sp];
+    ctx.lineWidth = 2.2;
+    ctx.setLineDash(sp === 'B' ? [6,4] : []);
+    history.forEach((h,i)=>{
+      const x = padding.left + (h.t/tMax)*plotW;
+      const y = padding.top + plotH - ((h.conc[sp]||0)/scale)*plotH;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+  }
+  ctx.setLineDash([]); // reset so other drawing (axes, markers) isn't accidentally dashed too
+
+  // optional vertical marker (e.g. for the measurement window in the reveal stage)
+  if(options.markWindow){
+    const [w0, w1] = options.markWindow;
+    const x0 = padding.left + (w0/tMax)*plotW, x1 = padding.left + (w1/tMax)*plotW;
+    ctx.fillStyle = 'rgba(226,129,79,0.12)';
+    ctx.fillRect(x0, padding.top, x1-x0, plotH);
+    ctx.strokeStyle = 'rgba(226,129,79,0.5)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x0,padding.top); ctx.lineTo(x0,H-padding.bottom); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x1,padding.top); ctx.lineTo(x1,H-padding.bottom); ctx.stroke();
+  }
+}
+
+// ============================================================
+// STAGE 1: EXPLORE
+// ============================================================
+let exploreA0 = 2, exploreB0 = 2;
+let exploreVisibleSpecies = { A:true, B:true, I:true, P:true };
+
+function renderExploreStage(content){
+  const panel = document.createElement('div');
+  panel.className = 'panel';
+  panel.innerHTML = `
+    <h2>1. Verkennen</h2>
+    <p class="sub">Er speelt een verborgen reactiemechanisme van twee stappen. Verander de startconcentraties van A en B en kijk hoe de stoffen zich door de tijd ontwikkelen. Let op het tussenproduct I: het ontstaat en verdwijnt weer.</p>
+    <div class="layout">
+      <div>
+        <canvas id="explore-chart" width="700" height="280"></canvas>
+        <div class="legend" id="explore-legend"></div>
+      </div>
+      <div>
+        <div class="ctrl-group">
+          <div class="ctrl-head"><label>[A]₀</label><span class="readout" id="explore-A-val">2.0 M</span></div>
+          <input type="range" id="explore-A" min="0.2" max="3" step="0.1" value="2">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-head"><label>[B]₀</label><span class="readout" id="explore-B-val">2.0 M</span></div>
+          <input type="range" id="explore-B" min="0.2" max="3" step="0.1" value="2">
+        </div>
+        <div class="rate-readout">
+          <div class="lbl">Snelheid (na opbouw I)</div>
+          <div class="val" id="explore-rate-val">—</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:14px; text-align:right;">
+      <button class="btn" id="explore-next-btn">Verder naar de tabel →</button>
+    </div>
+  `;
+  content.appendChild(panel);
+
+  const legend = el('explore-legend');
+  for(const sp of ['A','B','I','P']){
+    const label = document.createElement('label');
+    label.style.cursor = 'pointer';
+    label.style.display = 'inline-flex';
+    label.style.alignItems = 'center';
+    label.style.gap = '6px';
+    label.innerHTML = `
+      <input type="checkbox" data-sp-toggle="${sp}" ${exploreVisibleSpecies[sp] ? 'checked' : ''} style="accent-color:${SPECIES_COLORS[sp]};">
+      <span class="swatch" style="${legendSwatchStyle(sp)}"></span> ${SPECIES_LABELS[sp]}
+    `;
+    legend.appendChild(label);
+  }
+  legend.querySelectorAll('input[data-sp-toggle]').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      exploreVisibleSpecies[cb.dataset.spToggle] = cb.checked;
+      update();
+    });
+  });
+
+  function update(){
+    const A0 = parseFloat(el('explore-A').value);
+    const B0 = parseFloat(el('explore-B').value);
+    exploreA0 = A0; exploreB0 = B0;
+    el('explore-A-val').textContent = A0.toFixed(1)+' M';
+    el('explore-B-val').textContent = B0.toFixed(1)+' M';
+
+    const history = simulateMechanism(currentMechanism.steps, {A:A0, B:B0}, 70, 0.01);
+    const visibleSpecies = ['A','B','I','P'].filter(sp=>exploreVisibleSpecies[sp]);
+    drawConcentrationChart(el('explore-chart'), history, {species: visibleSpecies});
+
+    const rate = measureRate(currentMechanism.steps, {A:A0, B:B0});
+    el('explore-rate-val').textContent = rate.toFixed(4)+' M/s';
+  }
+
+  el('explore-A').addEventListener('input', update);
+  el('explore-B').addEventListener('input', update);
+  el('explore-next-btn').addEventListener('click', ()=> goToStage(1));
+  update();
+}
+
+// ============================================================
+// STAGE 2: TABLE
+// ============================================================
+function renderTableOrderStage(content){
+  const tablePanel = document.createElement('div');
+  tablePanel.className = 'panel';
+
+  const rows = currentMechanism.tableExperiments.map(exp=>{
+    const v = measureRate(currentMechanism.steps, {A:exp.A0, B:exp.B0});
+    return {...exp, v};
+  });
+
+  let tableRows = rows.map((r,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${r.A0.toFixed(1)}</td>
+      <td>${r.B0.toFixed(1)}</td>
+      <td>${r.v.toFixed(4)}</td>
+    </tr>
+  `).join('');
+
+  tablePanel.innerHTML = `
+    <h2>2. Experimentele data en orde-bepaling</h2>
+    <p class="sub">Zes experimenten met verschillende startconcentraties van A en B, dezelfde verborgen reactie. De snelheid is steeds gemeten nadat het tussenproduct een stabiel niveau heeft bereikt.</p>
+    <table class="data-table">
+      <thead><tr><th>Experiment</th><th>[A]₀ (M)</th><th>[B]₀ (M)</th><th>v (M/s)</th></tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table>
+  `;
+  content.appendChild(tablePanel);
+
+  const orderPanel = document.createElement('div');
+  orderPanel.className = 'panel';
+  orderPanel.innerHTML = `
+    <h2>Bepaal de orde</h2>
+    <p class="sub">Vergelijk experimenten waarbij steeds maar één concentratie verandert. Hoe schaalt de snelheid mee?</p>
+
+    <p style="font-family:var(--mono); font-size:13px; margin-bottom:4px;">Orde in [A]:</p>
+    <div class="mc-row" id="order-A-row">
+      <button class="mc-btn" data-val="0">0 (geen effect)</button>
+      <button class="mc-btn" data-val="1">1 (recht evenredig)</button>
+      <button class="mc-btn" data-val="2">2 (kwadratisch)</button>
+    </div>
+
+    <p style="font-family:var(--mono); font-size:13px; margin-bottom:4px;">Orde in [B]:</p>
+    <div class="mc-row" id="order-B-row">
+      <button class="mc-btn" data-val="0">0 (geen effect)</button>
+      <button class="mc-btn" data-val="1">1 (recht evenredig)</button>
+      <button class="mc-btn" data-val="2">2 (kwadratisch)</button>
+    </div>
+
+    <div class="feedback" id="order-feedback"></div>
+
+    <div style="margin-top:16px; display:flex; justify-content:space-between;">
+      <button class="btn ghost" id="order-back-btn">← Terug naar verkennen</button>
+      <button class="btn" id="order-next-btn" disabled>Verder naar het mechanisme →</button>
+    </div>
+  `;
+  content.appendChild(orderPanel);
+
+  function selectIn(row, val){
+    row.querySelectorAll('.mc-btn').forEach(b=>{
+      b.classList.toggle('selected', b.dataset.val === String(val));
+      b.classList.remove('correct','incorrect');
+    });
+  }
+
+  el('order-A-row').querySelectorAll('.mc-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      answers.orderA = parseInt(btn.dataset.val);
+      selectIn(el('order-A-row'), answers.orderA);
+      checkOrderCompletion();
+    });
+  });
+  el('order-B-row').querySelectorAll('.mc-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      answers.orderB = parseInt(btn.dataset.val);
+      selectIn(el('order-B-row'), answers.orderB);
+      checkOrderCompletion();
+    });
+  });
+
+  function checkOrderCompletion(){
+    if(answers.orderA === null || answers.orderB === null) return;
+    const correct = answers.orderA === currentMechanism.expectedOrder.A && answers.orderB === currentMechanism.expectedOrder.B;
+    const fb = el('order-feedback');
+    fb.className = 'feedback show ' + (correct ? 'correct' : 'incorrect');
+    if(correct){
+      fb.textContent = 'Klopt! De snelheid is recht evenredig met [A] en verandert niet met [B] — dat betekent A in zijn eentje (of vermenigvuldigd met een constante) de snelheid bepaalt.';
+      el('order-A-row').querySelectorAll('.mc-btn').forEach(b=>{ if(parseInt(b.dataset.val)===answers.orderA) b.classList.add('correct'); });
+      el('order-B-row').querySelectorAll('.mc-btn').forEach(b=>{ if(parseInt(b.dataset.val)===answers.orderB) b.classList.add('correct'); });
+      el('order-next-btn').disabled = false;
+    } else {
+      fb.textContent = 'Nog niet helemaal. Kijk opnieuw naar de tabel: vergelijk rijen waarbij [B] gelijk blijft en [A] verandert (en omgekeerd) — hoe verandert v daarbij precies?';
+      el('order-next-btn').disabled = true;
+    }
+  }
+
+  el('order-back-btn').addEventListener('click', ()=> goToStage(0));
+  el('order-next-btn').addEventListener('click', ()=> goToStage(2));
+}
+
+// ============================================================
+// STAGE 3: MECHANISM BUILDER (click tiles to build the RDS)
+// ============================================================
+function renderMechanismStage(content){
+  const panel = document.createElement('div');
+  panel.className = 'panel';
+  panel.innerHTML = `
+    <h2>3. Stel de snelheidsbepalende stap samen</h2>
+    <p class="sub">Op basis van de orde die je net vond: welke deeltjes zijn betrokken bij de stap die de snelheid bepaalt? Klik tegels om een kant van de vergelijking op te bouwen (maximaal 3 deeltjes). Gebruik "I" als je denkt dat het tussenproduct hierbij een rol speelt.</p>
+    <p class="sub" style="font-size:12px;">Eén deeltje alleen is een geldige optie: dat deeltje botst dan met een willekeurig deeltje en krijgt daarbij toevallig meer energie dan de activeringsenergie nodig heeft — geen specifieke partner vereist.</p>
+
+    <div class="tile-row" id="tile-row">
+      <button class="tile-btn" data-sp="A">A</button>
+      <button class="tile-btn" data-sp="B">B</button>
+      <button class="tile-btn" data-sp="I">I</button>
+    </div>
+
+    <div class="slot-row" id="slot-row">
+      <div class="slot" id="slot-0"></div>
+      <span class="plus" id="plus-0" style="display:none;">+</span>
+      <div class="slot" id="slot-1"></div>
+      <span class="plus" id="plus-1" style="display:none;">+</span>
+      <div class="slot" id="slot-2"></div>
+      <span class="arrow">→ ...</span>
+    </div>
+
+    <div style="display:flex; gap:10px;">
+      <button class="btn ghost" id="clear-tiles-btn">Wissen</button>
+      <button class="btn" id="check-mechanism-btn">Controleer</button>
+    </div>
+
+    <div class="feedback" id="mechanism-feedback"></div>
+
+    <div id="reveal-section" style="display:none; margin-top:20px; border-top:1px solid var(--line); padding-top:18px;"></div>
+
+    <div style="margin-top:16px; display:flex; justify-content:space-between;">
+      <button class="btn ghost" id="mech-back-btn">← Terug naar tabel & orde</button>
+      <button class="btn" id="mech-reveal-btn" disabled>Toon het echte mechanisme →</button>
+    </div>
+  `;
+  content.appendChild(panel);
+
+  answers.rdsTiles = [];
+
+  function renderSlots(){
+    for(let i=0;i<3;i++){
+      const slot = el('slot-'+i);
+      const plus = el('plus-'+(i));
+      if(answers.rdsTiles[i]){
+        slot.textContent = answers.rdsTiles[i];
+        slot.classList.add('filled');
+      } else {
+        slot.textContent = '';
+        slot.classList.remove('filled');
+      }
+    }
+    el('plus-0').style.display = answers.rdsTiles.length >= 1 ? '' : 'none';
+    el('plus-1').style.display = answers.rdsTiles.length >= 2 ? '' : 'none';
+  }
+
+  el('tile-row').querySelectorAll('.tile-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(answers.rdsTiles.length >= 3) return;
+      answers.rdsTiles.push(btn.dataset.sp);
+      renderSlots();
+    });
+  });
+
+  el('clear-tiles-btn').addEventListener('click', ()=>{
+    answers.rdsTiles = [];
+    renderSlots();
+    el('mechanism-feedback').className = 'feedback';
+  });
+
+  el('check-mechanism-btn').addEventListener('click', ()=>{
+    if(answers.rdsTiles.length === 0) return;
+    const sorted = [...answers.rdsTiles].sort();
+    const expected = [...currentMechanism.expectedRdsParticles].sort();
+    const correct = sorted.length === expected.length && sorted.every((v,i)=>v===expected[i]);
+    const fb = el('mechanism-feedback');
+    fb.className = 'feedback show ' + (correct ? 'correct' : 'incorrect');
+    if(correct){
+      fb.textContent = 'Precies. Eén A-deeltje, alleen, in de snelheidsbepalende stap — dat past bij orde 1 in A en orde 0 in B.';
+      el('mech-reveal-btn').disabled = false;
+    } else {
+      fb.textContent = 'Denk aan wat je net vond: orde 1 in A betekent dat er één A-deeltje meedoet in de snelheidsbepalende stap. Orde 0 in B betekent dat B daar niet bij hoort.';
+      el('mech-reveal-btn').disabled = true;
+    }
+  });
+
+  el('mech-back-btn').addEventListener('click', ()=> goToStage(1));
+  el('mech-reveal-btn').addEventListener('click', renderRevealSection);
+
+  renderSlots();
+
+  // Reveal lives INSIDE this stage as an inline section, not a separate stage in the nav -- it's
+  // the payoff for a correct mechanism answer, shown right where that answer was given rather
+  // than as a destination you navigate to.
+  function renderRevealSection(){
+    const section = el('reveal-section');
+    section.style.display = '';
+
+    const stepsHtml = currentMechanism.steps.map((s,i)=>{
+      const isRds = i === currentMechanism.rdsIndex;
+      return `
+        <div class="step-box ${isRds?'rds':''}">
+          ${s.label}
+          <div class="k-label">k${i+1} = ${s.k} ${isRds ? '— traag, dus snelheidsbepalend' : '— snel, geen invloed op de totale snelheid'}</div>
+          <div class="k-label" style="margin-top:2px;">${stepRateLawHtml(s,i)}</div>
+        </div>
+      `;
+    }).join('');
+
+    section.innerHTML = `
+      <h2>Het echte mechanisme</h2>
+      <div>${stepsHtml}</div>
+      <p class="sub" style="margin-top:14px;">A → I lijkt zonder partner te gebeuren, maar dat is het niet helemaal: A wordt "aangeslagen" doordat het botst met een willekeurig deeltje en daarbij meer energie krijgt dan de activeringsenergie. Bij een hogere temperatuur leveren meer van die botsingen genoeg energie op, dus stijgt de snelheid met T — precies zoals je al gewend bent. Maar bij hogere totale concentratie gebeurt er nog iets: het aangeslagen deeltje botst dan ook vaker opnieuw voordat het de kans krijgt om te reageren, en die botsing kan de energie er net zo goed weer afhalen als dat reageren zelf gebeurt. "Vaker aangeslagen" en "vaker weer gedeactiveerd" middelen elkaar dan uit — daarom hangt de snelheid alleen af van hoeveel A er is, niet van het aantal botsingen per seconde en dus ook niet van de totale concentratie van deeltjes in het reactievat.</p>
+
+      <canvas id="reveal-chart" width="700" height="280"></canvas>
+      <div class="legend" id="reveal-legend"></div>
+      <p class="sub" style="margin-top:10px; font-size:12px;">De gemarkeerde zone is het venster waarin de snelheid in de tabel is afgelezen — pas nadat [I] is opgebouwd tot een stabiel niveau.</p>
+
+      <div style="margin-top:14px;">
+        <button class="btn ghost" id="reveal-restart-btn">Opnieuw verkennen</button>
+      </div>
+    `;
+
+    const legend = el('reveal-legend');
+    for(const sp of ['A','B','I','P']){
+      const span = document.createElement('span');
+      span.innerHTML = `<span class="swatch" style="${legendSwatchStyle(sp)}"></span> ${SPECIES_LABELS[sp]}`;
+      legend.appendChild(span);
+    }
+
+    const history = simulateMechanism(currentMechanism.steps, {A:exploreA0, B:exploreB0}, 70, 0.01);
+    drawConcentrationChart(el('reveal-chart'), history, {markWindow:[0.5,1.0]});
+
+    el('reveal-restart-btn').addEventListener('click', ()=>{
+      answers = { orderA: null, orderB: null, rdsTiles: [] };
+      unlockedStageIdx = 0;
+      goToStage(0);
+    });
+
+    if(typeof section.scrollIntoView === 'function'){
+      section.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+  }
+}
+
+renderAll();
+
+</script>
+</body>
+</html>

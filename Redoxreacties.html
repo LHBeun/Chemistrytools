@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redox Cel Simulator</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#f7f7f5;--surface:#fff;--surface2:#f0f0ec;--border:#d8d8d2;--border2:#c0c0b8;
+    --text:#1a1a18;--text2:#5a5a55;--text3:#8a8a84;
+    --blue:#1a5fa8;--blue-bg:#e8f0fa;--green:#1a7a4a;--green-bg:#e6f4ed;
+    --red:#a83030;--red-bg:#faeaea;--amber:#8a6010;--amber-bg:#fdf4e0;
+    --radius:8px;--radius-lg:12px;
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;}
+  .page{max-width:780px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+  .header{text-align:center;margin-bottom:1.5rem;}
+  .header h1{font-size:24px;font-weight:600;margin-bottom:4px;}
+  .header p{font-size:14px;color:var(--text2);}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.25rem;}
+  .cell-display{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+  .halfcel{background:var(--surface2);border-radius:var(--radius);padding:1rem;border-top:3px solid var(--blue);}
+  .halfcel h3{font-size:14px;font-weight:600;margin-bottom:6px;}
+  .halfcel .elek{font-size:13px;color:var(--text2);margin-bottom:4px;}
+  .halfcel .stoffen{font-size:13px;color:var(--text);line-height:1.6;}
+  .milieu-tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;margin-top:6px;}
+  .milieu-zuur{background:var(--red-bg);color:var(--red);}
+  .milieu-basisch{background:var(--blue-bg);color:var(--blue);}
+  .milieu-neutraal{background:var(--surface);color:var(--text3);border:1px solid var(--border2);}
+  .field-group{margin-bottom:1rem;}
+  .field-group label{display:block;font-size:14px;font-weight:500;margin-bottom:4px;}
+  input[type="text"],select{width:100%;padding:8px 11px;font-size:14px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface);color:var(--text);font-family:inherit;}
+  input[type="text"]{font-family:"Courier New",monospace;}
+  input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,95,168,0.1);}
+  .field-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .btn{padding:11px 20px;font-size:15px;font-weight:600;border:1px solid var(--blue);border-radius:var(--radius);background:var(--blue);color:#fff;cursor:pointer;width:100%;transition:opacity 0.15s;}
+  .btn:hover{opacity:0.9;}
+  .btn-sec{background:var(--surface2);color:var(--text);border-color:var(--border2);margin-top:10px;}
+  .result{margin-top:1rem;border-radius:var(--radius);overflow:hidden;display:none;}
+  .result.show{display:block;}
+  .result-line{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;font-size:14px;border-bottom:1px solid var(--border);}
+  .result-line:last-child{border-bottom:none;}
+  .result-line.ok{background:var(--green-bg);}
+  .result-line.no{background:var(--red-bg);}
+  .result-line .icon{font-weight:700;flex-shrink:0;}
+  .result-line.ok .icon{color:var(--green);}
+  .result-line.no .icon{color:var(--red);}
+  .result-line .label{font-weight:500;min-width:130px;}
+  .result-line .val{color:var(--text2);}
+  .reaction-box{font-family:"Courier New",monospace;font-size:13px;background:var(--surface);padding:3px 8px;border-radius:4px;display:inline-block;margin-top:2px;}
+  .uitwerking{background:var(--amber-bg);border-left:3px solid var(--amber);padding:1rem;margin-top:1rem;border-radius:var(--radius);font-size:13px;line-height:1.7;display:none;}
+  .uitwerking.show{display:block;}
+  .uitwerking h4{font-size:13px;margin-bottom:6px;color:var(--amber);}
+  .note{font-size:12px;color:var(--text3);margin-top:1rem;border-top:1px solid var(--border);padding-top:0.75rem;line-height:1.6;}
+  .precip-note{background:#eef6ff;border-left:3px solid var(--blue);padding:8px 12px;border-radius:var(--radius);font-size:13px;margin-top:8px;color:var(--blue);}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="header">
+    <h1>Redox Cel Simulator</h1>
+    <p>Onderzoek de elektrochemische cel met Binas tabel 48 en voorspel wat er gebeurt.</p>
+  </header>
+
+  <div class="panel">
+    <div class="cell-display">
+      <div class="halfcel" id="hc1"></div>
+      <div class="halfcel" id="hc2"></div>
+    </div>
+    <div id="precipInfo"></div>
+  </div>
+
+  <div class="panel">
+    <div class="field-group">
+      <label>Deelreactie in Halfcel 1</label>
+      <input type="text" id="reactie1" placeholder="bv. Zn -> Zn2+ + 2 e-">
+    </div>
+    <div class="field-group">
+      <label>Deelreactie in Halfcel 2</label>
+      <input type="text" id="reactie2" placeholder="bv. Cu2+ + 2 e- -> Cu">
+    </div>
+    <div class="field-group">
+      <label>Totaalreactie</label>
+      <input type="text" id="totaalReactie" placeholder="bv. Zn + Cu2+ -> Zn2+ + Cu">
+    </div>
+    <div class="field-pair">
+      <div class="field-group">
+        <label>Elektronenstroom (draad)</label>
+        <select id="eStroom">
+          <option value="">Kies...</option>
+          <option value="1to2">Van Halfcel 1 naar 2</option>
+          <option value="2to1">Van Halfcel 2 naar 1</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Positieve ionen (zoutbrug) naar</label>
+        <select id="posIonen">
+          <option value="">Kies...</option>
+          <option value="1">Halfcel 1</option>
+          <option value="2">Halfcel 2</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-pair">
+      <div class="field-group">
+        <label>Negatieve ionen (zoutbrug) naar</label>
+        <select id="negIonen">
+          <option value="">Kies...</option>
+          <option value="1">Halfcel 1</option>
+          <option value="2">Halfcel 2</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Welke halfcel is de anode?</label>
+        <select id="anodeKeuze">
+          <option value="">Kies...</option>
+          <option value="1">Halfcel 1</option>
+          <option value="2">Halfcel 2</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-pair">
+      <div class="field-group">
+        <label>Massa elektrode Halfcel 1</label>
+        <select id="massa1">
+          <option value="">Kies...</option>
+          <option value="toe">Neemt toe</option>
+          <option value="af">Neemt af</option>
+          <option value="gelijk">Blijft gelijk</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Massa elektrode Halfcel 2</label>
+        <select id="massa2">
+          <option value="">Kies...</option>
+          <option value="toe">Neemt toe</option>
+          <option value="af">Neemt af</option>
+          <option value="gelijk">Blijft gelijk</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn" onclick="checkAlles()">Controleer mijn antwoorden</button>
+    <button class="btn btn-sec" onclick="nieuweCel()">Volgende opgave</button>
+
+    <div class="result" id="result"></div>
+    <div class="uitwerking" id="uitwerking"></div>
+    <div class="note">
+      Een Platina-elektrode is inert (massa blijft gelijk). Bij een metaalelektrode lost de anode op (massa neemt af) en slaat metaal neer op de kathode (massa neemt toe).
+      Elektronen lopen door de draad van de anode (oxidatie) naar de kathode (reductie). Positieve ionen uit de zoutbrug bewegen naar de kathode, negatieve ionen naar de anode.
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+// Half-reactions (Binas tabel 48, gecontroleerd, ontdubbeld)
+const RAW=[
+  { d:"F2/F^-", v:2.87, eq:"F2 + 2 e- -> 2 F^-", elek:"Pt" },
+  { d:"MnO4^-/Mn^2+", v:1.51, eq:"MnO4^- + 8 H^+ + 5 e- -> Mn^2+ + 4 H2O", elek:"Pt" },
+  { d:"Cl2/Cl^-", v:1.36, eq:"Cl2 + 2 e- -> 2 Cl^-", elek:"Pt" },
+  { d:"Cr2O7^2-/Cr^3+", v:1.33, eq:"Cr2O7^2- + 14 H^+ + 6 e- -> 2 Cr^3+ + 7 H2O", elek:"Pt" },
+  { d:"O2/H2O", v:1.23, eq:"O2 + 4 H^+ + 4 e- -> 2 H2O", elek:"Pt" },
+  { d:"Br2/Br^-", v:1.07, eq:"Br2 + 2 e- -> 2 Br^-", elek:"Pt" },
+  { d:"Ag^+/Ag", v:0.80, eq:"Ag^+ + e- -> Ag", elek:"Ag" },
+  { d:"Fe^3+/Fe^2+", v:0.77, eq:"Fe^3+ + e- -> Fe^2+", elek:"Pt" },
+  { d:"I2/I^-", v:0.54, eq:"I2 + 2 e- -> 2 I^-", elek:"Pt" },
+  { d:"Cu^2+/Cu", v:0.34, eq:"Cu^2+ + 2 e- -> Cu", elek:"Cu" },
+  { d:"Sn^4+/Sn^2+", v:0.15, eq:"Sn^4+ + 2 e- -> Sn^2+", elek:"Pt" },
+  { d:"H^+/H2", v:0.00, eq:"2 H^+ + 2 e- -> H2", elek:"Pt" },
+  { d:"Pb^2+/Pb", v:-0.13, eq:"Pb^2+ + 2 e- -> Pb", elek:"Pb" },
+  { d:"Sn^2+/Sn", v:-0.14, eq:"Sn^2+ + 2 e- -> Sn", elek:"Sn" },
+  { d:"Ni^2+/Ni", v:-0.26, eq:"Ni^2+ + 2 e- -> Ni", elek:"Ni" },
+  { d:"Co^2+/Co", v:-0.28, eq:"Co^2+ + 2 e- -> Co", elek:"Co" },
+  { d:"Fe^2+/Fe", v:-0.41, eq:"Fe^2+ + 2 e- -> Fe", elek:"Fe" },
+  { d:"Zn^2+/Zn", v:-0.76, eq:"Zn^2+ + 2 e- -> Zn", elek:"Zn" },
+  { d:"Al^3+/Al", v:-1.71, eq:"Al^3+ + 3 e- -> Al", elek:"Al" },
+  { d:"Mg^2+/Mg", v:-2.37, eq:"Mg^2+ + 2 e- -> Mg", elek:"Mg" }
+];
+
+const SULFATE_INSOL={"Pb2+":"PbSO4","Ba2+":"BaSO4","Ca2+":"CaSO4","Sr2+":"SrSO4"};
+
+function milieu(eq){ if(/\bH\+/.test(eq))return"zuur"; if(/OH-/.test(eq))return"basisch"; return"neutraal"; }
+function compatible(m1,m2){ if(m1==="neutraal"||m2==="neutraal")return true; return m1===m2; }
+
+let cel=[], anodeIdx=0, kathodeIdx=1, solution={};
+
+/* Build a half-cell description with counter-ions */
+function beschrijfHalfcel(r, isAnodeIfMetal){
+  // species in solution + counter-ions (Na+ for anions, NO3- for cations as toeschouwer-bron)
+  const m=milieu(r.eq);
+  let stoffen=[];
+  const ox=r.d.split("/")[0], red=r.d.split("/")[1];
+
+  // electrode
+  let elekText = r.elek==="Pt" ? "Platina (inert)" : r.elek;
+
+  // describe present species generically (oxidator+reductor of the couple) with counter-ions
+  // We keep it readable: show the redox-active species with counter-ions Na+ / NO3-
+  // For metal electrodes the metal is the electrode itself.
+  let speciesList=[];
+  // dissolved ionic species: also list the accompanying counter-ion as a separate species
+  function speciesWithCounter(sp){
+    // returns array of species present (the ion + its counter-ion)
+    if(/[+]$/.test(sp)) return [sp,"NO3-"];     // cation accompanied by nitraat
+    if(/-$/.test(sp))   return [sp,"Na+"];      // anion accompanied by natrium
+    return [sp];
+  }
+
+  // List the species present in solution (excluding the solid metal electrode itself).
+  if(r.elek!=="Pt"){
+    // metal couple: solution contains the cation (ox form) + counter-ion; metal is the electrode
+    speciesList.push(...speciesWithCounter(ox));
+  } else {
+    // inert electrode: both forms of the couple are in solution, each with counter-ion if ionic
+    speciesList.push(...speciesWithCounter(ox));
+    speciesList.push(...speciesWithCounter(red));
+  }
+  // milieu species
+  if(m==="zuur"){ speciesList.push("H2SO4"); }
+  if(m==="basisch"){ speciesList.push("NaOH"); }
+  speciesList.push("water");
+
+  // de-duplicate while preserving order
+  const seen=new Set(); const uniq=[];
+  for(const s of speciesList){ if(!seen.has(s)){seen.add(s);uniq.push(s);} }
+  return {elekText, speciesList:uniq, milieu:m};
+}
+
+function nieuweCel(){
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('uitwerking').classList.remove('show');
+  ['reactie1','reactie2','totaalReactie'].forEach(id=>document.getElementById(id).value='');
+  ['eStroom','posIonen','negIonen','anodeKeuze','massa1','massa2'].forEach(id=>document.getElementById(id).value='');
+
+  // pick two compatible half-reactions with different potentials
+  let h1,h2,tries=0;
+  do{
+    h1=RAW[Math.floor(Math.random()*RAW.length)];
+    h2=RAW[Math.floor(Math.random()*RAW.length)];
+    tries++;
+  }while((h1===h2 || h1.v===h2.v || !compatible(milieu(h1.eq),milieu(h2.eq))) && tries<200);
+
+  cel=[h1,h2];
+  if(Math.random()>0.5)cel.reverse();
+
+  // determine anode (lower V) / kathode (higher V)
+  anodeIdx = cel[0].v < cel[1].v ? 0 : 1;
+  kathodeIdx = 1-anodeIdx;
+
+  // precipitate: only if anode is a metal oxidising to a sulfate-insoluble cation AND milieu allows sulfate
+  // Here sulfate is present if either half-cell is zuur (H2SO4). We add a Na2SO4 context for the anode metal.
+  const anodeOxCation = cel[anodeIdx].d.split("/")[0];
+  solution.precip = SULFATE_INSOL[anodeOxCation] || null;
+
+  // render half-cells (fmtSub only on chemical species, never on HTML tags)
+  [0,1].forEach(i=>{
+    const b=beschrijfHalfcel(cel[i]);
+    const el=document.getElementById('hc'+(i+1));
+    let stoffen=b.speciesList.slice();
+    // For a metal anode that forms a precipitate: the cation is not present at the start
+    // (it forms during oxidation). Show a sulfate source so the neerslag can appear afterwards.
+    if(solution.precip && i===anodeIdx){
+      const cat=cel[anodeIdx].d.split("/")[0];
+      stoffen = stoffen.filter(s=>s!==cat && s!=="NO3-");   // remove the not-yet-present cation + its nitraat
+      if(!stoffen.some(s=>/SO4/.test(s)||/H2SO4/.test(s))) stoffen.unshift("Na2SO4");
+    }
+    const stoffenHTML = stoffen.map(s=>fmtSub(s)).join(", ");
+    let out=`<h3>Halfcel ${i+1}</h3>`;
+    out+=`<div class="elek">Elektrode: <b>${b.elekText}</b></div>`;
+    out+=`<div class="stoffen">In oplossing: ${stoffenHTML}</div>`;
+    out+=`<span class="milieu-tag milieu-${b.milieu}">${b.milieu} milieu</span>`;
+    el.innerHTML=out;
+  });
+
+  // precipitate hint area (only show that sulfate is present, not the answer)
+  const pi=document.getElementById('precipInfo');
+  if(solution.precip){
+    pi.innerHTML=`<div class="precip-note">Let op: in dit systeem is sulfaat (SO4<sub>2-</sub>) aanwezig. Houd in de gaten of er na de redoxreactie een neerslag ontstaat.</div>`;
+  } else pi.innerHTML='';
+}
+
+function fmtSub(s){
+  // Charges are written with caret: ^2-, ^+, ^- . Atom counts are bare digits after a letter/).
+  return s
+    .replace(/\^(\d*[+-])/g,'<sup>$1</sup>')          // caret charge -> superscript
+    .replace(/([A-Za-z\)])(\d+)/g,'$1<sub>$2</sub>'); // atom count -> subscript
+}
+
+/* ── Reaction helpers (verified) ── */
+function getElectrons(eq){let m=eq.match(/(\d*)\s*e-/);if(m){return m[1]===""?1:parseInt(m[1]);}return 1;}
+function multiplySide(side,factor){
+  if(factor===1)return side;
+  return side.split(' + ').map(t=>{
+    t=t.trim();
+    let m=t.match(/^(\d+)\s+(.*)/);
+    if(m)return (parseInt(m[1])*factor)+" "+m[2];
+    return factor+" "+t;
+  }).join(' + ');
+}
+function removeElectrons(side){return side.split(' + ').map(t=>t.trim()).filter(t=>!/e-/.test(t)).join(' + ');}
+function gcd(a,b){return b?gcd(b,a%b):a;}
+
+function parseTerms(side){
+  // returns map species->coeff
+  const map={};
+  side.split(' + ').map(t=>t.trim()).filter(Boolean).forEach(t=>{
+    const m=t.match(/^(\d+)\s+(.*)$/);
+    const coeff=m?parseInt(m[1]):1;
+    const sp=m?m[2]:t;
+    map[sp]=(map[sp]||0)+coeff;
+  });
+  return map;
+}
+function cancelSpectators(rMap,pMap){
+  // subtract common species present on both sides
+  for(const sp of Object.keys(rMap)){
+    if(pMap[sp]){
+      const c=Math.min(rMap[sp],pMap[sp]);
+      rMap[sp]-=c; pMap[sp]-=c;
+      if(rMap[sp]===0)delete rMap[sp];
+      if(pMap[sp]===0)delete pMap[sp];
+    }
+  }
+}
+function mapToSide(map){
+  return Object.keys(map).map(sp=>(map[sp]>1?map[sp]+" ":"")+sp).join(' + ');
+}
+function buildTotaal(){
+  const aData=cel[anodeIdx], kData=cel[kathodeIdx];
+  const aParts=aData.eq.split(' -> ');
+  const oxReactie=aParts[1]+" -> "+aParts[0]; // reversed
+  const redReactie=kData.eq;
+  const eA=getElectrons(aData.eq), eK=getElectrons(kData.eq);
+  const g=gcd(eA,eK), fA=eK/g, fK=eA/g;
+  const totRraw=removeElectrons(multiplySide(aParts[1],fA))+" + "+removeElectrons(multiplySide(kData.eq.split(' -> ')[0],fK));
+  const totPraw=removeElectrons(multiplySide(aParts[0],fA))+" + "+removeElectrons(multiplySide(kData.eq.split(' -> ')[1],fK));
+  // combine like terms and cancel spectators appearing on both sides
+  const rMap=parseTerms(totRraw), pMap=parseTerms(totPraw);
+  cancelSpectators(rMap,pMap);
+  const totaal=mapToSide(rMap)+" -> "+mapToSide(pMap);
+  return {oxReactie,redReactie,totaal,fA,fK,eTot:eA*fA};
+}
+
+/* ── Normalisation for comparing student reaction input ── */
+function normReact(s){
+  return s.toLowerCase()
+    .replace(/\s+/g,'')
+    .replace(/[–—]/g,'-')
+    .replace(/=>|⇌|→/g,'->')
+    .replace(/\^/g,'')
+    .trim();
+}
+function sameReaction(a,b){
+  // Compare as multisets of terms per side. The inter-term separator is a plus with
+  // a space on BOTH sides ( + ). A charge plus (H+, Zn2+) has no space before it, so it
+  // is preserved. We first protect charge-pluses, then split.
+  function norm(x){
+    let s=x.toLowerCase()
+      .replace(/[\u2013\u2014]/g,'-')
+      .replace(/=>|\u21cc|\u2192/g,'->')
+      .replace(/\^/g,'');
+    // protect the arrow and the inter-term plus with placeholders, then strip all spaces
+    s=s.replace(/\s*->\s*/g,'\u00A7');        // arrow -> §
+    s=s.replace(/\s+\+\s+/g,'\u00A4');       // term separator -> ¤
+    s=s.replace(/\s+/g,'');                  // remove remaining spaces (charges stay intact)
+    s=s.replace(/\u00A7/g,' -> ');            // restore arrow
+    s=s.replace(/\u00A4/g,' + ');             // restore separator
+    return s.trim();
+  }
+  function sides(x){
+    const p=norm(x).split(' -> ');
+    if(p.length!==2)return null;
+    return p.map(side=>side.split(' + ').map(t=>t.trim().replace(/^1(?=[a-z])/i,'')).sort().join('|'));
+  }
+  const sa=sides(a), sb=sides(b);
+  if(!sa||!sb)return false;
+  return sa[0]===sb[0]&&sa[1]===sb[1];
+}
+
+function massaVerwacht(idx){
+  const r=cel[idx];
+  if(r.elek==="Pt")return"gelijk";
+  return idx===anodeIdx?"af":"toe";
+}
+
+function checkAlles(){
+  const sol=buildTotaal();
+  const res=document.getElementById('result');
+  res.innerHTML='';
+  res.classList.add('show');
+
+  function line(label, ok, studentVal, correctVal){
+    const div=document.createElement('div');
+    div.className='result-line '+(ok?'ok':'no');
+    div.innerHTML=`<span class="icon">${ok?'✓':'✗'}</span><span class="label">${label}</span><span class="val">${ok?'correct':('jouw antwoord: '+(studentVal||'—')+' · juist: '+correctVal)}</span>`;
+    res.appendChild(div);
+  }
+
+  // anode choice
+  const anodeAns=document.getElementById('anodeKeuze').value;
+  line('Anode', anodeAns===String(anodeIdx+1), anodeAns?('Halfcel '+anodeAns):'', 'Halfcel '+(anodeIdx+1));
+
+  // deelreacties: which input belongs to which cell — accept either ordering by checking against both
+  const r1=document.getElementById('reactie1').value;
+  const r2=document.getElementById('reactie2').value;
+  const oxFor=anodeIdx+1, redFor=kathodeIdx+1;
+  // Halfcel 1 should contain its own reaction: if cell index 0 is anode -> oxidation, else reduction
+  const expect1 = (0===anodeIdx)? sol.oxReactie : sol.redReactie;
+  const expect2 = (1===anodeIdx)? sol.oxReactie : sol.redReactie;
+  line('Deelreactie Halfcel 1', sameReaction(r1,expect1), r1, expect1);
+  line('Deelreactie Halfcel 2', sameReaction(r2,expect2), r2, expect2);
+
+  // totaal
+  const rt=document.getElementById('totaalReactie').value;
+  line('Totaalreactie', sameReaction(rt,sol.totaal), rt, sol.totaal);
+
+  // elektronenstroom: from anode to kathode
+  const eAns=document.getElementById('eStroom').value;
+  const eCorrect=(anodeIdx===0)?'1to2':'2to1';
+  line('Elektronenstroom', eAns===eCorrect, eAns?(eAns==='1to2'?'1→2':'2→1'):'', (anodeIdx===0?'1→2':'2→1'));
+
+  // positieve ionen -> kathode
+  const posAns=document.getElementById('posIonen').value;
+  line('Positieve ionen', posAns===String(kathodeIdx+1), posAns?('Halfcel '+posAns):'', 'Halfcel '+(kathodeIdx+1));
+  // negatieve ionen -> anode
+  const negAns=document.getElementById('negIonen').value;
+  line('Negatieve ionen', negAns===String(anodeIdx+1), negAns?('Halfcel '+negAns):'', 'Halfcel '+(anodeIdx+1));
+
+  // massa
+  const m1=document.getElementById('massa1').value, m2=document.getElementById('massa2').value;
+  line('Massa elektrode 1', m1===massaVerwacht(0), m1, massaVerwacht(0));
+  line('Massa elektrode 2', m2===massaVerwacht(1), m2, massaVerwacht(1));
+
+  // uitwerking
+  const u=document.getElementById('uitwerking');
+  u.classList.add('show');
+  let html=`<h4>Uitwerking</h4>`;
+  html+=`Potentiaal Halfcel 1: ${cel[0].v.toFixed(2)} V · Halfcel 2: ${cel[1].v.toFixed(2)} V<br>`;
+  html+=`De laagste potentiaal (Halfcel ${anodeIdx+1}) is de <b>anode</b> (oxidatie); de hoogste (Halfcel ${kathodeIdx+1}) de <b>kathode</b> (reductie).<br><br>`;
+  html+=`Oxidatie (Halfcel ${anodeIdx+1}): <span class="reaction-box">${fmtSub(sol.oxReactie)}</span><br>`;
+  html+=`Reductie (Halfcel ${kathodeIdx+1}): <span class="reaction-box">${fmtSub(sol.redReactie)}</span><br>`;
+  html+=`Elektronen gelijkmaken: oxidatie ×${sol.fA}, reductie ×${sol.fK} (${sol.eTot} e<sup>-</sup>).<br>`;
+  html+=`Totaalreactie: <span class="reaction-box">${fmtSub(sol.totaal)}</span><br><br>`;
+  if(solution.precip){
+    html+=`<b>Neerslag:</b> aan de anode ontstaat ${cel[anodeIdx].d.split("/")[0]} door oxidatie. Met de aanwezige SO<sub>4</sub><sup>2-</sup> vormt dit een neerslag van ${fmtSub(solution.precip)}.<br><br>`;
+  }
+  html+=`Massa: een Platina-elektrode blijft gelijk (inert); een metaal-anode lost op (af) en op een metaal-kathode slaat metaal neer (toe).`;
+  u.innerHTML=html;
+}
+
+nieuweCel();
+</script>
+</body>
+</html>

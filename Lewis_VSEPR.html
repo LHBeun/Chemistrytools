@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lewisstructuren &amp; VSEPR</title>
+<style>
+  :root{
+    --bg:#15191c;
+    --bg-soft:#1c2226;
+    --panel:#20262b;
+    --panel-2:#262d33;
+    --line:#343c43;
+    --line-soft:#2a3036;
+    --text:#e7ecef;
+    --text-dim:#9aa6ad;
+    --text-faint:#6c777d;
+    --accent:#5fb98c;
+    --accent-soft:#1f3a30;
+    --accent-2:#e0b15c;
+    --accent-2-soft:#3a3320;
+    --danger:#d9665f;
+    --danger-soft:#3a2222;
+    --blue:#6ea8d8;
+    --blue-soft:#1f2c3a;
+    --purple:#b394d8;
+    --radius:10px;
+    --mono: 'SF Mono','Consolas','Menlo',monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.5;
+  }
+  .app{
+    max-width:1500px;
+    margin:0 auto;
+    padding:20px 22px 60px;
+  }
+  .app-header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:18px;
+    padding-bottom:14px;
+    border-bottom:1px solid var(--line);
+  }
+  .app-header h1{
+    font-size:1.3rem;
+    margin:0;
+    font-weight:600;
+    letter-spacing:-0.01em;
+  }
+  .app-header .subtitle{
+    font-size:0.78rem;
+    color:var(--text-dim);
+    letter-spacing:0.02em;
+  }
+  .layout{
+    display:grid;
+    grid-template-columns: 1fr 360px;
+    gap:18px;
+  }
+  @media (max-width: 1100px){
+    .layout{grid-template-columns:1fr;}
+  }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+  }
+  .panel + .panel{margin-top:14px;}
+  .panel h2{
+    font-size:0.95rem;
+    margin:0 0 12px;
+    font-weight:600;
+    color:var(--text);
+  }
+  .panel h3{
+    font-size:0.8rem;
+    margin:14px 0 8px;
+    font-weight:600;
+    color:var(--text-dim);
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+  }
+  .canvas-wrap{
+    position:relative;
+    background:var(--bg-soft);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+  }
+  #lewisCanvas{
+    display:block;
+    width:100%;
+    height:560px;
+    cursor:default;
+    touch-action:none;
+  }
+  .canvas-toolbar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:center;
+    padding:10px 12px;
+    border-top:1px solid var(--line);
+    background:var(--panel-2);
+  }
+  .btn{
+    appearance:none;
+    border:1px solid var(--line);
+    background:var(--panel-2);
+    color:var(--text);
+    font-family:inherit;
+    font-size:0.82rem;
+    padding:7px 12px;
+    border-radius:7px;
+    cursor:pointer;
+    transition:background .12s,border-color .12s;
+  }
+  .btn:hover{background:#2c343b;border-color:#454f57;}
+  .btn.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+  .btn:disabled{opacity:.35;cursor:not-allowed;}
+  .btn.danger:hover{background:var(--danger-soft);border-color:var(--danger);color:var(--danger);}
+  .btn.small{padding:5px 9px;font-size:0.74rem;}
+  .btn.primary{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600;}
+  .btn.primary:hover{background:#234435;}
+
+  .element-grid{
+    display:grid;
+    grid-template-columns:repeat(8,1fr);
+    gap:5px;
+  }
+  .el-btn{
+    appearance:none;
+    border:1px solid var(--line);
+    background:var(--panel-2);
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:0.78rem;
+    font-weight:600;
+    padding:7px 0;
+    border-radius:6px;
+    cursor:pointer;
+    text-align:center;
+  }
+  .el-btn:hover{background:#2c343b;border-color:#454f57;}
+  .el-btn.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .row.between{justify-content:space-between;}
+  .hint{font-size:0.78rem;color:var(--text-dim);}
+  .hint.warn{color:var(--accent-2);}
+  .hint.err{color:var(--danger);}
+
+  .selection-box{
+    background:var(--bg-soft);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+    font-size:0.82rem;
+  }
+  .selection-box .label{
+    color:var(--text-dim);
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    margin-bottom:4px;
+  }
+  .stat-line{display:flex;justify-content:space-between;padding:3px 0;font-size:0.82rem;}
+  .stat-line span:first-child{color:var(--text-dim);}
+  .badge{
+    display:inline-block;
+    padding:2px 8px;
+    border-radius:20px;
+    font-size:0.72rem;
+    font-weight:600;
+    font-family:var(--mono);
+  }
+  .badge.zero{background:#262d33;color:var(--text-dim);}
+  .badge.pos{background:var(--blue-soft);color:var(--blue);}
+  .badge.neg{background:var(--danger-soft);color:var(--danger);}
+
+  select, input[type=number]{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    border-radius:6px;
+    padding:6px 8px;
+    font-family:inherit;
+    font-size:0.82rem;
+  }
+
+  .vsepr-quiz{
+    display:none;
+  }
+  .vsepr-quiz.show{display:block;}
+  .quiz-options{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-top:8px;
+  }
+  .quiz-opt{
+    text-align:left;
+    padding:9px 12px;
+  }
+  .quiz-opt.correct{background:var(--accent-soft)!important;border-color:var(--accent)!important;color:var(--accent)!important;}
+  .quiz-opt.incorrect{background:var(--danger-soft)!important;border-color:var(--danger)!important;color:var(--danger)!important;}
+  .quiz-opt:disabled{cursor:default;}
+
+  #shape3dWrap{
+    display:none;
+    margin-top:12px;
+  }
+  #shape3dWrap.show{display:block;}
+  #shape3dCanvas{
+    width:100%;
+    height:260px;
+    display:block;
+    background:var(--bg-soft);
+    border:1px solid var(--line);
+    border-radius:8px;
+    cursor:grab;
+  }
+  #shape3dCanvas:active{cursor:grabbing;}
+
+  .mesomerie-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-top:8px;
+    max-height:140px;
+    overflow-y:auto;
+  }
+  .mesomerie-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:var(--bg-soft);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:6px 9px;
+    font-size:0.78rem;
+  }
+  .mesomerie-swatch{
+    width:14px;height:14px;border-radius:3px;display:inline-block;margin-right:6px;vertical-align:-2px;
+  }
+
+  .legend{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    font-size:0.74rem;
+    color:var(--text-dim);
+    padding:8px 12px;
+    border-top:1px solid var(--line);
+  }
+  .legend span{display:flex;align-items:center;gap:5px;}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block;}
+
+  .mode-tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:14px;
+  }
+  .mode-tab{
+    appearance:none;
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--text-dim);
+    font-family:inherit;
+    font-size:0.85rem;
+    font-weight:600;
+    padding:9px 16px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .mode-tab.active{
+    background:var(--accent-soft);
+    border-color:var(--accent);
+    color:var(--accent);
+  }
+  .mode-tab:hover:not(.active){background:#262d33;}
+
+  .task-panel{
+    margin-bottom:14px;
+  }
+  .task-question{
+    font-size:0.95rem;
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .task-meta{
+    font-size:0.78rem;
+    color:var(--text-dim);
+    margin-bottom:10px;
+  }
+  .task-result{
+    margin-top:10px;
+    padding:10px 12px;
+    border-radius:8px;
+    font-size:0.84rem;
+    display:none;
+  }
+  .task-result.show{display:block;}
+  .task-result.ok{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);}
+  .task-result.bad{background:var(--danger-soft);color:var(--danger);border:1px solid var(--danger);}
+  .task-result ul{margin:6px 0 0;padding-left:18px;}
+  .task-result li{margin-bottom:3px;}
+
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:#3a4148;border-radius:4px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="app-header">
+    <div>
+      <h1>Lewisstructuren &amp; VSEPR</h1>
+      <div class="subtitle">Bouw de structuur, bepaal formele ladingen, en redeneer naar de moleculaire vorm</div>
+    </div>
+  </div>
+
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tabVerkennen" onclick="setMode('verkennen')">Verkennen</button>
+    <button class="mode-tab" id="tabOpdracht" onclick="setMode('opdracht')">Opdracht</button>
+  </div>
+
+  <div class="panel task-panel" id="taskPanel" style="display:none;"></div>
+
+  <div class="layout">
+    <div>
+      <div class="canvas-wrap">
+        <canvas id="lewisCanvas"></canvas>
+        <div class="canvas-toolbar" id="canvasToolbar"></div>
+        <div class="legend">
+          <span><i style="background:#5fb98c"></i> binding</span>
+          <span><i style="background:#e0b15c"></i> mesomere binding</span>
+          <span><i style="background:#6ea8d8"></i> vrij elektronenpaar</span>
+          <span><i style="background:#d9665f"></i> formele lading ≠ 0</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="sidePanel"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const ELEMENTS = {
+  H:  {z:1,  valence:1, period:1, group:1},
+  B:  {z:5,  valence:3, period:2, group:13},
+  C:  {z:6,  valence:4, period:2, group:14},
+  N:  {z:7,  valence:5, period:2, group:15},
+  O:  {z:8,  valence:6, period:2, group:16},
+  F:  {z:9,  valence:7, period:2, group:17},
+  Si: {z:14, valence:4, period:3, group:14},
+  P:  {z:15, valence:5, period:3, group:15},
+  S:  {z:16, valence:6, period:3, group:16},
+  Cl: {z:17, valence:7, period:3, group:17},
+  Br: {z:35, valence:7, period:4, group:17},
+  I:  {z:53, valence:7, period:5, group:17}
+};
+const ELEMENT_ORDER = ['H','C','N','O','F','Cl','Br','I','S','P','Si','B'];
+
+// VSEPR lookup: key = "bonding groups - lone pairs" -> {name, geometry}
+// "bonding groups" = number of atoms attached (regardless of bond order), lone pairs = on central atom
+const VSEPR_TABLE = {
+  '2-0': {name:'lineair', electronGeom:'lineair', angle:'180°'},
+  '3-0': {name:'trigonaal vlak', electronGeom:'trigonaal vlak', angle:'120°'},
+  '2-1': {name:'gebogen (gebaseerd op trigonaal vlak)', electronGeom:'trigonaal vlak', angle:'<120°'},
+  '4-0': {name:'tetraëdrisch', electronGeom:'tetraëdrisch', angle:'109,5°'},
+  '3-1': {name:'trigonaal piramidaal', electronGeom:'tetraëdrisch', angle:'<109,5°'},
+  '2-2': {name:'gebogen (gebaseerd op tetraëdrisch)', electronGeom:'tetraëdrisch', angle:'<109,5°'},
+  '5-0': {name:'trigonaal bipiramidaal', electronGeom:'trigonaal bipiramidaal', angle:'90°/120°'},
+  '4-1': {name:'wipvormig (seesaw)', electronGeom:'trigonaal bipiramidaal', angle:'<90°/<120°'},
+  '3-2': {name:'T-vormig', electronGeom:'trigonaal bipiramidaal', angle:'<90°'},
+  '2-3': {name:'lineair (3 vrije paren)', electronGeom:'trigonaal bipiramidaal', angle:'180°'},
+  '6-0': {name:'octaëdrisch', electronGeom:'octaëdrisch', angle:'90°'},
+  '5-1': {name:'vierkant piramidaal', electronGeom:'octaëdrisch', angle:'<90°'},
+  '4-2': {name:'vierkant vlak', electronGeom:'octaëdrisch', angle:'90°'}
+};
+// All possible shape names, for building multiple-choice distractors
+const ALL_SHAPE_NAMES = [...new Set(Object.values(VSEPR_TABLE).map(v=>v.name))];
+
+// ============================================================
+// OPDRACHTENPOOL
+// ============================================================
+// Elke entry beschrijft de canonieke Lewis-structuur van één species.
+// nodes: [{el, lp}]  -- el = elementsymbool, lp = aantal vrije elektronenparen
+// bonds: [[indexA, indexB, order]]
+// charge: totale lading van het deeltje (voor weergave/controle)
+// vseprFocus: index van het atoom (in nodes) waarvoor de VSEPR-vraag gesteld wordt
+//             (meestal het centrale atoom; bij meerdere zinvolle atomen: belangrijkste)
+// note: korte didactische opmerking, getoond bij "toon het juiste antwoord"
+const MOLECULE_POOL = [
+  // --- Eenvoudig, neutraal, volledig octet ---
+  { id:'h2o', name:'water', formula:'H₂O', charge:0,
+    nodes:[{el:'O',lp:2},{el:'H',lp:0},{el:'H',lp:0}],
+    bonds:[[0,1,1],[0,2,1]], vseprFocus:0,
+    note:'Zuurstof heeft 2 bindingen en 2 vrije paren — gebogen vorm.' },
+  { id:'nh3', name:'ammoniak', formula:'NH₃', charge:0,
+    nodes:[{el:'N',lp:1},{el:'H',lp:0},{el:'H',lp:0},{el:'H',lp:0}],
+    bonds:[[0,1,1],[0,2,1],[0,3,1]], vseprFocus:0,
+    note:'Stikstof heeft 3 bindingen en 1 vrij paar — trigonaal piramidaal.' },
+  { id:'ch4', name:'methaan', formula:'CH₄', charge:0,
+    nodes:[{el:'C',lp:0},{el:'H',lp:0},{el:'H',lp:0},{el:'H',lp:0},{el:'H',lp:0}],
+    bonds:[[0,1,1],[0,2,1],[0,3,1],[0,4,1]], vseprFocus:0,
+    note:'Koolstof heeft 4 bindingen, geen vrije paren — tetraëdrisch.' },
+  { id:'hf', name:'waterstoffluoride', formula:'HF', charge:0,
+    nodes:[{el:'H',lp:0},{el:'F',lp:3}],
+    bonds:[[0,1,1]], vseprFocus:1,
+    note:'Slechts 2 atomen: er is geen ondubbelzinnige VSEPR-vorm (altijd lineair per definitie).' },
+  { id:'ch2o', name:'methanal (formaldehyde)', formula:'CH₂O', charge:0,
+    nodes:[{el:'C',lp:0},{el:'H',lp:0},{el:'H',lp:0},{el:'O',lp:2}],
+    bonds:[[0,1,1],[0,2,1],[0,3,2]], vseprFocus:0,
+    note:'Koolstof heeft 3 bindingsgroepen (2 enkel, 1 dubbel) en geen vrije paren — trigonaal vlak.' },
+  { id:'c2h4', name:'etheen', formula:'C₂H₄', charge:0,
+    nodes:[{el:'C',lp:0},{el:'C',lp:0},{el:'H',lp:0},{el:'H',lp:0},{el:'H',lp:0},{el:'H',lp:0}],
+    bonds:[[0,1,2],[0,2,1],[0,3,1],[1,4,1],[1,5,1]], vseprFocus:0,
+    note:'Elk koolstofatoom heeft 3 bindingsgroepen — trigonaal vlak rond beide C.' },
+  { id:'c2h2', name:'ethyn (acetyleen)', formula:'C₂H₂', charge:0,
+    nodes:[{el:'C',lp:0},{el:'C',lp:0},{el:'H',lp:0},{el:'H',lp:0}],
+    bonds:[[0,1,3],[0,2,1],[1,3,1]], vseprFocus:0,
+    note:'Elk koolstofatoom heeft 2 bindingsgroepen (1 enkel, 1 drievoudig) — lineair.' },
+  { id:'co2', name:'koolstofdioxide', formula:'CO₂', charge:0,
+    nodes:[{el:'C',lp:0},{el:'O',lp:2},{el:'O',lp:2}],
+    bonds:[[0,1,2],[0,2,2]], vseprFocus:0,
+    note:'Koolstof heeft 2 bindingsgroepen, geen vrije paren — lineair.' },
+  { id:'hcn', name:'waterstofcyanide', formula:'HCN', charge:0,
+    nodes:[{el:'H',lp:0},{el:'C',lp:0},{el:'N',lp:1}],
+    bonds:[[0,1,1],[1,2,3]], vseprFocus:1,
+    note:'Koolstof heeft 2 bindingsgroepen (1 enkel naar H, 1 drievoudig naar N) — lineair.' },
+  { id:'ph3', name:'fosfine', formula:'PH₃', charge:0,
+    nodes:[{el:'P',lp:1},{el:'H',lp:0},{el:'H',lp:0},{el:'H',lp:0}],
+    bonds:[[0,1,1],[0,2,1],[0,3,1]], vseprFocus:0,
+    note:'Net als ammoniak: 3 bindingen + 1 vrij paar — trigonaal piramidaal.' },
+  { id:'h2s', name:'zwavelwaterstof', formula:'H₂S', charge:0,
+    nodes:[{el:'S',lp:2},{el:'H',lp:0},{el:'H',lp:0}],
+    bonds:[[0,1,1],[0,2,1]], vseprFocus:0,
+    note:'Net als water: 2 bindingen + 2 vrije paren — gebogen.' },
+  { id:'ccl4', name:'tetrachloormethaan', formula:'CCl₄', charge:0,
+    nodes:[{el:'C',lp:0},{el:'Cl',lp:3},{el:'Cl',lp:3},{el:'Cl',lp:3},{el:'Cl',lp:3}],
+    bonds:[[0,1,1],[0,2,1],[0,3,1],[0,4,1]], vseprFocus:0,
+    note:'4 bindingen, geen vrije paren op C — tetraëdrisch.' },
+
+  // --- Ionen (positief en negatief), formele lading relevant ---
+  { id:'nh4plus', name:'ammoniumion', formula:'NH₄⁺', charge:1,
+    nodes:[{el:'N',lp:0},{el:'H',lp:0},{el:'H',lp:0},{el:'H',lp:0},{el:'H',lp:0}],
+    bonds:[[0,1,1],[0,2,1],[0,3,1],[0,4,1]], vseprFocus:0,
+    note:'N heeft hier 4 bindingen en 0 vrije paren: formele lading +1 (5 − 0 − 4 = 1). Tetraëdrisch.' },
+  { id:'h3oplus', name:'oxoniumion (hydronium)', formula:'H₃O⁺', charge:1,
+    nodes:[{el:'O',lp:1},{el:'H',lp:0},{el:'H',lp:0},{el:'H',lp:0}],
+    bonds:[[0,1,1],[0,2,1],[0,3,1]], vseprFocus:0,
+    note:'O heeft hier 3 bindingen en 1 vrij paar: formele lading +1 (6 − 2 − 3 = 1). Trigonaal piramidaal.' },
+  { id:'ohmin', name:'hydroxide-ion', formula:'OH⁻', charge:-1,
+    nodes:[{el:'O',lp:3},{el:'H',lp:0}],
+    bonds:[[0,1,1]], vseprFocus:0,
+    note:'O heeft 1 binding en 3 vrije paren: formele lading −1 (6 − 6 − 1 = −1).' },
+  { id:'nh2min', name:'amide-ion', formula:'NH₂⁻', charge:-1,
+    nodes:[{el:'N',lp:2},{el:'H',lp:0},{el:'H',lp:0}],
+    bonds:[[0,1,1],[0,2,1]], vseprFocus:0,
+    note:'N heeft 2 bindingen en 2 vrije paren: formele lading −1 (5 − 4 − 2 = −1). Gebogen.' },
+  { id:'cnmin', name:'cyanide-ion', formula:'CN⁻', charge:-1,
+    nodes:[{el:'C',lp:1},{el:'N',lp:1}],
+    bonds:[[0,1,3]], vseprFocus:0,
+    note:'C heeft 1 bindingsgroep (drievoudig) en 1 vrij paar: formele lading op C is 4 − 2 − 3 = −1. N heeft eveneens 1 bindingsgroep en 1 vrij paar: 5 − 2 − 3 = 0. Totale lading: −1.' },
+  { id:'hydronium_compare', name:'oxonium vs. water (ladingsvergelijking)', formula:'H₃O⁺', charge:1,
+    nodes:[{el:'O',lp:1},{el:'H',lp:0},{el:'H',lp:0},{el:'H',lp:0}],
+    bonds:[[0,1,1],[0,2,1],[0,3,1]], vseprFocus:0,
+    note:'Vergelijk met water: hier heeft O een extra binding en één vrij paar minder, vandaar de +1.' },
+
+  // --- Uitgebreid octet (periode 3+) ---
+  { id:'sf6', name:'zwavelhexafluoride', formula:'SF₆', charge:0,
+    nodes:[{el:'S',lp:0},{el:'F',lp:3},{el:'F',lp:3},{el:'F',lp:3},{el:'F',lp:3},{el:'F',lp:3},{el:'F',lp:3}],
+    bonds:[[0,1,1],[0,2,1],[0,3,1],[0,4,1],[0,5,1],[0,6,1]], vseprFocus:0,
+    note:'S heeft hier 6 bindingsgroepen — uitgebreid octet (12 elektronen), mogelijk bij periode 3+. Octaëdrisch.' },
+  { id:'pcl5', name:'fosforpentachloride', formula:'PCl₅', charge:0,
+    nodes:[{el:'P',lp:0},{el:'Cl',lp:3},{el:'Cl',lp:3},{el:'Cl',lp:3},{el:'Cl',lp:3},{el:'Cl',lp:3}],
+    bonds:[[0,1,1],[0,2,1],[0,3,1],[0,4,1],[0,5,1]], vseprFocus:0,
+    note:'P heeft 5 bindingsgroepen — uitgebreid octet (10 elektronen). Trigonaal bipiramidaal.' },
+  { id:'sf4', name:'zwaveltetrafluoride', formula:'SF₄', charge:0,
+    nodes:[{el:'S',lp:1},{el:'F',lp:3},{el:'F',lp:3},{el:'F',lp:3},{el:'F',lp:3}],
+    bonds:[[0,1,1],[0,2,1],[0,3,1],[0,4,1]], vseprFocus:0,
+    note:'S heeft 4 bindingen + 1 vrij paar — wipvormig (seesaw), gebaseerd op trigonaal bipiramidale elektronengeometrie.' },
+  { id:'clf3', name:'chloortrifluoride', formula:'ClF₃', charge:0,
+    nodes:[{el:'Cl',lp:2},{el:'F',lp:3},{el:'F',lp:3},{el:'F',lp:3}],
+    bonds:[[0,1,1],[0,2,1],[0,3,1]], vseprFocus:0,
+    note:'Cl heeft 3 bindingen + 2 vrije paren — T-vormig.' },
+  { id:'so2', name:'zwaveldioxide', formula:'SO₂', charge:0,
+    nodes:[{el:'S',lp:1},{el:'O',lp:2},{el:'O',lp:3}],
+    bonds:[[0,1,2],[0,2,1]], vseprFocus:0,
+    note:'Eén geldige Lewis-vorm (octetregel, geen uitgebreid octet): S=O dubbel (S: formele lading +1) en S–O enkel met 3 vrije paren op die O (formele lading −1), zodat de totale lading 0 blijft. De echte verdeling is mesomeer (zie mesomerie-knop). S heeft 3 bindingsgroepen + 1 vrij paar — gebogen (gebaseerd op trigonaal vlak).' },
+
+  // --- Mesomerie ---
+  { id:'co3_2min', name:'carbonaation', formula:'CO₃²⁻', charge:-2,
+    nodes:[{el:'C',lp:0},{el:'O',lp:2},{el:'O',lp:3},{el:'O',lp:3}],
+    bonds:[[0,1,2],[0,2,1],[0,3,1]], vseprFocus:0,
+    mesoBonds:[0,1,2],
+    note:'Eén van de drie equivalente resonantiestructuren: telkens is één C–O-binding dubbel en de andere twee enkel, met negatieve lading op de enkelgebonden O\'s. Markeer alle drie de C–O-bindingen als mesomeer.' },
+  { id:'no3min', name:'nitraation', formula:'NO₃⁻', charge:-1,
+    nodes:[{el:'N',lp:0},{el:'O',lp:2},{el:'O',lp:3},{el:'O',lp:3}],
+    bonds:[[0,1,2],[0,2,1],[0,3,1]], vseprFocus:0,
+    mesoBonds:[0,1,2],
+    note:'Net als carbonaat: drie equivalente resonantiestructuren, N–O-bindingen zijn mesomeer.' },
+  { id:'o3', name:'ozon', formula:'O₃', charge:0,
+    nodes:[{el:'O',lp:1},{el:'O',lp:2},{el:'O',lp:3}],
+    bonds:[[0,1,2],[0,2,1]], vseprFocus:0,
+    mesoBonds:[0,1],
+    note:'Twee equivalente resonantiestructuren (dubbele binding links of rechts) — beide O–O-bindingen zijn mesomeer. Centraal O heeft 2 bindingsgroepen + 1 vrij paar: gebogen.' },
+  { id:'no2min', name:'nitrietion', formula:'NO₂⁻', charge:-1,
+    nodes:[{el:'N',lp:1},{el:'O',lp:2},{el:'O',lp:3}],
+    bonds:[[0,1,2],[0,2,1]], vseprFocus:0,
+    mesoBonds:[0,1],
+    note:'Mesomeer net als ozon. N heeft 2 bindingsgroepen + 1 vrij paar: gebogen.' },
+
+];
+
+console.log('Opdrachtenpool geladen:', MOLECULE_POOL.length, 'species');
+
+console.log('Data geladen:', Object.keys(ELEMENTS).length, 'elementen,', Object.keys(VSEPR_TABLE).length, 'VSEPR-vormen');
+
+// ============================================================
+// STATE
+// ============================================================
+// atoms: {id, element, x, y, lonePairs: int, charge_override?: null}
+// bonds: {id, a, b, order: 1|2|3, mesomeric: false|groupId}
+// selection: {type:'atom'|'bond'|null, id:null}
+// Een atoom met element===null is een "open uiteinde": wel een binding eraan, nog geen element gekozen.
+let atoms = [];
+let bonds = [];
+let nextAtomId = 1;
+let nextBondId = 1;
+let selectedElement = 'C';
+let selection = {type:null, id:null};
+let mesomerieGroups = []; // [{id, color, bondIds:[...]}]
+let nextMesoId = 1;
+const MESO_COLORS = ['#e0b15c','#b394d8','#6ea8d8','#5fb98c','#d9665f','#e08c5c'];
+
+let panX = 0, panY = 0, zoom = 1;
+
+const canvas = document.getElementById('lewisCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas(){
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  draw();
+}
+window.addEventListener('resize', resizeCanvas);
+
+function getAtom(id){ return atoms.find(a=>a.id===id); }
+function getBond(id){ return bonds.find(b=>b.id===id); }
+function bondsOf(atomId){ return bonds.filter(b=>b.a===atomId || b.b===atomId); }
+function otherEnd(bond, atomId){ return bond.a===atomId ? bond.b : bond.a; }
+
+// ============================================================
+// CHEMISTRY CALCULATIONS
+// ============================================================
+function bondOrderSum(atomId){
+  return bondsOf(atomId).reduce((s,b)=>s+b.order,0);
+}
+function formalCharge(atom){
+  const el = ELEMENTS[atom.element];
+  if(!el) return 0;
+  const bonding = bondOrderSum(atom.id);
+  const nonbonding = atom.lonePairs*2;
+  return el.valence - nonbonding - bonding;
+}
+function totalElectronsAroundAtom(atom){
+  // bonding electrons (counted fully, not half) + lone pair electrons -- for octet/expanded octet display
+  return bondOrderSum(atom.id)*2 + atom.lonePairs*2;
+}
+
+// ============================================================
+// CANVAS HELPERS (world <-> screen)
+// ============================================================
+function toScreen(x,y){
+  return [x*zoom+panX, y*zoom+panY];
+}
+function toWorld(sx,sy){
+  return [(sx-panX)/zoom, (sy-panY)/zoom];
+}
+function getMousePos(e){
+  const rect = canvas.getBoundingClientRect();
+  const cx = (e.touches? e.touches[0].clientX : e.clientX) - rect.left;
+  const cy = (e.touches? e.touches[0].clientY : e.clientY) - rect.top;
+  return [cx, cy];
+}
+
+const ATOM_R = 20;
+
+function atomAt(sx, sy){
+  const [wx,wy] = toWorld(sx,sy);
+  for(let i=atoms.length-1;i>=0;i--){
+    const a = atoms[i];
+    const d = Math.hypot(a.x-wx, a.y-wy);
+    const r = a.element===null ? 14 : ATOM_R;
+    if(d <= r+4) return a;
+  }
+  return null;
+}
+function bondAt(sx, sy){
+  const [wx,wy] = toWorld(sx,sy);
+  for(const b of bonds){
+    const A = getAtom(b.a), B = getAtom(b.b);
+    if(!A||!B) continue;
+    const d = distToSegment(wx,wy, A.x,A.y, B.x,B.y);
+    if(d < 10) return b;
+  }
+  return null;
+}
+function distToSegment(px,py, x1,y1, x2,y2){
+  const dx=x2-x1, dy=y2-y1;
+  const len2 = dx*dx+dy*dy;
+  if(len2===0) return Math.hypot(px-x1,py-y1);
+  let t = ((px-x1)*dx+(py-y1)*dy)/len2;
+  t = Math.max(0,Math.min(1,t));
+  const cx = x1+t*dx, cy=y1+t*dy;
+  return Math.hypot(px-cx,py-cy);
+}
+
+// ============================================================
+// DRAWING
+// ============================================================
+function draw(){
+  const rect = canvas.getBoundingClientRect();
+  ctx.clearRect(0,0,rect.width,rect.height);
+
+  for(const b of bonds){
+    drawBond(b);
+  }
+  for(const a of atoms){
+    drawAtom(a);
+  }
+}
+
+function bondColor(b){
+  if(b.mesomeric){
+    const g = mesomerieGroups.find(g=>g.id===b.mesomeric);
+    if(g) return g.color;
+  }
+  return '#5fb98c';
+}
+
+function drawBond(b){
+  const A = getAtom(b.a), B = getAtom(b.b);
+  if(!A||!B) return;
+  const [x1,y1] = toScreen(A.x,A.y);
+  const [x2,y2] = toScreen(B.x,B.y);
+  const dx = x2-x1, dy = y2-y1;
+  const len = Math.hypot(dx,dy) || 1;
+  const ux = dx/len, uy = dy/len;
+  const px = -uy, py = ux;
+  const isSel = selection.type==='bond' && selection.id===b.id;
+  const color = bondColor(b);
+  const offsets = b.order===1 ? [0] : b.order===2 ? [-3.5,3.5] : [-6,0,6];
+
+  const r1 = A.element===null ? 14 : ATOM_R;
+  const r2 = B.element===null ? 14 : ATOM_R;
+  const sx1 = x1+ux*r1, sy1 = y1+uy*r1;
+  const sx2 = x2-ux*r2, sy2 = y2-uy*r2;
+
+  ctx.save();
+  ctx.lineCap = 'round';
+  for(const off of offsets){
+    ctx.beginPath();
+    ctx.moveTo(sx1+px*off, sy1+py*off);
+    ctx.lineTo(sx2+px*off, sy2+py*off);
+    ctx.strokeStyle = isSel ? '#ffffff' : color;
+    ctx.lineWidth = isSel ? 4 : 3;
+    if(b.mesomeric){ ctx.setLineDash([7,4]); } else { ctx.setLineDash([]); }
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+
+function drawAtom(a){
+  const [sx,sy] = toScreen(a.x,a.y);
+  const isSel = selection.type==='atom' && selection.id===a.id;
+  const isOpen = a.element===null;
+  const fc = isOpen ? 0 : formalCharge(a);
+
+  if(!isOpen){
+    const lp = a.lonePairs;
+    const lpPositions = lonePairPositions(a, lp);
+    for(let i=0;i<lp;i++){
+      const ang = lpPositions[i];
+      const cx = sx + Math.cos(ang)*(ATOM_R+11);
+      const cy = sy + Math.sin(ang)*(ATOM_R+11);
+      const px = -Math.sin(ang), py = Math.cos(ang);
+      ctx.save();
+      ctx.fillStyle = '#6ea8d8';
+      for(const d of [-3.2, 3.2]){
+        ctx.beginPath();
+        ctx.arc(cx+px*d, cy+py*d, 2.4, 0, Math.PI*2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(sx, sy, isOpen?14:ATOM_R, 0, Math.PI*2);
+  ctx.fillStyle = isOpen ? '#1a1f23' : '#20262b';
+  ctx.fill();
+  ctx.lineWidth = isSel ? 3 : 1.6;
+  if(isOpen) ctx.setLineDash([3,3]);
+  ctx.strokeStyle = isSel ? '#ffffff' : (isOpen ? '#5c666d' : (fc!==0 ? '#d9665f' : '#454f57'));
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = isOpen ? '#7a848a' : '#e7ecef';
+  ctx.font = (isOpen?'500 13px':'600 15px') + ' -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(isOpen?'?':a.element, sx, sy);
+  ctx.restore();
+
+  if(!isOpen && fc !== 0){
+    const label = fc>0 ? `${fc>1?fc:''}+` : `${fc<-1?-fc:''}\u2212`;
+    ctx.save();
+    ctx.font = '700 11px -apple-system, sans-serif';
+    ctx.fillStyle = fc>0 ? '#6ea8d8' : '#d9665f';
+    ctx.textAlign = 'left';
+    ctx.fillText(label, sx+ATOM_R-4, sy-ATOM_R+2);
+    ctx.restore();
+  }
+}
+
+function lonePairPositions(atom, count){
+  const used = bondsOf(atom.id).map(b=>{
+    const other = getAtom(otherEnd(b, atom.id));
+    return Math.atan2(other.y-atom.y, other.x-atom.x);
+  });
+  const positions = [];
+  const N = 8;
+  const candidates = [];
+  for(let i=0;i<N;i++) candidates.push(-Math.PI + i*(2*Math.PI/N));
+  candidates.sort((p1,p2)=>{
+    const d1 = Math.min(...used.map(u=>angDist(u,p1)), Math.PI);
+    const d2 = Math.min(...used.map(u=>angDist(u,p2)), Math.PI);
+    return d2-d1;
+  });
+  for(let i=0;i<count;i++){
+    positions.push(candidates[i % candidates.length]);
+  }
+  return positions;
+}
+function angDist(a,b){
+  let d = Math.abs(a-b)%(2*Math.PI);
+  if(d>Math.PI) d = 2*Math.PI-d;
+  return d;
+}
+
+// ============================================================
+// INTERACTION
+// ============================================================
+let isDragging = false;
+let dragTarget = null; // atom being moved
+let dragStart = null;
+let didDrag = false;
+
+function pointerDown(e){
+  e.preventDefault();
+  const [sx,sy] = getMousePos(e);
+  const atom = atomAt(sx,sy);
+  didDrag = false;
+
+  if(atom){
+    isDragging = true;
+    dragTarget = atom;
+    dragStart = [sx,sy];
+    selectAtom(atom.id);
+    return;
+  }
+  const bond = bondAt(sx,sy);
+  if(bond){
+    selectBond(bond.id);
+    return;
+  }
+  // empty canvas click
+  if(atoms.length===0){
+    // first atom always placed roughly centered
+    const [wx,wy] = toWorld(sx,sy);
+    placeAtom(selectedElement, wx, wy);
+  } else {
+    deselect();
+  }
+}
+
+function pointerMove(e){
+  const [sx,sy] = getMousePos(e);
+  if(isDragging && dragTarget){
+    didDrag = true;
+    const [wx,wy] = toWorld(sx,sy);
+    dragTarget.x = wx;
+    dragTarget.y = wy;
+    draw();
+    return;
+  }
+}
+
+function pointerUp(e){
+  if(isDragging){
+    isDragging = false;
+    dragTarget = null;
+  }
+}
+
+canvas.addEventListener('mousedown', pointerDown);
+canvas.addEventListener('mousemove', pointerMove);
+window.addEventListener('mouseup', pointerUp);
+canvas.addEventListener('touchstart', pointerDown, {passive:false});
+canvas.addEventListener('touchmove', pointerMove, {passive:false});
+window.addEventListener('touchend', pointerUp);
+
+function placeAtom(element, x, y){
+  const a = {id: nextAtomId++, element, x, y, lonePairs:0};
+  atoms.push(a);
+  selectAtom(a.id);
+  draw();
+  renderToolbar();
+  renderSidePanel();
+  return a;
+}
+
+// Voeg een binding toe vanaf het geselecteerde atoom naar een nieuw OPEN atoom
+// (element nog niet gekozen), in een richting die automatisch zo veel mogelijk
+// ruimte vrijlaat t.o.v. bestaande bindingen op dat atoom.
+const BOND_LENGTH = 80;
+function addBondFromSelectedAtom(order){
+  if(selection.type!=='atom') return;
+  const from = getAtom(selection.id);
+  const angle = nextFreeAngle(from);
+  const nx = from.x + Math.cos(angle)*BOND_LENGTH;
+  const ny = from.y + Math.sin(angle)*BOND_LENGTH;
+  const openAtom = {id: nextAtomId++, element:null, x:nx, y:ny, lonePairs:0};
+  atoms.push(openAtom);
+  const b = {id: nextBondId++, a:from.id, b:openAtom.id, order, mesomeric:false};
+  bonds.push(b);
+  redistributeBondAngles(from.id);
+  selectAtom(openAtom.id);
+}
+
+// Vul het element in op het geselecteerde (open) atoom -- gebruikt door de
+// "atoom toevoegen"-knop. Als er geen open atoom geselecteerd is, wordt een
+// volledig los, ongebonden atoom op het canvas geplaatst.
+function placeElementOnSelection(){
+  if(selection.type==='atom'){
+    const a = getAtom(selection.id);
+    if(a.element===null){
+      a.element = selectedElement;
+      draw(); renderToolbar(); renderSidePanel();
+      return;
+    }
+  }
+  // geen open atoom geselecteerd: plaats een nieuw los atoom naast het canvasmidden
+  const rect = canvas.getBoundingClientRect();
+  const [wx,wy] = toWorld(rect.width/2 + (Math.random()*60-30), rect.height/2 + (Math.random()*60-30));
+  placeAtom(selectedElement, wx, wy);
+}
+
+// Bepaal de hoek met de meeste vrije ruimte rond een atoom, gegeven de
+// richtingen van bestaande bindingen (voor het plaatsen van een nieuwe binding).
+function nextFreeAngle(atom){
+  const used = bondsOf(atom.id).map(b=>{
+    const other = getAtom(otherEnd(b, atom.id));
+    return Math.atan2(other.y-atom.y, other.x-atom.x);
+  });
+  if(used.length===0) return -Math.PI/2; // eerste binding: recht omhoog
+  // kandidaten: fijn raster van hoeken, kies degene met grootste minimale afstand tot bestaande
+  let best = 0, bestScore = -1;
+  for(let i=0;i<360;i+=5){
+    const cand = -Math.PI + i*(Math.PI/180);
+    const score = Math.min(...used.map(u=>angDist(u,cand)));
+    if(score>bestScore){ bestScore=score; best=cand; }
+  }
+  return best;
+}
+
+// Herverdeel alle bindingshoeken rond een atoom gelijkmatig (zoals VSEPR-richtingen),
+// zodat ze er netjes uitzien zodra er meerdere bindingen op één atoom zitten.
+// De atomen aan het andere eind worden verplaatst; hun eigen sub-bindingen "volgen mee"
+// niet automatisch mee (dat zou de hele structuur door elkaar schudden) -- alleen
+// het direct verbonden atoom verschuift naar zijn nieuwe hoek, op dezelfde afstand.
+function redistributeBondAngles(atomId){
+  const atom = getAtom(atomId);
+  if(!atom) return;
+  const myBonds = bondsOf(atomId);
+  const n = myBonds.length;
+  if(n<2) return;
+
+  // huidige gemiddelde hoek behouden als oriëntatie-anker, gelijk verdeeld over 360°/n
+  const currentAngles = myBonds.map(b=>{
+    const other = getAtom(otherEnd(b, atomId));
+    return Math.atan2(other.y-atom.y, other.x-atom.x);
+  });
+  // sorteer bindingen op huidige hoek, zodat hun volgorde rond het atoom behouden blijft
+  const order = myBonds.map((b,i)=>({b,angle:currentAngles[i]})).sort((p,q)=>p.angle-q.angle);
+  const baseAngle = order[0].angle;
+  const step = (2*Math.PI)/n;
+
+  order.forEach((item, i)=>{
+    const newAngle = baseAngle + i*step;
+    const other = getAtom(otherEnd(item.b, atomId));
+    const dist = Math.hypot(other.x-atom.x, other.y-atom.y) || BOND_LENGTH;
+    other.x = atom.x + Math.cos(newAngle)*dist;
+    other.y = atom.y + Math.sin(newAngle)*dist;
+  });
+  draw();
+}
+
+function selectAtom(id){
+  selection = {type:'atom', id};
+  draw();
+  renderToolbar();
+  renderSidePanel();
+}
+function selectBond(id){
+  selection = {type:'bond', id};
+  draw();
+  renderToolbar();
+  renderSidePanel();
+}
+function deselect(){
+  selection = {type:null, id:null};
+  draw();
+  renderToolbar();
+  renderSidePanel();
+}
+
+function deleteSelection(){
+  if(selection.type==='atom'){
+    const id = selection.id;
+    bonds = bonds.filter(b=>{
+      const kill = b.a===id||b.b===id;
+      if(kill && b.mesomeric) removeBondFromMeso(b.id, b.mesomeric);
+      return !kill;
+    });
+    atoms = atoms.filter(a=>a.id!==id);
+  } else if(selection.type==='bond'){
+    const b = getBond(selection.id);
+    if(b && b.mesomeric) removeBondFromMeso(b.id, b.mesomeric);
+    bonds = bonds.filter(b=>b.id!==selection.id);
+  }
+  deselect();
+}
+
+function resetCanvas(){
+  atoms=[]; bonds=[]; mesomerieGroups=[]; nextAtomId=1; nextBondId=1; nextMesoId=1;
+  deselect();
+}
+function clearAll(){
+  if(atoms.length && !confirm('Hele structuur wissen?')) return;
+  resetCanvas();
+}
+
+// ============================================================
+// MESOMERIE
+// ============================================================
+function toggleMesomeric(bondId){
+  const b = getBond(bondId);
+  if(!b) return;
+  if(b.mesomeric){
+    removeBondFromMeso(bondId, b.mesomeric);
+  } else {
+    // add to existing group if exactly one mesomerie group exists and user hasn't chosen otherwise -- but
+    // simplest: always offer "add to group X" or "new group" via side panel, handled there.
+  }
+  draw(); renderSidePanel();
+}
+function removeBondFromMeso(bondId, groupId){
+  const b = getBond(bondId);
+  if(b){ b.mesomeric = false; }
+  const g = mesomerieGroups.find(g=>g.id===groupId);
+  if(g){
+    g.bondIds = g.bondIds.filter(id=>id!==bondId);
+    if(g.bondIds.length===0) mesomerieGroups = mesomerieGroups.filter(x=>x.id!==groupId);
+  }
+}
+function addBondToMesoGroup(bondId, groupId){
+  const b = getBond(bondId);
+  if(!b) return;
+  if(b.mesomeric) removeBondFromMeso(bondId, b.mesomeric);
+  const g = mesomerieGroups.find(g=>g.id===groupId);
+  if(g){ g.bondIds.push(bondId); b.mesomeric = groupId; }
+  draw(); renderSidePanel();
+}
+function newMesoGroup(bondId){
+  const b = getBond(bondId);
+  if(!b) return;
+  if(b.mesomeric) removeBondFromMeso(bondId, b.mesomeric);
+  const color = MESO_COLORS[(nextMesoId-1) % MESO_COLORS.length];
+  const g = {id: nextMesoId++, color, bondIds:[bondId]};
+  mesomerieGroups.push(g);
+  b.mesomeric = g.id;
+  draw(); renderSidePanel();
+}
+
+// ============================================================
+// TOOLBAR
+// ============================================================
+function renderToolbar(){
+  const tb = document.getElementById('canvasToolbar');
+  let html = '';
+
+  html += `<div class="row" style="gap:4px;">`;
+  for(const sym of ELEMENT_ORDER){
+    html += `<button class="el-btn ${selectedElement===sym?'active':''}" onclick="setElement('${sym}')">${sym}</button>`;
+  }
+  html += `</div>`;
+
+  html += `<div style="width:1px;align-self:stretch;background:var(--line);margin:0 4px;"></div>`;
+
+  const selAtom = selection.type==='atom' ? getAtom(selection.id) : null;
+  const isOpenSelected = selAtom && selAtom.element===null;
+  const isRealAtomSelected = selAtom && selAtom.element!==null;
+
+  html += `<div class="row">
+    <button class="btn primary" ${selectedElement?'':'disabled'} onclick="placeElementOnSelection()" title="Plaatst het gekozen element op het geselecteerde open uiteinde, of als los atoom">＋ atoom toevoegen</button>
+  </div>`;
+
+  html += `<div style="width:1px;align-self:stretch;background:var(--line);margin:0 4px;"></div>`;
+
+  html += `<div class="row">
+    <button class="btn" ${isRealAtomSelected?'':'disabled'} onclick="addBondFromSelectedAtom(1)" title="Enkele binding toevoegen">— enkel</button>
+    <button class="btn" ${isRealAtomSelected?'':'disabled'} onclick="addBondFromSelectedAtom(2)" title="Dubbele binding toevoegen">= dubbel</button>
+    <button class="btn" ${isRealAtomSelected?'':'disabled'} onclick="addBondFromSelectedAtom(3)" title="Drievoudige binding toevoegen">≡ drievoudig</button>
+    <button class="btn" ${isRealAtomSelected?'':'disabled'} onclick="addLonePair()" title="Vrij elektronenpaar toevoegen">: vrij paar</button>
+    <button class="btn" ${isRealAtomSelected?'':'disabled'} onclick="removeLonePair()" title="Vrij elektronenpaar verwijderen">: −paar</button>
+  </div>`;
+
+  html += `<div style="width:1px;align-self:stretch;background:var(--line);margin:0 4px;"></div>`;
+  html += `<div class="row">
+    <button class="btn danger" ${selection.type?'':'disabled'} onclick="deleteSelection()">verwijder selectie</button>
+    <button class="btn danger" onclick="clearAll()">alles wissen</button>
+  </div>`;
+
+  if(isOpenSelected){
+    html += `<div class="hint" style="width:100%;margin-top:4px;">Open uiteinde geselecteerd — kies een element hierboven en klik "atoom toevoegen" om het te plaatsen.</div>`;
+  }
+
+  tb.innerHTML = html;
+}
+
+function setElement(sym){
+  selectedElement = sym;
+  renderToolbar();
+}
+
+function addLonePair(){
+  if(selection.type!=='atom') return;
+  const a = getAtom(selection.id);
+  if(a.element===null) return;
+  a.lonePairs++;
+  draw(); renderSidePanel();
+}
+function removeLonePair(){
+  if(selection.type!=='atom') return;
+  const a = getAtom(selection.id);
+  a.lonePairs = Math.max(0, a.lonePairs-1);
+  draw(); renderSidePanel();
+}
+function setBondOrder(order){
+  if(selection.type!=='bond') return;
+  getBond(selection.id).order = order;
+  draw(); renderSidePanel();
+}
+
+// ============================================================
+// SIDE PANEL
+// ============================================================
+function renderSidePanel(){
+  const el = document.getElementById('sidePanel');
+  let html = '';
+
+  // --- Selection details ---
+  html += `<div class="panel">`;
+  html += `<h2>Selectie</h2>`;
+  if(selection.type==='atom'){
+    const a = getAtom(selection.id);
+    if(a.element===null){
+      html += `<div class="selection-box">
+        <div class="label">Open uiteinde</div>
+        <div class="hint">Nog geen element gekozen. Kies een element in de balk en klik "atoom toevoegen" om dit uiteinde te vullen.</div>
+      </div>`;
+      html += `</div>`;
+      el.innerHTML = html;
+      return;
+    }
+    const fc = formalCharge(a);
+    const elInfo = ELEMENTS[a.element];
+    html += `<div class="selection-box">
+      <div class="label">Atoom</div>
+      <div class="stat-line"><span>Element</span><span>${a.element} (groep ${elInfo?elInfo.group:'?'})</span></div>
+      <div class="stat-line"><span>Valentie-elektronen</span><span>${elInfo?elInfo.valence:'?'}</span></div>
+      <div class="stat-line"><span>Bindende elektronenparen</span><span>${bondOrderSum(a.id)}</span></div>
+      <div class="stat-line"><span>Vrije elektronenparen</span><span>${a.lonePairs}</span></div>
+      <div class="stat-line"><span>Elektronen rondom</span><span>${totalElectronsAroundAtom(a)} ${totalElectronsAroundAtom(a)!==8?'(afwijkend van octet)':'(octet)'}</span></div>
+      <div class="stat-line"><span>Formele lading</span><span class="badge ${fc===0?'zero':fc>0?'pos':'neg'}">${fc>0?'+':''}${fc}</span></div>
+    </div>`;
+  } else if(selection.type==='bond'){
+    const b = getBond(selection.id);
+    const A = getAtom(b.a), B = getAtom(b.b);
+    html += `<div class="selection-box">
+      <div class="label">Binding</div>
+      <div class="stat-line"><span>Tussen</span><span>${A.element||'?'}\u2013${B.element||'?'}</span></div>
+      <div class="row" style="margin-top:8px;">
+        <button class="btn small ${b.order===1?'active':''}" onclick="setBondOrder(1)">enkel</button>
+        <button class="btn small ${b.order===2?'active':''}" onclick="setBondOrder(2)">dubbel</button>
+        <button class="btn small ${b.order===3?'active':''}" onclick="setBondOrder(3)">drievoudig</button>
+      </div>
+    </div>`;
+    html += renderMesomerieControls(b);
+  } else {
+    html += `<div class="hint">Klik op een leeg vlak om het eerste atoom te plaatsen. Selecteer daarna een atoom om bindingen of vrije paren toe te voegen.</div>`;
+  }
+  html += `</div>`;
+
+  // --- Mesomerie overview ---
+  if(mesomerieGroups.length){
+    html += `<div class="panel">`;
+    html += `<h2>Mesomerie-groepen</h2>`;
+    html += `<div class="mesomerie-list">`;
+    for(const g of mesomerieGroups){
+      html += `<div class="mesomerie-item">
+        <span><span class="mesomerie-swatch" style="background:${g.color}"></span>Groep ${g.id} — ${g.bondIds.length} binding(en)</span>
+      </div>`;
+    }
+    html += `</div>`;
+    html += `<div class="hint" style="margin-top:6px;">Gestippelde bindingen in dezelfde kleur horen tot dezelfde resonantiestructuur-groep.</div>`;
+    html += `</div>`;
+  }
+
+  // --- Overall structure check ---
+  if(atoms.length){
+    html += renderStructureSummary();
+  }
+
+  // --- VSEPR section ---
+  if(selection.type==='atom'){
+    html += renderVseprPanel(getAtom(selection.id));
+  }
+
+  el.innerHTML = html;
+}
+
+function renderMesomerieControls(b){
+  let html = `<div class="panel" style="margin-top:10px;padding:12px 14px;">`;
+  html += `<h3 style="margin-top:0;">Mesomerie</h3>`;
+  if(b.mesomeric){
+    const g = mesomerieGroups.find(g=>g.id===b.mesomeric);
+    html += `<div class="hint">Deel van mesomerie-groep ${g?g.id:'?'}.</div>`;
+    html += `<button class="btn small danger" style="margin-top:6px;" onclick="removeBondFromMeso(${b.id}, ${b.mesomeric}); draw(); renderSidePanel();">uit mesomerie-groep halen</button>`;
+  } else {
+    html += `<div class="hint">Markeer deze binding als onderdeel van een resonantiestructuur.</div>`;
+    html += `<div class="row" style="margin-top:6px;">`;
+    html += `<button class="btn small" onclick="newMesoGroup(${b.id})">nieuwe groep</button>`;
+    for(const g of mesomerieGroups){
+      html += `<button class="btn small" style="border-color:${g.color}" onclick="addBondToMesoGroup(${b.id}, ${g.id})">→ groep ${g.id}</button>`;
+    }
+    html += `</div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function renderStructureSummary(){
+  let html = `<div class="panel"><h2>Overzicht</h2>`;
+  const totalCharge = atoms.reduce((s,a)=>s+formalCharge(a),0);
+  html += `<div class="stat-line"><span>Aantal atomen</span><span>${atoms.length}</span></div>`;
+  html += `<div class="stat-line"><span>Aantal bindingen</span><span>${bonds.length}</span></div>`;
+  html += `<div class="stat-line"><span>Totale lading deeltje</span><span class="badge ${totalCharge===0?'zero':totalCharge>0?'pos':'neg'}">${totalCharge>0?'+':''}${totalCharge}</span></div>`;
+  const offOctet = atoms.filter(a=>{
+    const t = totalElectronsAroundAtom(a);
+    return ELEMENTS[a.element] && a.element!=='H' && t!==8;
+  });
+  if(offOctet.length){
+    html += `<div class="hint warn" style="margin-top:8px;">${offOctet.length} atoma(a) wijken af van het octet — controleer of dat hier chemisch terecht is (bijv. uitgebreid octet bij periode 3+, of een radicaal/ion).</div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+// ============================================================
+// VSEPR
+// ============================================================
+function vseprDataForAtom(atom){
+  const groups = bondsOf(atom.id).length; // number of attached atoms = number of bonding "directions"
+  const lp = atom.lonePairs;
+  if(groups < 2) return null; // need at least 2 groups for a defined shape (terminal/lone atoms excluded)
+  const key = `${groups}-${lp}`;
+  return VSEPR_TABLE[key] || null;
+}
+
+let currentQuizAtomId = null;
+let currentQuizKey = null;
+let currentQuizOptions = null;
+let quizAnswered = false;
+
+function renderVseprPanel(atom){
+  const data = vseprDataForAtom(atom);
+  let html = `<div class="panel"><h2>VSEPR-vorm rond ${atom.element}</h2>`;
+
+  if(!atom || bondsOf(atom.id).length < 2){
+    currentQuizAtomId = null; currentQuizKey = null;
+    html += `<div class="hint">Dit atoom heeft minder dan 2 bindingsgroepen — er is geen ondubbelzinnige VSEPR-vorm rondom dit atoom (een eindstandig atoom heeft geen "vorm").</div>`;
+    html += `</div>`;
+    return html;
+  }
+  if(!data){
+    currentQuizAtomId = null; currentQuizKey = null;
+    html += `<div class="hint err">Geen VSEPR-vorm bekend voor ${bondsOf(atom.id).length} bindingsgroepen + ${atom.lonePairs} vrije paren rond dit atoom. Controleer de structuur.</div>`;
+    html += `</div>`;
+    return html;
+  }
+
+  const groups = bondsOf(atom.id).length;
+  html += `<div class="selection-box">
+    <div class="stat-line"><span>Bindingsgroepen rond dit atoom</span><span>${groups}</span></div>
+    <div class="stat-line"><span>Vrije elektronenparen</span><span>${atom.lonePairs}</span></div>
+  </div>`;
+
+  // build / reset quiz if atom changed OR if the chemical situation around the
+  // (still-selected) atom changed -- e.g. user added a bond or lone pair after
+  // already answering, which should re-open the question.
+  const key = `${atom.id}|${groups}-${atom.lonePairs}`;
+  if(currentQuizKey !== key){
+    currentQuizAtomId = atom.id;
+    currentQuizKey = key;
+    quizAnswered = false;
+    currentQuizOptions = generateQuizOptions(data.name);
+  }
+
+  const correctName = data.name;
+  const options = currentQuizOptions;
+
+  html += `<div class="quiz-options" id="quizOptions">`;
+  for(const opt of options){
+    html += `<button class="btn quiz-opt" data-shape="${opt}" onclick="answerQuiz('${escapeJs(opt)}', '${escapeJs(correctName)}', ${groups}, ${atom.lonePairs})" ${quizAnswered?'disabled':''}>${opt}</button>`;
+  }
+  html += `</div>`;
+
+  html += `<div id="quizFeedback" style="margin-top:8px;"></div>`;
+  html += `<div id="shape3dWrap"><h3>3D-model</h3><canvas id="shape3dCanvas"></canvas><div class="hint">Sleep om te draaien.</div></div>`;
+  html += `</div>`;
+  return html;
+}
+
+function escapeJs(s){ return s.replace(/'/g, "\\'"); }
+
+function generateQuizOptions(correctName){
+  const pool = ALL_SHAPE_NAMES.filter(n=>n!==correctName);
+  shuffleArray(pool);
+  const distractors = pool.slice(0,3);
+  const options = [correctName, ...distractors];
+  shuffleArray(options);
+  return options;
+}
+function shuffleArray(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+}
+
+function answerQuiz(chosen, correct, groups, lonePairs){
+  quizAnswered = true;
+  const buttons = document.querySelectorAll('#quizOptions .quiz-opt');
+  buttons.forEach(btn=>{
+    btn.disabled = true;
+    if(btn.dataset.shape===correct) btn.classList.add('correct');
+    else if(btn.dataset.shape===chosen && chosen!==correct) btn.classList.add('incorrect');
+  });
+  const fb = document.getElementById('quizFeedback');
+  if(chosen===correct){
+    fb.innerHTML = `<div class="hint" style="color:var(--accent);">Correct — ${correct}.</div>`;
+    show3DShape(groups, lonePairs);
+  } else {
+    fb.innerHTML = `<div class="hint err">Niet juist. Tel het aantal bindingsgroepen (${groups}) én vrije elektronenparen (${lonePairs}) rond dit atoom opnieuw, en bepaal welke vorm daarbij hoort.</div>`;
+    const wrap = document.getElementById('shape3dWrap');
+    if(wrap) wrap.classList.remove('show');
+  }
+}
+
+// ============================================================
+// 3D SHAPE RENDERER (vanilla canvas, no external libs)
+// ============================================================
+// Returns array of unit-sphere direction vectors for a given electron geometry,
+// then marks which are "lone pair" (hidden ball, just direction) vs "bonded" (visible ball).
+function geometryVectors(totalGroups){
+  // totalGroups = bonding + lone pairs combined (steric number)
+  const v = [];
+  switch(totalGroups){
+    case 2:
+      v.push([1,0,0],[-1,0,0]);
+      break;
+    case 3:
+      for(let i=0;i<3;i++){
+        const a = i*(2*Math.PI/3);
+        v.push([Math.cos(a), Math.sin(a), 0]);
+      }
+      break;
+    case 4: {
+      // tetrahedral
+      const t = [[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]];
+      for(const p of t){
+        const n = Math.hypot(...p);
+        v.push([p[0]/n,p[1]/n,p[2]/n]);
+      }
+      break;
+    }
+    case 5: {
+      // trigonal bipyramidal: 3 equatorial + 2 axial
+      v.push([0,0,1],[0,0,-1]);
+      for(let i=0;i<3;i++){
+        const a = i*(2*Math.PI/3);
+        v.push([Math.cos(a), Math.sin(a), 0]);
+      }
+      break;
+    }
+    case 6: {
+      v.push([1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]);
+      break;
+    }
+    default:
+      break;
+  }
+  return v;
+}
+
+let shape3dState = null; // {groups, lonePairs, rotX, rotY}
+let shape3dDragging = false;
+let shape3dLastPos = null;
+
+function show3DShape(groups, lonePairs){
+  const wrap = document.getElementById('shape3dWrap');
+  if(!wrap) return;
+  wrap.classList.add('show');
+  shape3dState = {groups, lonePairs, rotX:-0.5, rotY:0.6};
+  const c3 = document.getElementById('shape3dCanvas');
+  setup3DCanvas(c3);
+  draw3D();
+}
+
+function setup3DCanvas(c3){
+  const rect = c3.getBoundingClientRect();
+  const dpr = window.devicePixelRatio||1;
+  c3.width = rect.width*dpr;
+  c3.height = rect.height*dpr;
+  const g = c3.getContext('2d');
+  g.setTransform(dpr,0,0,dpr,0,0);
+
+  c3.onmousedown = (e)=>{ shape3dDragging=true; shape3dLastPos=[e.clientX,e.clientY]; };
+  window.addEventListener('mousemove', (e)=>{
+    if(!shape3dDragging || !shape3dState) return;
+    const dx = e.clientX-shape3dLastPos[0], dy = e.clientY-shape3dLastPos[1];
+    shape3dState.rotY += dx*0.01;
+    shape3dState.rotX += dy*0.01;
+    shape3dLastPos=[e.clientX,e.clientY];
+    draw3D();
+  });
+  window.addEventListener('mouseup', ()=>{ shape3dDragging=false; });
+  c3.ontouchstart = (e)=>{ shape3dDragging=true; shape3dLastPos=[e.touches[0].clientX,e.touches[0].clientY]; };
+  c3.addEventListener('touchmove', (e)=>{
+    if(!shape3dDragging || !shape3dState) return;
+    e.preventDefault();
+    const dx = e.touches[0].clientX-shape3dLastPos[0], dy = e.touches[0].clientY-shape3dLastPos[1];
+    shape3dState.rotY += dx*0.01;
+    shape3dState.rotX += dy*0.01;
+    shape3dLastPos=[e.touches[0].clientX,e.touches[0].clientY];
+    draw3D();
+  }, {passive:false});
+  window.addEventListener('touchend', ()=>{ shape3dDragging=false; });
+}
+
+function rotate3(p, rx, ry){
+  let [x,y,z] = p;
+  // rotate around X
+  let y1 = y*Math.cos(rx) - z*Math.sin(rx);
+  let z1 = y*Math.sin(rx) + z*Math.cos(rx);
+  // rotate around Y
+  let x2 = x*Math.cos(ry) + z1*Math.sin(ry);
+  let z2 = -x*Math.sin(ry) + z1*Math.cos(ry);
+  return [x2, y1, z2];
+}
+
+function draw3D(){
+  if(!shape3dState) return;
+  const c3 = document.getElementById('shape3dCanvas');
+  if(!c3) return;
+  const g = c3.getContext('2d');
+  const rect = c3.getBoundingClientRect();
+  g.clearRect(0,0,rect.width,rect.height);
+
+  const cx = rect.width/2, cy = rect.height/2;
+  const scale = Math.min(rect.width, rect.height)*0.32;
+
+  const total = shape3dState.groups + shape3dState.lonePairs;
+  const dirs = geometryVectors(total);
+  // first `groups` directions are bonded atoms, rest are lone pairs
+  // (order doesn't need strict VSEPR priority for visualization purposes)
+  const items = dirs.map((d,i)=>({
+    dir: d,
+    isLone: i >= shape3dState.groups
+  }));
+
+  const projected = items.map(it=>{
+    const r = rotate3(it.dir, shape3dState.rotX, shape3dState.rotY);
+    return {...it, r, depth:r[2]};
+  });
+  projected.sort((a,b)=>a.depth-b.depth);
+
+  // central atom depth = 0, draw bonds first (lines from center to each atom position)
+  for(const p of projected){
+    if(p.isLone) continue;
+    const sx = cx + p.r[0]*scale, sy = cy + p.r[1]*scale;
+    g.save();
+    g.strokeStyle = '#5fb98c';
+    g.lineWidth = 4;
+    g.beginPath();
+    g.moveTo(cx,cy);
+    g.lineTo(sx,sy);
+    g.stroke();
+    g.restore();
+  }
+
+  // central atom
+  g.save();
+  g.beginPath();
+  g.arc(cx,cy,16,0,Math.PI*2);
+  g.fillStyle = '#e0b15c';
+  g.fill();
+  g.strokeStyle = '#2a2010';
+  g.lineWidth = 2;
+  g.stroke();
+  g.restore();
+
+  // surrounding items
+  for(const p of projected){
+    const sx = cx + p.r[0]*scale, sy = cy + p.r[1]*scale;
+    const depthScale = 0.75 + 0.25*((p.depth+1)/2); // closer = bigger
+    g.save();
+    if(p.isLone){
+      // lone pair: small blue double-dot at this direction, closer to center
+      const lx = cx + p.r[0]*scale*0.55, ly = cy + p.r[1]*scale*0.55;
+      g.fillStyle = '#6ea8d8';
+      g.globalAlpha = 0.85;
+      g.beginPath(); g.arc(lx-4,ly,3,0,Math.PI*2); g.fill();
+      g.beginPath(); g.arc(lx+4,ly,3,0,Math.PI*2); g.fill();
+    } else {
+      g.beginPath();
+      g.arc(sx,sy,13*depthScale,0,Math.PI*2);
+      g.fillStyle = '#5fb98c';
+      g.fill();
+      g.strokeStyle = '#1c3a2c';
+      g.lineWidth = 1.5;
+      g.stroke();
+    }
+    g.restore();
+  }
+}
+
+// ============================================================
+// MODES (verkennen / opdracht)
+// ============================================================
+let currentMode = 'verkennen';
+let currentTask = null; // {mol, checked, correct}
+
+function setMode(m){
+  currentMode = m;
+  document.getElementById('tabVerkennen').classList.toggle('active', m==='verkennen');
+  document.getElementById('tabOpdracht').classList.toggle('active', m==='opdracht');
+  const taskPanel = document.getElementById('taskPanel');
+  if(m==='opdracht'){
+    taskPanel.style.display = '';
+    if(!currentTask) newTask();
+    else renderTaskPanel();
+  } else {
+    taskPanel.style.display = 'none';
+  }
+}
+
+function newTask(){
+  const mol = MOLECULE_POOL[Math.floor(Math.random()*MOLECULE_POOL.length)];
+  currentTask = { mol, checked:false, correct:null };
+  resetCanvas();
+  renderTaskPanel();
+  renderSidePanel();
+  renderToolbar();
+  draw();
+}
+
+function renderTaskPanel(){
+  const el = document.getElementById('taskPanel');
+  if(!currentTask){ el.innerHTML=''; return; }
+  const mol = currentTask.mol;
+  const chargeLabel = mol.charge===0 ? '' : ` (lading ${mol.charge>0?'+':''}${mol.charge})`;
+  let html = `<div class="task-question">Teken de Lewisstructuur van ${mol.name} — ${mol.formula}${chargeLabel}</div>`;
+  html += `<div class="task-meta">Bouw de structuur links: bindingen, vrije elektronenparen, en — indien relevant — mesomerie. Controleer daarna ook de VSEPR-vorm in het zijpaneel.</div>`;
+  html += `<div class="row">
+    <button class="btn primary" onclick="checkTask()">controleer structuur</button>
+    <button class="btn" onclick="newTask()">nieuwe opdracht</button>
+    <button class="btn" onclick="revealTask()">toon juiste antwoord</button>
+  </div>`;
+  html += `<div class="task-result ${currentTask.checked?'show':''} ${currentTask.correct?'ok':'bad'}" id="taskResult"></div>`;
+  el.innerHTML = html;
+  if(currentTask.checked) renderTaskResult();
+}
+
+function checkTask(){
+  const result = matchStructure(currentTask.mol);
+  currentTask.checked = true;
+  currentTask.correct = result.ok;
+  renderTaskPanel();
+}
+
+function renderTaskResult(){
+  const result = matchStructure(currentTask.mol);
+  const box = document.getElementById('taskResult');
+  if(!box) return;
+  box.classList.add('show');
+  box.classList.toggle('ok', result.ok);
+  box.classList.toggle('bad', !result.ok);
+  if(result.ok){
+    box.innerHTML = `Correct! De structuur klopt met ${currentTask.mol.formula}.`;
+  } else {
+    let html = `Nog niet helemaal goed:<ul>`;
+    for(const issue of result.issues) html += `<li>${issue}</li>`;
+    html += `</ul>`;
+    box.innerHTML = html;
+  }
+}
+
+function revealTask(){
+  loadMoleculeOntoCanvas(currentTask.mol);
+  currentTask.checked = false;
+  const box = document.getElementById('taskResult');
+  if(box){
+    box.classList.add('show');
+    box.classList.remove('ok','bad');
+    box.innerHTML = `Juiste structuur getoond. ${currentTask.mol.note}`;
+  }
+  renderSidePanel();
+}
+
+// Plaatst de canonieke structuur van een species op het canvas (voor "toon antwoord").
+function loadMoleculeOntoCanvas(mol){
+  resetCanvas();
+  const rect = canvas.getBoundingClientRect();
+  const cx = rect.width/2/zoom - panX/zoom, cy = rect.height/2/zoom - panY/zoom;
+  const placed = [];
+  // simpele radiale lay-out: eerste node in midden, overige in cirkel eromheen
+  const n = mol.nodes.length;
+  for(let i=0;i<n;i++){
+    let x,y;
+    if(i===0){ x=cx; y=cy; }
+    else {
+      const idx = i-1;
+      const count = n-1;
+      const ang = -Math.PI/2 + idx*(2*Math.PI/Math.max(count,1));
+      x = cx + Math.cos(ang)*90;
+      y = cy + Math.sin(ang)*90;
+    }
+    const a = {id: nextAtomId++, element: mol.nodes[i].el, x, y, lonePairs: mol.nodes[i].lp};
+    atoms.push(a);
+    placed.push(a);
+  }
+  for(const [ai,bi,order] of mol.bonds){
+    bonds.push({id: nextBondId++, a:placed[ai].id, b:placed[bi].id, order, mesomeric:false});
+  }
+  if(mol.mesoBonds && mol.mesoBonds.length){
+    const color = MESO_COLORS[(nextMesoId-1) % MESO_COLORS.length];
+    const g = {id: nextMesoId++, color, bondIds:[]};
+    mesomerieGroups.push(g);
+    for(const bi of mol.mesoBonds){
+      const [ai,bb] = mol.bonds[bi];
+      const bondObj = bonds.find(b=>(b.a===placed[ai].id&&b.b===placed[bb].id)||(b.a===placed[bb].id&&b.b===placed[ai].id));
+      if(bondObj){ bondObj.mesomeric = g.id; g.bondIds.push(bondObj.id); }
+    }
+  }
+  selectAtom(placed[mol.vseprFocus].id);
+}
+
+// ============================================================
+// STRUCTUUR-MATCHER (topologisch, rotatie-/positie-onafhankelijk)
+// ============================================================
+// Vergelijkt de huidige canvas-structuur met de canonieke structuur van een species.
+// Matcht via canonieke "fingerprints": voor elk atoom een gesorteerde lijst van
+// (elementsymbool-van-buur, bindingsorde) plus eigen lonePairs, en zoekt een
+// bijectie tussen canvas-atomen en mol-nodes die alle bindingen, orden, lone pairs
+// en lading laat kloppen. Voor de molecuulgroottes in de pool (≤7 atomen) is
+// brute-force permutatie ruim snel genoeg.
+function matchStructure(mol){
+  const issues = [];
+
+  if(atoms.some(a=>a.element===null)){
+    issues.push('Er zijn nog open uiteinden zonder gekozen element.');
+  }
+  if(atoms.length !== mol.nodes.length){
+    issues.push(`Het aantal atomen klopt nog niet (jouw structuur: ${atoms.length}, verwacht: ${mol.nodes.length}).`);
+  }
+  if(bonds.length !== mol.bonds.length){
+    issues.push(`Het aantal bindingen klopt nog niet (jouw structuur: ${bonds.length}, verwacht: ${mol.bonds.length}).`);
+  }
+
+  // elementsamenstelling moet overeenkomen (multiset)
+  const countEls = (list, getEl) => {
+    const m = {};
+    for(const x of list){ const e = getEl(x); m[e] = (m[e]||0)+1; }
+    return m;
+  };
+  const canvasComposition = countEls(atoms, a=>a.element||'?');
+  const molComposition = countEls(mol.nodes, n=>n.el);
+  const compKeys = new Set([...Object.keys(canvasComposition), ...Object.keys(molComposition)]);
+  let compositionOk = true;
+  for(const k of compKeys){
+    if((canvasComposition[k]||0) !== (molComposition[k]||0)) compositionOk = false;
+  }
+  if(!compositionOk){
+    issues.push('De elementsamenstelling klopt nog niet met de verwachte formule.');
+  }
+
+  const totalCharge = atoms.reduce((s,a)=>s+(a.element?formalCharge(a):0),0);
+  if(totalCharge !== mol.charge){
+    issues.push(`De totale lading klopt nog niet (jouw structuur: ${totalCharge>0?'+':''}${totalCharge}, verwacht: ${mol.charge>0?'+':''}${mol.charge}).`);
+  }
+
+  // Als basischecks al falen, geen zin om de dure isomorfisme-check te doen.
+  if(issues.length){
+    return { ok:false, issues };
+  }
+
+  const isomorphic = findIsomorphism(mol);
+  if(!isomorphic){
+    issues.push('De bindingsstructuur (welk atoom met welk verbonden is, bindingsorden en vrije paren) komt nog niet overeen met de juiste Lewis-structuur.');
+    return { ok:false, issues };
+  }
+
+  return { ok:true, issues:[] };
+}
+
+// Zoekt een bijectie atoms[] <-> mol.nodes[] zodat alle bindingen, orden en lone
+// pairs overeenkomen. Gebruikt elementsymbool als sterke voorfilter om de
+// permutatieruimte klein te houden, daarna backtracking.
+function findIsomorphism(mol){
+  const n = atoms.length;
+  if(n !== mol.nodes.length) return null;
+
+  // canvas-adjacency: per atoom-index (in `atoms` array) -> map van andere atoom-index -> order
+  const idxOf = {};
+  atoms.forEach((a,i)=>idxOf[a.id]=i);
+  const canvasAdj = atoms.map(()=>({}));
+  for(const b of bonds){
+    const ia = idxOf[b.a], ib = idxOf[b.b];
+    canvasAdj[ia][ib] = b.order;
+    canvasAdj[ib][ia] = b.order;
+  }
+  const molAdj = mol.nodes.map(()=>({}));
+  for(const [a,b,order] of mol.bonds){
+    molAdj[a][b] = order;
+    molAdj[b][a] = order;
+  }
+
+  // candidate lists: voor elke canvas-atoom, welke mol-node-indices komen qua element + lonePairs + graad in aanmerking
+  const candidates = atoms.map((a)=>{
+    const myDegree = Object.keys(canvasAdj[idxOf[a.id]]).length;
+    const list = [];
+    mol.nodes.forEach((node, j)=>{
+      if(node.el !== a.element) return;
+      if(node.lp !== a.lonePairs) return;
+      const nodeDegree = Object.keys(molAdj[j]).length;
+      if(nodeDegree !== myDegree) return;
+      list.push(j);
+    });
+    return list;
+  });
+  if(candidates.some(c=>c.length===0)) return null;
+
+  // backtracking: ken canvas-atomen toe aan mol-nodes (1-op-1), meest beperkte eerst
+  const assignment = new Array(n).fill(-1);
+  const usedMolNodes = new Array(mol.nodes.length).fill(false);
+  const order = atoms.map((_,i)=>i).sort((i,j)=>candidates[i].length-candidates[j].length);
+
+  function backtrack(pos){
+    if(pos===order.length) return true;
+    const ci = order[pos];
+    for(const molIdx of candidates[ci]){
+      if(usedMolNodes[molIdx]) continue;
+      // check consistency met reeds toegewezen buren
+      let ok = true;
+      for(const [otherCi, ord] of Object.entries(canvasAdj[ci])){
+        const otherIdx = Number(otherCi);
+        const otherAssigned = assignment[otherIdx];
+        if(otherAssigned === -1) continue;
+        if(molAdj[molIdx][otherAssigned] !== ord){ ok=false; break; }
+      }
+      if(!ok) continue;
+      assignment[ci] = molIdx;
+      usedMolNodes[molIdx] = true;
+      if(backtrack(pos+1)) return true;
+      assignment[ci] = -1;
+      usedMolNodes[molIdx] = false;
+    }
+    return false;
+  }
+
+  if(backtrack(0)) return assignment;
+  return null;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init(){
+  resizeCanvas();
+  renderToolbar();
+  renderSidePanel();
+  draw();
+}
+init();
+
+
+
+
+</script>
+</body>
+</html>

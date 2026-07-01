@@ -1,0 +1,331 @@
+
+<h2 class="sr-only">Reactiewarmte en vormingswarmte — oefentool</h2>
+<style>
+.topbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.modebtn{padding:7px 13px;border-radius:8px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);cursor:pointer;font-size:12.5px;color:var(--color-text-secondary)}
+.modebtn.active{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info);font-weight:500}
+#filt{font-size:12.5px;height:32px;border-radius:7px}
+.newbtn{margin-left:auto;font-size:12.5px}
+.tag{display:inline-block;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);background:var(--color-background-secondary);border-radius:5px;padding:3px 8px;margin-bottom:10px}
+.eqbox{text-align:center;font-size:18px;font-weight:500;margin:8px 0 18px;letter-spacing:.01em;line-height:1.5}
+.tbl{width:100%;border-collapse:collapse;margin:6px 0 14px;font-size:13px}
+.tbl td{padding:6px 8px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.tbl td.nm{color:var(--color-text-primary)}
+.tbl td.val{text-align:right;font-family:var(--font-mono);color:var(--color-text-secondary);white-space:nowrap}
+.tbl td.unk{text-align:right;font-family:var(--font-mono);color:var(--color-text-warning);font-weight:700;white-space:nowrap}
+.tbl tr.elem td.val{color:var(--color-text-tertiary)}
+.given{background:var(--color-background-warning);border:0.5px solid var(--color-border-warning);border-radius:9px;padding:9px 14px;margin:0 0 10px;font-size:13.5px;text-align:center;color:var(--color-text-warning-foreground,var(--color-text-primary))}
+.given b{font-family:var(--font-mono)}
+.inprow{display:flex;align-items:center;gap:9px;margin:10px 0;flex-wrap:wrap}
+.inprow label{font-size:13px;color:var(--color-text-secondary)}
+.inprow input{font-size:14px;height:34px;width:110px}
+.fb{font-size:13px;margin:6px 0 2px;min-height:20px;font-weight:500}
+.fb.ok{color:var(--color-text-success)}
+.fb.bad{color:var(--color-text-danger)}
+.stepsbtn{font-size:12px;color:var(--color-text-tertiary);background:none;border:none;text-decoration:underline;cursor:pointer;padding:2px 0}
+.steps{font-size:12.5px;font-family:var(--font-mono);background:var(--color-background-secondary);border-radius:9px;padding:11px 14px;white-space:pre-line;margin-top:8px;display:none;line-height:1.6}
+</style>
+
+<div class="topbar">
+  <button id="m0" class="modebtn active" onclick="setMode(0)">ΔH<sub>reactie</sub> berekenen</button>
+  <button id="m1" class="modebtn" onclick="setMode(1)">Ontbrekende vormingswarmte</button>
+  <button id="m2" class="modebtn" onclick="setMode(2)">Warmte per gram/liter</button>
+  <select id="filt" onchange="newProblem()">
+    <option value="alle">Alle reacties</option>
+    <option value="verbranding">Verbranding</option>
+    <option value="vorming">Vorming</option>
+    <option value="ontleding">Ontleding</option>
+    <option value="overig">Overig</option>
+  </select>
+  <button class="newbtn" onclick="newProblem()">↻ Nieuwe opgave</button>
+</div>
+
+<div class="tag" id="typetag">vorming</div>
+<div class="eqbox" id="eqbox"></div>
+
+<div class="given" id="givenbox" style="display:none">
+  Gegeven: ΔH<sub>reactie</sub> = <b id="givendh"></b> kJ
+</div>
+<div class="given" id="given2" style="display:none">
+  Gegeven: <span id="given2text"></span>
+</div>
+
+<table class="tbl" id="tbl"></table>
+
+<div class="inprow" id="answerrow">
+  <label id="anslabel">ΔH<sub>reactie</sub> =</label>
+  <input type="text" id="ansval" placeholder="bijv. -802,3">
+  <span id="ansunit" style="font-size:13px;color:var(--color-text-secondary)">kJ</span>
+  <button onclick="checkAnswer()">Controleer</button>
+</div>
+
+<div class="fb" id="fb"></div>
+<button class="stepsbtn" id="stepsbtn" onclick="toggleSteps()">Bekijk uitwerking</button>
+<div class="steps" id="steps"></div>
+
+<script>
+const compounds={
+H2O_l:{f:'H₂O(l)',v:-285.8,m:18.02},H2O_g:{f:'H₂O(g)',v:-241.8,m:18.02},CO2_g:{f:'CO₂(g)',v:-393.5,m:44.01},CO_g:{f:'CO(g)',v:-110.5,m:28.01},
+CH4_g:{f:'CH₄(g)',v:-74.8,m:16.04},C2H6_g:{f:'C₂H₆(g)',v:-84.7,m:30.07},C2H4_g:{f:'C₂H₄(g)',v:52.4,m:28.05},C2H2_g:{f:'C₂H₂(g)',v:226.7,m:26.04},
+C3H8_g:{f:'C₃H₈(g)',v:-103.8,m:44.10},C4H10_g:{f:'C₄H₁₀(g)',v:-125.6,m:58.12},CH3OH_l:{f:'CH₃OH(l)',v:-238.4,m:32.04},C2H5OH_l:{f:'C₂H₅OH(l)',v:-277.6,m:46.07},
+NH3_g:{f:'NH₃(g)',v:-46.1,m:17.03},NO_g:{f:'NO(g)',v:90.2,m:30.01},NO2_g:{f:'NO₂(g)',v:33.2,m:46.01},N2O4_g:{f:'N₂O₄(g)',v:9.2,m:92.02},
+SO2_g:{f:'SO₂(g)',v:-296.8,m:64.07},SO3_g:{f:'SO₃(g)',v:-395.7,m:80.06},H2S_g:{f:'H₂S(g)',v:-20.6,m:34.08},HCl_g:{f:'HCl(g)',v:-92.3,m:36.46},
+NaCl_s:{f:'NaCl(s)',v:-411.2,m:58.44},CaCO3_s:{f:'CaCO₃(s)',v:-1206.9,m:100.09},CaO_s:{f:'CaO(s)',v:-635.1,m:56.08},CaOH2_s:{f:'Ca(OH)₂(s)',v:-985.2,m:74.09},
+NaOH_s:{f:'NaOH(s)',v:-425.6,m:40.00},Na2CO3_s:{f:'Na₂CO₃(s)',v:-1130.7,m:105.99},Fe2O3_s:{f:'Fe₂O₃(s)',v:-824.2,m:159.69},Al2O3_s:{f:'Al₂O₃(s)',v:-1675.7,m:101.96},
+MgO_s:{f:'MgO(s)',v:-601.6,m:40.30},CuO_s:{f:'CuO(s)',v:-157.3,m:79.55},ZnO_s:{f:'ZnO(s)',v:-350.5,m:81.38},Fe3O4_s:{f:'Fe₃O₄(s)',v:-1118.4,m:231.53},
+TiO2_s:{f:'TiO₂(s)',v:-944.7,m:79.87},P4O10_s:{f:'P₄O₁₀(s)',v:-2984.0,m:283.89},C6H12O6_s:{f:'C₆H₁₂O₆(s)',v:-1273.0,m:180.16},HNO3_l:{f:'HNO₃(l)',v:-174.1,m:63.01},
+H2SO4_l:{f:'H₂SO₄(l)',v:-814.0,m:98.08},N2H4_l:{f:'N₂H₄(l)',v:50.6,m:32.05},C6H6_l:{f:'C₆H₆(l)',v:49.0,m:78.11},KCl_s:{f:'KCl(s)',v:-436.5,m:74.55},
+Na2O_s:{f:'Na₂O(s)',v:-414.2,m:61.98},K2O_s:{f:'K₂O(s)',v:-363.2,m:94.20},CS2_l:{f:'CS₂(l)',v:89.7,m:76.14},MgCO3_s:{f:'MgCO₃(s)',v:-1095.8,m:84.31},
+PCl3_g:{f:'PCl₃(g)',v:-287.0,m:137.33},PCl5_g:{f:'PCl₅(g)',v:-374.9,m:208.24},
+O2_g:{f:'O₂(g)',v:0,el:1,m:32.00},N2_g:{f:'N₂(g)',v:0,el:1,m:28.01},H2_g:{f:'H₂(g)',v:0,el:1,m:2.02},C_s:{f:'C(s, grafiet)',v:0,el:1,m:12.01},
+S_s:{f:'S(s, rhombisch)',v:0,el:1,m:32.07},Cl2_g:{f:'Cl₂(g)',v:0,el:1,m:70.90},Na_s:{f:'Na(s)',v:0,el:1,m:22.99},Ca_s:{f:'Ca(s)',v:0,el:1,m:40.08},
+Fe_s:{f:'Fe(s)',v:0,el:1,m:55.85},Al_s:{f:'Al(s)',v:0,el:1,m:26.98},Mg_s:{f:'Mg(s)',v:0,el:1,m:24.31},Cu_s:{f:'Cu(s)',v:0,el:1,m:63.55},
+Zn_s:{f:'Zn(s)',v:0,el:1,m:65.38},K_s:{f:'K(s)',v:0,el:1,m:39.10},Ti_s:{f:'Ti(s)',v:0,el:1,m:47.87},P4_s:{f:'P₄(s, wit)',v:0,el:1,m:123.90}
+};
+const VM_BY_T={273:22.4,298:24.5};
+const RX=[
+{t:'verbranding',r:[['CH4_g',1],['O2_g',2]],p:[['CO2_g',1],['H2O_l',2]]},
+{t:'verbranding',r:[['CH4_g',1],['O2_g',2]],p:[['CO2_g',1],['H2O_g',2]]},
+{t:'verbranding',r:[['C2H6_g',2],['O2_g',7]],p:[['CO2_g',4],['H2O_l',6]]},
+{t:'verbranding',r:[['C2H4_g',1],['O2_g',3]],p:[['CO2_g',2],['H2O_l',2]]},
+{t:'verbranding',r:[['C2H2_g',2],['O2_g',5]],p:[['CO2_g',4],['H2O_l',2]]},
+{t:'verbranding',r:[['C3H8_g',1],['O2_g',5]],p:[['CO2_g',3],['H2O_l',4]]},
+{t:'verbranding',r:[['C4H10_g',2],['O2_g',13]],p:[['CO2_g',8],['H2O_l',10]]},
+{t:'verbranding',r:[['CH3OH_l',2],['O2_g',3]],p:[['CO2_g',2],['H2O_l',4]]},
+{t:'verbranding',r:[['C2H5OH_l',1],['O2_g',3]],p:[['CO2_g',2],['H2O_l',3]]},
+{t:'verbranding',r:[['C6H12O6_s',1],['O2_g',6]],p:[['CO2_g',6],['H2O_l',6]]},
+{t:'verbranding',r:[['C6H6_l',2],['O2_g',15]],p:[['CO2_g',12],['H2O_l',6]]},
+{t:'vorming',r:[['N2_g',1],['H2_g',3]],p:[['NH3_g',2]]},
+{t:'vorming',r:[['N2_g',1],['O2_g',1]],p:[['NO_g',2]]},
+{t:'vorming',r:[['N2_g',1],['O2_g',2]],p:[['NO2_g',2]]},
+{t:'overig',r:[['NO_g',2],['O2_g',1]],p:[['NO2_g',2]]},
+{t:'overig',r:[['NO2_g',2]],p:[['N2O4_g',1]]},
+{t:'vorming',r:[['S_s',1],['O2_g',1]],p:[['SO2_g',1]]},
+{t:'overig',r:[['SO2_g',2],['O2_g',1]],p:[['SO3_g',2]]},
+{t:'vorming',r:[['H2_g',1],['S_s',1]],p:[['H2S_g',1]]},
+{t:'vorming',r:[['H2_g',1],['Cl2_g',1]],p:[['HCl_g',2]]},
+{t:'vorming',r:[['Na_s',2],['Cl2_g',1]],p:[['NaCl_s',2]]},
+{t:'ontleding',r:[['CaCO3_s',1]],p:[['CaO_s',1],['CO2_g',1]]},
+{t:'overig',r:[['CaO_s',1],['H2O_l',1]],p:[['CaOH2_s',1]]},
+{t:'overig',r:[['Na2O_s',1],['H2O_l',1]],p:[['NaOH_s',2]]},
+{t:'overig',r:[['Na2O_s',1],['CO2_g',1]],p:[['Na2CO3_s',1]]},
+{t:'vorming',r:[['Fe_s',4],['O2_g',3]],p:[['Fe2O3_s',2]]},
+{t:'vorming',r:[['Al_s',4],['O2_g',3]],p:[['Al2O3_s',2]]},
+{t:'vorming',r:[['Mg_s',2],['O2_g',1]],p:[['MgO_s',2]]},
+{t:'vorming',r:[['Cu_s',2],['O2_g',1]],p:[['CuO_s',2]]},
+{t:'vorming',r:[['Zn_s',2],['O2_g',1]],p:[['ZnO_s',2]]},
+{t:'vorming',r:[['Fe_s',3],['O2_g',2]],p:[['Fe3O4_s',1]]},
+{t:'vorming',r:[['Ti_s',1],['O2_g',1]],p:[['TiO2_s',1]]},
+{t:'vorming',r:[['P4_s',1],['O2_g',5]],p:[['P4O10_s',1]]},
+{t:'vorming',r:[['K_s',4],['O2_g',1]],p:[['K2O_s',2]]},
+{t:'vorming',r:[['K_s',2],['Cl2_g',1]],p:[['KCl_s',2]]},
+{t:'vorming',r:[['P4_s',1],['Cl2_g',6]],p:[['PCl3_g',4]]},
+{t:'overig',r:[['PCl3_g',1],['Cl2_g',1]],p:[['PCl5_g',1]]},
+{t:'vorming',r:[['N2_g',1],['H2_g',2]],p:[['N2H4_l',1]]},
+{t:'overig',r:[['MgO_s',1],['CO2_g',1]],p:[['MgCO3_s',1]]},
+{t:'verbranding',r:[['CS2_l',1],['O2_g',3]],p:[['CO2_g',1],['SO2_g',2]]}
+];
+
+let mode=0, cur=null, lastIdx=-1, hiddenSlot=null, curAmount=null;
+const $=id=>document.getElementById(id);
+
+function fmt(n){return(n>=0?'+':'')+n.toFixed(1).replace('.',',')}
+function fmtPlain(n){return n.toFixed(1).replace('.',',')}
+
+function eqTerm(coeff,formula){return(coeff>1?coeff+' ':'')+formula}
+function formatEquation(rx){
+  const r=rx.r.map(([k,c])=>eqTerm(c,compounds[k].f)).join(' + ');
+  const p=rx.p.map(([k,c])=>eqTerm(c,compounds[k].f)).join(' + ');
+  return r+' → '+p;
+}
+function dHrxn(rx){
+  const sp=rx.p.reduce((s,[k,c])=>s+c*compounds[k].v,0);
+  const sr=rx.r.reduce((s,[k,c])=>s+c*compounds[k].v,0);
+  return sp-sr;
+}
+function nonElementSlots(rx){
+  const slots=[];
+  rx.r.forEach(([k,c])=>{if(!compounds[k].el)slots.push({side:'r',key:k,coeff:c})});
+  rx.p.forEach(([k,c])=>{if(!compounds[k].el)slots.push({side:'p',key:k,coeff:c})});
+  return slots;
+}
+function allSlots(rx){
+  const slots=[];
+  rx.r.forEach(([k,c])=>slots.push({side:'r',key:k,coeff:c}));
+  rx.p.forEach(([k,c])=>slots.push({side:'p',key:k,coeff:c}));
+  return slots;
+}
+
+function setMode(m){
+  mode=m;
+  $('m0').classList.toggle('active',m===0);
+  $('m1').classList.toggle('active',m===1);
+  $('m2').classList.toggle('active',m===2);
+  newProblem();
+}
+
+function newProblem(){
+  const filt=$('filt').value;
+  let pool=RX.map((rx,i)=>({rx,i})).filter(o=>filt==='alle'||o.rx.t===filt);
+  if(pool.length===0)pool=RX.map((rx,i)=>({rx,i}));
+  let pick;
+  do{pick=pool[Math.floor(Math.random()*pool.length)];}while(pool.length>1&&pick.i===lastIdx);
+  lastIdx=pick.i;
+  cur=pick.rx;
+  $('typetag').textContent=cur.t;
+  $('eqbox').innerHTML=formatEquation(cur);
+  $('fb').textContent='';$('fb').className='fb';
+  $('steps').style.display='none';$('stepsbtn').textContent='Bekijk uitwerking';
+  $('ansval').value='';
+
+  if(mode===2){
+    const slots=allSlots(cur);
+    const slot=slots[Math.floor(Math.random()*slots.length)];
+    const isGas=compounds[slot.key].f.includes('(g)');
+    const useVol=isGas&&Math.random()<0.5;
+    const amount=useVol?Math.round((2+Math.random()*48)*10)/10:Math.round((2+Math.random()*58)*10)/10;
+    const T=useVol?(Math.random()<0.5?273:298):null;
+    curAmount={slot,useVol,amount,T};
+
+    $('tbl').style.display='';
+    let rows='';
+    cur.r.forEach(([k,c])=>{rows+=rowHtml(k,c,compounds[k],false)});
+    cur.p.forEach(([k,c])=>{rows+=rowHtml(k,c,compounds[k],false)});
+    $('tbl').innerHTML=rows;
+
+    $('givenbox').style.display='none';
+    $('given2').style.display='block';
+    const unit=useVol?'liter':'gram';
+    $('given2text').innerHTML=fmtPlain(amount)+' '+unit+' '+compounds[slot.key].f+(useVol?' <span style="font-size:11px;color:var(--color-text-tertiary)">(bij T = '+T+' K en standaarddruk)</span>':'');
+    $('anslabel').innerHTML='ΔH =';
+    $('ansunit').textContent='kJ';
+  }else{
+    $('tbl').style.display='';
+    $('given2').style.display='none';
+    const slots=nonElementSlots(cur);
+    hiddenSlot=mode===1?slots[Math.floor(Math.random()*slots.length)]:null;
+
+    let rows='';
+    cur.r.forEach(([k,c])=>{
+      const hidden=mode===1&&hiddenSlot.side==='r'&&hiddenSlot.key===k&&hiddenSlot.coeff===c;
+      rows+=rowHtml(k,c,compounds[k],hidden);
+    });
+    cur.p.forEach(([k,c])=>{
+      const hidden=mode===1&&hiddenSlot.side==='p'&&hiddenSlot.key===k&&hiddenSlot.coeff===c;
+      rows+=rowHtml(k,c,compounds[k],hidden);
+    });
+    $('tbl').innerHTML=rows;
+
+    if(mode===1){
+      $('givenbox').style.display='block';
+      $('givendh').textContent=fmtPlain(dHrxn(cur));
+      $('anslabel').innerHTML='ΔH<sub>f</sub>('+compounds[hiddenSlot.key].f+') =';
+      $('ansunit').textContent='kJ/mol';
+    }else{
+      $('givenbox').style.display='none';
+      $('anslabel').innerHTML='ΔH<sub>reactie</sub> =';
+      $('ansunit').textContent='kJ';
+    }
+  }
+}
+
+function rowHtml(key,coeff,c,hidden){
+  const label='ΔH<sub>f</sub>('+c.f+')';
+  const valCell=hidden?'<td class="unk">?</td>':'<td class="val">'+fmtPlain(c.v)+' kJ/mol</td>';
+  return '<tr'+(c.el?' class="elem"':'')+'><td class="nm">'+label+'</td>'+valCell+'</tr>';
+}
+
+function parseAns(s){
+  const v=parseFloat(String(s).replace(',','.').trim());
+  return isNaN(v)?null:v;
+}
+
+function checkAnswer(){
+  const given=parseAns($('ansval').value);
+  if(given===null){$('fb').className='fb bad';$('fb').textContent='Vul een getal in.';return;}
+  let correct;
+  if(mode===0){
+    correct=dHrxn(cur);
+  }else if(mode===1){
+    correct=compounds[hiddenSlot.key].v;
+  }else{
+    const vm=curAmount.useVol?VM_BY_T[curAmount.T]:null;
+    const n=curAmount.useVol?curAmount.amount/vm:curAmount.amount/compounds[curAmount.slot.key].m;
+    correct=(n/curAmount.slot.coeff)*dHrxn(cur);
+  }
+  const tol=Math.max(0.3,Math.abs(correct)*0.002);
+  const ok=Math.abs(given-correct)<=tol;
+  $('fb').className='fb '+(ok?'ok':'bad');
+  $('fb').textContent=ok?'✓ Goed!':'✗ Nog niet helemaal — probeer het nog eens, of bekijk de uitwerking.';
+}
+
+function buildSteps(){
+  if(mode===0){
+    const pterms=cur.p.map(([k,c])=>c+'×('+fmt(compounds[k].v)+')').join(' + ');
+    const rterms=cur.r.map(([k,c])=>c+'×('+fmt(compounds[k].v)+')').join(' + ');
+    const sp=cur.p.reduce((s,[k,c])=>s+c*compounds[k].v,0);
+    const sr=cur.r.reduce((s,[k,c])=>s+c*compounds[k].v,0);
+    return 'ΔH_reactie = ΣΔHf(producten) − ΣΔHf(reactanten)\n'
+      +'= ['+pterms+'] − ['+rterms+']\n'
+      +'= ('+fmtPlain(sp)+') − ('+fmtPlain(sr)+')\n'
+      +'= '+fmtPlain(sp-sr)+' kJ';
+  }else if(mode===1){
+    const h=hiddenSlot;
+    const knownP=cur.p.filter(([k,c])=>!(h.side==='p'&&h.key===k&&h.coeff===c));
+    const knownR=cur.r.filter(([k,c])=>!(h.side==='r'&&h.key===k&&h.coeff===c));
+    const sumP=knownP.reduce((s,[k,c])=>s+c*compounds[k].v,0);
+    const sumR=knownR.reduce((s,[k,c])=>s+c*compounds[k].v,0);
+    const dh=dHrxn(cur);
+    const n=h.coeff;
+    let txt='ΔH_reactie = ΣΔHf(producten) − ΣΔHf(reactanten)\n';
+    if(h.side==='p'){
+      txt+=fmtPlain(dh)+' = ['+(knownP.length?knownP.map(([k,c])=>c+'×('+fmt(compounds[k].v)+')').join(' + ')+' + ':'')+n+'×ΔHf('+compounds[h.key].f+')] − ('+fmtPlain(sumR)+')\n';
+      txt+='ΔHf('+compounds[h.key].f+') = [ΔH_reactie − '+fmtPlain(sumP)+' + ('+fmtPlain(sumR)+')] / '+n+'\n';
+      txt+='= ['+fmtPlain(dh)+' − '+fmtPlain(sumP)+' + ('+fmtPlain(sumR)+')] / '+n+'\n';
+      txt+='= '+fmtPlain((dh-sumP+sumR)/n)+' kJ/mol';
+    }else{
+      txt+=fmtPlain(dh)+' = ('+fmtPlain(sumP)+') − ['+(knownR.length?knownR.map(([k,c])=>c+'×('+fmt(compounds[k].v)+')').join(' + ')+' + ':'')+n+'×ΔHf('+compounds[h.key].f+')]\n';
+      txt+='ΔHf('+compounds[h.key].f+') = ['+fmtPlain(sumP)+' − ('+fmtPlain(sumR)+') − ΔH_reactie] / '+n+'\n';
+      txt+='= ['+fmtPlain(sumP)+' − ('+fmtPlain(sumR)+') − '+fmtPlain(dh)+'] / '+n+'\n';
+      txt+='= '+fmtPlain((sumP-sumR-dh)/n)+' kJ/mol';
+    }
+    return txt;
+  }else{
+    const{slot,useVol,amount,T}=curAmount;
+    const unit=useVol?'L':'gram';
+    const vm=useVol?VM_BY_T[T]:null;
+    const conv=useVol?('V_m bij '+T+' K = '+vm.toFixed(1)+' L/mol'):('M = '+compounds[slot.key].m.toFixed(2)+' g/mol');
+    const n=useVol?amount/vm:amount/compounds[slot.key].m;
+    const pterms=cur.p.map(([k,c])=>c+'×('+fmt(compounds[k].v)+')').join(' + ');
+    const rterms=cur.r.map(([k,c])=>c+'×('+fmt(compounds[k].v)+')').join(' + ');
+    const sp=cur.p.reduce((s,[k,c])=>s+c*compounds[k].v,0);
+    const sr=cur.r.reduce((s,[k,c])=>s+c*compounds[k].v,0);
+    const dh=dHrxn(cur);
+    return 'Stap 1 — ΔH_reactie uit vormingswarmtes:\n'
+      +'ΔH_reactie = ΣΔHf(producten) − ΣΔHf(reactanten)\n'
+      +'= ['+pterms+'] − ['+rterms+']\n'
+      +'= ('+fmtPlain(sp)+') − ('+fmtPlain(sr)+')\n'
+      +'= '+fmtPlain(dh)+' kJ\n\n'
+      +'Stap 2 — omrekenen naar mol:\n'
+      +'n('+compounds[slot.key].f+') = '+fmtPlain(amount)+' '+unit+' / ('+conv+') = '+n.toFixed(4)+' mol\n\n'
+      +'Stap 3 — omrekenen naar de gevraagde hoeveelheid:\n'
+      +'ΔH_reactie (bij '+slot.coeff+' mol '+compounds[slot.key].f+') = '+fmtPlain(dh)+' kJ\n'
+      +'ΔH = (n / '+slot.coeff+') × ΔH_reactie = ('+n.toFixed(4)+' / '+slot.coeff+') × '+fmtPlain(dh)+'\n'
+      +'= '+fmtPlain((n/slot.coeff)*dh)+' kJ';
+  }
+}
+
+function toggleSteps(){
+  const el=$('steps');
+  if(el.style.display==='none'){
+    el.textContent=buildSteps();
+    el.style.display='block';
+    $('stepsbtn').textContent='Verberg uitwerking';
+  }else{
+    el.style.display='none';
+    $('stepsbtn').textContent='Bekijk uitwerking';
+  }
+}
+
+newProblem();
+</script>

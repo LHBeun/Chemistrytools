@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escaperoom Scheikunde — Zuren, Basen & Evenwichten</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f7f5;
+    --surface: #ffffff;
+    --surface2: #f0f0ec;
+    --border: #d8d8d2;
+    --border2: #c0c0b8;
+    --text: #1a1a18;
+    --text2: #5a5a55;
+    --text3: #8a8a84;
+    --blue: #1a5fa8;
+    --blue-bg: #e8f0fa;
+    --green: #1a7a4a;
+    --green-bg: #e6f4ed;
+    --red: #a83030;
+    --red-bg: #faeaea;
+    --amber: #8a6010;
+    --amber-bg: #fdf4e0;
+    --accent: #1a5fa8;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .page { max-width: 760px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 2.5rem; }
+  .header h1 { font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .header p { font-size: 14px; color: var(--text2); max-width: 520px; margin: 0 auto; }
+  .timer-row { display: flex; align-items: center; justify-content: center; gap: 1.5rem; margin-top: 1rem; }
+  .timer { font-size: 15px; font-weight: 500; font-family: "Courier New", monospace; color: var(--text2); }
+  .score-display { font-size: 14px; color: var(--text2); }
+
+  /* Progress */
+  .progress-track { display: flex; align-items: center; justify-content: center; gap: 0; margin: 1.25rem 0 0; }
+  .prog-step { display: flex; align-items: center; }
+  .prog-dot {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 2px solid var(--border2);
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: var(--text3);
+    transition: all 0.3s;
+    position: relative;
+  }
+  .prog-dot.active { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
+  .prog-dot.done { border-color: var(--green); background: var(--green); color: #fff; }
+  .prog-dot.done::after { content: "✓"; font-size: 13px; }
+  .prog-dot.done span { display: none; }
+  .prog-line { width: 28px; height: 2px; background: var(--border); }
+  .prog-line.done { background: var(--green); }
+
+  /* Room card */
+  .room-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+  }
+  .room-head {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface2);
+  }
+  .room-badge {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; padding: 3px 9px;
+    border-radius: 20px; background: var(--blue-bg); color: var(--blue);
+    border: 1px solid #c0d4f0;
+  }
+  .room-badge.final { background: #f0e8fa; color: #6030a8; border-color: #d0b8f0; }
+  .room-title { font-size: 16px; font-weight: 600; color: var(--text); }
+
+  .room-body { padding: 1.25rem; }
+
+  /* Scenario */
+  .scenario {
+    font-size: 14px; color: var(--text2); line-height: 1.65;
+    padding: 0.75rem 1rem;
+    background: var(--blue-bg);
+    border-radius: var(--radius);
+    border-left: 3px solid var(--blue);
+    margin-bottom: 1.5rem;
+  }
+
+  /* Locked */
+  .locked {
+    text-align: center; padding: 2.5rem 1rem;
+    color: var(--text3); font-size: 14px;
+  }
+  .lock-icon { font-size: 28px; margin-bottom: 8px; }
+
+  /* Opgave */
+  .opgave { margin-bottom: 1.5rem; }
+  .opgave:last-of-type { margin-bottom: 0; }
+  .opgave-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text3); margin-bottom: 6px;
+  }
+  .opgave-text { font-size: 14px; color: var(--text); line-height: 1.65; margin-bottom: 10px; }
+
+  .inp-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .inp-row input[type="text"] {
+    width: 110px; padding: 7px 10px; font-size: 14px;
+    border: 1px solid var(--border2); border-radius: var(--radius);
+    background: var(--surface); color: var(--text);
+    transition: border-color 0.15s;
+  }
+  .inp-row input[type="text"]:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,95,168,0.1); }
+  .inp-row input[type="text"]:disabled { background: var(--surface2); color: var(--text2); }
+  .unit-label { font-size: 13px; color: var(--text2); }
+
+  .btn {
+    padding: 7px 14px; font-size: 13px; font-weight: 500;
+    border: 1px solid var(--border2); border-radius: var(--radius);
+    background: var(--surface2); color: var(--text);
+    cursor: pointer; transition: background 0.15s;
+  }
+  .btn:hover { background: var(--border); }
+  .btn-hint {
+    font-size: 12px; color: var(--text3); background: none;
+    border: none; cursor: pointer; text-decoration: underline;
+    padding: 0; margin-left: 4px;
+  }
+  .btn-hint:hover { color: var(--text2); }
+
+  .feedback {
+    font-size: 13px; margin-top: 7px; padding: 6px 10px;
+    border-radius: var(--radius); display: none;
+  }
+  .feedback.correct { background: var(--green-bg); color: var(--green); border: 1px solid #b8e0cb; display: block; }
+  .feedback.wrong { background: var(--red-bg); color: var(--red); border: 1px solid #f0c0c0; display: block; }
+  .feedback.hint { background: var(--amber-bg); color: var(--amber); border: 1px solid #e8d090; display: block; }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+
+  /* Code section */
+  .code-section { margin-top: 1.25rem; }
+  .code-label { font-size: 12px; color: var(--text3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .code-digits { display: flex; gap: 6px; margin-bottom: 1rem; }
+  .code-digit {
+    width: 34px; height: 40px;
+    border: 2px solid var(--border2); border-radius: var(--radius);
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; font-family: "Courier New", monospace;
+    color: var(--text3); transition: all 0.3s;
+  }
+  .code-digit.revealed { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+
+  .btn-unlock {
+    padding: 9px 22px; font-size: 14px; font-weight: 600;
+    border: 1px solid var(--green); border-radius: var(--radius);
+    background: var(--green-bg); color: var(--green);
+    cursor: pointer; display: none; transition: background 0.15s;
+  }
+  .btn-unlock:hover { background: #c8ecd8; }
+
+  /* Victory */
+  .victory {
+    background: var(--green-bg); border: 1px solid #b8e0cb;
+    border-radius: var(--radius-lg); padding: 2rem;
+    text-align: center; margin-top: 1rem; display: none;
+  }
+  .victory h2 { font-size: 22px; color: var(--green); margin-bottom: 8px; }
+  .victory p { font-size: 14px; color: #2a5a38; line-height: 1.65; }
+  .victory .stats { display: flex; gap: 1rem; justify-content: center; margin: 1rem 0; flex-wrap: wrap; }
+  .stat-card {
+    background: #fff; border: 1px solid #b8e0cb; border-radius: var(--radius);
+    padding: 0.75rem 1.25rem; text-align: center;
+  }
+  .stat-val { font-size: 22px; font-weight: 700; color: var(--green); }
+  .stat-lbl { font-size: 12px; color: var(--text3); }
+
+  /* Responsive */
+  @media (max-width: 500px) {
+    .page { padding: 1rem 1rem 3rem; }
+    .header h1 { font-size: 20px; }
+    .prog-line { width: 16px; }
+  }
+
+  /* Print hint */
+  @media print {
+    .btn, .btn-hint, .btn-unlock, .inp-row input { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="header">
+    <h1>Operatie: Onbekend Monster</h1>
+    <p>Een onbekende vloeistof is gevonden in het lab. Identificeer het gevaar — voordat het te laat is.</p>
+    <div class="timer-row">
+      <span class="timer" id="timer">⏱ 00:00</span>
+      <span class="score-display" id="score-display">0 / 23 opgaven</span>
+    </div>
+    <div class="progress-track" id="progress-track"></div>
+  </header>
+
+  <main id="main"></main>
+
+  <div class="victory" id="victory">
+    <h2>🔓 Laboratorium vrijgegeven!</h2>
+    <div class="stats">
+      <div class="stat-card"><div class="stat-val" id="v-time">—</div><div class="stat-lbl">Tijd</div></div>
+      <div class="stat-card"><div class="stat-val" id="v-score">—</div><div class="stat-lbl">Opgaven</div></div>
+      <div class="stat-card"><div class="stat-val" id="v-hints">—</div><div class="stat-lbl">Hints gebruikt</div></div>
+    </div>
+    <p>Het onbekende zuur heeft pK<sub>a</sub> = 5,44 — een zwak organisch zuur, in bloed (pH 7,40) overwegend aanwezig als anion (A⁻). Gevaar bezworen.</p>
+  </div>
+
+</div>
+
+<script>
+"use strict";
+
+const ROOMS = [
+  {
+    id: 0, label: "Kamer 1", title: "Eerste analyse", final: false,
+    scenario: "De vloeistof is kleurloos en ruikt scherp. Een pH-meter geeft 2,15 aan. Je hebt ook gemeten dat de concentratie H₃O⁺ precies gelijk is aan de beginconcentratie van het zuur — het dissocieert volledig.",
+    opgaven: [
+      {
+        id: "1a",
+        text: "Bereken de concentratie H₃O⁺ bij pH = 2,15. Het antwoord heeft de vorm x,xx × 10⁻³ mol/L. Voer in: het getal vóór × 10⁻³.",
+        answer: 7.08, tol: 0.05, unit: "× 10⁻³ mol/L",
+        hint: "Denk aan de definitie van pH en hoe je daaruit de concentratie terugrekent."
+      },
+      {
+        id: "1b",
+        text: "Het zuur dissocieert volledig. Welk type zuur is dit? Voer in: 1 = zwak zuur, 2 = sterk zuur.",
+        answer: 2, tol: 0, unit: "",
+        hint: "Kijk naar het verband tussen dissociatiegraad en zuurtype."
+      },
+      {
+        id: "1c",
+        text: "Bereken [OH⁻] in mol/L. Het antwoord heeft de vorm x,xx × 10⁻¹² mol/L. Voer in: het getal vóór × 10⁻¹².",
+        answer: 1.41, tol: 0.05, unit: "× 10⁻¹² mol/L",
+        hint: "Gebruik het ionenproduct van water K_w = 1,0 × 10⁻¹⁴."
+      }
+    ],
+    codeKey: [7, 2, 1]
+  },
+  {
+    id: 1, label: "Kamer 2", title: "Tweede monster", final: false,
+    scenario: "Een tweede flesje. Ook kleurloos, maar de pH-meter geeft 3,22 — terwijl de beginconcentratie 0,10 mol/L is. Het zuur dissocieert dus gedeeltelijk.",
+    opgaven: [
+      {
+        id: "2a",
+        text: "Bereken [H₃O⁺] bij pH = 3,22. Het antwoord heeft de vorm x,xx × 10⁻⁴ mol/L. Voer in: het getal vóór × 10⁻⁴.",
+        answer: 6.03, tol: 0.1, unit: "× 10⁻⁴ mol/L",
+        hint: "Gebruik de definitie van pH."
+      },
+      {
+        id: "2b",
+        text: "Bereken K_a via de ICE-tabel. Het antwoord heeft de vorm x,xx × 10⁻⁶. Voer in: het getal vóór × 10⁻⁶.",
+        answer: 3.64, tol: 0.15, unit: "× 10⁻⁶",
+        hint: "Stel x = [H₃O⁺] en gebruik de K_a-expressie. Controleer of de benadering geldig is."
+      },
+      {
+        id: "2c",
+        text: "Bereken de dissociatiegraad α (in %). Voer in met één decimaal.",
+        answer: 0.6, tol: 0.05, unit: "%",
+        hint: "α = (gedissocieerde concentratie / beginconcentratie) × 100%."
+      },
+      {
+        id: "2d",
+        text: "Bereken pK_a. Voer in met twee decimalen.",
+        answer: 5.44, tol: 0.05, unit: "",
+        hint: "pK_a staat in een vaste relatie tot K_a, net zoals pH tot [H₃O⁺]."
+      }
+    ],
+    codeKey: [6, 3, 0, 5]
+  },
+  {
+    id: 2, label: "Kamer 3", title: "De geconjugeerde base", final: false,
+    scenario: "Het natriumzout van het zuur uit kamer 2 is ook aanwezig (concentratie 0,050 mol/L). De anionen reageren als base met water. K_b is nog onbekend.",
+    opgaven: [
+      {
+        id: "3a",
+        text: "Bereken K_b van de geconjugeerde base (K_a = 3,64 × 10⁻⁶). Het antwoord heeft de vorm x,xx × 10⁻⁹. Voer in: het getal vóór × 10⁻⁹.",
+        answer: 2.75, tol: 0.1, unit: "× 10⁻⁹",
+        hint: "Er is een vaste relatie tussen K_a en K_b van een geconjugeerd paar."
+      },
+      {
+        id: "3b",
+        text: "Bereken de pH van de 0,050 mol/L zoutoplossing. Voer in met twee decimalen.",
+        answer: 9.07, tol: 0.05, unit: "",
+        hint: "Stel een ICE-tabel op voor de base-reactie met water. Bereken [OH⁻], dan pOH, dan pH."
+      },
+      {
+        id: "3c",
+        text: "Is de oplossing zuur, neutraal of basisch? Voer in: 1 = zuur, 2 = neutraal, 3 = basisch.",
+        answer: 3, tol: 0, unit: "",
+        hint: "Vergelijk de berekende pH met 7."
+      },
+      {
+        id: "3d",
+        text: "Bereken [OH⁻] in de zoutoplossing. Het antwoord heeft de vorm x,xx × 10⁻⁶. Voer in: het getal vóór × 10⁻⁶.",
+        answer: 1.17, tol: 0.05, unit: "× 10⁻⁶ mol/L",
+        hint: "Je hebt pOH al berekend in de vorige opgave — gebruik dat."
+      }
+    ],
+    codeKey: [2, 9, 3, 1]
+  },
+  {
+    id: 3, label: "Kamer 4", title: "Bufferoplossing", final: false,
+    scenario: "In een derde flesje zit een mengsel van het zuur (pK_a = 5,44) en zijn natriumzout. De pH is 5,20. Dit is een bufferoplossing.",
+    opgaven: [
+      {
+        id: "4a",
+        text: "Bereken de verhouding [A⁻]/[HA] via de Henderson-Hasselbalch-vergelijking. Voer in met twee decimalen.",
+        answer: 0.58, tol: 0.05, unit: "",
+        hint: "Henderson-Hasselbalch: pH = pK_a + log([A⁻]/[HA]). Los op naar de verhouding."
+      },
+      {
+        id: "4b",
+        text: "De totale concentratie [A⁻] + [HA] = 0,30 mol/L. Bereken [HA] in mol/L. Voer in met drie decimalen.",
+        answer: 0.190, tol: 0.005, unit: "mol/L",
+        hint: "Je hebt twee vergelijkingen met twee onbekenden."
+      },
+      {
+        id: "4c",
+        text: "Aan 500 mL buffer wordt 5,0 mL van 1,0 mol/L NaOH toegevoegd. Hoeveel mol OH⁻ wordt er toegevoegd? Voer in: het getal × 10⁻³.",
+        answer: 5.0, tol: 0.1, unit: "× 10⁻³ mol",
+        hint: "Gebruik n = c × V. Let op de eenheid van volume."
+      },
+      {
+        id: "4d",
+        text: "Mol HA vóór = 0,095 mol, mol A⁻ vóór = 0,110 mol. Na toevoeging van de NaOH: bereken de nieuwe pH. Voer in met twee decimalen.",
+        answer: 5.49, tol: 0.05, unit: "",
+        hint: "OH⁻ reageert volledig met HA. Pas de molverhouding aan en gebruik Henderson-Hasselbalch."
+      }
+    ],
+    codeKey: [0, 1, 5, 5]
+  },
+  {
+    id: 4, label: "Kamer 5", title: "Titratie", final: false,
+    scenario: "Je titreert 25,0 mL van het onbekende zuur (0,10 mol/L, K_a = 3,64 × 10⁻⁶) met 0,10 mol/L NaOH. Je volgt de pH langs de titratiecurve.",
+    opgaven: [
+      {
+        id: "5a",
+        text: "Bereken de begin-pH vóór de titratie (nog geen NaOH). Voer in met twee decimalen.",
+        answer: 3.22, tol: 0.05, unit: "",
+        hint: "Dit is gewoon de pH van het zwakke zuur — ICE-tabel met K_a."
+      },
+      {
+        id: "5b",
+        text: "Halverwege het equivalentiepunt (12,5 mL NaOH toegevoegd): wat is de pH? Voer in met twee decimalen.",
+        answer: 5.44, tol: 0.05, unit: "",
+        hint: "Denk na over welke concentraties gelijk zijn op het halverwegepunt."
+      },
+      {
+        id: "5c",
+        text: "Hoeveel mL NaOH is nodig voor het equivalentiepunt?",
+        answer: 25.0, tol: 0.5, unit: "mL",
+        hint: "Bij het equivalentiepunt zijn de stoffen hoeveelheden zuur en base precies gelijk."
+      },
+      {
+        id: "5d",
+        text: "Op het equivalentiepunt is alle HA omgezet naar A⁻. Het volume is verdubbeld. Bereken de pH. Voer in met twee decimalen.",
+        answer: 9.07, tol: 0.05, unit: "",
+        hint: "Bereken eerst de nieuwe concentratie A⁻ na verdunning, dan de pH via K_b."
+      },
+      {
+        id: "5e",
+        text: "Na het equivalentiepunt: 30,0 mL NaOH toegevoegd. Bereken de pH. Voer in met twee decimalen.",
+        answer: 11.96, tol: 0.05, unit: "",
+        hint: "Bepaal de overmaat NaOH in mol, bereken de nieuwe [OH⁻] in het totale volume."
+      }
+    ],
+    codeKey: [3, 5, 2, 9, 1]
+  },
+  {
+    id: 5, label: "Eindkamer", title: "Identificatie", final: true,
+    scenario: "Je hebt alle data verzameld: K_a = 3,64 × 10⁻⁶, pK_a = 5,44, eenwaardig zwak zuur. Tijd om het te identificeren en de gevaarclassificatie in te vullen.",
+    opgaven: [
+      {
+        id: "6a",
+        text: "Welke stof heeft pK_a ≈ 5,44? Voer in: 1 = azijnzuur (pK_a 4,74), 2 = mierenzuur (pK_a 3,74), 3 = boterzuur (pK_a 4,82), 4 = citroenzuur (pK_a 3,13), 5 = geen van deze.",
+        answer: 5, tol: 0, unit: "",
+        hint: "Vergelijk pK_a = 5,44 met de tabelwaarden."
+      },
+      {
+        id: "6b",
+        text: "Je wilt een buffer met pH = 5,00. Welke verhouding [A⁻]/[HA] heb je nodig? Voer in met twee decimalen.",
+        answer: 0.37, tol: 0.05, unit: "",
+        hint: "Gebruik Henderson-Hasselbalch met pK_a = 5,44 en pH = 5,00."
+      },
+      {
+        id: "6c",
+        text: "Een collega beweert dat de pure zuuroplossing (0,10 mol/L) basisch is (pH > 10). Klopt dit? Voer in: 1 = ja, 2 = nee.",
+        answer: 2, tol: 0, unit: "",
+        hint: "Je hebt de pH van deze oplossing al eerder berekend."
+      },
+      {
+        id: "6d",
+        text: "Bereken de pH van een 0,10 mol/L oplossing van het natriumzout (K_b = 2,75 × 10⁻⁹). Voer in met twee decimalen.",
+        answer: 9.22, tol: 0.05, unit: "",
+        hint: "ICE-tabel voor de base-reactie met K_b en c₀ = 0,10 mol/L."
+      },
+      {
+        id: "6e",
+        text: "In bloed (pH 7,40) — is dit zuur overwegend in zijn zure vorm (HA) of basisvorm (A⁻)? Voer in: 1 = overwegend HA, 2 = overwegend A⁻.",
+        answer: 2, tol: 0, unit: "",
+        hint: "Vergelijk de bloed-pH met pK_a en denk na over wat Henderson-Hasselbalch zegt."
+      }
+    ],
+    codeKey: [5, 0, 2, 9, 2]
+  }
+];
+
+const TOTAL_OPGAVEN = ROOMS.reduce((s, r) => s + r.opgaven.length, 0);
+
+const state = {
+  unlocked: [true, false, false, false, false, false],
+  solved: {},
+  hints: 0,
+  startTime: Date.now(),
+  timerHandle: null,
+  currentRoom: 0
+};
+
+function $(id) { return document.getElementById(id); }
+
+/* ── Timer ── */
+function startTimer() {
+  state.timerHandle = setInterval(() => {
+    const s = Math.floor((Date.now() - state.startTime) / 1000);
+    $('timer').textContent = '⏱ ' + pad(Math.floor(s/60)) + ':' + pad(s%60);
+  }, 1000);
+}
+function pad(n) { return String(n).padStart(2,'0'); }
+function elapsedStr() {
+  const s = Math.floor((Date.now() - state.startTime) / 1000);
+  return pad(Math.floor(s/60)) + ':' + pad(s%60);
+}
+
+/* ── Progress bar ── */
+function renderProgress() {
+  const track = $('progress-track');
+  track.innerHTML = '';
+  ROOMS.forEach((r, i) => {
+    const step = document.createElement('div');
+    step.className = 'prog-step';
+    const dot = document.createElement('div');
+    const done = state.currentRoom > i || (i === ROOMS.length - 1 && allSolved(i));
+    dot.className = 'prog-dot' + (done ? ' done' : i === state.currentRoom ? ' active' : '');
+    if (!done) dot.innerHTML = '<span>' + (i+1) + '</span>';
+    step.appendChild(dot);
+    if (i < ROOMS.length - 1) {
+      const line = document.createElement('div');
+      line.className = 'prog-line' + (state.currentRoom > i ? ' done' : '');
+      step.appendChild(line);
+    }
+    track.appendChild(step);
+  });
+  const solved = Object.keys(state.solved).length;
+  $('score-display').textContent = solved + ' / ' + TOTAL_OPGAVEN + ' opgaven';
+}
+
+/* ── Check answer ── */
+function checkOk(val, answer, tol) {
+  if (tol === 0) return Math.abs(val - answer) < 0.001;
+  return Math.abs(val - answer) <= tol;
+}
+
+/* ── All solved for a room ── */
+function allSolved(roomId) {
+  return ROOMS[roomId].opgaven.every(o => state.solved[o.id]);
+}
+
+/* ── Update code display ── */
+function updateCode(roomId) {
+  const room = ROOMS[roomId];
+  room.opgaven.forEach((o, i) => {
+    if (state.solved[o.id]) {
+      const el = document.getElementById('digit-' + roomId + '-' + i);
+      if (el) { el.textContent = room.codeKey[i]; el.classList.add('revealed'); }
+    }
+  });
+  if (allSolved(roomId)) {
+    const btn = document.getElementById('unlock-' + roomId);
+    if (btn) btn.style.display = 'inline-block';
+  }
+}
+
+/* ── Unlock next room ── */
+function unlockRoom(roomId) {
+  const next = roomId + 1;
+  if (next < ROOMS.length) {
+    state.unlocked[next] = true;
+    state.currentRoom = next;
+    renderProgress();
+    const card = document.getElementById('room-' + next);
+    if (card) {
+      card.querySelector('.locked').style.display = 'none';
+      card.querySelector('.room-body-inner').style.display = 'block';
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  } else {
+    clearInterval(state.timerHandle);
+    state.currentRoom = ROOMS.length;
+    renderProgress();
+    const t = elapsedStr();
+    const solved = Object.keys(state.solved).length;
+    $('v-time').textContent = t;
+    $('v-score').textContent = solved + '/' + TOTAL_OPGAVEN;
+    $('v-hints').textContent = state.hints;
+    $('victory').style.display = 'block';
+    $('victory').scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+/* ── Build rooms ── */
+function buildRooms() {
+  const main = $('main');
+  ROOMS.forEach(room => {
+    const card = document.createElement('div');
+    card.className = 'room-card'; card.id = 'room-' + room.id;
+
+    const head = document.createElement('div'); head.className = 'room-head';
+    const badge = document.createElement('span');
+    badge.className = 'room-badge' + (room.final ? ' final' : '');
+    badge.textContent = room.label;
+    const title = document.createElement('span'); title.className = 'room-title'; title.textContent = room.title;
+    head.appendChild(badge); head.appendChild(title); card.appendChild(head);
+
+    const body = document.createElement('div'); body.className = 'room-body';
+
+    /* locked overlay */
+    const locked = document.createElement('div'); locked.className = 'locked';
+    locked.innerHTML = '<div class="lock-icon">🔒</div>Kamer vergrendeld — los de vorige kamer op om verder te gaan.';
+    if (state.unlocked[room.id]) locked.style.display = 'none';
+    body.appendChild(locked);
+
+    /* inner content */
+    const inner = document.createElement('div'); inner.className = 'room-body-inner';
+    if (!state.unlocked[room.id]) inner.style.display = 'none';
+
+    const scenario = document.createElement('div'); scenario.className = 'scenario'; scenario.textContent = room.scenario;
+    inner.appendChild(scenario);
+
+    room.opgaven.forEach((o, idx) => {
+      const div = document.createElement('div'); div.className = 'opgave';
+      const lbl = document.createElement('div'); lbl.className = 'opgave-label'; lbl.textContent = 'Opgave ' + (idx+1);
+      div.appendChild(lbl);
+      const txt = document.createElement('div'); txt.className = 'opgave-text'; txt.textContent = o.text;
+      div.appendChild(txt);
+
+      const row = document.createElement('div'); row.className = 'inp-row';
+      const inp = document.createElement('input'); inp.type = 'text'; inp.placeholder = 'antwoord'; inp.id = 'inp-' + o.id;
+      const checkBtn = document.createElement('button'); checkBtn.className = 'btn'; checkBtn.textContent = 'Controleer';
+      row.appendChild(inp); row.appendChild(checkBtn);
+      if (o.unit) {
+        const ul = document.createElement('span'); ul.className = 'unit-label'; ul.textContent = o.unit; row.appendChild(ul);
+      }
+      const hintBtn = document.createElement('button'); hintBtn.className = 'btn-hint'; hintBtn.textContent = 'hint'; row.appendChild(hintBtn);
+      div.appendChild(row);
+
+      const fb = document.createElement('div'); fb.className = 'feedback'; fb.id = 'fb-' + o.id;
+      div.appendChild(fb);
+
+      checkBtn.addEventListener('click', () => {
+        const raw = inp.value.trim().replace(',','.');
+        const val = parseFloat(raw);
+        if (isNaN(val)) { fb.className='feedback wrong'; fb.textContent='Voer een getal in.'; return; }
+        if (checkOk(val, o.answer, o.tol)) {
+          fb.className='feedback correct'; fb.textContent='✓ Correct!';
+          inp.disabled = true; state.solved[o.id] = true;
+          updateCode(room.id); renderProgress();
+        } else {
+          fb.className='feedback wrong'; fb.textContent='✗ Niet juist — probeer opnieuw.';
+        }
+      });
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') checkBtn.click(); });
+
+      let hintVisible = false;
+      hintBtn.addEventListener('click', () => {
+        if (!hintVisible) {
+          fb.className='feedback hint'; fb.textContent='💡 ' + o.hint;
+          hintVisible = true; state.hints++;
+        } else {
+          fb.className='feedback'; fb.textContent=''; hintVisible = false;
+        }
+      });
+
+      if (idx < room.opgaven.length - 1) {
+        const hr = document.createElement('hr'); hr.className = 'divider'; div.appendChild(hr);
+      }
+      inner.appendChild(div);
+    });
+
+    /* code section */
+    const codeSection = document.createElement('div'); codeSection.className = 'code-section';
+    const hr2 = document.createElement('hr'); hr2.className = 'divider'; codeSection.appendChild(hr2);
+    const codeLbl = document.createElement('div'); codeLbl.className = 'code-label'; codeLbl.textContent = 'Ontgrendelingscode';
+    codeSection.appendChild(codeLbl);
+    const digits = document.createElement('div'); digits.className = 'code-digits';
+    room.opgaven.forEach((o, i) => {
+      const d = document.createElement('div'); d.className = 'code-digit'; d.id = 'digit-' + room.id + '-' + i; d.textContent = '?';
+      digits.appendChild(d);
+    });
+    codeSection.appendChild(digits);
+    const unlockBtn = document.createElement('button'); unlockBtn.className = 'btn-unlock'; unlockBtn.id = 'unlock-' + room.id;
+    unlockBtn.textContent = room.id < ROOMS.length - 1 ? 'Volgende kamer openen →' : '🔓 Laboratorium vrijgeven';
+    unlockBtn.addEventListener('click', () => unlockRoom(room.id));
+    codeSection.appendChild(unlockBtn);
+    inner.appendChild(codeSection);
+
+    body.appendChild(inner); card.appendChild(body); main.appendChild(card);
+  });
+}
+
+buildRooms();
+renderProgress();
+startTimer();
+</script>
+</body>
+</html>

@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Reactiesnelheid — VWO Interactief</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0f1117;
+    --panel:     #181c26;
+    --border:    #2a2f3e;
+    --accent:    #c8f135;   /* krijtgeel-groen */
+    --accent2:   #5b8dee;   /* blauw voor rechter grafiek */
+    --text:      #dde3f0;
+    --muted:     #6b7491;
+    --ref-line:  #4fc3a1;   /* turkooisen voor referentie */
+    --tan-line:  #f5c542;   /* raaklijn geel */
+    --tan-line2: #ff8c42;   /* raaklijn rechts oranje */
+    --font-mono: 'Courier New', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  header {
+    display: flex; align-items: baseline; gap: 16px;
+    margin-bottom: 18px;
+  }
+  header h1 {
+    font-size: 1.25em; font-weight: 700; letter-spacing: -0.3px;
+    color: var(--accent);
+  }
+  header .sub { font-size: 0.82em; color: var(--muted); }
+
+  /* Reactie-info balk */
+  .reaction-bar {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 18px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  }
+  .reaction-eq {
+    font-family: var(--font-mono);
+    font-size: 1.05em;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+  .rate-law {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    color: #aab4d4;
+  }
+  .new-btn {
+    margin-left: auto;
+    background: transparent;
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    padding: 6px 14px;
+    border-radius: 5px;
+    font-size: 0.82em;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.15s;
+  }
+  .new-btn:hover { background: rgba(200,241,53,0.12); }
+
+  /* Grafiekraster */
+  .graphs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .graph-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .graph-title {
+    font-size: 0.75em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .graph-title .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .graph-title .v0-badge {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 0.95em;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--tan-line);
+  }
+  .graph-title .v0-badge.right { color: var(--tan-line2); }
+
+  canvas {
+    width: 100%;
+    height: 240px;
+    display: block;
+    border-radius: 4px;
+  }
+
+  /* Stof-kiezer */
+  .species-picker {
+    display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;
+  }
+  .sp-btn {
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.8em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.12s;
+    font-family: var(--font-mono);
+  }
+  .sp-btn.active {
+    border-color: var(--accent2);
+    color: var(--accent2);
+    background: rgba(91,141,238,0.1);
+  }
+  .sp-btn.sp-A.active { border-color: #4fc3a1; color: #4fc3a1; background: rgba(79,195,161,0.1); }
+  .sp-btn.sp-B.active { border-color: #ee8b5b; color: #ee8b5b; background: rgba(238,139,91,0.1); }
+  .sp-btn.sp-C.active { border-color: #b58dee; color: #b58dee; background: rgba(181,141,238,0.1); }
+
+  /* Parameters panel */
+  .params-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+  }
+  .params-title {
+    font-size: 0.72em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .params-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px 24px;
+  }
+  .param-row { display: flex; flex-direction: column; gap: 5px; }
+  .param-label {
+    font-size: 0.8em;
+    color: #aab4d4;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .param-label .param-val {
+    font-family: var(--font-mono);
+    color: var(--accent2);
+    font-size: 0.95em;
+  }
+  .slider-row { display: flex; align-items: center; gap: 8px; }
+  .num-input {
+    width: 72px; flex-shrink: 0;
+    background: #0d1018;
+    border: 1.5px solid var(--border);
+    border-radius: 5px;
+    color: var(--accent2);
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    padding: 4px 6px;
+    text-align: right;
+    outline: none;
+  }
+  .num-input:focus { border-color: var(--accent2); }
+
+  /* Orde-vraag */
+  .order-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+  .order-title {
+    font-size: 0.72em; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.9px;
+    color: var(--muted); margin-bottom: 12px;
+  }
+  .order-fields { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .order-field { display: flex; flex-direction: column; gap: 4px; }
+  .order-field label { font-size: 0.78em; color: #aab4d4; font-family: var(--font-mono); }
+  .order-select {
+    background: #0d1018; border: 1.5px solid var(--border);
+    border-radius: 5px; color: var(--text);
+    font-family: var(--font-mono); font-size: 0.92em;
+    padding: 5px 10px; cursor: pointer; outline: none;
+    width: 70px;
+  }
+  .order-select:focus { border-color: var(--accent2); }
+  .check-btn {
+    padding: 7px 18px; border-radius: 5px;
+    border: 1.5px solid var(--accent2);
+    background: transparent; color: var(--accent2);
+    font-size: 0.82em; font-weight: 700; cursor: pointer;
+    transition: background 0.12s; align-self: flex-end;
+  }
+  .check-btn:hover { background: rgba(91,141,238,0.15); }
+  .order-feedback {
+    margin-top: 10px; font-size: 0.88em; line-height: 1.5;
+    display: none;
+  }
+  .order-feedback.ok  { color: #4fc3a1; }
+  .order-feedback.err { color: #ee8b5b; }
+  .order-feedback .orde-uitleg { color: #aab4d4; margin-top:6px; display:block; line-height:1.6; }
+
+  /* Extra vragen panel */
+  .extra-questions {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 16px;
+  }
+  .eq-title {
+    font-size: 0.72em; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.9px;
+    color: var(--muted); margin-bottom: 14px;
+  }
+  .eq-question {
+    margin-bottom: 16px; padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .eq-question:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .eq-qtext { font-size: 0.9em; color: var(--text); margin-bottom: 8px; line-height: 1.5; }
+  .eq-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .eq-input {
+    width: 90px;
+    background: #0d1018;
+    border: 1.5px solid var(--border);
+    border-radius: 5px;
+    color: var(--accent2);
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    padding: 5px 8px;
+    outline: none;
+  }
+  .eq-input:focus { border-color: var(--accent2); }
+  .eq-unit { font-size: 0.82em; color: var(--muted); }
+  .eq-feedback { font-size: 0.85em; margin-top: 6px; display: none; line-height: 1.5; }
+  .eq-feedback.ok  { color: #4fc3a1; }
+  .eq-feedback.err { color: #ee8b5b; }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent2);
+    cursor: pointer;
+    border: 2px solid var(--bg);
+  }
+  .cat-toggle {
+    display: flex; gap: 8px; margin-top: 2px;
+  }
+  .cat-btn {
+    flex: 1;
+    padding: 6px;
+    border-radius: 5px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.8em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .cat-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(200,241,53,0.1);
+  }
+
+  /* Param hidden indicator */
+  .param-row.hidden-param { opacity: 0.3; pointer-events: none; }
+
+  @media (max-width: 640px) {
+    .graphs { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Reactiesnelheid</h1>
+  <span class="sub">VWO — Interactief</span>
+</header>
+
+<div class="reaction-bar">
+  <div>
+    <div class="reaction-eq" id="eq-display"></div>
+  </div>
+  <button class="new-btn" onclick="newReaction()">↻ Nieuwe reactie</button>
+</div>
+
+<!-- Notitie vaste stof in overmaat -->
+<div id="solid-note" style="display:none; background:#1a2a1a; border:1px solid #2d5a2d;
+     border-left:4px solid #4fc3a1; border-radius:8px; padding:10px 16px; margin-bottom:12px;
+     font-size:0.87em; color:#a8d8a8; line-height:1.5;">
+  ⚗️ <strong>Let op:</strong> deze reactie bevat een vaste stof die in <strong>grote overmaat</strong>
+  aanwezig is. De hoeveelheid vaste stof verandert tijdens de reactie verwaarloosbaar weinig,
+  en wordt daarom als <strong>constant</strong> beschouwd (pseudo-nulde orde in de vaste stof).
+  Je kunt wel onderzoeken wat de invloed van het totaaloppervlak is op de reactiesnelheid
+  door deze aan te passen.
+</div>
+
+<!-- Orde-vraag -->
+<div class="order-panel">
+  <div class="order-title">Wat zijn de reactie-orden?</div>
+  <div class="order-fields" id="order-fields">
+    <!-- dynamisch gevuld -->
+  </div>
+  <div class="order-feedback" id="order-feedback"></div>
+</div>
+
+<!-- Referentieparameters display -->
+<div class="order-panel" id="ref-params-display" style="margin-bottom:12px;">
+  <div class="order-title">Referentieparameters</div>
+  <div id="ref-params-values" style="font-size:0.88em; font-family:var(--font-mono); color:#aab4d4; display:flex; gap:20px; flex-wrap:wrap;"></div>
+</div>
+  <!-- Linker grafiek: referentie -->
+  <div class="graph-wrap">
+    <div class="graph-title">
+      <span class="dot" style="background:var(--ref-line)"></span>
+      Referentie
+      <span class="v0-badge" id="v0-left">v₀ = —</span>
+    </div>
+    <canvas id="canvas-left"></canvas>
+    <div class="species-picker" id="sp-left"></div>
+  </div>
+
+  <!-- Rechter grafiek: instelbaar -->
+  <div class="graph-wrap">
+    <div class="graph-title">
+      <span class="dot" style="background:var(--accent2)"></span>
+      Instelbaar
+      <span class="v0-badge right" id="v0-right">v₀ = —</span>
+    </div>
+    <canvas id="canvas-right"></canvas>
+    <div class="species-picker" id="sp-right"></div>
+  </div>
+</div>
+
+<!-- Tijdschaal -->
+<div style="background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+  <span style="font-size:0.78em;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);white-space:nowrap;">Tijdvenster</span>
+  <input type="range" id="tscale-slider" min="-3" max="3" step="1" value="0"
+    style="flex:1;min-width:120px;"
+    oninput="setTScale(this.value)">
+  <span id="tscale-label" style="font-family:var(--font-mono);font-size:0.88em;color:var(--accent2);white-space:nowrap;min-width:80px;">48 s</span>
+</div>
+<div class="params-panel">
+  <div class="params-title" style="display:flex;justify-content:space-between;align-items:center;">
+    <span>Parameters — rechter grafiek</span>
+    <button class="new-btn" style="font-size:0.75em;padding:4px 10px;" onclick="resetParams()">↺ Reset</button>
+  </div>
+  <div class="params-grid" id="params-grid"></div>
+</div>
+
+<!-- Extra rekenrragen -->
+<div class="extra-questions" id="extra-questions" style="display:none">
+  <div class="eq-title">Beredeneer en bereken</div>
+
+  <!-- Vraag 1: orde-effect concentratie (dynamisch, één per fluïde stof) -->
+  <div id="eq-conc-questions"></div>
+
+  <!-- Vraag 2: temperatuureffect -->
+  <div class="eq-question" id="eq-q2">
+    <div class="eq-qtext" id="eq-q2-text"></div>
+    <div class="eq-row">
+      <input class="eq-input" type="number" id="eq-a2" placeholder="×">
+      <span class="eq-unit">keer sneller</span>
+      <button class="check-btn" onclick="checkEQ(2)">Controleer</button>
+    </div>
+    <div class="eq-feedback" id="eq-f2"></div>
+  </div>
+
+  <!-- Vraag 3: katalysator-factor bij T_ref -->
+  <div class="eq-question" id="eq-q3">
+    <div class="eq-qtext" id="eq-q3-text"></div>
+    <div class="eq-row">
+      <input class="eq-input" type="number" id="eq-a3" placeholder="×">
+      <span class="eq-unit">keer sneller</span>
+      <button class="check-btn" onclick="checkEQ(3)">Controleer</button>
+    </div>
+    <div class="eq-feedback" id="eq-f3"></div>
+  </div>
+
+  <!-- Vraag 4: temperatuur equivalent aan katalysator -->
+  <div class="eq-question" id="eq-q4">
+    <div class="eq-qtext" id="eq-q4-text"></div>
+    <div class="eq-row">
+      <input class="eq-input" type="number" id="eq-a4" placeholder="T">
+      <span class="eq-unit">K</span>
+      <button class="check-btn" onclick="checkEQ(4)">Controleer</button>
+    </div>
+    <div class="eq-feedback" id="eq-f4"></div>
+  </div>
+</div>
+
+<script>
+const R = 8.314; // J/(mol·K)
+
+// Kleur per stof
+const COLORS = { A: '#4fc3a1', B: '#ee8b5b', C: '#b58dee' };
+
+let RXN = {};       // huidige reactie
+let selectedLeft  = new Set(['A']);
+let selectedRight = new Set(['A']);
+let params = {};    // instelbare parameters (rechts)
+let tScale = 1;     // tijdschaal-vermenigvuldiger (powers of 4)
+
+// ─── Reactie genereren ────────────────────────────────────────────────────
+function newReaction() {
+  const nReactants = pick([1, 1, 2]);
+
+  // Stoichiometrie
+  const coeffA = pick([1, 1, 2]);
+  const coeffB = nReactants === 2 ? pick([1, 1, 2]) : 0;
+  const coeffC = pick([1, 2]);
+
+  // Reactie-orders (som ≤ 3)
+  let ordA, ordB;
+  if (nReactants === 1) {
+    ordA = pick([1, 1, 2, 3]);
+    ordB = 0;
+  } else {
+    ordA = pick([1, 1, 2]);
+    const maxB = Math.min(2, 3 - ordA);
+    ordB = pick([1, 2].filter(x => x <= maxB));
+  }
+  const totalOrd = ordA + ordB;
+
+  // Vaste stof alleen bij 1 reactant — gekoppeld aan reactienamen
+  const hasSolid = nReactants === 1 && Math.random() > 0.55;
+
+  // Reactienamen gekoppeld aan hasSolid en nReactants
+  // Alle vergelijkingen zijn chemisch correct gebalanceerd
+  // De coëfficiënten zitten in de lhs/rhs strings zelf
+  const homogenNames1 = [   // 1 reactant, homogeen
+    { lhs: 'H₂O₂(aq)',        rhs: 'H₂O(l) + ½O₂(g)' },
+    { lhs: '2 N₂O₅(g)',       rhs: '4 NO₂(g) + O₂(g)' },
+    { lhs: 'CH₃COCH₃(aq)',    rhs: 'CH₃CHO(g) + CH₂O(g)' },
+    { lhs: 'C₁₂H₂₂O₁₁(aq)',  rhs: 'C₆H₁₂O₆(aq)' },
+    { lhs: '2 N₂O(g)',        rhs: '2 N₂(g) + O₂(g)' },
+  ];
+  const solidNames = [      // heterogeen: vaste stof + fluïde reactant
+    { lhs: 'C(s) + O₂(g)',         rhs: 'CO₂(g)' },
+    { lhs: 'Zn(s) + 2 HCl(aq)',    rhs: 'ZnCl₂(aq) + H₂(g)' },
+    { lhs: 'CaCO₃(s) + 2 HCl(aq)', rhs: 'CaCl₂(aq) + H₂O(l) + CO₂(g)' },
+    { lhs: 'Fe(s) + 2 HCl(aq)',    rhs: 'FeCl₂(aq) + H₂(g)' },
+  ];
+  const twoReactantNames = [ // 2 reactanten
+    { lhs: 'NO(g) + O₃(g)',   rhs: 'NO₂(g) + O₂(g)' },
+    { lhs: 'H₂(g) + I₂(g)',  rhs: '2 HI(g)' },
+    { lhs: '2 SO₂(g) + O₂(g)', rhs: '2 SO₃(g)' },
+    { lhs: 'CO(g) + NO(g)',   rhs: 'CO₂(g) + ½ N₂(g)' },
+    { lhs: 'NO(g) + ½ Cl₂(g)', rhs: 'NOCl(g)' },
+    { lhs: 'H₂(g) + Br₂(g)', rhs: '2 HBr(g)' },
+  ];
+
+  let nameList;
+  if (nReactants === 2)  nameList = twoReactantNames;
+  else if (hasSolid)     nameList = solidNames;
+  else                   nameList = homogenNames1;
+
+  const { lhs, rhs } = pick(nameList);
+
+  // Parseer stofnamen: strip eventuele leidende coëfficiënt ("2 ", "½ " etc.)
+  const stripCoeff = s => s.trim().replace(/^[\d½¼¾⅓⅔]+\s+/, '');
+  const lhsParts = lhs.split(' + ').map(s => s.trim());
+  const rhsParts = rhs.split(' + ').map(s => s.trim());
+
+  const nameA  = stripCoeff(lhsParts[0]);
+  const nameB  = lhsParts.length > 1 ? stripCoeff(lhsParts[1]) : null;
+  const nameC  = stripCoeff(rhsParts[0]);
+  const solidA = nameA.includes('(s)');
+  const solidB = nameB ? nameB.includes('(s)') : false;
+  const isFluidA = !solidA;
+  const isFluidB = nameB ? !solidB : false;
+
+  // Ea tussen 40 en 90 kJ/mol
+  const Ea  = (40 + Math.random() * 50) * 1000; // J/mol
+  const T0  = 298; // K — vaste kalibratietemperatuur voor A_pre
+
+  // Absolute Arrhenius: k = A_pre * exp(-Ea / RT)
+  // k0 = gewenste k bij T0 zonder katalysator
+  const k0    = 0.05 + Math.random() * 0.45;
+  const A_pre = k0 / Math.exp(-Ea / (R * T0)); // pre-exponentiële factor
+
+  // Referentieparameters
+  const refConc = {
+    A: 0.5 + Math.random() * 1.0,
+    B: nReactants === 2 ? 0.5 + Math.random() * 1.0 : 0
+  };
+  const refT   = 290 + Math.random() * 20;
+  const refS   = hasSolid ? 0.5 + Math.random() * 1.0 : 1;
+  const refCat = false;
+
+  RXN = {
+    nReactants, coeffA, coeffB, coeffC,
+    ordA, ordB, totalOrd,
+    hasSolid, Ea, k0, A_pre, T0,
+    refConc, refT, refS, refCat,
+    lhs, rhs,
+    nameA, nameB, nameC, solidA, solidB, isFluidA, isFluidB,
+    // ΔEa zo kiezen dat T_eq = refT·Ea/(Ea-ΔEa) tussen refT+30 en refT+80 K valt
+    // → ΔEa = Ea·(1 - refT/(refT+dT)) met dT willekeurig 30–80K
+    catEaReduction: (() => {
+      const dT  = 30 + Math.random() * 50;   // gewenste T_eq = refT + dT
+      const Teq = refT + dT;
+      return Math.round(Ea * (1 - refT / Teq) / 1000) * 1000; // afronden op kJ
+    })()
+  };
+
+  params = {
+    concA: refConc.A,
+    concB: refConc.B,
+    T:     refT,
+    S:     refS,
+    cat:   false
+  };
+
+  selectedLeft  = new Set(['A']);
+  selectedRight = new Set(['A']);
+  resetTScale();
+  buildUI();
+  renderBoth();
+  buildExtraQuestions();
+}
+
+// ─── k berekenen (absolute Arrhenius) ────────────────────────────────────
+function calcK(T, cat) {
+  const Ea = cat ? RXN.Ea - RXN.catEaReduction : RXN.Ea;
+  return RXN.A_pre * Math.exp(-Ea / (R * T));
+}
+
+// ─── Initiële snelheid ────────────────────────────────────────────────────
+function calcV0(concA, concB, T, S, cat) {
+  const k = calcK(T, cat);
+  let v = k * Math.pow(Math.max(concA, 0), RXN.ordA);
+  if (RXN.nReactants === 2) v *= Math.pow(Math.max(concB, 0), RXN.ordB);
+  if (RXN.hasSolid) v *= S;
+  return v;
+}
+
+// ─── Euler-integratie ─────────────────────────────────────────────────────
+function integrate(concA0, concB0, T, S, cat, nSteps=600, dt=0.08) {
+  const dtScaled = dt * tScale;
+  const k = calcK(T, cat);
+  let cA = concA0, cB = concB0 > 0 ? concB0 : null;
+  const tsA = [cA], tsB = [cB !== null ? cB : 0], tsC = [0];
+  let cC = 0;
+  const stoichA = RXN.coeffA, stoichB = RXN.coeffB, stoichC = RXN.coeffC;
+
+  for (let i = 0; i < nSteps; i++) {
+    let v = k * Math.pow(Math.max(cA, 0), RXN.ordA);
+    if (RXN.nReactants === 2 && cB !== null) v *= Math.pow(Math.max(cB, 0), RXN.ordB);
+    if (RXN.hasSolid) v *= S;
+
+    const vNorm = v / stoichC;
+    cA = Math.max(0, cA - stoichA * vNorm * dtScaled);
+    if (cB !== null) cB = Math.max(0, cB - stoichB * vNorm * dtScaled);
+    cC = Math.min(concA0 / stoichA * stoichC, cC + stoichC * vNorm * dtScaled);
+
+    tsA.push(cA);
+    tsB.push(cB !== null ? cB : 0);
+    tsC.push(cC);
+  }
+  const times = Array.from({length: nSteps+1}, (_, i) => i * dtScaled);
+  return { times, tsA, tsB, tsC };
+}
+
+// ─── Canvas tekenen ───────────────────────────────────────────────────────
+function drawGraph(canvasId, sim, selected, v0, isRight) {
+  const canvas = document.getElementById(canvasId);
+  const dpr    = window.devicePixelRatio || 1;
+  const W = canvas.clientWidth, H = canvas.clientHeight;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  // Achtergrond
+  ctx.fillStyle = '#0d1018';
+  ctx.fillRect(0, 0, W, H);
+
+  // Marges
+  const ml = 48, mr = 12, mt = 12, mb = 36;
+  const gW = W - ml - mr, gH = H - mt - mb;
+
+  // Gridlijnen
+  ctx.strokeStyle = '#1e2436';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = mt + gH * i / 4;
+    ctx.beginPath(); ctx.moveTo(ml, y); ctx.lineTo(ml + gW, y); ctx.stroke();
+  }
+  for (let i = 0; i <= 5; i++) {
+    const x = ml + gW * i / 5;
+    ctx.beginPath(); ctx.moveTo(x, mt); ctx.lineTo(x, mt + gH); ctx.stroke();
+  }
+
+  // Assen
+  ctx.strokeStyle = '#3a4060';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(ml, mt); ctx.lineTo(ml, mt + gH); ctx.lineTo(ml + gW, mt + gH);
+  ctx.stroke();
+
+  // Y-as label
+  ctx.fillStyle = '#6b7491';
+  ctx.font = '10px Segoe UI';
+  ctx.textAlign = 'right';
+
+  // Schaal bepalen: max over alle geselecteerde series
+  const allVals = [];
+  if (selected.has('A')) allVals.push(...sim.tsA);
+  if (selected.has('B')) allVals.push(...sim.tsB);
+  if (selected.has('C')) allVals.push(...sim.tsC);
+  const yMax = Math.max(...allVals, 0.01) * 1.1;
+  const xMax = sim.times[sim.times.length - 1];
+
+  // Y-as ticks
+  for (let i = 0; i <= 4; i++) {
+    const val = yMax * (1 - i/4);
+    const y   = mt + gH * i / 4;
+    ctx.fillStyle = '#6b7491';
+    ctx.fillText(val.toFixed(2), ml - 4, y + 3);
+  }
+  // X-as ticks
+  ctx.textAlign = 'center';
+  for (let i = 0; i <= 5; i++) {
+    const t = xMax * i / 5;
+    const x = ml + gW * i / 5;
+    ctx.fillText(t.toFixed(0) + 's', x, mt + gH + 16);
+  }
+
+  // As-labels
+  ctx.fillStyle = '#8090b0';
+  ctx.font = '10px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('tijd (s)', ml + gW/2, H - 4);
+  ctx.save();
+  ctx.translate(10, mt + gH/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText('c (mol/L)', 0, 0);
+  ctx.restore();
+
+  // Helper: punt → pixel
+  const px = (t) => ml + (t / xMax) * gW;
+  const py = (c) => mt + gH * (1 - c / yMax);
+
+  // Curves tekenen
+  const seriesList = [
+    { key: 'A', data: sim.tsA },
+    { key: 'B', data: sim.tsB },
+    { key: 'C', data: sim.tsC }
+  ];
+  for (const s of seriesList) {
+    if (!selected.has(s.key)) continue;
+    ctx.beginPath();
+    ctx.strokeStyle = COLORS[s.key];
+    ctx.lineWidth = 2;
+    for (let i = 0; i < sim.times.length; i++) {
+      const x = px(sim.times[i]), y = py(s.data[i]);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  // Raaklijn bij t=0 (gebaseerd op eerste geselecteerde serie)
+  // v0 is de beginsnelheid van de reactie; voor [A] is de helling -coeffA·v0/coeffC
+  // voor [C] is de helling +coeffC·v0/coeffC = v0
+  const tanColor = isRight ? '#ff8c42' : '#f5c542';
+  if (selected.size > 0) {
+    const firstKey = ['A','B','C'].find(k => selected.has(k));
+    let slope;
+    if (firstKey === 'A') slope = -RXN.coeffA * v0 / RXN.coeffC;
+    else if (firstKey === 'B') slope = -RXN.coeffB * v0 / RXN.coeffC;
+    else slope = v0; // product C
+
+    // startconcentratie van die serie
+    const c0 = firstKey === 'A' ? sim.tsA[0]
+              : firstKey === 'B' ? sim.tsB[0]
+              : sim.tsC[0];
+
+    // Raaklijnlijn van t=0 tot snijpunt met c=0 of t=xMax
+    const tEnd = slope < 0 ? Math.min(-c0 / slope, xMax) : xMax;
+    const tLine = Math.min(tEnd, xMax * 0.5); // niet te lang
+
+    ctx.beginPath();
+    ctx.strokeStyle = tanColor;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 4]);
+    ctx.moveTo(px(0), py(c0));
+    ctx.lineTo(px(tLine), py(c0 + slope * tLine));
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Stipje bij t=0
+    ctx.beginPath();
+    ctx.fillStyle = tanColor;
+    ctx.arc(px(0), py(c0), 4, 0, Math.PI*2);
+    ctx.fill();
+  }
+}
+
+// ─── UI opbouwen ──────────────────────────────────────────────────────────
+function buildUI() {
+  // Reactievergelijking — lhs/rhs bevatten al de juiste coëfficiënten
+  document.getElementById('eq-display').textContent = `${RXN.lhs}  →  ${RXN.rhs}`;
+
+  // Notitie bij vaste stof
+  const solidNote = document.getElementById('solid-note');
+  if (RXN.hasSolid) {
+    solidNote.style.display = 'block';
+  } else {
+    solidNote.style.display = 'none';
+  }
+
+  // Referentieparameters tonen
+  buildRefDisplay();
+
+  // Orde-vraag velden
+  buildOrderFields();
+
+  // Stofkiezers
+  buildSpeciesPicker('sp-left',  selectedLeft,  'left');
+  buildSpeciesPicker('sp-right', selectedRight, 'right');
+
+  // Parameters
+  buildParams();
+}
+
+function buildRefDisplay() {
+  const r = RXN;
+  const parts = [
+    r.isFluidA ? `[${r.nameA}]₀ = ${r.refConc.A.toFixed(2)} mol/L` : null,
+    r.nReactants === 2 && r.isFluidB ? `[${r.nameB}]₀ = ${r.refConc.B.toFixed(2)} mol/L` : null,
+    `T = ${r.refT.toFixed(0)} K (${(r.refT-273).toFixed(0)} °C)`,
+    r.hasSolid ? `S = ${r.refS.toFixed(2)} (rel.)` : null,
+    `Ea = ${(r.Ea/1000).toFixed(1)} kJ/mol`,
+    `Katalysator: nee`
+  ].filter(Boolean);
+
+  document.getElementById('ref-params-values').innerHTML =
+    parts.map(p => `<span style="white-space:nowrap">${p}</span>`).join('');
+}
+
+function buildExtraQuestions() {
+  const r = RXN;
+  const eq = document.getElementById('extra-questions');
+  eq.style.display = 'block';
+
+  // Verberg alle vaste feedback
+  [2,3,4].forEach(n => {
+    document.getElementById(`eq-f${n}`).style.display = 'none';
+    document.getElementById(`eq-a${n}`).value = '';
+  });
+
+  // Vraag 1: één blok per fluïde reactant
+  const fluidSpecies = [];
+  if (r.isFluidA) fluidSpecies.push({ key: 'A', name: r.nameA, ord: r.ordA });
+  if (r.nReactants === 2 && r.isFluidB) fluidSpecies.push({ key: 'B', name: r.nameB, ord: r.ordB });
+
+  const concContainer = document.getElementById('eq-conc-questions');
+  concContainer.innerHTML = '';
+  for (const sp of fluidSpecies) {
+    const answer = Math.pow(2, sp.ord);
+    const div = document.createElement('div');
+    div.className = 'eq-question';
+    div.id = `eq-conc-${sp.key}`;
+    div.dataset.answer = answer;
+    div.dataset.ord    = sp.ord;
+    div.dataset.name   = sp.name;
+    div.innerHTML = `
+      <div class="eq-qtext">
+        Stel dat de beginconcentratie van <strong>${sp.name}</strong> wordt verdubbeld.
+        Hoeveel keer verandert de beginsnelheid?
+        <br><span style="font-size:0.85em;color:var(--muted)">(Houd alle andere parameters gelijk aan de referentie)</span>
+      </div>
+      <div class="eq-row">
+        <input class="eq-input" type="number" id="eq-ac-${sp.key}" placeholder="×">
+        <span class="eq-unit">keer</span>
+        <button class="check-btn" onclick="checkConc('${sp.key}')">Controleer</button>
+      </div>
+      <div class="eq-feedback" id="eq-fc-${sp.key}"></div>`;
+    concContainer.appendChild(div);
+  }
+
+  // Vraag 2: temperatuureffect — gebruik T2 = refT + 20K
+  const T2 = Math.round(r.refT + 20);
+  const ratio2 = calcK(T2, false) / calcK(r.refT, false);
+  document.getElementById('eq-q2-text').innerHTML =
+    `De temperatuur stijgt van <strong>${r.refT.toFixed(0)} K</strong> naar <strong>${T2} K</strong>.
+     Hoeveel keer is de reactiesnelheid groter?
+     <br><span style="font-size:0.85em;color:var(--muted)">Gebruik: k = A·e<sup>−Ea/RT</sup> met Ea = ${(r.Ea/1000).toFixed(1)} kJ/mol, R = 8,314 J/(mol·K)</span>`;
+  document.getElementById('eq-q2').dataset.answer = ratio2;
+  document.getElementById('eq-q2').dataset.T2 = T2;
+
+  // Vraag 3: katalysator bij T_ref
+  const ratio3 = calcK(r.refT, true) / calcK(r.refT, false);
+  document.getElementById('eq-q3-text').innerHTML =
+    `Bij de referentietemperatuur (${r.refT.toFixed(0)} K) wordt een katalysator toegevoegd die de activeringsenergie
+     verlaagt met <strong>${(r.catEaReduction/1000).toFixed(0)} kJ/mol</strong>.
+     Hoeveel keer is de reactiesnelheid groter?`;
+  document.getElementById('eq-q3').dataset.answer = ratio3;
+
+  // Vraag 4: T equivalent aan katalysator bij T_ref (niet per se 298K)
+  // k(T, nocat) = k(refT, cat)
+  // A_pre·exp(-Ea/RT) = A_pre·exp(-(Ea-ΔEa)/(R·refT))
+  // Ea/T = (Ea-ΔEa)/refT  →  T = refT·Ea/(Ea-ΔEa)
+  const Tref  = r.refT;
+  const T_eq  = Tref * r.Ea / (r.Ea - r.catEaReduction);
+  document.getElementById('eq-q4-text').innerHTML =
+    `Bij welke temperatuur (zonder katalysator) is de reactiesnelheid gelijk aan die
+     <em>met</em> katalysator bij de referentietemperatuur (${Tref.toFixed(0)} K)?
+     De katalysator verlaagt Ea met <strong>${(r.catEaReduction/1000).toFixed(0)} kJ/mol</strong>.
+     <br><span style="font-size:0.85em;color:var(--muted)">Tip: stel k(T, zonder) = k(${Tref.toFixed(0)} K, met) en los op voor T.
+     Uitwerking: Ea/T = (Ea−ΔEa)/${Tref.toFixed(0)} → T = ${Tref.toFixed(0)}·Ea/(Ea−ΔEa)</span>`;
+  document.getElementById('eq-q4').dataset.answer  = T_eq;
+  document.getElementById('eq-q4').dataset.Tref    = Tref;
+}
+
+function buildOrderFields() {
+  const container = document.getElementById('order-fields');
+  container.innerHTML = '';
+  document.getElementById('order-feedback').style.display = 'none';
+
+  // Alleen fluïde stoffen krijgen een [concentratie]-orde; vaste stof krijgt S-orde
+  const fields = [];
+  if (RXN.isFluidA) fields.push({ key: 'A', label: `Orde in [${RXN.nameA}]` });
+  if (RXN.nReactants === 2 && RXN.isFluidB) fields.push({ key: 'B', label: `Orde in [${RXN.nameB}]` });
+  if (RXN.hasSolid) fields.push({ key: 'S', label: `Orde in oppervlak (${RXN.nameA})` });
+  fields.push({ key: 'tot', label: 'Totale orde' });
+
+  for (const f of fields) {
+    const div = document.createElement('div');
+    div.className = 'order-field';
+    div.innerHTML = `<label>${f.label}</label>
+      <select class="order-select" id="ord-${f.key}">
+        <option value="">—</option>
+        ${[0,1,2,3].map(n => `<option value="${n}">${n}</option>`).join('')}
+      </select>`;
+    container.appendChild(div);
+  }
+
+  const btn = document.createElement('button');
+  btn.className = 'check-btn';
+  btn.textContent = 'Controleer';
+  btn.onclick = checkOrders;
+  container.appendChild(btn);
+}
+
+function checkOrders() {
+  const fb = document.getElementById('order-feedback');
+  const getVal = id => {
+    const el = document.getElementById(id);
+    return el ? parseInt(el.value) : null;
+  };
+
+  const uA   = RXN.isFluidA ? getVal('ord-A') : null;
+  const uB   = (RXN.nReactants === 2 && RXN.isFluidB) ? getVal('ord-B') : null;
+  const uS   = RXN.hasSolid ? getVal('ord-S') : null;
+  const uTot = getVal('ord-tot');
+
+  const cA = RXN.ordA, cB = RXN.ordB, cTot = RXN.totalOrd;
+
+  const errors = [];
+  if (uA !== null && (isNaN(uA) || uA !== cA))
+    errors.push(`Orde in [${RXN.nameA}]: jij zei ${isNaN(uA)?'—':uA}, correct is ${cA}.`);
+  if (uB !== null && (isNaN(uB) || uB !== cB))
+    errors.push(`Orde in [${RXN.nameB}]: jij zei ${isNaN(uB)?'—':uB}, correct is ${cB}.`);
+  if (uS !== null && (isNaN(uS) || uS !== 1))
+    errors.push(`Orde in oppervlak: correct is 1 (lineair oppervlak-effect).`);
+  if (isNaN(uTot) || uTot !== cTot)
+    errors.push(`Totale orde: jij zei ${isNaN(uTot)?'—':uTot}, correct is ${cTot}.`);
+
+  // Snelheidsvergelijking met echte namen
+  let rl = 'v = k';
+  if (RXN.hasSolid) rl += `·S`;
+  if (RXN.ordA > 0 && RXN.isFluidA) rl += `·[${RXN.nameA}]${RXN.ordA > 1 ? sup(RXN.ordA) : ''}`;
+  if (RXN.ordB > 0 && RXN.isFluidB) rl += `·[${RXN.nameB}]${RXN.ordB > 1 ? sup(RXN.ordB) : ''}`;
+
+  const ordeMeaning = ord => {
+    if (ord === 0) return 'nulde orde: de snelheid is <em>onafhankelijk</em> van deze concentratie';
+    if (ord === 1) return 'eerste orde: de snelheid <em>verdubbelt</em> als de concentratie verdubbelt';
+    if (ord === 2) return 'tweede orde: de snelheid wordt <em>vier keer zo groot</em> als de concentratie verdubbelt';
+    if (ord === 3) return 'derde orde: de snelheid wordt <em>acht keer zo groot</em> als de concentratie verdubbelt';
+    return '';
+  };
+
+  let uitleg = `<span class="orde-uitleg">`;
+  if (RXN.isFluidA) uitleg += `[${RXN.nameA}]: ${ordeMeaning(RXN.ordA)}.`;
+  if (RXN.nReactants === 2 && RXN.isFluidB) uitleg += `<br>[${RXN.nameB}]: ${ordeMeaning(RXN.ordB)}.`;
+  if (RXN.hasSolid) uitleg += `<br>Oppervlak (${RXN.nameA}): eerste orde — groter oppervlak geeft evenredig meer contact.`;
+  uitleg += `<br>Totale orde ${cTot}: als alle concentraties verdubbelen, wordt de snelheid ${Math.pow(2,cTot)}× zo groot.`;
+  uitleg += `</span>`;
+
+  fb.style.display = 'block';
+  if (errors.length === 0) {
+    fb.className = 'order-feedback ok';
+    fb.innerHTML = `✓ Correct! Snelheidsvergelijking: <strong style="font-family:monospace">${rl}</strong>${uitleg}`;
+  } else {
+    fb.className = 'order-feedback err';
+    fb.innerHTML = errors.map(e => `✗ ${e}`).join('<br>') +
+      `<br><span style="color:#8090b0">Snelheidsvergelijking: <strong style="font-family:monospace">${rl}</strong></span>${uitleg}`;
+  }
+}
+
+// ─── Concentratievraag controleren ───────────────────────────────────────
+function checkConc(key) {
+  const div     = document.getElementById(`eq-conc-${key}`);
+  const fb      = document.getElementById(`eq-fc-${key}`);
+  const input   = document.getElementById(`eq-ac-${key}`);
+  const correct = parseFloat(div.dataset.answer);
+  const ord     = parseInt(div.dataset.ord);
+  const name    = div.dataset.name;
+  const user    = parseFloat(input.value);
+  const ok      = !isNaN(user) && Math.abs(user - correct) / correct < 0.04;
+  fb.style.display = 'block';
+  fb.className = 'eq-feedback ' + (ok ? 'ok' : 'err');
+  fb.innerHTML = ok
+    ? `✓ Correct! [${name}] × 2 → v × 2${sup(ord)} = ${correct.toFixed(2)}`
+    : `✗ Niet correct. [${name}] × 2 → v × 2${sup(ord)} = ${correct.toFixed(2)}.
+       Dit is de definitie van orde ${ord} in [${name}].`;
+}
+
+// ─── Extra vragen controleren ─────────────────────────────────────────────
+function checkEQ(n) {
+  const input   = document.getElementById(`eq-a${n}`);
+  const fb      = document.getElementById(`eq-f${n}`);
+  const correct = parseFloat(document.getElementById(`eq-q${n}`).dataset.answer);
+  const user    = parseFloat(input.value);
+  fb.style.display = 'block';
+
+  const tol = 0.04;
+  const ok  = !isNaN(user) && Math.abs(user - correct) / correct < tol;
+
+  if (n === 2) {
+    const T1 = RXN.refT, T2 = parseFloat(document.getElementById('eq-q2').dataset.T2);
+    const EakJ = (RXN.Ea/1000).toFixed(1);
+    fb.className = 'eq-feedback ' + (ok ? 'ok' : 'err');
+    fb.innerHTML = ok
+      ? `✓ Correct! k₂/k₁ = exp(−Ea/R · (1/T₂ − 1/T₁)) = ${correct.toFixed(2)}`
+      : `✗ Niet correct. Gebruik: k₂/k₁ = exp[−(${EakJ}×10³/8,314) · (1/${T2} − 1/${T1.toFixed(0)})]
+         = ${correct.toFixed(3)}. Jij gaf: ${isNaN(user)?'—':user.toFixed(3)}.`;
+  }
+  else if (n === 3) {
+    const EakJ    = (RXN.Ea/1000).toFixed(1);
+    const dEakJ   = (RXN.catEaReduction/1000).toFixed(0);
+    const T       = RXN.refT.toFixed(0);
+    fb.className  = 'eq-feedback ' + (ok ? 'ok' : 'err');
+    fb.innerHTML  = ok
+      ? `✓ Correct! k_kat/k_geen = exp(ΔEa/RT) = exp(${dEakJ}×10³ / (8,314×${T})) = ${correct.toFixed(2)}`
+      : `✗ Niet correct. k_kat/k_geen = exp(ΔEa/RT) = exp(${dEakJ}×10³ / (8,314·${T})) = ${correct.toFixed(2)}.
+         Jij gaf: ${isNaN(user)?'—':user.toFixed(2)}.`;
+  }
+  else if (n === 4) {
+    const EakJ  = (RXN.Ea/1000).toFixed(1);
+    const dEakJ = (RXN.catEaReduction/1000).toFixed(0);
+    const Tref  = parseFloat(document.getElementById('eq-q4').dataset.Tref).toFixed(0);
+    fb.className = 'eq-feedback ' + (ok ? 'ok' : 'err');
+    fb.innerHTML = ok
+      ? `✓ Correct! T = ${Tref}·Ea/(Ea−ΔEa) = ${Tref}·${EakJ}/(${EakJ}−${dEakJ}) = ${correct.toFixed(1)} K
+         (= ${(correct-273).toFixed(1)} °C)`
+      : `✗ Niet correct. Stel k(T,−kat) = k(${Tref} K,+kat):
+         exp(−Ea/RT) = exp(−(Ea−ΔEa)/R·${Tref}) → Ea/T = (Ea−ΔEa)/${Tref}
+         → T = ${Tref}·${EakJ}/(${EakJ}−${dEakJ}) = ${correct.toFixed(1)} K. Jij gaf: ${isNaN(user)?'—':user} K.`;
+  }
+}
+
+function sup(n) {
+  return ['', '', '²', '³'][n] || `^${n}`;
+}
+
+function buildSpeciesPicker(containerId, selectedSet, side) {
+  const div = document.getElementById(containerId);
+  div.innerHTML = '';
+  // Map key → echte naam
+  const nameMap = {
+    A: RXN.nameA,
+    B: RXN.nameB || null,
+    C: RXN.nameC
+  };
+  const species = ['A'];
+  if (RXN.nReactants === 2) species.push('B');
+  species.push('C');
+
+  species.forEach(sp => {
+    if (sp === 'A' && RXN.solidA) return; // vaste stof niet in grafiek
+    if (sp === 'B' && RXN.solidB) return;
+    const label = nameMap[sp] || sp;
+    const btn = document.createElement('button');
+    btn.className = `sp-btn sp-${sp}` + (selectedSet.has(sp) ? ' active' : '');
+    btn.textContent = `[${label}]`;
+    btn.onclick = () => {
+      if (selectedSet.has(sp)) {
+        if (selectedSet.size > 1) selectedSet.delete(sp);
+      } else {
+        selectedSet.add(sp);
+      }
+      buildSpeciesPicker(containerId, selectedSet, side);
+      renderBoth();
+    };
+    div.appendChild(btn);
+  });
+}
+
+function buildParams() {
+  const grid = document.getElementById('params-grid');
+  grid.innerHTML = '';
+
+  const sliders = [
+    {
+      id: 'concA', label: `[${RXN.nameA}]₀`,
+      min: 0.1, max: 3.0, step: 0.05,
+      fmt: v => `${v.toFixed(2)} mol/L`,
+      hidden: RXN.solidA  // vaste stof heeft geen concentratieslider
+    },
+    {
+      id: 'concB', label: `[${RXN.nameB || 'B'}]₀`,
+      min: 0.1, max: 3.0, step: 0.05,
+      fmt: v => `${v.toFixed(2)} mol/L`,
+      hidden: RXN.nReactants < 2 || RXN.solidB
+    },
+    {
+      id: 'T', label: 'Temperatuur',
+      min: 270, max: 420, step: 1,
+      fmt: v => `${v.toFixed(0)} K  (${(v-273).toFixed(0)} °C)`,
+      hidden: false
+    },
+    {
+      id: 'S', label: 'Oppervlak vaste stof',
+      min: 0.1, max: 3.0, step: 0.05,
+      fmt: v => `${v.toFixed(2)} (rel.)`,
+      hidden: !RXN.hasSolid
+    }
+  ];
+
+  for (const sl of sliders) {
+    const row = document.createElement('div');
+    row.className = 'param-row' + (sl.hidden ? ' hidden-param' : '');
+
+    const lbl = document.createElement('div');
+    lbl.className = 'param-label';
+    lbl.innerHTML = `<span>${sl.label}</span><span class="param-val" id="val-${sl.id}">${sl.fmt(params[sl.id])}</span>`;
+
+    // Slider + getal naast elkaar
+    const sliderRow = document.createElement('div');
+    sliderRow.className = 'slider-row';
+
+    const range = document.createElement('input');
+    range.type = 'range';
+    range.min = sl.min; range.max = sl.max; range.step = sl.step;
+    range.value = params[sl.id];
+    range.id = 'sl-' + sl.id;
+    range.style.flex = '1';
+
+    const numBox = document.createElement('input');
+    numBox.type = 'number';
+    numBox.className = 'num-input';
+    numBox.min = sl.min; numBox.max = sl.max; numBox.step = sl.step;
+    numBox.value = parseFloat(params[sl.id]).toFixed(sl.step < 1 ? 2 : 0);
+    numBox.id = 'nb-' + sl.id;
+
+    // Slider → numbox + grafiek
+    range.oninput = () => {
+      const v = parseFloat(range.value);
+      params[sl.id] = v;
+      numBox.value = v.toFixed(sl.step < 1 ? 2 : 0);
+      document.getElementById('val-' + sl.id).textContent = sl.fmt(v);
+      renderRight();
+    };
+
+    // Numbox → slider + grafiek (bij Enter of blur)
+    const applyNum = () => {
+      let v = parseFloat(numBox.value);
+      if (isNaN(v)) return;
+      v = Math.min(sl.max, Math.max(sl.min, v));
+      params[sl.id] = v;
+      range.value = v;
+      numBox.value = v.toFixed(sl.step < 1 ? 2 : 0);
+      document.getElementById('val-' + sl.id).textContent = sl.fmt(v);
+      renderRight();
+    };
+    numBox.addEventListener('change', applyNum);
+    numBox.addEventListener('keydown', e => { if (e.key === 'Enter') applyNum(); });
+
+    sliderRow.appendChild(range);
+    sliderRow.appendChild(numBox);
+    row.appendChild(lbl);
+    row.appendChild(sliderRow);
+    grid.appendChild(row);
+  }
+
+  // Katalysator toggle
+  const catRow = document.createElement('div');
+  catRow.className = 'param-row';
+  catRow.innerHTML = `
+    <div class="param-label"><span>Katalysator</span></div>
+    <div class="cat-toggle">
+      <button class="cat-btn ${!params.cat ? 'active' : ''}" id="cat-no"  onclick="setCat(false)">Zonder</button>
+      <button class="cat-btn ${ params.cat ? 'active' : ''}" id="cat-yes" onclick="setCat(true)">Met katalysator</button>
+    </div>`;
+  grid.appendChild(catRow);
+}
+
+function setCat(val) {
+  params.cat = val;
+  document.getElementById('cat-no').classList.toggle('active', !val);
+  document.getElementById('cat-yes').classList.toggle('active', val);
+  renderRight();
+}
+
+function setTScale(val) {
+  // val loopt van -3 tot +3, tScale = 4^val
+  tScale = Math.pow(4, parseInt(val));
+  const totalS = (600 * 0.08 * tScale);
+  const label = totalS >= 3600 ? (totalS/3600).toFixed(1) + ' uur'
+              : totalS >= 60   ? (totalS/60).toFixed(1) + ' min'
+              : totalS.toFixed(1) + ' s';
+  document.getElementById('tscale-label').textContent = label;
+  renderBoth();
+}
+
+function resetTScale() {
+  tScale = 1;
+  const slider = document.getElementById('tscale-slider');
+  if (slider) { slider.value = 0; }
+  document.getElementById('tscale-label').textContent = '48 s';
+}
+
+function resetParams() {
+  params = {
+    concA: RXN.refConc.A,
+    concB: RXN.refConc.B,
+    T:     RXN.refT,
+    S:     RXN.refS,
+    cat:   false
+  };
+  buildParams();
+  renderRight();
+}
+
+// ─── Renderen ─────────────────────────────────────────────────────────────
+function renderBoth() {
+  renderLeft();
+  renderRight();
+}
+
+function renderLeft() {
+  const r = RXN;
+  const sim = integrate(r.refConc.A, r.refConc.B, r.refT, r.refS, r.refCat);
+  const v0  = calcV0(r.refConc.A, r.refConc.B, r.refT, r.refS, r.refCat);
+  document.getElementById('v0-left').textContent =
+    `v₀ = ${v0.toExponential(2)} mol/(L·s)`;
+  drawGraph('canvas-left', sim, selectedLeft, v0, false);
+}
+
+function renderRight() {
+  const sim = integrate(params.concA, params.concB, params.T, params.S, params.cat);
+  const v0  = calcV0(params.concA, params.concB, params.T, params.S, params.cat);
+  document.getElementById('v0-right').textContent =
+    `v₀ = ${v0.toExponential(2)} mol/(L·s)`;
+  drawGraph('canvas-right', sim, selectedRight, v0, true);
+}
+
+// ─── Utils ────────────────────────────────────────────────────────────────
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// Canvas resize observer
+const ro = new ResizeObserver(() => renderBoth());
+ro.observe(document.getElementById('canvas-left'));
+ro.observe(document.getElementById('canvas-right'));
+
+// Start
+newReaction();
+</script>
+</body>
+</html>

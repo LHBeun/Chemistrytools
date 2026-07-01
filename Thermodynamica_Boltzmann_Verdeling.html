@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boltzmann-verdeling — van microtoestand tot evenwicht</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --panel:#f6f8f6;
+    --panel-2:#eef2ee;
+    --line:#d7ddd5;
+    --text:#1c211c;
+    --text-dim:#5f6b5f;
+    --accent:#c1652f;
+    --accent-dim:#a8622f;
+    --accent2:#2f8a78;
+    --accent2-dim:#2f7a68;
+    --warn:#b8503b;
+    --mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  body{min-height:100vh;}
+
+  .app{max-width:1180px;margin:0 auto;padding:28px 20px 80px;}
+
+  header.top{
+    display:flex;flex-direction:column;gap:6px;
+    padding-bottom:18px;margin-bottom:22px;
+    border-bottom:1px solid var(--line);
+  }
+  header.top .eyebrow{
+    font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--accent2);
+  }
+  header.top h1{
+    margin:0;font-size:26px;font-weight:650;letter-spacing:-0.01em;
+  }
+  header.top p{margin:2px 0 0;color:var(--text-dim);font-size:14.5px;max-width:760px;line-height:1.5;}
+
+  nav.tabs{
+    display:flex;gap:4px;margin-bottom:24px;
+    border-bottom:1px solid var(--line);
+  }
+  nav.tabs button{
+    appearance:none;background:transparent;border:none;
+    color:var(--text-dim);font-family:var(--sans);font-size:14px;font-weight:560;
+    padding:11px 16px;cursor:pointer;border-bottom:2px solid transparent;
+    transition:color .15s ease, border-color .15s ease;
+    display:flex;align-items:center;gap:8px;
+  }
+  nav.tabs button .num{
+    font-family:var(--mono);font-size:11px;color:var(--text-dim);
+    border:1px solid var(--line);border-radius:3px;padding:1px 5px;
+  }
+  nav.tabs button:hover{color:var(--text);}
+  nav.tabs button.active{color:var(--accent);border-bottom-color:var(--accent);}
+  nav.tabs button.active .num{color:var(--accent);border-color:var(--accent-dim);}
+
+  .module{display:none;}
+  .module.active{display:block;}
+
+  .panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:20px 22px;margin-bottom:18px;
+  }
+  .panel h2{margin:0 0 4px;font-size:16px;font-weight:620;}
+  .panel h2 .formula{font-family:var(--mono);color:var(--accent2);font-weight:500;font-size:14px;margin-left:8px;}
+  .panel .sub{color:var(--text-dim);font-size:13px;line-height:1.55;margin:6px 0 16px;}
+  .panel .sub b{color:var(--text);font-weight:560;}
+
+  .controls{display:flex;flex-wrap:wrap;gap:22px;align-items:flex-end;margin-bottom:6px;}
+  .ctrl{display:flex;flex-direction:column;gap:6px;min-width:150px;}
+  .ctrl label{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--text-dim);text-transform:uppercase;}
+  .ctrl .val{color:var(--accent);font-weight:600;}
+  .ctrl input[type=range]{
+    width:170px;accent-color:var(--accent);
+  }
+  .ctrl .rowval{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;}
+
+  button.btn{
+    appearance:none;border:1px solid var(--line);background:var(--panel-2);color:var(--text);
+    font-family:var(--sans);font-size:13px;font-weight:560;border-radius:7px;
+    padding:9px 14px;cursor:pointer;transition:background .15s, border-color .15s;
+  }
+  button.btn:hover{border-color:var(--accent-dim);background:#eef2ee;}
+  button.btn.primary{background:var(--accent-dim);border-color:var(--accent);color:#fff3ea;}
+  button.btn.primary:hover{background:#8a5227;}
+  button.btn:disabled{opacity:.4;cursor:not-allowed;}
+  button.btn.small{padding:6px 10px;font-size:12px;}
+
+  .stat-row{display:flex;gap:22px;flex-wrap:wrap;font-family:var(--mono);font-size:13px;color:var(--text-dim);margin-top:10px;}
+  .stat-row .stat b{color:var(--text);font-weight:600;}
+  .stat-row .stat .lbl{display:block;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-dim);margin-bottom:2px;}
+
+  svg text{font-family:var(--sans);}
+  .axis-label{fill:var(--text-dim);font-size:11px;}
+  .grid-line{stroke:var(--line);stroke-width:1;}
+
+  footer.note{
+    color:var(--text-dim);font-size:12px;text-align:center;margin-top:30px;line-height:1.6;
+  }
+
+  @media (max-width:680px){
+    nav.tabs{overflow-x:auto;}
+    .controls{gap:16px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="eyebrow">Statistische thermodynamica · interactief</div>
+    <h1>De Boltzmann-verdeling — vanuit het tellen van toestanden</h1>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-mod="m1"><span class="num">1</span> Zelf microtoestanden bouwen</button>
+    <button class="tab-btn" data-mod="m2"><span class="num">2</span> Alle toestanden geteld</button>
+    <button class="tab-btn" data-mod="m3"><span class="num">3</span> Monte Carlo</button>
+    <button class="tab-btn" data-mod="m4"><span class="num">4</span> Evenwicht tussen twee toestanden</button>
+  </nav>
+
+  <main id="modules">
+
+    <!-- ===================== MODULE 1 ===================== -->
+    <section class="module active" id="m1">
+      <div class="panel">
+        <h2>Bouw zelf alle microtoestanden <span class="formula">W = C(m+N−1, N−1), met m = q/ε</span></h2>
+        <p class="sub">Sleep elk deeltje naar een energieniveau. Een <b>microtoestand</b> is een specifieke verdeling, genoteerd als (e₁, e₂, e₃, ...) — de energie van deeltje 1, deeltje 2, deeltje 3, enzovoort, in ħω. Twee microtoestanden zijn verschillend als de deeltjes van plek wisselen, ook al verandert de "vorm" van de verdeling niet. Vind ze allemaal — het overzicht hieronder groepeert ze automatisch. Let op: elk deeltje kan alleen veelvouden van de energy spacing ε aannemen (0, ε, 2ε, ...) — is q geen veelvoud van ε, dan is er geen enkele geldige microtoestand, en zie je dat direct in de melding hieronder.</p>
+
+
+        <div class="controls">
+          <div class="ctrl">
+            <label>Aantal deeltjes N</label>
+            <div class="rowval"><span id="m1-N-val" class="val">3</span></div>
+            <input type="range" id="m1-N" min="1" max="6" value="3" step="1">
+          </div>
+          <div class="ctrl">
+            <label>Energiekwanta q</label>
+            <div class="rowval"><span id="m1-q-val" class="val">3</span></div>
+            <input type="range" id="m1-q" min="0" max="8" value="3" step="1">
+          </div>
+          <div class="ctrl">
+            <label>Energy spacing ε (kwanta)</label>
+            <div class="rowval"><span id="m1-eps-val" class="val">1</span></div>
+            <input type="range" id="m1-eps" min="1" max="3" value="1" step="1">
+          </div>
+          <button class="btn" id="m1-reset">Begin opnieuw</button>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat"><span class="lbl">Gevonden microtoestanden</span><b id="m1-found">0</b> / <b id="m1-total">10</b></div>
+          <div class="stat"><span class="lbl">Huidige plaatsing geldig?</span><b id="m1-valid">—</b></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div id="m1-stage"></div>
+      </div>
+
+      <div class="panel" id="m1-log-panel">
+        <h2 style="font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;">Overzicht — gegroepeerd per verdelingsvorm</h2>
+        <p class="sub" style="margin-bottom:10px;">Elke gevonden microtoestand (e₁,e₂,e₃,...) wordt hieronder ingedeeld bij zijn "vorm": welke energiewaarden komen voor, en hoe vaak. Microtoestanden met dezelfde vorm zijn permutaties van elkaar.</p>
+        <div id="m1-groups" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+
+      <div class="panel" id="m1-deeltje1-panel">
+        <h2>Wat betekent dit voor deeltje 1?</h2>
+        <p class="sub">Kijk naar alle microtoestanden die je tot nu toe gevonden hebt. In hoeveel daarvan heeft <b>deeltje 1</b> precies 0, 1, 2, ... kwanta? Reken het uit als percentage van het aantal gevonden microtoestanden — dat is de kans dat een willekeurig deeltje die energie heeft. Werk dit pas helemaal uit als je <i>alle</i> microtoestanden gevonden hebt.</p>
+        <div id="m1-deeltje1-chart"></div>
+        <div class="stat-row" id="m1-deeltje1-stats" style="margin-top:4px;"></div>
+      </div>
+    </section>
+
+    <!-- module 2,3,4 placeholders, filled in later steps -->
+    <section class="module" id="m2">
+      <div class="panel">
+        <h2>Alle microtoestanden geteld <span class="formula">P(e₁=E) = (aantal microtoestanden met e₁=E) / W</span></h2>
+        <p class="sub">Dit is dezelfde vraag als aan het eind van module 1 — "in welk deel van alle microtoestanden heeft deeltje 1 energie E?" — maar nu rekent de computer het uit voor veel grotere N en q, zonder dat je alles met de hand moet vinden. Het resultaat is een <b>exponentieel afnemende</b> verdeling: de Boltzmann-verdeling.</p>
+
+        <div class="controls">
+          <div class="ctrl">
+            <label>Aantal deeltjes N</label>
+            <div class="rowval"><span id="m2-N-val" class="val">12</span></div>
+            <input type="range" id="m2-N" min="2" max="16" value="12" step="1">
+          </div>
+          <div class="ctrl">
+            <label>Energiekwanta q</label>
+            <div class="rowval"><span id="m2-q-val" class="val">10</span></div>
+            <input type="range" id="m2-q" min="1" max="20" value="10" step="1">
+          </div>
+          <div class="ctrl">
+            <label>Energy spacing ε</label>
+            <div class="rowval"><span id="m2-eps-val" class="val">1</span></div>
+            <input type="range" id="m2-eps" min="1" max="3" value="1" step="1">
+          </div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat"><span class="lbl">Totaal aantal microtoestanden W</span><b id="m2-Wtotal">—</b></div>
+          <div class="stat"><span class="lbl">P(e₁ = 0) — kans dat deeltje 1 in de grondtoestand zit</span><b id="m2-p0">—</b></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 style="font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;">Kansverdeling van de energie van deeltje 1</h2>
+        <p class="sub" style="margin-bottom:10px;">De gestippelde lijn is een exponentieel fit-verloop. Hoe groter N en q, hoe mooier de balkjes daarop liggen.</p>
+        <div id="m2-chart"></div>
+      </div>
+
+      <div class="panel">
+        <p class="sub" style="margin:0 0 10px;"><b>Ter vergelijking — een andere vraag die je ook kunt stellen:</b> niet "wat doet één deeltje gemiddeld", maar "welke <i>bezetting</i> (hoeveel deeltjes per niveau) komt het vaakst voor onder alle microtoestanden?" Dat is een net iets andere grootheid — bij kleine N kunnen die twee antwoorden best uiteenlopen, bij grote N vallen ze vrijwel samen.</p>
+        <div class="stat-row">
+          <div class="stat"><span class="lbl">Meest waarschijnlijke bezetting (n₀,n₁,...)</span><b id="m2-best">—</b></div>
+          <div class="stat"><span class="lbl">Aantal microtoestanden van die bezetting</span><b id="m2-bestW">—</b></div>
+        </div>
+      </div>
+    </section>
+    <section class="module" id="m3">
+      <div class="panel">
+        <h2>Monte Carlo — hetzelfde resultaat, andere weg <span class="formula">elke microtoestand even waarschijnlijk</span></h2>
+        <p class="sub">Hier wisselen deeltjes <b>willekeurig</b> kwanta uit, stap voor stap, helemaal zonder dat iemand de Boltzmann-vorm erin programmeert. Toch settelt de bezetting na verloop van tijd vanzelf naar dezelfde exponentiële verdeling als in module 2 — omdat de simulatie net als de natuur alle microtoestanden toestaat, en de meeste daarvan toevallig die vorm hebben.</p>
+
+        <div class="controls">
+          <div class="ctrl">
+            <label>Aantal deeltjes N</label>
+            <div class="rowval"><span id="m3-N-val" class="val">30</span></div>
+            <input type="range" id="m3-N" min="4" max="80" value="30" step="1">
+          </div>
+          <div class="ctrl">
+            <label>Energiekwanta q</label>
+            <div class="rowval"><span id="m3-q-val" class="val">40</span></div>
+            <input type="range" id="m3-q" min="2" max="120" value="40" step="1">
+          </div>
+          <div class="ctrl">
+            <label>Energy spacing ε</label>
+            <div class="rowval"><span id="m3-eps-val" class="val">1</span></div>
+            <input type="range" id="m3-eps" min="1" max="3" value="1" step="1">
+          </div>
+          <div class="ctrl">
+            <label>Snelheid (stappen/tick)</label>
+            <div class="rowval"><span id="m3-speed-val" class="val">20</span></div>
+            <input type="range" id="m3-speed" min="1" max="200" value="20" step="1">
+          </div>
+          <button class="btn primary" id="m3-toggle">Start</button>
+          <button class="btn" id="m3-reset">Reset</button>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat"><span class="lbl">Stappen uitgevoerd</span><b id="m3-steps">0</b></div>
+          <div class="stat"><span class="lbl">Totale energie (controle)</span><b id="m3-energy">—</b></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 style="font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;">Live bezetting per energieniveau</h2>
+        <p class="sub" style="margin-bottom:10px;">Gestippelde lijn = exponentieel verloop op basis van de huidige bezetting van niveau 0 en het naburige niveau, als referentie.</p>
+        <div id="m3-chart"></div>
+      </div>
+    </section>
+    <section class="module" id="m4">
+      <div class="panel">
+        <h2>Evenwicht tussen twee toestanden <span class="formula">populatie ∝ Σ exp(−Eᵢ/kT)</span></h2>
+        <p class="sub">Twee "compartimenten" A en B — denk aan twee conformaties van een molecuul, of reactant vs. product — elk met hun eigen <b>grondtoestand-energie</b> (hoe stabiel) en hun eigen <b>energy spacing</b> (hoe dicht de niveaus opeenvolgend liggen, bv. door verschil in massa/stijfheid). Alle deeltjes verdelen zich volgens Boltzmann over <i>alle</i> niveaus van beide compartimenten samen. De ligging van het evenwicht A↔B volgt daar automatisch uit — net als bij een chemisch evenwicht.</p>
+
+        <div class="controls">
+          <div class="ctrl">
+            <label>Grondtoestand B t.o.v. A: ΔE (kwanta)</label>
+            <div class="rowval"><span id="m4-delta-val" class="val">3</span></div>
+            <input type="range" id="m4-delta" min="0" max="15" value="3" step="1">
+          </div>
+          <div class="ctrl">
+            <label>Energy spacing A: ε_A (kwanta)</label>
+            <div class="rowval"><span id="m4-epsA-val" class="val">1</span></div>
+            <input type="range" id="m4-epsA" min="1" max="5" value="1" step="1">
+          </div>
+          <div class="ctrl">
+            <label>Energy spacing B: ε_B (kwanta)</label>
+            <div class="rowval"><span id="m4-epsB-val" class="val">1</span></div>
+            <input type="range" id="m4-epsB" min="1" max="5" value="1" step="1">
+          </div>
+          <div class="ctrl">
+            <label>"Temperatuur" — β·ε_ref⁻¹ schaal</label>
+            <div class="rowval"><span id="m4-T-val" class="val">3.0</span></div>
+            <input type="range" id="m4-T" min="0.3" max="10" value="3.0" step="0.1">
+          </div>
+          <div class="ctrl">
+            <label>Aantal niveaus per compartiment (rekenbreedte)</label>
+            <div class="rowval"><span id="m4-levels-val" class="val">25</span></div>
+            <input type="range" id="m4-levels" min="10" max="60" value="25" step="1">
+          </div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat"><span class="lbl">Populatie A</span><b id="m4-popA">—</b></div>
+          <div class="stat"><span class="lbl">Populatie B</span><b id="m4-popB">—</b></div>
+          <div class="stat"><span class="lbl">Verhouding K = pop(B) / pop(A)</span><b id="m4-K">—</b></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 style="font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;">Energieniveaus en bezetting — compartiment A (links) en B (rechts)</h2>
+        <div id="m4-chart"></div>
+      </div>
+
+      <div class="panel">
+        <p class="sub" style="margin:0;">
+          <b>Wat hier gebeurt, in het kort:</b> elk energieniveau krijgt een Boltzmann-gewicht exp(−E/kT). Compartiment B heeft een hogere grondtoestand (ΔE), dus zijn niveaus zijn allemaal "duurder" in energie — daardoor verschuift de balans naar A wanneer ΔE groot is of de temperatuur laag. Een kleinere energy spacing in een compartiment betekent meer niveaus binnen bereik bij dezelfde energie, dus relatief méér mogelijke toestanden — dat trekt de balans juist weer naar dat compartiment. De ligging van het evenwicht is dus een samenspel van <i>energie</i> (ΔE) én <i>aantal toegankelijke toestanden</i> (spacing) — exact de twee ingrediënten die ook in een chemisch evenwicht de K-waarde bepalen.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="note">Volledig offline HTML-tool · geen externe afhankelijkheden · alle berekeningen lokaal in de browser</footer>
+</div>
+
+<script>
+// ============ TAB SWITCHING ============
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.module').forEach(m=>m.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.mod).classList.add('active');
+  });
+});
+
+// ============ SHARED MATH HELPERS ============
+function factorial(n){ let r=1; for(let i=2;i<=n;i++) r*=i; return r; }
+function binom(n,k){
+  if(k<0||k>n) return 0;
+  k = Math.min(k, n-k);
+  let r = 1;
+  for(let i=0;i<k;i++) r = r * (n-i) / (i+1);
+  return Math.round(r);
+}
+// Generate all compositions of q quanta over N particles (ordered, each >=0), as arrays of length N.
+function generateCompositions(q, N){
+  const results = [];
+  const arr = new Array(N).fill(0);
+  function rec(idx, remaining){
+    if(idx === N-1){ arr[idx] = remaining; results.push(arr.slice()); return; }
+    for(let v=0; v<=remaining; v++){
+      arr[idx] = v;
+      rec(idx+1, remaining-v);
+    }
+  }
+  if(N === 0){ return results; }
+  rec(0, q);
+  return results;
+}
+
+// ============================================================
+// MODULE 1 — Build microstates by dragging particles
+// ============================================================
+(function(){
+  const elN = document.getElementById('m1-N');
+  const elQ = document.getElementById('m1-q');
+  const elEps = document.getElementById('m1-eps');
+  const elNVal = document.getElementById('m1-N-val');
+  const elQVal = document.getElementById('m1-q-val');
+  const elEpsVal = document.getElementById('m1-eps-val');
+  const stage = document.getElementById('m1-stage');
+  const elFound = document.getElementById('m1-found');
+  const elTotal = document.getElementById('m1-total');
+  const elValid = document.getElementById('m1-valid');
+  const elGroups = document.getElementById('m1-groups');
+  const elReset = document.getElementById('m1-reset');
+  const elD1Chart = document.getElementById('m1-deeltje1-chart');
+  const elD1Stats = document.getElementById('m1-deeltje1-stats');
+
+  let N, q, eps, m, divides;
+  let placements = {}; // particleId -> level index (0..m), or null if unplaced
+  let foundSet = new Set(); // set of serialized composition strings, for fast lookup
+  let foundStates = []; // ordered list of the actual arrays, e.g. [2,1,0]
+
+  // A single particle can only sit at energies 0, eps, 2*eps, 3*eps, ... -- the rungs of its own
+  // ladder, spaced eps apart. m is how many rungs fit within the total energy budget q (the
+  // highest reachable rung is m*eps, which is <= q but not necessarily equal to q). Levels are
+  // indexed 0..m; level index k means energy k*eps.
+  //
+  // q itself is a budget in raw energy units, NOT in "number of quanta on this particle" -- that
+  // distinction only mattered when eps was being used as a cosmetic afterthought. Now that rung
+  // spacing is real, q/eps need not be a whole number, and when it isn't, no combination of rungs
+  // (all multiples of eps) can ever sum to exactly q -- summing multiples of eps always gives a
+  // multiple of eps, and q itself isn't one. That's not a bug to hide: it's shown to the learner
+  // directly (see updateStats), the same way "you can't split 7 into thirds and land on a whole
+  // number" is itself worth seeing, not silently rounding q so it always happens to work.
+  function recomputeLadder(){
+    m = Math.floor(q/eps);
+    divides = (q % eps === 0);
+  }
+
+  function levelEnergyLabel(levelIdx){
+    return `${levelIdx*eps} ħω`;
+  }
+
+  function serializeCurrent(){
+    // returns array of length N with energy quantum count per particle, or null if incomplete
+    const arr = [];
+    for(let i=0;i<N;i++){
+      const lvl = placements[i];
+      if(lvl === null || lvl === undefined) return null;
+      arr.push(lvl);
+    }
+    return arr;
+  }
+
+  function totalEnergy(arr){
+    // arr holds level INDICES (0..m); the actual energy of each particle is index*eps.
+    return arr.reduce((a,b)=>a+b*eps, 0);
+  }
+
+  // "Vorm" (macrotoestand) van een microtoestand: voor elk energieniveau, hoeveel deeltjes hebben die energie.
+  // Dit is onafhankelijk van WELKE deeltjes het zijn -- (2,1,0) en (1,2,0) en (0,1,2) hebben dezelfde vorm.
+  function shapeOf(arr){
+    const shape = new Array(m+1).fill(0);
+    for(const e of arr) shape[e]++;
+    return shape;
+  }
+  function shapeKey(shape){
+    return shape.join(',');
+  }
+  function shapeLabel(shape){
+    // human-readable: "2x energie 0, 1x energie 1, 1x energie 2" -- the energy show here is the
+    // particle's actual energy (level index * eps), not the raw level index, since that's the
+    // physically meaningful number this label is meant to convey.
+    const parts = [];
+    for(let i=0;i<shape.length;i++){
+      if(shape[i] > 0) parts.push(`${shape[i]}× E=${i*eps}`);
+    }
+    return parts.join('  ·  ');
+  }
+
+  function updateStats(justFoundNew){
+    const total = divides ? binom(m+N-1, N-1) : 0;
+    elTotal.textContent = divides ? total : '0 (onmogelijk)';
+    elFound.textContent = foundSet.size;
+
+    const cur = serializeCurrent();
+    if(cur === null){
+      elValid.textContent = '— (nog niet alle deeltjes geplaatst)';
+      elValid.style.color = 'var(--text-dim)';
+    } else {
+      const sum = totalEnergy(cur);
+      if(sum !== q){
+        elValid.textContent = `nee — som = ${sum} ħω, moet ${q} ħω zijn`;
+        elValid.style.color = 'var(--warn)';
+      } else if(justFoundNew){
+        elValid.textContent = 'geldig — nieuwe microtoestand!';
+        elValid.style.color = 'var(--accent)';
+      } else {
+        elValid.textContent = 'geldig, maar al eerder gevonden';
+        elValid.style.color = 'var(--accent2)';
+      }
+    }
+  }
+
+  function renderGroups(){
+    elGroups.innerHTML = '';
+    if(foundStates.length === 0){
+      const empty = document.createElement('p');
+      empty.style.color = 'var(--text-dim)';
+      empty.style.fontSize = '13px';
+      empty.style.margin = '0';
+      empty.textContent = 'Nog niets gevonden — sleep deeltjes naar energieniveaus om te beginnen.';
+      elGroups.appendChild(empty);
+      return;
+    }
+
+    // group found states by shape
+    const groups = new Map(); // shapeKey -> {shape, members: [arr,...]}
+    for(const arr of foundStates){
+      const shape = shapeOf(arr);
+      const key = shapeKey(shape);
+      if(!groups.has(key)) groups.set(key, {shape, members: []});
+      groups.get(key).members.push(arr);
+    }
+
+    // sort groups by shape descending energy spread (cosmetic: ground-state-heavy first)
+    const sortedGroups = Array.from(groups.values()).sort((a,b)=>{
+      // sort by shape[0] descending (most particles in ground state first), then by shape array
+      for(let i=0;i<a.shape.length;i++){
+        if(b.shape[i] !== a.shape[i]) return b.shape[i]-a.shape[i];
+      }
+      return 0;
+    });
+
+    for(const g of sortedGroups){
+      const card = document.createElement('div');
+      card.style.border = '1px solid var(--line)';
+      card.style.borderRadius = '8px';
+      card.style.padding = '10px 14px';
+      card.style.background = 'var(--panel-2)';
+
+      const headerRow = document.createElement('div');
+      headerRow.style.display = 'flex';
+      headerRow.style.justifyContent = 'space-between';
+      headerRow.style.alignItems = 'baseline';
+      headerRow.style.marginBottom = '6px';
+      headerRow.style.flexWrap = 'wrap';
+      headerRow.style.gap = '6px';
+
+      const shapeLbl = document.createElement('div');
+      shapeLbl.style.fontFamily = 'var(--mono)';
+      shapeLbl.style.fontSize = '12.5px';
+      shapeLbl.style.color = 'var(--accent2)';
+      shapeLbl.textContent = shapeLabel(g.shape);
+      headerRow.appendChild(shapeLbl);
+
+      const maxPossible = factorial(N) / g.shape.reduce((acc,n)=>acc*factorial(n),1);
+      const countLbl = document.createElement('div');
+      countLbl.style.fontFamily = 'var(--mono)';
+      countLbl.style.fontSize = '12px';
+      countLbl.style.color = 'var(--text-dim)';
+      countLbl.textContent = `${g.members.length} / ${maxPossible} gevonden`;
+      headerRow.appendChild(countLbl);
+
+      card.appendChild(headerRow);
+
+      const chipsRow = document.createElement('div');
+      chipsRow.style.display = 'flex';
+      chipsRow.style.flexWrap = 'wrap';
+      chipsRow.style.gap = '6px';
+      for(const arr of g.members){
+        const chip = document.createElement('div');
+        chip.style.border = '1px solid var(--accent-dim)';
+        chip.style.borderRadius = '5px';
+        chip.style.padding = '3px 8px';
+        chip.style.fontFamily = 'var(--mono)';
+        chip.style.fontSize = '12px';
+        chip.style.background = 'var(--bg)';
+        // arr holds level INDICES; show actual energies (index*eps) since the panel intro defines
+        // (e1,e2,e3,...) as each particle's energy, not its raw level index.
+        chip.textContent = '(' + arr.map(lvl=>lvl*eps).join(', ') + ')';
+        chipsRow.appendChild(chip);
+      }
+      card.appendChild(chipsRow);
+      elGroups.appendChild(card);
+    }
+  }
+
+  function renderDeeltje1Chart(){
+    const numLevels = m+1;
+    const counts = new Array(numLevels).fill(0);
+    for(const arr of foundStates){
+      counts[arr[0]]++;
+    }
+    const totalFound = foundStates.length;
+
+    if(totalFound === 0){
+      elD1Chart.innerHTML = '<p style="color:var(--text-dim);font-size:13px;margin:0;">Nog geen microtoestanden gevonden.</p>';
+      elD1Stats.innerHTML = '';
+      return;
+    }
+
+    // render as a simple bar chart of counts (not percentages in the bars themselves -- let the learner compute %)
+    renderOccupationChart(elD1Chart, counts, eps, {yLabel: 'Aantal gevonden toestanden met e₁ = dit niveau', showFit: false});
+
+    const W = divides ? binom(m+N-1, N-1) : 0;
+    elD1Stats.innerHTML = '';
+    for(let i=0;i<numLevels;i++){
+      const stat = document.createElement('div');
+      stat.className = 'stat';
+      const pct = (100*counts[i]/totalFound).toFixed(1);
+      stat.innerHTML = `<span class="lbl">e₁ = ${i*eps} ħω</span><b>${counts[i]} / ${totalFound}${ totalFound === W ? ' = '+pct+'%' : '' }</b>`;
+      elD1Stats.appendChild(stat);
+    }
+  }
+
+  function logNewState(arr){
+    const key = arr.join(',');
+    foundSet.add(key);
+    foundStates.push(arr.slice());
+  }
+
+  function checkAndRegister(){
+    const cur = serializeCurrent();
+    if(cur === null){ updateStats(false); return; }
+    if(totalEnergy(cur) !== q){ updateStats(false); return; }
+    const key = cur.join(',');
+    const isNew = !foundSet.has(key);
+    if(isNew){
+      logNewState(cur);
+      renderGroups();
+      renderDeeltje1Chart();
+    }
+    updateStats(isNew);
+  }
+
+  function buildStage(){
+    recomputeLadder();
+    stage.innerHTML = '';
+    placements = {};
+    for(let i=0;i<N;i++) placements[i] = null;
+
+    const wrap = document.createElement('div');
+    wrap.style.display = 'flex';
+    wrap.style.flexDirection = 'column';
+    wrap.style.gap = '18px';
+
+    if(!divides){
+      const warning = document.createElement('div');
+      warning.style.border = '1px solid var(--warn)';
+      warning.style.borderRadius = '8px';
+      warning.style.padding = '10px 14px';
+      warning.style.fontSize = '13px';
+      warning.style.lineHeight = '1.5';
+      warning.style.color = 'var(--warn)';
+      warning.innerHTML = `<b>Deze combinatie kan nooit een geldige microtoestand opleveren.</b> Elk deeltje kan alleen energie 0, ${eps}, ${2*eps}, ${3*eps}, ... ħω hebben — altijd een veelvoud van de energy spacing ε=${eps}. De som van een aantal veelvouden van ${eps} is zelf ook weer een veelvoud van ${eps}. Maar q=${q} ħω is geen veelvoud van ${eps} (${q} ÷ ${eps} = ${(q/eps).toFixed(2)}), dus geen plaatsing van de deeltjes kan ooit precies op ${q} ħω optellen. Sleep gerust verder om dat zelf te zien — de teller hieronder blijft op 0 / 0 (onmogelijk) staan, wat dat ook bevestigt.`;
+      wrap.appendChild(warning);
+    }
+
+    // Particle tray
+    const tray = document.createElement('div');
+    tray.style.display = 'flex';
+    tray.style.gap = '10px';
+    tray.style.flexWrap = 'wrap';
+    tray.style.padding = '12px';
+    tray.style.border = '1px dashed var(--line)';
+    tray.style.borderRadius = '8px';
+    tray.style.minHeight = '56px';
+    tray.id = 'm1-tray';
+    tray.dataset.level = 'tray';
+
+    const trayLabel = document.createElement('div');
+    trayLabel.textContent = 'Ongeplaatste deeltjes (sleep naar een niveau hieronder):';
+    trayLabel.style.fontSize = '12px';
+    trayLabel.style.color = 'var(--text-dim)';
+    trayLabel.style.width = '100%';
+    trayLabel.style.marginBottom = '2px';
+    tray.appendChild(trayLabel);
+
+    const particles = [];
+    for(let i=0;i<N;i++){
+      const p = document.createElement('div');
+      p.draggable = true;
+      p.dataset.pid = i;
+      p.textContent = 'd' + (i+1);
+      p.style.width = '38px';
+      p.style.height = '38px';
+      p.style.borderRadius = '50%';
+      p.style.display = 'flex';
+      p.style.alignItems = 'center';
+      p.style.justifyContent = 'center';
+      p.style.background = 'var(--accent-dim)';
+      p.style.color = '#fff3ea';
+      p.style.fontFamily = 'var(--mono)';
+      p.style.fontSize = '13px';
+      p.style.cursor = 'grab';
+      p.style.border = '1px solid var(--accent)';
+      p.style.userSelect = 'none';
+      p.addEventListener('dragstart', (e)=>{
+        e.dataTransfer.setData('text/plain', i);
+      });
+      particles.push(p);
+      tray.appendChild(p);
+    }
+    wrap.appendChild(tray);
+
+    // Levels area (energy ladder, drawn bottom-up visually but as rows top-to-bottom = high to low)
+    const levelsWrap = document.createElement('div');
+    levelsWrap.style.display = 'flex';
+    levelsWrap.style.flexDirection = 'column-reverse';
+    levelsWrap.style.gap = '8px';
+
+    for(let lvl=0; lvl<=m; lvl++){
+      const row = document.createElement('div');
+      row.style.display = 'flex';
+      row.style.alignItems = 'center';
+      row.style.gap = '12px';
+
+      const labelCol = document.createElement('div');
+      labelCol.style.width = '64px';
+      labelCol.style.flexShrink = '0';
+      labelCol.style.fontFamily = 'var(--mono)';
+      labelCol.style.fontSize = '11.5px';
+      labelCol.style.color = 'var(--text-dim)';
+      labelCol.style.textAlign = 'right';
+      labelCol.textContent = levelEnergyLabel(lvl);
+      row.appendChild(labelCol);
+
+      const dropZone = document.createElement('div');
+      dropZone.dataset.level = lvl;
+      dropZone.style.flex = '1';
+      dropZone.style.minHeight = '46px';
+      dropZone.style.border = '1px solid var(--line)';
+      dropZone.style.borderRadius = '7px';
+      dropZone.style.display = 'flex';
+      dropZone.style.alignItems = 'center';
+      dropZone.style.gap = '8px';
+      dropZone.style.padding = '6px 10px';
+      dropZone.style.background = lvl===0 ? 'rgba(95,180,162,0.06)' : 'transparent';
+
+      dropZone.addEventListener('dragover', (e)=>{ e.preventDefault(); dropZone.style.borderColor='var(--accent)'; });
+      dropZone.addEventListener('dragleave', ()=>{ dropZone.style.borderColor='var(--line)'; });
+      dropZone.addEventListener('drop', (e)=>{
+        e.preventDefault();
+        dropZone.style.borderColor='var(--line)';
+        const pid = parseInt(e.dataTransfer.getData('text/plain'));
+        placements[pid] = lvl;
+        dropZone.appendChild(particles[pid]);
+        checkAndRegister();
+      });
+
+      row.appendChild(dropZone);
+      levelsWrap.appendChild(row);
+    }
+
+    // tray also a drop zone (to unplace)
+    tray.addEventListener('dragover', (e)=>{ e.preventDefault(); });
+    tray.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      const pid = parseInt(e.dataTransfer.getData('text/plain'));
+      placements[pid] = null;
+      tray.appendChild(particles[pid]);
+      updateStats();
+    });
+
+    wrap.appendChild(levelsWrap);
+    stage.appendChild(wrap);
+    updateStats();
+  }
+
+  function resetAll(){
+    N = parseInt(elN.value);
+    q = parseInt(elQ.value);
+    eps = parseInt(elEps.value);
+    foundSet = new Set();
+    foundStates = [];
+    buildStage();
+    renderGroups();
+    renderDeeltje1Chart();
+  }
+
+  elN.addEventListener('input', ()=>{ elNVal.textContent = elN.value; });
+  elQ.addEventListener('input', ()=>{ elQVal.textContent = elQ.value; });
+  elEps.addEventListener('input', ()=>{ elEpsVal.textContent = elEps.value; });
+  elN.addEventListener('change', resetAll);
+  elQ.addEventListener('change', resetAll);
+  elEps.addEventListener('change', resetAll);
+  elReset.addEventListener('click', resetAll);
+
+  resetAll();
+})();
+
+// ============================================================
+// SHARED CHART RENDERER (used by modules 2 and 3)
+// ============================================================
+function renderOccupationChart(targetDiv, occ, eps, opts){
+  opts = opts || {};
+  targetDiv.innerHTML = '';
+  const numLevels = occ.length;
+  const W = 700, H = 340, padL = 50, padR = 20, padT = 20, padB = 50;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const maxOcc = Math.max(...occ, 1);
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.style.width = '100%';
+  svg.style.maxWidth = '720px';
+  svg.style.height = 'auto';
+
+  const ngrid = 4;
+  for(let i=0;i<=ngrid;i++){
+    const y = padT + plotH - (i/ngrid)*plotH;
+    const line = document.createElementNS(svgNS,'line');
+    line.setAttribute('x1', padL); line.setAttribute('x2', W-padR);
+    line.setAttribute('y1', y); line.setAttribute('y2', y);
+    line.setAttribute('class','grid-line');
+    svg.appendChild(line);
+    const lbl = document.createElementNS(svgNS,'text');
+    lbl.setAttribute('x', padL-8); lbl.setAttribute('y', y+4);
+    lbl.setAttribute('text-anchor','end');
+    lbl.setAttribute('class','axis-label');
+    lbl.textContent = Math.round((i/ngrid)*maxOcc*10)/10;
+    svg.appendChild(lbl);
+  }
+
+  const barW = Math.min(34, plotW/numLevels * 0.7);
+  const step = plotW/numLevels;
+
+  let lambdaEst = null;
+  const showFit = opts.showFit !== false;
+  if(showFit){
+    for(let i=1;i<numLevels;i++){
+      if(occ[i] > 0 && occ[0] > 0){
+        lambdaEst = -i/Math.log(occ[i]/occ[0]);
+        break;
+      }
+    }
+  }
+  if(lambdaEst && isFinite(lambdaEst) && lambdaEst>0){
+    let pathD = '';
+    for(let i=0;i<numLevels;i++){
+      const x = padL + i*step + step/2;
+      const yVal = occ[0]*Math.exp(-i/lambdaEst);
+      const y = padT + plotH - (yVal/maxOcc)*plotH;
+      pathD += (i===0 ? 'M':'L') + x + ' ' + y + ' ';
+    }
+    const path = document.createElementNS(svgNS,'path');
+    path.setAttribute('d', pathD.trim());
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke','var(--accent2)');
+    path.setAttribute('stroke-width','2');
+    path.setAttribute('stroke-dasharray','5,4');
+    svg.appendChild(path);
+  }
+
+  for(let i=0;i<numLevels;i++){
+    const x = padL + i*step + (step-barW)/2;
+    const barH = (occ[i]/maxOcc)*plotH;
+    const y = padT + plotH - barH;
+    const rect = document.createElementNS(svgNS,'rect');
+    rect.setAttribute('x', x); rect.setAttribute('y', y);
+    rect.setAttribute('width', barW); rect.setAttribute('height', Math.max(barH,0));
+    rect.setAttribute('fill', i===0 ? 'var(--accent)' : 'var(--accent-dim)');
+    rect.setAttribute('rx', '2');
+    svg.appendChild(rect);
+
+    if(numLevels <= 22){
+      const lbl = document.createElementNS(svgNS,'text');
+      lbl.setAttribute('x', x+barW/2); lbl.setAttribute('y', H-padB+16);
+      lbl.setAttribute('text-anchor','middle');
+      lbl.setAttribute('class','axis-label');
+      lbl.textContent = (i*eps);
+      svg.appendChild(lbl);
+    }
+  }
+  const xAxisLbl = document.createElementNS(svgNS,'text');
+  xAxisLbl.setAttribute('x', padL+plotW/2); xAxisLbl.setAttribute('y', H-8);
+  xAxisLbl.setAttribute('text-anchor','middle');
+  xAxisLbl.setAttribute('class','axis-label');
+  xAxisLbl.textContent = opts.xLabel || 'Energieniveau (in kwanta · ε)';
+  svg.appendChild(xAxisLbl);
+
+  const yAxisLbl = document.createElementNS(svgNS,'text');
+  yAxisLbl.setAttribute('x', 14); yAxisLbl.setAttribute('y', padT+plotH/2);
+  yAxisLbl.setAttribute('text-anchor','middle');
+  yAxisLbl.setAttribute('class','axis-label');
+  yAxisLbl.setAttribute('transform', `rotate(-90, 14, ${padT+plotH/2})`);
+  yAxisLbl.textContent = opts.yLabel || 'Aantal deeltjes nᵢ';
+  svg.appendChild(yAxisLbl);
+
+  targetDiv.appendChild(svg);
+}
+
+// ============================================================
+// MODULE 2 — All microstates counted, most probable distribution
+// ============================================================
+(function(){
+  const elN = document.getElementById('m2-N');
+  const elQ = document.getElementById('m2-q');
+  const elEps = document.getElementById('m2-eps');
+  const elNVal = document.getElementById('m2-N-val');
+  const elQVal = document.getElementById('m2-q-val');
+  const elEpsVal = document.getElementById('m2-eps-val');
+  const elWtotal = document.getElementById('m2-Wtotal');
+  const elP0 = document.getElementById('m2-p0');
+  const elBest = document.getElementById('m2-best');
+  const elBestW = document.getElementById('m2-bestW');
+  const chartDiv = document.getElementById('m2-chart');
+
+  // log-factorial table for big-number safe multiplicity comparisons
+  function logFactorialTable(maxN){
+    const lf = new Array(maxN+1);
+    lf[0] = 0;
+    for(let i=1;i<=maxN;i++) lf[i] = lf[i-1] + Math.log(i);
+    return lf;
+  }
+
+  function logMultiplicity(occ, lf){
+    // log( N! / prod(n_i!) )
+    let total = occ.reduce((a,b)=>a+b,0);
+    let res = lf[total];
+    for(const n of occ) res -= lf[n];
+    return res;
+  }
+
+  // Find the most probable occupation numbers n_0..n_q (levels 0..q, energy = level*eps in quanta units)
+  // subject to sum(n_i) = N and sum(i*n_i) = q, via local search (hill climbing on log-multiplicity).
+  // Elementary move: take one particle from level a to level b, and one particle from level c to level d,
+  // where (b-a) = -(d-c), so total energy and total N are conserved. This move set is rich enough to reach
+  // the global optimum for these problem sizes (verified against brute-force enumeration for small N,q).
+  function mostProbableOccupation(N, q){
+    const numLevels = q+1;
+    const lf = logFactorialTable(N + 5);
+
+    let occ = new Array(numLevels).fill(0);
+    occ[0] = N-1;
+    occ[Math.min(q, numLevels-1)] += 1; // one particle carries all q quanta — valid starting composition
+
+    let improved = true;
+    let iterations = 0;
+    while(improved && iterations < 50000){
+      improved = false;
+      iterations++;
+      let bestDelta = 1e-12;
+      let bestMove = null;
+      const curLog = logMultiplicity(occ, lf);
+      for(let a=0;a<numLevels;a++){
+        if(occ[a]===0) continue;
+        for(let b=0;b<numLevels;b++){
+          if(a===b) continue;
+          const deltaE1 = b-a;
+          for(let c=0;c<numLevels;c++){
+            const d = c - deltaE1;
+            if(d<0 || d>=numLevels) continue;
+            if(c===d) continue;
+            let tempOcc = occ.slice();
+            if(tempOcc[a]<=0) continue;
+            tempOcc[a]--;
+            if(tempOcc[c]<=0) continue;
+            tempOcc[c]--;
+            tempOcc[b]++;
+            tempOcc[d]++;
+            if(tempOcc.some(x=>x<0)) continue;
+            const newLog = logMultiplicity(tempOcc, lf);
+            const delta = newLog - curLog;
+            if(delta > bestDelta){
+              bestDelta = delta;
+              bestMove = tempOcc;
+            }
+          }
+        }
+      }
+      if(bestMove){
+        occ = bestMove;
+        improved = true;
+      }
+    }
+    return occ;
+  }
+
+  // Kans dat deeltje 1 specifiek energie E heeft, gemiddeld over alle microtoestanden:
+  // P(e1=E) = (aantal manieren om de resterende q-E kwanta over de resterende N-1 deeltjes te verdelen) / W
+  function probDeeltje1(E, N, q){
+    if(E > q) return 0;
+    if(N < 2) return E === q ? 1 : 0; // edge case: N=1, het enige deeltje heeft altijd alle kwanta
+    const teller = binom((q-E)+(N-1)-1, N-2);
+    const noemer = binom(q+N-1, N-1);
+    return teller/noemer;
+  }
+
+  function update(){
+    const N = parseInt(elN.value);
+    const q = parseInt(elQ.value);
+    const eps = parseInt(elEps.value);
+    elNVal.textContent = N;
+    elQVal.textContent = q;
+    elEpsVal.textContent = eps;
+
+    const W = binom(q+N-1, N-1);
+    elWtotal.textContent = W.toLocaleString('nl-NL');
+
+    const numLevels = q+1;
+    const probs = [];
+    for(let E=0;E<numLevels;E++) probs.push(probDeeltje1(E, N, q));
+    elP0.textContent = (probs[0]*100).toFixed(1) + '%';
+
+    renderOccupationChart(chartDiv, probs, eps, {yLabel: 'P(e₁ = dit niveau)'});
+
+    const occ = mostProbableOccupation(N, q);
+    const lf = logFactorialTable(N+5);
+    const logW = logMultiplicity(occ, lf);
+    const Wbest = Math.exp(logW);
+
+    elBest.textContent = '(' + occ.join(', ') + ')';
+    elBestW.textContent = Wbest > 1e6 ? Wbest.toExponential(3) : Math.round(Wbest).toLocaleString('nl-NL');
+  }
+
+  elN.addEventListener('input', update);
+  elQ.addEventListener('input', update);
+  elEps.addEventListener('input', update);
+  update();
+})();
+
+// ============================================================
+// MODULE 3 — Monte Carlo simulation
+// ============================================================
+(function(){
+  const elN = document.getElementById('m3-N');
+  const elQ = document.getElementById('m3-q');
+  const elEps = document.getElementById('m3-eps');
+  const elSpeed = document.getElementById('m3-speed');
+  const elNVal = document.getElementById('m3-N-val');
+  const elQVal = document.getElementById('m3-q-val');
+  const elEpsVal = document.getElementById('m3-eps-val');
+  const elSpeedVal = document.getElementById('m3-speed-val');
+  const elToggle = document.getElementById('m3-toggle');
+  const elReset = document.getElementById('m3-reset');
+  const elSteps = document.getElementById('m3-steps');
+  const elEnergy = document.getElementById('m3-energy');
+  const chartDiv = document.getElementById('m3-chart');
+
+  let N, q, eps, speed;
+  let particleEnergies; // array length N, energy in quanta per particle
+  let running = false;
+  let stepCount = 0;
+  let rafId = null;
+
+  function initParticles(){
+    N = parseInt(elN.value);
+    q = parseInt(elQ.value);
+    eps = parseInt(elEps.value);
+    particleEnergies = new Array(N).fill(0);
+    // distribute q quanta one at a time onto random particles to start from a random valid state
+    for(let i=0;i<q;i++){
+      const p = Math.floor(Math.random()*N);
+      particleEnergies[p]++;
+    }
+    stepCount = 0;
+    elSteps.textContent = '0';
+    updateChart();
+  }
+
+  function mcStep(){
+    // pick a random particle with energy > 0 to donate one quantum, and a random particle to receive it
+    let giver = Math.floor(Math.random()*N);
+    let tries = 0;
+    while(particleEnergies[giver] <= 0 && tries < 50){
+      giver = Math.floor(Math.random()*N);
+      tries++;
+    }
+    if(particleEnergies[giver] <= 0) return; // all zero (q=0 edge case)
+    const receiver = Math.floor(Math.random()*N);
+    particleEnergies[giver]--;
+    particleEnergies[receiver]++;
+    stepCount++;
+  }
+
+  function currentOccupation(){
+    const maxLevel = Math.max(...particleEnergies, q);
+    const occ = new Array(maxLevel+1).fill(0);
+    for(const e of particleEnergies) occ[e]++;
+    return occ;
+  }
+
+  function updateChart(){
+    const occ = currentOccupation();
+    renderOccupationChart(chartDiv, occ, eps);
+    elSteps.textContent = stepCount.toLocaleString('nl-NL');
+    const totalE = particleEnergies.reduce((a,b)=>a+b,0);
+    elEnergy.textContent = totalE + ' kwanta (moet ' + q + ' blijven)';
+  }
+
+  function tick(){
+    if(!running) return;
+    for(let i=0;i<speed;i++) mcStep();
+    updateChart();
+    rafId = requestAnimationFrame(tick);
+  }
+
+  elToggle.addEventListener('click', ()=>{
+    running = !running;
+    elToggle.textContent = running ? 'Pauzeer' : 'Start';
+    if(running) tick();
+  });
+  elReset.addEventListener('click', ()=>{
+    running = false;
+    elToggle.textContent = 'Start';
+    initParticles();
+  });
+
+  elN.addEventListener('input', ()=>{ elNVal.textContent = elN.value; });
+  elQ.addEventListener('input', ()=>{ elQVal.textContent = elQ.value; });
+  elEps.addEventListener('input', ()=>{ elEpsVal.textContent = elEps.value; });
+  elSpeed.addEventListener('input', ()=>{ speed = parseInt(elSpeed.value); elSpeedVal.textContent = elSpeed.value; });
+
+  elN.addEventListener('change', initParticles);
+  elQ.addEventListener('change', initParticles);
+  elEps.addEventListener('change', ()=>{ eps = parseInt(elEps.value); updateChart(); });
+
+  speed = parseInt(elSpeed.value);
+  initParticles();
+})();
+
+// ============================================================
+// MODULE 4 — Equilibrium between two compartments
+// ============================================================
+(function(){
+  const elDelta = document.getElementById('m4-delta');
+  const elEpsA = document.getElementById('m4-epsA');
+  const elEpsB = document.getElementById('m4-epsB');
+  const elT = document.getElementById('m4-T');
+  const elLevels = document.getElementById('m4-levels');
+  const elDeltaVal = document.getElementById('m4-delta-val');
+  const elEpsAVal = document.getElementById('m4-epsA-val');
+  const elEpsBVal = document.getElementById('m4-epsB-val');
+  const elTVal = document.getElementById('m4-T-val');
+  const elLevelsVal = document.getElementById('m4-levels-val');
+  const elPopA = document.getElementById('m4-popA');
+  const elPopB = document.getElementById('m4-popB');
+  const elK = document.getElementById('m4-K');
+  const chartDiv = document.getElementById('m4-chart');
+
+  function computeWeights(delta, epsA, epsB, T, numLevels){
+    // Energy levels for A: 0, epsA, 2*epsA, ... (ground state at 0)
+    // Energy levels for B: delta, delta+epsB, delta+2*epsB, ...
+    // Boltzmann weight per level: exp(-E / T)  (T here is a generic energy-scale "temperature" in quanta units, kB=1)
+    const weightsA = [];
+    const weightsB = [];
+    for(let i=0;i<numLevels;i++){
+      const Ea = i*epsA;
+      const Eb = delta + i*epsB;
+      weightsA.push(Math.exp(-Ea/T));
+      weightsB.push(Math.exp(-Eb/T));
+    }
+    return {weightsA, weightsB};
+  }
+
+  function renderDualChart(weightsA, weightsB, epsA, epsB, delta){
+    chartDiv.innerHTML = '';
+    const numLevels = weightsA.length;
+    const W = 720, H = 360, padL = 50, padR = 20, padT = 20, padB = 50, gap = 30;
+    const halfW = (W - padL - padR - gap)/2;
+    const plotH = H - padT - padB;
+    const maxW = Math.max(...weightsA, ...weightsB, 1e-9);
+
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.style.width = '100%';
+    svg.style.maxWidth = '740px';
+    svg.style.height = 'auto';
+
+    // gridlines shared
+    const ngrid = 4;
+    for(let i=0;i<=ngrid;i++){
+      const y = padT + plotH - (i/ngrid)*plotH;
+      const line = document.createElementNS(svgNS,'line');
+      line.setAttribute('x1', padL); line.setAttribute('x2', W-padR);
+      line.setAttribute('y1', y); line.setAttribute('y2', y);
+      line.setAttribute('class','grid-line');
+      svg.appendChild(line);
+    }
+    const yAxisLbl = document.createElementNS(svgNS,'text');
+    yAxisLbl.setAttribute('x', 14); yAxisLbl.setAttribute('y', padT+plotH/2);
+    yAxisLbl.setAttribute('text-anchor','middle');
+    yAxisLbl.setAttribute('class','axis-label');
+    yAxisLbl.setAttribute('transform', `rotate(-90, 14, ${padT+plotH/2})`);
+    yAxisLbl.textContent = 'Relatieve bezetting (Boltzmann-gewicht)';
+    svg.appendChild(yAxisLbl);
+
+    function drawPanel(weights, xOffset, color, label, energyOffset, eps){
+      const step = halfW/numLevels;
+      const barW = Math.min(18, step*0.7);
+      for(let i=0;i<numLevels;i++){
+        const x = xOffset + i*step + (step-barW)/2;
+        const barH = (weights[i]/maxW)*plotH;
+        const y = padT + plotH - barH;
+        const rect = document.createElementNS(svgNS,'rect');
+        rect.setAttribute('x', x); rect.setAttribute('y', y);
+        rect.setAttribute('width', barW); rect.setAttribute('height', Math.max(barH,0));
+        rect.setAttribute('fill', color);
+        rect.setAttribute('rx','2');
+        svg.appendChild(rect);
+      }
+      const lbl = document.createElementNS(svgNS,'text');
+      lbl.setAttribute('x', xOffset+halfW/2); lbl.setAttribute('y', H-30);
+      lbl.setAttribute('text-anchor','middle');
+      lbl.setAttribute('class','axis-label');
+      lbl.style.fontWeight = '600';
+      lbl.textContent = label;
+      svg.appendChild(lbl);
+
+      const sublbl = document.createElementNS(svgNS,'text');
+      sublbl.setAttribute('x', xOffset+halfW/2); sublbl.setAttribute('y', H-14);
+      sublbl.setAttribute('text-anchor','middle');
+      sublbl.setAttribute('class','axis-label');
+      sublbl.textContent = `grondtoestand E=${energyOffset}, ε=${eps}`;
+      svg.appendChild(sublbl);
+    }
+
+    drawPanel(weightsA, padL, 'var(--accent)', 'Compartiment A', 0, epsA);
+    drawPanel(weightsB, padL+halfW+gap, 'var(--accent2)', 'Compartiment B', delta, epsB);
+
+    // divider
+    const divider = document.createElementNS(svgNS,'line');
+    divider.setAttribute('x1', padL+halfW+gap/2); divider.setAttribute('x2', padL+halfW+gap/2);
+    divider.setAttribute('y1', padT); divider.setAttribute('y2', padT+plotH);
+    divider.setAttribute('stroke', 'var(--line)');
+    divider.setAttribute('stroke-width','1');
+    divider.setAttribute('stroke-dasharray','3,3');
+    svg.appendChild(divider);
+
+    chartDiv.appendChild(svg);
+  }
+
+  function update(){
+    const delta = parseInt(elDelta.value);
+    const epsA = parseInt(elEpsA.value);
+    const epsB = parseInt(elEpsB.value);
+    const T = parseFloat(elT.value);
+    const numLevels = parseInt(elLevels.value);
+
+    elDeltaVal.textContent = delta;
+    elEpsAVal.textContent = epsA;
+    elEpsBVal.textContent = epsB;
+    elTVal.textContent = T.toFixed(1);
+    elLevelsVal.textContent = numLevels;
+
+    const {weightsA, weightsB} = computeWeights(delta, epsA, epsB, T, numLevels);
+    const sumA = weightsA.reduce((a,b)=>a+b,0);
+    const sumB = weightsB.reduce((a,b)=>a+b,0);
+    const total = sumA + sumB;
+
+    elPopA.textContent = (100*sumA/total).toFixed(1) + ' %';
+    elPopB.textContent = (100*sumB/total).toFixed(1) + ' %';
+    elK.textContent = (sumB/sumA).toFixed(4);
+
+    renderDualChart(weightsA, weightsB, epsA, epsB, delta);
+  }
+
+  [elDelta, elEpsA, elEpsB, elT, elLevels].forEach(el=>{
+    el.addEventListener('input', update);
+  });
+  update();
+})();
+</script>
+
+</body>
+</html>

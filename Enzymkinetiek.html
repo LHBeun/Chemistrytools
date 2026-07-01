@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Virtueel Enzym Lab</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: auto; padding: 20px; }
+        .controls { background: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
+        .btn-right { float: right; }
+        .analysis { background: #fee; padding: 15px; border-radius: 8px; margin-top: 10px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; cursor: pointer; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        .selected { background-color: #ffdada; }
+    </style>
+</head>
+<body>
+
+    <h1>Virtueel Enzym Lab</h1>
+    <div class="controls">
+        <label>[S]<sub>0</sub>: <input type="number" id="s0" value="50"> µM</label>
+        <label>Enzym [E]<sub>t</sub>: <select id="etot"><option value="1">1 nM</option><option value="2" selected>2 nM</option></select></label>
+        <br><br>
+        <label>pH: <select id="ph"><option value="0.5">5</option><option value="1" selected>7</option><option value="0.5">9</option></select></label>
+        <label>T: <select id="temp"><option value="0.5">20°C</option><option value="1" selected>37°C</option><option value="0.5">60°C</option></select></label>
+        <label>Remmer: <select id="inhibitor"><option value="0">Geen</option><option value="10">Competitief</option></select></label>
+        <br><br>
+        <button type="button" id="startBtn">Start</button>
+        <button type="button" class="btn-right" id="resetBtn">Nieuw experiment starten</button>
+    </div>
+
+    <canvas id="timeGraph" width="600" height="200"></canvas>
+    <p>V<sub>0</sub> = <span id="v0Display">0</span> µM/s | <button type="button" id="logBtn">Log naar tabel</button></p>
+
+    <h3>Data</h3>
+    <table id="dataTable"><tr><th>[S]<sub>0</sub> (µM)</th><th>V<sub>0</sub> (µM/s)</th></tr></table>
+    <button type="button" id="deleteBtn">Verwijder rij</button>
+    <button type="button" id="plotBtn">Maak Curve</button>
+    <button type="button" id="exportBtn">Export Curve</button>
+    
+    <div class="analysis">
+        <p>$$v = \frac{V_{max} \cdot [S]}{K_m + [S]}$$</p>
+        <label>V<sub>max</sub>: <input type="number" id="vmaxEst"></label>
+        <label>K<sub>m</sub>: <input type="number" id="kmEst"></label>
+        <button type="button" id="checkBtn">Controleer</button>
+        <p id="feedback"></p>
+    </div>
+    <canvas id="mmGraph" width="600" height="200"></canvas>
+
+    <script>
+        window.onload = function() {
+            let dataPoints = [], selectedRow = null, chart1, chart2;
+            const TRUE_VMAX = 0.300, TRUE_KM = 30.0;
+
+            document.getElementById('startBtn').onclick = function() {
+                let S = parseFloat(document.getElementById('s0').value);
+                let Et = parseFloat(document.getElementById('etot').value) / 1000;
+                let ph = parseFloat(document.getElementById('ph').value);
+                let temp = parseFloat(document.getElementById('temp').value);
+                let I = parseFloat(document.getElementById('inhibitor').value) / 1000;
+                
+                let kcat = 150 * ph * temp, kon = 5.0, koff = 2.0, kI = 5.0, ES = 0, EI = 0, P = 0, dt = 0.0001;
+                let timeLabels = [], pData = [];
+
+                for(let t=0; t<10000; t++) {
+                    let Evrij = Et - ES - EI;
+                    let flux_bind = kon * Evrij * S;
+                    let flux_release = (koff + kcat) * ES;
+                    let flux_inhibit = (kI * Evrij * I) - (0.1 * EI);
+                    
+                    ES += (flux_bind - flux_release) * dt;
+                    EI += flux_inhibit * dt;
+                    S -= flux_bind * dt;
+                    P += (kcat * ES) * dt;
+                    
+                    if(t % 1000 === 0) { timeLabels.push((t * dt).toFixed(2)); pData.push(P.toFixed(3)); }
+                }
+                document.getElementById('v0Display').innerText = (kcat * ES).toFixed(4);
+                
+                if(chart1) chart1.destroy();
+                chart1 = new Chart(document.getElementById('timeGraph'), { type: 'line', data: { labels: timeLabels, datasets: [{ label: '[Product] (µM)', data: pData, borderColor: 'green' }] }, options: { scales: { y: { beginAtZero: true } } } });
+            };
+
+            document.getElementById('resetBtn').onclick = function() {
+                dataPoints = [];
+                document.getElementById('dataTable').innerHTML = "<tr><th>[S]<sub>0</sub> (µM)</th><th>V<sub>0</sub> (µM/s)</th></tr>";
+                document.getElementById('feedback').innerText = "";
+                document.getElementById('v0Display').innerText = "0";
+                if(chart1) chart1.destroy();
+                if(chart2) chart2.destroy();
+            };
+
+            document.getElementById('logBtn').onclick = function() {
+                let s0 = document.getElementById('s0').value;
+                let v0 = document.getElementById('v0Display').innerText;
+                dataPoints.push({x: parseFloat(s0), y: parseFloat(v0)});
+                let row = document.getElementById('dataTable').insertRow(-1);
+                row.insertCell(0).innerText = s0; row.insertCell(1).innerText = v0;
+            };
+
+            document.getElementById('checkBtn').onclick = function() {
+                let vErr = Math.abs((parseFloat(document.getElementById('vmaxEst').value) - TRUE_VMAX) / TRUE_VMAX);
+                let kErr = Math.abs((parseFloat(document.getElementById('kmEst').value) - TRUE_KM) / TRUE_KM);
+                document.getElementById('feedback').innerText = (vErr < 0.05 && kErr < 0.05) ? "Correct!" : "Niet correct, probeer opnieuw.";
+            };
+
+            document.getElementById('exportBtn').onclick = function() {
+                let canvas = document.getElementById('mmGraph');
+                let link = document.createElement('a');
+                link.download = 'enzym_curve.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            };
+            
+            document.getElementById('deleteBtn').onclick = function() { 
+                if(selectedRow && selectedRow.rowIndex > 0) { 
+                    dataPoints.splice(selectedRow.rowIndex - 1, 1); 
+                    document.getElementById('dataTable').deleteRow(selectedRow.rowIndex); 
+                } 
+            };
+            
+            document.getElementById('plotBtn').onclick = function() {
+                dataPoints.sort((a,b) => a.x - b.x);
+                if(chart2) chart2.destroy();
+                chart2 = new Chart(document.getElementById('mmGraph'), { type: 'scatter', data: { datasets: [{ label: 'V vs [S]', data: dataPoints, showLine: true }] }, options: { scales: { y: { beginAtZero: true } } } });
+            };
+
+            document.getElementById('dataTable').onclick = function(e) { 
+                if(selectedRow) selectedRow.classList.remove('selected');
+                selectedRow = e.target.parentElement;
+                if(selectedRow.tagName === 'TR' && selectedRow.rowIndex > 0) selectedRow.classList.add('selected');
+            };
+        };
+    </script>
+</body>
+</html>

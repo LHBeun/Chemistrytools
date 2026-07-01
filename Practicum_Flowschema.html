@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practicum Flowschema</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --panel:#ffffff;
+    --panel-alt:#f4f5f7;
+    --border:#d9dde3;
+    --text:#1c232c;
+    --muted:#6b7684;
+    --handeling:#1c8a7b;
+    --handeling-bg:#e4f5f1;
+    --meting:#b1780f;
+    --meting-bg:#fbf1de;
+    --materiaal:#6a53d1;
+    --materiaal-bg:#efebfd;
+    --danger:#c4453b;
+    --serif:'Iowan Old Style','Palatino Linotype',Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    --mono:ui-monospace,'SF Mono',Consolas,'Liberation Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.5;
+    padding:32px 16px 120px;
+  }
+  .shell{max-width:840px;margin:0 auto;}
+
+  /* header */
+  h1.title{
+    font-family:var(--serif);
+    font-size:2rem;
+    font-weight:600;
+    margin:0 0 4px;
+    background:transparent;
+    border:none;
+    color:var(--text);
+    width:100%;
+    outline:none;
+    border-bottom:2px solid transparent;
+    transition:border-color .15s;
+  }
+  h1.title:focus{border-bottom-color:var(--handeling);}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:.72rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  .meta-row{
+    display:flex;gap:16px;flex-wrap:wrap;
+    margin:14px 0 28px;
+    font-family:var(--mono);
+    font-size:.82rem;
+  }
+  .meta-row label{color:var(--muted);margin-right:6px;}
+  .meta-row input{
+    background:transparent;border:none;border-bottom:1px solid var(--border);
+    color:var(--text);font-family:var(--mono);font-size:.82rem;padding:2px 0;
+    width:130px;outline:none;
+  }
+  .meta-row input:focus{border-bottom-color:var(--handeling);}
+
+  /* panels */
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:20px 22px;
+    margin-bottom:22px;
+    box-shadow:0 1px 3px rgba(28,35,44,.06);
+  }
+  .panel h2{
+    font-family:var(--serif);
+    font-size:1.05rem;
+    font-weight:600;
+    margin:0 0 12px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .panel h2 .hint{
+    font-family:var(--sans);
+    font-weight:400;
+    font-size:.78rem;
+    color:var(--muted);
+  }
+  textarea, .free-input{
+    width:100%;background:var(--panel-alt);border:1px solid var(--border);
+    border-radius:6px;color:var(--text);font-family:var(--sans);font-size:.92rem;
+    padding:10px 12px;resize:vertical;outline:none;
+  }
+  textarea:focus{border-color:var(--handeling);}
+
+  /* materiaal */
+  .chip-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+  .chip{
+    display:flex;align-items:center;gap:8px;
+    background:var(--materiaal-bg);border:1px solid var(--materiaal);
+    color:var(--text);border-radius:20px;padding:6px 8px 6px 14px;
+    font-size:.86rem;
+  }
+  .chip button{
+    background:none;border:none;color:var(--muted);cursor:pointer;
+    width:18px;height:18px;border-radius:50%;font-size:.9rem;line-height:1;
+  }
+  .chip button:hover{color:var(--danger);}
+  .add-row{display:flex;gap:8px;}
+  .add-row input{
+    flex:1;background:var(--panel-alt);border:1px solid var(--border);
+    border-radius:6px;color:var(--text);padding:9px 12px;font-size:.9rem;outline:none;
+  }
+  .add-row input:focus{border-color:var(--materiaal);}
+  .btn{
+    border:1px solid var(--border);background:var(--panel-alt);color:var(--text);
+    border-radius:6px;padding:9px 16px;font-size:.86rem;cursor:pointer;
+    font-family:var(--sans);white-space:nowrap;transition:border-color .15s,background .15s;
+  }
+  .btn:hover{border-color:var(--handeling);}
+  .btn.small{padding:5px 10px;font-size:.78rem;}
+  .btn.primary{background:var(--handeling-bg);border-color:var(--handeling);color:var(--handeling);}
+  .btn.amber{background:var(--meting-bg);border-color:var(--meting);color:var(--meting);}
+  .btn.violet{background:var(--materiaal-bg);border-color:var(--materiaal);color:var(--materiaal);}
+  .btn.ghost{background:transparent;}
+  .btn.danger{color:var(--danger);border-color:transparent;background:transparent;}
+  .btn.danger:hover{border-color:var(--danger);}
+
+  /* flow */
+  .flow{position:relative;}
+  .step{
+    position:relative;
+    display:flex;gap:14px;
+    margin-bottom:4px;
+    padding-bottom:22px;
+  }
+  .step:last-child{padding-bottom:0;}
+  .step::before{
+    content:'';
+    position:absolute;left:17px;top:36px;bottom:0;
+    width:1px;border-left:2px dashed var(--border);
+  }
+  .step:last-child::before{display:none;}
+  .badge{
+    flex:none;width:36px;height:36px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-weight:700;font-size:.92rem;
+    border:2px solid var(--border);background:var(--panel-alt);z-index:1;
+  }
+  .step.handeling .badge{border-color:var(--handeling);color:var(--handeling);}
+  .step.meting .badge{border-color:var(--meting);color:var(--meting);}
+  .step-body{
+    flex:1;background:var(--panel-alt);border:1px solid var(--border);
+    border-radius:8px;padding:12px 14px;
+  }
+  .step.handeling .step-body{border-left:3px solid var(--handeling);}
+  .step.meting .step-body{border-left:3px solid var(--meting);}
+  .step-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .type-tag{
+    font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;
+  }
+  .step.handeling .type-tag{color:var(--handeling);}
+  .step.meting .type-tag{color:var(--meting);}
+  .step-controls{display:flex;gap:4px;}
+  .step-controls button{
+    background:none;border:none;color:var(--muted);cursor:pointer;
+    font-size:.85rem;padding:2px 5px;border-radius:4px;
+  }
+  .step-controls button:hover{color:var(--text);background:var(--border);}
+  .step-controls button.del:hover{color:var(--danger);}
+  .step-text{
+    width:100%;background:transparent;border:none;color:var(--text);
+    font-size:.92rem;outline:none;padding:2px 0;
+    border-bottom:1px dashed transparent;
+  }
+  .step-text:focus{border-bottom-color:var(--border);}
+  .meting-fields{
+    display:grid;grid-template-columns:1fr 90px 90px;gap:8px;margin-top:10px;
+  }
+  .meting-fields input{
+    background:var(--panel);border:1px solid var(--border);border-radius:5px;
+    color:var(--text);font-family:var(--mono);font-size:.82rem;padding:6px 8px;outline:none;
+  }
+  .meting-fields input:focus{border-color:var(--meting);}
+  .meting-fields .lbl{font-size:.62rem;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;display:block;}
+
+  .insert-row{
+    display:flex;justify-content:center;gap:8px;margin:-2px 0 18px 50px;
+    opacity:.55;transition:opacity .15s;
+  }
+  .insert-row:hover{opacity:1;}
+  .empty-state{
+    color:var(--muted);font-size:.88rem;text-align:center;padding:24px 0;
+    border:1px dashed var(--border);border-radius:8px;
+  }
+  .flow-add{display:flex;gap:10px;margin-top:16px;margin-left:50px;}
+
+  /* toolbar */
+  .toolbar{
+    position:fixed;left:0;right:0;bottom:0;
+    background:rgba(255,255,255,.92);backdrop-filter:blur(6px);
+    border-top:1px solid var(--border);
+    padding:12px 16px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;
+  }
+
+  /* voorbeeld modal */
+  .overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+    align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;z-index:50;
+  }
+  .overlay.open{display:flex;}
+  .modal{
+    background:var(--panel);border:1px solid var(--border);border-radius:10px;
+    max-width:640px;width:100%;padding:26px 28px;
+  }
+  .modal h3{font-family:var(--serif);margin-top:0;}
+  .modal .close{float:right;}
+  .voorbeeld-step{
+    display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:.88rem;
+  }
+  .voorbeeld-step:last-child{border-bottom:none;}
+  .voorbeeld-step .tag{
+    flex:none;font-family:var(--mono);font-size:.66rem;text-transform:uppercase;
+    padding:2px 6px;border-radius:4px;height:fit-content;
+  }
+  .voorbeeld-step.handeling .tag{background:var(--handeling-bg);color:var(--handeling);}
+  .voorbeeld-step.meting .tag{background:var(--meting-bg);color:var(--meting);}
+  .voorbeeld-meta{font-family:var(--mono);font-size:.76rem;color:var(--muted);margin-top:2px;}
+
+  /* print output — hidden on screen */
+  .print-only{display:none;}
+
+  @media print{
+    body{background:#fff;color:#111;padding:0;font-family:Georgia,serif;}
+    .no-print{display:none !important;}
+    .print-only{display:block !important;}
+    .shell{max-width:100%;}
+    .p-header{border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:16px;}
+    .p-header h1{font-size:1.5rem;margin:0 0 4px;}
+    .p-meta{display:flex;gap:24px;font-size:.85rem;margin-top:6px;}
+    .p-meta span{border-bottom:1px solid #111;padding-bottom:1px;min-width:120px;display:inline-block;}
+    .p-vraag{font-size:.9rem;margin-bottom:18px;}
+    .p-section-title{
+      font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;
+      border-bottom:1px solid #111;padding-bottom:4px;margin:18px 0 8px;color:#111;
+    }
+    .p-materiaal{columns:2;font-size:.88rem;}
+    .p-materiaal div{break-inside:avoid;margin-bottom:4px;}
+    .p-materiaal .box{display:inline-block;width:11px;height:11px;border:1px solid #111;margin-right:6px;vertical-align:middle;}
+    table.p-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+    table.p-table th, table.p-table td{border:1px solid #999;padding:6px 8px;text-align:left;vertical-align:top;}
+    table.p-table th{background:#eee;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;}
+    .p-berekening{border:1px solid #999;min-height:70px;padding:8px;font-size:.85rem;white-space:pre-wrap;}
+    .p-footer{margin-top:20px;font-size:.7rem;color:#555;}
+  }
+</style>
+</head>
+<body>
+<div class="shell no-print">
+  <div class="eyebrow">Practicumvoorbereiding · flowschema</div>
+  <input class="title" id="titleInput" value="Naam van het practicum">
+  <div class="meta-row">
+    <span><label>Naam</label><input id="metaNaam" placeholder="…"></span>
+    <span><label>Klas</label><input id="metaKlas" placeholder="…"></span>
+    <span><label>Datum</label><input id="metaDatum" placeholder="…"></span>
+  </div>
+
+  <div class="panel">
+    <h2>Onderzoeksvraag <span class="hint">— wat wil je bepalen, en met welke aanpak?</span></h2>
+    <textarea id="vraagInput" rows="2" placeholder="Bijv. Bepaal de massaverhouding zand : zout in een onbekend mengsel, via extractie, filtratie en indampen."></textarea>
+  </div>
+
+  <div class="panel">
+    <h2>Materiaal <span class="hint">— alles wat je klaar moet zetten</span></h2>
+    <div class="chip-list" id="chipList"></div>
+    <div class="add-row">
+      <input id="materiaalInput" placeholder="Typ materiaal en druk op Enter…">
+      <button class="btn violet" onclick="addMateriaalFromInput()">+ Toevoegen</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Procedure <span class="hint">— de volgorde van handelingen en metingen</span></h2>
+    <div class="flow" id="flowList"></div>
+    <div id="emptyState" class="empty-state">Nog geen stappen. Begin met de eerste handeling of meting.</div>
+    <div class="flow-add">
+      <button class="btn primary" onclick="addStep('handeling')">+ Handeling</button>
+      <button class="btn amber" onclick="addStep('meting')">+ Meting</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Verwerking <span class="hint">— welke berekening voer je uit met je meetgegevens?</span></h2>
+    <textarea id="berekeningInput" rows="3" placeholder="Bijv. massa zout = massa (schaaltje+zout) − massa leeg schaaltje; massaverhouding = massa zout / massa zand."></textarea>
+  </div>
+</div>
+
+<div class="toolbar no-print">
+  <button class="btn" onclick="openVoorbeeld()">Voorbeeld bekijken</button>
+  <button class="btn" onclick="downloadText()">Download als tekst</button>
+  <button class="btn primary" onclick="window.print()">Print / labjournaal</button>
+  <button class="btn danger" onclick="resetAll()">Nieuw schema</button>
+</div>
+
+<div class="overlay no-print" id="voorbeeldOverlay">
+  <div class="modal">
+    <button class="btn small close" onclick="closeVoorbeeld()">Sluiten ✕</button>
+    <h3>Voorbeeld — massaverhouding zand/zout</h3>
+    <p class="voorbeeld-meta">Ter referentie. Dit schema staat los van je eigen werk hierboven.</p>
+    <div id="voorbeeldSteps"></div>
+  </div>
+</div>
+
+<!-- print layout, opgebouwd door render() -->
+<div class="print-only shell" id="printArea"></div>
+
+<script>
+let steps = [];
+let materiaal = [];
+let uid = 0;
+const nextId = () => 'id' + (uid++);
+
+const TYPE_LABEL = {handeling:'Handeling', meting:'Meting'};
+
+function addStep(type, atIndex){
+  const step = {id:nextId(), type, tekst:'', grootheid:'', symbool:'', eenheid:''};
+  if (atIndex === undefined) steps.push(step);
+  else steps.splice(atIndex, 0, step);
+  render();
+}
+function insertAt(index){
+  addStep('handeling', index);
+}
+function removeStep(id){
+  steps = steps.filter(s => s.id !== id);
+  render();
+}
+function moveStep(id, dir){
+  const i = steps.findIndex(s => s.id === id);
+  const j = i + dir;
+  if (j < 0 || j >= steps.length) return;
+  [steps[i], steps[j]] = [steps[j], steps[i]];
+  render();
+}
+
+function addMateriaalFromInput(){
+  const inp = document.getElementById('materiaalInput');
+  const val = inp.value.trim();
+  if (!val) return;
+  materiaal.push({id:nextId(), tekst:val});
+  inp.value = '';
+  render();
+}
+function removeMateriaal(id){
+  materiaal = materiaal.filter(m => m.id !== id);
+  render();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('materiaalInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter'){ e.preventDefault(); addMateriaalFromInput(); }
+  });
+  render();
+});
+
+function renderChips(){
+  const el = document.getElementById('chipList');
+  el.innerHTML = materiaal.map(m => `
+    <span class="chip">${escapeHtml(m.tekst)}<button onclick="removeMateriaal('${m.id}')">✕</button></span>
+  `).join('');
+}
+
+function renderFlow(){
+  const el = document.getElementById('flowList');
+  const empty = document.getElementById('emptyState');
+  empty.style.display = steps.length ? 'none' : 'block';
+  el.innerHTML = steps.map((s, i) => `
+    <div class="step ${s.type}" data-id="${s.id}">
+      <div class="badge">${i+1}</div>
+      <div class="step-body">
+        <div class="step-top">
+          <span class="type-tag">${TYPE_LABEL[s.type]}</span>
+          <div class="step-controls">
+            <button onclick="moveStep('${s.id}',-1)" title="Omhoog">↑</button>
+            <button onclick="moveStep('${s.id}',1)" title="Omlaag">↓</button>
+            <button class="del" onclick="removeStep('${s.id}')" title="Verwijderen">✕</button>
+          </div>
+        </div>
+        <input class="step-text" data-field="tekst" data-id="${s.id}" value="${escapeAttr(s.tekst)}" placeholder="${s.type === 'handeling' ? 'Beschrijf de handeling…' : 'Beschrijf wat je meet…'}">
+        ${s.type === 'meting' ? `
+        <div class="meting-fields">
+          <div><span class="lbl">Grootheid</span><input data-field="grootheid" data-id="${s.id}" value="${escapeAttr(s.grootheid)}" placeholder="bijv. massa"></div>
+          <div><span class="lbl">Symbool</span><input data-field="symbool" data-id="${s.id}" value="${escapeAttr(s.symbool)}" placeholder="m₁"></div>
+          <div><span class="lbl">Eenheid</span><input data-field="eenheid" data-id="${s.id}" value="${escapeAttr(s.eenheid)}" placeholder="g"></div>
+        </div>` : ''}
+      </div>
+    </div>
+    ${i < steps.length - 1 ? `<div class="insert-row"><button class="btn small ghost" onclick="insertAt(${i+1})">+ stap tussenvoegen</button></div>` : ''}
+  `).join('');
+
+  el.querySelectorAll('input[data-field]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const step = steps.find(s => s.id === inp.dataset.id);
+      if (step) step[inp.dataset.field] = inp.value;
+      syncPrintOnly();
+    });
+  });
+}
+
+function escapeHtml(str){
+  return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeAttr(str){ return escapeHtml(str || ''); }
+
+function render(){
+  renderChips();
+  renderFlow();
+  syncPrintOnly();
+}
+
+function syncPrintOnly(){
+  const title = document.getElementById('titleInput').value || 'Practicum';
+  const naam = document.getElementById('metaNaam').value;
+  const klas = document.getElementById('metaKlas').value;
+  const datum = document.getElementById('metaDatum').value;
+  const vraag = document.getElementById('vraagInput').value;
+  const berekening = document.getElementById('berekeningInput').value;
+
+  const materiaalHtml = materiaal.length
+    ? materiaal.map(m => `<div><span class="box"></span>${escapeHtml(m.tekst)}</div>`).join('')
+    : '<div style="color:#777;">— geen materiaal ingevoerd —</div>';
+
+  const rows = steps.map((s, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td>${TYPE_LABEL[s.type]}</td>
+      <td>${escapeHtml(s.tekst) || '—'}</td>
+      <td>${s.type === 'meting' ? `${escapeHtml(s.grootheid)} ${s.symbool ? '('+escapeHtml(s.symbool)+')' : ''}` : ''}</td>
+      <td>${s.type === 'meting' ? escapeHtml(s.eenheid) : ''}</td>
+      <td style="min-width:80px;"></td>
+    </tr>
+  `).join('') || `<tr><td colspan="6" style="color:#777;">— geen stappen ingevoerd —</td></tr>`;
+
+  document.getElementById('printArea').innerHTML = `
+    <div class="p-header">
+      <h1>${escapeHtml(title)}</h1>
+      <div class="p-meta">
+        <span>Naam: ${escapeHtml(naam)}</span>
+        <span>Klas: ${escapeHtml(klas)}</span>
+        <span>Datum: ${escapeHtml(datum)}</span>
+      </div>
+    </div>
+    <div class="p-vraag"><strong>Onderzoeksvraag:</strong> ${escapeHtml(vraag) || '—'}</div>
+
+    <div class="p-section-title">Materiaal</div>
+    <div class="p-materiaal">${materiaalHtml}</div>
+
+    <div class="p-section-title">Procedure</div>
+    <table class="p-table">
+      <thead><tr><th>Nr</th><th>Type</th><th>Omschrijving</th><th>Grootheid</th><th>Eenheid</th><th>Meetwaarde</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+
+    <div class="p-section-title">Verwerking</div>
+    <div class="p-berekening">${escapeHtml(berekening) || ' '}</div>
+
+    <div class="p-footer">Practicum flowschema — gegenereerd voorbereidingsdocument</div>
+  `;
+}
+
+['titleInput','metaNaam','metaKlas','metaDatum','vraagInput','berekeningInput'].forEach(id => {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById(id).addEventListener('input', syncPrintOnly);
+  });
+});
+
+function downloadText(){
+  const title = document.getElementById('titleInput').value || 'Practicum';
+  const vraag = document.getElementById('vraagInput').value;
+  const berekening = document.getElementById('berekeningInput').value;
+  let out = `${title}\n${'='.repeat(title.length)}\n\nOnderzoeksvraag:\n${vraag}\n\nMateriaal:\n`;
+  out += materiaal.length ? materiaal.map(m => `- ${m.tekst}`).join('\n') : '(geen)';
+  out += `\n\nProcedure:\n`;
+  out += steps.length ? steps.map((s,i) => {
+    let line = `${i+1}. [${TYPE_LABEL[s.type]}] ${s.tekst}`;
+    if (s.type === 'meting') line += `  — grootheid: ${s.grootheid || '-'}, symbool: ${s.symbool || '-'}, eenheid: ${s.eenheid || '-'}`;
+    return line;
+  }).join('\n') : '(geen)';
+  out += `\n\nVerwerking:\n${berekening}\n`;
+
+  const blob = new Blob([out], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (title.replace(/[^a-z0-9]+/gi,'_') || 'practicum') + '.txt';
+  a.click();
+}
+
+function resetAll(){
+  if (!confirm('Weet je zeker dat je een nieuw, leeg schema wilt beginnen? Alles wordt gewist.')) return;
+  steps = [];
+  materiaal = [];
+  document.getElementById('titleInput').value = 'Naam van het practicum';
+  document.getElementById('metaNaam').value = '';
+  document.getElementById('metaKlas').value = '';
+  document.getElementById('metaDatum').value = '';
+  document.getElementById('vraagInput').value = '';
+  document.getElementById('berekeningInput').value = '';
+  render();
+}
+
+/* voorbeeld */
+const voorbeeld = [
+  {type:'handeling', tekst:'Weeg een leeg, droog schaaltje.'},
+  {type:'meting', tekst:'Noteer de massa van het lege schaaltje.', grootheid:'massa leeg schaaltje', symbool:'m₀', eenheid:'g'},
+  {type:'handeling', tekst:'Weeg het schaaltje met daarin het zand/zoutmengsel.'},
+  {type:'meting', tekst:'Noteer de massa van schaaltje + mengsel.', grootheid:'massa schaaltje + mengsel', symbool:'m₁', eenheid:'g'},
+  {type:'handeling', tekst:'Voeg water toe aan het mengsel en roer, zodat het zout oplost.'},
+  {type:'handeling', tekst:'Filtreer het mengsel: het zand blijft op het filter achter, het zout lost op in het filtraat.'},
+  {type:'handeling', tekst:'Weeg een tweede leeg, droog schaaltje (voor het indampen).'},
+  {type:'meting', tekst:'Noteer de massa van dit lege schaaltje.', grootheid:'massa leeg schaaltje 2', symbool:'m₂', eenheid:'g'},
+  {type:'handeling', tekst:'Damp het filtraat in dit schaaltje in tot al het water verdampt is.'},
+  {type:'handeling', tekst:'Weeg het schaaltje met het achtergebleven zout.'},
+  {type:'meting', tekst:'Noteer de massa van schaaltje + zout.', grootheid:'massa schaaltje + zout', symbool:'m₃', eenheid:'g'},
+];
+
+function openVoorbeeld(){
+  document.getElementById('voorbeeldSteps').innerHTML = voorbeeld.map(s => `
+    <div class="voorbeeld-step ${s.type}">
+      <span class="tag">${TYPE_LABEL[s.type]}</span>
+      <div>
+        ${escapeHtml(s.tekst)}
+        ${s.type === 'meting' ? `<div class="voorbeeld-meta">${escapeHtml(s.grootheid)} (${escapeHtml(s.symbool)}) — ${escapeHtml(s.eenheid)}</div>` : ''}
+      </div>
+    </div>
+  `).join('') + `
+    <div class="voorbeeld-meta" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+      Verwerking: massa zand = m₁ − m₀ − (massa zout); massa zout = m₃ − m₂. Massaverhouding zand : zout = (m₁−m₀−massa zout) : massa zout.
+    </div>
+  `;
+  document.getElementById('voorbeeldOverlay').classList.add('open');
+}
+function closeVoorbeeld(){
+  document.getElementById('voorbeeldOverlay').classList.remove('open');
+}
+</script>
+</body>
+</html>

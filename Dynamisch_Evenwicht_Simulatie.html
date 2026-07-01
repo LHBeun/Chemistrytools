@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Chemisch Evenwicht — VWO Interactief</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--panel:#f7f7f5;--border:#d8d8d4;
+  --accent:#6b8a12;--text:#1c1e1f;--muted:#5f6469;
+  --cA:#2f8a5b;--cB:#c1642f;--cC:#8a5bd6;--cD:#3b6bc4;
+  --vf:#b8862a;--vr:#b8402f;--vn:#444444;
+  --mono:'Courier New',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;padding:20px}
+.wrap{max-width:1100px;margin:0 auto}
+h1{font-size:1.25em;font-weight:700;color:var(--accent);margin-bottom:16px}
+
+.rxnbar{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 18px;margin-bottom:10px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.rxneq{font-family:var(--mono);font-size:1.05em;color:var(--accent)}
+.newbtn{margin-left:auto;background:transparent;border:1.5px solid var(--accent);color:var(--accent);padding:6px 14px;border-radius:5px;font-size:.82em;font-weight:700;cursor:pointer}
+.newbtn:hover{background:rgba(107,138,18,.12)}
+
+.solidnote{display:none;background:#eaf5ea;border:1px solid #8fc98f;border-left:4px solid #2f8a5b;border-radius:8px;padding:10px 16px;margin-bottom:10px;font-size:.87em;color:#2f6b3f;line-height:1.5}
+
+.statbar{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin-bottom:10px;display:flex;gap:20px;flex-wrap:wrap;font-family:var(--mono);font-size:.82em}
+.st{display:flex;flex-direction:column;gap:2px}
+.stl{font-size:.7em;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.stv{font-weight:700}
+.stv.eq{color:var(--accent)}.stv.neq{color:#c1642f}
+
+.main{display:grid;grid-template-columns:1fr 300px;gap:14px;margin-bottom:14px}
+
+.gcol{display:flex;flex-direction:column;gap:12px}
+.gbox{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.ghead{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.gtit{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+.gtab{padding:3px 10px;border-radius:4px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:.75em;font-weight:700;cursor:pointer}
+.gtab.on{border-color:var(--accent);color:var(--accent);background:rgba(107,138,18,.08)}
+.spbtns{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.spb{padding:3px 8px;border-radius:4px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:.75em;font-weight:700;cursor:pointer;font-family:var(--mono)}
+.spb.oA{border-color:var(--cA);color:var(--cA);background:rgba(79,195,161,.1)}
+.spb.oB{border-color:var(--cB);color:var(--cB);background:rgba(238,139,91,.1)}
+.spb.oC{border-color:var(--cC);color:var(--cC);background:rgba(181,141,238,.1)}
+.spb.oD{border-color:var(--cD);color:var(--cD);background:rgba(91,141,238,.1)}
+canvas{width:100%;height:210px;display:block;border-radius:4px;cursor:crosshair}
+
+#tip{position:fixed;background:#f5f5f2;border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:.8em;color:var(--text);pointer-events:none;display:none;z-index:100;font-family:var(--mono);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+
+.pcol{display:flex;flex-direction:column;gap:10px}
+.pbox{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.ptit{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.pr{margin-bottom:11px}.pr:last-child{margin-bottom:0}
+.pl{font-size:.8em;color:#5f6469;display:flex;justify-content:space-between;margin-bottom:4px}
+.pv{font-family:var(--mono);color:#3b6bc4}
+.srow{display:flex;align-items:center;gap:8px}
+input[type=range]{-webkit-appearance:none;flex:1;height:4px;background:var(--border);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#3b6bc4;cursor:pointer;border:2px solid var(--bg)}
+.ni{width:64px;flex-shrink:0;background:#f2f2ef;border:1.5px solid var(--border);border-radius:5px;color:#3b6bc4;font-family:var(--mono);font-size:.83em;padding:4px 5px;text-align:right;outline:none}
+.ni:focus{border-color:#3b6bc4}
+.togrow{display:flex;gap:6px;margin-top:4px}
+.tog{flex:1;padding:5px;border-radius:5px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:.78em;font-weight:700;cursor:pointer}
+.tog.on{border-color:var(--accent);color:var(--accent);background:rgba(107,138,18,.1)}
+.molg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.molrow{display:flex;flex-direction:column;gap:3px}
+.mollbl{font-size:.75em}
+.moli{background:#f2f2ef;border:1.5px solid var(--border);border-radius:5px;color:#3b6bc4;font-family:var(--mono);font-size:.83em;padding:5px 7px;outline:none;width:100%}
+.moli:focus{border-color:#3b6bc4}
+
+.actbtn{width:100%;padding:9px;border-radius:6px;border:1.5px solid #4747c9;background:transparent;color:#4747c9;font-size:.82em;font-weight:700;cursor:pointer;margin-bottom:6px;transition:all .12s}
+.actbtn:hover{background:rgba(91,91,238,.15)}
+.actbtn.start{border-color:var(--accent);color:var(--accent);font-size:.9em;padding:11px}
+.actbtn.start:hover{background:rgba(107,138,18,.12)}
+.actbtn.warn{border-color:#b8402f;color:#b8503b}
+.actbtn.warn:hover{background:rgba(224,90,90,.15)}
+
+.qsec{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin-bottom:14px;display:none}
+.qtit{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:16px}
+.qb{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.qb:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.qt{font-size:.9em;line-height:1.5;margin-bottom:8px}
+.qrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.qin{width:100px;background:#f2f2ef;border:1.5px solid var(--border);border-radius:5px;color:#3b6bc4;font-family:var(--mono);font-size:.9em;padding:5px 8px;outline:none}
+.qin:focus{border-color:#3b6bc4}
+.cbtn{padding:6px 14px;border-radius:5px;border:1.5px solid #3b6bc4;background:transparent;color:#3b6bc4;font-size:.8em;font-weight:700;cursor:pointer}
+.cbtn:hover{background:rgba(91,141,238,.15)}
+.qfb{font-size:.85em;margin-top:6px;display:none;line-height:1.5}
+.qfb.ok{color:#2f8a5b}.qfb.err{color:#c1642f}
+.ropts{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.ropt{padding:5px 12px;border-radius:5px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:.82em;font-weight:700;cursor:pointer}
+.ropt.on{border-color:#3b6bc4;color:#3b6bc4;background:rgba(91,141,238,.1)}
+
+@media(max-width:800px){.main{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Chemisch Evenwicht — VWO Interactief</h1>
+
+<div class="rxnbar">
+  <div class="rxneq" id="eq-disp">—</div>
+  <button class="newbtn" onclick="newRxn()">↻ Nieuwe reactie</button>
+</div>
+<div class="solidnote" id="solid-note">
+  ⚗️ <strong>Let op:</strong> vaste stof in grote overmaat — concentratie als constant beschouwd.
+  Pas het oppervlak S aan om het effect op de reactiesnelheid te onderzoeken.
+</div>
+
+<div class="statbar">
+  <div class="st"><span class="stl">Status</span><span class="stv" id="st-s">Stel parameters in en druk op Start</span></div>
+  <div class="st"><span class="stl">Q (huidig)</span><span class="stv" id="st-Q">—</span></div>
+  <div class="st"><span class="stl">Totaaldruk</span><span class="stv" id="st-P">—</span></div>
+  <div class="st"><span class="stl">v_heen</span><span class="stv" id="st-vf">—</span></div>
+  <div class="st"><span class="stl">v_terug</span><span class="stv" id="st-vr">—</span></div>
+</div>
+
+<div class="main">
+  <div class="gcol">
+    <div class="gbox">
+      <div class="ghead">
+        <span class="gtit">Grafiek 1</span>
+        <button class="gtab on" id="tab-c" onclick="setTab('c')">Concentraties</button>
+        <button class="gtab"    id="tab-p" onclick="setTab('p')">Druk</button>
+        <button class="gtab"    id="tab-q" onclick="setTab('q')">Q</button>
+        <div class="spbtns" id="spbtns"></div>
+      </div>
+      <canvas id="c1"></canvas>
+    </div>
+    <div class="gbox">
+      <div class="ghead">
+        <span class="gtit">Snelheden</span>
+        <span style="font-size:.75em;color:var(--muted);margin-left:8px">
+          <span style="color:var(--vf)">■</span> v_heen &nbsp;
+          <span style="color:var(--vr)">■</span> v_terug &nbsp;
+          <span style="color:var(--vn)">■</span> v_netto
+        </span>
+      </div>
+      <canvas id="c2"></canvas>
+    </div>
+  </div>
+
+  <div class="pcol">
+    <div class="pbox">
+      <div class="ptit">
+        Beginhoeveelheden
+        <button class="newbtn" style="font-size:.7em;padding:3px 8px;margin-left:0" onclick="resetSim()">↺ Reset</button>
+      </div>
+      <div class="pr">
+        <div class="pl"><span>Volume</span><span class="pv" id="lbl-V">1,00 L</span></div>
+        <div class="srow">
+          <input type="range" id="sl-V" min="0.1" max="5" step="0.1" value="1" oninput="sp('V',this.value)">
+          <input type="number" class="ni" id="ni-V" value="1" min="0.1" max="5" step="0.1" onchange="sp('V',this.value)" onkeydown="if(event.key==='Enter')sp('V',this.value)">
+        </div>
+      </div>
+      <div class="molg" id="molg"></div>
+    </div>
+
+    <div class="pbox">
+      <div class="ptit">Condities</div>
+      <div class="pr">
+        <div class="pl"><span>Temperatuur</span><span class="pv" id="lbl-T">500 K</span></div>
+        <div class="srow">
+          <input type="range" id="sl-T" min="200" max="900" step="10" value="500" oninput="sp('T',this.value)">
+          <input type="number" class="ni" id="ni-T" value="500" min="200" max="900" step="10" onchange="sp('T',this.value)" onkeydown="if(event.key==='Enter')sp('T',this.value)">
+        </div>
+      </div>
+      <div class="pr">
+        <div class="pl"><span>Katalysator</span></div>
+        <div class="togrow">
+          <button class="tog on" id="cat-n" onclick="setCat(false)">Zonder</button>
+          <button class="tog"    id="cat-y" onclick="setCat(true)">Met</button>
+        </div>
+      </div>
+      <div class="pr" id="surf-row" style="display:none">
+        <div class="pl"><span>Oppervlak S</span><span class="pv" id="lbl-S">1,00</span></div>
+        <div class="srow">
+          <input type="range" id="sl-S" min="0.1" max="3" step="0.05" value="1" oninput="sp('S',this.value)">
+          <input type="number" class="ni" id="ni-S" value="1" min="0.1" max="3" step="0.05" onchange="sp('S',this.value)" onkeydown="if(event.key==='Enter')sp('S',this.value)">
+        </div>
+      </div>
+      <div class="pr" id="ar-row" style="display:none">
+        <div class="pl"><span>Argon (mol)</span><span class="pv" id="lbl-Ar">0,00</span></div>
+        <div class="srow">
+          <input type="range" id="sl-Ar" min="0" max="5" step="0.1" value="0" oninput="sp('Ar',this.value)">
+          <input type="number" class="ni" id="ni-Ar" value="0" min="0" max="5" step="0.1" onchange="sp('Ar',this.value)" onkeydown="if(event.key==='Enter')sp('Ar',this.value)">
+        </div>
+      </div>
+    </div>
+
+    <button class="actbtn start" onclick="startSim()">▶ Start simulatie</button>
+
+    <div class="pbox" id="dist-box" style="display:none">
+      <div class="ptit">Verstoring (na evenwicht)</div>
+      <button class="actbtn" onclick="disturb('addA')">+ Voeg reactant toe</button>
+      <button class="actbtn" onclick="disturb('addC')">+ Voeg product toe</button>
+      <button class="actbtn" onclick="disturb('remC')">− Verwijder product</button>
+      <button class="actbtn warn" onclick="disturb('quench')">❄ T snel verlagen</button>
+    </div>
+  </div>
+</div>
+
+<div id="tip"></div>
+
+<div class="qsec" id="qsec">
+  <div class="qtit">Beredeneer en bereken</div>
+  <div id="qcon"></div>
+</div>
+</div>
+
+<script>
+const R=8.314;
+
+// ── Gecalibreerde reacties ────────────────────────────────────────────────
+// A_f en A_r beide opgeslagen zodat kf(refT)=0.05 en Kc(refT)=Kc_t
+const RXNS=[
+  { eq:'N₂(g) + 3H₂(g) ⇌ 2NH₃(g)',
+    lhs:['N₂(g)','H₂(g)'], rhs:['NH₃(g)'],
+    co:[1,3,2,0], Ea_f:230000, Ea_r:322000, A_f:7.28e15, A_r:1.07e22,
+    dH:-92000, hasSolid:false, hasGas:true,
+    init:{A:1,B:3,C:0.05,D:0}, refT:700 },
+  { eq:'2SO₂(g) + O₂(g) ⇌ 2SO₃(g)',
+    lhs:['SO₂(g)','O₂(g)'], rhs:['SO₃(g)'],
+    co:[2,1,2,0], Ea_f:200000, Ea_r:398000, A_f:1.29e16, A_r:2.23e32,
+    dH:-198000, hasSolid:false, hasGas:true,
+    init:{A:2,B:1,C:0.05,D:0}, refT:600 },
+  { eq:'H₂(g) + I₂(g) ⇌ 2HI(g)',
+    lhs:['H₂(g)','I₂(g)'], rhs:['HI(g)'],
+    co:[1,1,2,0], Ea_f:165000, Ea_r:175000, A_f:8.65e15, A_r:1.92e15,
+    dH:-10000, hasSolid:false, hasGas:true,
+    init:{A:1,B:1,C:0.1,D:0}, refT:500 },
+  { eq:'NO₂(g) ⇌ NO(g) + ½O₂(g)',
+    lhs:['NO₂(g)'], rhs:['NO(g)'],
+    co:[1,0,1,0], Ea_f:111000, Ea_r:54000, A_f:1.97e10, A_r:2.19e5,
+    dH:+57000, hasSolid:false, hasGas:true,
+    init:{A:1,B:0,C:0.05,D:0}, refT:500 },
+  { eq:'CH₃COOH(aq) ⇌ CH₃COO⁻(aq) + H⁺(aq)',
+    lhs:['CH₃COOH(aq)'], rhs:['CH₃COO⁻(aq)'],
+    co:[1,0,1,0], Ea_f:60000, Ea_r:59000, A_f:1.65e9, A_r:1.10e11,
+    dH:+1000, hasSolid:false, hasGas:false,
+    init:{A:1,B:0,C:0.01,D:0}, refT:298 },
+  { eq:'C(s) + CO₂(g) ⇌ 2CO(g)',
+    lhs:['CO₂(g)'], rhs:['CO(g)'],
+    co:[1,0,2,0], Ea_f:180000, Ea_r:8000, A_f:1.26e8, A_r:6.54e-2,
+    dH:+172000, hasSolid:true, hasGas:true,
+    init:{A:1,B:0,C:0.05,D:0}, refT:1000 },
+  { eq:'Fe₃O₄(s) + 4H₂(g) ⇌ 3Fe(s) + 4H₂O(g)',
+    lhs:['H₂(g)'], rhs:['H₂O(g)'],
+    co:[4,0,4,0], Ea_f:150000, Ea_r:300000, A_f:3.11e8, A_r:6.46e17,
+    dH:-150000, hasSolid:true, hasGas:true,
+    init:{A:4,B:0,C:0.1,D:0}, refT:800 },
+];
+
+// ── State ─────────────────────────────────────────────────────────────────
+let RXN={}, SIM={}, g1Tab='c', selSp=new Set(['A','C']);
+let segments=[], disturb_ts=[], hasEq=false;
+
+// ── k berekenen (absolute Arrhenius, A_f en A_r onafhankelijk) ────────────
+function kf(T,cat){ const Ea=cat?RXN.Ea_f-RXN.catDEa:RXN.Ea_f; return RXN.A_f*Math.exp(-Ea/(R*T)); }
+function kr(T,cat){ const Ea=cat?RXN.Ea_r-RXN.catDEa:RXN.Ea_r; return RXN.A_r*Math.exp(-Ea/(R*T)); }
+function Kc(T,cat){ return kf(T,cat)/kr(T,cat); }
+
+// ── Reactiesnelheden ──────────────────────────────────────────────────────
+function VF(m,V,T,S,cat){
+  const[a,b]=RXN.co; let v=kf(T,cat)*(RXN.hasSolid?S:1);
+  if(a>0)v*=Math.pow(Math.max(m.A/V,0),a);
+  if(b>0)v*=Math.pow(Math.max(m.B/V,0),b);
+  return Math.max(0,v);
+}
+function VR(m,V,T,S,cat){
+  const[,,c,d]=RXN.co; let v=kr(T,cat)*(RXN.hasSolid?S:1);
+  if(c>0)v*=Math.pow(Math.max(m.C/V,0),c);
+  if(d>0)v*=Math.pow(Math.max(m.D/V,0),d);
+  return Math.max(0,v);
+}
+function calcQ(m,V){
+  const[a,b,c,d]=RXN.co;
+  let num=1,den=1;
+  if(c>0)num*=Math.pow(Math.max(m.C/V,1e-20),c);
+  if(d>0)num*=Math.pow(Math.max(m.D/V,1e-20),d);
+  if(a>0)den*=Math.pow(Math.max(m.A/V,1e-20),a);
+  if(b>0)den*=Math.pow(Math.max(m.B/V,1e-20),b);
+  return num/den;
+}
+function calcP(m,V,T){
+  if(!RXN.hasGas)return null;
+  return(m.A+m.B+m.C+m.D+(m.Ar||0))*R*T/(V*1e-3)/1000;
+}
+
+// ── Integratie ────────────────────────────────────────────────────────────
+const NSTEPS=8000, NPLOT=500;
+function findEqTime(m0,V,T,S,cat){
+  // Proefintegratie: verdubbel tijdvenster totdat evenwicht bereikt is
+  const v0=VF(m0,V,T,S,cat)+VR(m0,V,T,S,cat)+1e-30;
+  const maxC=Math.max(m0.A,m0.B,m0.C,m0.D,0.01)/V;
+  const tau=maxC/v0;
+  const PROBE=400;
+  const[a,b,c,d]=RXN.co;
+  let tTry=Math.max(tau*10, 1e-9);
+  for(let attempt=0;attempt<10;attempt++){
+    const dt=tTry/PROBE;
+    let m={...m0};
+    let atEq=false;
+    for(let i=0;i<PROBE;i++){
+      const vF=VF(m,V,T,S,cat),vR=VR(m,V,T,S,cat),vN=vF-vR;
+      if((vF+vR)>1e-30 && Math.abs(vF-vR)/(vF+vR)<0.01){atEq=true;break;}
+      const xi=vN*dt*V;
+      m.A=Math.max(0,m.A-a*xi);m.B=Math.max(0,m.B-b*xi);
+      m.C=Math.max(0,m.C+c*xi);m.D=Math.max(0,m.D+d*xi);
+    }
+    if(atEq) return tTry*1.5;
+    tTry*=4;
+  }
+  return tTry;
+}
+
+function integrate(m0,V,T,S,cat,forcedTTot){
+  const tTot=forcedTTot!==undefined ? forcedTTot : Math.max(findEqTime(m0,V,T,S,cat), 1e-9);
+  const dt=tTot/NSTEPS;
+  const skip=Math.max(1,Math.floor(NSTEPS/NPLOT));
+  const[a,b,c,d]=RXN.co;
+  let m={...m0};
+  const ts=[],msA=[],msB=[],msC=[],msD=[],vfs=[],vrs=[],vns=[],Qs=[],Ps=[];
+  for(let i=0;i<=NSTEPS;i++){
+    const vF=VF(m,V,T,S,cat),vR=VR(m,V,T,S,cat),vN=vF-vR;
+    if(i%skip===0){
+      ts.push(i*dt);msA.push(m.A/V);msB.push(m.B/V);
+      msC.push(m.C/V);msD.push(m.D/V);
+      vfs.push(vF);vrs.push(vR);vns.push(vN);
+      Qs.push(calcQ(m,V));Ps.push(calcP(m,V,T));
+    }
+    const xi=vN*dt*V;
+    m.A=Math.max(0,m.A-a*xi);m.B=Math.max(0,m.B-b*xi);
+    m.C=Math.max(0,m.C+c*xi);m.D=Math.max(0,m.D+d*xi);
+  }
+  return{ts,msA,msB,msC,msD,vfs,vrs,vns,Qs,Ps,tTot,finalM:{...m}};
+}
+
+// ── Tijdlijn samenvoegen ──────────────────────────────────────────────────
+function timeline(){
+  let off=0;
+  const mg={ts:[],msA:[],msB:[],msC:[],msD:[],vfs:[],vrs:[],vns:[],Qs:[],Ps:[]};
+  for(const seg of segments){
+    for(let i=0;i<seg.ts.length;i++){
+      mg.ts.push(off+seg.ts[i]);
+      mg.msA.push(seg.msA[i]);mg.msB.push(seg.msB[i]);
+      mg.msC.push(seg.msC[i]);mg.msD.push(seg.msD[i]);
+      mg.vfs.push(seg.vfs[i]);mg.vrs.push(seg.vrs[i]);mg.vns.push(seg.vns[i]);
+      mg.Qs.push(seg.Qs[i]);mg.Ps.push(seg.Ps[i]);
+    }
+    off+=seg.tTot;
+  }
+  return mg;
+}
+
+// ── Start / Disturb ───────────────────────────────────────────────────────
+function startSim(){
+  segments=[];disturb_ts=[];hasEq=false;
+  document.getElementById('dist-box').style.display='none';
+  // Lees beginhoeveelheden vers uit de invoervelden zodat een tweede Start
+  // altijd vanuit de door de gebruiker ingestelde waarden begint,
+  // niet vanuit de (overschreven) eindtoestand van de vorige run.
+  const freshMols={
+    A: Math.max(0, parseFloat(document.getElementById('mol-A')?.value) || 0),
+    B: Math.max(0, parseFloat(document.getElementById('mol-B')?.value) || 0),
+    C: Math.max(0, parseFloat(document.getElementById('mol-C')?.value) || 0),
+    D: Math.max(0, parseFloat(document.getElementById('mol-D')?.value) || 0),
+    Ar: SIM.mols.Ar || 0,
+  };
+  SIM.mols = freshMols;
+  const seg=integrate(SIM.mols,SIM.V,SIM.T,SIM.S,SIM.cat);
+  segments.push(seg);SIM.mols={...seg.finalM};
+  afterSeg(seg);
+}
+
+function disturb(type){
+  if(!hasEq)return;
+  disturb_ts.push(segments.reduce((s,g)=>s+g.tTot,0));
+  let forcedTTot = undefined;
+  if(type==='addA') SIM.mols.A+=0.5*SIM.V;
+  if(type==='addC') SIM.mols.C+=0.5*SIM.V;
+  if(type==='remC') SIM.mols.C=Math.max(0,SIM.mols.C-0.5*SIM.V);
+  if(type==='quench'){
+    // Tijdschaal = 2× vorig segment zodat langzame kinetiek zichtbaar is
+    forcedTTot = segments[segments.length-1].tTot * 2;
+    SIM.T=Math.max(200,SIM.T-200);SIM.cat=false;
+    document.getElementById('cat-n').classList.add('on');
+    document.getElementById('cat-y').classList.remove('on');
+    syncT();
+  }
+  buildMolGrid();hasEq=false;
+  document.getElementById('dist-box').style.display='none';
+  const seg=integrate(SIM.mols,SIM.V,SIM.T,SIM.S,SIM.cat,forcedTTot);
+  segments.push(seg);SIM.mols={...seg.finalM};
+  afterSeg(seg);
+}
+
+function afterSeg(seg){
+  const last=seg.vfs.length-1;
+  const vF=seg.vfs[last],vR=seg.vrs[last];
+  const atEq=Math.abs(vF-vR)/(vF+vR+1e-20)<0.02;
+  const el=document.getElementById('st-s');
+  if(atEq){
+    hasEq=true;el.textContent='⇌ Evenwicht bereikt';el.className='stv eq';
+    document.getElementById('dist-box').style.display='block';
+  } else {
+    el.textContent='→ Reactie loopt nog — vergroot tijdvenster of verhoog T';el.className='stv neq';
+  }
+  const Q=seg.Qs[last],P=seg.Ps[last];
+  document.getElementById('st-Q').textContent=fmt(Q);
+  document.getElementById('st-P').textContent=P?P.toFixed(1)+' kPa':'n.v.t.';
+  document.getElementById('st-vf').textContent=fmt(vF);
+  document.getElementById('st-vr').textContent=fmt(vR);
+  drawAll();
+  document.getElementById('qsec').style.display='block';
+  buildQ();
+}
+
+// ── Canvas ────────────────────────────────────────────────────────────────
+const SPC={A:'#2f8a5b',B:'#c1642f',C:'#8a5bd6',D:'#3b6bc4'};
+function drawC(id,ds,yLbl,dts,negNote){
+  const cv=document.getElementById(id);
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.clientWidth,H=cv.clientHeight;
+  cv.width=W*dpr;cv.height=H*dpr;
+  const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
+  ctx.fillStyle='#f2f2ef';ctx.fillRect(0,0,W,H);
+  const ml=52,mr=16,mt=14,mb=34,gW=W-ml-mr,gH=H-mt-mb;
+  // Grid
+  ctx.strokeStyle='#eaeae6';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=mt+gH*i/4;ctx.beginPath();ctx.moveTo(ml,y);ctx.lineTo(ml+gW,y);ctx.stroke();}
+  for(let i=0;i<=5;i++){const x=ml+gW*i/5;ctx.beginPath();ctx.moveTo(x,mt);ctx.lineTo(x,mt+gH);ctx.stroke();}
+  ctx.strokeStyle='#c9c9c3';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(ml,mt);ctx.lineTo(ml,mt+gH);ctx.lineTo(ml+gW,mt+gH);ctx.stroke();
+  if(!ds||!ds.length)return;
+  const xMax=ds[0].xs[ds[0].xs.length-1]||1;
+  let yMin=Infinity,yMax=-Infinity;
+  for(const d of ds)for(const v of d.ys)if(isFinite(v)){yMin=Math.min(yMin,v);yMax=Math.max(yMax,v);}
+  if(!isFinite(yMin)||yMin===yMax){yMin=0;yMax=1;}
+  const pad=(yMax-yMin)*0.1;yMax+=pad;yMin=yMin>0?Math.max(0,yMin-pad):yMin-pad;
+  const px=t=>ml+(t/xMax)*gW;
+  const py=v=>mt+gH*(1-(v-yMin)/(yMax-yMin));
+  // Y ticks
+  ctx.fillStyle='#5f6469';ctx.font='9px Segoe UI';ctx.textAlign='right';
+  for(let i=0;i<=4;i++){const v=yMin+(yMax-yMin)*(1-i/4);ctx.fillText(tick(v),ml-4,mt+gH*i/4+3);}
+  // X ticks
+  ctx.textAlign='center';
+  for(let i=0;i<=5;i++){const t=xMax*i/5;ctx.fillText(fmtT(t),ml+gW*i/5,mt+gH+14);}
+  ctx.fillStyle='#707070';ctx.font='9px Segoe UI';
+  ctx.fillText('tijd',ml+gW/2,H-4);
+  ctx.save();ctx.translate(10,mt+gH/2);ctx.rotate(-Math.PI/2);ctx.fillText(yLbl,0,0);ctx.restore();
+  // Nul-lijn
+  if(yMin<0){
+    ctx.strokeStyle='#9a9a94';ctx.lineWidth=1;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(ml,py(0));ctx.lineTo(ml+gW,py(0));ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  // Verstoring-markeringen
+  for(const dt of (dts||[])){
+    const x=px(dt);
+    ctx.strokeStyle='rgba(107,138,18,.6)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(x,mt);ctx.lineTo(x,mt+gH);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(107,138,18,.8)';ctx.font='10px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('▼',x,mt+10);
+  }
+  // Curves
+  for(const d of ds){
+    ctx.beginPath();ctx.strokeStyle=d.color;ctx.lineWidth=2;
+    let first=true;
+    for(let i=0;i<d.xs.length;i++){
+      const x=px(d.xs[i]),y=py(d.ys[i]);
+      first?ctx.moveTo(x,y):ctx.lineTo(x,y);first=false;
+    }
+    ctx.stroke();
+  }
+  if(negNote&&yMin<0){
+    ctx.fillStyle='#707070';ctx.font='9px Segoe UI';ctx.textAlign='left';
+    ctx.fillText('v_netto < 0 → reactie loopt netto terug',ml+4,mt+12);
+  }
+}
+
+function drawAll(){
+  if(!segments.length)return;
+  const mg=timeline();
+  const{ts,msA,msB,msC,msD,vfs,vrs,vns,Qs,Ps}=mg;
+  const dts=disturb_ts;
+  if(g1Tab==='c'){
+    const ds=[];
+    if(selSp.has('A')&&RXN.nameA)ds.push({xs:ts,ys:msA,color:SPC.A});
+    if(selSp.has('B')&&RXN.nameB)ds.push({xs:ts,ys:msB,color:SPC.B});
+    if(selSp.has('C')&&RXN.nameC)ds.push({xs:ts,ys:msC,color:SPC.C});
+    if(selSp.has('D')&&RXN.nameD)ds.push({xs:ts,ys:msD,color:SPC.D});
+    drawC('c1',ds,'c (mol/L)',dts,false);
+  } else if(g1Tab==='p'){
+    drawC('c1',[{xs:ts,ys:Ps,color:'#b8862a'}],'P (kPa)',dts,false);
+  } else {
+    drawC('c1',[{xs:ts,ys:Qs,color:'#6b8a12'}],'Q',dts,false);
+  }
+  drawC('c2',[
+    {xs:ts,ys:vfs,color:'#b8862a'},
+    {xs:ts,ys:vrs,color:'#b8402f'},
+    {xs:ts,ys:vns,color:'#444444'},
+  ],'v (mol/(L·s))',dts,true);
+}
+
+// ── Tooltip Q ─────────────────────────────────────────────────────────────
+document.getElementById('c1').addEventListener('mousemove',function(e){
+  const tip=document.getElementById('tip');
+  if(!segments.length){tip.style.display='none';return;}
+  const mg=timeline();
+  const rect=this.getBoundingClientRect();
+  const frac=(e.clientX-rect.left-52)/(rect.width-68);
+  if(frac<0||frac>1){tip.style.display='none';return;}
+  const idx=Math.round(frac*(mg.ts.length-1));
+  tip.style.display='block';
+  tip.style.left=(e.clientX+12)+'px';
+  tip.style.top=(e.clientY-28)+'px';
+  if(g1Tab==='q'){
+    tip.textContent='t='+fmtT(mg.ts[idx])+'  Q='+fmt(mg.Qs[idx]);
+  } else if(g1Tab==='p'){
+    tip.textContent='t='+fmtT(mg.ts[idx])+'  P='+fmt(mg.Ps[idx])+' kPa';
+  } else {
+    // Concentraties: toon alle geselecteerde stoffen
+    const parts=['t='+fmtT(mg.ts[idx])];
+    if(selSp.has('A')&&RXN.nameA) parts.push('['+RXN.nameA+']='+fmt(mg.msA[idx]));
+    if(selSp.has('B')&&RXN.nameB) parts.push('['+RXN.nameB+']='+fmt(mg.msB[idx]));
+    if(selSp.has('C')&&RXN.nameC) parts.push('['+RXN.nameC+']='+fmt(mg.msC[idx]));
+    if(selSp.has('D')&&RXN.nameD) parts.push('['+RXN.nameD+']='+fmt(mg.msD[idx]));
+    tip.textContent=parts.join('  ');
+  }
+});
+document.getElementById('c2').addEventListener('mousemove',function(e){
+  const tip=document.getElementById('tip');
+  if(!segments.length){tip.style.display='none';return;}
+  const mg=timeline();
+  const rect=this.getBoundingClientRect();
+  const frac=(e.clientX-rect.left-52)/(rect.width-68);
+  if(frac<0||frac>1){tip.style.display='none';return;}
+  const idx=Math.round(frac*(mg.ts.length-1));
+  const vn=mg.vns[idx];
+  tip.style.display='block';
+  tip.style.left=(e.clientX+12)+'px';
+  tip.style.top=(e.clientY-28)+'px';
+  tip.textContent='t='+fmtT(mg.ts[idx])
+    +'  v_heen='+fmt(mg.vfs[idx])
+    +'  v_terug='+fmt(mg.vrs[idx])
+    +'  v_netto='+(vn>=0?'':'')+fmt(vn);
+});
+document.getElementById('c2').addEventListener('mouseleave',()=>document.getElementById('tip').style.display='none');
+
+// ── Species picker ────────────────────────────────────────────────────────
+function buildSP(){
+  const div=document.getElementById('spbtns');div.innerHTML='';
+  div.style.display=g1Tab==='c'?'flex':'none';
+  const sps=[{k:'A',n:RXN.nameA},{k:'B',n:RXN.nameB},{k:'C',n:RXN.nameC},{k:'D',n:RXN.nameD}].filter(s=>s.n);
+  for(const s of sps){
+    const b=document.createElement('button');
+    b.className='spb'+(selSp.has(s.k)?' o'+s.k:'');
+    b.textContent='['+s.n+']';
+    b.onclick=()=>{
+      if(selSp.has(s.k)){if(selSp.size>1)selSp.delete(s.k);}else selSp.add(s.k);
+      buildSP();drawAll();
+    };
+    div.appendChild(b);
+  }
+}
+function setTab(t){
+  g1Tab=t;['c','p','q'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('on',x===t));
+  buildSP();drawAll();
+}
+
+// ── Mol grid ──────────────────────────────────────────────────────────────
+function buildMolGrid(){
+  const g=document.getElementById('molg');g.innerHTML='';
+  const sps=[{k:'A',n:RXN.nameA,col:SPC.A},{k:'B',n:RXN.nameB,col:SPC.B},
+             {k:'C',n:RXN.nameC,col:SPC.C},{k:'D',n:RXN.nameD,col:SPC.D}].filter(s=>s.n);
+  for(const s of sps){
+    const d=document.createElement('div');d.className='molrow';
+    d.innerHTML=`<label class="mollbl" style="color:${s.col}">mol ${s.n}</label>
+      <input type="number" class="moli" id="mol-${s.k}" value="${SIM.mols[s.k].toFixed(3)}"
+        min="0" step="0.01" onchange="setMol('${s.k}',this.value)"
+        onkeydown="if(event.key==='Enter')setMol('${s.k}',this.value)">`;
+    g.appendChild(d);
+  }
+}
+function setMol(k,v){SIM.mols[k]=Math.max(0,parseFloat(v)||0);}
+
+// ── Params ────────────────────────────────────────────────────────────────
+function sp(id,v){
+  v=parseFloat(v);
+  if(id==='V'){SIM.V=Math.max(0.1,v);document.getElementById('lbl-V').textContent=SIM.V.toFixed(2)+' L';sync('V',SIM.V);}
+  if(id==='T'){SIM.T=Math.max(200,Math.min(900,v));syncT();}
+  if(id==='S'){SIM.S=Math.max(0.1,v);document.getElementById('lbl-S').textContent=SIM.S.toFixed(2);sync('S',SIM.S);}
+  if(id==='Ar'){SIM.mols.Ar=Math.max(0,v);document.getElementById('lbl-Ar').textContent=SIM.mols.Ar.toFixed(2);sync('Ar',SIM.mols.Ar);}
+}
+function sync(id,v){
+  const sl=document.getElementById('sl-'+id),ni=document.getElementById('ni-'+id);
+  if(sl)sl.value=v;if(ni)ni.value=v%1?v.toFixed(2):v;
+}
+function syncT(){
+  document.getElementById('lbl-T').textContent=SIM.T.toFixed(0)+' K ('+(SIM.T-273).toFixed(0)+'°C)';
+  sync('T',SIM.T);
+}
+function setCat(v){
+  SIM.cat=v;
+  document.getElementById('cat-n').classList.toggle('on',!v);
+  document.getElementById('cat-y').classList.toggle('on',v);
+}
+function resetSim(){
+  SIM.initMols={...RXN.init,Ar:0};
+  SIM.mols={...SIM.initMols};
+  SIM.V=1;SIM.T=RXN.refT;SIM.S=1;SIM.cat=false;
+  segments=[];disturb_ts=[];hasEq=false;
+  document.getElementById('dist-box').style.display='none';
+  document.getElementById('st-s').textContent='Stel parameters in en druk op Start';
+  document.getElementById('st-s').className='stv';
+  sync('V',1);syncT();sync('S',1);sync('Ar',0);
+  document.getElementById('lbl-V').textContent='1,00 L';
+  document.getElementById('cat-n').classList.add('on');document.getElementById('cat-y').classList.remove('on');
+  buildMolGrid();
+}
+
+// ── Nieuwe reactie ────────────────────────────────────────────────────────
+function newRxn(){
+  const r=RXNS[Math.floor(Math.random()*RXNS.length)];
+  const sc=s=>s.trim().replace(/^[\d½¼¾]+\s*/,'');
+  RXN={...r,
+    nameA:r.lhs[0]?sc(r.lhs[0]):null,
+    nameB:r.lhs[1]?sc(r.lhs[1]):null,
+    nameC:r.rhs[0]?sc(r.rhs[0]):null,
+    nameD:r.rhs[1]?sc(r.rhs[1]):null,
+    catDEa:20000,
+  };
+  // initMols = de door de gebruiker instelbare beginhoeveelheden
+  // SIM.mols wordt tijdens simulatie overschreven; initMols niet
+  SIM={mols:{...r.init,Ar:0},V:1,T:r.refT,S:1,cat:false};
+  SIM.initMols={...r.init,Ar:0};
+  selSp=new Set([RXN.nameA?'A':null,RXN.nameC?'C':null].filter(Boolean));
+  segments=[];disturb_ts=[];hasEq=false;
+  document.getElementById('eq-disp').textContent=r.eq;
+  document.getElementById('solid-note').style.display=r.hasSolid?'block':'none';
+  document.getElementById('surf-row').style.display=r.hasSolid?'block':'none';
+  document.getElementById('ar-row').style.display=r.hasGas?'block':'none';
+  document.getElementById('dist-box').style.display='none';
+  document.getElementById('st-s').textContent='Stel parameters in en druk op Start';
+  document.getElementById('st-s').className='stv';
+  document.getElementById('qsec').style.display='none';
+  sync('V',1);sync('T',r.refT);syncT();
+  document.getElementById('cat-n').classList.add('on');document.getElementById('cat-y').classList.remove('on');
+  buildMolGrid();buildSP();
+}
+
+// ── Vragen ────────────────────────────────────────────────────────────────
+function buildQ(){
+  const KcV=Kc(SIM.T,SIM.cat);
+  const endo=RXN.dH>0;
+  const[a,b,c,d]=RXN.co;
+  const dn=(c+d)-(a+b);
+  // Kc daalt bij lagere T als heen endotherm (dH>0), stijgt als heen exotherm (dH<0)
+  const KcLowerT = endo ? 'kleiner geworden' : 'groter geworden';
+
+  const con=document.getElementById('qcon');con.innerHTML='';
+
+  const qs=[
+    // 1. Kc berekenen
+    {id:'q-kc', type:'num', answer:KcV, tol:.05,
+     text:`Bereken Kc bij ${SIM.T.toFixed(0)} K.`,
+     fb:ok=>ok?`✓ Correct! Kc = ${fmt(KcV)}.`
+             :`✗ Niet correct. Kc = kf/kr = ${fmt(KcV)}.`},
+
+    // 2. Endotherm
+    {id:'q-endo', type:'radio',
+     opts:['Heenreactie (→)','Terugreactie (←)'], answer:endo?0:1,
+     text:'Welke richting is endotherm?',
+     fb:ok=>ok?`✓ Correct! ΔH = ${RXN.dH>0?'+':''}${(RXN.dH/1000).toFixed(0)} kJ/mol.`
+             :`✗ ΔH = ${RXN.dH>0?'+':''}${(RXN.dH/1000).toFixed(0)} kJ/mol → ${endo?'heen':'terug'}reactie is endotherm.`},
+
+    // 3a. Katalysator: effect op Kc
+    {id:'q-cat-kc', type:'radio',
+     opts:['Kc neemt toe','Kc neemt af','Kc blijft gelijk'], answer:2,
+     text:'Een katalysator wordt toegevoegd. Wat gebeurt er met Kc?',
+     fb:ok=>ok?`✓ Correct! Een katalysator verlaagt Ea van heen- én terugreactie even veel. Kc = kf/kr blijft daarom onveranderd.`
+             :`✗ Niet correct. Kc = kf/kr. Een katalysator verlaagt beide Ea even veel, dus de verhouding kf/kr verandert niet.`},
+
+    // 3b. Katalysator: snelheid evenwicht
+    {id:'q-cat-snel', type:'radio',
+     opts:['Sneller bereikt','Langzamer bereikt','Even snel bereikt'], answer:0,
+     text:'Hoe snel wordt het evenwicht bereikt mét katalysator?',
+     fb:ok=>ok?`✓ Correct! Beide reactiesnelheden stijgen → evenwicht wordt sneller bereikt, maar de ligging is onveranderd.`
+             :`✗ Niet correct. Een katalysator versnelt beide richtingen → evenwicht sneller bereikt.`},
+
+    // 4. Oppervlak vaste stof (conditioneel)
+    ...(RXN.hasSolid?[
+      {id:'q-surf-kc', type:'radio',
+       opts:['Kc neemt toe','Kc neemt af','Kc blijft gelijk'], answer:2,
+       text:'Meer oppervlak van de vaste stof. Wat gebeurt er met Kc?',
+       fb:ok=>ok?`✓ Correct! Oppervlak zit niet in de Kc-expressie (activiteit vaste stof = 1). Kc verandert niet.`
+               :`✗ Niet correct. De vaste stof heeft activiteit 1 en staat niet in Kc. Meer oppervlak verandert Kc niet.`},
+      {id:'q-surf-snel', type:'radio',
+       opts:['Sneller bereikt','Langzamer bereikt','Even snel bereikt'], answer:0,
+       text:'Hoe snel wordt het evenwicht bereikt bij meer oppervlak?',
+       fb:ok=>ok?`✓ Correct! Meer oppervlak verhoogt de reactiesnelheid → evenwicht sneller bereikt, ligging onveranderd.`
+               :`✗ Niet correct. Meer oppervlak verhoogt kf en kr evenredig → evenwicht sneller bereikt.`},
+    ]:[]),
+
+    // 5. Volume (conditioneel)
+    ...(RXN.hasGas&&dn!==0?[
+      {id:'q-vol', type:'radio',
+       opts:['Rendement stijgt','Rendement daalt','Onveranderd'], answer:dn<0?0:1,
+       text:'Het volume wordt verkleind. Wat gebeurt er met het rendement (hoeveelheid product)?',
+       fb:ok=>ok?`✓ Correct! Δn(gas) = ${dn}. Concentraties stijgen → Q ${dn<0?'<':'>'} Kc → evenwicht verschuift naar ${dn<0?'minder':'meer'} mol gas (${dn<0?'productkant':'reactantkant'}).`
+               :`✗ Δn(gas) = ${dn} → evenwicht verschuift naar ${dn<0?'product':'reactant'}kant.`},
+    ]:[]),
+
+    // 6a. Argon (conditioneel)
+    ...(RXN.hasGas?[
+      {id:'q-ar1', type:'radio',
+       opts:['Verschuift naar rechts','Verschuift naar links','Verschuift niet'], answer:2,
+       text:'Argon wordt toegevoegd bij constant volume. De totaaldruk stijgt. Wat doet dit met de ligging van het evenwicht?',
+       fb:ok=>ok?`✓ Correct! Argon reageert niet mee en verandert bij constant volume de concentraties van de reactieve stoffen niet. Q blijft gelijk → geen verschuiving.`
+               :`✗ Niet correct. Bij constant volume veranderen de concentraties van de reactieve stoffen niet door Ar. Q = Kc blijft gelden → geen verschuiving.`,
+       followup:'q-ar2'},
+      {id:'q-ar2', type:'radio', hidden:true,
+       opts:['Een hogere druk verschuift het evenwicht naar de kant met de meeste deeltjes',
+             'Een hogere druk verschuift het evenwicht naar de kant met de minste deeltjes',
+             'Er is geen oorzakelijk verband tussen druk en de ligging van een evenwicht'], answer:2,
+       text:'Wat kun je daarom zeggen over het verband tussen druk en de ligging van dit evenwicht?',
+       fb:ok=>ok?`✓ Correct! Ar verhoogde de druk maar het evenwicht verschoof niet. Druk is geen oorzaak — concentratie wel. De "drukregel" is eigenlijk een concentratie-effect.`
+               :`✗ Niet correct. Ar toonde aan dat drukstijging zónder concentratieverandering geen effect heeft. Er is geen direct oorzakelijk verband tussen druk en evenwichtsligging.`},
+    ]:[]),
+
+    // 7. Quench — drie losse stellingen
+    {id:'q-qkc', type:'radio',
+     opts:['Kc is gelijk gebleven','Kc is groter geworden','Kc is kleiner geworden'],
+     answer: endo?2:1,
+     text:'Na het snel verlagen van T: wat is er met Kc gebeurd?',
+     fb:ok=>ok?`✓ Correct! Bij lagere T wordt de exotherme kant bevoordeeld. Kc is ${KcLowerT} omdat de ${endo?'terug':'heen'}reactie (exotherm) relatief sneller wordt.`
+             :`✗ Niet correct. Lagere T bevoordeelt de exotherme kant → Kc is ${KcLowerT}.`},
+    {id:'q-qsnel', type:'radio',
+     opts:['Ongeveer even snel','Sneller','Veel langzamer'], answer:2,
+     text:'Na het snel verlagen van T: hoe snel verloopt de netto reactie nu?',
+     fb:ok=>ok?`✓ Correct! Bij lage T is k extreem klein → de netto reactiesnelheid is verwaarloosbaar laag.`
+             :`✗ Niet correct. Bij lage T geldt k = A·e^(−Ea/RT) ≈ 0. De reactie is kinetisch bevroren.`},
+    {id:'q-qeq', type:'radio',
+     opts:['Snel bereikt','Ongeveer even snel bereikt','Zeer langzaam bereikt'], answer:2,
+     text:'Na het snel verlagen van T: hoe snel wordt het nieuwe evenwicht bereikt?',
+     fb:ok=>ok?`✓ Correct! Zonder katalysator en bij lage T is k zo klein dat het nieuwe evenwicht in de praktijk nooit bereikt wordt.`
+             :`✗ Niet correct. Lage T + geen katalysator → k ≈ 0 → nieuwe evenwichtstoestand wordt zeer langzaam (of nooit) bereikt.`},
+  ];
+
+  for(const q of qs){
+    const div=document.createElement('div');
+    div.className='qb';div.id=q.id;
+    if(q.hidden) div.style.display='none';
+    if(q.followup) div.dataset.followup=q.followup;
+    if(q.type==='num'){
+      div.dataset.answer=q.answer;div.dataset.tol=q.tol||.05;
+      div.innerHTML=`<div class="qt">${q.text}</div>
+        <div class="qrow"><input class="qin" type="number" id="inp-${q.id}">
+        <button class="cbtn" onclick="checkQ('${q.id}')">Controleer</button></div>
+        <div class="qfb" id="fb-${q.id}"></div>`;
+    } else {
+      div.dataset.answer=q.answer;div.dataset.type='radio';
+      div.innerHTML=`<div class="qt">${q.text}</div>
+        <div class="ropts">${q.opts.map((o,i)=>`<button class="ropt" id="opt-${q.id}-${i}" onclick="selOpt('${q.id}',${i})">${o}</button>`).join('')}</div>
+        <div style="margin-top:8px"><button class="cbtn" onclick="checkQ('${q.id}')">Controleer</button></div>
+        <div class="qfb" id="fb-${q.id}"></div>`;
+    }
+    div.dataset.fb=q.id;
+    div._fb=q.fb;
+    con.appendChild(div);
+  }
+  // Sla fb-functies op in map
+  window._QFB={};
+  for(const q of qs) window._QFB[q.id]=q.fb;
+}
+
+function selOpt(qid,i){
+  document.getElementById(qid).querySelectorAll('.ropt').forEach((b,j)=>b.classList.toggle('on',j===i));
+  document.getElementById(qid).dataset.selected=i;
+}
+
+function checkQ(qid){
+  const div=document.getElementById(qid);
+  const fb=document.getElementById('fb-'+qid);
+  let ok;
+  if(div.dataset.type==='radio'){
+    ok=parseInt(div.dataset.selected??-1)===parseInt(div.dataset.answer);
+  } else {
+    const u=parseFloat(document.getElementById('inp-'+qid).value);
+    const a=parseFloat(div.dataset.answer);
+    ok=!isNaN(u)&&Math.abs(u-a)/Math.abs(a)<parseFloat(div.dataset.tol||.05);
+  }
+  fb.style.display='block';fb.className='qfb '+(ok?'ok':'err');
+  fb.innerHTML=window._QFB[qid](ok);
+  // Toon followup-vraag als correct
+  if(ok&&div.dataset.followup){
+    const fup=document.getElementById(div.dataset.followup);
+    if(fup) fup.style.display='block';
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function fmt(x){if(!isFinite(x))return'—';if(Math.abs(x)<.001||Math.abs(x)>9999)return x.toExponential(2);return x.toPrecision(3);}
+function tick(v){if(Math.abs(v)<.001||Math.abs(v)>=10000)return v.toExponential(1);return v.toPrecision(3);}
+function fmtT(t){if(t>=3600)return(t/3600).toFixed(1)+'h';if(t>=60)return(t/60).toFixed(1)+'min';return t.toFixed(1)+'s';}
+
+const ro=new ResizeObserver(()=>drawAll());
+ro.observe(document.getElementById('c1'));ro.observe(document.getElementById('c2'));
+
+newRxn();
+</script>
+</body>
+</html>

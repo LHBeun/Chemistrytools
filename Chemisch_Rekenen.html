@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Chemie Rekenketen v2.0</title>
+<style>
+:root{
+  --bg:#0b1220;
+  --panel:#121b2e;
+  --panel2:#0e1626;
+  --border:#22304a;
+  --text:#e6edf7;
+  --muted:#8ea0bd;
+  --accent:#4f8cff;
+  --accent2:#7c9eff;
+  --ok:#2fae66;
+  --bad:#e5534b;
+  --warn:#d9a441;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:'Segoe UI',system-ui,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+header{
+  background:var(--panel2);
+  border-bottom:1px solid var(--border);
+  padding:14px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+header h1{font-size:16px;margin:0;font-weight:600;letter-spacing:.3px}
+header .sub{font-size:12px;color:var(--muted)}
+#app{
+  display:grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap:18px;
+  padding:20px;
+  max-width:1300px;
+  margin:0 auto;
+}
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:18px 20px;
+}
+.card h2{font-size:14px;margin:0 0 10px;color:var(--accent2);letter-spacing:.3px;text-transform:uppercase;font-weight:600}
+.card h3{font-size:13px;margin:14px 0 8px;color:var(--muted);font-weight:600}
+.context{font-size:14px;color:var(--muted);margin-bottom:8px;line-height:1.5}
+.equation{
+  font-size:18px;
+  font-weight:600;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:10px 14px;
+  margin-bottom:14px;
+  letter-spacing:.3px;
+}
+.giveninfo{
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:10px 14px;
+  font-size:13px;
+  line-height:1.7;
+  margin-bottom:14px;
+}
+.giveninfo b{color:var(--accent2)}
+.totalq{
+  font-size:14.5px;
+  font-weight:600;
+  background:rgba(79,140,255,0.1);
+  border:1px solid var(--accent);
+  border-radius:8px;
+  padding:10px 14px;
+  margin-bottom:14px;
+}
+.totalq span{font-weight:400;color:var(--muted);font-size:12px;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px}
+.stepbox{
+  background:var(--panel2);
+  border:1px solid var(--accent);
+  border-radius:8px;
+  padding:12px 14px;
+  margin-bottom:10px;
+}
+.stepbox .steplabel{font-size:12px;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.stepbox .stepq{font-size:14px}
+.progress{display:flex;gap:4px;margin-bottom:10px}
+.progress div{height:5px;flex:1;border-radius:3px;background:var(--border)}
+.progress div.done{background:var(--ok)}
+.progress div.current{background:var(--accent)}
+label{font-size:12px;color:var(--muted);display:block;margin-top:4px}
+input,select{
+  width:100%;
+  padding:9px 10px;
+  margin-top:4px;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  color:var(--text);
+  border-radius:6px;
+  font-size:14px;
+}
+input:focus,select:focus{outline:none;border-color:var(--accent)}
+.row{display:flex;gap:10px}
+.row > div{flex:1}
+button{
+  padding:10px 14px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+  background:var(--accent);
+  color:white;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:600;
+}
+button:hover{background:var(--accent2)}
+button.secondary{background:transparent;border:1px solid var(--border);color:var(--text)}
+button.secondary:hover{border-color:var(--accent)}
+button.full{width:100%}
+.btnrow{display:flex;gap:8px}
+.btnrow button{flex:1}
+#feedback{margin-top:12px;font-size:14px;min-height:20px}
+.ok{color:var(--ok);font-weight:600}
+.bad{color:var(--bad);font-weight:600}
+.hint{color:var(--warn);font-size:12px;display:block;margin-top:4px}
+.small{font-size:12px;color:var(--muted)}
+pre{
+  white-space:pre-wrap;
+  font-size:12.5px;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:12px;
+  line-height:1.6;
+  color:#cfe0ff;
+}
+.hidden{display:none}
+.badge{
+  display:inline-block;
+  font-size:11px;
+  padding:2px 8px;
+  border-radius:10px;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  color:var(--muted);
+  margin-left:6px;
+}
+.scorebar{font-size:13px;color:var(--muted);margin-top:6px}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Chemie Rekenketen <span class="badge">v2.0</span></h1>
+    <div class="sub">stoichiometrie · mol · massa · volume · concentratie · dichtheid · %/ppm/ppb</div>
+  </div>
+  <div class="sub" id="examIndicator"></div>
+</header>
+
+<div id="app">
+
+  <!-- LEFT: opgave -->
+  <div class="card">
+    <h2>Opgave</h2>
+    <div class="context" id="context"></div>
+    <div class="equation" id="reaction"></div>
+    <div class="giveninfo" id="giveninfo"></div>
+    <div class="totalq" id="totalq"></div>
+
+    <div class="progress" id="progress"></div>
+
+    <div class="stepbox">
+      <div class="steplabel" id="steplabel">Stap</div>
+      <div class="stepq" id="stepq">Los de stap zelf op. Klik op "toon deze stap" als je wilt weten wat er precies gevraagd wordt.</div>
+    </div>
+
+    <label id="answerLabel">Antwoord</label>
+    <input id="answer" autocomplete="off"/>
+
+    <div class="btnrow">
+      <button class="full" onclick="submitStep()">Controleer</button>
+      <button class="secondary" onclick="revealStep()">Toon deze stap</button>
+      <button class="secondary" onclick="useHint()">Hint</button>
+    </div>
+
+    <div id="feedback"></div>
+
+    <div class="btnrow" style="margin-top:16px">
+      <button class="secondary full" onclick="generateTask()">Nieuwe opgave</button>
+      <button class="secondary full" onclick="toggleExam()">Examenmodus: <span id="examState">uit</span></button>
+    </div>
+    <div class="scorebar" id="scorebar"></div>
+  </div>
+
+  <!-- RIGHT: docent / uitleg -->
+  <div class="card">
+    <h2>Docentmodus</h2>
+    <div class="small">Ctrl + Alt + D</div>
+    <div id="teacher" class="hidden">
+      <h3>Volledige uitwerking</h3>
+      <pre id="solution"></pre>
+      <h3>Leerlingmodel (foutregistratie)</h3>
+      <pre id="studentmodel"></pre>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   1. ATOOMMASSA'S (BINAS-achtig, uitbreidbaar)
+========================================================= */
+const ATOMIC_MASS = {
+  H:1.008, C:12.01, N:14.01, O:16.00, Na:22.99, Mg:24.31, Al:26.98,
+  S:32.06, Cl:35.45, K:39.10, Ca:40.08, Cr:52.00, Mn:54.94, Fe:55.85,
+  Co:58.93, Ni:58.69, Cu:63.55, Zn:65.38, Br:79.90, Ag:107.87,
+  Sn:118.71, I:126.90, Ba:137.33, Pb:207.2
+};
+
+const R = 8.314; // J / (mol K)
+
+/* =========================================================
+   2. FORMULEPARSER — ondersteunt haakjes en hydraten
+   Voorbeelden: H2SO4, Ca(OH)2, Al2(SO4)3, CuSO4.5H2O
+========================================================= */
+function parseGroup(s){
+  let i = 0;
+  function parse(){
+    let comp = {};
+    while(i < s.length && s[i] !== ')'){
+      if(s[i] === '('){
+        i++; // skip '('
+        let inner = parse();
+        i++; // skip ')'
+        let m = s.slice(i).match(/^\d+/);
+        let mult = 1;
+        if(m){ mult = parseInt(m[0]); i += m[0].length; }
+        for(let el in inner) comp[el] = (comp[el]||0) + inner[el]*mult;
+      } else {
+        let m = s.slice(i).match(/^[A-Z][a-z]?/);
+        if(!m){ i++; continue; }
+        let el = m[0]; i += el.length;
+        let numM = s.slice(i).match(/^\d+/);
+        let num = 1;
+        if(numM){ num = parseInt(numM[0]); i += numM[0].length; }
+        comp[el] = (comp[el]||0) + num;
+      }
+    }
+    return comp;
+  }
+  return parse();
+}
+
+function parseFormula(formula){
+  formula = formula.replace(/·/g,'.');
+  let parts = formula.split('.');
+  let comp = {};
+  for(let part of parts){
+    let m = part.match(/^(\d+)(.*)$/);
+    let mult = 1;
+    if(m){ mult = parseInt(m[1]); part = m[2]; }
+    let sub = parseGroup(part);
+    for(let el in sub) comp[el] = (comp[el]||0) + sub[el]*mult;
+  }
+  return comp;
+}
+
+function molarMass(formula){
+  let comp = parseFormula(formula);
+  let mass = 0;
+  for(let el in comp) mass += (ATOMIC_MASS[el] || 0) * comp[el];
+  return mass;
+}
+
+/* =========================================================
+   3. REACTIEDATABASE — willekeurig aantal reactanten/producten
+========================================================= */
+const reactionBank = [
+  { text:"Volledige verbranding van methaan.", equation:"CH4 + 2 O2 → CO2 + 2 H2O",
+    reactants:{CH4:1,O2:2}, products:{CO2:1,H2O:2}, context:"verbranding" },
+
+  { text:"Volledige verbranding van propaan.", equation:"C3H8 + 5 O2 → 3 CO2 + 4 H2O",
+    reactants:{C3H8:1,O2:5}, products:{CO2:3,H2O:4}, context:"verbranding" },
+
+  { text:"Volledige verbranding van butaan.", equation:"2 C4H10 + 13 O2 → 8 CO2 + 10 H2O",
+    reactants:{C4H10:2,O2:13}, products:{CO2:8,H2O:10}, context:"verbranding" },
+
+  { text:"Volledige verbranding van ethanol.", equation:"C2H5OH + 3 O2 → 2 CO2 + 3 H2O",
+    reactants:{C2H5OH:1,O2:3}, products:{CO2:2,H2O:3}, context:"verbranding" },
+
+  { text:"Volledige verbranding van glucose.", equation:"C6H12O6 + 6 O2 → 6 CO2 + 6 H2O",
+    reactants:{C6H12O6:1,O2:6}, products:{CO2:6,H2O:6}, context:"biochemische oxidatie" },
+
+  { text:"Neerslagreactie tussen zilver- en chloride-ionen.", equation:"AgNO3 + NaCl → AgCl + NaNO3",
+    reactants:{AgNO3:1,NaCl:1}, products:{AgCl:1,NaNO3:1}, context:"neerslagreactie" },
+
+  { text:"Neerslagreactie tot bariumsulfaat.", equation:"BaCl2 + Na2SO4 → BaSO4 + 2 NaCl",
+    reactants:{BaCl2:1,Na2SO4:1}, products:{BaSO4:1,NaCl:2}, context:"neerslagreactie" },
+
+  { text:"Neutralisatie van zoutzuur met natronloog.", equation:"HCl + NaOH → NaCl + H2O",
+    reactants:{HCl:1,NaOH:1}, products:{NaCl:1,H2O:1}, context:"neutralisatie" },
+
+  { text:"Neutralisatie van zwavelzuur met natronloog.", equation:"H2SO4 + 2 NaOH → Na2SO4 + 2 H2O",
+    reactants:{H2SO4:1,NaOH:2}, products:{Na2SO4:1,H2O:2}, context:"neutralisatie" },
+
+  { text:"Verdringingsreactie van zink met koper(II)sulfaat.", equation:"Zn + CuSO4 → ZnSO4 + Cu",
+    reactants:{Zn:1,CuSO4:1}, products:{ZnSO4:1,Cu:1}, context:"verdringingsreactie" },
+
+  { text:"Verdringingsreactie van ijzer met koper(II)sulfaat.", equation:"Fe + CuSO4 → FeSO4 + Cu",
+    reactants:{Fe:1,CuSO4:1}, products:{FeSO4:1,Cu:1}, context:"verdringingsreactie" },
+
+  { text:"Neutralisatie van calciumhydroxide met zoutzuur.", equation:"Ca(OH)2 + 2 HCl → CaCl2 + 2 H2O",
+    reactants:{"Ca(OH)2":1,HCl:2}, products:{CaCl2:1,H2O:2}, context:"neutralisatie" },
+
+  { text:"Zoutvorming uit ammoniak en zwavelzuur.", equation:"2 NH3 + H2SO4 → (NH4)2SO4",
+    reactants:{NH3:2,H2SO4:1}, products:{"(NH4)2SO4":1}, context:"zoutvorming" },
+
+  { text:"Dubbele verdringing tussen aluminiumsulfaat en bariumchloride.", equation:"Al2(SO4)3 + 3 BaCl2 → 2 AlCl3 + 3 BaSO4",
+    reactants:{"Al2(SO4)3":1,BaCl2:3}, products:{AlCl3:2,BaSO4:3}, context:"dubbele verdringing" }
+];
+
+/* =========================================================
+   4. GASWET — molair volume afgeleid, niet opgeslagen
+   Vm = R·T / p   (T in K, p in kPa)  →  Vm in L/mol
+========================================================= */
+function molarVolume(T_K, p_kPa){
+  return (R * T_K) / p_kPa; // L/mol
+}
+
+/* =========================================================
+   5. HULPFUNCTIES
+========================================================= */
+function $(id){ return document.getElementById(id); }
+function setText(id, html){ $(id).innerHTML = html; }
+function rnd(a,b){ return Math.random()*(b-a)+a; }
+function fmt(x, d=3){ return Number(x).toLocaleString('nl-NL',{maximumFractionDigits:d}); }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+/* =========================================================
+   6. GEGEVEN→MOL  en  MOL→GEGEVEN  (volledig symmetrisch)
+   Elk type levert: {mol, text} bij omzetten naar mol
+   en {value, unit, text} bij omzetten vanuit mol
+========================================================= */
+const T_STD = 298;     // K (kamertemperatuur, vast gekozen per opgave)
+const P_STD = 101.3;   // kPa
+
+const LEVEL_NAMES = {1:"Basis", 2:"Gemiddeld", 3:"Gevorderd"};
+const GIVEN_TYPES_BY_LEVEL = {
+  1: ["mol","massa","gas"],
+  2: ["mol","massa","gas","conc","dichtheid"],
+  3: ["mol","massa","gas","conc","dichtheid","massapercent","ppm"]
+};
+const TARGET_TYPES_BY_LEVEL = {
+  1: ["mol","massa"],
+  2: ["mol","massa","gas","conc"],
+  3: ["mol","massa","gas","conc","dichtheid"]
+};
+const YIELD_CHANCE_BY_LEVEL = {1:0, 2:0.4, 3:0.75};
+
+let studentLevel = 2;          // 1 = basis, 2 = gemiddeld, 3 = gevorderd
+let streakCorrect = 0;
+let streakWrong = 0;
+
+function genGivenForReactant(formula, level){
+  const M = molarMass(formula);
+  const Vm = molarVolume(T_STD, P_STD);
+  const types = GIVEN_TYPES_BY_LEVEL[level];
+  const type = pick(types);
+
+  if(type === "mol"){
+    let n = rnd(0.5, 4);
+    return { type, mol:n, M, display:`${fmt(n)} mol ${formula}`,
+      explain:`n(${formula}) is rechtstreeks gegeven: n = ${fmt(n)} mol` };
+  }
+
+  if(type === "massa"){
+    let m = rnd(5, 60);
+    let n = m / M;
+    return { type, mol:n, M, display:`${fmt(m)} g ${formula} (M = ${fmt(M,2)} g/mol)`,
+      explain:`n = m / M = ${fmt(m)} / ${fmt(M,2)} = ${fmt(n)} mol` };
+  }
+
+  if(type === "gas"){
+    let V = rnd(2, 15);
+    let n = V / Vm;
+    return { type, mol:n, M, display:`${fmt(V)} L ${formula} gas (T = ${T_STD} K, p = ${P_STD} kPa)`,
+      explain:`Vm = R·T/p = 8.314 × ${T_STD} / ${P_STD} = ${fmt(Vm,2)} L/mol\nn = V / Vm = ${fmt(V)} / ${fmt(Vm,2)} = ${fmt(n)} mol` };
+  }
+
+  if(type === "conc"){
+    let c = rnd(0.1, 2);
+    let V = rnd(0.1, 1);
+    let n = c * V;
+    return { type, mol:n, M, display:`${fmt(V)} L oplossing van ${formula} met c = ${fmt(c)} mol/L`,
+      explain:`n = c × V = ${fmt(c)} × ${fmt(V)} = ${fmt(n)} mol` };
+  }
+
+  if(type === "dichtheid"){
+    let rho = rnd(0.8, 2.2);   // g/mL
+    let V = rnd(5, 40);        // mL
+    let m = rho * V;
+    let n = m / M;
+    return { type, mol:n, M, display:`${fmt(V)} mL ${formula} met dichtheid ρ = ${fmt(rho,2)} g/mL`,
+      explain:`m = ρ × V = ${fmt(rho,2)} × ${fmt(V)} = ${fmt(m,2)} g\nn = m / M = ${fmt(m,2)} / ${fmt(M,2)} = ${fmt(n)} mol` };
+  }
+
+  if(type === "massapercent"){
+    let totalMass = rnd(50, 300);
+    let percent = rnd(5, 40);
+    let m = totalMass * percent/100;
+    let n = m / M;
+    return { type, mol:n, M, display:`${fmt(totalMass)} g monster met ${fmt(percent,1)} massa% ${formula}`,
+      explain:`m(${formula}) = ${fmt(totalMass)} × ${fmt(percent,1)}/100 = ${fmt(m,2)} g\nn = m / M = ${fmt(m,2)} / ${fmt(M,2)} = ${fmt(n)} mol` };
+  }
+
+  if(type === "ppm"){
+    let totalMass = rnd(500, 2000);
+    let ppm = rnd(50, 800);
+    let m = totalMass * ppm/1e6;
+    let n = m / M;
+    return { type, mol:n, M, display:`${fmt(totalMass)} g monster met ${fmt(ppm,0)} ppm ${formula}`,
+      explain:`m(${formula}) = ${fmt(totalMass)} × ${fmt(ppm,0)} / 1.000.000 = ${fmt(m,4)} g\nn = m / M = ${fmt(m,4)} / ${fmt(M,2)} = ${fmt(n)} mol` };
+  }
+}
+
+function genTargetForProduct(formula, molTheoretical, level){
+  const M = molarMass(formula);
+  const Vm = molarVolume(T_STD, P_STD);
+  const types = TARGET_TYPES_BY_LEVEL[level];
+  const type = pick(types);
+
+  if(type === "mol"){
+    return { type, unit:"mol", ask:`het aantal mol ${formula} dat ontstaat`,
+      value: molTheoretical,
+      explain:(mol)=>`Gevraagd is mol zelf: antwoord = n(${formula}) = ${fmt(mol)} mol` };
+  }
+
+  if(type === "massa"){
+    return { type, unit:"g", ask:`de massa (g) ${formula} die ontstaat`,
+      value: molTheoretical*M,
+      explain:(mol)=>`m = n × M = ${fmt(mol)} × ${fmt(M,2)} = ${fmt(mol*M)} g` };
+  }
+
+  if(type === "gas"){
+    return { type, unit:"L", ask:`het volume (L) ${formula}-gas dat ontstaat (T = ${T_STD} K, p = ${P_STD} kPa)`,
+      value: molTheoretical*Vm,
+      explain:(mol)=>`V = n × Vm = ${fmt(mol)} × ${fmt(Vm,2)} = ${fmt(mol*Vm)} L` };
+  }
+
+  if(type === "conc"){
+    let V = rnd(0.2, 1.5);
+    return { type, unit:"mol/L", extra:{V}, ask:`de concentratie (mol/L) als al het ${formula} wordt opgelost in ${fmt(V)} L`,
+      value: molTheoretical/V,
+      explain:(mol)=>`c = n / V = ${fmt(mol)} / ${fmt(V)} = ${fmt(mol/V)} mol/L` };
+  }
+
+  if(type === "dichtheid"){
+    let rho = rnd(0.8, 2.2);
+    return { type, unit:"mL", extra:{rho}, ask:`het volume (mL) ${formula} bij een dichtheid van ${fmt(rho,2)} g/mL`,
+      value: (molTheoretical*M)/rho,
+      explain:(mol)=>`m = n × M = ${fmt(mol)} × ${fmt(M,2)} = ${fmt(mol*M,2)} g\nV = m / ρ = ${fmt(mol*M,2)} / ${fmt(rho,2)} = ${fmt((mol*M)/rho)} mL` };
+  }
+}
+
+/* =========================================================
+   7. TAAKOPBOUW
+========================================================= */
+let currentTask = null;
+let stepIndex = 0;
+
+function buildTask(){
+  const rx = pick(reactionBank);
+  const reactantFormulas = Object.keys(rx.reactants);
+  const productFormulas = Object.keys(rx.products);
+  const targetFormula = pick(productFormulas);
+
+  // De eerste stof is de gelimiteerde stof: daarvan wordt een hoeveelheid gegeven.
+  // De overige stoffen zijn altijd in overmaat aanwezig (geen berekening nodig).
+  const primary = reactantFormulas[0];
+  const excessFormulas = reactantFormulas.slice(1);
+
+  const given = genGivenForReactant(primary, studentLevel);
+  const extent = given.mol / rx.reactants[primary];
+  const theoreticalMolTarget = extent * rx.products[targetFormula];
+
+  // rendement: kans afhankelijk van niveau, altijd expliciet vermeld
+  const useYield = Math.random() < YIELD_CHANCE_BY_LEVEL[studentLevel];
+  const yieldPct = useYield ? rnd(60, 98) : 100;
+  const actualMolTarget = theoreticalMolTarget * (yieldPct/100);
+
+  const target = genTargetForProduct(targetFormula, actualMolTarget, studentLevel);
+
+  // stappenplan opbouwen
+  const steps = [];
+  steps.push({
+    kind:"mol_reactant",
+    formula:primary,
+    label:`Mol berekenen: ${primary}`,
+    question:`Bereken n(${primary}) uit het gegeven hierboven.`,
+    answer: given.mol,
+    explain: given.explain
+  });
+  steps.push({
+    kind:"theoretical",
+    label:"Theoretische opbrengst",
+    question:`Bereken de theoretische hoeveelheid mol ${targetFormula} (vóór rendement). De overige stof is in overmaat aanwezig.`,
+    answer: theoreticalMolTarget,
+    explain:`extent = n(${primary}) / coëfficiënt(${primary}) = ${fmt(given.mol)} / ${rx.reactants[primary]} = ${fmt(extent)}\n` +
+      `n(${targetFormula})theoretisch = extent × coëfficiënt(${targetFormula}) = ${fmt(extent)} × ${rx.products[targetFormula]} = ${fmt(theoreticalMolTarget)} mol`
+  });
+  if(useYield){
+    steps.push({
+      kind:"yield",
+      label:"Rendement toepassen",
+      question:`Het rendement van deze reactie is ${fmt(yieldPct,1)}%. Bereken de werkelijke hoeveelheid mol ${targetFormula}.`,
+      answer: actualMolTarget,
+      explain:`n(werkelijk) = n(theoretisch) × rendement/100 = ${fmt(theoreticalMolTarget)} × ${fmt(yieldPct,1)}/100 = ${fmt(actualMolTarget)} mol`
+    });
+  }
+  steps.push({
+    kind:"final",
+    label:"Omzetten naar gevraagde eenheid",
+    question:`Bereken ${target.ask}.`,
+    answer: target.value,
+    explain: target.explain(actualMolTarget),
+    unit: target.unit
+  });
+
+  currentTask = {
+    rx, given, primary, excessFormulas, targetFormula,
+    theoreticalMolTarget, useYield, yieldPct, actualMolTarget,
+    target, steps
+  };
+  stepIndex = 0;
+  revealed = [];
+  errorsThisTask = 0;
+
+  renderTaskHeader();
+  renderStep();
+  $("feedback").innerHTML = "";
+}
+
+function renderTaskHeader(){
+  const t = currentTask;
+  setText("context", t.rx.text + ` <span class="small">(${t.rx.context})</span>`);
+  setText("reaction", t.rx.equation);
+
+  let lines = [];
+  lines.push(`<b>${t.primary}</b>: ${t.given.display}`);
+  if(t.excessFormulas.length){
+    lines.push(`<b>${t.excessFormulas.join(", ")}</b>: in overmaat aanwezig`);
+  }
+  if(t.useYield){
+    lines.push(`<b>Rendement</b>: ${fmt(t.yieldPct,1)}%`);
+  }
+  setText("giveninfo", lines.join("<br>"));
+  setText("totalq", `<span>Totale vraag</span>${t.target.ask.charAt(0).toUpperCase()+t.target.ask.slice(1)}.`);
+  setText("examIndicator", (examActive ? "Examenmodus actief · " : "") + `Niveau: ${LEVEL_NAMES[studentLevel]}`);
+}
+
+function renderProgress(){
+  let html = "";
+  currentTask.steps.forEach((s,i)=>{
+    let cls = i < stepIndex ? "done" : (i === stepIndex ? "current" : "");
+    html += `<div class="${cls}"></div>`;
+  });
+  setText("progress", html);
+}
+
+let revealed = [];
+
+function renderStep(){
+  renderProgress();
+  if(stepIndex >= currentTask.steps.length){
+    setText("steplabel","Opgave afgerond");
+    setText("stepq","Klik op 'Nieuwe opgave' om verder te gaan.");
+    $("answer").value="";
+    $("answer").disabled = true;
+    return;
+  }
+  $("answer").disabled = false;
+  const s = currentTask.steps[stepIndex];
+  setText("steplabel", `Stap ${stepIndex+1} / ${currentTask.steps.length}`);
+  if(revealed[stepIndex]){
+    setText("stepq", s.question);
+  } else {
+    setText("stepq", `Bepaal zelf wat deze stap moet opleveren en reken hem uit. Klik op "toon deze stap" als je een aanwijzing wilt.`);
+  }
+  $("answer").value = "";
+  $("answer").placeholder = s.kind === "limiting" ? "bv. CH4" : (s.unit ? `antwoord in ${s.unit}` : "antwoord in mol");
+  $("answer").focus();
+}
+
+function revealStep(){
+  revealed[stepIndex] = true;
+  renderStep();
+}
+
+/* =========================================================
+   8. CONTROLE EN FOUTDIAGNOSE
+========================================================= */
+let studentModel = { mol_reactant:0, theoretical:0, yield:0, final:0 };
+let examActive = false;
+let score = 0, total = 0;
+let errorsThisTask = 0;
+
+function updateLevel(){
+  if(errorsThisTask === 0){
+    streakCorrect++;
+    streakWrong = 0;
+    if(streakCorrect >= 3 && studentLevel < 3){
+      studentLevel++;
+      streakCorrect = 0;
+    }
+  } else {
+    streakWrong++;
+    streakCorrect = 0;
+    if(streakWrong >= 2 && studentLevel > 1){
+      studentLevel--;
+      streakWrong = 0;
+    }
+  }
+}
+
+function diagnose(step, ok){
+  if(ok) return "";
+  switch(step.kind){
+    case "mol_reactant": return "Controleer de omzetting naar mol (massa, gas, concentratie, dichtheid of %/ppm).";
+    case "limiting": return "Vergelijk voor elke stof n gedeeld door de coëfficiënt; de kleinste waarde wint.";
+    case "theoretical": return "Gebruik extent (van het limiterend reagens) × coëfficiënt van het product.";
+    case "yield": return "Werkelijk = theoretisch × rendement/100.";
+    case "final": return "Controleer de omzetting van mol naar de gevraagde eenheid (M, Vm, c·V of ρ).";
+  }
+  return "";
+}
+
+function submitStep(){
+  if(stepIndex >= currentTask.steps.length) return;
+  const s = currentTask.steps[stepIndex];
+  let ok;
+
+  if(s.kind === "limiting"){
+    let user = $("answer").value.trim();
+    ok = user.toLowerCase() === String(s.answer).toLowerCase();
+  } else {
+    let user = parseFloat($("answer").value.replace(",", "."));
+    if(isNaN(user)){
+      $("feedback").innerHTML = `<span class="bad">Vul een getal in.</span>`;
+      return;
+    }
+    let rel = Math.abs(user - s.answer) / Math.max(Math.abs(s.answer), 1e-9);
+    ok = rel < 0.02; // 2% tolerantie i.v.m. afronding
+  }
+
+  if(ok){
+    stepIndex++;
+    $("feedback").innerHTML = `<span class="ok">Correct.</span>`;
+    renderStep();
+  } else {
+    errorsThisTask++;
+    studentModel[s.kind] = (studentModel[s.kind]||0) + 1;
+    $("feedback").innerHTML = `<span class="bad">Niet correct.</span><span class="hint">${diagnose(s, false)}</span>`;
+  }
+
+  if(stepIndex >= currentTask.steps.length){
+    total++;
+    if(examActive){
+      score++;
+      updateScorebar();
+    }
+    updateLevel();
+    setText("examIndicator", (examActive ? "Examenmodus actief · " : "") + `Niveau: ${LEVEL_NAMES[studentLevel]}`);
+    renderStep();
+  }
+
+  updateTeacherView();
+}
+
+function useHint(){
+  const s = currentTask.steps[stepIndex];
+  $("feedback").innerHTML = `<span class="hint">${diagnose(s, false)}</span>`;
+}
+
+function updateScorebar(){
+  setText("scorebar", examActive ? `Score: ${score} opgaven correct afgerond / ${total} pogingen` : "");
+}
+
+function toggleExam(){
+  examActive = !examActive;
+  score = 0; total = 0;
+  $("examState").textContent = examActive ? "aan" : "uit";
+  setText("examIndicator", examActive ? "Examenmodus actief" : "");
+  updateScorebar();
+}
+
+/* =========================================================
+   9. DOCENTMODUS
+========================================================= */
+document.addEventListener("keydown", e=>{
+  if(e.ctrlKey && e.altKey && e.key.toLowerCase() === "d"){
+    $("teacher").classList.toggle("hidden");
+    updateTeacherView();
+  }
+});
+
+function updateTeacherView(){
+  if(!currentTask) return;
+  let lines = [];
+  lines.push(`Reactie: ${currentTask.rx.equation}`);
+  lines.push("");
+  currentTask.steps.forEach((s,i)=>{
+    lines.push(`--- Stap ${i+1}: ${s.label} ---`);
+    lines.push(s.explain);
+    lines.push("");
+  });
+  setText("solution", lines.join("\n"));
+
+  let sm = `Niveau: ${LEVEL_NAMES[studentLevel]} (${studentLevel}/3)\n`;
+  sm += `Reeks goed afgerond op rij: ${streakCorrect}\n`;
+  sm += `Reeks met fouten op rij: ${streakWrong}\n`;
+  sm += `Opgaven afgerond (totaal): ${total}\n\n`;
+  sm += "Fouten per stapsoort:\n";
+  sm += Object.entries(studentModel).map(([k,v])=>`  ${k}: ${v}`).join("\n");
+  setText("studentmodel", sm);
+}
+
+$("answer").addEventListener("keydown", e=>{
+  if(e.key === "Enter") submitStep();
+});
+
+/* init */
+generateTask = buildTask;
+generateTask();
+</script>
+</body>
+</html>

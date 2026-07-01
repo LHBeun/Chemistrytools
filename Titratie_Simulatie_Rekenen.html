@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Titratie Laboratorium</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#f7f7f5;--surface:#fff;--surface2:#f0f0ec;--border:#d8d8d2;--border2:#c0c0b8;
+    --text:#1a1a18;--text2:#5a5a55;--text3:#8a8a84;
+    --blue:#1a5fa8;--blue-bg:#e8f0fa;--green:#1a7a4a;--green-bg:#e6f4ed;
+    --red:#a83030;--red-bg:#faeaea;--amber:#8a6010;--amber-bg:#fdf4e0;
+    --radius:8px;--radius-lg:12px;
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;}
+  .page{max-width:720px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+  .header{text-align:center;margin-bottom:2rem;}
+  .header h1{font-size:25px;font-weight:600;margin-bottom:4px;}
+  .header p{font-size:14px;color:var(--text2);}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.25rem;}
+  .phase-badge{display:inline-block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;
+    padding:3px 9px;border-radius:20px;background:var(--blue-bg);color:var(--blue);margin-bottom:0.75rem;}
+  .phase-badge.p2{background:#f0e8fa;color:#6030a8;}
+  h2{font-size:18px;font-weight:600;margin-bottom:0.5rem;}
+  .reaction{font-size:18px;font-weight:600;text-align:center;padding:0.75rem;background:var(--surface2);border-radius:var(--radius);margin:1rem 0;font-family:"Courier New",monospace;}
+  .data{background:var(--blue-bg);border-radius:var(--radius);padding:0.75rem 1rem;margin:1rem 0;font-size:14px;line-height:1.8;}
+  .data b{font-weight:600;}
+  .sim-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:1rem 0;}
+  .sim-row label{font-size:14px;color:var(--text2);}
+  input[type="number"]{padding:7px 10px;font-size:14px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface);color:var(--text);width:90px;}
+  input[type="number"]:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,95,168,0.1);}
+  .btn{padding:8px 16px;font-size:14px;font-weight:600;border:1px solid var(--blue);border-radius:var(--radius);background:var(--blue);color:#fff;cursor:pointer;transition:opacity 0.15s;}
+  .btn:hover{opacity:0.9;}
+  .btn-sec{background:var(--surface2);color:var(--text);border-color:var(--border2);}
+  .beaker-wrap{display:flex;justify-content:center;margin:1.25rem 0;}
+  .beaker{width:160px;height:180px;border:3px solid #333;border-top:none;border-radius:0 0 18px 18px;position:relative;overflow:hidden;background:
+    linear-gradient(to right,rgba(0,0,0,0.04) 1px,transparent 1px) 0 0/100% 100%;}
+  .liquid{position:absolute;bottom:0;left:0;right:0;height:70%;transition:background-color 0.4s ease;}
+  .tick{position:absolute;left:0;width:10px;height:1px;background:#999;}
+  .vol-readout{text-align:center;font-size:13px;color:var(--text3);margin-top:4px;font-family:"Courier New",monospace;}
+  .answer-block{margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);}
+  .answer-block .panel-title{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3);margin-bottom:0.75rem;}
+  .field-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+  .field-row label{font-size:14px;min-width:130px;}
+  select{padding:6px 10px;font-size:14px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface);color:var(--text);}
+  .coef-row{display:flex;align-items:center;gap:6px;font-size:15px;}
+  .coef-row input{width:50px;text-align:center;}
+  .feedback{font-size:14px;padding:10px 14px;border-radius:var(--radius);margin-top:1rem;display:none;}
+  .feedback.correct{background:var(--green-bg);color:var(--green);border:1px solid #b8e0cb;display:block;}
+  .feedback.wrong{background:var(--red-bg);color:var(--red);border:1px solid #f0c0c0;display:block;}
+  .feedback.hint{background:var(--amber-bg);color:var(--amber);border:1px solid #e8d090;display:block;}
+  .locked-msg{text-align:center;color:var(--text3);font-size:14px;padding:2rem;}
+  .swatch{display:inline-block;width:14px;height:14px;border:1px solid #999;border-radius:3px;vertical-align:middle;margin-right:4px;}
+  .hint-note{font-size:12px;color:var(--text3);margin-top:8px;}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:1rem;}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="header">
+    <h1>Titratie Laboratorium</h1>
+    <p>Ontdek eerst het reactiesysteem, bepaal dan een onbekende concentratie.</p>
+  </header>
+
+  <!-- FASE 1 -->
+  <div class="panel">
+    <span class="phase-badge">Fase 1 — Stoichiometrie detective</span>
+    <h2>Onderzoek de reactie</h2>
+    <p style="font-size:14px;color:var(--text2);">Voeg verschillende volumes B toe en kijk hoe de kleur verandert. Leid daaruit af welke kleuren de stoffen hebben en wat de reactievergelijking is.</p>
+    <div class="reaction">? A + ? B &rarr; C</div>
+    <div class="data">
+      Volume A: <b>20 mL</b><br>
+      Concentratie A: <b><span id="concA1"></span> M</b><br>
+      Concentratie B: <b><span id="concB1"></span> M</b>
+    </div>
+    <div class="sim-row">
+      <label>Volume B toevoegen (mL):</label>
+      <input type="number" id="volB1" value="0" min="0" step="1">
+      <button class="btn" onclick="simulate(1)">Voeg toe</button>
+    </div>
+    <div class="beaker-wrap">
+      <div class="beaker"><div class="liquid" id="liquid1"></div></div>
+    </div>
+    <div class="vol-readout" id="readout1">Nog niets toegevoegd</div>
+
+    <div class="answer-block">
+      <div class="panel-title">Jouw analyse</div>
+      <div class="field-row"><label>Kleur van A:</label>
+        <select id="gA"><option value="">— kies —</option><option>Rood</option><option>Blauw</option><option>Geel</option><option>Kleurloos</option></select></div>
+      <div class="field-row"><label>Kleur van B:</label>
+        <select id="gB"><option value="">— kies —</option><option>Rood</option><option>Blauw</option><option>Geel</option><option>Kleurloos</option></select></div>
+      <div class="field-row"><label>Kleur van C:</label>
+        <select id="gC"><option value="">— kies —</option><option>Rood</option><option>Blauw</option><option>Geel</option><option>Kleurloos</option></select></div>
+      <div class="field-row"><label>Coëfficiënten:</label>
+        <div class="coef-row"><input type="number" id="ga" min="1" placeholder="a"> A +
+          <input type="number" id="gb" min="1" placeholder="b"> B &rarr; C</div></div>
+      <div class="hint-note">Geef de coëfficiënten in de kleinst mogelijke gehele verhouding.</div>
+      <div class="btn-row">
+        <button class="btn" onclick="checkFase1()">Controleer</button>
+      </div>
+      <div class="feedback" id="fb1"></div>
+    </div>
+  </div>
+
+  <!-- FASE 2 -->
+  <div class="panel" id="fase2panel">
+    <span class="phase-badge p2">Fase 2 — Concentratie analist</span>
+    <div id="fase2locked" class="locked-msg">🔒 Rond eerst Fase 1 correct af.</div>
+    <div id="fase2content" style="display:none;">
+      <h2>Bepaal de onbekende concentratie van A</h2>
+      <p style="font-size:14px;color:var(--text2);">Nu krijg je een nieuw monster A met <b>onbekende</b> concentratie. Titreer met B, bepaal het equivalentiepunt via de kleuromslag, en bereken met de coëfficiënten uit Fase 1 de concentratie van A.</p>
+      <div class="data">
+        Volume A: <b>20 mL</b> (concentratie onbekend)<br>
+        Concentratie B: <b><span id="concB2"></span> M</b><br>
+        <span style="color:var(--text3);font-size:13px;">Het equivalentiepunt ligt bij een geheel aantal mL.</span>
+      </div>
+      <div class="sim-row">
+        <label>Volume B toevoegen (mL):</label>
+        <input type="number" id="volB2" value="0" min="0" step="1">
+        <button class="btn" onclick="simulate(2)">Voeg toe</button>
+      </div>
+      <div class="beaker-wrap">
+        <div class="beaker"><div class="liquid" id="liquid2"></div></div>
+      </div>
+      <div class="vol-readout" id="readout2">Nog niets toegevoegd</div>
+
+      <div class="answer-block">
+        <div class="field-row"><label>Concentratie A (M):</label>
+          <input type="number" id="ansConcA" step="0.01" placeholder="0,00">
+          <button class="btn" onclick="checkFase2()">Controleer</button></div>
+        <div class="hint-note">Geef je antwoord in 2 decimalen (mol/L).</div>
+        <div class="feedback" id="fb2"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const PALETTE=[
+  {n:'Rood',v:[210,45,45]},
+  {n:'Blauw',v:[40,90,200]},
+  {n:'Geel',v:[235,200,30]},
+  {n:'Kleurloos',v:[235,238,235]}  // licht grijs-wit, onderscheidbaar van pure achtergrond
+];
+
+function gcd(x,y){return y===0?x:gcd(y,Math.abs(x%y));}
+
+let S1=null, S2=null, colors=null;
+
+/* ── Generate a clean scenario: nice cA, cB, whole equivalence volume ── */
+function genScenario(forFase2){
+  const ratios=[];
+  for(let a=1;a<=3;a++)for(let b=1;b<=3;b++)if(gcd(a,b)===1)ratios.push([a,b]);
+  for(let t=0;t<3000;t++){
+    const [a,b]=ratios[Math.floor(Math.random()*ratios.length)];
+    const VA=20;
+    const cA=(Math.floor(Math.random()*5)+1)*0.05;   // 0.05..0.25
+    const cB=(Math.floor(Math.random()*8)+1)*0.05;   // 0.05..0.40
+    const VB=cA*VA*(b/a)/cB;
+    if(Math.abs(VB-Math.round(VB))<1e-9 && VB>=5 && VB<=38){
+      return {a,b,VA,cA:+cA.toFixed(2),cB:+cB.toFixed(2),VB:Math.round(VB)};
+    }
+  }
+  return {a:1,b:1,VA:20,cA:0.10,cB:0.10,VB:20};
+}
+
+/* ── Unique colours for A, B, C ── */
+function pickUniqueColors(){
+  const idx=[0,1,2,3];
+  // shuffle
+  for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+  return {A:PALETTE[idx[0]], B:PALETTE[idx[1]], C:PALETTE[idx[2]]};
+}
+
+function init(){
+  S1=genScenario(false);
+  // Fase 2 uses the SAME stoichiometry (same reaction system) but new cA + cB + equiv volume
+  S2=genScenarioSameRatio(S1.a,S1.b);
+  colors=pickUniqueColors();
+  document.getElementById('concA1').textContent=S1.cA.toFixed(2);
+  document.getElementById('concB1').textContent=S1.cB.toFixed(2);
+  document.getElementById('concB2').textContent=S2.cB.toFixed(2);
+}
+
+function genScenarioSameRatio(a,b){
+  for(let t=0;t<3000;t++){
+    const VA=20;
+    const cA=(Math.floor(Math.random()*5)+1)*0.05;
+    const cB=(Math.floor(Math.random()*8)+1)*0.05;
+    const VB=cA*VA*(b/a)/cB;
+    if(Math.abs(VB-Math.round(VB))<1e-9 && VB>=5 && VB<=38){
+      return {a,b,VA,cA:+cA.toFixed(2),cB:+cB.toFixed(2),VB:Math.round(VB)};
+    }
+  }
+  return {a,b,VA:20,cA:0.10,cB:0.10,VB:20};
+}
+
+/* ── Colour during titration ──
+   Before equiv (v<VB): mixture of leftover A and formed C.
+     fraction reacted = v/VB ; colour = blend(A, C) weighted by remaining A vs formed C.
+   At equiv (v==VB): pure C.
+   After equiv (v>VB): mixture of C and excess B.
+     We weight by amount of excess B relative to C present.
+*/
+function titrationColor(scen, v){
+  const {VB}=scen;
+  if(v<=0) return colors.A.v;
+  if(Math.abs(v-VB)<1e-9) return colors.C.v;
+  if(v<VB){
+    // fraction of A consumed
+    const fracReacted=v/VB;            // 0..1
+    // remaining A proportion vs C proportion (simple linear visual blend)
+    return blend(colors.C.v, colors.A.v, fracReacted);
+  } else {
+    // excess B. Let ratio grow with excess; cap so it approaches B but stays a mix
+    const excess=v-VB;
+    const w=Math.min(0.85, excess/(VB)); // visual weight toward B, capped
+    return blend(colors.C.v, colors.B.v, 1-w);
+  }
+}
+// blend(c1,c2,r): r weight on c1, (1-r) on c2
+function blend(c1,c2,r){ r=Math.max(0,Math.min(1,r)); return c1.map((c,i)=>Math.round(c*r+c2[i]*(1-r))); }
+
+function simulate(f){
+  const scen=(f===1)?S1:S2;
+  const v=parseFloat(document.getElementById('volB'+f).value)||0;
+  const rgb=titrationColor(scen,v);
+  document.getElementById('liquid'+f).style.backgroundColor=`rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+  document.getElementById('readout'+f).textContent=`Toegevoegd: ${v} mL B   (totaal volume ${20+v} mL)`;
+}
+
+function checkFase1(){
+  const fb=document.getElementById('fb1');
+  const gA=document.getElementById('gA').value;
+  const gB=document.getElementById('gB').value;
+  const gC=document.getElementById('gC').value;
+  const ga=parseInt(document.getElementById('ga').value);
+  const gb=parseInt(document.getElementById('gb').value);
+  if(!gA||!gB||!gC||!ga||!gb){ fb.className='feedback wrong'; fb.textContent='Vul alle velden in.'; return; }
+  const colorsOk = gA===colors.A.n && gB===colors.B.n && gC===colors.C.n;
+  // coefficients: accept the simplified ratio (already coprime in S1)
+  const coefOk = (ga===S1.a && gb===S1.b);
+  if(colorsOk && coefOk){
+    fb.className='feedback correct';
+    fb.textContent='✓ Correct! Je hebt het systeem ontrafeld. Fase 2 is nu vrijgegeven.';
+    document.getElementById('fase2locked').style.display='none';
+    document.getElementById('fase2content').style.display='block';
+  } else if(!colorsOk && coefOk){
+    fb.className='feedback wrong'; fb.textContent='De coëfficiënten kloppen, maar kijk nog eens naar de kleuren.';
+  } else if(colorsOk && !coefOk){
+    fb.className='feedback wrong'; fb.textContent='De kleuren kloppen. Let op de verhouding: geef de kleinst mogelijke gehele coëfficiënten.';
+  } else {
+    fb.className='feedback wrong'; fb.textContent='Nog niet juist. Experimenteer met meer volumes om de kleuren en het omslagpunt te vinden.';
+  }
+}
+
+function checkFase2(){
+  const fb=document.getElementById('fb2');
+  const ans=parseFloat(document.getElementById('ansConcA').value.toString().replace(',','.'));
+  if(isNaN(ans)){ fb.className='feedback wrong'; fb.textContent='Voer een getal in.'; return; }
+  if(Math.abs(ans-S2.cA)<0.005){
+    fb.className='feedback correct';
+    fb.innerHTML=`✓ Correct! De concentratie van A was ${S2.cA.toFixed(2)} M.<br><span style="font-size:13px;">Equivalentiepunt bij ${S2.VB} mL: n(B)=${S2.cB}×${(S2.VB/1000).toFixed(3)} L, via ${S1.a}:${S1.b} terug naar n(A), gedeeld door 0,020 L.</span>`;
+  } else {
+    fb.className='feedback wrong';
+    fb.textContent='Nog niet juist. Bepaal het equivalentiepunt nauwkeurig via de kleuromslag, en gebruik de verhouding uit Fase 1.';
+  }
+}
+
+init();
+</script>
+</body>
+</html>

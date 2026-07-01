@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Zuren & Basen Rekentool</title>
+<style>
+  :root {
+    --bg: #faf9f6; --panel: #ffffff; --border: #ddd9d0; --border-soft: #e8e5dd;
+    --text: #2c2c2a; --text-secondary: #5f5e5a; --text-tertiary: #888780;
+    --accent: #534ab7; --accent-light: #eeedfe; --accent-border: #afa9ec;
+    --teal: #0f6e56; --teal-light: #e1f5ee;
+    --coral: #993c1d; --coral-light: #faece7;
+    --amber: #854f0b; --amber-light: #faeeda;
+    --danger: #a32d2d; --danger-light: #fcebeb;
+    --good: #3b6d11; --good-light: #e9f3dc;
+    --radius-md: 8px; --radius-lg: 12px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.55; }
+  .app { max-width: 760px; margin: 0 auto; padding: 24px 20px 80px; }
+  h1 { font-size: 20px; font-weight: 500; margin: 0; }
+  h2 { font-size: 16px; font-weight: 500; margin: 0; }
+  p { margin: 0; }
+  button { font-family: inherit; font-size: 13px; border-radius: var(--radius-md); border: 0.5px solid var(--border); background: var(--panel); color: var(--text); padding: 9px 14px; cursor: pointer; transition: background 0.1s; }
+  button:hover { background: var(--border-soft); }
+  button:active { transform: scale(0.98); }
+  button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+  button.primary:hover { background: #463e9c; }
+  button.ghost { border-color: transparent; background: transparent; }
+  button.ghost:hover { background: var(--border-soft); }
+  button:disabled { opacity: 0.45; cursor: default; }
+  input { font-family: inherit; font-size: 15px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--panel); color: var(--text); padding: 10px 12px; width: 100%; }
+  input:focus { outline: none; box-shadow: 0 0 0 2px var(--accent-light); border-color: var(--accent-border); }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; gap: 12px; }
+  .topbar-actions { display: flex; gap: 8px; }
+
+  .cat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .cat-card {
+    background: var(--panel); border: 0.5px solid var(--border); border-radius: var(--radius-lg);
+    padding: 20px; cursor: pointer; transition: border-color 0.15s, transform 0.1s;
+  }
+  .cat-card:hover { border-color: var(--accent-border); transform: translateY(-1px); }
+  .cat-card .cat-title { font-size: 16px; font-weight: 500; margin-bottom: 6px; color: var(--accent); }
+  .cat-card .cat-desc { font-size: 13px; color: var(--text-secondary); }
+
+  .score-bar { display: flex; gap: 14px; align-items: center; font-size: 13px; color: var(--text-secondary); }
+  .score-bar b { color: var(--text); font-weight: 600; }
+
+  .question-card {
+    background: var(--panel); border: 0.5px solid var(--border); border-radius: var(--radius-lg);
+    padding: 22px 24px; margin-bottom: 16px;
+  }
+  .q-given { font-size: 13px; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.7; }
+  .q-given .gv { color: var(--text); font-weight: 600; }
+  .q-prompt { font-size: 16px; font-weight: 500; margin-bottom: 16px; }
+  .q-prompt .unit { color: var(--text-tertiary); font-weight: 400; font-size: 13px; }
+
+  .answer-row { display: flex; gap: 10px; align-items: stretch; margin-bottom: 6px; }
+  .answer-row input { flex: 1; font-size: 17px; }
+  .answer-row button { flex-shrink: 0; }
+
+  .feedback { margin-top: 14px; padding: 14px 16px; border-radius: var(--radius-md); font-size: 14px; }
+  .feedback.correct { background: var(--good-light); color: var(--good); }
+  .feedback.incorrect { background: var(--danger-light); color: var(--danger); }
+  .feedback .fb-head { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+
+  .steps { margin-top: 12px; padding-top: 12px; border-top: 0.5px solid rgba(0,0,0,0.08); }
+  .steps-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-secondary); margin-bottom: 8px; }
+  .step-line { font-size: 13.5px; color: var(--text); margin-bottom: 5px; font-family: ui-monospace, "SF Mono", Consolas, monospace; line-height: 1.6; }
+  .step-line .lbl { color: var(--text-tertiary); font-family: inherit; }
+
+  .controls-row { display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-top: 16px; flex-wrap: wrap; }
+  .controls-left { display: flex; gap: 8px; }
+
+  .version-tag { font-size: 11px; color: var(--text-tertiary); }
+
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+  .icon-btn { display: inline-flex; align-items: center; gap: 6px; }
+  .ic { display: inline-flex; }
+</style>
+</head>
+<body>
+<h2 class="sr-only">Zuren en basen rekentool: oefenvragen over pH/pOH-omrekenen, verdunningen, berekeningen vanuit hoeveelheden, en mengen van zuur en base, met directe controle en rekenstappen.</h2>
+
+<div class="app" id="app"></div>
+
+<script>
+  var ICONS = {
+    arrowLeft: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m0 0l6 6m-6-6l6-6"/></svg>',
+    check: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>',
+    x: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+    refresh: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.5L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.5 6.5L3 16M3 21v-5h5"/></svg>',
+    eye: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>'
+  };
+  function icon(name, extra) { return '<span class="ic" aria-hidden="true" style="' + (extra || '') + '">' + (ICONS[name] || '') + '</span>'; }
+</script>
+
+<script>
+(function(){
+  "use strict";
+
+  var TOOL_VERSION = "v2-pH-pOH-ion-2024"; // bump marker to verify the right build is loaded
+
+  var state = {
+    view: "home",      // "home" | "practice"
+    category: null,     // "omrekenen" | "verdunnen" | "hoeveelheden" | "mengen"
+    question: null,
+    userAnswer: "",
+    checked: false,
+    isCorrect: false,
+    showSteps: false,
+    score: { correct: 0, total: 0 }
+  };
+
+  var CATEGORIES = [
+    { key: "omrekenen", title: "Omrekenen", desc: "Gegeven [H3O+], [OH-], pH of pOH \u2014 bereken een van de andere grootheden." },
+    { key: "verdunnen", title: "Verdunnen", desc: "Sterke zuren/basen verdunnen \u2014 bereken de nieuwe pH, pOH of ionconcentratie." },
+    { key: "hoeveelheden", title: "Vanuit hoeveelheden", desc: "Gegeven mol of gram en volume \u2014 bereken de pH/pOH van een sterk zuur of sterke base." },
+    { key: "mengen", title: "Mengen van zuur en base", desc: "Twee oplossingen samenvoegen \u2014 bereken de pH/pOH van het mengsel." }
+  ];
+
+  var STRONG_ACIDS = [
+    { formula: "HCl", name: "zoutzuur" },
+    { formula: "HNO3", name: "salpeterzuur" },
+    { formula: "HClO4", name: "perchloorzuur" },
+    { formula: "HBr", name: "broomwaterstofzuur" }
+  ];
+  var STRONG_BASES_MONO = [
+    { formula: "NaOH", name: "natriumhydroxide" },
+    { formula: "KOH", name: "kaliumhydroxide" },
+    { formula: "LiOH", name: "lithiumhydroxide" }
+  ];
+  var STRONG_BASES_DI = [
+    { formula: "Ca(OH)2", name: "calciumhydroxide", molarMass: 74.1 },
+    { formula: "Ba(OH)2", name: "bariumhydroxide", molarMass: 171.3 }
+  ];
+  var MOLAR_MASS = {
+    "HCl": 36.5, "HNO3": 63.0, "HClO4": 100.5, "HBr": 80.9,
+    "NaOH": 40.0, "KOH": 56.1, "LiOH": 23.9
+  };
+
+  // ---------- Random helpers ----------
+  function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+  function randChoice(arr) { return arr[randInt(0, arr.length - 1)]; }
+  function randFloat(min, max, decimals) {
+    var v = Math.random() * (max - min) + min;
+    var f = Math.pow(10, decimals);
+    return Math.round(v * f) / f;
+  }
+  function randConcentrationWide(minExp, maxExp) {
+    var exp = randInt(minExp, maxExp);
+    var mantissa = randFloat(1, 9.9, 1);
+    var value = mantissa * Math.pow(10, -exp);
+    return Math.min(value, 4);
+  }
+  function addNegativePhNote(steps, value, label) {
+    if (value < 0) {
+      steps.push({ label: "Let op", text: label + " is negatief: dat kan bij een concentratie sterk zuur of sterke base boven 1 mol/L (de pH/pOH-schaal loopt dan onder 0 door)." });
+    }
+    return steps;
+  }
+  function round(n, decimals) {
+    var f = Math.pow(10, decimals);
+    return Math.round(n * f) / f;
+  }
+  function fmtConc(c) {
+    if (c === 0) return "0";
+    var exp = Math.floor(Math.log10(c));
+    var mantissa = c / Math.pow(10, exp);
+    return mantissa.toFixed(2) + " \u00d7 10^" + exp;
+  }
+  function fmtNum(n, decimals) {
+    if (n == null || isNaN(n)) return "–";
+    return round(n, decimals).toString();
+  }
+
+  // ---------- Core relations ----------
+  // pH = -log10([H3O+]); pOH = -log10([OH-]); pH + pOH = 14 (25°C); [H3O+][OH-] = 1e-14
+  function phFromH3O(h3o) { return -Math.log10(h3o); }
+  function pohFromOH(oh) { return -Math.log10(oh); }
+
+  // ---------- Generator: Omrekenen ----------
+  function isPhPoh(q) { return q === "pH" || q === "pOH"; }
+
+  function genOmrekenen() {
+    var quantities = ["H3O", "OH", "pH", "pOH"];
+    var given, asked;
+    do {
+      given = randChoice(quantities);
+      asked = randChoice(quantities);
+    } while (given === asked || (isPhPoh(given) && isPhPoh(asked)));
+
+    var h3o = randConcentrationWide(-1, 13);
+    var oh = 1e-14 / h3o;
+    var ph = phFromH3O(h3o);
+    var poh = pohFromOH(oh);
+
+    var values = { H3O: h3o, OH: oh, pH: ph, pOH: poh };
+    var labels = { H3O: "[H3O+]", OH: "[OH-]", pH: "pH", pOH: "pOH" };
+    var units = { H3O: "mol/L", OH: "mol/L", pH: "", pOH: "" };
+
+    var givenVal = values[given];
+    var askedVal = values[asked];
+    var givenDisplay = (given === "H3O" || given === "OH") ? fmtConc(givenVal) + " mol/L" : fmtNum(givenVal, 2);
+
+    var steps = buildOmrekenenSteps(given, asked, values);
+    if (asked === "pH" || asked === "pOH") addNegativePhNote(steps, askedVal, labels[asked]);
+
+    return {
+      type: "omrekenen",
+      prompt: "Bereken " + labels[asked] + (units[asked] ? " (in " + units[asked] + ")" : "") + ".",
+      given: [{ label: labels[given], value: givenDisplay }],
+      answer: askedVal,
+      decimals: (asked === "pH" || asked === "pOH") ? 2 : null,
+      isConcentration: (asked === "H3O" || asked === "OH"),
+      tolerance: (asked === "pH" || asked === "pOH") ? 0.05 : null,
+      tolerancePct: (asked === "H3O" || asked === "OH") ? 0.05 : null,
+      steps: steps
+    };
+  }
+
+  function buildOmrekenenSteps(given, asked, values) {
+    var steps = [];
+    var labels = { H3O: "[H3O+]", OH: "[OH-]", pH: "pH", pOH: "pOH" };
+    function add(label, text) { steps.push({ label: label, text: text }); }
+
+    if ((given === "H3O" && asked === "pH") || (given === "pH" && asked === "H3O")) {
+      add("Relatie", "pH = -log[H3O+]");
+      if (given === "H3O") add("Invullen", "pH = -log(" + fmtConc(values.H3O) + ") = " + fmtNum(values.pH, 2));
+      else add("Omschrijven", "[H3O+] = 10^(-pH) = 10^(-" + fmtNum(values.pH,2) + ") = " + fmtConc(values.H3O) + " mol/L");
+    } else if ((given === "OH" && asked === "pOH") || (given === "pOH" && asked === "OH")) {
+      add("Relatie", "pOH = -log[OH-]");
+      if (given === "OH") add("Invullen", "pOH = -log(" + fmtConc(values.OH) + ") = " + fmtNum(values.pOH, 2));
+      else add("Omschrijven", "[OH-] = 10^(-pOH) = 10^(-" + fmtNum(values.pOH,2) + ") = " + fmtConc(values.OH) + " mol/L");
+    } else if ((given === "H3O" && asked === "OH") || (given === "OH" && asked === "H3O")) {
+      add("Relatie", "Kw = [H3O+] \u00d7 [OH-] = 1,0 \u00d7 10^-14 (bij 25\u00b0C)");
+      if (given === "H3O") add("Invullen", "[OH-] = Kw / [H3O+] = 1,0\u00d710^-14 / " + fmtConc(values.H3O) + " = " + fmtConc(values.OH) + " mol/L");
+      else add("Invullen", "[H3O+] = Kw / [OH-] = 1,0\u00d710^-14 / " + fmtConc(values.OH) + " = " + fmtConc(values.H3O) + " mol/L");
+    } else if ((given === "H3O" && asked === "pOH") || (given === "pOH" && asked === "H3O")) {
+      add("Stap 1", "[H3O+] \u00d7 [OH-] = 1,0\u00d710^-14, dus [OH-] = Kw / [H3O+]");
+      add("Stap 2", "pOH = -log[OH-]");
+      if (given === "H3O") {
+        add("Invullen", "[OH-] = 1,0\u00d710^-14 / " + fmtConc(values.H3O) + " = " + fmtConc(values.OH));
+        add("Invullen", "pOH = -log(" + fmtConc(values.OH) + ") = " + fmtNum(values.pOH, 2));
+      } else {
+        add("Invullen", "[OH-] = 10^(-pOH) = " + fmtConc(values.OH));
+        add("Invullen", "[H3O+] = Kw / [OH-] = " + fmtConc(values.H3O) + " mol/L");
+      }
+    } else if ((given === "OH" && asked === "pH") || (given === "pH" && asked === "OH")) {
+      add("Stap 1", "[H3O+] \u00d7 [OH-] = 1,0\u00d710^-14, dus [H3O+] = Kw / [OH-]");
+      add("Stap 2", "pH = -log[H3O+]");
+      if (given === "OH") {
+        add("Invullen", "[H3O+] = 1,0\u00d710^-14 / " + fmtConc(values.OH) + " = " + fmtConc(values.H3O));
+        add("Invullen", "pH = -log(" + fmtConc(values.H3O) + ") = " + fmtNum(values.pH, 2));
+      } else {
+        add("Invullen", "[H3O+] = 10^(-pH) = " + fmtConc(values.H3O));
+        add("Invullen", "[OH-] = Kw / [H3O+] = " + fmtConc(values.OH) + " mol/L");
+      }
+    }
+    add("Antwoord", labels[asked] + " = " + ((asked === "H3O" || asked === "OH") ? fmtConc(values[asked]) + " mol/L" : fmtNum(values[asked], 2)));
+    return steps;
+  }
+
+  // ---------- Generator: Verdunnen ----------
+  // Begin- en eindgrootheid worden gekozen uit {pH, pOH, ion}, met als enige restrictie dat minstens
+  // één van de twee pH of pOH moet zijn (ion<->ion is dus uitgesloten). De verdunningsformule wordt
+  // alleen toegepast op de concentratie van de STOF (c0/cEnd), nooit rechtstreeks zichtbaar als
+  // ion-concentratie -> ion-concentratie.
+  function genVerdunnen() {
+    var isAcid = Math.random() < 0.5;
+    var isDibase = !isAcid && Math.random() < 0.3;
+    var substance;
+    if (isAcid) substance = randChoice(STRONG_ACIDS);
+    else if (isDibase) substance = randChoice(STRONG_BASES_DI);
+    else substance = randChoice(STRONG_BASES_MONO);
+    var factor = isDibase ? 2 : 1;
+    var ionLabel = isAcid ? "[H3O+]" : "[OH-]";
+
+    var c0 = randConcentrationWide(-1, 3);
+    var v0 = randInt(10, 200);
+    var dilutionFactor = randChoice([2, 5, 10, 20, 50, 100]);
+    var vEnd = v0 * dilutionFactor;
+    var cEnd = c0 * v0 / vEnd;
+
+    var ion0 = c0 * factor;
+    var ionEnd = cEnd * factor;
+    var ph0 = isAcid ? phFromH3O(ion0) : 14 - pohFromOH(ion0);
+    var poh0 = 14 - ph0;
+    var phEnd = isAcid ? phFromH3O(ionEnd) : 14 - pohFromOH(ionEnd);
+    var pohEnd = 14 - phEnd;
+
+    var combos = ["ph-ph", "ph-poh", "ph-ion", "poh-ph", "poh-poh", "poh-ion", "ion-ph", "ion-poh"];
+    var combo = randChoice(combos);
+    var parts = combo.split("-");
+    var givenQty = parts[0];
+    var askedQty = parts[1];
+
+    function qtyLabel(q) { return q === "ph" ? "pH" : (q === "poh" ? "pOH" : ionLabel); }
+    function qtyValue(q, useBegin) {
+      if (q === "ph") return fmtNum(useBegin ? ph0 : phEnd, 2);
+      if (q === "poh") return fmtNum(useBegin ? poh0 : pohEnd, 2);
+      return fmtConc(useBegin ? ion0 : ionEnd) + " mol/L";
+    }
+
+    var stofLabel = substance.formula + " (" + substance.name + ", " + (isAcid ? "sterk zuur" : "sterke base") + (isDibase ? ", tweewaardig" : "") + ")";
+    var given = [
+      { label: "Stof", value: stofLabel },
+      { label: "Begin: " + qtyLabel(givenQty), value: qtyValue(givenQty, true) },
+      { label: "Beginvolume V0", value: v0 + " mL" },
+      { label: "Eindvolume (na aanlengen)", value: vEnd + " mL" }
+    ];
+
+    var steps = [];
+    steps.push({ label: "Gegeven", text: "V0 = " + v0 + " mL, verdund tot Vtotaal = " + vEnd + " mL (verdunningsfactor " + dilutionFactor + ")" });
+
+    if (givenQty === "ph") {
+      if (isAcid) {
+        steps.push({ label: "Stap 1: [H3O+] uit pH", text: "[H3O+] = 10^(-pH) = 10^(-" + fmtNum(ph0,2) + ") = " + fmtConc(ion0) + " mol/L" });
+      } else {
+        steps.push({ label: "Stap 1: pOH uit pH", text: "pOH = 14 - pH = 14 - " + fmtNum(ph0,2) + " = " + fmtNum(poh0, 2) });
+        steps.push({ label: "Stap 2: [OH-] uit pOH", text: "[OH-] = 10^(-pOH) = " + fmtConc(ion0) + " mol/L" });
+      }
+    } else if (givenQty === "poh") {
+      if (isAcid) {
+        steps.push({ label: "Stap 1: pH uit pOH", text: "pH = 14 - pOH = 14 - " + fmtNum(poh0,2) + " = " + fmtNum(ph0, 2) });
+        steps.push({ label: "Stap 2: [H3O+] uit pH", text: "[H3O+] = 10^(-pH) = " + fmtConc(ion0) + " mol/L" });
+      } else {
+        steps.push({ label: "Stap 1: [OH-] uit pOH", text: "[OH-] = 10^(-pOH) = 10^(-" + fmtNum(poh0,2) + ") = " + fmtConc(ion0) + " mol/L" });
+      }
+    } else {
+      steps.push({ label: "Gegeven", text: ionLabel + " (begin) = " + fmtConc(ion0) + " mol/L" });
+    }
+
+    if (isDibase) steps.push({ label: "Concentratie stof", text: "c0(" + substance.formula + ") = [OH-] / 2 = " + fmtConc(ion0) + " / 2 = " + fmtConc(c0) + " mol/L  (1 mol " + substance.formula + " geeft 2 mol OH-)" });
+    else steps.push({ label: "Concentratie stof", text: "c0(" + substance.formula + ") = " + ionLabel + " = " + fmtConc(c0) + " mol/L" });
+
+    steps.push({ label: "Verdunningsformule", text: "c0 \u00d7 V0 = cEnd \u00d7 Vtotaal" });
+    steps.push({ label: "Invullen", text: "cEnd = (c0 \u00d7 V0) / Vtotaal = (" + fmtConc(c0) + " \u00d7 " + v0 + ") / " + vEnd + " = " + fmtConc(cEnd) + " mol/L" });
+
+    if (isDibase) steps.push({ label: ionLabel + " na verdunning", text: ionLabel + " = 2 \u00d7 cEnd = 2 \u00d7 " + fmtConc(cEnd) + " = " + fmtConc(ionEnd) + " mol/L" });
+    else steps.push({ label: ionLabel + " na verdunning", text: ionLabel + " = cEnd = " + fmtConc(ionEnd) + " mol/L" });
+
+    if (askedQty === "ph" || askedQty === "poh") {
+      if (isAcid) {
+        steps.push({ label: "pH berekenen", text: "pH = -log[H3O+] = -log(" + fmtConc(ionEnd) + ") = " + fmtNum(phEnd, 2) });
+        if (askedQty === "poh") steps.push({ label: "pOH berekenen", text: "pOH = 14 - pH = 14 - " + fmtNum(phEnd,2) + " = " + fmtNum(pohEnd, 2) });
+      } else {
+        steps.push({ label: "pOH berekenen", text: "pOH = -log[OH-] = -log(" + fmtConc(ionEnd) + ") = " + fmtNum(pohEnd, 2) });
+        if (askedQty === "ph") steps.push({ label: "pH berekenen", text: "pH = 14 - pOH = 14 - " + fmtNum(pohEnd,2) + " = " + fmtNum(phEnd, 2) });
+      }
+      addNegativePhNote(steps, askedQty === "ph" ? phEnd : pohEnd, qtyLabel(askedQty));
+    }
+
+    var finalAnswer = (askedQty === "ph") ? phEnd : (askedQty === "poh") ? pohEnd : ionEnd;
+    var isConc = (askedQty === "ion");
+
+    return {
+      type: "verdunnen",
+      prompt: "Bereken " + qtyLabel(askedQty) + " van de verdunde oplossing.",
+      given: given,
+      answer: finalAnswer,
+      decimals: isConc ? null : 2,
+      isConcentration: isConc,
+      tolerance: isConc ? null : 0.05,
+      tolerancePct: isConc ? 0.05 : null,
+      steps: steps
+    };
+  }
+
+  // ---------- Generator: Vanuit hoeveelheden ----------
+  function genHoeveelheden() {
+    var isAcid = Math.random() < 0.5;
+    var useGrams = Math.random() < 0.5;
+    var isDibase = !isAcid && Math.random() < 0.35;
+
+    var substance;
+    if (isAcid) substance = randChoice(STRONG_ACIDS);
+    else if (isDibase) substance = randChoice(STRONG_BASES_DI);
+    else substance = randChoice(STRONG_BASES_MONO);
+
+    var molarMass = substance.molarMass || MOLAR_MASS[substance.formula];
+    var volume = randInt(50, 1000);
+    var mol = randFloat(0.001, 2.5, 4);
+    var grams = mol * molarMass;
+
+    var given = [];
+    given.push({ label: "Stof", value: substance.formula + " (" + substance.name + ", " + (isAcid ? "sterk zuur" : "sterke base") + (isDibase ? ", tweewaardig" : "") + ")" });
+
+    var steps = [];
+    var molUsed;
+    if (useGrams) {
+      given.push({ label: "Massa", value: round(grams, 3) + " g" });
+      given.push({ label: "Molaire massa M", value: molarMass + " g/mol" });
+      given.push({ label: "Volume oplossing", value: volume + " mL" });
+      molUsed = grams / molarMass;
+      steps.push({ label: "Mol berekenen", text: "n = m / M = " + round(grams,3) + " / " + molarMass + " = " + fmtNum(molUsed, 4) + " mol" });
+    } else {
+      given.push({ label: "Hoeveelheid", value: fmtNum(mol, 4) + " mol" });
+      given.push({ label: "Volume oplossing", value: volume + " mL" });
+      molUsed = mol;
+    }
+
+    var concSubstance = molUsed / (volume / 1000);
+    steps.push({ label: "Concentratie stof", text: "c(" + substance.formula + ") = n / V = " + fmtNum(molUsed,4) + " mol / " + (volume/1000) + " L = " + fmtConc(concSubstance) + " mol/L" });
+
+    var ionConc;
+    if (isAcid) {
+      ionConc = concSubstance;
+      steps.push({ label: "Dissociatie", text: substance.formula + " \u2192 H3O+ + " + substance.formula.replace("H","").replace(/^/, "") + "-  (1 mol zuur geeft 1 mol H3O+)" });
+      steps.push({ label: "[H3O+]", text: "[H3O+] = " + fmtConc(ionConc) + " mol/L" });
+      var ph2 = phFromH3O(ionConc);
+      steps.push({ label: "pH berekenen", text: "pH = -log[H3O+] = -log(" + fmtConc(ionConc) + ") = " + fmtNum(ph2, 2) });
+      addNegativePhNote(steps, ph2, "pH");
+      return finalizeHoeveelheden(given, ph2, steps, "pH");
+    } else {
+      var factor = isDibase ? 2 : 1;
+      ionConc = concSubstance * factor;
+      steps.push({ label: "Dissociatie", text: substance.formula + " \u2192 " + (isDibase ? "2 OH- + " : "OH- + ") + "metaalion  (1 mol base geeft " + factor + " mol OH-)" });
+      steps.push({ label: "[OH-]", text: "[OH-] = " + factor + " \u00d7 " + fmtConc(concSubstance) + " = " + fmtConc(ionConc) + " mol/L" });
+      var poh2 = pohFromOH(ionConc);
+      var ph3 = 14 - poh2;
+      steps.push({ label: "pOH berekenen", text: "pOH = -log[OH-] = -log(" + fmtConc(ionConc) + ") = " + fmtNum(poh2, 2) });
+      steps.push({ label: "pH berekenen", text: "pH = 14 - pOH = 14 - " + fmtNum(poh2,2) + " = " + fmtNum(ph3, 2) });
+      addNegativePhNote(steps, poh2, "pOH");
+      return finalizeHoeveelheden(given, ph3, steps, "pH");
+    }
+  }
+  function finalizeHoeveelheden(given, answer, steps, label) {
+    return {
+      type: "hoeveelheden",
+      prompt: "Bereken de " + label + " van de oplossing.",
+      given: given,
+      answer: answer,
+      decimals: 2,
+      isConcentration: false,
+      tolerance: 0.05,
+      tolerancePct: null,
+      steps: steps
+    };
+  }
+
+  // ---------- Generator: Mengen ----------
+  function genMengen() {
+    var acid = randChoice(STRONG_ACIDS);
+    var base = randChoice(STRONG_BASES_MONO);
+    var isDibase = Math.random() < 0.25;
+    if (isDibase) base = randChoice(STRONG_BASES_DI);
+
+    var cAcid = randConcentrationWide(-1, 2);
+    var cBase = randConcentrationWide(-1, 2);
+    var vAcid = randInt(20, 200);
+    var vBase;
+
+    var exactNeutral = Math.random() < 0.125;
+    var baseFactor = isDibase ? 2 : 1;
+    var molAcid = cAcid * vAcid / 1000;
+
+    if (exactNeutral) {
+      vBase = Math.round(molAcid / (cBase * baseFactor) * 1000);
+      if (vBase < 10) vBase = 10;
+      if (vBase > 500) vBase = 500;
+    } else {
+      vBase = randInt(20, 200);
+    }
+
+    var molH3O = cAcid * vAcid / 1000;
+    var molOH = cBase * (vBase / 1000) * baseFactor;
+    var vTotal = vAcid + vBase;
+
+    var steps = [];
+    steps.push({ label: "Gegeven", text: "Zuur: " + acid.formula + ", c = " + fmtConc(cAcid) + " mol/L, V = " + vAcid + " mL" });
+    steps.push({ label: "Gegeven", text: "Base: " + base.formula + ", c = " + fmtConc(cBase) + " mol/L, V = " + vBase + " mL" + (isDibase ? " (tweewaardig)" : "") });
+    steps.push({ label: "Mol H3O+", text: "n(H3O+) = c \u00d7 V = " + fmtConc(cAcid) + " \u00d7 " + (vAcid/1000) + " = " + fmtNum(molH3O, 5) + " mol" });
+    steps.push({ label: "Mol OH-", text: "n(OH-) = c \u00d7 V \u00d7 " + baseFactor + " = " + fmtConc(cBase) + " \u00d7 " + (vBase/1000) + " \u00d7 " + baseFactor + " = " + fmtNum(molOH, 5) + " mol" });
+
+    var ph;
+    var molDiff = molH3O - molOH;
+    var EPS = Math.min(molH3O, molOH) * 1e-6 + 1e-12;
+
+    if (Math.abs(molDiff) <= EPS) {
+      steps.push({ label: "Vergelijken", text: "n(H3O+) \u2248 n(OH-) \u2192 volledige neutralisatie, geen overmaat" });
+      ph = 7;
+      steps.push({ label: "Antwoord", text: "pH = 7,00 (neutraal)" });
+    } else if (molDiff > 0) {
+      var excessH3O = molDiff;
+      var concH3O = excessH3O / (vTotal / 1000);
+      ph = phFromH3O(concH3O);
+      steps.push({ label: "Vergelijken", text: "n(H3O+) > n(OH-) \u2192 zuur in overmaat: " + fmtNum(excessH3O,5) + " mol H3O+ blijft over" });
+      steps.push({ label: "Nieuwe concentratie", text: "[H3O+] = overmaat / Vtotaal = " + fmtNum(excessH3O,5) + " / " + (vTotal/1000) + " = " + fmtConc(concH3O) + " mol/L" });
+      steps.push({ label: "pH berekenen", text: "pH = -log[H3O+] = -log(" + fmtConc(concH3O) + ") = " + fmtNum(ph, 2) });
+      addNegativePhNote(steps, ph, "pH");
+    } else {
+      var excessOH = -molDiff;
+      var concOH = excessOH / (vTotal / 1000);
+      var poh = pohFromOH(concOH);
+      ph = 14 - poh;
+      steps.push({ label: "Vergelijken", text: "n(OH-) > n(H3O+) \u2192 base in overmaat: " + fmtNum(excessOH,5) + " mol OH- blijft over" });
+      steps.push({ label: "Nieuwe concentratie", text: "[OH-] = overmaat / Vtotaal = " + fmtNum(excessOH,5) + " / " + (vTotal/1000) + " = " + fmtConc(concOH) + " mol/L" });
+      steps.push({ label: "pOH berekenen", text: "pOH = -log[OH-] = -log(" + fmtConc(concOH) + ") = " + fmtNum(poh, 2) });
+      steps.push({ label: "pH berekenen", text: "pH = 14 - pOH = 14 - " + fmtNum(poh,2) + " = " + fmtNum(ph, 2) });
+      addNegativePhNote(steps, poh, "pOH");
+    }
+
+    return {
+      type: "mengen",
+      prompt: "Bereken de pH van het mengsel.",
+      given: [
+        { label: "Zuur", value: acid.formula + ", " + fmtConc(cAcid) + " mol/L, " + vAcid + " mL" },
+        { label: "Base", value: base.formula + (isDibase ? " (tweewaardig)" : "") + ", " + fmtConc(cBase) + " mol/L, " + vBase + " mL" }
+      ],
+      answer: ph,
+      decimals: 2,
+      isConcentration: false,
+      tolerance: 0.05,
+      tolerancePct: null,
+      steps: steps
+    };
+  }
+
+  function generateQuestion(category) {
+    if (category === "omrekenen") return genOmrekenen();
+    if (category === "verdunnen") return genVerdunnen();
+    if (category === "hoeveelheden") return genHoeveelheden();
+    if (category === "mengen") return genMengen();
+  }
+
+  // ---------- Rendering ----------
+  function render() {
+    var app = document.getElementById("app");
+    if (state.view === "home") app.innerHTML = renderHome();
+    else app.innerHTML = renderPractice();
+    bindEvents();
+  }
+
+  function renderHome() {
+    var html = "";
+    html += '<div class="topbar"><h1>Zuren & Basen Rekentool</h1><span class="version-tag">' + TOOL_VERSION + '</span></div>';
+    html += '<div class="cat-grid">';
+    CATEGORIES.forEach(function(c){
+      html += '<div class="cat-card" data-act="start" data-cat="' + c.key + '">';
+      html += '<div class="cat-title">' + c.title + '</div>';
+      html += '<div class="cat-desc">' + c.desc + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  function renderPractice() {
+    var q = state.question;
+    var cat = CATEGORIES.filter(function(c){ return c.key === state.category; })[0];
+    var html = "";
+    html += '<div class="topbar">';
+    html += '<button class="ghost icon-btn" data-act="back-home">' + icon('arrowLeft') + 'Categorie\u00ebn</button>';
+    html += '<div class="score-bar"><span>' + cat.title + '</span><span><b>' + state.score.correct + '</b> / ' + state.score.total + ' goed</span></div>';
+    html += '</div>';
+
+    html += '<div class="question-card">';
+    html += '<div class="q-given">';
+    q.given.forEach(function(g){
+      html += '<div><span class="gv">' + g.label + ':</span> ' + g.value + '</div>';
+    });
+    html += '</div>';
+    html += '<div class="q-prompt">' + q.prompt + '</div>';
+
+    html += '<div class="answer-row">';
+    html += '<input type="number" step="any" id="answer-input" placeholder="Jouw antwoord..." value="' + escapeHtml(state.userAnswer) + '"' + (state.checked && state.isCorrect ? ' disabled' : '') + '>';
+    if (!state.checked) {
+      html += '<button class="primary icon-btn" data-act="check-answer">' + icon('check') + 'Controleer</button>';
+    }
+    html += '</div>';
+
+    if (state.checked) {
+      html += '<div class="feedback ' + (state.isCorrect ? 'correct' : 'incorrect') + '">';
+      html += '<div class="fb-head">' + icon(state.isCorrect ? 'check' : 'x') + (state.isCorrect ? 'Goed!' : 'Nog niet goed') + '</div>';
+      if (!state.isCorrect) {
+        html += '<div>Het juiste antwoord is: <b>' + formatAnswer(q) + '</b></div>';
+      } else {
+        html += '<div>Antwoord: <b>' + formatAnswer(q) + '</b></div>';
+      }
+      html += '</div>';
+
+      if (!state.isCorrect && !state.showSteps) {
+        html += '<div class="controls-row"><div class="controls-left">';
+        html += '<button class="ghost icon-btn" data-act="show-steps">' + icon('eye') + 'Toon rekenstappen</button>';
+        html += '</div></div>';
+      }
+
+      if (state.showSteps || state.isCorrect) {
+        html += '<div class="steps">';
+        html += '<div class="steps-title">Rekenstappen</div>';
+        q.steps.forEach(function(s){
+          html += '<div class="step-line"><span class="lbl">' + escapeHtml(s.label) + ':</span> ' + escapeHtml(s.text) + '</div>';
+        });
+        html += '</div>';
+      }
+    }
+    html += '</div>';
+
+    html += '<div class="controls-row">';
+    html += '<div class="controls-left">';
+    if (state.checked) html += '<button class="primary icon-btn" data-act="next-question">' + icon('refresh') + 'Volgende vraag</button>';
+    html += '</div>';
+    html += '</div>';
+
+    return html;
+  }
+
+  function formatAnswer(q) {
+    if (q.isConcentration) return fmtConc(q.answer) + " mol/L";
+    return fmtNum(q.answer, q.decimals != null ? q.decimals : 2);
+  }
+
+  function escapeHtml(s) {
+    return (s == null ? "" : String(s)).replace(/[&<>"']/g, function(c){
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+    });
+  }
+
+  // ---------- Answer checking ----------
+  function checkAnswer() {
+    var input = document.getElementById("answer-input");
+    var raw = input ? input.value.trim() : "";
+    if (!raw) return;
+    var userVal = parseFloat(raw.replace(",", "."));
+    if (isNaN(userVal)) return;
+
+    var q = state.question;
+    var correct;
+    if (q.tolerancePct != null) {
+      var rel = Math.abs(userVal - q.answer) / Math.abs(q.answer);
+      correct = rel <= q.tolerancePct;
+    } else if (q.tolerance != null) {
+      correct = Math.abs(userVal - q.answer) <= q.tolerance;
+    } else {
+      correct = userVal === q.answer;
+    }
+
+    state.userAnswer = raw;
+    state.checked = true;
+    state.isCorrect = correct;
+    state.showSteps = false;
+    state.score.total++;
+    if (correct) state.score.correct++;
+    render();
+  }
+
+  function nextQuestion() {
+    state.question = generateQuestion(state.category);
+    state.userAnswer = "";
+    state.checked = false;
+    state.isCorrect = false;
+    state.showSteps = false;
+    render();
+    var input = document.getElementById("answer-input");
+    if (input) input.focus();
+  }
+
+  // ---------- Events ----------
+  function bindEvents() {
+    var app = document.getElementById("app");
+
+    var answerInput = document.getElementById("answer-input");
+    if (answerInput) {
+      answerInput.addEventListener("input", function(){ state.userAnswer = answerInput.value; });
+      answerInput.addEventListener("keydown", function(e){
+        if (e.key === "Enter") {
+          if (!state.checked) checkAnswer();
+          else nextQuestion();
+        }
+      });
+      if (!state.checked) answerInput.focus();
+    }
+
+    if (!app.__delegatedClick) {
+      app.__delegatedClick = function(e){
+        var actEl = e.target.closest("[data-act]");
+        if (!actEl) return;
+        var act = actEl.getAttribute("data-act");
+        switch (act) {
+          case "start": {
+            state.category = actEl.getAttribute("data-cat");
+            state.view = "practice";
+            state.score = { correct: 0, total: 0 };
+            state.question = generateQuestion(state.category);
+            state.userAnswer = "";
+            state.checked = false;
+            state.isCorrect = false;
+            state.showSteps = false;
+            render();
+            break;
+          }
+          case "back-home": state.view = "home"; render(); break;
+          case "check-answer": checkAnswer(); break;
+          case "show-steps": state.showSteps = true; render(); break;
+          case "next-question": nextQuestion(); break;
+        }
+      };
+      app.addEventListener("click", app.__delegatedClick);
+    }
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
