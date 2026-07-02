@@ -50,6 +50,15 @@
   .schaalbalk .grad{width:180px;height:12px;border-radius:6px;border:1px solid var(--line);
     background:linear-gradient(90deg,#fff8e6,#f9c74f,#e07b3c,#a4262c)}
 
+  .cel.niet-actief{background:repeating-linear-gradient(45deg,#f4f5f7,#f4f5f7 5px,#eceef1 5px,#eceef1 10px) !important;
+       border-color:#dfe3e8 !important;}
+  .cel.niet-actief .sym{color:#9aa3ae}
+  .cel.niet-actief .z,.cel.niet-actief .nm{color:#b3bac2}
+  .cel.placeholder{cursor:default;background:#fafbfc;border-style:dashed;display:flex;align-items:center;justify-content:center}
+  .cel.placeholder:hover{box-shadow:none;transform:none}
+  .ph-txt{font-size:11px;color:var(--muted)}
+  .ps-extra-kop{margin-top:14px;font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;min-width:900px}
+
   /* ---------- Detailpaneel ---------- */
   .detail{margin-top:18px;border:1.5px solid var(--ink);border-radius:10px;padding:16px 18px;background:#fff}
   .detail h2{margin:0 0 2px;font-size:20px}
@@ -67,6 +76,7 @@
   .nvt{color:var(--muted);font-style:italic}
   .lewisbox{text-align:center;padding:6px}
   .lewisbox svg{max-width:150px}
+  .infolijn{font-size:13.8px;margin:4px 0}
   .voorkomen h3{margin:0 0 8px;font-size:14px;text-transform:uppercase;letter-spacing:.6px;color:var(--accent)}
   .staaf{margin:8px 0}
   .staaf .lbl{font-size:13px;color:var(--muted);display:flex;justify-content:space-between}
@@ -124,7 +134,7 @@
 
 <header>
   <h1>Periodiek Systeem — verkennen &amp; oefenen</h1>
-  <p>Van schilconfiguratie naar covalentie en vrije elektronenparen: Periode 1 t/m 4.</p>
+  <p>Van schilconfiguratie naar covalentie en vrije elektronenparen</p>
 </header>
 
 <div class="tabs">
@@ -146,13 +156,17 @@
     <span>weinig</span><div class="grad"></div><span>veel</span><span style="margin-left:6px">(logaritmische schaal — massafractie)</span>
   </div>
 
-  <div class="ps-wrap"><div class="ps" id="psGrid"></div></div>
+  <div class="ps-wrap"><div class="ps" id="psGrid"></div>
+    <div class="ps-extra-kop">Lanthaniden (57–71) en actiniden (89–103)</div>
+    <div class="ps" id="psExtra" style="margin-top:4px"></div>
+  </div>
 
   <div class="legenda" id="legendaCat">
     <span><span class="blok" style="background:var(--metaal);border-color:var(--metaal-b)"></span>metaal</span>
     <span><span class="blok" style="background:var(--metallo);border-color:var(--metallo-b)"></span>metalloïde</span>
     <span><span class="blok" style="background:var(--nietm);border-color:var(--nietm-b)"></span>niet-metaal</span>
     <span><span class="blok" style="background:var(--edel);border-color:var(--edel-b)"></span>edelgas</span>
+    <span><span class="blok" style="background:repeating-linear-gradient(45deg,#f4f5f7,#f4f5f7 3px,#eceef1 3px,#eceef1 6px)"></span>hoef je niet te kennen</span>
     <span style="margin-left:auto">Klik op een element voor de volledige afleiding.</span>
   </div>
 
@@ -256,13 +270,196 @@ const EL = [
 {z:36,s:"Kr", nm:"krypton",  p:4, g:18, cat:"e", sch:[2,8,18,8],   heelal:0.00004,korst:0.0001, w:"Genoemd naar het Griekse 'kryptos' (verborgen) — het duurde lang voor dit onzichtbare gas ontdekt werd."}
 ];
 
+/* Bekende zware elementen (periode 5–7): naam/symbool-kennis + verkenmodus.
+   Alleen jood doet volledig mee met de afleiding (zelfde kapstok, periode 5). */
+const EXTRA = [
+{z:47,s:"Ag", nm:"zilver",  p:5, g:11, cat:"m", sch:[2,8,18,18,1],      heelal:0.00006, korst:0.075, w:"De beste elektrische en thermische geleider van alle metalen — koper is slechts tweede keus (maar goedkoper)."},
+{z:48,s:"Cd", nm:"cadmium", p:5, g:12, cat:"m", sch:[2,8,18,18,2],      heelal:0.00002, korst:0.15,  w:"Groepsgenoot van zink, maar giftig: het verdringt zink uit enzymen. Vroeger in NiCd-accu's en gele verfpigmenten."},
+{z:50,s:"Sn", nm:"tin",     p:5, g:14, cat:"m", sch:[2,8,18,18,4],      heelal:0.000004,korst:2.3,   w:"Brons (koper + tin) gaf een heel tijdperk zijn naam. Bij strenge kou vervalt wit tin tot grijs poeder: 'tinpest'."},
+{z:53,s:"I", nm:"jood",     p:5, g:17, cat:"n", sch:[2,8,18,18,7],      heelal:0.000001,korst:0.45,  w:"De kapstok werkt ook in periode 5: groep 17 → 7 valentie-elektronen → covalentie 1. Onmisbaar voor schildklierhormoon, vandaar gejodeerd zout."},
+{z:56,s:"Ba", nm:"barium",  p:6, g:2,  cat:"m", sch:[2,8,18,18,8,2],    heelal:0.00001, korst:425,   w:"Absorbeert röntgenstraling sterk: bariumpap maakt je darmen zichtbaar op de foto. Kleurt vuurwerk groen."},
+{z:78,s:"Pt", nm:"platina", p:6, g:10, cat:"m", sch:[2,8,18,32,17,1],   heelal:0.000005,korst:0.005, w:"Zeldzamer dan goud; als katalysator in vrijwel elke uitlaat. Chemisch bijna onverwoestbaar."},
+{z:79,s:"Au", nm:"goud",    p:6, g:11, cat:"m", sch:[2,8,18,32,18,1],   heelal:0.0000006,korst:0.004,w:"Ontstaat vrijwel uitsluitend bij botsingen van neutronensterren. Al het ooit gedolven goud past in een kubus van ~22 m."},
+{z:80,s:"Hg", nm:"kwik",    p:6, g:12, cat:"m", sch:[2,8,18,32,18,2],   heelal:0.000001,korst:0.085, w:"Het enige metaal dat vloeibaar is bij kamertemperatuur (samen met broom het enige vloeibare element)."},
+{z:82,s:"Pb", nm:"lood",    p:6, g:14, cat:"m", sch:[2,8,18,32,18,4],   heelal:0.00001, korst:14,    w:"Eindstation van de radioactieve vervalreeksen van uraan en thorium — via lood-isotopen is de ouderdom van de aarde bepaald (4,54 miljard jaar)."},
+{z:92,s:"U", nm:"uraan",    p:7, g:3,  f:2, cat:"m", sch:[2,8,18,32,21,9,2], heelal:0.0000002,korst:2.7,  w:"Zwaarste element dat in de natuur voorkomt. Halveringstijd van U-238: 4,5 miljard jaar — vrijwel exact de ouderdom van de aarde, dus de helft is er nog.", gLbl:"f-blok (actinide)"}
+];
+const ALLE = EL.concat(EXTRA);
+
+/* Overige elementen: alleen weergave (grijs/gearceerd), niet in de opgaven */
+const REST = [
+{z:37,s:"Rb",nm:"rubidium",p:5,g:1,cat:"m"},{z:38,s:"Sr",nm:"strontium",p:5,g:2,cat:"m"},
+{z:39,s:"Y",nm:"yttrium",p:5,g:3,cat:"m"},{z:40,s:"Zr",nm:"zirkonium",p:5,g:4,cat:"m"},
+{z:41,s:"Nb",nm:"niobium",p:5,g:5,cat:"m"},{z:42,s:"Mo",nm:"molybdeen",p:5,g:6,cat:"m"},
+{z:43,s:"Tc",nm:"technetium",p:5,g:7,cat:"m"},{z:44,s:"Ru",nm:"ruthenium",p:5,g:8,cat:"m"},
+{z:45,s:"Rh",nm:"rodium",p:5,g:9,cat:"m"},{z:46,s:"Pd",nm:"palladium",p:5,g:10,cat:"m"},
+{z:49,s:"In",nm:"indium",p:5,g:13,cat:"m"},{z:51,s:"Sb",nm:"antimoon",p:5,g:15,cat:"h"},
+{z:52,s:"Te",nm:"telluur",p:5,g:16,cat:"h"},{z:54,s:"Xe",nm:"xenon",p:5,g:18,cat:"e"},
+{z:55,s:"Cs",nm:"cesium",p:6,g:1,cat:"m"},
+{z:57,s:"La",nm:"lanthaan",f:1,cat:"m"},{z:58,s:"Ce",nm:"cerium",f:1,cat:"m"},
+{z:59,s:"Pr",nm:"praseodymium",f:1,cat:"m"},{z:60,s:"Nd",nm:"neodymium",f:1,cat:"m"},
+{z:61,s:"Pm",nm:"promethium",f:1,cat:"m"},{z:62,s:"Sm",nm:"samarium",f:1,cat:"m"},
+{z:63,s:"Eu",nm:"europium",f:1,cat:"m"},{z:64,s:"Gd",nm:"gadolinium",f:1,cat:"m"},
+{z:65,s:"Tb",nm:"terbium",f:1,cat:"m"},{z:66,s:"Dy",nm:"dysprosium",f:1,cat:"m"},
+{z:67,s:"Ho",nm:"holmium",f:1,cat:"m"},{z:68,s:"Er",nm:"erbium",f:1,cat:"m"},
+{z:69,s:"Tm",nm:"thulium",f:1,cat:"m"},{z:70,s:"Yb",nm:"ytterbium",f:1,cat:"m"},
+{z:71,s:"Lu",nm:"lutetium",f:1,cat:"m"},
+{z:72,s:"Hf",nm:"hafnium",p:6,g:4,cat:"m"},{z:73,s:"Ta",nm:"tantaal",p:6,g:5,cat:"m"},
+{z:74,s:"W",nm:"wolfraam",p:6,g:6,cat:"m"},{z:75,s:"Re",nm:"renium",p:6,g:7,cat:"m"},
+{z:76,s:"Os",nm:"osmium",p:6,g:8,cat:"m"},{z:77,s:"Ir",nm:"iridium",p:6,g:9,cat:"m"},
+{z:81,s:"Tl",nm:"thallium",p:6,g:13,cat:"m"},{z:83,s:"Bi",nm:"bismut",p:6,g:15,cat:"m"},
+{z:84,s:"Po",nm:"polonium",p:6,g:16,cat:"m"},{z:85,s:"At",nm:"astaat",p:6,g:17,cat:"h"},
+{z:86,s:"Rn",nm:"radon",p:6,g:18,cat:"e"},
+{z:87,s:"Fr",nm:"francium",p:7,g:1,cat:"m"},{z:88,s:"Ra",nm:"radium",p:7,g:2,cat:"m"},
+{z:89,s:"Ac",nm:"actinium",f:2,cat:"m"},{z:90,s:"Th",nm:"thorium",f:2,cat:"m"},
+{z:91,s:"Pa",nm:"protactinium",f:2,cat:"m"},
+{z:93,s:"Np",nm:"neptunium",f:2,cat:"m"},{z:94,s:"Pu",nm:"plutonium",f:2,cat:"m"},
+{z:95,s:"Am",nm:"americium",f:2,cat:"m"},{z:96,s:"Cm",nm:"curium",f:2,cat:"m"},
+{z:97,s:"Bk",nm:"berkelium",f:2,cat:"m"},{z:98,s:"Cf",nm:"californium",f:2,cat:"m"},
+{z:99,s:"Es",nm:"einsteinium",f:2,cat:"m"},{z:100,s:"Fm",nm:"fermium",f:2,cat:"m"},
+{z:101,s:"Md",nm:"mendelevium",f:2,cat:"m"},{z:102,s:"No",nm:"nobelium",f:2,cat:"m"},
+{z:103,s:"Lr",nm:"lawrencium",f:2,cat:"m"},
+{z:104,s:"Rf",nm:"rutherfordium",p:7,g:4,cat:"m"},{z:105,s:"Db",nm:"dubnium",p:7,g:5,cat:"m"},
+{z:106,s:"Sg",nm:"seaborgium",p:7,g:6,cat:"m"},{z:107,s:"Bh",nm:"bohrium",p:7,g:7,cat:"m"},
+{z:108,s:"Hs",nm:"hassium",p:7,g:8,cat:"m"},{z:109,s:"Mt",nm:"meitnerium",p:7,g:9,cat:"m"},
+{z:110,s:"Ds",nm:"darmstadtium",p:7,g:10,cat:"m"},{z:111,s:"Rg",nm:"röntgenium",p:7,g:11,cat:"m"},
+{z:112,s:"Cn",nm:"copernicium",p:7,g:12,cat:"m"},{z:113,s:"Nh",nm:"nihonium",p:7,g:13,cat:"m"},
+{z:114,s:"Fl",nm:"flerovium",p:7,g:14,cat:"m"},{z:115,s:"Mc",nm:"moscovium",p:7,g:15,cat:"m"},
+{z:116,s:"Lv",nm:"livermorium",p:7,g:16,cat:"m"},{z:117,s:"Ts",nm:"tennessine",p:7,g:17,cat:"h"},
+{z:118,s:"Og",nm:"oganesson",p:7,g:18,cat:"e"}
+];
+const PS_ALLES = ALLE.concat(REST);
+
+/* Naamherkomst en typisch gebruik (geselecteerde elementen) */
+const INFO = {
+1:{hk:"Grieks hydro + genes: 'watervormer' (Lavoisier)", gb:"ammoniakproductie (kunstmest), raketbrandstof, kandidaat-energiedrager"},
+2:{hk:"Grieks helios (zon) — eerst ontdekt in het zonnespectrum, pas later op aarde", gb:"ballonnen, koeling van MRI-magneten (vloeibaar), duikgas"},
+3:{hk:"Grieks lithos (steen)", gb:"oplaadbare accu's, medicijn bij bipolaire stoornis"},
+4:{hk:"naar het mineraal beryl (Grieks beryllos)", gb:"röntgenvensters, lichte stijve legeringen in lucht- en ruimtevaart"},
+5:{hk:"via Arabisch buraq (borax)", gb:"borosilicaatglas (vuurvast labglas), dotering van halfgeleiders"},
+6:{hk:"Latijn carbo (houtskool)", gb:"basis van alle organische chemie; grafiet, diamant, staal"},
+7:{hk:"Grieks nitron + genes ('salpetervormer'); Nederlands 'stikstof': het verstikt vlammen", gb:"kunstmest (Haber-Bosch), vloeibaar N₂ als koelmiddel, beschermgas"},
+8:{hk:"Grieks oxys + genes ('zuurvormer') — Lavoisier dacht (onterecht) dat elk zuur zuurstof bevat; 'zuurstof' is daar de vertaling van", gb:"ademhaling en medische zuurstof, staalproductie, verbranding"},
+9:{hk:"Latijn fluere (vloeien) — vloeispaat werd als smeltmiddel gebruikt", gb:"fluoride in tandpasta, teflon, koudemiddelen"},
+10:{hk:"Grieks neos (nieuw)", gb:"neonreclame (het roodoranje licht)"},
+11:{hk:"van natron (soda); het symbool Na komt daarvandaan", gb:"keukenzout, natronloog (NaOH), gele straatverlichting"},
+12:{hk:"naar Magnesia, een streek in Griekenland", gb:"lichte legeringen (velgen, laptops), fakkels en vuurwerk"},
+13:{hk:"Latijn alumen (aluin)", gb:"vliegtuigen, blikjes, folie, kozijnen"},
+14:{hk:"Latijn silex (vuursteen)", gb:"computerchips, zonnepanelen, glas"},
+15:{hk:"Grieks phosphoros (lichtdrager) — witte fosfor gloeit in het donker", gb:"kunstmest, luciferkoppen"},
+16:{hk:"Latijn sulphur; 'zwavel' is oud-Germaans", gb:"zwavelzuur (meest geproduceerde chemicalie ter wereld), vulkanisatie van rubber"},
+17:{hk:"Grieks chloros (geelgroen), naar de kleur van het gas", gb:"desinfectie van drink- en zwemwater, PVC"},
+18:{hk:"Grieks argos (lui, inactief) — het reageert nergens mee", gb:"beschermgas bij lassen, vulling van dubbel glas"},
+19:{hk:"van Arabisch al-qali (potas); het symbool K komt van kalium", gb:"kunstmest (kaliumzouten), essentieel voor zenuwgeleiding"},
+20:{hk:"Latijn calx (kalk)", gb:"cement en beton, botten en gebit, kalkmeststoffen"},
+21:{hk:"naar Scandinavië, waar de ertsen vandaan kwamen", gb:"sterke lichte aluminiumlegeringen (fietsframes, vliegtuigonderdelen)"},
+22:{hk:"naar de Titanen uit de Griekse mythologie", gb:"implantaten en prothesen, vliegtuigen, wit pigment (TiO₂)"},
+23:{hk:"naar Vanadis, bijnaam van de Noordse godin Freya (om de mooie kleuren)", gb:"harding van gereedschapsstaal"},
+24:{hk:"Grieks chroma (kleur) — chroomverbindingen zijn fel gekleurd", gb:"roestvrij staal, verchromen"},
+25:{hk:"ook naar Magnesia — het erts werd met magnesiumerts verward", gb:"staalproductie, batterijen (alkaline)"},
+26:{hk:"Latijn ferrum; 'ijzer' is oud-Germaans", gb:"staal — hét constructiemetaal van bruggen tot spijkers"},
+27:{hk:"naar de kobold, plaaggeest van Duitse mijnwerkers: het erts leek op kopererts maar gaf giftige dampen", gb:"accu's, sterke magneten, blauw pigment (kobaltblauw)"},
+28:{hk:"van Kupfernickel ('duivelskoper') — zelfde mijnwerkersfrustratie als bij kobalt", gb:"roestvrij staal, munten, accu's"},
+29:{hk:"Latijn aes cyprium: 'erts van Cyprus'", gb:"elektriciteitskabels, waterleidingen, elektronica"},
+30:{hk:"Duits Zink (waarschijnlijk naar de puntige kristallen)", gb:"verzinken van staal tegen roest, batterijen, dakgoten"},
+31:{hk:"Latijn Gallia (Frankrijk), door de Franse ontdekker", gb:"LED's en halfgeleiders (GaN, GaAs)"},
+32:{hk:"Latijn Germania (Duitsland), door de Duitse ontdekker", gb:"glasvezeloptiek, infraroodlenzen"},
+33:{hk:"Grieks arsenikon", gb:"halfgeleiders (GaAs); vroeger berucht als gif en houtverduurzamer"},
+34:{hk:"Grieks selene (maan) — als tegenhanger van telluur, dat naar de aarde is genoemd", gb:"voedingssupplement (antioxidant-enzymen), ontkleuren van glas"},
+35:{hk:"Grieks bromos (stank)", gb:"vlamvertragers; vroeger fotografie (zilverbromide)"},
+36:{hk:"Grieks kryptos (verborgen)", gb:"gasontladingslampen, isolerend dubbel glas"},
+47:{hk:"Latijn argentum; 'zilver' is Germaans", gb:"sieraden, elektrische contacten, spiegels"},
+48:{hk:"Latijn cadmia, naar het zinkerts waarin het gevonden werd", gb:"regelstaven in kerncentrales; vroeger NiCd-accu's en pigmenten"},
+50:{hk:"Latijn stannum; 'tin' is Germaans", gb:"soldeer, vertind staal (blik), brons"},
+53:{hk:"Grieks iodes (violet), naar de paarse damp", gb:"desinfectie (jodiumtinctuur), contrastmiddel, gejodeerd zout"},
+56:{hk:"Grieks barys (zwaar)", gb:"bariumpap als röntgencontrastmiddel, groen vuurwerk"},
+78:{hk:"Spaans platina: 'zilvertje' (de Spanjaarden vonden het maar lastig zilver)", gb:"katalysatoren in uitlaten, sieraden, laboratoriumkroezen"},
+79:{hk:"Latijn aurum ('stralende dageraad'); 'goud' is Germaans", gb:"sieraden, betrouwbare elektrische contacten, waardeopslag"},
+80:{hk:"hydrargyrum, Grieks voor 'vloeibaar zilver'; 'kwik(zilver)' betekent 'levend zilver'", gb:"vroeger thermometers en barometers — inmiddels vrijwel overal uitgefaseerd"},
+82:{hk:"Latijn plumbum (vandaar het Engelse plumber); 'lood' is Germaans", gb:"loodaccu's (startaccu), stralingsafscherming"},
+92:{hk:"naar de planeet Uranus, die kort daarvoor ontdekt was (1781)", gb:"kernbrandstof in kerncentrales"},
+/* — niet-geselecteerde elementen: hk = naamherkomst, gb = gebruik, he/ko = voorkomen (ppm massa) — */
+37:{hk:"Latijn rubidus (dieprood), naar de spectraallijn", gb:"atoomklokken, onderzoek", he:0.01, ko:90},
+38:{hk:"naar Strontian, een dorp in Schotland", gb:"rood vuurwerk; vroeger beeldbuizen", he:0.04, ko:370},
+39:{hk:"naar Ytterby, een Zweeds dorp (het eerste van vier!)", gb:"LED-fosforen, YAG-lasers, supergeleiders", he:0.007, ko:33},
+40:{hk:"Perzisch zargun (goudkleurig), via het mineraal zirkoon", gb:"omhulling van splijtstofstaven, kunstdiamant (zirkonia)", he:0.05, ko:165},
+41:{hk:"naar Niobe, dochter van Tantalus — het staat boven tantaal", gb:"supergeleidende magneten (MRI), sterke staalsoorten", he:0.002, ko:20},
+42:{hk:"Grieks molybdos (lood) — het erts werd met looderts verward", gb:"staallegeringen, smeermiddel (MoS₂), enzym voor stikstofbinding", he:0.005, ko:1.2},
+43:{hk:"Grieks technetos (kunstmatig) — het eerste kunstmatig gemaakte element", gb:"medische beeldvorming (Tc-99m, miljoenen scans per jaar)", he:0, ko:0},
+44:{hk:"Latijn Ruthenia (Rusland)", gb:"slijtvaste legeringen, katalysatoren, chipproductie", he:0.004, ko:0.001},
+45:{hk:"Grieks rhodon (roos), naar de rozerode zouten", gb:"autokatalysatoren, coating van witgoud", he:0.0006, ko:0.001},
+46:{hk:"naar de planetoïde Pallas", gb:"katalysatoren, waterstofopslag", he:0.002, ko:0.015},
+49:{hk:"naar de indigoblauwe spectraallijn", gb:"touchscreens (indiumtinoxide), laagsmeltend soldeer", he:0.0003, ko:0.25},
+51:{hk:"herkomst onzeker; het symbool Sb komt van Latijn stibium", gb:"vlamvertragers, legeringen", he:0.0004, ko:0.2},
+52:{hk:"Latijn tellus (aarde)", gb:"dunnefilm-zonnepanelen (CdTe), legeringen", he:0.009, ko:0.001},
+54:{hk:"Grieks xenos (vreemdeling)", gb:"autokoplampen, narcosegas, ionenmotoren van ruimtesondes", he:0.00001, ko:0.00003},
+55:{hk:"Latijn caesius (hemelsblauw), naar de spectraallijn", gb:"atoomklokken — de definitie van de seconde", he:0.0008, ko:3},
+57:{hk:"Grieks lanthanein (verborgen blijven)", gb:"NiMH-accu's, cameralensglas", he:0.002, ko:39},
+58:{hk:"naar de planetoïde Ceres", gb:"vuursteentjes in aanstekers, poleermiddel voor glas", he:0.01, ko:66},
+59:{hk:"Grieks prasios didymos (groene tweeling)", gb:"groen glas, sterke magneten", he:0.002, ko:9.2},
+60:{hk:"Grieks neos didymos (nieuwe tweeling)", gb:"de sterkste permanente magneten (NdFeB): oordopjes, windturbines, e-auto's", he:0.01, ko:41},
+61:{hk:"naar Prometheus, die het vuur aan de mensen gaf", gb:"vroeger lichtgevende wijzers; nu vrijwel geen", he:0, ko:0},
+62:{hk:"naar het mineraal samarskiet (mijningenieur Samarsky — het eerste element indirect naar een persoon)", gb:"SmCo-magneten (hittebestendig)", he:0.005, ko:7},
+63:{hk:"naar Europa", gb:"rode fosfor in schermen; fluorescerend echtheidskenmerk in eurobiljetten", he:0.0005, ko:2},
+64:{hk:"naar chemicus Johan Gadolin", gb:"MRI-contrastmiddel, neutronenvangst in reactoren", he:0.002, ko:6.2},
+65:{hk:"naar Ytterby (nummer twee)", gb:"groene fosforen in schermen", he:0.0005, ko:1.2},
+66:{hk:"Grieks dysprositos (moeilijk te bereiken)", gb:"maakt neodymiummagneten hittebestendig (windturbines)", he:0.002, ko:5.2},
+67:{hk:"naar Holmia (Stockholm)", gb:"chirurgische lasers, sterkste magnetische eigenschappen", he:0.0005, ko:1.3},
+68:{hk:"naar Ytterby (nummer drie)", gb:"signaalversterkers in glasvezelkabels, roze glas", he:0.002, ko:3.5},
+69:{hk:"naar Thule, het mythische noordland", gb:"draagbare röntgenapparaten", he:0.0001, ko:0.52},
+70:{hk:"naar Ytterby (nummer vier — één dorp, vier elementen)", gb:"atoomklokken, lasers", he:0.002, ko:3.2},
+71:{hk:"naar Lutetia (Parijs)", gb:"detectoren in PET-scanners", he:0.0001, ko:0.8},
+72:{hk:"naar Hafnia (Kopenhagen)", gb:"regelstaven in kernreactoren, computerchips", he:0.0007, ko:3},
+73:{hk:"naar Tantalus, die nooit kon drinken — het metaal wordt door zuren nauwelijks aangetast", gb:"condensatoren in telefoons, implantaten", he:0.00008, ko:2},
+74:{hk:"Zweeds tung sten (zware steen); 'wolfraam' via het erts wolframiet", gb:"gloeidraden, hardmetaal (boren en frezen), hoogste smeltpunt van alle metalen", he:0.0005, ko:1.25},
+75:{hk:"naar de Rijn (Rhenus)", gb:"legeringen voor straalmotorschoepen; een van de zeldzaamste metalen", he:0.0002, ko:0.0007},
+76:{hk:"Grieks osme (geur), naar het stinkende en giftige OsO₄", gb:"punten van vulpennen en naalden; het dichtste element", he:0.003, ko:0.0015},
+77:{hk:"naar Iris, godin van de regenboog (kleurige zouten)", gb:"bougie-elektroden; de wereldwijde iridiumlaag bewees de dino-inslag", he:0.002, ko:0.001},
+81:{hk:"Grieks thallos (groene twijg), naar de spectraallijn", gb:"infraroodoptiek en elektronica; vroeger berucht als rattengif", he:0.0005, ko:0.85},
+83:{hk:"herkomst onzeker (Duits Wismut)", gb:"maagmiddelen, loodvrije hagel en soldeer", he:0.0007, ko:0.009},
+84:{hk:"naar Polen, vaderland van ontdekker Marie Curie", gb:"antistatische bronnen; sterk radioactief", he:0.0000001, ko:0.0000000002},
+85:{hk:"Grieks astatos (onstabiel)", gb:"onderzoek naar kankertherapie; zeldzaamste natuurlijke element — nog geen gram op aarde", he:0, ko:0.00000000000000000003},
+86:{hk:"afgeleid van radium, waaruit het ontstaat", gb:"geen — radioactief edelgas dat uit de bodem in kruipruimtes sijpelt", he:0.0000001, ko:0.0000000000004},
+87:{hk:"naar Frankrijk (ontdekt door Marguerite Perey)", gb:"geen — extreem instabiel, hooguit enkele grammen op aarde", he:0, ko:0.000000000000000001},
+88:{hk:"Latijn radius (straal)", gb:"vroeger lichtgevende wijzerplaten — met tragische gevolgen voor de schilderessen", he:0.0000001, ko:0.0000009},
+89:{hk:"Grieks aktis (straal); naamgever van de actiniden", gb:"neutronenbron, onderzoek", he:0, ko:0.00000000055},
+90:{hk:"naar Thor, de Noorse dondergod", gb:"onderzocht als alternatieve kernbrandstof (thoriumreactoren); gloeikousjes", he:0.0004, ko:9.6},
+91:{hk:"'proto-actinium': het vervalt tot actinium", gb:"vrijwel alleen onderzoek", he:0, ko:0.0000014},
+93:{hk:"naar Neptunus — de planeet ná Uranus, het element ná uraan", gb:"onderzoek; eerste transuraan", he:0, ko:0},
+94:{hk:"naar Pluto — de reeks Uranus-Neptunus-Pluto compleet", gb:"kernwapens; stroombron (RTG) van ruimtesondes als Voyager", he:0, ko:0},
+95:{hk:"naar Amerika (analoog aan europium, er recht boven)", gb:"ionisatierookmelders", he:0, ko:0},
+96:{hk:"naar Marie en Pierre Curie", gb:"röntgenspectrometers op Marsrovers", he:0, ko:0},
+97:{hk:"naar Berkeley (Californië)", gb:"alleen onderzoek", he:0, ko:0},
+98:{hk:"naar Californië", gb:"neutronenbron voor het opstarten van kernreactoren", he:0, ko:0},
+99:{hk:"naar Albert Einstein", gb:"alleen onderzoek — ontdekt in de neerslag van de eerste waterstofbomtest", he:0, ko:0},
+100:{hk:"naar Enrico Fermi", gb:"alleen onderzoek — ook uit de waterstofbomtest", he:0, ko:0},
+101:{hk:"naar Dmitri Mendelejev, vader van het periodiek systeem", gb:"alleen onderzoek", he:0, ko:0},
+102:{hk:"naar Alfred Nobel", gb:"alleen onderzoek", he:0, ko:0},
+103:{hk:"naar Ernest Lawrence, uitvinder van het cyclotron", gb:"alleen onderzoek", he:0, ko:0},
+104:{hk:"naar Ernest Rutherford", gb:"alleen onderzoek (enkele atomen gemaakt)", he:0, ko:0},
+105:{hk:"naar Dubna, Russisch onderzoeksinstituut", gb:"alleen onderzoek (enkele atomen gemaakt)", he:0, ko:0},
+106:{hk:"naar Glenn Seaborg — het eerste element vernoemd naar iemand die nog leefde", gb:"alleen onderzoek (enkele atomen gemaakt)", he:0, ko:0},
+107:{hk:"naar Niels Bohr", gb:"alleen onderzoek (enkele atomen gemaakt)", he:0, ko:0},
+108:{hk:"naar Hessen, de Duitse deelstaat van ontdekkingslab GSI", gb:"alleen onderzoek (enkele atomen gemaakt)", he:0, ko:0},
+109:{hk:"naar kernfysica Lise Meitner", gb:"alleen onderzoek (enkele atomen gemaakt)", he:0, ko:0},
+110:{hk:"naar Darmstadt, de stad van het GSI-lab", gb:"alleen onderzoek (enkele atomen gemaakt)", he:0, ko:0},
+111:{hk:"naar Wilhelm Röntgen", gb:"alleen onderzoek (enkele atomen gemaakt)", he:0, ko:0},
+112:{hk:"naar Nicolaas Copernicus", gb:"alleen onderzoek (enkele atomen gemaakt)", he:0, ko:0},
+113:{hk:"naar Nihon (Japan) — het eerste in Azië ontdekte element", gb:"alleen onderzoek (enkele atomen gemaakt)", he:0, ko:0},
+114:{hk:"naar het Flerov-laboratorium in Dubna", gb:"alleen onderzoek (enkele atomen gemaakt)", he:0, ko:0},
+115:{hk:"naar Moskou", gb:"alleen onderzoek (enkele atomen gemaakt)", he:0, ko:0},
+116:{hk:"naar het Livermore-laboratorium (VS)", gb:"alleen onderzoek (enkele atomen gemaakt)", he:0, ko:0},
+117:{hk:"naar Tennessee", gb:"alleen onderzoek (enkele atomen gemaakt)", he:0, ko:0},
+118:{hk:"naar Yuri Oganessian — pas de tweede naamgever die de vernoeming zelf meemaakte", gb:"alleen onderzoek; het zwaarste element dat ooit gemaakt is", he:0, ko:0}
+};
+
 const NAAM_ALT = { // geaccepteerde alternatieve namen (invoer)
   "boor":["borium"], "titaan":["titanium"], "seleen":["selenium"], "arseen":["arsenicum"],
-  "zwavel":["sulfur"], "kalium":["potassium"], "natrium":["sodium"]
+  "jood":["jodium"], "uraan":["uranium"], "platina":["platinum"]
 };
 
 const CAT_NAAM = {m:"metaal", h:"metalloïde", n:"niet-metaal", e:"edelgas"};
-const SCHIL_NAAM = ["K","L","M","N"];
+const SCHIL_NAAM = ["K","L","M","N","O","P","Q"];
 
 /* ---------- afgeleide grootheden ---------- */
 function valentie(e){ return e.sch[e.sch.length-1]; }
@@ -309,21 +506,42 @@ function heatKleur(ppm){
 function bouwPS(){
   const grid = $("psGrid");
   grid.innerHTML = "";
-  EL.forEach(e=>{
-    const d = document.createElement("div");
-    d.className = "cel";
-    d.id = "cel-" + e.z;
-    d.style.gridColumn = e.g;
-    d.style.gridRow = e.p;
-    d.innerHTML = `<div class="z">${e.z}</div><div class="sym">${e.s}</div><div class="nm">${e.nm}</div>`;
-    d.onclick = ()=>toonDetail(e.z);
-    grid.appendChild(d);
+  const geselecteerd = new Set(ALLE.map(e=>e.z));
+  PS_ALLES.filter(e=>!e.f).forEach(e=>grid.appendChild(maakCel(e, e.p, geselecteerd.has(e.z))));
+  // placeholders voor het f-blok
+  grid.appendChild(maakPlaceholder(6, "57–71"));
+  grid.appendChild(maakPlaceholder(7, "89–103"));
+  const fgrid = $("psExtra");
+  fgrid.innerHTML = "";
+  PS_ALLES.filter(e=>e.f).forEach(e=>{
+    const col = e.f===1 ? e.z-53 : e.z-85;   // La(57)->kolom 4, Ac(89)->kolom 4
+    const cel = maakCel(e, e.f, geselecteerd.has(e.z));
+    cel.style.gridColumn = col;
+    fgrid.appendChild(cel);
   });
   kleurPS();
 }
+function maakCel(e, rij, actief){
+  const d = document.createElement("div");
+  d.className = "cel" + (actief ? "" : " niet-actief");
+  d.id = "cel-" + e.z;
+  d.style.gridColumn = e.g || 1;
+  d.style.gridRow = rij;
+  d.innerHTML = `<div class="z">${e.z}</div><div class="sym">${e.s}</div><div class="nm">${e.nm}</div>`;
+  d.onclick = ()=>toonDetail(e.z);
+  return d;
+}
+function maakPlaceholder(rij, tekst){
+  const d = document.createElement("div");
+  d.className = "cel placeholder";
+  d.style.gridColumn = 3;
+  d.style.gridRow = rij;
+  d.innerHTML = `<div class="z">&nbsp;</div><div class="ph-txt">${tekst}</div>`;
+  return d;
+}
 
 function kleurPS(){
-  EL.forEach(e=>{
+  ALLE.forEach(e=>{
     const d = $("cel-"+e.z);
     d.classList.remove("cat-m","cat-h","cat-n","cat-e");
     d.style.background = ""; d.style.borderColor = "";
@@ -372,9 +590,9 @@ function ketenHTML(e, compact=false){
   const doel = e.p===1 ? "duplet (2)" : "octet (8)";
   let s3, s4;
   if(cov===null){
-    const overgang = (e.g>=3 && e.g<=12);
-    const lading = overgang ? "n+" : (valentie(e)===1 ? "+" : valentie(e)+"+");
-    s3 = `<span class="nvt">n.v.t. — ${e.nm} is een ${CAT_NAAM[e.cat]} en vormt geen covalente bindingen (wel metaalbinding of ionen${overgang ? ", met wisselende lading" : ""}: ${e.s}<sup>${lading}</sup>).</span>`;
+    const wisselend = (e.g>=3 && e.g<=12) || e.p>=5;
+    const lading = wisselend ? "n+" : (valentie(e)===1 ? "+" : valentie(e)+"+");
+    s3 = `<span class="nvt">n.v.t. — ${e.nm} is een ${CAT_NAAM[e.cat]} en vormt geen covalente bindingen (wel metaalbinding of ionen${wisselend ? ", met wisselende lading" : ""}: ${e.s}<sup>${lading}</sup>).</span>`;
     s4 = `<span class="nvt">n.v.t.</span>`;
   } else {
     const formule = e.p===1 ? `2 − ${v}` : `8 − ${v}`;
@@ -389,30 +607,57 @@ function ketenHTML(e, compact=false){
     <div class="stap"><div class="nr">4</div><div class="txt"><b>Vrije elektronenparen</b> — ${s4}</div></div>`;
 }
 
+function voorkomenHTML(heelal, korst){
+  const maxH = Math.log10(739000)-LOG_MIN, maxK = Math.log10(461000)-LOG_MIN;
+  const pH = Math.max(2, 100*(Math.log10(Math.max(heelal,1e-5))-LOG_MIN)/maxH);
+  const pK = Math.max(2, 100*(Math.log10(Math.max(korst ,1e-5))-LOG_MIN)/maxK);
+  return `
+        <h3 style="margin-top:12px">Voorkomen (massafractie)</h3>
+        <div class="staaf"><div class="lbl"><span>🌌 heelal</span><span>${fmtVoorkomen(heelal)}</span></div>
+          <div class="rail"><div class="vul heelal" style="width:${pH}%"></div></div></div>
+        <div class="staaf"><div class="lbl"><span>🌍 aardkorst</span><span>${fmtVoorkomen(korst)}</span></div>
+          <div class="rail"><div class="vul korst" style="width:${pK}%"></div></div></div>`;
+}
+
 function toonDetail(z){
-  const e = EL.find(x=>x.z===z);
+  const e = PS_ALLES.find(x=>x.z===z);
   document.querySelectorAll(".cel").forEach(c=>c.classList.remove("gekozen"));
   $("cel-"+z).classList.add("gekozen");
-  const maxH = Math.log10(739000)-LOG_MIN, maxK = Math.log10(461000)-LOG_MIN;
-  const pH = Math.max(2, 100*(Math.log10(Math.max(e.heelal,1e-5))-LOG_MIN)/maxH);
-  const pK = Math.max(2, 100*(Math.log10(Math.max(e.korst ,1e-5))-LOG_MIN)/maxK);
+  const grpLbl = e.gLbl || (e.f ? (e.f===1?"f-blok (lanthanide)":"f-blok (actinide)") : "groep " + e.g);
+  const periode = e.p || (e.f===1 ? 6 : 7);
+  const info = INFO[e.z] || {};
   const p = $("detailPaneel");
   p.classList.remove("verborgen");
+
+  if(!e.sch){ // element buiten de leerselectie: wel info, geen afleiding
+    const synthetisch = !(info.he > 0 || info.ko > 0);
+    p.innerHTML = `
+      <h2>${e.nm.charAt(0).toUpperCase()+e.nm.slice(1)} (${e.s})</h2>
+      <div class="sub">atoomnummer ${e.z} · periode ${periode}, ${grpLbl} · ${CAT_NAAM[e.cat]}</div>
+      ${info.hk ? `<div class="infolijn">📖 <b>Naam:</b> ${info.hk}</div>` : ""}
+      ${info.gb ? `<div class="infolijn">🔧 <b>Gebruik:</b> ${info.gb}</div>` : ""}
+      <div class="voorkomen" style="max-width:480px">
+      ${synthetisch
+        ? `<div class="infolijn" style="margin-top:10px">🌍 <b>Voorkomen:</b> komt niet in de natuur voor — wordt kunstmatig gemaakt.</div>`
+        : voorkomenHTML(info.he, info.ko)}
+      </div>
+      <div style="color:var(--muted);font-size:13px;margin-top:12px">Dit element hoef je niet te kennen.</div>`;
+    p.scrollIntoView({behavior:"smooth", block:"nearest"});
+    return;
+  }
+
   p.innerHTML = `
     <h2>${e.nm.charAt(0).toUpperCase()+e.nm.slice(1)} (${e.s})</h2>
-    <div class="sub">atoomnummer ${e.z} · periode ${e.p}, groep ${e.g} · ${CAT_NAAM[e.cat]}</div>
+    <div class="sub">atoomnummer ${e.z} · periode ${e.p}, ${grpLbl} · ${CAT_NAAM[e.cat]}</div>
     <div class="d-grid">
       <div class="keten">
-        <h3>De afleiding — één kapstok</h3>
         ${ketenHTML(e)}
         ${heeftCovalentie(e) ? `<div class="lewisbox">${lewisSVG(e)}</div>` : ""}
       </div>
       <div class="voorkomen">
-        <h3>Voorkomen (massafractie)</h3>
-        <div class="staaf"><div class="lbl"><span>🌌 heelal</span><span>${fmtVoorkomen(e.heelal)}</span></div>
-          <div class="rail"><div class="vul heelal" style="width:${pH}%"></div></div></div>
-        <div class="staaf"><div class="lbl"><span>🌍 aardkorst</span><span>${fmtVoorkomen(e.korst)}</span></div>
-          <div class="rail"><div class="vul korst" style="width:${pK}%"></div></div></div>
+        ${info.hk ? `<div class="infolijn">📖 <b>Naam:</b> ${info.hk}</div>` : ""}
+        ${info.gb ? `<div class="infolijn">🔧 <b>Gebruik:</b> ${info.gb}</div>` : ""}
+        ${voorkomenHTML(e.heelal, e.korst)}
         <div class="weetje">💡 ${e.w}</div>
       </div>
     </div>`;
@@ -454,12 +699,20 @@ function beschikbareTypen(){
   return [...document.querySelectorAll(".vt:checked")].map(c=>c.value);
 }
 
+let huidigePool = [];
+
 function nieuweVraag(){
   const typen = beschikbareTypen();
   if(typen.length===0){ $("vraagKaart").innerHTML = `<div style="color:var(--fout)">Vink minstens één vraagtype aan.</div>`; return; }
   const type = kies(typen);
   let pool = POOL[niveau].map(z=>EL.find(e=>e.z===z));
-  if(type==="cov"||type==="lp") pool = pool.filter(heeftCovalentie);
+  if(type==="ns"||type==="sn"){
+    pool = pool.concat(EXTRA);                       // namen/symbolen: ook Ag, Au, Hg, U … (vanaf Basis)
+  } else {
+    if(niveau>=2) pool = pool.concat([EXTRA.find(x=>x.s==="I")]);  // jood: de kapstok werkt ook in periode 5
+    if(type==="cov"||type==="lp") pool = pool.filter(heeftCovalentie);
+  }
+  huidigePool = pool;
   const e = kies(pool);
 
   let vraagTekst, antwoord, checker, toonMC = (niveau===1);
@@ -521,7 +774,7 @@ function nieuweVraag(){
 
 function maakOpties(type, e, antwoord){
   const set = new Set([antwoord]);
-  const pool = POOL[niveau].map(z=>EL.find(x=>x.z===z));
+  const pool = huidigePool;
   let bron;
   if(type==="ns") bron = ()=>kies(pool).s;
   else if(type==="sn") bron = ()=>kies(pool).nm;
@@ -578,7 +831,7 @@ function verwerkAntwoord(juist){
   }
 
   const afleiding = (t==="ns"||t==="sn")
-    ? `<b>${e.nm}</b> = <b>${e.s}</b> · atoomnummer ${e.z} · periode ${e.p}, groep ${e.g} (${CAT_NAAM[e.cat]})`
+    ? `<b>${e.nm}</b> = <b>${e.s}</b> · atoomnummer ${e.z} · periode ${e.p}, ${e.gLbl || "groep "+e.g} (${CAT_NAAM[e.cat]})`
     : ketenHTML(e);
 
   $("feedbackVak").innerHTML = `
