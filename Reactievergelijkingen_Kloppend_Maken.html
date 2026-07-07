@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reactievergelijkingen Trainer — 6VWO</title>
+<style>
+:root {
+  --bg: #0f172a; --surface: #1e293b; --surface-light: #334155;
+  --primary: #10b981; --primary-dark: #059669; --accent: #3b82f6; --accent-light: #60a5fa;
+  --danger: #ef4444; --warning: #f59e0b; --text: #f1f5f9; --text-muted: #94a3b8;
+  --border: #475569; --success: #22c55e;
+  --shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.2);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column;
+}
+header {
+  background: var(--surface); padding: 1.5rem 2rem; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+h1 {
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, var(--primary), var(--accent-light));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.score-board { display: flex; gap: 1.5rem; font-size: 0.9rem; }
+.score-item { display: flex; align-items: center; gap: 0.4rem; }
+.score-dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-success { background: var(--success); }
+.dot-hint { background: var(--warning); }
+.dot-fail { background: var(--danger); }
+main { flex: 1; max-width: 1000px; width: 100%; margin: 0 auto; padding: 2rem; }
+
+.start-screen {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 60vh; text-align: center;
+}
+.start-screen h2 { font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--text); }
+.start-screen p { color: var(--text-muted); margin-bottom: 2rem; max-width: 500px; }
+
+.category-selection, .difficulty-selection, .count-selection {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem; width: 100%; max-width: 700px; margin-bottom: 2rem;
+}
+.category-card, .diff-card, .count-card {
+  background: var(--surface); border: 2px solid var(--border); border-radius: 16px;
+  padding: 1.5rem; cursor: pointer; transition: all 0.2s; text-align: left; position: relative;
+}
+.category-card:hover, .diff-card:hover, .count-card:hover {
+  border-color: var(--accent); transform: translateY(-2px);
+}
+.category-card.selected, .diff-card.selected, .count-card.selected {
+  border-color: var(--primary); background: rgba(16,185,129,0.05);
+}
+.category-card.selected::after {
+  content: '✓'; position: absolute; top: 12px; right: 12px;
+  background: var(--primary); color: white; width: 24px; height: 24px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: bold;
+}
+.category-card h3, .diff-card h3, .count-card h3 { font-size: 1.1rem; margin-bottom: 0.3rem; color: var(--text); }
+.category-card .count, .count-card .count-desc { font-size: 0.8rem; color: var(--text-muted); }
+.category-card .desc, .diff-card .diff-desc, .count-card .count-desc {
+  font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.4;
+}
+.diff-card .diff-icon, .count-card .count-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+
+.btn-start {
+  background: var(--primary); color: white; padding: 1rem 3rem; font-size: 1.1rem;
+  border-radius: 12px; border: none; cursor: pointer; font-weight: 700; transition: all 0.2s;
+}
+.btn-start:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-2px); }
+.btn-start:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-back {
+  background: transparent; color: var(--text-muted); border: 1px solid var(--border);
+  padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; margin-bottom: 1rem;
+}
+.btn-back:hover { color: var(--text); border-color: var(--accent); }
+
+.reaction-card {
+  background: var(--surface); border-radius: 16px; border: 1px solid var(--border);
+  padding: 2rem; box-shadow: var(--shadow); margin-bottom: 1.5rem;
+}
+.reaction-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+}
+.reaction-title { font-size: 1.1rem; color: var(--text); font-weight: 600; }
+.reaction-type {
+  font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 0.3rem 0.8rem; border-radius: 6px; background: var(--surface-light);
+  color: var(--accent-light); font-weight: 600;
+}
+.equation-builder {
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  flex-wrap: wrap; padding: 1.5rem; background: var(--bg); border-radius: 12px;
+  border: 1px dashed var(--border); margin-bottom: 1.5rem;
+}
+.side { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; justify-content: center; }
+.compound-block {
+  display: flex; align-items: center; gap: 0.3rem; background: var(--surface-light);
+  padding: 0.5rem 0.8rem; border-radius: 8px; border: 2px solid transparent; transition: all 0.2s;
+}
+.compound-block.correct { border-color: var(--success); background: rgba(34,197,94,0.1); }
+.compound-block.wrong { border-color: var(--danger); background: rgba(239,68,68,0.1); }
+.compound-block.given { opacity: 0.7; }
+.coeff-input, .formula-input {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); font-family: 'Segoe UI', monospace; text-align: center; transition: all 0.2s;
+}
+.coeff-input { width: 50px; padding: 0.4rem; font-size: 1rem; font-weight: 600; }
+.formula-input { width: 120px; padding: 0.4rem 0.6rem; font-size: 0.95rem; }
+.coeff-input:focus, .formula-input:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+}
+.coeff-input.correct, .formula-input.correct { border-color: var(--success); }
+.coeff-input.wrong, .formula-input.wrong { border-color: var(--danger); }
+.coeff-input:read-only, .formula-input:read-only {
+  background: var(--surface-light); color: var(--text-muted); cursor: default;
+}
+.arrow { font-size: 2rem; color: var(--accent); font-weight: bold; padding: 0 0.5rem; }
+.plus { color: var(--text-muted); font-weight: bold; }
+.controls { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+button {
+  padding: 0.7rem 1.5rem; border-radius: 8px; border: none; font-size: 0.95rem;
+  font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex;
+  align-items: center; gap: 0.4rem;
+}
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-secondary { background: var(--surface-light); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--border); }
+.btn-hint { background: var(--warning); color: #1a1a1a; }
+.btn-hint:hover { background: #d97706; }
+.btn-next { background: var(--accent); color: white; }
+.btn-next:hover { background: #2563eb; }
+.btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.feedback-panel {
+  margin-top: 1.5rem; padding: 1.2rem; border-radius: 12px; display: none;
+}
+.feedback-panel.show { display: block; }
+.feedback-panel.success { background: rgba(34,197,94,0.1); border: 1px solid var(--success); }
+.feedback-panel.error { background: rgba(239,68,68,0.1); border: 1px solid var(--danger); }
+.feedback-panel.hint-used { background: rgba(245,158,11,0.1); border: 1px solid var(--warning); }
+.feedback-title { font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.balance-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem; margin-top: 0.75rem;
+}
+.balance-item { background: var(--surface); padding: 0.6rem 0.8rem; border-radius: 8px; text-align: center; font-size: 0.85rem; }
+.balance-item .element { font-weight: 700; font-size: 1rem; }
+.balance-item .counts { color: var(--text-muted); margin-top: 0.2rem; }
+.balance-item.ok { border: 1px solid var(--success); }
+.balance-item.nok { border: 1px solid var(--danger); }
+.progress-bar { height: 6px; background: var(--surface-light); border-radius: 3px; overflow: hidden; margin-top: 0.5rem; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: width 0.5s ease; }
+.hint-text { font-style: italic; color: var(--warning); margin-top: 0.5rem; }
+.completed-badge {
+  display: inline-flex; align-items: center; gap: 0.3rem; background: var(--success);
+  color: white; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700;
+}
+.mode-badge {
+  display: inline-flex; align-items: center; gap: 0.3rem; background: var(--surface-light);
+  color: var(--accent-light); padding: 0.2rem 0.6rem; border-radius: 6px;
+  font-size: 0.75rem; font-weight: 600; border: 1px solid var(--border);
+}
+.streak { display: flex; align-items: center; gap: 0.3rem; color: var(--warning); font-weight: 700; }
+.fade-in { animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* REPORT */
+.report-header { text-align: center; margin-bottom: 2rem; }
+.report-header .emoji { font-size: 3rem; margin-bottom: 0.5rem; }
+.report-header h2 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+.report-header .subtitle { color: var(--text-muted); }
+.report-stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem; margin-bottom: 2rem;
+}
+.stat-box { background: var(--bg); padding: 1.2rem; border-radius: 12px; text-align: center; }
+.stat-box .stat-value { font-size: 2rem; font-weight: 700; }
+.stat-box .stat-label { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.3rem; }
+.stat-box.success .stat-value { color: var(--success); }
+.stat-box.warning .stat-value { color: var(--warning); }
+.stat-box.danger .stat-value { color: var(--danger); }
+.stat-box.primary .stat-value { color: var(--primary); }
+.report-details { margin-bottom: 2rem; }
+.report-details h3 { font-size: 1.1rem; margin-bottom: 1rem; color: var(--text); }
+.detail-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.8rem 1rem; background: var(--bg); border-radius: 8px;
+  margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;
+}
+.detail-row .detail-info { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.detail-row .detail-status {
+  font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 6px; font-weight: 600;
+}
+.detail-status.correct { background: rgba(34,197,94,0.2); color: var(--success); }
+.detail-status.hint { background: rgba(245,158,11,0.2); color: var(--warning); }
+.detail-status.fail { background: rgba(239,68,68,0.2); color: var(--danger); }
+.feedback-section { background: var(--bg); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+.feedback-section h3 { font-size: 1.1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.feedback-section ul { list-style: none; padding: 0; }
+.feedback-section li { padding: 0.5rem 0; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+.feedback-section li:last-child { border-bottom: none; }
+.feedback-section li::before { content: '→'; margin-right: 0.5rem; color: var(--accent); }
+.report-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+@media (max-width: 600px) {
+  .equation-builder { flex-direction: column; }
+  .arrow { transform: rotate(90deg); }
+  .side { justify-content: flex-start; }
+  header { flex-direction: column; align-items: flex-start; }
+  .category-selection, .difficulty-selection, .count-selection { grid-template-columns: 1fr; }
+  .report-stats { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>⚗️ Reactievergelijkingen Trainer</h1>
+    <div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.3rem;">6VWO — Maak de vergelijking kloppend</div>
+  </div>
+  <div class="score-board" id="scoreBoard" style="display:none">
+    <div class="score-item"><div class="score-dot dot-success"></div><span id="score-correct">0</span> correct</div>
+    <div class="score-item"><div class="score-dot dot-hint"></div><span id="score-hint">0</span> met hint</div>
+    <div class="score-item"><div class="score-dot dot-fail"></div><span id="score-fail">0</span> fout</div>
+    <div class="streak">🔥 <span id="streak">0</span></div>
+  </div>
+</header>
+
+<main>
+  <div id="startScreen"></div>
+  <div id="diffScreen" style="display:none"></div>
+  <div id="countScreen" style="display:none"></div>
+  <div id="gameScreen" style="display:none"></div>
+  <div id="reportScreen" style="display:none"></div>
+</main>
+
+<script>
+
+const reactions = [{id:"org-1",category:"organisch",type:"Verbranding",description:"Complete verbranding van methaan",left:[{formula:"CH4",coeff:1,given:true},{formula:"O2",coeff:2,given:false}],right:[{formula:"CO2",coeff:1,given:false},{formula:"H2O",coeff:2,given:false}]},{id:"org-2",category:"organisch",type:"Verbranding",description:"Complete verbranding van ethaan",left:[{formula:"C2H6",coeff:2,given:true},{formula:"O2",coeff:7,given:false}],right:[{formula:"CO2",coeff:4,given:false},{formula:"H2O",coeff:6,given:false}]},{id:"org-3",category:"organisch",type:"Verbranding",description:"Complete verbranding van propaan",left:[{formula:"C3H8",coeff:1,given:true},{formula:"O2",coeff:5,given:false}],right:[{formula:"CO2",coeff:3,given:false},{formula:"H2O",coeff:4,given:false}]},{id:"org-4",category:"organisch",type:"Verbranding",description:"Complete verbranding van butaan",left:[{formula:"C4H10",coeff:2,given:true},{formula:"O2",coeff:13,given:false}],right:[{formula:"CO2",coeff:8,given:false},{formula:"H2O",coeff:10,given:false}]},{id:"org-5",category:"organisch",type:"Verbranding",description:"Complete verbranding van ethanol",left:[{formula:"C2H5OH",coeff:1,given:true},{formula:"O2",coeff:3,given:false}],right:[{formula:"CO2",coeff:2,given:false},{formula:"H2O",coeff:3,given:false}]},{id:"org-6",category:"organisch",type:"Verbranding",description:"Complete verbranding van propanol",left:[{formula:"C3H7OH",coeff:2,given:true},{formula:"O2",coeff:9,given:false}],right:[{formula:"CO2",coeff:6,given:false},{formula:"H2O",coeff:8,given:false}]},{id:"org-7",category:"organisch",type:"Additiereactie",description:"Hydrogenatie van etheen",left:[{formula:"C2H4",coeff:1,given:true},{formula:"H2",coeff:1,given:false}],right:[{formula:"C2H6",coeff:1,given:false}]},{id:"org-8",category:"organisch",type:"Additiereactie",description:"Additie van broom aan etheen",left:[{formula:"C2H4",coeff:1,given:true},{formula:"Br2",coeff:1,given:false}],right:[{formula:"C2H4Br2",coeff:1,given:false}]},{id:"org-9",category:"organisch",type:"Additiereactie",description:"Additie van HBr aan etheen",left:[{formula:"C2H4",coeff:1,given:true},{formula:"HBr",coeff:1,given:false}],right:[{formula:"C2H5Br",coeff:1,given:false}]},{id:"org-10",category:"organisch",type:"Additiereactie",description:"Additie van water aan propeen",left:[{formula:"C3H6",coeff:1,given:true},{formula:"H2O",coeff:1,given:false}],right:[{formula:"C3H7OH",coeff:1,given:false}]},{id:"org-11",category:"organisch",type:"Additiereactie",description:"Additie van HBr aan propeen",left:[{formula:"C3H6",coeff:1,given:true},{formula:"HBr",coeff:1,given:false}],right:[{formula:"C3H7Br",coeff:1,given:false}]},{id:"org-12",category:"organisch",type:"Substitutiereactie",description:"Radikaalsubstitutie: chlorering van methaan",left:[{formula:"CH4",coeff:1,given:true},{formula:"Cl2",coeff:1,given:false}],right:[{formula:"CH3Cl",coeff:1,given:false},{formula:"HCl",coeff:1,given:false}]},{id:"org-13",category:"organisch",type:"Substitutiereactie",description:"Tweede chlorering: dichloormethaan",left:[{formula:"CH3Cl",coeff:1,given:true},{formula:"Cl2",coeff:1,given:false}],right:[{formula:"CH2Cl2",coeff:1,given:false},{formula:"HCl",coeff:1,given:false}]},{id:"org-14",category:"organisch",type:"Substitutiereactie",description:"Chlorering van ethaan",left:[{formula:"C2H6",coeff:1,given:true},{formula:"Cl2",coeff:1,given:false}],right:[{formula:"C2H5Cl",coeff:1,given:false},{formula:"HCl",coeff:1,given:false}]},{id:"org-15",category:"organisch",type:"Esterificatie",description:"Vorming van methyl methanoaat",left:[{formula:"HCOOH",coeff:1,given:true},{formula:"CH3OH",coeff:1,given:false}],right:[{formula:"HCOOCH3",coeff:1,given:false},{formula:"H2O",coeff:1,given:false}]},{id:"org-16",category:"organisch",type:"Esterificatie",description:"Vorming van ethyl ethanoaat",left:[{formula:"CH3COOH",coeff:1,given:true},{formula:"C2H5OH",coeff:1,given:false}],right:[{formula:"CH3COOC2H5",coeff:1,given:false},{formula:"H2O",coeff:1,given:false}]},{id:"org-17",category:"organisch",type:"Hydrolyse",description:"Hydrolyse van methyl ethanoaat",left:[{formula:"CH3COOCH3",coeff:1,given:true},{formula:"H2O",coeff:1,given:false}],right:[{formula:"CH3COOH",coeff:1,given:false},{formula:"CH3OH",coeff:1,given:false}]},{id:"org-18",category:"organisch",type:"Hydrolyse",description:"Hydrolyse van ethyl ethanoaat",left:[{formula:"CH3COOC2H5",coeff:1,given:true},{formula:"H2O",coeff:1,given:false}],right:[{formula:"CH3COOH",coeff:1,given:false},{formula:"C2H5OH",coeff:1,given:false}]},{id:"org-19",category:"organisch",type:"Dehydratie",description:"Dehydratie van ethanol tot etheen",left:[{formula:"C2H5OH",coeff:1,given:true}],right:[{formula:"C2H4",coeff:1,given:false},{formula:"H2O",coeff:1,given:false}]},{id:"org-20",category:"organisch",type:"Dehydratie",description:"Dehydratie van propanol tot propeen",left:[{formula:"C3H7OH",coeff:1,given:true}],right:[{formula:"C3H6",coeff:1,given:false},{formula:"H2O",coeff:1,given:false}]},{id:"an-1",category:"anorganisch",type:"Neerslagreactie",description:"Neerslag van zilverchloride",left:[{formula:"AgNO3",coeff:1,given:true},{formula:"NaCl",coeff:1,given:false}],right:[{formula:"AgCl",coeff:1,given:false},{formula:"NaNO3",coeff:1,given:false}]},{id:"an-2",category:"anorganisch",type:"Neerslagreactie",description:"Neerslag van bariumsulfaat",left:[{formula:"BaCl2",coeff:1,given:true},{formula:"Na2SO4",coeff:1,given:false}],right:[{formula:"BaSO4",coeff:1,given:false},{formula:"NaCl",coeff:2,given:false}]},{id:"an-3",category:"anorganisch",type:"Neerslagreactie",description:"Neerslag van lood(II)jodide",left:[{formula:"Pb(NO3)2",coeff:1,given:true},{formula:"KI",coeff:2,given:false}],right:[{formula:"PbI2",coeff:1,given:false},{formula:"KNO3",coeff:2,given:false}]},{id:"an-4",category:"anorganisch",type:"Neerslagreactie",description:"Neerslag van calciumcarbonaat",left:[{formula:"CaCl2",coeff:1,given:true},{formula:"Na2CO3",coeff:1,given:false}],right:[{formula:"CaCO3",coeff:1,given:false},{formula:"NaCl",coeff:2,given:false}]},{id:"an-5",category:"anorganisch",type:"Neerslagreactie",description:"Neerslag van ijzer(III)hydroxide",left:[{formula:"FeCl3",coeff:1,given:true},{formula:"NaOH",coeff:3,given:false}],right:[{formula:"Fe(OH)3",coeff:1,given:false},{formula:"NaCl",coeff:3,given:false}]},{id:"an-6",category:"anorganisch",type:"Neerslagreactie",description:"Neerslag van koper(II)hydroxide",left:[{formula:"CuSO4",coeff:1,given:true},{formula:"NaOH",coeff:2,given:false}],right:[{formula:"Cu(OH)2",coeff:1,given:false},{formula:"Na2SO4",coeff:1,given:false}]},{id:"an-7",category:"anorganisch",type:"Neerslagreactie",description:"Neerslag van aluminiumhydroxide",left:[{formula:"AlCl3",coeff:1,given:true},{formula:"NaOH",coeff:3,given:false}],right:[{formula:"Al(OH)3",coeff:1,given:false},{formula:"NaCl",coeff:3,given:false}]},{id:"an-8",category:"anorganisch",type:"Neerslagreactie",description:"Neerslag van magnesiumhydroxide",left:[{formula:"MgCl2",coeff:1,given:true},{formula:"NaOH",coeff:2,given:false}],right:[{formula:"Mg(OH)2",coeff:1,given:false},{formula:"NaCl",coeff:2,given:false}]},{id:"an-9",category:"anorganisch",type:"Gasvorming",description:"Reactie van calciumcarbonaat met zoutzuur",left:[{formula:"CaCO3",coeff:1,given:true},{formula:"HCl",coeff:2,given:false}],right:[{formula:"CaCl2",coeff:1,given:false},{formula:"H2O",coeff:1,given:false},{formula:"CO2",coeff:1,given:false}]},{id:"an-10",category:"anorganisch",type:"Gasvorming",description:"Reactie van natriumcarbonaat met zwavelzuur",left:[{formula:"Na2CO3",coeff:1,given:true},{formula:"H2SO4",coeff:1,given:false}],right:[{formula:"Na2SO4",coeff:1,given:false},{formula:"H2O",coeff:1,given:false},{formula:"CO2",coeff:1,given:false}]},{id:"an-11",category:"anorganisch",type:"Gasvorming",description:"Reactie van natriumcarbonaat met zoutzuur",left:[{formula:"Na2CO3",coeff:1,given:true},{formula:"HCl",coeff:2,given:false}],right:[{formula:"NaCl",coeff:2,given:false},{formula:"H2O",coeff:1,given:false},{formula:"CO2",coeff:1,given:false}]},{id:"an-12",category:"anorganisch",type:"Gasvorming",description:"Reactie van kaliumcarbonaat met zwavelzuur",left:[{formula:"K2CO3",coeff:1,given:true},{formula:"H2SO4",coeff:1,given:false}],right:[{formula:"K2SO4",coeff:1,given:false},{formula:"H2O",coeff:1,given:false},{formula:"CO2",coeff:1,given:false}]},{id:"an-13",category:"anorganisch",type:"Ontleding",description:"Ontbinding van waterstofperoxide",left:[{formula:"H2O2",coeff:2,given:true}],right:[{formula:"H2O",coeff:2,given:false},{formula:"O2",coeff:1,given:false}]},{id:"an-14",category:"anorganisch",type:"Ontleding",description:"Thermische ontleding van calciumcarbonaat",left:[{formula:"CaCO3",coeff:1,given:true}],right:[{formula:"CaO",coeff:1,given:false},{formula:"CO2",coeff:1,given:false}]},{id:"an-15",category:"anorganisch",type:"Ontleding",description:"Ontleding van kaliumchloraat",left:[{formula:"KClO3",coeff:2,given:true}],right:[{formula:"KCl",coeff:2,given:false},{formula:"O2",coeff:3,given:false}]},{id:"an-16",category:"anorganisch",type:"Ontleding",description:"Ontleding van kwik(II)oxide",left:[{formula:"HgO",coeff:2,given:true}],right:[{formula:"Hg",coeff:2,given:false},{formula:"O2",coeff:1,given:false}]},{id:"an-17",category:"anorganisch",type:"Ontleding",description:"Ontleding van natriumazide (airbag)",left:[{formula:"NaN3",coeff:2,given:true}],right:[{formula:"Na",coeff:2,given:false},{formula:"N2",coeff:3,given:false}]},{id:"an-18",category:"anorganisch",type:"Verbranding",description:"Verbranding van magnesium in zuurstof",left:[{formula:"Mg",coeff:2,given:true},{formula:"O2",coeff:1,given:false}],right:[{formula:"MgO",coeff:2,given:false}]},{id:"an-19",category:"anorganisch",type:"Verbranding",description:"Verbranding van zwavel in zuurstof",left:[{formula:"S",coeff:1,given:true},{formula:"O2",coeff:1,given:false}],right:[{formula:"SO2",coeff:1,given:false}]},{id:"an-20",category:"anorganisch",type:"Verbranding",description:"Verbranding van waterstof in zuurstof",left:[{formula:"H2",coeff:2,given:true},{formula:"O2",coeff:1,given:false}],right:[{formula:"H2O",coeff:2,given:false}]},{id:"zb-1",category:"zuurbase",type:"Neutralisatie",description:"Neutralisatie van zoutzuur met natriumhydroxide",left:[{formula:"HCl",coeff:1,given:true},{formula:"NaOH",coeff:1,given:false}],right:[{formula:"NaCl",coeff:1,given:false},{formula:"H2O",coeff:1,given:false}]},{id:"zb-2",category:"zuurbase",type:"Neutralisatie",description:"Neutralisatie van zwavelzuur met natriumhydroxide",left:[{formula:"H2SO4",coeff:1,given:true},{formula:"NaOH",coeff:2,given:false}],right:[{formula:"Na2SO4",coeff:1,given:false},{formula:"H2O",coeff:2,given:false}]},{id:"zb-3",category:"zuurbase",type:"Neutralisatie",description:"Neutralisatie van salpeterzuur met kaliumhydroxide",left:[{formula:"HNO3",coeff:1,given:true},{formula:"KOH",coeff:1,given:false}],right:[{formula:"KNO3",coeff:1,given:false},{formula:"H2O",coeff:1,given:false}]},{id:"zb-4",category:"zuurbase",type:"Neutralisatie",description:"Reactie van zoutzuur met calciumhydroxide",left:[{formula:"HCl",coeff:2,given:true},{formula:"Ca(OH)2",coeff:1,given:false}],right:[{formula:"CaCl2",coeff:1,given:false},{formula:"H2O",coeff:2,given:false}]},{id:"zb-5",category:"zuurbase",type:"Neutralisatie",description:"Reactie van zwavelzuur met calciumhydroxide",left:[{formula:"H2SO4",coeff:1,given:true},{formula:"Ca(OH)2",coeff:1,given:false}],right:[{formula:"CaSO4",coeff:1,given:false},{formula:"H2O",coeff:2,given:false}]},{id:"zb-6",category:"zuurbase",type:"Neutralisatie",description:"Neutralisatie van ethaanzuur met natriumhydroxide",left:[{formula:"CH3COOH",coeff:1,given:true},{formula:"NaOH",coeff:1,given:false}],right:[{formula:"CH3COONa",coeff:1,given:false},{formula:"H2O",coeff:1,given:false}]},{id:"zb-7",category:"zuurbase",type:"Neutralisatie",description:"Reactie van zoutzuur met ammoniak",left:[{formula:"HCl",coeff:1,given:true},{formula:"NH3",coeff:1,given:false}],right:[{formula:"NH4Cl",coeff:1,given:false}]},{id:"zb-8",category:"zuurbase",type:"Neutralisatie",description:"Reactie van zwavelzuur met bariumhydroxide",left:[{formula:"H2SO4",coeff:1,given:true},{formula:"Ba(OH)2",coeff:1,given:false}],right:[{formula:"BaSO4",coeff:1,given:false},{formula:"H2O",coeff:2,given:false}]},{id:"zb-9",category:"zuurbase",type:"Zuur + Carbonaat",description:"Reactie van zoutzuur met natriumcarbonaat",left:[{formula:"HCl",coeff:2,given:true},{formula:"Na2CO3",coeff:1,given:false}],right:[{formula:"NaCl",coeff:2,given:false},{formula:"H2O",coeff:1,given:false},{formula:"CO2",coeff:1,given:false}]},{id:"zb-10",category:"zuurbase",type:"Zuur + Carbonaat",description:"Reactie van zwavelzuur met calciumcarbonaat",left:[{formula:"H2SO4",coeff:1,given:true},{formula:"CaCO3",coeff:1,given:false}],right:[{formula:"CaSO4",coeff:1,given:false},{formula:"H2O",coeff:1,given:false},{formula:"CO2",coeff:1,given:false}]},{id:"zb-11",category:"zuurbase",type:"Zuur + Carbonaat",description:"Reactie van salpeterzuur met natriumcarbonaat",left:[{formula:"HNO3",coeff:2,given:true},{formula:"Na2CO3",coeff:1,given:false}],right:[{formula:"NaNO3",coeff:2,given:false},{formula:"H2O",coeff:1,given:false},{formula:"CO2",coeff:1,given:false}]},{id:"zb-12",category:"zuurbase",type:"Zuur + Carbonaat",description:"Reactie van zoutzuur met natriumwaterstofcarbonaat",left:[{formula:"HCl",coeff:1,given:true},{formula:"NaHCO3",coeff:1,given:false}],right:[{formula:"NaCl",coeff:1,given:false},{formula:"H2O",coeff:1,given:false},{formula:"CO2",coeff:1,given:false}]},{id:"zb-13",category:"zuurbase",type:"Zuur + Carbonaat",description:"Reactie van zwavelzuur met natriumwaterstofcarbonaat",left:[{formula:"H2SO4",coeff:1,given:true},{formula:"NaHCO3",coeff:2,given:false}],right:[{formula:"Na2SO4",coeff:1,given:false},{formula:"H2O",coeff:2,given:false},{formula:"CO2",coeff:2,given:false}]},{id:"zb-14",category:"zuurbase",type:"Zwak zuur",description:"Neutralisatie van ethaanzuur met kaliumhydroxide",left:[{formula:"CH3COOH",coeff:1,given:true},{formula:"KOH",coeff:1,given:false}],right:[{formula:"CH3COOK",coeff:1,given:false},{formula:"H2O",coeff:1,given:false}]},{id:"zb-15",category:"zuurbase",type:"Meerwaardig zuur",description:"Reactie van koolzuur met natriumhydroxide",left:[{formula:"H2CO3",coeff:1,given:true},{formula:"NaOH",coeff:2,given:false}],right:[{formula:"Na2CO3",coeff:1,given:false},{formula:"H2O",coeff:2,given:false}]},{id:"zb-16",category:"zuurbase",type:"Meerwaardig zuur",description:"Reactie van fosforzuur met natriumhydroxide (volledig)",left:[{formula:"H3PO4",coeff:1,given:true},{formula:"NaOH",coeff:3,given:false}],right:[{formula:"Na3PO4",coeff:1,given:false},{formula:"H2O",coeff:3,given:false}]},{id:"zb-17",category:"zuurbase",type:"Meerwaardig zuur",description:"Reactie van fosforzuur met natriumhydroxide (1e stap)",left:[{formula:"H3PO4",coeff:1,given:true},{formula:"NaOH",coeff:1,given:false}],right:[{formula:"NaH2PO4",coeff:1,given:false},{formula:"H2O",coeff:1,given:false}]},{id:"zb-18",category:"zuurbase",type:"Meerwaardig zuur",description:"Reactie van fosforzuur met natriumhydroxide (2e stap)",left:[{formula:"H3PO4",coeff:1,given:true},{formula:"NaOH",coeff:2,given:false}],right:[{formula:"Na2HPO4",coeff:1,given:false},{formula:"H2O",coeff:2,given:false}]},{id:"zb-19",category:"zuurbase",type:"Base + Zout",description:"Reactie van ammoniumchloride met natriumhydroxide",left:[{formula:"NH4Cl",coeff:1,given:true},{formula:"NaOH",coeff:1,given:false}],right:[{formula:"NaCl",coeff:1,given:false},{formula:"NH3",coeff:1,given:false},{formula:"H2O",coeff:1,given:false}]},{id:"zb-20",category:"zuurbase",type:"Base + Zout",description:"Reactie van ammoniumsulfaat met natriumhydroxide",left:[{formula:"(NH4)2SO4",coeff:1,given:true},{formula:"NaOH",coeff:2,given:false}],right:[{formula:"Na2SO4",coeff:1,given:false},{formula:"NH3",coeff:2,given:false},{formula:"H2O",coeff:2,given:false}]},{id:"red-1",category:"redox",type:"Redox",description:"Zink reageert met zoutzuur",left:[{formula:"Zn",coeff:1,given:true},{formula:"HCl",coeff:2,given:false}],right:[{formula:"ZnCl2",coeff:1,given:false},{formula:"H2",coeff:1,given:false}]},{id:"red-2",category:"redox",type:"Redox",description:"Magnesium reageert met zwavelzuur",left:[{formula:"Mg",coeff:1,given:true},{formula:"H2SO4",coeff:1,given:false}],right:[{formula:"MgSO4",coeff:1,given:false},{formula:"H2",coeff:1,given:false}]},{id:"red-3",category:"redox",type:"Redox",description:"IJzer reageert met zoutzuur",left:[{formula:"Fe",coeff:1,given:true},{formula:"HCl",coeff:2,given:false}],right:[{formula:"FeCl2",coeff:1,given:false},{formula:"H2",coeff:1,given:false}]},{id:"red-4",category:"redox",type:"Redox",description:"Aluminium reageert met zoutzuur",left:[{formula:"Al",coeff:2,given:true},{formula:"HCl",coeff:6,given:false}],right:[{formula:"AlCl3",coeff:2,given:false},{formula:"H2",coeff:3,given:false}]},{id:"red-5",category:"redox",type:"Redox",description:"Zink reageert met zwavelzuur",left:[{formula:"Zn",coeff:1,given:true},{formula:"H2SO4",coeff:1,given:false}],right:[{formula:"ZnSO4",coeff:1,given:false},{formula:"H2",coeff:1,given:false}]},{id:"red-6",category:"redox",type:"Redox",description:"IJzer reageert met koper(II)sulfaat",left:[{formula:"Fe",coeff:1,given:true},{formula:"CuSO4",coeff:1,given:false}],right:[{formula:"FeSO4",coeff:1,given:false},{formula:"Cu",coeff:1,given:false}]},{id:"red-7",category:"redox",type:"Redox",description:"Zink reageert met koper(II)sulfaat",left:[{formula:"Zn",coeff:1,given:true},{formula:"CuSO4",coeff:1,given:false}],right:[{formula:"ZnSO4",coeff:1,given:false},{formula:"Cu",coeff:1,given:false}]},{id:"red-8",category:"redox",type:"Redox",description:"Magnesium reageert met koper(II)sulfaat",left:[{formula:"Mg",coeff:1,given:true},{formula:"CuSO4",coeff:1,given:false}],right:[{formula:"MgSO4",coeff:1,given:false},{formula:"Cu",coeff:1,given:false}]},{id:"red-9",category:"redox",type:"Redox",description:"Aluminium reageert met koper(II)sulfaat",left:[{formula:"Al",coeff:2,given:true},{formula:"CuSO4",coeff:3,given:false}],right:[{formula:"Al2(SO4)3",coeff:1,given:false},{formula:"Cu",coeff:3,given:false}]},{id:"red-10",category:"redox",type:"Redox",description:"Koper reageert met zilvernitraat",left:[{formula:"Cu",coeff:1,given:true},{formula:"AgNO3",coeff:2,given:false}],right:[{formula:"Cu(NO3)2",coeff:1,given:false},{formula:"Ag",coeff:2,given:false}]},{id:"red-11",category:"redox",type:"Redox",description:"Zink reageert met zilvernitraat",left:[{formula:"Zn",coeff:1,given:true},{formula:"AgNO3",coeff:2,given:false}],right:[{formula:"Zn(NO3)2",coeff:1,given:false},{formula:"Ag",coeff:2,given:false}]},{id:"red-12",category:"redox",type:"Redox",description:"Elektrolyse van water",left:[{formula:"H2O",coeff:2,given:true}],right:[{formula:"H2",coeff:2,given:false},{formula:"O2",coeff:1,given:false}]},{id:"red-13",category:"redox",type:"Redox",description:"Elektrolyse van gesmolten natriumchloride",left:[{formula:"NaCl",coeff:2,given:true}],right:[{formula:"Na",coeff:2,given:false},{formula:"Cl2",coeff:1,given:false}]},{id:"red-14",category:"redox",type:"Redox",description:"Elektrolyse van aluminiumoxide",left:[{formula:"Al2O3",coeff:2,given:true}],right:[{formula:"Al",coeff:4,given:false},{formula:"O2",coeff:3,given:false}]},{id:"red-15",category:"redox",type:"Redox",description:"Verbranding van methaan in zuurstof",left:[{formula:"CH4",coeff:1,given:true},{formula:"O2",coeff:2,given:false}],right:[{formula:"CO2",coeff:1,given:false},{formula:"H2O",coeff:2,given:false}]},{id:"red-16",category:"redox",type:"Redox",description:"Verbranding van ethaan in zuurstof",left:[{formula:"C2H6",coeff:2,given:true},{formula:"O2",coeff:7,given:false}],right:[{formula:"CO2",coeff:4,given:false},{formula:"H2O",coeff:6,given:false}]},{id:"red-17",category:"redox",type:"Redox",description:"Verbranding van ethanol in zuurstof",left:[{formula:"C2H5OH",coeff:1,given:true},{formula:"O2",coeff:3,given:false}],right:[{formula:"CO2",coeff:2,given:false},{formula:"H2O",coeff:3,given:false}]},{id:"red-18",category:"redox",type:"Redox",description:"Reductie van koper(II)oxide met waterstof",left:[{formula:"CuO",coeff:1,given:true},{formula:"H2",coeff:1,given:false}],right:[{formula:"Cu",coeff:1,given:false},{formula:"H2O",coeff:1,given:false}]},{id:"red-19",category:"redox",type:"Redox",description:"Reductie van ijzer(III)oxide met koolstofmono-oxide",left:[{formula:"Fe2O3",coeff:1,given:true},{formula:"CO",coeff:3,given:false}],right:[{formula:"Fe",coeff:2,given:false},{formula:"CO2",coeff:3,given:false}]},{id:"red-20",category:"redox",type:"Redox",description:"Vorming van natriumchloride uit de elementen",left:[{formula:"Na",coeff:2,given:true},{formula:"Cl2",coeff:1,given:false}],right:[{formula:"NaCl",coeff:2,given:false}]}];
+
+const categoryInfo = {
+  organisch: { label: 'Organisch', count: 20, desc: 'Verbranding, additie, substitutie, esterificatie, hydrolyse, dehydratie', color: '#10b981' },
+  anorganisch: { label: 'Anorganisch', count: 20, desc: 'Neerslag, gasvorming, ontleding, verbranding van elementen', color: '#3b82f6' },
+  zuurbase: { label: 'Zuur-base', count: 20, desc: 'Neutralisatie, zuur + carbonaat, meerwaardige zuren', color: '#f59e0b' },
+  redox: { label: 'Redox', count: 20, desc: 'Metaal + zuur, metaal + zout, elektrolyse, verbranding', color: '#ef4444' }
+};
+
+let selectedCategories = [];
+let selectedDifficulty = null;
+let selectedCount = null;
+let currentReactionIndex = 0;
+let score = { correct: 0, hint: 0, fail: 0 };
+let streak = 0;
+let currentReaction = null;
+let hintUsed = false;
+let checked = false;
+let activeReactions = [];
+let sessionResults = [];
+
+function parseFormula(formula) {
+  formula = formula.replace(/\s/g, '');
+  const stack = [{}];
+  let i = 0;
+  while (i < formula.length) {
+    const char = formula[i];
+    if (char === '(') { stack.push({}); i++; }
+    else if (char === ')') {
+      const top = stack.pop(); i++;
+      let num = 1;
+      if (i < formula.length && /\d/.test(formula[i])) {
+        let numStr = '';
+        while (i < formula.length && /\d/.test(formula[i])) { numStr += formula[i]; i++; }
+        num = parseInt(numStr) || 1;
+      }
+      const current = stack[stack.length - 1];
+      for (const el in top) { current[el] = (current[el] || 0) + top[el] * num; }
+    }
+    else if (/[A-Z]/.test(char)) {
+      let element = char; i++;
+      if (i < formula.length && /[a-z]/.test(formula[i])) { element += formula[i]; i++; }
+      let num = 1;
+      if (i < formula.length && /\d/.test(formula[i])) {
+        let numStr = '';
+        while (i < formula.length && /\d/.test(formula[i])) { numStr += formula[i]; i++; }
+        num = parseInt(numStr) || 1;
+      }
+      const current = stack[stack.length - 1];
+      current[element] = (current[element] || 0) + num;
+    }
+    else { i++; }
+  }
+  return stack[0];
+}
+
+function sumCounts(side) {
+  const total = {};
+  for (const item of side) {
+    const coeff = parseInt(item.coeffInput?.value || item.coeff || 1) || 1;
+    const formula = item.formulaInput?.value || item.formula || '';
+    if (!formula) continue;
+    const counts = parseFormula(formula);
+    for (const el in counts) { total[el] = (total[el] || 0) + counts[el] * coeff; }
+  }
+  return total;
+}
+
+// === SCREEN FUNCTIONS ===
+function showStartScreen() {
+  document.getElementById('scoreBoard').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'flex';
+  document.getElementById('diffScreen').style.display = 'none';
+  document.getElementById('countScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'none';
+  document.getElementById('reportScreen').style.display = 'none';
+
+  const container = document.getElementById('startScreen');
+  container.className = 'start-screen';
+
+  const cards = Object.entries(categoryInfo).map(([key, info]) => `
+    <div class="category-card ${selectedCategories.includes(key) ? 'selected' : ''}" 
+         onclick="toggleCategory('${key}')" data-cat="${key}">
+      <h3>${info.label}</h3>
+      <div class="count">${info.count} reacties</div>
+      <div class="desc">${info.desc}</div>
+    </div>
+  `).join('');
+
+  container.innerHTML = `
+    <h2>Stap 1: Kies je categorieën</h2>
+    <p>Selecteer één of meer categorieën om te oefenen.</p>
+    <div class="category-selection">${cards}</div>
+    <button class="btn-start" onclick="showDifficultyScreen()" ${selectedCategories.length === 0 ? 'disabled' : ''}>
+      Volgende stap →
+    </button>
+  `;
+}
+
+function toggleCategory(cat) {
+  if (selectedCategories.includes(cat)) {
+    selectedCategories = selectedCategories.filter(c => c !== cat);
+  } else {
+    selectedCategories.push(cat);
+  }
+  showStartScreen();
+}
+
+function showDifficultyScreen() {
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('diffScreen').style.display = 'flex';
+  document.getElementById('diffScreen').className = 'start-screen';
+
+  const container = document.getElementById('diffScreen');
+  container.innerHTML = `
+    <button class="btn-back" onclick="showStartScreen()">← Terug</button>
+    <h2>Stap 2: Kies je moeilijkheidsgraad</h2>
+    <p>Bepaal hoeveel je zelf moet invullen.</p>
+    <div class="difficulty-selection">
+      <div class="diff-card ${selectedDifficulty === 'easy' ? 'selected' : ''}" onclick="selectDifficulty('easy')">
+        <div class="diff-icon">🟢</div>
+        <h3>Makkelijk</h3>
+        <div class="diff-desc">Alleen coëfficiënten invullen. De formules staan al klaar.</div>
+      </div>
+      <div class="diff-card ${selectedDifficulty === 'hard' ? 'selected' : ''}" onclick="selectDifficulty('hard')">
+        <div class="diff-icon">🔴</div>
+        <h3>Moeilijk</h3>
+        <div class="diff-desc">Zowel coëfficiënten als formules zelf invullen. De hele reactie opstellen.</div>
+      </div>
+    </div>
+    <button class="btn-start" onclick="showCountScreen()" ${selectedDifficulty ? '' : 'disabled'}>
+      Volgende stap →
+    </button>
+  `;
+}
+
+function selectDifficulty(diff) {
+  selectedDifficulty = diff;
+  showDifficultyScreen();
+}
+
+function showCountScreen() {
+  document.getElementById('diffScreen').style.display = 'none';
+  document.getElementById('countScreen').style.display = 'flex';
+  document.getElementById('countScreen').className = 'start-screen';
+
+  const available = reactions.filter(r => selectedCategories.includes(r.category)).length;
+  const counts = [5, 10, 15, 20].filter(c => c <= available);
+  if (!counts.includes(available)) counts.push(available);
+
+  const container = document.getElementById('countScreen');
+  container.innerHTML = `
+    <button class="btn-back" onclick="showDifficultyScreen()">← Terug</button>
+    <h2>Stap 3: Hoeveel reacties?</h2>
+    <p>Kies het aantal reacties dat je wilt oefenen. Maximaal ${available} beschikbaar.</p>
+    <div class="count-selection">
+      ${counts.map(c => `
+        <div class="count-card ${selectedCount === c ? 'selected' : ''}" onclick="selectCount(${c})">
+          <div class="count-icon">${c < 10 ? '📝' : c < 20 ? '📚' : '📖'}</div>
+          <h3>${c} reacties</h3>
+          <div class="count-desc">${c === 5 ? 'Snelle sessie' : c === 10 ? 'Standaard oefening' : c === 15 ? 'Uitgebreide oefening' : 'Alle beschikbare reacties'}</div>
+        </div>
+      `).join('')}
+      <div class="count-card ${selectedCount === 'all' ? 'selected' : ''}" onclick="selectCount('all')">
+        <div class="count-icon">🎯</div>
+        <h3>Alle ${available}</h3>
+        <div class="count-desc">Alle beschikbare reacties uit de geselecteerde categorieën</div>
+      </div>
+    </div>
+    <button class="btn-start" onclick="startGame()" ${selectedCount ? '' : 'disabled'}>
+      Start oefening
+    </button>
+  `;
+}
+
+function selectCount(count) {
+  selectedCount = count;
+  showCountScreen();
+}
+
+function prepareReaction(reaction) {
+  const prepared = JSON.parse(JSON.stringify(reaction));
+  [...prepared.left, ...prepared.right].forEach(item => {
+    if (selectedDifficulty === 'easy') {
+      item.formulaGiven = true;
+      item.coeffGiven = item.given;
+    } else {
+      item.formulaGiven = item.given;
+      item.coeffGiven = item.given;
+    }
+  });
+  return prepared;
+}
+
+function startGame() {
+  let rawReactions = reactions.filter(r => selectedCategories.includes(r.category));
+
+  // Shuffle
+  for (let i = rawReactions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rawReactions[i], rawReactions[j]] = [rawReactions[j], rawReactions[i]];
+  }
+
+  // Limit count
+  const limit = selectedCount === 'all' ? rawReactions.length : parseInt(selectedCount);
+  rawReactions = rawReactions.slice(0, limit);
+
+  activeReactions = rawReactions.map(r => prepareReaction(r));
+  currentReactionIndex = 0;
+  score = { correct: 0, hint: 0, fail: 0 };
+  streak = 0;
+  sessionResults = [];
+  updateScoreBoard();
+
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('diffScreen').style.display = 'none';
+  document.getElementById('countScreen').style.display = 'none';
+  document.getElementById('scoreBoard').style.display = 'flex';
+  document.getElementById('gameScreen').style.display = 'block';
+  document.getElementById('reportScreen').style.display = 'none';
+  loadReaction();
+}
+
+// === GAME UI ===
+function loadReaction() {
+  if (activeReactions.length === 0) {
+    document.getElementById('gameScreen').innerHTML = 
+      '<div class="reaction-card" style="text-align:center;color:var(--text-muted)">Geen reacties geselecteerd.</div>';
+    return;
+  }
+  currentReaction = activeReactions[currentReactionIndex];
+  checked = false;
+  hintUsed = false;
+  renderReaction();
+}
+
+function renderReaction() {
+  const container = document.getElementById('gameScreen');
+  const totalInSession = activeReactions.length;
+  const progress = ((currentReactionIndex) / totalInSession) * 100;
+  const catLabel = categoryInfo[currentReaction.category].label;
+  const diffLabel = selectedDifficulty === 'easy' ? 'Makkelijk' : 'Moeilijk';
+
+  container.innerHTML = `
+    <button class="btn-back" onclick="showStartScreen()">← Terug naar start</button>
+    <div class="reaction-card fade-in">
+      <div class="reaction-header">
+        <div>
+          <div class="reaction-title">${currentReaction.description}</div>
+          <div style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.85rem;">
+            Vraag ${currentReactionIndex + 1} van ${totalInSession} · 
+            <span style="color: ${categoryInfo[currentReaction.category].color}">${catLabel}</span> · 
+            <span class="mode-badge">${diffLabel}</span>
+          </div>
+        </div>
+        <span class="reaction-type">${currentReaction.type}</span>
+      </div>
+      <div class="equation-builder" id="equationBuilder">
+        <div class="side" id="leftSide"></div>
+        <div class="arrow">→</div>
+        <div class="side" id="rightSide"></div>
+      </div>
+      <div class="controls">
+        <button class="btn-hint" onclick="giveHint()" id="hintBtn">💡 Hint</button>
+        <button class="btn-primary" onclick="checkAnswer()" id="checkBtn">✓ Controleer</button>
+        <button class="btn-secondary" onclick="retryReaction()" id="retryBtn" style="display:none">↻ Opnieuw</button>
+        <button class="btn-next" onclick="nextReaction()" id="nextBtn" disabled>→ Volgende</button>
+      </div>
+      <div class="feedback-panel" id="feedbackPanel"></div>
+      <div style="margin-top: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
+          <span>Sessie-voortgang</span>
+          <span>${currentReactionIndex} / ${totalInSession}</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${progress}%"></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  renderSide('leftSide', currentReaction.left);
+  renderSide('rightSide', currentReaction.right);
+}
+
+function renderSide(elementId, items) {
+  const container = document.getElementById(elementId);
+  container.innerHTML = '';
+
+  items.forEach((item, idx) => {
+    const block = document.createElement('div');
+    const isFullyGiven = item.coeffGiven && item.formulaGiven;
+    block.className = 'compound-block' + (isFullyGiven ? ' given' : '');
+    block.id = `${elementId}-block-${idx}`;
+
+    const coeffInput = document.createElement('input');
+    coeffInput.type = 'text';
+    coeffInput.className = 'coeff-input';
+    coeffInput.value = item.coeffGiven ? item.coeff : '';
+    coeffInput.readOnly = item.coeffGiven;
+    coeffInput.placeholder = item.coeffGiven ? '' : '?';
+    coeffInput.dataset.correct = item.coeff;
+    item.coeffInput = coeffInput;
+
+    const formulaInput = document.createElement('input');
+    formulaInput.type = 'text';
+    formulaInput.className = 'formula-input';
+    formulaInput.value = item.formulaGiven ? item.formula : '';
+    formulaInput.readOnly = item.formulaGiven;
+    formulaInput.placeholder = item.formulaGiven ? '' : 'formule';
+    formulaInput.dataset.correct = item.formula;
+    item.formulaInput = formulaInput;
+
+    block.appendChild(coeffInput);
+    block.appendChild(formulaInput);
+    container.appendChild(block);
+
+    if (idx < items.length - 1) {
+      const plus = document.createElement('span');
+      plus.className = 'plus';
+      plus.textContent = '+';
+      container.appendChild(plus);
+    }
+  });
+}
+
+// === GAME LOGIC ===
+function checkAnswer() {
+  if (checked) return;
+  checked = true;
+
+  const leftItems = currentReaction.left;
+  const rightItems = currentReaction.right;
+  let allCorrect = true;
+  let hasInput = false;
+
+  [...leftItems, ...rightItems].forEach(item => {
+    if (item.coeffGiven && item.formulaGiven) return;
+
+    const coeffVal = item.coeffInput.value.trim();
+    const formulaVal = item.formulaInput.value.trim();
+
+    if (coeffVal || formulaVal) hasInput = true;
+
+    const coeffCorrect = item.coeffGiven ? true : (coeffVal === String(item.coeff));
+    const formulaCorrect = item.formulaGiven ? true : (formulaVal === item.formula);
+
+    if (!coeffCorrect || !formulaCorrect) {
+      allCorrect = false;
+      if (!item.coeffGiven) item.coeffInput.classList.add(coeffCorrect ? 'correct' : 'wrong');
+      if (!item.formulaGiven) item.formulaInput.classList.add(formulaCorrect ? 'correct' : 'wrong');
+      item.coeffInput.closest('.compound-block').classList.add('wrong');
+    } else {
+      if (!item.coeffGiven) item.coeffInput.classList.add('correct');
+      if (!item.formulaGiven) item.formulaInput.classList.add('correct');
+      item.coeffInput.closest('.compound-block').classList.add('correct');
+    }
+  });
+
+  if (!hasInput) {
+    checked = false;
+    showFeedback('error', 'Vul eerst de ontbrekende waarden in.');
+    return;
+  }
+
+  const leftCounts = sumCounts(leftItems);
+  const rightCounts = sumCounts(rightItems);
+  const allElements = new Set([...Object.keys(leftCounts), ...Object.keys(rightCounts)]);
+
+  let balanceHTML = '<div class="balance-grid">';
+  let balanceOK = true;
+
+  for (const el of allElements) {
+    const left = leftCounts[el] || 0;
+    const right = rightCounts[el] || 0;
+    const ok = left === right && left > 0;
+    if (!ok) balanceOK = false;
+    balanceHTML += `
+      <div class="balance-item ${ok ? 'ok' : 'nok'}">
+        <div class="element">${el}</div>
+        <div class="counts">${left} → ${right}</div>
+      </div>
+    `;
+  }
+  balanceHTML += '</div>';
+
+  let resultStatus;
+  if (allCorrect && balanceOK) {
+    score.correct++;
+    streak++;
+    resultStatus = hintUsed ? 'hint' : 'correct';
+    showFeedback('success', 
+      `<div class="feedback-title">🎉 Perfect! De vergelijking is kloppend.</div>
+       <div>Je hebt de reactie correct gebalanceerd.</div>
+       ${balanceHTML}`,
+      true
+    );
+  } else if (allCorrect && !balanceOK) {
+    score.fail++;
+    streak = 0;
+    resultStatus = 'fail';
+    showFeedback('error',
+      `<div class="feedback-title">⚠️ De formules kloppen, maar de balans niet!</div>
+       <div>Controleer de coëfficiënten. Per element moet het aantal atomen links en rechts gelijk zijn.</div>
+       ${balanceHTML}`,
+      false
+    );
+  } else {
+    score.fail++;
+    streak = 0;
+    resultStatus = 'fail';
+    showFeedback('error',
+      `<div class="feedback-title">❌ Niet helemaal correct</div>
+       <div>Controleer de formules en coëfficiënten. Let op: hoofdletters/kleine letters en haakjes!</div>
+       ${balanceHTML}`,
+      false
+    );
+  }
+
+  // Record result
+  const existing = sessionResults.find(r => r.id === currentReaction.id);
+  if (!existing) {
+    sessionResults.push({
+      id: currentReaction.id,
+      description: currentReaction.description,
+      category: currentReaction.category,
+      type: currentReaction.type,
+      status: resultStatus,
+      difficulty: selectedDifficulty
+    });
+  } else if (resultStatus === 'correct' && existing.status !== 'correct') {
+    existing.status = 'correct';
+  }
+
+  updateScoreBoard();
+  document.getElementById('checkBtn').disabled = true;
+  document.getElementById('nextBtn').disabled = false;
+  if (!allCorrect || !balanceOK) {
+    document.getElementById('retryBtn').style.display = 'flex';
+  }
+}
+
+function showFeedback(type, html) {
+  const panel = document.getElementById('feedbackPanel');
+  panel.className = 'feedback-panel show ' + type;
+  panel.innerHTML = html;
+}
+
+function giveHint() {
+  if (hintUsed || checked) return;
+  if (document.getElementById('checkBtn').disabled) return;
+  hintUsed = true;
+
+  const allItems = [...currentReaction.left, ...currentReaction.right].filter(i => !i.coeffGiven || !i.formulaGiven);
+  if (allItems.length === 0) return;
+
+  const hiddenFields = [];
+  allItems.forEach(item => {
+    if (!item.coeffGiven && !item.coeffInput.value.trim()) hiddenFields.push({item, field: 'coeff'});
+    if (!item.formulaGiven && !item.formulaInput.value.trim()) hiddenFields.push({item, field: 'formula'});
+  });
+
+  if (hiddenFields.length === 0) {
+    allItems.forEach(item => {
+      if (!item.coeffGiven) hiddenFields.push({item, field: 'coeff'});
+      else if (!item.formulaGiven) hiddenFields.push({item, field: 'formula'});
+    });
+  }
+
+  if (hiddenFields.length === 0) return;
+
+  const target = hiddenFields[Math.floor(Math.random() * hiddenFields.length)];
+  if (target.field === 'coeff') {
+    target.item.coeffInput.value = target.item.coeff;
+  } else {
+    target.item.formulaInput.value = target.item.formula;
+  }
+
+  score.hint++;
+  updateScoreBoard();
+
+  const panel = document.getElementById('feedbackPanel');
+  panel.className = 'feedback-panel show hint-used';
+  panel.innerHTML = `<div class="feedback-title">💡 Hint gebruikt</div><div class="hint-text">Eén ontbrekend veld is ingevuld. Probeer de rest zelf!</div>`;
+}
+
+function retryReaction() {
+  checked = false;
+  hintUsed = false;
+  const allItems = [...currentReaction.left, ...currentReaction.right];
+  allItems.forEach(item => {
+    if (item.coeffGiven && item.formulaGiven) return;
+    if (!item.coeffGiven) item.coeffInput.classList.remove('correct', 'wrong');
+    if (!item.formulaGiven) item.formulaInput.classList.remove('correct', 'wrong');
+    item.coeffInput.closest('.compound-block').classList.remove('correct', 'wrong');
+  });
+  document.getElementById('checkBtn').disabled = false;
+  document.getElementById('nextBtn').disabled = true;
+  document.getElementById('retryBtn').style.display = 'none';
+  const panel = document.getElementById('feedbackPanel');
+  panel.className = 'feedback-panel';
+  panel.innerHTML = '';
+}
+
+function nextReaction() {
+  currentReactionIndex++;
+  const retryBtn = document.getElementById('retryBtn');
+  if (retryBtn) retryBtn.style.display = 'none';
+
+  if (currentReactionIndex >= activeReactions.length) {
+    showReport();
+    return;
+  }
+  checked = false;
+  hintUsed = false;
+  loadReaction();
+}
+
+// === REPORT ===
+function showReport() {
+  document.getElementById('scoreBoard').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'none';
+  document.getElementById('reportScreen').style.display = 'block';
+
+  const total = activeReactions.length;
+  const correctCount = sessionResults.filter(r => r.status === 'correct').length;
+  const hintCount = sessionResults.filter(r => r.status === 'hint').length;
+  const failCount = sessionResults.filter(r => r.status === 'fail').length;
+  const correctPct = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+
+  // Determine emoji and message
+  let emoji, title, subtitle;
+  if (correctPct >= 90) {
+    emoji = '🏆'; title = 'Geweldig gedaan!'; subtitle = 'Je beheerst reactievergelijkingen uitstekend.';
+  } else if (correctPct >= 70) {
+    emoji = '⭐'; title = 'Goed werk!'; subtitle = 'Je bent op de goede weg, nog wat oefenen en je bent er.';
+  } else if (correctPct >= 50) {
+    emoji = '💪'; title = 'Niet slecht!'; subtitle = 'Blijf oefenen, vooral op de onderwerpen die je moeilijk vindt.';
+  } else {
+    emoji = '📚'; title = 'Blijf oefenen!'; subtitle = 'Reactievergelijkingen vergen veel oefening. Probeer het opnieuw!';
+  }
+
+  // Generate feedback tips
+  const tips = [];
+  if (failCount > 0) {
+    const failCats = [...new Set(sessionResults.filter(r => r.status === 'fail').map(r => r.category))];
+    failCats.forEach(cat => {
+      const catName = categoryInfo[cat].label;
+      tips.push(`Oefen meer met ${catName.toLowerCase()}e reacties.`);
+    });
+  }
+  if (hintCount > correctCount) {
+    tips.push('Probeer eerst zonder hints te werken, ook al duurt het wat langer.');
+  }
+  if (selectedDifficulty === 'easy' && correctPct >= 80) {
+    tips.push('Je beheerst de makkelijke modus goed. Probeer de moeilijke modus eens!');
+  }
+  if (selectedDifficulty === 'hard' && correctPct < 50) {
+    tips.push('De moeilijke modus is pittig. Oefen eerst in de makkelijke modus.');
+  }
+  if (tips.length === 0) {
+    tips.push('Je doet het uitstekend! Blijf zo doorgaan.');
+  }
+
+  // Build detail rows
+  const detailRows = activeReactions.map((reaction, idx) => {
+    const result = sessionResults.find(r => r.id === reaction.id);
+    const status = result ? result.status : 'fail';
+    const statusClass = status === 'correct' ? 'correct' : status === 'hint' ? 'hint' : 'fail';
+    const statusText = status === 'correct' ? '✓ Correct' : status === 'hint' ? '💡 Met hint' : '✗ Fout';
+    const catLabel = categoryInfo[reaction.category].label;
+
+    return `
+      <div class="detail-row">
+        <div class="detail-info">
+          <span style="color: var(--text-muted); font-size: 0.8rem;">#${idx + 1}</span>
+          <span>${reaction.description}</span>
+          <span style="color: ${categoryInfo[reaction.category].color}; font-size: 0.8rem;">${catLabel}</span>
+        </div>
+        <span class="detail-status ${statusClass}">${statusText}</span>
+      </div>
+    `;
+  }).join('');
+
+  const container = document.getElementById('reportScreen');
+  container.innerHTML = `
+    <div class="reaction-card fade-in">
+      <div class="report-header">
+        <div class="emoji">${emoji}</div>
+        <h2>${title}</h2>
+        <div class="subtitle">${subtitle}</div>
+      </div>
+
+      <div class="report-stats">
+        <div class="stat-box success">
+          <div class="stat-value">${correctCount}</div>
+          <div class="stat-label">Correct</div>
+        </div>
+        <div class="stat-box warning">
+          <div class="stat-value">${hintCount}</div>
+          <div class="stat-label">Met hint</div>
+        </div>
+        <div class="stat-box danger">
+          <div class="stat-value">${failCount}</div>
+          <div class="stat-label">Fout</div>
+        </div>
+        <div class="stat-box primary">
+          <div class="stat-value">${correctPct}%</div>
+          <div class="stat-label">Score</div>
+        </div>
+      </div>
+
+      <div class="feedback-section">
+        <h3>💡 Tips voor verbetering</h3>
+        <ul>
+          ${tips.map(t => `<li>${t}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div class="report-details">
+        <h3>📋 Resultaten per reactie</h3>
+        ${detailRows}
+      </div>
+
+      <div class="report-actions">
+        <button class="btn-start" onclick="resetSession()">Nieuwe sessie</button>
+        <button class="btn-secondary" onclick="showStartScreen()">Terug naar start</button>
+      </div>
+    </div>
+  `;
+}
+
+function resetSession() {
+  selectedCategories = [];
+  selectedDifficulty = null;
+  selectedCount = null;
+  score = { correct: 0, hint: 0, fail: 0 };
+  streak = 0;
+  sessionResults = [];
+  updateScoreBoard();
+  showStartScreen();
+}
+
+function updateScoreBoard() {
+  document.getElementById('score-correct').textContent = score.correct;
+  document.getElementById('score-hint').textContent = score.hint;
+  document.getElementById('score-fail').textContent = score.fail;
+  document.getElementById('streak').textContent = streak;
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !checked && document.getElementById('checkBtn')) checkAnswer();
+  if (e.key === 'n' && checked && document.getElementById('nextBtn') && !document.getElementById('nextBtn').disabled) nextReaction();
+});
+
+// Init
+showStartScreen();
+</script>
+</body>
+</html>

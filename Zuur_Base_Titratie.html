@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Titratiecurve Generator & Quiz – VWO Chemie</title>
+<style>
+  :root {
+    --bg: #f0f4f8;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --accent: #3b82f6;
+    --accent2: #10b981;
+    --danger: #ef4444;
+    --warn: #f59e0b;
+    --border: #e2e8f0;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 24px;
+    line-height: 1.5;
+  }
+  h1 { text-align: center; margin-bottom: 4px; font-size: 1.7rem; }
+  .subtitle { text-align: center; color: var(--muted); margin-bottom: 24px; font-size: 0.95rem; }
+
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .tab {
+    padding: 10px 28px;
+    border-radius: var(--radius);
+    background: var(--card);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+  }
+  .tab:hover { background: #f1f5f9; }
+  .tab.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .sim-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 860px) {
+    .sim-container { grid-template-columns: 1fr; }
+  }
+
+  .quiz-container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .panel {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+  }
+  .panel h2 {
+    font-size: 1.1rem;
+    margin-top: 0;
+    margin-bottom: 18px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 8px;
+  }
+
+  label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--muted);
+  }
+  select, input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+  }
+  select:focus, input:focus { outline: none; border-color: var(--accent); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .hidden { display: none !important; }
+
+  button {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  button:hover { background: #2563eb; }
+  button.secondary {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  button.secondary:hover { background: #f1f5f9; }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .info-card {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .info-card .val { font-size: 1.25rem; font-weight: 700; color: var(--accent); }
+  .info-card .lbl { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .indicator-box {
+    margin-top: 14px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #ecfdf5;
+    border-left: 4px solid var(--accent2);
+  }
+  .indicator-box h4 { margin: 0 0 6px 0; font-size: 0.9rem; color: #065f46; }
+  .indicator-box p { margin: 0; font-size: 0.85rem; color: #065f46; }
+
+  .didactic-box {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 8px;
+    background: #f0f9ff;
+    border-left: 4px solid #0ea5e9;
+  }
+  .didactic-box h4 {
+    margin: 0 0 8px 0;
+    font-size: 0.9rem;
+    color: #0369a1;
+  }
+  .didactic-box p {
+    margin: 0 0 6px 0;
+    font-size: 0.85rem;
+    color: #0c4a6e;
+    line-height: 1.5;
+  }
+  .didactic-box p:last-child { margin-bottom: 0; }
+  .didactic-box code {
+    background: #e0f2fe;
+    padding: 1px 4px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.82rem;
+  }
+
+  canvas {
+    width: 100%;
+    height: 420px;
+    border-radius: var(--radius);
+    background: #fff;
+    cursor: crosshair;
+  }
+  .canvas-wrap { position: relative; }
+  .tooltip {
+    position: absolute;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    pointer-events: none;
+    display: none;
+    z-index: 10;
+  }
+  .legend {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  .quiz-setup {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .quiz-setup > div { flex: 1; min-width: 180px; }
+  .quiz-setup > div:last-child { flex: 0; }
+  .quiz-curve { margin-bottom: 20px; }
+  .quiz-question {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    border-left: 4px solid transparent;
+    transition: all 0.3s;
+  }
+  .quiz-question.correct { border-left-color: var(--accent2); background: #f0fdf4; }
+  .quiz-question.wrong { border-left-color: var(--danger); background: #fef2f2; }
+  .quiz-question.locked { opacity: 0.7; pointer-events: none; }
+  .quiz-question h4 { margin: 0 0 10px 0; font-size: 1rem; }
+  .quiz-question input[type="text"], .quiz-question input[type="number"], .quiz-question select {
+    width: 100%;
+    max-width: 300px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+  }
+  .quiz-question .feedback {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    display: none;
+  }
+  .quiz-question .feedback.show { display: block; }
+  .score-bar {
+    text-align: center;
+    padding: 16px;
+    background: var(--card);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+  .score-bar .score { color: var(--accent); font-size: 1.4rem; }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .checkbox-row input[type="checkbox"] {
+    width: 18px; height: 18px; cursor: pointer;
+  }
+  .checkbox-row label {
+    margin: 0; font-size: 0.95rem; color: var(--text); cursor: pointer;
+  }
+
+  .quiz-info-bar {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .quiz-info-bar strong { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<h1>🧪 Titratiecurve Generator & Quiz</h1>
+<p class="subtitle">VWO Chemie – Simuleer titraties en test je analytisch vermogen</p>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('sim')" id="tab-sim">Simulatie</div>
+  <div class="tab" onclick="switchTab('quiz')" id="tab-quiz">Quiz</div>
+</div>
+
+<!-- ==================== SIMULATIE ==================== -->
+<div id="sim-panel" class="tab-content active">
+  <div class="sim-container">
+    <div class="panel">
+      <h2>⚙️ Instellingen</h2>
+
+      <label for="simCombo">Type titratie</label>
+      <select id="simCombo">
+        <option value="sa_sb">Sterk zuur + Sterke base</option>
+        <option value="wa_sb">Zwak zuur + Sterke base</option>
+        <option value="wb_sa">Zwakke base + Sterk zuur</option>
+      </select>
+
+      <div class="checkbox-row" id="divalentRow">
+        <input type="checkbox" id="simDivalent" onchange="toggleSimDivalent()">
+        <label for="simDivalent">Tweewaardig</label>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="simCa">c(analyte) (mol/L)</label>
+          <input id="simCa" type="number" step="any" value="0.100">
+        </div>
+        <div>
+          <label for="simVa">V(analyte) (mL)</label>
+          <input id="simVa" type="number" step="any" value="25.00">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="simCb">c(titrant) (mol/L)</label>
+          <input id="simCb" type="number" step="any" value="0.100">
+        </div>
+        <div>
+          <label for="simVmax">Max V(titrant) (mL)</label>
+          <input id="simVmax" type="number" step="any" value="50.00">
+        </div>
+      </div>
+
+      <div id="simPKaWrap" class="row hidden">
+        <div>
+          <label for="simPKa">pKₐ</label>
+          <input id="simPKa" type="number" step="any" value="4.75">
+        </div>
+      </div>
+
+      <div id="simPKa1Wrap" class="row hidden">
+        <div>
+          <label for="simPKa1">pKₐ₁</label>
+          <input id="simPKa1" type="number" step="any" value="2.15">
+        </div>
+        <div>
+          <label for="simPKa2">pKₐ₂</label>
+          <input id="simPKa2" type="number" step="any" value="7.20">
+        </div>
+      </div>
+
+      <div id="simPKbWrap" class="row hidden">
+        <div>
+          <label for="simPKb">pKᵦ</label>
+          <input id="simPKb" type="number" step="any" value="4.75">
+        </div>
+      </div>
+
+      <div id="simPKb1Wrap" class="row hidden">
+        <div>
+          <label for="simPKb1">pKᵦ₁</label>
+          <input id="simPKb1" type="number" step="any" value="3.35">
+        </div>
+        <div>
+          <label for="simPKb2">pKᵦ₂</label>
+          <input id="simPKb2" type="number" step="any" value="6.40">
+        </div>
+      </div>
+
+      <button onclick="drawSim()">Genereer curve</button>
+
+      <div class="info-grid" id="simInfo">
+        <div class="info-card"><div class="lbl">V(eq)</div><div class="val" id="simVeq">—</div></div>
+        <div class="info-card"><div class="lbl">pH(eq)</div><div class="val" id="simPHeq">—</div></div>
+        <div class="info-card"><div class="lbl">½ V(eq)</div><div class="val" id="simVhalf">—</div></div>
+        <div class="info-card"><div class="lbl">pH(½ eq)</div><div class="val" id="simPHhalf">—</div></div>
+      </div>
+
+      <div id="simEq2Info" class="info-grid hidden" style="margin-top:10px;">
+        <div class="info-card"><div class="lbl">V(eq₂)</div><div class="val" id="simVeq2">—</div></div>
+        <div class="info-card"><div class="lbl">pH(eq₂)</div><div class="val" id="simPHeq2">—</div></div>
+        <div class="info-card"><div class="lbl">½ V(eq₂)</div><div class="val" id="simVhalf2">—</div></div>
+        <div class="info-card"><div class="lbl">pH(½ eq₂)</div><div class="val" id="simPHhalf2">—</div></div>
+      </div>
+
+      <div class="indicator-box" id="simIndicatorBox" style="display:none;">
+        <h4>🎨 Aanbevolen indicator</h4>
+        <p id="simIndicatorText"></p>
+      </div>
+
+      <div class="didactic-box" id="didacticBox" style="display:none;">
+        <h4>📚 Hoe deze curve écht wordt berekend</h4>
+        <p><strong>Eén exacte ladingsbalans, overal.</strong> Op elk volume Vb wordt [H⁺] opgelost uit de volledige
+        ladingsbalans (positieve lading = negatieve lading), bijvoorbeeld voor <code>wa_sb</code>:<br>
+        <code>[H⁺] + [Na⁺] = [OH⁻] + [A⁻]</code>, met [A⁻] geschreven als functie van [H⁺] via Kₐ.</p>
+        <p><strong>De 'regimes' zijn geen aparte formules, maar limietgevallen</strong> van diezelfde vergelijking:
+        ver vóór het eq-punt reduceert ze tot Henderson-Hasselbalch (pH ≈ pKₐ + log([A⁻]/[HA])); bij V=0 tot
+        [H⁺] ≈ √(Kₐ·Cₐ); ver ná het eq-punt tot de simpele overmaatformule. Vlak bij het eq-punt kloppen die
+        vereenvoudigingen niet meer (bijvoorbeeld log van (bijna) nul) — de exacte ladingsbalans blijft daar
+        wél gewoon geldig, dus de curve loopt door één en dezelfde berekening glad door het eq-punt heen,
+        zonder dat er ergens tussen twee formules hoeft te worden gewisseld.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>📈 Titratiecurve</h2>
+      <div class="canvas-wrap">
+        <canvas id="simCanvas" width="700" height="420"></canvas>
+        <div id="simTooltip" class="tooltip"></div>
+      </div>
+      <div class="legend">
+        <span><span class="dot" style="background:#3b82f6"></span> Curve</span>
+        <span><span class="dot" style="background:#ef4444"></span> Eq-punt</span>
+        <span><span class="dot" style="background:#10b981"></span> ½ Eq</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== QUIZ ==================== -->
+<div id="quiz-panel" class="tab-content">
+  <div class="quiz-container">
+    <div class="panel">
+      <h2>🎯 Quiz – Analyse de titratiecurve</h2>
+      <div class="quiz-setup">
+        <div>
+          <label for="quizLevel">Niveau</label>
+          <select id="quizLevel">
+            <option value="easy">Makkelijk</option>
+            <option value="medium" selected>Gemiddeld</option>
+            <option value="hard">Moeilijk</option>
+          </select>
+        </div>
+        <div style="flex:0;">
+          <button onclick="generateQuiz()">Nieuwe opdracht</button>
+        </div>
+      </div>
+
+      <div class="score-bar" id="quizScoreBar" style="display:none;">
+        Score: <span class="score" id="quizScore">0</span> / <span id="quizTotal">0</span>
+      </div>
+
+      <div id="quizInfoBar" class="quiz-info-bar" style="display:none;"></div>
+
+      <div id="quizCurveArea" style="display:none;">
+        <div class="canvas-wrap quiz-curve">
+          <canvas id="quizCanvas" width="800" height="400"></canvas>
+          <div id="quizTooltip" class="tooltip"></div>
+        </div>
+        <div class="legend">
+          <span><span class="dot" style="background:#3b82f6"></span> Curve</span>
+          <span><span class="dot" style="background:#ef4444"></span> Eq-punt</span>
+          <span><span class="dot" style="background:#10b981"></span> ½ Eq</span>
+        </div>
+      </div>
+
+      <div id="quizQuestions"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const Kw = 1e-14;
+
+function log10(x) { return Math.log10(x); }
+function pow10(x) { return Math.pow(10, x); }
+
+function clamp(pH) {
+  if (!isFinite(pH) || isNaN(pH)) return 7;
+  return Math.max(0.1, Math.min(13.9, pH));
+}
+
+// ==================== CORE CALCULATIE: EXACTE LADINGSBALANS (CONTINU OVER HET HELE DOMEIN) ====================
+//
+// Ontwerpprincipe: er wordt nergens gewisseld tussen een 'benaderingsformule' (Henderson-
+// Hasselbalch, sterke-base-overmaat, ...) en een 'exacte formule' rond het equivalentiepunt.
+// In plaats daarvan lost calcPH() op ELK punt Vb dezelfde volledige ladingsbalans exact op
+// (via bisectie op [H+], of gesloten kwadratische vorm voor sterk-sterk). Omdat het overal
+// dezelfde continue functie is, is de curve door constructie glad, ook precies bij Veq — er
+// is geen aparte 'equivalentiepunt-casus' en dus ook geen naad waar een sprong kan ontstaan.
+
+/** Zoekt via bisectie de [H+] waarvoor f(H) = 0, met f monotoon stijgend in H. */
+function bisectH(f) {
+  let low = 1e-15, high = 1;
+  for (let safety = 0; safety < 25; safety++) {
+    if (f(high) > 0) break;
+    high *= 10;
+  }
+  for (let i = 0; i < 100; i++) {
+    const mid = (low + high) / 2;
+    if (f(mid) > 0) high = mid;
+    else low = mid;
+  }
+  return (low + high) / 2;
+}
+
+function calcPH(Vb, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2) {
+  const Vtot = Va + Vb;
+  const nA = Ca * Va;            // bewaarde totale hoeveelheid analyte (alle vormen samen)
+  const nB = Cb * Vb;            // toegevoegde hoeveelheid titrant
+  const C_titrant = nB / Vtot;   // concentratie titrant-tegenion (Na+ of Cl-), spectator
+  const C_analyte = nA / Vtot;   // totale concentratie van alle vormen van de analyte samen
+
+  // --- STERK ZUUR + STERKE BASE: gesloten kwadratische vorm, geen bisectie nodig ---
+  // Ladingsbalans (Na+/Cl- zijn spectators): [H+] - [OH-] = (nA - nB)/Vtot ≡ Δ
+  // Met Kw = [H+][OH-]:  H² - ΔH - Kw = 0
+  // Dit ene formule dekt vóór, op, én na het eq-punt — bij Δ=0 volgt exact pH = 7.
+  if (combo === 'sa_sb') {
+    const delta = (nA - nB) / Vtot;
+    const H = (delta + Math.sqrt(delta * delta + 4 * Kw)) / 2;
+    return clamp(-log10(H));
+  }
+
+  // --- ZWAK ZUUR + STERKE BASE ---
+  if (combo === 'wa_sb') {
+    if (!divalent) {
+      const Ka = pow10(-pKa);
+      // Ladingsbalans: [H+] + [Na+] = [OH-] + [A-],  [A-] = Ka·C_analyte / (H + Ka)
+      const H = bisectH(H => H + C_titrant - Kw / H - (Ka * C_analyte) / (H + Ka));
+      return clamp(-log10(H));
+    } else {
+      const Ka1 = pow10(-pKa), Ka2 = pow10(-pKa2);
+      // Ladingsbalans: [H+] + [Na+] = [OH-] + [HA-] + 2[A2-]
+      const H = bisectH(H => {
+        const D = H * H + Ka1 * H + Ka1 * Ka2;
+        const alphaHA = (Ka1 * H) / D;
+        const alphaA2 = (Ka1 * Ka2) / D;
+        return H + C_titrant - Kw / H - C_analyte * (alphaHA + 2 * alphaA2);
+      });
+      return clamp(-log10(H));
+    }
+  }
+
+  // --- ZWAKKE BASE + STERK ZUUR ---
+  if (combo === 'wb_sa') {
+    if (!divalent) {
+      const Kb = pow10(-pKb);
+      const Ka = Kw / Kb;   // Ka van het geconjugeerde zuur BH+
+      // Ladingsbalans: [H+] + [BH+] = [OH-] + [Cl-],  [BH+] = C_analyte·H / (H + Ka)
+      const H = bisectH(H => H + (C_analyte * H) / (H + Ka) - Kw / H - C_titrant);
+      return clamp(-log10(H));
+    } else {
+      const Kb1 = pow10(-pKb), Kb2 = pow10(-pKb2);
+      const Ka1 = Kw / Kb2;   // BH2^2+ -> BH+  (sterkste van de twee zure dissociaties)
+      const Ka2 = Kw / Kb1;   // BH+   -> B
+      // Ladingsbalans: [H+] + [BH+] + 2[BH2^2+] = [OH-] + [Cl-]
+      const H = bisectH(H => {
+        const D = H * H + Ka1 * H + Ka1 * Ka2;
+        const alphaBH  = (Ka1 * H) / D;
+        const alphaBH2 = (H * H) / D;
+        return H + C_analyte * (alphaBH + 2 * alphaBH2) - Kw / H - C_titrant;
+      });
+      return clamp(-log10(H));
+    }
+  }
+
+  return 7;
+}
+
+function getIndicators(pHList) {
+  const inds = [
+    { name: 'Methyloranje', range: [3.1, 4.4], color: '#f97316' },
+    { name: 'Methylrood', range: [4.4, 6.2], color: '#ef4444' },
+    { name: 'Bromthymolblauw', range: [6.0, 7.6], color: '#3b82f6' },
+    { name: 'Fenolftaleïne', range: [8.2, 10.0], color: '#ec4899' }
+  ];
+  return pHList.map(pH => {
+    for (let i of inds) {
+      if (pH >= i.range[0] && pH <= i.range[1]) return i;
+    }
+    if (pH < 3.1) return { name: 'Methyloranje (pH te laag)', color: '#f97316', range: [3.1, 4.4] };
+    if (pH > 10.0) return { name: 'Fenolftaleïne (pH te hoog)', color: '#ec4899', range: [8.2, 10.0] };
+    return { name: 'Geen geschikte indicator', color: '#6b7280', range: [0, 14] };
+  });
+}
+
+// ==================== SIMULATION UI ====================
+
+function toggleSimDivalent() {
+  const combo = document.getElementById('simCombo').value;
+  const div = document.getElementById('simDivalent').checked;
+  const pKaWrap = document.getElementById('simPKaWrap');
+  const pKa1Wrap = document.getElementById('simPKa1Wrap');
+  const pKbWrap = document.getElementById('simPKbWrap');
+  const pKb1Wrap = document.getElementById('simPKb1Wrap');
+  const eq2Info = document.getElementById('simEq2Info');
+  const divalentRow = document.getElementById('divalentRow');
+  const didacticBox = document.getElementById('didacticBox');
+
+  pKaWrap.classList.add('hidden');
+  pKa1Wrap.classList.add('hidden');
+  pKbWrap.classList.add('hidden');
+  pKb1Wrap.classList.add('hidden');
+  eq2Info.classList.add('hidden');
+
+  if (combo === 'wa_sb' || combo === 'wb_sa') {
+    didacticBox.style.display = 'block';
+  } else {
+    didacticBox.style.display = 'none';
+  }
+
+  if (combo === 'wa_sb') {
+    divalentRow.style.display = 'flex';
+    if (div) { pKa1Wrap.classList.remove('hidden'); eq2Info.classList.remove('hidden'); }
+    else pKaWrap.classList.remove('hidden');
+  } else if (combo === 'wb_sa') {
+    divalentRow.style.display = 'flex';
+    if (div) { pKb1Wrap.classList.remove('hidden'); eq2Info.classList.remove('hidden'); }
+    else pKbWrap.classList.remove('hidden');
+  } else {
+    divalentRow.style.display = 'none';
+    document.getElementById('simDivalent').checked = false;
+  }
+}
+
+document.getElementById('simCombo').addEventListener('change', toggleSimDivalent);
+
+function drawSim() {
+  const combo = document.getElementById('simCombo').value;
+  let divalent = document.getElementById('simDivalent').checked;
+  if (combo === 'sa_sb') divalent = false;
+  const Ca = parseFloat(document.getElementById('simCa').value);
+  const Va = parseFloat(document.getElementById('simVa').value);
+  const Cb = parseFloat(document.getElementById('simCb').value);
+  const Vmax = parseFloat(document.getElementById('simVmax').value);
+
+  let pKa = 7, pKa2 = 7, pKb = 7, pKb2 = 7;
+  if (combo === 'wa_sb') {
+    if (divalent) { pKa = parseFloat(document.getElementById('simPKa1').value); pKa2 = parseFloat(document.getElementById('simPKa2').value); }
+    else pKa = parseFloat(document.getElementById('simPKa').value);
+  }
+  if (combo === 'wb_sa') {
+    if (divalent) { pKb = parseFloat(document.getElementById('simPKb1').value); pKb2 = parseFloat(document.getElementById('simPKb2').value); }
+    else pKb = parseFloat(document.getElementById('simPKb').value);
+  }
+
+  const nA = Ca * Va;
+  const Veq = nA / Cb;
+  const Veq2 = divalent ? 2 * nA / Cb : null;
+
+  const steps = 800;
+  const points = [];
+  for (let i = 0; i <= steps; i++) {
+    const Vb = (i / steps) * Vmax;
+    points.push({ Vb, pH: calcPH(Vb, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2) });
+  }
+
+  const pH_eq = calcPH(Veq, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2);
+  const pH_half = calcPH(Veq/2, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2);
+
+  document.getElementById('simVeq').textContent = Veq.toFixed(2) + ' mL';
+  document.getElementById('simPHeq').textContent = pH_eq.toFixed(2);
+  document.getElementById('simVhalf').textContent = (Veq/2).toFixed(2) + ' mL';
+  document.getElementById('simPHhalf').textContent = pH_half.toFixed(2);
+
+  let pHList = [pH_eq];
+  if (divalent) {
+    const pH_eq2 = calcPH(Veq2, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2);
+    const pH_half2 = calcPH((Veq+Veq2)/2, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2);
+    document.getElementById('simVeq2').textContent = Veq2.toFixed(2) + ' mL';
+    document.getElementById('simPHeq2').textContent = pH_eq2.toFixed(2);
+    document.getElementById('simVhalf2').textContent = ((Veq+Veq2)/2).toFixed(2) + ' mL';
+    document.getElementById('simPHhalf2').textContent = pH_half2.toFixed(2);
+    pHList.push(pH_eq2);
+  }
+
+  const inds = getIndicators(pHList);
+  document.getElementById('simIndicatorBox').style.display = 'block';
+  let indText = '';
+  inds.forEach((ind, i) => {
+    indText += `<strong style="color:${ind.color}">${ind.name}</strong>`;
+    if (divalent) indText += i === 0 ? ' (eq₁)' : ' (eq₂)';
+    indText += '<br>';
+  });
+  document.getElementById('simIndicatorText').innerHTML = indText;
+
+  drawCurveOnCanvas('simCanvas', points, Vmax, Veq, Veq2, pHList);
+}
+
+// ==================== CANVAS DRAWING ====================
+
+function drawCurveOnCanvas(canvasId, points, Vmax, Veq, Veq2, pHList) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const padL = 55, padR = 30, padT = 30, padB = 45;
+  const gw = W - padL - padR;
+  const gh = H - padT - padB;
+
+  let minPH = 14, maxPH = 0;
+  for (let pt of points) {
+    if (pt.pH < minPH) minPH = pt.pH;
+    if (pt.pH > maxPH) maxPH = pt.pH;
+  }
+  minPH = Math.max(0, Math.floor(minPH) - 1);
+  maxPH = Math.min(14, Math.ceil(maxPH) + 1);
+  if (maxPH - minPH < 4) maxPH = minPH + 4;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = '#f1f5f9'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 10; i++) {
+    const x = padL + (i/10)*gw;
+    ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, H-padB); ctx.stroke();
+  }
+  for (let i = 0; i <= 10; i++) {
+    const y = padT + (i/10)*gh;
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W-padR, y); ctx.stroke();
+  }
+
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, H-padB); ctx.lineTo(W-padR, H-padB); ctx.stroke();
+
+  ctx.fillStyle = '#64748b'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('Volume titrant (mL)', W/2, H-8);
+  ctx.save(); ctx.translate(14, H/2); ctx.rotate(-Math.PI/2); ctx.fillText('pH', 0, 0); ctx.restore();
+
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (let i = 0; i <= 5; i++) {
+    const val = (i/5)*Vmax;
+    const x = padL + (val/Vmax)*gw;
+    ctx.fillText(val.toFixed(0), x, H-padB+6);
+    ctx.beginPath(); ctx.moveTo(x, H-padB); ctx.lineTo(x, H-padB+4); ctx.stroke();
+  }
+
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (let i = 0; i <= 5; i++) {
+    const val = minPH + (i/5)*(maxPH-minPH);
+    const y = H - padB - ((val-minPH)/(maxPH-minPH))*gh;
+    ctx.fillText(val.toFixed(1), padL-8, y);
+    ctx.beginPath(); ctx.moveTo(padL-4, y); ctx.lineTo(padL, y); ctx.stroke();
+  }
+
+  ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2.5; ctx.beginPath();
+  let first = true;
+  for (let pt of points) {
+    const x = padL + (pt.Vb/Vmax)*gw;
+    const y = H - padB - ((pt.pH-minPH)/(maxPH-minPH))*gh;
+    if (first) { ctx.moveTo(x, y); first = false; }
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  const eqPoints = [Veq];
+  if (Veq2) eqPoints.push(Veq2);
+  eqPoints.forEach((ve, i) => {
+    if (ve > Vmax) return;
+    const x = padL + (ve/Vmax)*gw;
+    const y = H - padB - ((pHList[i]-minPH)/(maxPH-minPH))*gh;
+    ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#ef4444'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(i === 0 ? 'eq' : 'eq₂', x+8, y-8);
+  });
+
+  const halfPoints = [Veq/2];
+  if (Veq2) halfPoints.push((Veq+Veq2)/2);
+  halfPoints.forEach((vh, i) => {
+    if (vh > Vmax) return;
+    const pHh = points.find(p => Math.abs(p.Vb - vh) < Vmax/800)?.pH || pHList[i];
+    const x = padL + (vh/Vmax)*gw;
+    const y = H - padB - ((pHh-minPH)/(maxPH-minPH))*gh;
+    ctx.fillStyle = '#10b981'; ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#10b981'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(i === 0 ? '½ eq' : '½ eq₂', x+8, y-8);
+  });
+
+  canvas.dataset.minPH = minPH;
+  canvas.dataset.maxPH = maxPH;
+  canvas.dataset.Vmax = Vmax;
+}
+
+function setupTooltip(canvasId, tooltipId, points) {
+  const canvas = document.getElementById(canvasId);
+  const tooltip = document.getElementById(tooltipId);
+  canvas.addEventListener('mousemove', function(e) {
+    const rect = canvas.getBoundingClientRect();
+    // De canvas heeft een vaste interne tekenresolutie (canvas.width/height),
+    // maar wordt via CSS geschaald naar de containerbreedte (width: 100%).
+    // Muiscoordinaten komen binnen in CSS-pixels (rect-schaal), dus die moeten
+    // eerst omgerekend worden naar de interne buffer-schaal — anders kloppen
+    // de padL/padR/padT/padB-grenzen en dus de afgelezen Vb/pH niet.
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mx = (e.clientX - rect.left) * scaleX;
+    const my = (e.clientY - rect.top) * scaleY;
+    const W = canvas.width, H = canvas.height;
+    const padL = 55, padR = 30, padT = 30, padB = 45;
+    const gw = W - padL - padR;
+    const gh = H - padT - padB;
+    if (mx < padL || mx > W - padR || my < padT || my > H - padB) { tooltip.style.display = 'none'; return; }
+
+    const minPH = parseFloat(canvas.dataset.minPH);
+    const maxPH = parseFloat(canvas.dataset.maxPH);
+    const Vmax = parseFloat(canvas.dataset.Vmax);
+    const Vb = ((mx - padL) / gw) * Vmax;
+
+    let idx = Math.round((Vb / Vmax) * (points.length - 1));
+    idx = Math.max(0, Math.min(points.length - 1, idx));
+    const pt = points[idx];
+    if (pt) {
+      tooltip.style.display = 'block';
+      // Tooltip zelf wordt weer in CSS-pixels gepositioneerd, dus terugschalen
+      const offsetX = 15, offsetY = -40;
+      tooltip.style.left = ((mx / scaleX) + offsetX) + 'px';
+      tooltip.style.top = ((my / scaleY) + offsetY) + 'px';
+      tooltip.innerHTML = `V = ${pt.Vb.toFixed(2)} mL<br>pH = ${pt.pH.toFixed(2)}`;
+    }
+  });
+  canvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+}
+
+// ==================== QUIZ ====================
+
+let quizAnswers = {};
+let quizScore = 0;
+let quizTotal = 0;
+let currentQuizPoints = [];
+
+function generateQuiz() {
+  const level = document.getElementById('quizLevel').value;
+  let combos = [];
+  let allowDivalent = false;
+  if (level === 'easy') { combos = ['sa_sb']; allowDivalent = false; }
+  else if (level === 'medium') { combos = ['wa_sb', 'wb_sa']; allowDivalent = false; }
+  else { combos = ['wa_sb', 'wb_sa']; allowDivalent = true; }
+
+  const combo = combos[Math.floor(Math.random() * combos.length)];
+  const divalent = allowDivalent && Math.random() < 0.5;
+
+  const Ca = Math.round((0.05 + Math.random() * 0.45) / 0.05) * 0.05;
+  const Va = Math.round((20 + Math.random() * 15) * 10) / 10;
+  const Cb = Math.round((0.05 + Math.random() * 0.45) / 0.05) * 0.05;
+  const Vmax = divalent 
+    ? Math.ceil((Ca * Va / Cb) * 3.5 / 5) * 5 
+    : Math.ceil((Ca * Va / Cb) * 2.5 / 5) * 5;
+
+  let pKa = 0, pKa2 = 0, pKb = 0, pKb2 = 0;
+  if (combo === 'wa_sb') {
+    if (divalent) {
+      pKa = Math.round((2.0 + Math.random() * 3.0) * 10) / 10;
+      pKa2 = Math.round((pKa + 2 + Math.random() * 4.0) * 10) / 10;
+    } else {
+      pKa = Math.round((3.0 + Math.random() * 7.0) * 10) / 10;
+    }
+  }
+  if (combo === 'wb_sa') {
+    if (divalent) {
+      pKb = Math.round((2.0 + Math.random() * 3.0) * 10) / 10;
+      pKb2 = Math.round((pKb + 2 + Math.random() * 4.0) * 10) / 10;
+    } else {
+      pKb = Math.round((3.0 + Math.random() * 7.0) * 10) / 10;
+    }
+  }
+
+  const nA = Ca * Va;
+  const Veq = nA / Cb;
+  const Veq2 = divalent ? 2 * nA / Cb : null;
+
+  const steps = 800;
+  const points = [];
+  for (let i = 0; i <= steps; i++) {
+    const Vb = (i / steps) * Vmax;
+    points.push({ Vb, pH: calcPH(Vb, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2) });
+  }
+  currentQuizPoints = points;
+
+  const pH_eq = calcPH(Veq, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2);
+  const pHList = [pH_eq];
+  if (divalent) pHList.push(calcPH(Veq2, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2));
+
+  const titrantName = combo.includes('sb') ? 'NaOH' : 'HCl';
+  const valencyText = divalent ? ' (tweewaardig)' : '';
+  document.getElementById('quizInfoBar').style.display = 'flex';
+  document.getElementById('quizInfoBar').innerHTML = `
+    <div><strong>Titrant:</strong> ${Cb.toFixed(3)} M ${titrantName}</div>
+    <div><strong>V(analyte):</strong> ${Va.toFixed(2)} mL</div>
+    <div><strong>Analyte:</strong> onbekend${valencyText}</div>
+  `;
+
+  document.getElementById('quizCurveArea').style.display = 'block';
+  drawCurveOnCanvas('quizCanvas', points, Vmax, Veq, Veq2, pHList);
+  setupTooltip('quizCanvas', 'quizTooltip', points);
+
+  quizAnswers = {};
+  quizScore = 0;
+  quizTotal = 0;
+  document.getElementById('quizScoreBar').style.display = 'block';
+  updateScore();
+
+  const container = document.getElementById('quizQuestions');
+  container.innerHTML = '';
+
+  // Q1: Type
+  addQuestion(container, 'q1', 'Wat voor titratie is dit?', 'select', {
+    options: [
+      { value: 'sa_sb', text: 'Sterk zuur + Sterke base' },
+      { value: 'wa_sb', text: 'Zwak zuur + Sterke base' },
+      { value: 'wb_sa', text: 'Zwakke base + Sterk zuur' }
+    ],
+    correct: combo,
+    feedback: 'Kijk naar de vorm: een zwak zuur/base geeft een bufferregio en een eq-punt dat niet bij pH 7 ligt.'
+  });
+
+  // Q2: Valency
+  addQuestion(container, 'q2', 'Is de analyte een- of tweewaardig?', 'select', {
+    options: [
+      { value: 'mono', text: 'Eenwaardig' },
+      { value: 'di', text: 'Tweewaardig' }
+    ],
+    correct: divalent ? 'di' : 'mono',
+    feedback: divalent 
+      ? 'Je ziet twee equivalentiepunten op de curve, dat wijst op een tweewaardig systeem.' 
+      : 'Er is slechts één equivalentiepunt zichtbaar, dus het systeem is eenwaardig.'
+  });
+
+  // Q3: Concentration
+  addQuestion(container, 'q3', 'Wat is de concentratie van de analyte? (mol/L)', 'number', {
+    correct: Ca,
+    tolerance: 0.01,
+    feedback: `Gebruik: V(eq) = (c(analyte) × V(analyte)) / c(titrant). Hier is V(eq) = ${Veq.toFixed(2)} mL, V(analyte) = ${Va.toFixed(2)} mL en c(titrant) = ${Cb.toFixed(3)} M.`
+  });
+
+  // Q4: pKa / pKb
+  if (combo !== 'sa_sb') {
+    if (!divalent) {
+      const label = combo === 'wa_sb' ? 'Wat is de pKa van dit zuur?' : 'Wat is de pKb van deze base?';
+      const val = combo === 'wa_sb' ? pKa : pKb;
+      addQuestion(container, 'q4', label, 'number', {
+        correct: val,
+        tolerance: 0.15,
+        feedback: `Het half-equivalentiepunt ligt bij pH = pKa (of pOH = pKb). Kijk waar de curve het halve eq-volume snijdt.`
+      });
+    } else {
+      if (combo === 'wa_sb') {
+        addQuestion(container, 'q4a', 'Wat is de pKa₁?', 'number', {
+          correct: pKa, tolerance: 0.15,
+          feedback: 'Bij het eerste half-equivalentiepunt geldt: pH = pKa₁.'
+        });
+        addQuestion(container, 'q4b', 'Wat is de pKa₂?', 'number', {
+          correct: pKa2, tolerance: 0.15,
+          feedback: 'Bij het tweede half-equivalentiepunt geldt: pH = pKa₂.'
+        });
+      } else {
+        addQuestion(container, 'q4a', 'Wat is de pKb₁?', 'number', {
+          correct: pKb, tolerance: 0.15,
+          feedback: 'Bij het eerste half-equivalentiepunt geldt: pOH = pKb₁, dus pH = 14 - pKb₁.'
+        });
+        addQuestion(container, 'q4b', 'Wat is de pKb₂?', 'number', {
+          correct: pKb2, tolerance: 0.15,
+          feedback: 'Bij het tweede half-equivalentiepunt geldt: pOH = pKb₂, dus pH = 14 - pKb₂.'
+        });
+      }
+    }
+  }
+
+  // Q5/Q6: Indicator(s)
+  const inds = getIndicators(pHList);
+  const indOptions = [
+    { value: 'methyloranje', text: 'Methyloranje' },
+    { value: 'methylrood', text: 'Methylrood' },
+    { value: 'bromthymolblauw', text: 'Bromthymolblauw' },
+    { value: 'fenolftaleine', text: 'Fenolftaleïne' }
+  ];
+
+  if (!divalent) {
+    addQuestion(container, 'q5', 'Welke indicator past bij dit eq-punt?', 'select', {
+      options: indOptions,
+      correct: inds[0].name.toLowerCase().split(' ')[0],
+      feedback: `Het eq-punt ligt bij pH ${pHList[0].toFixed(1)}. Kies een indicator waarvan het omslagbereik dit pH omvat.`
+    });
+  } else {
+    addQuestion(container, 'q5a', 'Welke indicator past bij het eerste eq-punt?', 'select', {
+      options: indOptions,
+      correct: inds[0].name.toLowerCase().split(' ')[0],
+      feedback: `Het eerste eq-punt ligt bij pH ${pHList[0].toFixed(1)}.`
+    });
+    addQuestion(container, 'q5b', 'Welke indicator past bij het tweede eq-punt?', 'select', {
+      options: indOptions,
+      correct: inds[1].name.toLowerCase().split(' ')[0],
+      feedback: `Het tweede eq-punt ligt bij pH ${pHList[1].toFixed(1)}.`
+    });
+  }
+}
+
+function addQuestion(container, id, label, type, config) {
+  quizAnswers[id] = { correct: config.correct, tolerance: config.tolerance || 0, feedback: config.feedback };
+  const div = document.createElement('div');
+  div.className = 'quiz-question';
+  div.id = 'qwrap-' + id;
+
+  let inputHTML = '';
+  if (type === 'select') {
+    inputHTML = `<select id="${id}">`;
+    config.options.forEach(opt => {
+      inputHTML += `<option value="${opt.value}">${opt.text}</option>`;
+    });
+    inputHTML += '</select>';
+  } else {
+    inputHTML = `<input type="number" id="${id}" step="any" placeholder="Typ je antwoord...">`;
+  }
+
+  div.innerHTML = `
+    <h4>${label}</h4>
+    ${inputHTML}
+    <button onclick="checkAnswer('${id}', '${type}')" style="width:auto; margin-top:10px; padding:8px 16px;">Controleer</button>
+    <div class="feedback" id="fb-${id}"></div>
+  `;
+  container.appendChild(div);
+}
+
+function checkAnswer(id, type) {
+  const wrap = document.getElementById('qwrap-' + id);
+  const fb = document.getElementById('fb-' + id);
+  const config = quizAnswers[id];
+  if (!config) return;
+
+  let val = document.getElementById(id).value;
+  let isCorrect = false;
+
+  if (type === 'select') {
+    isCorrect = val === config.correct;
+  } else {
+    const num = parseFloat(val);
+    if (!isNaN(num)) {
+      isCorrect = Math.abs(num - config.correct) <= config.tolerance;
+    }
+  }
+
+  fb.classList.add('show');
+  if (isCorrect) {
+    wrap.classList.add('correct');
+    wrap.classList.remove('wrong');
+    fb.innerHTML = '<span style="color:#10b981; font-weight:600;">✓ Goed!</span>';
+    if (!wrap.dataset.scored) { quizScore++; quizTotal++; wrap.dataset.scored = '1'; }
+  } else {
+    wrap.classList.add('wrong');
+    wrap.classList.remove('correct');
+    fb.innerHTML = `<span style="color:#ef4444; font-weight:600;">✗ Fout.</span> ${config.feedback} <br><strong>Juist antwoord: ${config.correct}</strong>`;
+    if (!wrap.dataset.scored) { quizTotal++; wrap.dataset.scored = '1'; }
+  }
+  updateScore();
+  wrap.classList.add('locked');
+}
+
+function updateScore() {
+  document.getElementById('quizScore').textContent = quizScore;
+  document.getElementById('quizTotal').textContent = quizTotal;
+}
+
+// ==================== TABS ====================
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById(name + '-panel').classList.add('active');
+}
+
+// Init
+window.onload = function() {
+  toggleSimDivalent();
+  drawSim();
+};
+</script>
+</body>
+</html>
