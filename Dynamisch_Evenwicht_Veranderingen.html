@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evenwichten – Snelheidsredeneren</title>
+<style>
+:root {
+  --bg: #fafafa; --surface: #ffffff; --text: #1a1a1a; --text-sec: #666;
+  --border: #e0e0e0; --hover: #f0f0f0; --danger: #dc2626; --positive: #16a34a;
+  --font: system-ui, -apple-system, sans-serif; --font-mono: ui-monospace, SFMono-Regular, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0a0a0a; --surface: #1a1a1a; --text: #f0f0f0; --text-sec: #999; --border: #333; --hover: #222; }
+}
+* { box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+.tool { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 22px; margin-bottom: 4px; }
+.subtitle { color: var(--text-sec); font-size: 13px; margin-bottom: 20px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.tab { padding: 8px 16px; cursor: pointer; border: none; background: none; color: var(--text-sec); font-size: 14px; border-bottom: 2px solid transparent; font-family: var(--font); }
+.tab.active { color: var(--text); border-bottom-color: var(--text); font-weight: 600; }
+.panel { display: none; }
+.panel.active { display: block; }
+.section { margin-bottom: 20px; }
+.label { font-size: 12px; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 10px; font-family: var(--font); font-size: 14px; background: var(--surface); color: var(--text); }
+.btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-size: 13px; font-family: var(--font); }
+.btn:hover { background: var(--hover); }
+.btn-primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.card { padding: 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); }
+.correct { border-color: var(--positive); background: rgba(22,163,74,0.06); }
+.wrong { border-color: var(--danger); background: rgba(220,38,38,0.06); }
+.expl { padding: 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); margin-top: 12px; font-size: 13px; line-height: 1.6; }
+.score-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.eq-box { font-family: var(--font-mono); padding: 12px; border-radius: 10px; border: 1px solid var(--border); text-align: center; margin-bottom: 16px; font-size: 15px; }
+@media (max-width: 600px) { .grid-3 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="tool">
+  <h1>Evenwichten – Snelheidsredeneren</h1>
+  <div class="subtitle">Directe effecten op reactiesnelheden (t = 0+)</div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('practice')">Oefenen</button>
+    <button class="tab" onclick="switchTab('quiz')">Quiz</button>
+  </div>
+
+  <div id="panel-practice" class="panel active">
+    <div class="section">
+      <div class="label">Reactie</div>
+      <select id="prac-reaction" onchange="onReactionChange()">
+        <option value="">-- Selecteer --</option>
+        <option value="no2">2NO₂(g) ⇌ N₂O₄(g)  ΔH &lt; 0</option>
+        <option value="hi">H₂(g) + I₂(g) ⇌ 2HI(g)  ΔH &lt; 0</option>
+        <option value="fescn">Fe³⁺(aq) + SCN⁻(aq) ⇌ FeSCN²⁺(aq)  ΔH &lt; 0</option>
+        <option value="brcl">2Br⁻(aq) + Cl₂(aq) ⇌ Br₂(aq) + 2Cl⁻(aq)  ΔH &lt; 0</option>
+        <option value="agcl">AgCl(s) ⇌ Ag⁺(aq) + Cl⁻(aq)  ΔH &gt; 0</option>
+        <option value="acetic">CH₃COOH(aq) + H₂O(l) ⇌ CH₃COO⁻(aq) + H₃O⁺(aq)  ΔH &gt; 0</option>
+      </select>
+    </div>
+
+    <div id="step-change" class="section" style="display:none;">
+      <div class="label">Verandering</div>
+      <select id="prac-change" onchange="onChangeChange()">
+        <option value="">-- Selecteer --</option>
+        <option value="add">Stof toevoegen</option>
+        <option value="remove">Stof verwijderen</option>
+        <option value="volume_decrease">Volume verkleinen</option>
+        <option value="volume_increase">Volume vergroten</option>
+        <option value="temp_increase">Temperatuur verhogen</option>
+        <option value="temp_decrease">Temperatuur verlagen</option>
+        <option value="catalyst">Katalysator toevoegen</option>
+      </select>
+    </div>
+
+    <div id="step-substance" class="section" style="display:none;">
+      <div class="label">Welke stof?</div>
+      <select id="prac-substance" onchange="onSubstanceChange()"></select>
+    </div>
+
+
+    <div id="step-inputs" style="display:none;">
+      <div class="grid-3">
+        <div class="section">
+          <div class="label">v→</div>
+          <select id="prac-vf"><option value="">-- Kies --</option><option value="++">Neemt meer toe</option><option value="+">Neemt toe</option><option value="0">Blijft gelijk</option><option value="-">Neemt af</option><option value="--">Neemt meer af</option></select>
+        </div>
+        <div class="section">
+          <div class="label">v←</div>
+          <select id="prac-vr"><option value="">-- Kies --</option><option value="++">Neemt meer toe</option><option value="+">Neemt toe</option><option value="0">Blijft gelijk</option><option value="-">Neemt af</option><option value="--">Neemt meer af</option></select>
+        </div>
+        <div class="section">
+          <div class="label">Netto</div>
+          <select id="prac-net"><option value="">-- Kies --</option><option value="right">→ rechts</option><option value="left">← links</option><option value="eq">Evenwicht</option></select>
+        </div>
+      </div>
+      <div class="section" style="max-width: 200px;">
+        <div class="label">K</div>
+        <select id="prac-K"><option value="">-- Kies --</option><option value="up">Neemt toe</option><option value="down">Neemt af</option><option value="same">Gelijk</option></select>
+      </div>
+      <div style="margin-top: 12px;">
+        <button class="btn btn-primary" onclick="checkPractice()">Controleer</button>
+      </div>
+      <div id="prac-feedback"></div>
+    </div>
+  </div>
+
+  <div id="panel-quiz" class="panel">
+    <div class="score-bar">
+      <div style="font-size:14px;font-weight:600;">Quiz</div>
+      <div style="font-size:13px;color:var(--text-sec);">Score: <span id="quiz-score">0</span> / <span id="quiz-total">0</span></div>
+    </div>
+    <div id="quiz-content">
+      <button class="btn btn-primary" onclick="startQuiz()" style="width:100%;">Nieuwe vraag</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const reactions = {
+  no2: { eq: '2NO₂(g) ⇌ N₂O₄(g)', dH: 'exotherm', species: { 'NO₂': 'g', 'N₂O₄': 'g' }, gas: true },
+  hi: { eq: 'H₂(g) + I₂(g) ⇌ 2HI(g)', dH: 'exotherm', species: { 'H₂': 'g', 'I₂': 'g', 'HI': 'g' }, gas: true },
+  fescn: { eq: 'Fe³⁺(aq) + SCN⁻(aq) ⇌ FeSCN²⁺(aq)', dH: 'exotherm', species: { 'Fe³⁺': 'aq', 'SCN⁻': 'aq', 'FeSCN²⁺': 'aq' }, gas: false },
+  brcl: { eq: '2Br⁻(aq) + Cl₂(aq) ⇌ Br₂(aq) + 2Cl⁻(aq)', dH: 'exotherm', species: { 'Br⁻': 'aq', 'Cl₂': 'aq', 'Br₂': 'aq', 'Cl⁻': 'aq' }, gas: false },
+  agcl: { eq: 'AgCl(s) ⇌ Ag⁺(aq) + Cl⁻(aq)', dH: 'endotherm', species: { 'AgCl': 's', 'Ag⁺': 'aq', 'Cl⁻': 'aq' }, gas: false },
+  acetic: { eq: 'CH₃COOH(aq) + H₂O(l) ⇌ CH₃COO⁻(aq) + H₃O⁺(aq)', dH: 'endotherm', species: { 'CH₃COOH': 'aq', 'H₂O': 'l', 'CH₃COO⁻': 'aq', 'H₃O⁺': 'aq' }, gas: false },
+  nh4cl: { eq: 'NH₄Cl(s) ⇌ NH₃(g) + HCl(g)', dH: 'endotherm', species: { 'NH₄Cl': 's', 'NH₃': 'g', 'HCl': 'g' }, gas: false },
+  caco3: { eq: 'CaCO₃(s) ⇌ CaO(s) + CO₂(g)', dH: 'endotherm', species: { 'CaCO₃': 's', 'CaO': 's', 'CO₂': 'g' }, gas: false },
+  n2h2: { eq: 'N₂(g) + 3H₂(g) ⇌ 2NH₃(g)', dH: 'exotherm', species: { 'N₂': 'g', 'H₂': 'g', 'NH₃': 'g' }, gas: true },
+  cowater: { eq: 'CO(g) + H₂O(g) ⇌ CO₂(g) + H₂(g)', dH: 'exotherm', species: { 'CO': 'g', 'H₂O': 'g', 'CO₂': 'g', 'H₂': 'g' }, gas: true },
+  pcl5: { eq: 'PCl₅(g) ⇌ PCl₃(g) + Cl₂(g)', dH: 'endotherm', species: { 'PCl₅': 'g', 'PCl₃': 'g', 'Cl₂': 'g' }, gas: true },
+  so2cl2: { eq: 'SO₂Cl₂(g) ⇌ SO₂(g) + Cl₂(g)', dH: 'endotherm', species: { 'SO₂Cl₂': 'g', 'SO₂': 'g', 'Cl₂': 'g' }, gas: true },
+  so2o2: { eq: '2SO₂(g) + O₂(g) ⇌ 2SO₃(g)', dH: 'exotherm', species: { 'SO₂': 'g', 'O₂': 'g', 'SO₃': 'g' }, gas: true },
+  ester: { eq: 'CH₃COOC₂H₅(aq) + H₂O(l) ⇌ CH₃COOH(aq) + C₂H₅OH(aq)', dH: 'endotherm', species: { 'CH₃COOC₂H₅': 'aq', 'H₂O': 'l', 'CH₃COOH': 'aq', 'C₂H₅OH': 'aq' }, gas: false },
+  nh3base: { eq: 'NH₃(aq) + H₂O(l) ⇌ NH₄⁺(aq) + OH⁻(aq)', dH: 'exotherm', species: { 'NH₃': 'aq', 'H₂O': 'l', 'NH₄⁺': 'aq', 'OH⁻': 'aq' }, gas: false },
+  h2co3: { eq: 'H₂CO₃(aq) ⇌ H₂O(l) + CO₂(g)', dH: 'endotherm', species: { 'H₂CO₃': 'aq', 'H₂O': 'l', 'CO₂': 'g' }, gas: false }
+};
+
+const speedTxt = { '++': 'Neemt meer toe', '+': 'Neemt toe', '0': 'Blijft gelijk', '-': 'Neemt af', '--': 'Neemt meer af' };
+const netTxt = { right: '→ rechts', left: '← links', eq: 'Evenwicht' };
+const kTxt = { up: 'Neemt toe', down: 'Neemt af', same: 'Gelijk' };
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+function onReactionChange() {
+  const rid = document.getElementById('prac-reaction').value;
+  if (!rid) {
+    document.getElementById('step-change').style.display = 'none';
+    return;
+  }
+  document.getElementById('step-change').style.display = 'block';
+  document.getElementById('step-substance').style.display = 'none';
+  document.getElementById('step-inputs').style.display = 'none';
+  document.getElementById('prac-feedback').innerHTML = '';
+}
+
+function onChangeChange() {
+  const rid = document.getElementById('prac-reaction').value;
+  const change = document.getElementById('prac-change').value;
+  const r = reactions[rid];
+
+  document.getElementById('step-substance').style.display = 'none';
+  document.getElementById('step-inputs').style.display = 'none';
+  document.getElementById('prac-feedback').innerHTML = '';
+
+  if (change === 'add' || change === 'remove') {
+    const sel = document.getElementById('prac-substance');
+    sel.innerHTML = '<option value="">-- Selecteer stof --</option>';
+    for (const [name, phase] of Object.entries(r.species)) {
+      const label = name + ' (' + phase + ')';
+      sel.innerHTML += '<option value="' + name + '">' + label + '</option>';
+    }
+    if (change === 'add' && r.gas) {
+      sel.innerHTML += '<option value="inert">Inert gas (bijv. Ar, N₂) (g)</option>';
+    }
+    document.getElementById('step-substance').style.display = 'block';
+  } else {
+    document.getElementById('step-inputs').style.display = 'block';
+  }
+}
+
+function onSubstanceChange() {
+  const val = document.getElementById('prac-substance').value;
+  if (val) {
+    document.getElementById('step-inputs').style.display = 'block';
+  }
+}
+
+function getAnswer(rid, change, substance, inert) {
+  const key = change + (substance ? '_' + substance : '') + (inert === 'yes' ? '_inert' : '');
+
+  if (rid === 'no2') {
+    if (key === 'add_NO₂') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer NO₂ → direct meer botsingen voor v→. [N₂O₄] verandert nog niet, dus v← blijft gelijk.' };
+    if (key === 'add_N₂O₄') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer N₂O₄ → direct hogere v←. [NO₂] ongewijzigd, dus v→ blijft gelijk.' };
+    if (key === 'remove_NO₂') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder NO₂ → direct lagere v→. [N₂O₄] ongewijzigd, dus v← blijft gelijk.' };
+    if (key === 'remove_N₂O₄') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder N₂O₄ → direct lagere v←. [NO₂] ongewijzigd, dus v→ blijft gelijk.' };
+    if (key === 'volume_decrease') return { vf: '++', vr: '+', net: 'right', K: 'same', expl: 'Alle concentraties stijgen. v→ = k[NO₂]²: verdubbeling → 4× (meer toe, ++). v← = k[N₂O₄]: verdubbeling → 2× (toe, +).' };
+    if (key === 'volume_increase') return { vf: '--', vr: '-', net: 'left', K: 'same', expl: 'Alle concentraties dalen. [NO₂] halveert → v→ ¼ (meer af, --). [N₂O₄] halveert → v← ½ (af, -).' };
+    if (key === 'temp_increase') return { vf: '+', vr: '++', net: 'left', K: 'down', expl: 'Beide stijgen, maar endotherm (links) harder. v← = ++, v→ = +. K daalt.' };
+    if (key === 'temp_decrease') return { vf: '-', vr: '--', net: 'right', K: 'up', expl: 'Beide dalen, maar exotherm (rechts) minder hard. v← = --, v→ = -. K stijgt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide richtingen evenveel versneld. Beide +.' };
+    if (inert === 'yes') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij const V: partiële drukken ongewijzigd.' };
+  }
+  if (rid === 'hi') {
+    if (key === 'add_H₂' || key === 'add_I₂') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer reagens → direct hogere v→. [HI] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_HI') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer HI → direct hogere v←. [H₂] en [I₂] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_H₂' || key === 'remove_I₂') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder reagens → direct lagere v→. [HI] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_HI') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder HI → direct lagere v←. [H₂] en [I₂] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Gelijk aantal deeltjes (2↔2). Alle concentraties verdubbelen → beide 4×. Beide + (evenveel).' };
+    if (key === 'volume_increase') return { vf: '-', vr: '-', net: 'eq', K: 'same', expl: 'Gelijk aantal deeltjes. Alle concentraties halveren → beide ¼. Beide - (evenveel).' };
+    if (key === 'temp_increase') return { vf: '+', vr: '++', net: 'left', K: 'down', expl: 'Exotherm: endotherm (terug) harder. v← = ++, v→ = +. K daalt.' };
+    if (key === 'temp_decrease') return { vf: '-', vr: '--', net: 'right', K: 'up', expl: 'Exotherm: exotherm (voorwaarts) minder hard. v← = --, v→ = -. K stijgt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+    if (key === 'add_inert') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij constant volume: partiële drukken ongewijzigd.' };
+  }
+  if (rid === 'fescn') {
+    if (key === 'add_Fe³⁺' || key === 'add_SCN⁻') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer reagens → direct hogere v→. [FeSCN²⁺] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_FeSCN²⁺') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer product → direct hogere v←. [Fe³⁺] en [SCN⁻] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_Fe³⁺' || key === 'remove_SCN⁻') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder reagens → direct lagere v→. [FeSCN²⁺] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_FeSCN²⁺') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder product → direct lagere v←. [Fe³⁺] en [SCN⁻] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '++', vr: '+', net: 'right', K: 'same', expl: '2 deeltjes links, 1 rechts. Concentraties verdubbelen → v→ 4× (++), v← 2× (+).' };
+    if (key === 'volume_increase') return { vf: '--', vr: '-', net: 'left', K: 'same', expl: 'Verdunning: v→ ¼ (--), v← ½ (-).' };
+    if (key === 'temp_increase') return { vf: '+', vr: '++', net: 'left', K: 'down', expl: 'Exotherm: v← = ++, v→ = +. K daalt.' };
+    if (key === 'temp_decrease') return { vf: '-', vr: '--', net: 'right', K: 'up', expl: 'Exotherm: v← = --, v→ = -. K stijgt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+  }
+  if (rid === 'brcl') {
+    if (key === 'add_Br⁻' || key === 'add_Cl₂') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer reagens → direct hogere v→. Producten ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_Br₂' || key === 'add_Cl⁻') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer product → direct hogere v←. Reagens ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_Br⁻' || key === 'remove_Cl₂') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder reagens → direct lagere v→. Producten ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_Br₂' || key === 'remove_Cl⁻') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder product → direct lagere v←. Reagens ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: '3 deeltjes links, 3 rechts. Concentraties verdubbelen → v→ 8×, v← 8×. Beide + (evenveel).' };
+    if (key === 'volume_increase') return { vf: '-', vr: '-', net: 'eq', K: 'same', expl: 'Verdunning: v→ ⅛, v← ⅛. Beide - (evenveel).' };
+    if (key === 'temp_increase') return { vf: '+', vr: '++', net: 'left', K: 'down', expl: 'Exotherm: v← = ++, v→ = +. K daalt.' };
+    if (key === 'temp_decrease') return { vf: '-', vr: '--', net: 'right', K: 'up', expl: 'Exotherm: v← = --, v→ = -. K stijgt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+  }
+  if (rid === 'agcl') {
+    if (key === 'add_AgCl') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Meer oppervlak: oplossen (v→) en aangroei (v←) versnellen evenveel. Beide + (geen ++).' };
+    if (key === 'remove_AgCl') return { vf: '-', vr: '-', net: 'eq', K: 'same', expl: 'Minder oppervlak: beide dalen evenveel. Beide - (geen --).' };
+    if (key === 'add_Ag⁺' || key === 'add_Cl⁻') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer ionen → direct hogere v←. v→ hangt van oppervlak af, blijft gelijk.' };
+    if (key === 'remove_Ag⁺' || key === 'remove_Cl⁻') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder ionen → direct lagere v←. v→ blijft gelijk.' };
+    if (key === 'volume_decrease') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Concentreren: [Ag⁺] en [Cl⁻] stijgen → v← stijgt. v→ blijft gelijk (oppervlak).' };
+    if (key === 'volume_increase') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Verdunnen: [Ag⁺] en [Cl⁻] dalen → v← daalt. v→ blijft gelijk.' };
+    if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (oplossen) stijgt harder. v→ = ++, v← = +. K stijgt.' };
+    if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (oplossen) daalt harder. v→ = --, v← = -. K daalt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+  }
+  if (rid === 'acetic') {
+    if (key === 'add_CH₃COOH') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer zuur → direct hogere v→. [CH₃COO⁻] en [H₃O⁺] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_CH₃COO⁻' || key === 'add_H₃O⁺') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer product → direct hogere v←. [CH₃COOH] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_CH₃COOH') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder zuur → direct lagere v→. [CH₃COO⁻] en [H₃O⁺] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_CH₃COO⁻' || key === 'remove_H₃O⁺') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder product → direct lagere v←. [CH₃COOH] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'add_H₂O') return { vf: '-', vr: '--', net: 'right', K: 'same', expl: 'Verdunning: [CH₃COOH] daalt → v→ -. [CH₃COO⁻] en [H₃O⁺] dalen beide → v← --. Netto: meer dissociatie.' };
+    if (key === 'remove_H₂O') return { vf: '+', vr: '++', net: 'left', K: 'same', expl: 'Concentreren: [CH₃COOH] stijgt → v→ +. [CH₃COO⁻] en [H₃O⁺] stijgen beide → v← ++. Netto: minder dissociatie.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '++', net: 'left', K: 'same', expl: 'Concentreren: [CH₃COOH] stijgt → v→ +. [CH₃COO⁻] en [H₃O⁺] stijgen beide → v← ++. Netto: ←.' };
+    if (key === 'volume_increase') return { vf: '-', vr: '--', net: 'right', K: 'same', expl: 'Verdunnen: [CH₃COOH] daalt → v→ -. [CH₃COO⁻] en [H₃O⁺] dalen beide → v← --. Netto: →.' };
+    if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (dissociatie) stijgt harder. v→ = ++, v← = +. K stijgt.' };
+    if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (dissociatie) daalt harder. v→ = --, v← = -. K daalt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+  }
+  if (rid === 'nh4cl') {
+    if (key === 'add_NH₄Cl') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Meer oppervlak: sublimeren (v→) en aangroei (v←) versnellen evenveel. Beide +.' };
+    if (key === 'remove_NH₄Cl') return { vf: '-', vr: '-', net: 'eq', K: 'same', expl: 'Minder oppervlak: beide dalen evenveel. Beide -.' };
+    if (key === 'add_NH₃') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer NH₃ → direct hogere v←. v→ hangt van oppervlak af, blijft gelijk.' };
+    if (key === 'add_HCl') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer HCl → direct hogere v←. v→ blijft gelijk.' };
+    if (key === 'remove_NH₃') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder NH₃ → direct lagere v←. v→ blijft gelijk.' };
+    if (key === 'remove_HCl') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder HCl → direct lagere v←. v→ blijft gelijk.' };
+    if (key === 'volume_decrease') return { vf: '0', vr: '++', net: 'left', K: 'same', expl: '[NH₃] en [HCl] stijgen beide → v← kwadratisch harder (++). v→ blijft gelijk (oppervlak).' };
+    if (key === 'volume_increase') return { vf: '0', vr: '--', net: 'right', K: 'same', expl: '[NH₃] en [HCl] dalen beide → v← daalt kwadratisch harder (--). v→ blijft gelijk.' };
+    if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (sublimeren) stijgt harder. v→ = ++, v← = +. K stijgt.' };
+    if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (sublimeren) daalt harder. v→ = --, v← = -. K daalt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+  }
+  if (rid === 'caco3') {
+    if (key === 'add_CaCO₃') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer oppervlak CaCO₃ → direct hogere v→. [CO₂] en CaO-oppervlak ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_CaCO₃') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder oppervlak CaCO₃ → direct lagere v→. v← blijft gelijk.' };
+    if (key === 'add_CaO') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer oppervlak CaO → direct hogere v←. v→ blijft gelijk.' };
+    if (key === 'remove_CaO') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder oppervlak CaO → direct lagere v←. v→ blijft gelijk.' };
+    if (key === 'add_CO₂') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer CO₂ → direct hogere v←. v→ blijft gelijk.' };
+    if (key === 'remove_CO₂') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder CO₂ → direct lagere v←. v→ blijft gelijk.' };
+    if (key === 'volume_decrease') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: '[CO₂] stijgt → v← stijgt (+). v→ blijft gelijk (oppervlak).' };
+    if (key === 'volume_increase') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: '[CO₂] daalt → v← daalt (-). v→ blijft gelijk.' };
+    if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (ontleden) stijgt harder. v→ = ++, v← = +. K stijgt.' };
+    if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (ontleden) daalt harder. v→ = --, v← = -. K daalt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+  }
+  if (rid === 'n2h2') {
+    if (key === 'add_N₂' || key === 'add_H₂') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer reagens → direct hogere v→. [NH₃] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_NH₃') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer NH₃ → direct hogere v←. [N₂] en [H₂] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_N₂' || key === 'remove_H₂') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder reagens → direct lagere v→. [NH₃] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_NH₃') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder NH₃ → direct lagere v←. [N₂] en [H₂] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '++', vr: '+', net: 'right', K: 'same', expl: '4 deeltjes links, 2 rechts. Concentraties verdubbelen → v→ 16× (++), v← 4× (+).' };
+    if (key === 'volume_increase') return { vf: '--', vr: '-', net: 'left', K: 'same', expl: 'Verdunning: v→ 1/16 (--), v← ¼ (-).' };
+    if (key === 'temp_increase') return { vf: '+', vr: '++', net: 'left', K: 'down', expl: 'Exotherm: v← = ++, v→ = +. K daalt.' };
+    if (key === 'temp_decrease') return { vf: '-', vr: '--', net: 'right', K: 'up', expl: 'Exotherm: v← = --, v→ = -. K stijgt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+    if (key === 'add_inert') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij constant volume: partiële drukken ongewijzigd.' };
+  }
+  if (rid === 'cowater') {
+    if (key === 'add_CO' || key === 'add_H₂O') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer reagens → direct hogere v→. Producten ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_CO₂' || key === 'add_H₂') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer product → direct hogere v←. Reagentia ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_CO' || key === 'remove_H₂O') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder reagens → direct lagere v→. Producten ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_CO₂' || key === 'remove_H₂') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder product → direct lagere v←. Reagentia ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Gelijk aantal deeltjes (2↔2). Alle concentraties verdubbelen → beide 4×. Beide + (evenveel).' };
+    if (key === 'volume_increase') return { vf: '-', vr: '-', net: 'eq', K: 'same', expl: 'Gelijk aantal deeltjes. Alle concentraties halveren → beide ¼. Beide - (evenveel).' };
+    if (key === 'temp_increase') return { vf: '+', vr: '++', net: 'left', K: 'down', expl: 'Exotherm: v← = ++, v→ = +. K daalt.' };
+    if (key === 'temp_decrease') return { vf: '-', vr: '--', net: 'right', K: 'up', expl: 'Exotherm: v← = --, v→ = -. K stijgt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+    if (key === 'add_inert') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij constant volume: partiële drukken ongewijzigd.' };
+  }
+  if (rid === 'pcl5') {
+    if (key === 'add_PCl₅') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer PCl₅ → direct hogere v→. [PCl₃] en [Cl₂] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_PCl₃' || key === 'add_Cl₂') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer product → direct hogere v←. [PCl₅] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_PCl₅') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder PCl₅ → direct lagere v→. [PCl₃] en [Cl₂] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_PCl₃' || key === 'remove_Cl₂') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder product → direct lagere v←. [PCl₅] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '++', net: 'left', K: 'same', expl: '1 deeltje links, 2 rechts. Concentraties verdubbelen → v→ 2× (+), v← 4× (++).' };
+    if (key === 'volume_increase') return { vf: '-', vr: '--', net: 'right', K: 'same', expl: 'Verdunning: v→ ½ (-), v← ¼ (--).' };
+    if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (dissociatie) stijgt harder. v→ = ++, v← = +. K stijgt.' };
+    if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (dissociatie) daalt harder. v→ = --, v← = -. K daalt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+    if (key === 'add_inert') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij constant volume: partiële drukken ongewijzigd.' };
+  }
+  if (rid === 'so2cl2') {
+    if (key === 'add_SO₂Cl₂') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer SO₂Cl₂ → direct hogere v→. [SO₂] en [Cl₂] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_SO₂' || key === 'add_Cl₂') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer product → direct hogere v←. [SO₂Cl₂] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_SO₂Cl₂') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder SO₂Cl₂ → direct lagere v→. [SO₂] en [Cl₂] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_SO₂' || key === 'remove_Cl₂') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder product → direct lagere v←. [SO₂Cl₂] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '++', net: 'left', K: 'same', expl: '1 deeltje links, 2 rechts. Concentraties verdubbelen → v→ 2× (+), v← 4× (++).' };
+    if (key === 'volume_increase') return { vf: '-', vr: '--', net: 'right', K: 'same', expl: 'Verdunning: v→ ½ (-), v← ¼ (--).' };
+    if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (dissociatie) stijgt harder. v→ = ++, v← = +. K stijgt.' };
+    if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (dissociatie) daalt harder. v→ = --, v← = -. K daalt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+    if (key === 'add_inert') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij constant volume: partiële drukken ongewijzigd.' };
+  }
+  if (rid === 'so2o2') {
+    if (key === 'add_SO₂' || key === 'add_O₂') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer reagens → direct hogere v→. [SO₃] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_SO₃') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer SO₃ → direct hogere v←. [SO₂] en [O₂] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_SO₂' || key === 'remove_O₂') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder reagens → direct lagere v→. [SO₃] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_SO₃') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder SO₃ → direct lagere v←. [SO₂] en [O₂] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '++', vr: '+', net: 'right', K: 'same', expl: '3 deeltjes links, 2 rechts. Concentraties verdubbelen → v→ 8× (++), v← 4× (+).' };
+    if (key === 'volume_increase') return { vf: '--', vr: '-', net: 'left', K: 'same', expl: 'Verdunning: v→ ⅛ (--), v← ¼ (-).' };
+    if (key === 'temp_increase') return { vf: '+', vr: '++', net: 'left', K: 'down', expl: 'Exotherm: v← = ++, v→ = +. K daalt.' };
+    if (key === 'temp_decrease') return { vf: '-', vr: '--', net: 'right', K: 'up', expl: 'Exotherm: v← = --, v→ = -. K stijgt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+    if (key === 'add_inert') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij constant volume: partiële drukken ongewijzigd.' };
+  }
+  if (rid === 'ester') {
+    if (key === 'add_CH₃COOC₂H₅') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer ester → direct hogere v→. [CH₃COOH] en [C₂H₅OH] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_H₂O') return { vf: '-', vr: '--', net: 'right', K: 'same', expl: 'Verdunning: [CH₃COOC₂H₅] daalt → v→ -. [CH₃COOH] en [C₂H₅OH] dalen beide → v← --. Netto: meer hydrolyse.' };
+    if (key === 'add_CH₃COOH' || key === 'add_C₂H₅OH') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer product → direct hogere v←. [CH₃COOC₂H₅] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_CH₃COOC₂H₅') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder ester → direct lagere v→. [CH₃COOH] en [C₂H₅OH] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_H₂O') return { vf: '+', vr: '++', net: 'left', K: 'same', expl: 'Concentreren: [CH₃COOC₂H₅] stijgt → v→ +. [CH₃COOH] en [C₂H₅OH] stijgen beide → v← ++. Netto: minder hydrolyse.' };
+    if (key === 'remove_CH₃COOH' || key === 'remove_C₂H₅OH') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder product → direct lagere v←. [CH₃COOC₂H₅] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '++', net: 'left', K: 'same', expl: 'Concentreren: [CH₃COOC₂H₅] stijgt → v→ +. [CH₃COOH] en [C₂H₅OH] stijgen beide → v← ++. Netto: ←.' };
+    if (key === 'volume_increase') return { vf: '-', vr: '--', net: 'right', K: 'same', expl: 'Verdunning: [CH₃COOC₂H₅] daalt → v→ -. [CH₃COOH] en [C₂H₅OH] dalen beide → v← --. Netto: →.' };
+    if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (hydrolyse) stijgt harder. v→ = ++, v← = +. K stijgt.' };
+    if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (hydrolyse) daalt harder. v→ = --, v← = -. K daalt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+  }
+  if (rid === 'nh3base') {
+    if (key === 'add_NH₃') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer NH₃ → direct hogere v→. [NH₄⁺] en [OH⁻] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_H₂O') return { vf: '-', vr: '--', net: 'right', K: 'same', expl: 'Verdunning: [NH₃] daalt → v→ -. [NH₄⁺] en [OH⁻] dalen beide → v← --. Netto: meer dissociatie.' };
+    if (key === 'add_NH₄⁺' || key === 'add_OH⁻') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer product → direct hogere v←. [NH₃] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_NH₃') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder NH₃ → direct lagere v→. [NH₄⁺] en [OH⁻] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_H₂O') return { vf: '+', vr: '++', net: 'left', K: 'same', expl: 'Concentreren: [NH₃] stijgt → v→ +. [NH₄⁺] en [OH⁻] stijgen beide → v← ++. Netto: minder dissociatie.' };
+    if (key === 'remove_NH₄⁺' || key === 'remove_OH⁻') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder product → direct lagere v←. [NH₃] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '++', net: 'left', K: 'same', expl: 'Concentreren: [NH₃] stijgt → v→ +. [NH₄⁺] en [OH⁻] stijgen beide → v← ++. Netto: ←.' };
+    if (key === 'volume_increase') return { vf: '-', vr: '--', net: 'right', K: 'same', expl: 'Verdunning: [NH₃] daalt → v→ -. [NH₄⁺] en [OH⁻] dalen beide → v← --. Netto: →.' };
+    if (key === 'temp_increase') return { vf: '+', vr: '++', net: 'left', K: 'down', expl: 'Exotherm: v← = ++, v→ = +. K daalt.' };
+    if (key === 'temp_decrease') return { vf: '-', vr: '--', net: 'right', K: 'up', expl: 'Exotherm: v← = --, v→ = -. K stijgt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+  }
+  if (rid === 'h2co3') {
+    if (key === 'add_H₂CO₃') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer H₂CO₃ → direct hogere v→. [CO₂(aq)] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_H₂O') return { vf: '-', vr: '-', net: 'eq', K: 'same', expl: 'Verdunning: [H₂CO₃] daalt → v→ -. [CO₂(aq)] daalt → v← -. Beide evenveel, netto eq.' };
+    if (key === 'add_CO₂') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer CO₂ → direct hogere v←. [H₂CO₃] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_H₂CO₃') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder H₂CO₃ → direct lagere v→. [CO₂(aq)] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_H₂O') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Concentreren: [H₂CO₃] stijgt → v→ +. [CO₂(aq)] stijgt → v← +. Beide evenveel, netto eq.' };
+    if (key === 'remove_CO₂') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder CO₂ → direct lagere v←. [H₂CO₃] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Concentreren: [H₂CO₃] stijgt → v→ +. [CO₂(aq)] stijgt → v← +. Beide evenveel, netto eq.' };
+    if (key === 'volume_increase') return { vf: '-', vr: '-', net: 'eq', K: 'same', expl: 'Verdunning: [H₂CO₃] daalt → v→ -. [CO₂(aq)] daalt → v← -. Beide evenveel, netto eq.' };
+    if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (ontbinding) stijgt harder. v→ = ++, v← = +. K stijgt.' };
+    if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (ontbinding) daalt harder. v→ = --, v← = -. K daalt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+  }
+  return null;
+}
+
+function checkPractice() {
+  const rid = document.getElementById('prac-reaction').value;
+  const change = document.getElementById('prac-change').value;
+  const substance = document.getElementById('prac-substance').value;
+
+  const ans = getAnswer(rid, change, substance, 'no');
+  if (!ans) { document.getElementById('prac-feedback').innerHTML = '<div style="color:var(--danger)">Combinatie niet gevonden.</div>'; return; }
+
+  const vf = document.getElementById('prac-vf').value;
+  const vr = document.getElementById('prac-vr').value;
+  const net = document.getElementById('prac-net').value;
+  const K = document.getElementById('prac-K').value;
+
+  let correct = 0;
+  if (vf === ans.vf) correct++;
+  if (vr === ans.vr) correct++;
+  if (net === ans.net) correct++;
+  if (K === ans.K) correct++;
+
+  let html = '<div class="card ' + (correct === 4 ? 'correct' : 'wrong') + '"><h4>' + correct + '/4 correct</h4>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">';
+  html += '<div><b>v→:</b> ' + speedTxt[ans.vf] + ' ' + (vf === ans.vf ? '✓' : '✗ (jij: ' + (speedTxt[vf] || '-') + ')') + '</div>';
+  html += '<div><b>v←:</b> ' + speedTxt[ans.vr] + ' ' + (vr === ans.vr ? '✓' : '✗ (jij: ' + (speedTxt[vr] || '-') + ')') + '</div>';
+  html += '<div><b>Netto:</b> ' + netTxt[ans.net] + ' ' + (net === ans.net ? '✓' : '✗ (jij: ' + (netTxt[net] || '-') + ')') + '</div>';
+  html += '<div><b>K:</b> ' + kTxt[ans.K] + ' ' + (K === ans.K ? '✓' : '✗ (jij: ' + (kTxt[K] || '-') + ')') + '</div>';
+  html += '</div></div>';
+  html += '<div class="expl"><h4>Uitleg</h4>' + ans.expl + '</div>';
+  document.getElementById('prac-feedback').innerHTML = html;
+}
+
+let quizScore = 0, quizTotal = 0, currentQuiz = null;
+
+function startQuiz() {
+  const rids = Object.keys(reactions);
+  const rid = rids[Math.floor(Math.random() * rids.length)];
+  const r = reactions[rid];
+
+  const changes = ['add', 'remove', 'volume_decrease', 'volume_increase', 'temp_increase', 'temp_decrease', 'catalyst'];
+  let change = changes[Math.floor(Math.random() * changes.length)];
+
+  let substance = '', inert = 'no';
+
+  if (change === 'add' || change === 'remove') {
+    const specs = Object.keys(r.species);
+    substance = specs[Math.floor(Math.random() * specs.length)];
+    if (change === 'add' && r.gas && Math.random() > 0.8) {
+      substance = 'inert';
+    }
+  }
+
+  const ans = getAnswer(rid, change, substance, inert);
+  if (!ans) { startQuiz(); return; }
+
+  currentQuiz = { rid: rid, change: change, substance: substance, inert: inert, ans: ans };
+
+  let html = '<div class="eq-box">' + r.eq + '  <span style="color:var(--text-sec)">ΔH ' + (r.dH === 'exotherm' ? '&lt; 0 (exotherm)' : '&gt; 0 (endotherm)') + '</span></div>';
+
+  let changeText = '';
+  if (change === 'add') changeText = (substance === 'inert' ? 'Inert gas' : substance) + ' toevoegen';
+  else if (change === 'remove') changeText = substance + ' verwijderen';
+  else if (change === 'volume_decrease') changeText = 'Volume verkleinen';
+  else if (change === 'volume_increase') changeText = 'Volume vergroten';
+  else if (change === 'temp_increase') changeText = 'Temperatuur verhogen';
+  else if (change === 'temp_decrease') changeText = 'Temperatuur verlagen';
+  else if (change === 'catalyst') changeText = 'Katalysator toevoegen';
+
+
+  html += '<div class="section" style="text-align:center;font-size:16px;font-weight:600;">' + changeText + '</div>';
+
+  html += '<div class="grid-3">';
+  html += '<div class="section"><div class="label">v→</div><select id="quiz-vf"><option value="">-- Kies --</option><option value="++">Neemt meer toe</option><option value="+">Neemt toe</option><option value="0">Blijft gelijk</option><option value="-">Neemt af</option><option value="--">Neemt meer af</option></select></div>';
+  html += '<div class="section"><div class="label">v←</div><select id="quiz-vr"><option value="">-- Kies --</option><option value="++">Neemt meer toe</option><option value="+">Neemt toe</option><option value="0">Blijft gelijk</option><option value="-">Neemt af</option><option value="--">Neemt meer af</option></select></div>';
+  html += '<div class="section"><div class="label">Netto</div><select id="quiz-net"><option value="">-- Kies --</option><option value="right">→ rechts</option><option value="left">← links</option><option value="eq">Evenwicht</option></select></div>';
+  html += '</div>';
+  html += '<div class="section" style="max-width:200px;"><div class="label">K</div><select id="quiz-K"><option value="">-- Kies --</option><option value="up">Neemt toe</option><option value="down">Neemt af</option><option value="same">Gelijk</option></select></div>';
+  html += '<div style="margin-top:12px;"><button class="btn btn-primary" onclick="checkQuiz()" style="width:100%;">Controleer</button></div>';
+  html += '<div id="quiz-feedback" style="margin-top:12px;"></div>';
+
+  document.getElementById('quiz-content').innerHTML = html;
+}
+
+function checkQuiz() {
+  if (!currentQuiz) return;
+  const ans = currentQuiz.ans;
+  const vf = document.getElementById('quiz-vf').value;
+  const vr = document.getElementById('quiz-vr').value;
+  const net = document.getElementById('quiz-net').value;
+  const K = document.getElementById('quiz-K').value;
+
+  if (!vf || !vr || !net || !K) {
+    document.getElementById('quiz-feedback').innerHTML = '<div style="color:var(--danger)">Vul alle velden in.</div>';
+    return;
+  }
+
+  quizTotal++;
+  let correct = 0;
+  if (vf === ans.vf) correct++;
+  if (vr === ans.vr) correct++;
+  if (net === ans.net) correct++;
+  if (K === ans.K) correct++;
+  if (correct === 4) quizScore++;
+
+  document.getElementById('quiz-score').textContent = quizScore;
+  document.getElementById('quiz-total').textContent = quizTotal;
+
+  let html = '<div class="card ' + (correct === 4 ? 'correct' : 'wrong') + '"><h4>' + correct + '/4 correct</h4>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">';
+  html += '<div><b>v→:</b> ' + speedTxt[ans.vf] + ' ' + (vf === ans.vf ? '✓' : '✗') + '</div>';
+  html += '<div><b>v←:</b> ' + speedTxt[ans.vr] + ' ' + (vr === ans.vr ? '✓' : '✗') + '</div>';
+  html += '<div><b>Netto:</b> ' + netTxt[ans.net] + ' ' + (net === ans.net ? '✓' : '✗') + '</div>';
+  html += '<div><b>K:</b> ' + kTxt[ans.K] + ' ' + (K === ans.K ? '✓' : '✗') + '</div>';
+  html += '</div></div>';
+  html += '<div class="expl"><h4>Uitleg</h4>' + ans.expl + '</div>';
+  html += '<div style="margin-top:12px;"><button class="btn btn-primary" onclick="startQuiz()" style="width:100%;">Volgende vraag</button></div>';
+  document.getElementById('quiz-feedback').innerHTML = html;
+}
+</script>
+
+</body>
+</html>
