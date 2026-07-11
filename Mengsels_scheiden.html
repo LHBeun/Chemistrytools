@@ -61,7 +61,9 @@
   <div class="panel mid">
     <h2>Simulatie</h2>
     <canvas id="cv" width="560" height="420"></canvas>
+    <button id="schudBtn" class="secondary" disabled style="margin-top:8px;">🫳 Schudden</button>
     <div class="status" id="status">Kies stoffen en klik op start.</div>
+    <div class="sub" style="margin:6px 0 0;font-size:12px;">Tip: run hetzelfde mengsel eerst zónder en dan mét emulgator, en schud steeds. Vergelijk wat er gebeurt.</div>
     <div class="legend" id="legend"></div>
   </div>
 
@@ -146,14 +148,20 @@ const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const W = cv.width, H = cv.height;
 let particles = [];
 let running = false;
-let stableCounter = 0;
-let stabilized = false;
+let phase = 'idle'; // 'idle' | 'settling' | 'stable' | 'shaking'
+let currentLerp = 0.08;
+let shakeEndAt = 0;
 let selectedStoffen = []; // {key, amount}
 let hasEmul = false;
 
-const R_LIQUID = 13;
-const R_SOLID = 18;
-const R_ION = 10;
+const FAST_LERP = 0.08;          // eerste keer vullen: snel naar de eindpositie
+const SLOW_LERP = 0.013;         // na schudden: ~10 seconden zichtbaar ontmengen
+const SHAKE_DURATION_MS = 2000; // duur van de chaotische roerfase
+const SHAKE_JITTER = 3.4;       // kracht van de willekeurige beweging tijdens schudden
+
+const R_LIQUID = 8;
+const R_SOLID = 12;
+const R_ION = 6;
 
 let kleurenMap = {}; // roleKey -> hex kleur, opnieuw berekend bij elke start
 
@@ -216,8 +224,9 @@ document.getElementById('startBtn').addEventListener('click', ()=>{
   initParticles();
   buildLegend();
   buildMethodChecklist();
-  stabilized = false; stableCounter = 0;
+  phase = 'settling'; currentLerp = FAST_LERP;
   document.getElementById('checkBtn').disabled = true;
+  document.getElementById('schudBtn').disabled = true;
   document.getElementById('feedback').innerHTML = '';
   document.getElementById('vraagSub').textContent = 'Wacht tot het mengsel gestabiliseerd is.';
   running = true;
@@ -225,18 +234,36 @@ document.getElementById('startBtn').addEventListener('click', ()=>{
 });
 
 document.getElementById('resetBtn').addEventListener('click', ()=>{
-  running = false; particles = [];
+  running = false; particles = []; phase = 'idle';
   ctx.clearRect(0,0,W,H);
   document.getElementById('status').textContent = 'Kies stoffen en klik op start.';
   document.getElementById('checkBtn').disabled = true;
+  document.getElementById('schudBtn').disabled = true;
   document.getElementById('feedback').innerHTML = '';
   document.getElementById('methods').innerHTML='';
 });
 
-const N_TOTAL = 280;     // totaal aantal 'slots' om het vat te vullen
-const SOLID_UNITS = 8;    // vaste/opgeloste stof: klein en vast aantal, ongeacht de rest
-const EMUL_UNITS = 14;    // emulgator: vast aantal kop-staart-eenheden
-const APOLAIR_MET_EMUL = 36; // met emulgator: olie als druppeltjes, dus klein en vast
+document.getElementById('schudBtn').addEventListener('click', ()=>{
+  if(phase!=='stable') return;
+  // eerst echt door elkaar husselen over het hele vat (anders oogt schudden niet als mengen)
+  particles.forEach(p=>{
+    p.x = p.r + Math.random()*(W-2*p.r);
+    p.y = p.r + Math.random()*(H-2*p.r);
+    p.vx = (Math.random()-0.5)*10;
+    p.vy = (Math.random()-0.5)*10;
+  });
+  phase = 'shaking';
+  shakeEndAt = performance.now() + SHAKE_DURATION_MS;
+  document.getElementById('schudBtn').disabled = true;
+  document.getElementById('checkBtn').disabled = true;
+  document.getElementById('status').textContent = 'Schudden… 🫳';
+});
+
+const N_TOTAL = 460;     // totaal aantal 'slots' om het vat te vullen
+const SOLID_UNITS = 10;   // vaste/opgeloste stof: klein en vast aantal, ongeacht de rest
+const EMUL_UNITS = 36;    // emulgator: vast aantal kop-staart-eenheden
+const APOLAIR_MET_EMUL = 60; // met emulgator: olie als druppeltjes, dus klein en vast
+const DROPLET_SIZE = 12;  // gemiddeld aantal olie-deeltjes per druppel -> bepaalt aantal druppels
 
 function initParticles(){
   particles = [];
@@ -435,22 +462,25 @@ function berekenLagen(){
   });
 }
 
-/* ---------- micel-indeling: olie-clusters omringd door naar buiten gerichte emulgator-ringen ---------- */
+/* ---------- micel-indeling: olie-clusters omringd door naar buiten gerichte emulgator-ringen ----------
+   Elke druppel krijgt een eerlijk eigen aandeel: een kern van apolaire deeltjes,
+   direct omringd door een ring van emulgatormoleculen (kop naar buiten, staart naar binnen).
+   Geen globale afstand-sortering meer (die liet één druppel de rest leegtrekken) maar
+   een voronoi-verdeling: elke cel hoort bij precies één druppelcentrum. */
 function layoutEmulsieLaag(layer, x0, y0, width, height, spacingX, spacingY, cellsPerRow, rows){
   const cells = [];
   for(let r=0;r<rows;r++){
     const offset = (r%2===0) ? 0 : spacingX/2;
     for(let c=0;c<cellsPerRow;c++){
-      cells.push({x:x0+offset+c*spacingX, y:y0+r*spacingY+spacingY/2});
+      cells.push({x:x0+offset+c*spacingX, y:y0+r*spacingY+spacingY/2, id:cells.length});
     }
   }
   const olie = layer.particles.filter(p=>p.key!=='emul' && p.polarity<-0.3);
   const emulP = layer.particles.filter(p=>p.key==='emul');
   const rest = layer.particles.filter(p=>p.key!=='emul' && !(p.polarity<-0.3));
 
-  // druppelcentra kiezen, met poging tot spreiding
-  const dropletSize = 9;
-  const K = Math.max(1, Math.round(olie.length/dropletSize));
+  // K druppelcentra kiezen, met poging tot gelijkmatige spreiding
+  const K = Math.max(1, Math.round(olie.length/DROPLET_SIZE));
   const shuffledCells = [...cells];
   for(let i=shuffledCells.length-1;i>0;i--){
     const j = Math.floor(Math.random()*(i+1));
@@ -460,39 +490,69 @@ function layoutEmulsieLaag(layer, x0, y0, width, height, spacingX, spacingY, cel
   const minSep = Math.max(width,height)/(K+1);
   for(const c of shuffledCells){
     if(centers.length>=K) break;
-    if(centers.length===0 || centers.every(ct=>Math.hypot(ct.x-c.x,ct.y-c.y)>minSep)) centers.push(c);
+    if(centers.length===0 || centers.every(ct=>Math.hypot(ct.x-c.x,ct.y-c.y)>minSep)) centers.push({x:c.x,y:c.y});
   }
   while(centers.length<K) centers.push(shuffledCells[Math.floor(Math.random()*shuffledCells.length)]);
 
-  // sorteer alle cellen op afstand tot het dichtstbijzijnde druppelcentrum
-  const withDist = cells.map(c=>{
-    let best=Infinity, bestCenter=centers[0];
-    centers.forEach(ct=>{ const d=Math.hypot(ct.x-c.x,ct.y-c.y); if(d<best){best=d;bestCenter=ct;} });
-    return {x:c.x, y:c.y, dist:best, center:bestCenter};
+  // voronoi: elke cel hoort bij precies één (dichtstbijzijnde) druppelcentrum
+  const groups = centers.map(ct=>({center:ct, cells:[]}));
+  cells.forEach(c=>{
+    let best=Infinity, bi=0;
+    centers.forEach((ct,i)=>{ const d=Math.hypot(ct.x-c.x,ct.y-c.y); if(d<best){best=d;bi=i;} });
+    groups[bi].cells.push({id:c.id, x:c.x, y:c.y, dist:best});
   });
-  withDist.sort((a,b)=>a.dist-b.dist);
+  groups.forEach(g=>g.cells.sort((a,b)=>a.dist-b.dist));
 
-  let idx=0;
-  // dichtstbijzijnde cellen: olie-kern van elke druppel
-  olie.forEach(p=>{
-    const c = withDist[idx++];
-    if(!c) return;
-    p.tx=c.x; p.ty=c.y;
+  // olie en emulgator zo gelijk mogelijk verdelen over de K druppels
+  function verdeling(totaal,k){
+    const basis = Math.floor(totaal/k), overschot = totaal - basis*k;
+    return Array.from({length:k}, (_,i)=> basis + (i<overschot?1:0));
+  }
+  const olieVerdeling = verdeling(olie.length, K);
+  const emulVerdeling = verdeling(emulP.length, K);
+
+  for(let i=olie.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [olie[i],olie[j]]=[olie[j],olie[i]]; }
+  for(let i=emulP.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [emulP[i],emulP[j]]=[emulP[j],emulP[i]]; }
+
+  let oi=0, ei=0;
+  const gebruikt = new Set();
+  const restOlie = [], restEmul = [];
+  groups.forEach((g,i)=>{
+    let ci = 0;
+    // kern: olie, dichtst bij het centrum
+    for(let n=0;n<olieVerdeling[i]; n++){
+      const cell = g.cells[ci++];
+      const p = olie[oi++];
+      if(!p) continue;
+      if(!cell){ restOlie.push(p); continue; }
+      p.tx=cell.x; p.ty=cell.y;
+      gebruikt.add(cell.id);
+    }
+    // ring direct daaromheen: emulgator, kop naar buiten (water), staart naar binnen (olie)
+    for(let n=0;n<emulVerdeling[i]; n++){
+      const cell = g.cells[ci++];
+      const p = emulP[ei++];
+      if(!p) continue;
+      if(!cell){ restEmul.push(p); continue; }
+      p.tx=cell.x; p.ty=cell.y;
+      p.angle = Math.atan2(cell.y-g.center.y, cell.x-g.center.x);
+      gebruikt.add(cell.id);
+    }
   });
-  // direct daarna: emulgator-ring, kop naar buiten (water), staart naar binnen (olie)
-  emulP.forEach(p=>{
-    const c = withDist[idx++];
-    if(!c) return;
-    p.tx=c.x; p.ty=c.y;
-    p.angle = Math.atan2(c.y-c.center.y, c.x-c.center.x);
-  });
-  // verste cellen: water/opgeloste stof, onderling gehusseld
+
+  // vrije cellen: eerst evt. resterende olie/emulgator door afronding, dan de rest (water/opgeloste stof)
+  const vrijeCellen = cells.filter(c=>!gebruikt.has(c.id));
+  for(let i=vrijeCellen.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [vrijeCellen[i],vrijeCellen[j]]=[vrijeCellen[j],vrijeCellen[i]]; }
+  let vi=0;
+  restOlie.forEach(p=>{ const c=vrijeCellen[vi++]; if(c){p.tx=c.x;p.ty=c.y;} });
+  restEmul.forEach(p=>{ const c=vrijeCellen[vi++]; if(c){p.tx=c.x;p.ty=c.y;p.angle=Math.random()*Math.PI*2;} });
+
   for(let i=rest.length-1;i>0;i--){
     const j = Math.floor(Math.random()*(i+1));
     [rest[i],rest[j]] = [rest[j],rest[i]];
   }
   rest.forEach(p=>{
-    const c = withDist[idx++];
+    const c = vrijeCellen[vi++];
     if(!c) return;
     p.tx=c.x; p.ty=c.y;
   });
@@ -500,18 +560,48 @@ function layoutEmulsieLaag(layer, x0, y0, width, height, spacingX, spacingY, cel
 
 function draw(){
   ctx.clearRect(0,0,W,H);
-  let nogInBeweging = false;
-  particles.forEach(p=>{
-    const dx = (p.tx-p.x), dy = (p.ty-p.y);
-    if(Math.abs(dx)>0.3 || Math.abs(dy)>0.3) nogInBeweging = true;
-    p.x += dx*0.08;
-    p.y += dy*0.08;
 
+  if(phase==='shaking'){
+    particles.forEach(p=>{
+      p.vx = (p.vx||0)*0.92 + (Math.random()-0.5)*SHAKE_JITTER;
+      p.vy = (p.vy||0)*0.92 + (Math.random()-0.5)*SHAKE_JITTER;
+      p.x += p.vx; p.y += p.vy;
+      const m = p.r + 2;
+      if(p.x<m){ p.x=m; p.vx = Math.abs(p.vx); }
+      if(p.x>W-m){ p.x=W-m; p.vx = -Math.abs(p.vx); }
+      if(p.y<m){ p.y=m; p.vy = Math.abs(p.vy); }
+      if(p.y>H-m){ p.y=H-m; p.vy = -Math.abs(p.vy); }
+      if(p.key==='emul') p.angle += (Math.random()-0.5)*0.6;
+    });
+    if(performance.now() >= shakeEndAt){
+      berekenLagen();           // doelposities herberekenen (zelfde recept, nieuwe verdeling)
+      phase = 'settling';
+      currentLerp = SLOW_LERP;  // nu langzaam: ontmengen kost tijd
+      document.getElementById('status').textContent = 'Mengsel komt tot rust…';
+    }
+  } else if(phase==='settling'){
+    let nogInBeweging = false;
+    particles.forEach(p=>{
+      const dx = (p.tx-p.x), dy = (p.ty-p.y);
+      if(Math.abs(dx)>0.3 || Math.abs(dy)>0.3) nogInBeweging = true;
+      p.x += dx*currentLerp;
+      p.y += dy*currentLerp;
+    });
+    if(!nogInBeweging){
+      phase = 'stable';
+      document.getElementById('status').textContent = 'Mengsel gestabiliseerd. Beantwoord de scheidingsvraag rechts →';
+      document.getElementById('vraagSub').textContent = 'Welke scheidingsmethode(n) zijn nodig om dit mengsel te scheiden?';
+      document.getElementById('checkBtn').disabled = false;
+      document.getElementById('schudBtn').disabled = false;
+    }
+  }
+
+  particles.forEach(p=>{
     if(p.key==='emul'){
       const headR = R_LIQUID*0.6, tailR = R_LIQUID*0.45, off = R_LIQUID*0.55;
       const hx = p.x+Math.cos(p.angle)*off, hy = p.y+Math.sin(p.angle)*off;
       const tx_ = p.x-Math.cos(p.angle)*off, ty_ = p.y-Math.sin(p.angle)*off;
-      ctx.strokeStyle = kleurenMap.emul_tail; ctx.lineWidth = 3;
+      ctx.strokeStyle = kleurenMap.emul_tail; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(hx,hy); ctx.lineTo(tx_,ty_); ctx.stroke();
       ctx.beginPath(); ctx.arc(tx_,ty_,tailR,0,Math.PI*2);
       ctx.fillStyle = kleurenMap.emul_tail; ctx.fill(); // staart: apolair
@@ -527,12 +617,6 @@ function draw(){
     ctx.fill();
     ctx.globalAlpha = 1;
   });
-  if(!nogInBeweging && !stabilized){
-    stabilized = true;
-    document.getElementById('status').textContent = 'Mengsel gestabiliseerd. Beantwoord de scheidingsvraag rechts →';
-    document.getElementById('vraagSub').textContent = 'Welke scheidingsmethode(n) zijn nodig om dit mengsel te scheiden?';
-    document.getElementById('checkBtn').disabled = false;
-  }
 }
 
 function loop(){
