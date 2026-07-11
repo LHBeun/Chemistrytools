@@ -332,15 +332,6 @@
   door deze aan te passen.
 </div>
 
-<!-- Orde-vraag -->
-<div class="order-panel">
-  <div class="order-title">Wat zijn de reactie-orden?</div>
-  <div class="order-fields" id="order-fields">
-    <!-- dynamisch gevuld -->
-  </div>
-  <div class="order-feedback" id="order-feedback"></div>
-</div>
-
 <!-- Referentieparameters display -->
 <div class="order-panel" id="ref-params-display" style="margin-bottom:12px;">
   <div class="order-title">Referentieparameters</div>
@@ -383,6 +374,49 @@
     <button class="new-btn" style="font-size:0.75em;padding:4px 10px;" onclick="resetParams()">↺ Reset</button>
   </div>
   <div class="params-grid" id="params-grid"></div>
+</div>
+
+<!-- Experiment: meetreeks opzetten -->
+<div class="order-panel" id="exp-panel" style="margin-top:16px;">
+  <div class="order-title">Experiment: bepaal de orde</div>
+  <div style="font-size:0.85em;color:#aab4d4;margin-bottom:14px;line-height:1.6;">
+    Kies hieronder welke grootheid je gaat variëren. Stel die in met de schuif hierboven bij
+    <em>Parameters — rechter grafiek</em>, en klik op <strong>Meting toevoegen</strong> om de bijbehorende
+    v₀ vast te leggen. Verzamel een paar metingen (minimaal 3) en genereer dan een grafiek — kies zelf
+    wat je op de assen zet, en kijk welke combinatie een rechte lijn oplevert.
+  </div>
+  <div class="order-fields" style="margin-bottom:14px;">
+    <div class="order-field">
+      <label>Variëren:</label>
+      <select class="order-select" id="exp-param-select" style="width:170px;" onchange="setExpParam(this.value)"></select>
+    </div>
+    <button class="check-btn" onclick="addMeting()">+ Meting toevoegen</button>
+    <button class="check-btn" style="border-color:var(--muted);color:var(--muted);" onclick="clearMetingen()">Wis tabel</button>
+  </div>
+  <div id="exp-table-wrap"></div>
+  <div id="exp-graph-wrap" style="display:none;margin-top:18px;">
+    <div class="order-fields" style="margin-bottom:10px;">
+      <div class="order-field">
+        <label>X-as</label>
+        <select class="order-select" id="exp-x-select" style="width:130px;" onchange="renderExpGraph()"></select>
+      </div>
+      <div class="order-field">
+        <label>Y-as</label>
+        <select class="order-select" id="exp-y-select" style="width:130px;" onchange="renderExpGraph()"></select>
+      </div>
+    </div>
+    <canvas id="exp-canvas"></canvas>
+    <div id="exp-fit-info" style="font-size:0.85em;color:#aab4d4;margin-top:8px;font-family:var(--font-mono);"></div>
+  </div>
+</div>
+
+<!-- Orde-vraag: afsluitende check na het experiment -->
+<div class="order-panel">
+  <div class="order-title">Wat zijn de reactie-orden?</div>
+  <div class="order-fields" id="order-fields">
+    <!-- dynamisch gevuld -->
+  </div>
+  <div class="order-feedback" id="order-feedback"></div>
 </div>
 
 <!-- Extra rekenrragen -->
@@ -437,6 +471,11 @@ let selectedLeft  = new Set(['A']);
 let selectedRight = new Set(['A']);
 let params = {};    // instelbare parameters (rechts)
 let tScale = 1;     // tijdschaal-vermenigvuldiger (powers of 4)
+
+// Experiment: meetreeks voor orde-bepaling
+let expParamKey = null;      // 'concA' | 'concB' | 'S' | 'T'
+let expParamOptions = [];    // [{key,label}]
+let metingen = [];           // {value, v0, snapshot, warn}
 
 // ─── Reactie genereren ────────────────────────────────────────────────────
 function newReaction() {
@@ -759,6 +798,9 @@ function buildUI() {
 
   // Parameters
   buildParams();
+
+  // Experiment: variabele-keuze opnieuw opbouwen (reset de meetreeks bij nieuwe reactie)
+  buildExpSelectors();
 }
 
 function buildRefDisplay() {
@@ -1195,11 +1237,200 @@ function renderRight() {
   drawGraph('canvas-right', sim, selectedRight, v0, true);
 }
 
+// ─── Experiment: variabele kiezen ────────────────────────────────────────
+function buildExpSelectors() {
+  const sel = document.getElementById('exp-param-select');
+  const opts = [];
+  if (RXN.isFluidA) opts.push({ key: 'concA', label: `[${RXN.nameA}]` });
+  if (RXN.nReactants === 2 && RXN.isFluidB) opts.push({ key: 'concB', label: `[${RXN.nameB}]` });
+  if (RXN.hasSolid) opts.push({ key: 'S', label: 'Oppervlak (S)' });
+  opts.push({ key: 'T', label: 'Temperatuur (T)' });
+
+  expParamOptions = opts;
+  sel.innerHTML = opts.map(o => `<option value="${o.key}">${o.label}</option>`).join('');
+  setExpParam(opts[0].key);
+}
+
+function setExpParam(key) {
+  expParamKey = key;
+  document.getElementById('exp-param-select').value = key;
+  metingen = [];
+  renderExpTable();
+  document.getElementById('exp-graph-wrap').style.display = 'none';
+  buildAxisSelectors();
+}
+
+// ─── Experiment: meting toevoegen ────────────────────────────────────────
+function addMeting() {
+  if (!expParamKey) return;
+  const snap = { concA: params.concA, concB: params.concB, T: params.T, S: params.S, cat: params.cat };
+  const v0 = calcV0(params.concA, params.concB, params.T, params.S, params.cat);
+  const value = snap[expParamKey];
+
+  let warn = false;
+  if (metingen.length > 0) {
+    const prev = metingen[metingen.length - 1].snapshot;
+    warn = Object.keys(snap).some(k => k !== expParamKey && snap[k] !== prev[k]);
+  }
+
+  metingen.push({ value, v0, snapshot: snap, warn });
+  renderExpTable();
+
+  if (metingen.length >= 3) {
+    document.getElementById('exp-graph-wrap').style.display = 'block';
+    renderExpGraph();
+  }
+}
+
+function clearMetingen() {
+  metingen = [];
+  renderExpTable();
+  document.getElementById('exp-graph-wrap').style.display = 'none';
+}
+
+function renderExpTable() {
+  const wrap = document.getElementById('exp-table-wrap');
+  if (metingen.length === 0) {
+    wrap.innerHTML = `<div style="font-size:0.85em;color:var(--muted);">Nog geen metingen.</div>`;
+    return;
+  }
+  const label = (expParamOptions.find(o => o.key === expParamKey) || {}).label || expParamKey;
+  const unit  = expParamKey === 'T' ? 'K' : expParamKey === 'S' ? '(rel.)' : 'mol/L';
+  const decs  = expParamKey === 'T' ? 0 : 2;
+
+  const rows = metingen.map((m, i) => `
+    <tr style="border-top:1px solid var(--border);">
+      <td style="padding:5px 8px;color:var(--muted);">${i + 1}</td>
+      <td style="padding:5px 8px;font-family:var(--font-mono);">${m.value.toFixed(decs)} ${unit}</td>
+      <td style="padding:5px 8px;font-family:var(--font-mono);">${m.v0.toExponential(2)} mol/(L·s)</td>
+      <td style="padding:5px 8px;font-size:0.82em;color:#ee8b5b;">${m.warn ? '⚠ ook andere parameter gewijzigd' : ''}</td>
+    </tr>`).join('');
+
+  wrap.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:0.85em;">
+      <thead>
+        <tr style="text-align:left;color:var(--muted);font-size:0.82em;text-transform:uppercase;letter-spacing:0.5px;">
+          <th style="padding:5px 8px;">#</th><th style="padding:5px 8px;">${label}</th>
+          <th style="padding:5px 8px;">v₀</th><th style="padding:5px 8px;"></th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ─── Experiment: as-keuze + transformaties ───────────────────────────────
+function buildAxisSelectors() {
+  const xSel = document.getElementById('exp-x-select');
+  const ySel = document.getElementById('exp-y-select');
+  const label = (expParamOptions.find(o => o.key === expParamKey) || {}).label || expParamKey;
+
+  const xOpts = expParamKey === 'T'
+    ? [ { v: 'lin', label: 'T (K)' }, { v: 'inv', label: '1/T' }, { v: 'ln', label: 'ln T' } ]
+    : [ { v: 'lin', label: label }, { v: 'sq', label: label + '²' }, { v: 'cube', label: label + '³' },
+        { v: 'ln', label: 'ln' + label }, { v: 'inv', label: '1/' + label } ];
+  const yOpts = [ { v: 'lin', label: 'v₀' }, { v: 'ln', label: 'ln(v₀)' } ];
+
+  xSel.innerHTML = xOpts.map(o => `<option value="${o.v}">${o.label}</option>`).join('');
+  ySel.innerHTML = yOpts.map(o => `<option value="${o.v}">${o.label}</option>`).join('');
+}
+
+function transformValue(kind, raw) {
+  switch (kind) {
+    case 'sq':   return raw * raw;
+    case 'cube': return raw * raw * raw;
+    case 'ln':   return Math.log(raw);
+    case 'inv':  return 1 / raw;
+    default:     return raw;
+  }
+}
+
+function renderExpGraph() {
+  if (metingen.length < 3) return;
+  const xKind = document.getElementById('exp-x-select').value;
+  const yKind = document.getElementById('exp-y-select').value;
+
+  const pts = metingen
+    .map(m => ({ x: transformValue(xKind, m.value), y: transformValue(yKind, m.v0) }))
+    .filter(p => isFinite(p.x) && isFinite(p.y));
+
+  // lineaire regressie (kleinste kwadraten)
+  const n = pts.length;
+  const sx = pts.reduce((a, p) => a + p.x, 0), sy = pts.reduce((a, p) => a + p.y, 0);
+  const sxx = pts.reduce((a, p) => a + p.x * p.x, 0), sxy = pts.reduce((a, p) => a + p.x * p.y, 0);
+  const syy = pts.reduce((a, p) => a + p.y * p.y, 0);
+  const denom = n * sxx - sx * sx;
+  const slope = denom !== 0 ? (n * sxy - sx * sy) / denom : 0;
+  const intercept = (sy - slope * sx) / n;
+  const ssTot = syy - sy * sy / n;
+  const ssRes = pts.reduce((a, p) => { const pred = slope * p.x + intercept; return a + (p.y - pred) * (p.y - pred); }, 0);
+  const r2 = ssTot > 0 ? 1 - ssRes / ssTot : 1;
+
+  drawExpCanvas(pts, slope, intercept);
+
+  const kwaliteit = r2 > 0.98 ? 'zeer sterk lineair verband' : r2 > 0.9 ? 'redelijk lineair verband' : 'zwak/geen lineair verband';
+  document.getElementById('exp-fit-info').innerHTML =
+    `R² = ${r2.toFixed(3)} — <strong>${kwaliteit}</strong>`;
+}
+
+function drawExpCanvas(pts, slope, intercept) {
+  const canvas = document.getElementById('exp-canvas');
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.clientWidth, H = canvas.clientHeight;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  ctx.fillStyle = '#0d1018';
+  ctx.fillRect(0, 0, W, H);
+
+  const ml = 60, mr = 14, mt = 14, mb = 36;
+  const gW = W - ml - mr, gH = H - mt - mb;
+
+  const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+  let xMin = Math.min(...xs), xMax = Math.max(...xs);
+  let yMin = Math.min(...ys), yMax = Math.max(...ys);
+  const xPad = (xMax - xMin) * 0.15 || Math.abs(xMax) * 0.1 || 1;
+  const yPad = (yMax - yMin) * 0.15 || Math.abs(yMax) * 0.1 || 1;
+  xMin -= xPad; xMax += xPad; yMin -= yPad; yMax += yPad;
+
+  ctx.strokeStyle = '#1e2436'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) { const y = mt + gH * i / 4; ctx.beginPath(); ctx.moveTo(ml, y); ctx.lineTo(ml + gW, y); ctx.stroke(); }
+  for (let i = 0; i <= 5; i++) { const x = ml + gW * i / 5; ctx.beginPath(); ctx.moveTo(x, mt); ctx.lineTo(x, mt + gH); ctx.stroke(); }
+
+  ctx.strokeStyle = '#3a4060'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(ml, mt); ctx.lineTo(ml, mt + gH); ctx.lineTo(ml + gW, mt + gH); ctx.stroke();
+
+  const px = x => ml + (x - xMin) / (xMax - xMin) * gW;
+  const py = y => mt + gH * (1 - (y - yMin) / (yMax - yMin));
+
+  ctx.fillStyle = '#6b7491'; ctx.font = '10px Segoe UI';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) { const val = yMax - (yMax - yMin) * i / 4; const y = mt + gH * i / 4; ctx.fillText(val.toExponential(1), ml - 6, y + 3); }
+  ctx.textAlign = 'center';
+  for (let i = 0; i <= 5; i++) { const val = xMin + (xMax - xMin) * i / 5; const x = ml + gW * i / 5; ctx.fillText(val.toExponential(1), x, mt + gH + 16); }
+
+  // regressielijn
+  ctx.strokeStyle = '#f5c542'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
+  ctx.beginPath();
+  ctx.moveTo(px(xMin), py(slope * xMin + intercept));
+  ctx.lineTo(px(xMax), py(slope * xMax + intercept));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // meetpunten
+  ctx.fillStyle = '#5b8dee';
+  pts.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(px(p.x), py(p.y), 4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
 // ─── Utils ────────────────────────────────────────────────────────────────
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 // Canvas resize observer
-const ro = new ResizeObserver(() => renderBoth());
+const ro = new ResizeObserver(() => { renderBoth(); if (metingen.length >= 3) renderExpGraph(); });
 ro.observe(document.getElementById('canvas-left'));
 ro.observe(document.getElementById('canvas-right'));
 
