@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Faseovergangen — VWO Interactief</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #f4f5f7;
+    --panel:     #ffffff;
+    --border:    #d9dce3;
+    --accent:    #2563eb;
+    --solid-c:   #3f6fd1;
+    --liquid-c:  #0d9488;
+    --gas-c:     #ea580c;
+    --text:      #1e2432;
+    --muted:     #64748b;
+    --font-mono: 'Courier New', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 18px; }
+  header h1 { font-size: 1.25em; font-weight: 700; letter-spacing: -0.3px; color: var(--accent); }
+  header .sub { font-size: 0.82em; color: var(--muted); }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+  }
+
+  .stof-bar { display: flex; flex-direction: column; gap: 10px; }
+  .stof-group-label { font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.9px; color: var(--muted); }
+  .stof-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .stof-btn {
+    padding: 7px 14px; border-radius: 6px; border: 1.5px solid var(--border);
+    background: transparent; color: var(--muted); font-size: 0.85em; font-weight: 700;
+    cursor: pointer; transition: all 0.12s; font-family: var(--font-mono);
+  }
+  .stof-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(37,99,235,0.08); }
+  .stof-btn.mengsel.active { border-color: #ea580c; color: #ea580c; background: rgba(234,88,12,0.08); }
+
+  .tip { font-size: 0.83em; color: var(--muted); line-height: 1.55; margin-top: 4px; }
+
+  .graphs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .graph-title {
+    font-size: 0.75em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.9px;
+    margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .graph-title .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--liquid-c); }
+  .fase-badge {
+    margin-left: auto; font-family: var(--font-mono); font-size: 0.9em; font-weight: 400;
+    text-transform: none; letter-spacing: 0; padding: 2px 8px; border-radius: 4px;
+  }
+  .fase-badge.vast    { color: var(--solid-c);  background: rgba(63,111,209,0.1); }
+  .fase-badge.vloeibaar { color: var(--liquid-c); background: rgba(13,148,136,0.1); }
+  .fase-badge.gas     { color: var(--gas-c);    background: rgba(234,88,12,0.1); }
+  .fase-badge.overgang{ color: var(--accent);   background: rgba(37,99,235,0.1); }
+
+  canvas { width: 100%; height: 260px; display: block; border-radius: 4px; background: #ffffff; border: 1px solid var(--border); cursor: crosshair; }
+
+  .controls-grid {
+    display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: center;
+  }
+  .power-row { display: flex; align-items: center; gap: 14px; }
+  .power-label { font-size: 0.8em; color: var(--muted); white-space: nowrap; }
+  input[type=range] {
+    -webkit-appearance: none; flex: 1; height: 4px; background: var(--border);
+    border-radius: 2px; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--accent); cursor: pointer; border: 2px solid var(--panel);
+  }
+  .power-val { font-family: var(--font-mono); font-size: 0.95em; color: var(--accent); min-width: 60px; text-align: right; }
+  .readouts { display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 0.9em; color: var(--muted); }
+  .readouts strong { color: var(--text); }
+  .reset-btn {
+    background: transparent; border: 1.5px solid var(--accent); color: var(--accent);
+    padding: 7px 16px; border-radius: 6px; font-size: 0.82em; font-weight: 700; cursor: pointer;
+  }
+  .reset-btn:hover { background: rgba(37,99,235,0.08); }
+
+  table.vgl { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+  table.vgl th { text-align: left; color: var(--muted); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 10px; }
+  table.vgl td { padding: 6px 10px; border-top: 1px solid var(--border); font-family: var(--font-mono); vertical-align: middle; }
+  table.vgl td.undiscovered { color: var(--muted); }
+  .guess-input {
+    width: 64px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 5px;
+    color: var(--text); font-family: var(--font-mono); font-size: 0.92em; padding: 4px 6px; outline: none;
+  }
+  .guess-input:focus { border-color: var(--accent); }
+  .guess-input.correct { border-color: #16a34a; background: rgba(22,163,74,0.08); }
+  .guess-input.incorrect { border-color: #dc2626; background: rgba(220,38,38,0.08); }
+  .guess-check { font-size: 0.9em; margin-left: 4px; }
+  .guess-check.correct { color: #16a34a; }
+  .guess-check.incorrect { color: #dc2626; }
+  .guess-btn {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    border-radius: 5px; padding: 3px 8px; font-size: 0.78em; cursor: pointer; margin-left: 4px;
+  }
+  .guess-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  @media (max-width: 700px) {
+    .graphs { grid-template-columns: 1fr; }
+    .controls-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Faseovergangen</h1>
+  <span class="sub">VWO — Deeltjesmodel &amp; verwarmingscurve</span>
+</header>
+
+<div class="panel stof-bar">
+  <div>
+    <div class="stof-group-label">Zuivere stoffen</div>
+    <div class="stof-row" id="stof-row-puur"></div>
+  </div>
+  <div>
+    <div class="stof-group-label">Mengsels</div>
+    <div class="stof-row" id="stof-row-mengsel"></div>
+  </div>
+  <div class="tip" id="stof-tip"></div>
+</div>
+
+<div class="graphs">
+  <div class="panel">
+    <div class="graph-title">
+      <span class="dot"></span>Deeltjes
+      <span class="fase-badge" id="fase-badge">—</span>
+    </div>
+    <canvas id="canvas-particles"></canvas>
+  </div>
+  <div class="panel">
+    <div class="graph-title">
+      <span class="dot" style="background:var(--solid-c)"></span>Verwarmingscurve
+    </div>
+    <canvas id="canvas-curve"></canvas>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="controls-grid">
+    <div class="power-row">
+      <span class="power-label">❄️ Koelen — Verwarmen 🔥</span>
+      <input type="range" id="power-slider" min="-6" max="6" step="0.1" value="0" oninput="setHeatPower(this.value)">
+      <span class="power-val" id="power-val">0.0</span>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="reset-btn" id="pause-btn" onclick="togglePause()">⏸ Pauze</button>
+      <button class="reset-btn" onclick="resetSim()">↻ Opnieuw (deze stof)</button>
+    </div>
+  </div>
+  <div class="readouts" style="margin-top:12px;">
+    <span>T = <strong id="read-T">—</strong></span>
+    <span>t = <strong id="read-t">0 s</strong></span>
+    <span>Fase: <strong id="read-fase">vast</strong></span>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="graph-title" style="margin-bottom:12px;">Vergelijking — wat heb je al ontdekt?</div>
+  <table class="vgl" id="vgl-table"></table>
+</div>
+
+<script>
+// ─── Stofgegevens ─────────────────────────────────────────────────────────
+// TmLow/TmHigh en TbLow/TbHigh: voor zuivere stoffen zijn Low en High gelijk
+// (scherp punt). Voor mengsels ligt er een traject tussen: de temperatuur
+// loopt daar door tijdens het smelten/koken i.p.v. een vlak stuk.
+const SUBSTANCES = {
+  methaan:       { naam: 'Methaan',                    formule: 'CH₄',
+                    TmLow: -182, TmHigh: -182, TbLow: -162, TbHigh: -162, mengsel: false },
+  butaan:        { naam: 'Butaan',                      formule: 'C₄H₁₀',
+                    TmLow: -138, TmHigh: -138, TbLow: -1,   TbHigh: -1,   mengsel: false },
+  methylpropaan: { naam: '2-Methylpropaan (isobutaan)',  formule: '(CH₃)₃CH',
+                    TmLow: -160, TmHigh: -160, TbLow: -12,  TbHigh: -12,  mengsel: false },
+  water:         { naam: 'Water',                        formule: 'H₂O',
+                    TmLow: 0,    TmHigh: 0,    TbLow: 100,  TbHigh: 100,  mengsel: false },
+  methanol:      { naam: 'Methanol',                     formule: 'CH₃OH',
+                    TmLow: -98,  TmHigh: -98,  TbLow: 65,   TbHigh: 65,   mengsel: false },
+  zoutwater:     { naam: 'Zout water',                   formule: 'H₂O + NaCl (opgelost)',
+                    TmLow: -6,   TmHigh: 0,    TbLow: 100,  TbHigh: 104,  mengsel: true },
+  waterethanol:  { naam: 'Water-ethanolmengsel',         formule: 'H₂O + C₂H₅OH',
+                    TmLow: -25,  TmHigh: 0,    TbLow: 78,   TbHigh: 100,  mengsel: true },
+  co2:           { naam: 'Koolstofdioxide (droogijs)',    formule: 'CO₂',
+                    TmLow: -78.5, TmHigh: -78.5, TbLow: -78.5, TbHigh: -78.5, mengsel: false, noLiquid: true },
+};
+
+// ─── Natuurkundige constanten (relatieve eenheden, gelijk voor alle stoffen
+// zodat alléén Tm/Tb het verschil maken tussen stoffen — dat is precies
+// waar het hier om gaat) ────────────────────────────────────────────────
+const CP_SOLID    = 1.0;
+const CP_LIQUID   = 2.0;   // vloeistof: minste stijging per energie-eenheid (net als bij water)
+const CP_GAS      = 1.0;
+const LATENT_FUSION = 24;  // relatieve smeltwarmte (3× zo lang zichtbaar als plateau)
+const LATENT_VAPOR  = 120; // relatieve verdampingswarmte (3× zo lang zichtbaar als plateau)
+const ENERGY_RATE   = 1.5; // relatieve energie per seconde bij vermogen = 1
+const ABS_ZERO      = -273;
+
+const N_PARTICLES = 48;
+
+// ─── State ────────────────────────────────────────────────────────────────
+let currentKey = 'water';
+let T = 0, phase = 'solid', meltProgress = 0, boilProgress = 0, simTime = 0;
+let heatPower = 0;
+let paused = false;
+let history = [];
+let particles = [];
+let lastFrame = null;
+let hoverPx = null; // {x,y} muispositie boven de curve-canvas, of null
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ─── Stofkiezer opbouwen ──────────────────────────────────────────────────
+function buildStofPicker() {
+  const purRow = document.getElementById('stof-row-puur');
+  const mengRow = document.getElementById('stof-row-mengsel');
+  purRow.innerHTML = ''; mengRow.innerHTML = '';
+  Object.entries(SUBSTANCES).forEach(([key, s]) => {
+    const btn = document.createElement('button');
+    btn.className = 'stof-btn' + (s.mengsel ? ' mengsel' : '') + (key === currentKey ? ' active' : '');
+    btn.textContent = s.naam;
+    btn.onclick = () => selectSubstance(key);
+    (s.mengsel ? mengRow : purRow).appendChild(btn);
+  });
+  document.getElementById('stof-tip').textContent =
+    'Tip: begin bij een kleine, apolaire molecuul (methaan) en werk toe naar water — vergelijk hoe ver het ' +
+    'smelt- en kookpunt uit elkaar liggen, en bedenk waarom (kapstok: sterkte van intermoleculaire krachten).';
+}
+
+function selectSubstance(key) {
+  currentKey = key;
+  document.querySelectorAll('.stof-btn').forEach(b => b.classList.remove('active'));
+  buildStofPicker();
+  resetSim();
+}
+
+// ─── Simulatie resetten ───────────────────────────────────────────────────
+function resetSim() {
+  const s = SUBSTANCES[currentKey];
+  T = s.TmLow - 20;
+  phase = 'solid';
+  meltProgress = 0;
+  boilProgress = 0;
+  simTime = 0;
+  heatPower = 0;
+  paused = false;
+  document.getElementById('pause-btn').textContent = '⏸ Pauze';
+  document.getElementById('power-slider').value = 0;
+  document.getElementById('power-val').textContent = '0.0';
+  history = [{ t: 0, T }];
+  initParticles();
+  updateReadouts();
+  drawParticles();
+  drawCurve();
+}
+
+function setHeatPower(v) {
+  heatPower = parseFloat(v);
+  document.getElementById('power-val').textContent = heatPower.toFixed(1);
+}
+
+// ─── Deeltjes initialiseren ───────────────────────────────────────────────
+function initParticles() {
+  particles = [];
+  for (let i = 0; i < N_PARTICLES; i++) {
+    particles.push({
+      idx: i,
+      x: 0, y: 0, vx: 0, vy: 0,
+      meltThreshold: 0, boilThreshold: 0
+    });
+  }
+  const meltOrder = shuffle(particles.map((_, i) => i));
+  meltOrder.forEach((pIdx, rank) => { particles[pIdx].meltThreshold = (rank + 0.5) / N_PARTICLES; });
+  const boilOrder = shuffle(particles.map((_, i) => i));
+  boilOrder.forEach((pIdx, rank) => { particles[pIdx].boilThreshold = (rank + 0.5) / N_PARTICLES; });
+}
+
+// ─── Fysica: energie toevoeren/onttrekken ────────────────────────────────
+function step(dt) {
+  if (paused) return;
+  simTime += dt; // tijd loopt altijd door, ook als het verwarmingsvermogen op 0 staat
+
+  const s = SUBSTANCES[currentKey];
+
+  if (heatPower !== 0) {
+    const energyDelta = heatPower * ENERGY_RATE * dt;
+
+    if (phase === 'solid') {
+      T += energyDelta / CP_SOLID;
+      if (T >= s.TmLow) { phase = 'meltrange'; meltProgress = 0; T = s.TmLow; }
+    } else if (phase === 'meltrange') {
+      meltProgress += energyDelta / LATENT_FUSION;
+      if (meltProgress >= 1) {
+        meltProgress = 1; T = s.TmHigh;
+        phase = s.noLiquid ? 'boilrange' : 'liquid';
+        if (s.noLiquid) boilProgress = 0;
+      } else if (meltProgress <= 0) {
+        meltProgress = 0; phase = 'solid'; T = s.TmLow;
+      } else {
+        T = s.TmLow + meltProgress * (s.TmHigh - s.TmLow);
+      }
+    } else if (phase === 'liquid') {
+      T += energyDelta / CP_LIQUID;
+      if (T >= s.TbLow) { phase = 'boilrange'; boilProgress = 0; T = s.TbLow; }
+      if (T <= s.TmHigh) { phase = 'meltrange'; meltProgress = 1; T = s.TmHigh; }
+    } else if (phase === 'boilrange') {
+      boilProgress += energyDelta / LATENT_VAPOR;
+      if (boilProgress >= 1) {
+        boilProgress = 1; phase = 'gas'; T = s.TbHigh;
+      } else if (boilProgress <= 0) {
+        boilProgress = 0; T = s.TbLow;
+        phase = s.noLiquid ? 'meltrange' : 'liquid';
+        if (s.noLiquid) meltProgress = 1;
+      } else {
+        T = s.TbLow + boilProgress * (s.TbHigh - s.TbLow);
+      }
+    } else if (phase === 'gas') {
+      T += energyDelta / CP_GAS;
+      if (T <= s.TbHigh) { phase = 'boilrange'; boilProgress = 1; T = s.TbHigh; }
+    }
+
+    if (T < ABS_ZERO) T = ABS_ZERO;
+  }
+
+  history.push({ t: simTime, T });
+  if (history.length > 4000) history.shift(); // geheugen begrenzen bij lange sessies
+}
+
+function togglePause() {
+  paused = !paused;
+  document.getElementById('pause-btn').textContent = paused ? '▶ Hervat' : '⏸ Pauze';
+}
+
+// ─── Deeltjes: lokale fase + beweging ─────────────────────────────────────
+function localPhase(p) {
+  const s = SUBSTANCES[currentKey];
+  if (s.noLiquid) {
+    // sublimeren/rijpen: een deeltje is óf nog vast, óf al gas — nooit vloeibaar
+    if (phase === 'solid') return 'solid';
+    if (phase === 'gas') return 'gas';
+    const fracFusion = LATENT_FUSION / (LATENT_FUSION + LATENT_VAPOR);
+    const overall = phase === 'meltrange'
+      ? meltProgress * fracFusion
+      : fracFusion + boilProgress * (1 - fracFusion); // boilrange
+    return p.meltThreshold < overall ? 'gas' : 'solid';
+  }
+  if (phase === 'solid') return 'solid';
+  if (phase === 'meltrange') return p.meltThreshold < meltProgress ? 'liquid' : 'solid';
+  if (phase === 'liquid') return 'liquid';
+  if (phase === 'boilrange') return p.boilThreshold < boilProgress ? 'gas' : 'liquid';
+  return 'gas';
+}
+
+function updateParticles(box) {
+  const s = SUBSTANCES[currentKey];
+  const rangeLo = s.TmLow - 30, rangeHi = s.TbHigh + 30;
+  const heat = Math.max(0, Math.min(1, (T - rangeLo) / (rangeHi - rangeLo)));
+  const speedFactor = 0.3 + heat * 1.4;
+
+  // Vast/vloeibaar: deeltjes dicht pakken (zo goed als aanrakend). PACK_SPACING is
+  // net iets groter dan de tekendiameter (2×r=12) zodat ze elkaar bijna raken.
+  const PACK_SPACING = 14;
+  const fillLeft = box.left + 14, fillRight = box.left + box.w - 14;
+  const usableWidth = fillRight - fillLeft;
+  const cols = Math.max(4, Math.floor(usableWidth / PACK_SPACING));
+  const rows = Math.ceil(N_PARTICLES / cols);
+  const latticeW = cols * PACK_SPACING;
+  const latticeH = rows * PACK_SPACING;
+  const latticeLeft = fillLeft + (usableWidth - latticeW) / 2;
+  const latticeBottom = box.top + box.h - 8;
+  const latticeTop = latticeBottom - latticeH;
+
+  // Vloeistofpoel: zelfde dichte voetafdruk, met wat extra ruimte om te bewegen
+  const poolTop = latticeTop - PACK_SPACING * 1.6;
+  const poolBottom = box.top + box.h - 4;
+
+  // Gas mag alleen bóven de vloeistofspiegel komen zolang er nog een gecondenseerde
+  // fase (vast/vloeibaar) aanwezig is — precies zoals stoom boven kokende vloeistof.
+  const hasCondensedPhase = phase !== 'gas';
+  const gasTop = box.top + 6;
+  const gasBottom = hasCondensedPhase ? (poolTop - 4) : (box.top + box.h - 6);
+
+  particles.forEach(p => {
+    const col = p.idx % cols, row = Math.floor(p.idx / cols);
+    const homeX = latticeLeft + (col + 0.5) * PACK_SPACING;
+    const homeY = latticeTop + (row + 0.5) * PACK_SPACING;
+    if (p.x === 0 && p.y === 0) { p.x = homeX; p.y = homeY; }
+
+    const lp = localPhase(p);
+
+    if (!paused) {
+      if (lp === 'solid') {
+        const jitter = 0.5 * speedFactor;
+        p.x += (homeX - p.x) * 0.25 + (Math.random() - 0.5) * jitter;
+        p.y += (homeY - p.y) * 0.25 + (Math.random() - 0.5) * jitter;
+      } else if (lp === 'liquid') {
+        const accel = 0.22 * speedFactor;
+        p.vx = (p.vx + (Math.random() - 0.5) * accel) * 0.88;
+        p.vy = (p.vy + (Math.random() - 0.5) * accel) * 0.88;
+        p.x += p.vx; p.y += p.vy;
+        // vloeistof blijft echt in de dichte poel — harde wanden, geen uitzwerven
+        if (p.x < latticeLeft)          { p.x = latticeLeft;          p.vx = Math.abs(p.vx); }
+        if (p.x > latticeLeft+latticeW) { p.x = latticeLeft+latticeW; p.vx = -Math.abs(p.vx); }
+        if (p.y < poolTop) { p.vy += 0.6; } // net gecondenseerd: val de poel in
+        else if (p.y > poolBottom) { p.y = poolBottom; p.vy = -Math.abs(p.vy); }
+      } else { // gas
+        const accel = 0.55 * speedFactor;
+        p.vx = (p.vx + (Math.random() - 0.5) * accel) * 0.98;
+        p.vy = (p.vy + (Math.random() - 0.5) * accel) * 0.98;
+        const maxV = 3.2 * speedFactor;
+        p.vx = Math.max(-maxV, Math.min(maxV, p.vx));
+        p.vy = Math.max(-maxV, Math.min(maxV, p.vy));
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < box.left + 6)     { p.x = box.left + 6;     p.vx = Math.abs(p.vx); }
+        if (p.x > box.left+box.w-6) { p.x = box.left+box.w-6; p.vx = -Math.abs(p.vx); }
+        if (p.y < gasTop)    { p.y = gasTop;    p.vy = Math.abs(p.vy); }
+        if (p.y > gasBottom) { p.y = gasBottom; p.vy = -Math.abs(p.vy); }
+      }
+    }
+    p._lp = lp;
+  });
+
+  return { fillTop: poolTop };
+}
+
+// ─── Canvas: deeltjes tekenen ─────────────────────────────────────────────
+const COLOR_BY_PHASE = { solid: getCss('--solid-c'), liquid: getCss('--liquid-c'), gas: getCss('--gas-c') };
+function getCss(varName) {
+  return getComputedStyle(document.documentElement).getPropertyValue(varName).trim() || '#3f6fd1';
+}
+
+function drawParticles() {
+  const canvas = document.getElementById('canvas-particles');
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.clientWidth, H = canvas.clientHeight;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+
+  const box = { left: 16, top: 16, w: W - 32, h: H - 32 };
+  const { fillTop } = updateParticles(box);
+
+  // vat
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(box.left, box.top, box.w, box.h);
+
+  // vloeistofspiegel (indicatie), alleen zichtbaar als er nog condensed fase is
+  const showSurface = phase !== 'gas';
+  if (showSurface) {
+    ctx.strokeStyle = 'rgba(13,148,136,0.45)'; ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(box.left, fillTop); ctx.lineTo(box.left + box.w, fillTop); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  particles.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+    ctx.fillStyle = COLOR_BY_PHASE[p._lp] || COLOR_BY_PHASE.solid;
+    ctx.globalAlpha = 0.85;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
+  // fase-badge bijwerken
+  const badge = document.getElementById('fase-badge');
+  const s = SUBSTANCES[currentKey];
+  const labelMap = {
+    solid: ['vast', 'Vast'], liquid: ['vloeibaar', 'Vloeibaar'], gas: ['gas', 'Gas'],
+    meltrange: ['overgang', 'Smelten / stollen'], boilrange: ['overgang', 'Koken / condenseren']
+  };
+  let [cls, lbl] = labelMap[phase] || ['vast', 'Vast'];
+  if (s.noLiquid && (phase === 'meltrange' || phase === 'boilrange')) {
+    cls = 'overgang'; lbl = 'Sublimeren / rijpen';
+  }
+  badge.className = 'fase-badge ' + cls;
+  badge.textContent = lbl;
+}
+
+// ─── Canvas: verwarmingscurve tekenen ─────────────────────────────────────
+function drawCurve() {
+  const canvas = document.getElementById('canvas-curve');
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.clientWidth, H = canvas.clientHeight;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+
+  const ml = 50, mr = 12, mt = 12, mb = 30;
+  const gW = W - ml - mr, gH = H - mt - mb;
+
+  const s = SUBSTANCES[currentKey];
+  const allT = history.map(h => h.T);
+  let yMin = Math.min(s.TmLow - 30, ...allT), yMax = Math.max(s.TbHigh + 30, ...allT);
+  const tMax = Math.max(10, simTime * 1.05);
+
+  ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) { const y = mt + gH * i / 4; ctx.beginPath(); ctx.moveTo(ml, y); ctx.lineTo(ml + gW, y); ctx.stroke(); }
+  for (let i = 0; i <= 5; i++) { const x = ml + gW * i / 5; ctx.beginPath(); ctx.moveTo(x, mt); ctx.lineTo(x, mt + gH); ctx.stroke(); }
+
+  ctx.strokeStyle = '#64748b'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(ml, mt); ctx.lineTo(ml, mt + gH); ctx.lineTo(ml + gW, mt + gH); ctx.stroke();
+
+  const px = t => ml + (t / tMax) * gW;
+  const py = temp => mt + gH * (1 - (temp - yMin) / (yMax - yMin));
+
+  ctx.fillStyle = '#475569'; ctx.font = '10px Segoe UI';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) { const val = yMax - (yMax - yMin) * i / 4; const y = mt + gH * i / 4; ctx.fillText(val.toFixed(0) + '°C', ml - 6, y + 3); }
+  ctx.textAlign = 'center';
+  for (let i = 0; i <= 5; i++) { const val = tMax * i / 5; const x = ml + gW * i / 5; ctx.fillText(val.toFixed(0) + 's', x, mt + gH + 16); }
+
+  if (history.length > 1) {
+    ctx.beginPath();
+    ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 2;
+    history.forEach((h, i) => {
+      const x = px(h.t), y = py(h.T);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  }
+
+  // huidig punt
+  const last = history[history.length - 1];
+  if (last) {
+    ctx.beginPath();
+    ctx.fillStyle = '#16a34a';
+    ctx.arc(px(last.t), py(last.T), 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // hover-tooltip: toon x/y-waarde van de dichtstbijzijnde meting bij de cursor
+  if (hoverPx && history.length > 0) {
+    const hoverT = (hoverPx.x - ml) / gW * tMax;
+    let nearest = history[0], bestDiff = Infinity;
+    for (const h of history) {
+      const diff = Math.abs(h.t - hoverT);
+      if (diff < bestDiff) { bestDiff = diff; nearest = h; }
+    }
+    if (hoverPx.x >= ml && hoverPx.x <= ml + gW && hoverPx.y >= mt && hoverPx.y <= mt + gH) {
+      const hx = px(nearest.t), hy = py(nearest.T);
+
+      ctx.strokeStyle = 'rgba(100,116,139,0.5)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(hx, mt); ctx.lineTo(hx, mt + gH); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      ctx.fillStyle = '#dc2626';
+      ctx.arc(hx, hy, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      const label = `t = ${nearest.t.toFixed(1)} s,  T = ${nearest.T.toFixed(1)} °C`;
+      ctx.font = '11px Segoe UI';
+      const textW = ctx.measureText(label).width;
+      let boxX = hx + 10, boxY = hy - 26;
+      if (boxX + textW + 14 > W) boxX = hx - textW - 24;
+      if (boxY < 2) boxY = hy + 10;
+      ctx.fillStyle = 'rgba(255,255,255,0.96)';
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+      ctx.fillRect(boxX, boxY, textW + 14, 22);
+      ctx.strokeRect(boxX, boxY, textW + 14, 22);
+      ctx.fillStyle = '#1e2432';
+      ctx.textAlign = 'left';
+      ctx.fillText(label, boxX + 7, boxY + 15);
+    }
+  }
+}
+
+function updateReadouts() {
+  document.getElementById('read-T').textContent = `${T.toFixed(1)} °C  (${(T + 273).toFixed(0)} K)`;
+  document.getElementById('read-t').textContent = `${simTime.toFixed(1)} s`;
+  const s = SUBSTANCES[currentKey];
+  const labelMap = { solid: 'vast', liquid: 'vloeibaar', gas: 'gas', meltrange: 'smelten/stollen', boilrange: 'koken/condenseren' };
+  let label = labelMap[phase] || phase;
+  if (s.noLiquid && (phase === 'meltrange' || phase === 'boilrange')) label = 'sublimeren/rijpen';
+  document.getElementById('read-fase').textContent = label + (paused ? ' (gepauzeerd)' : '');
+}
+
+// ─── Vergelijkingstabel ────────────────────────────────────────────────────
+const GUESS_TOLERANCE = 3; // °C — ruim genoeg om vanaf de grafiek af te lezen
+
+function renderVglTable() {
+  const tbl = document.getElementById('vgl-table');
+  const rows = Object.entries(SUBSTANCES).map(([key, s]) => {
+    if (s.noLiquid) {
+      return `<tr>
+        <td>${s.naam}</td>
+        <td>${s.formule}</td>
+        <td colspan="2">
+          <input type="number" step="0.5" class="guess-input" id="guess-${key}-tm" placeholder="°C">
+          <button class="guess-btn" onclick="checkGuess('${key}','tm')">Controleer sublimatiepunt</button>
+          <span class="guess-check" id="check-${key}-tm"></span>
+        </td>
+      </tr>`;
+    }
+    return `<tr>
+      <td>${s.naam}</td>
+      <td>${s.formule}</td>
+      <td>
+        <input type="number" step="0.5" class="guess-input" id="guess-${key}-tm" placeholder="°C">
+        <button class="guess-btn" onclick="checkGuess('${key}','tm')">✓</button>
+        <span class="guess-check" id="check-${key}-tm"></span>
+      </td>
+      <td>
+        <input type="number" step="0.5" class="guess-input" id="guess-${key}-tb" placeholder="°C">
+        <button class="guess-btn" onclick="checkGuess('${key}','tb')">✓</button>
+        <span class="guess-check" id="check-${key}-tb"></span>
+      </td>
+    </tr>`;
+  }).join('');
+  tbl.innerHTML = `
+    <thead><tr><th>Stof</th><th>Formule</th><th>Smeltpunt</th><th>Kookpunt</th></tr></thead>
+    <tbody>${rows}</tbody>`;
+}
+
+function checkGuess(key, field) {
+  const s = SUBSTANCES[key];
+  const input = document.getElementById(`guess-${key}-${field}`);
+  const check = document.getElementById(`check-${key}-${field}`);
+  const guess = parseFloat(input.value);
+  if (isNaN(guess)) return;
+
+  const lo = field === 'tm' ? s.TmLow : s.TbLow;
+  const hi = field === 'tm' ? s.TmHigh : s.TbHigh;
+  const ok = guess >= lo - GUESS_TOLERANCE && guess <= hi + GUESS_TOLERANCE;
+
+  input.classList.toggle('correct', ok);
+  input.classList.toggle('incorrect', !ok);
+  check.className = 'guess-check ' + (ok ? 'correct' : 'incorrect');
+  check.textContent = ok ? '✓ correct' : '✗ nog niet — probeer opnieuw';
+}
+
+// ─── Animatieloop ──────────────────────────────────────────────────────────
+function loop(ts) {
+  if (lastFrame === null) lastFrame = ts;
+  const dt = Math.min(0.1, (ts - lastFrame) / 1000);
+  lastFrame = ts;
+
+  step(dt);
+  updateReadouts();
+  drawParticles();
+  drawCurve();
+
+  requestAnimationFrame(loop);
+}
+
+// ─── Resize ────────────────────────────────────────────────────────────────
+const ro = new ResizeObserver(() => { drawParticles(); drawCurve(); });
+ro.observe(document.getElementById('canvas-particles'));
+ro.observe(document.getElementById('canvas-curve'));
+
+// ─── Hover-tooltip op de curve ────────────────────────────────────────────
+const curveCanvas = document.getElementById('canvas-curve');
+curveCanvas.addEventListener('mousemove', e => {
+  const rect = curveCanvas.getBoundingClientRect();
+  hoverPx = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+});
+curveCanvas.addEventListener('mouseleave', () => { hoverPx = null; });
+
+// ─── Start ─────────────────────────────────────────────────────────────────
+buildStofPicker();
+renderVglTable();
+resetSim();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
