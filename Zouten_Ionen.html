@@ -4,42 +4,88 @@
     <meta charset="UTF-8">
     <title>Ionen & Formules Trainer</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f0f2f5; }
-        .box { border: 1px solid #333; padding: 20px; border-radius: 8px; max-width: 500px; background: #fff; }
-        .box-wide { border: 1px solid #333; padding: 20px; border-radius: 8px; max-width: 820px; background: #fff; }
-        .trainer { margin-top: 20px; padding: 15px; background: #eef; border-radius: 5px; }
+        :root {
+            --bg: #eef2f6;
+            --card-bg: #ffffff;
+            --border: #dbe3ea;
+            --text: #1f2a37;
+            --text-muted: #64748b;
+            --accent: #1c6fae;
+            --accent-dark: #14507d;
+            --accent-soft: #e5f1fa;
+            --success: #2f9e57;
+            --success-soft: #e5f6ea;
+            --danger: #c94b4b;
+            --danger-soft: #fbe9e7;
+            --warn-soft: #fff6e0;
+            --radius: 10px;
+            --shadow: 0 1px 3px rgba(15,35,55,0.08), 0 4px 14px rgba(15,35,55,0.05);
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+            padding: 28px; background: var(--bg); color: var(--text); line-height: 1.45;
+        }
+        h2 {
+            margin: 0 0 16px 0; font-size: 20px; font-weight: 700; color: var(--text);
+            padding-left: 12px; border-left: 4px solid var(--accent);
+        }
+        .box { border: 1px solid var(--border); padding: 24px; border-radius: var(--radius); max-width: 500px; background: var(--card-bg); box-shadow: var(--shadow); }
+        .box-wide { border: 1px solid var(--border); padding: 24px; border-radius: var(--radius); max-width: 820px; background: var(--card-bg); box-shadow: var(--shadow); }
+        .trainer { margin-top: 18px; padding: 18px; background: var(--accent-soft); border-radius: 8px; }
+        #vraag { font-size: 16px; font-weight: 600; margin: 0 0 12px 0; }
 
-        .tab-buttons { margin-bottom: 16px; }
+        input[type="text"] {
+            padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px;
+            font-size: 14px; background: #fff; color: var(--text);
+        }
+        input[type="text"]:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+        select {
+            padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px;
+            background: #fff; color: var(--text); font-size: 13.5px;
+        }
+        button {
+            padding: 8px 16px; border: none; border-radius: 7px; background: var(--accent);
+            color: #fff; font-size: 13.5px; font-weight: 600; cursor: pointer;
+            transition: background 0.15s ease, transform 0.05s ease;
+        }
+        button:hover { background: var(--accent-dark); }
+        button:active { transform: translateY(1px); }
+
+        .tab-buttons { margin-bottom: 18px; display: flex; gap: 4px; background: #e3e9ef; padding: 4px; border-radius: 10px; width: fit-content; flex-wrap: wrap; }
         .tab-btn {
-            padding: 8px 14px; margin-right: 6px; border: 1px solid #333; border-radius: 6px 6px 0 0;
-            background: #ddd; cursor: pointer; font-size: 14px;
+            padding: 9px 16px; border: none; border-radius: 7px; background: transparent;
+            color: var(--text-muted); cursor: pointer; font-size: 13.5px; font-weight: 600;
+            transition: background 0.15s ease, color 0.15s ease;
         }
-        .tab-btn.active { background: #fff; font-weight: bold; border-bottom: 2px solid #fff; }
+        .tab-btn.active { background: #fff; color: var(--accent-dark); box-shadow: 0 1px 3px rgba(15,35,55,0.12); }
+        .tab-btn:hover:not(.active) { background: #d8e0e8; }
 
-        .mix-row { margin: 14px 0; padding: 12px; background: #eef; border-radius: 5px; }
-        .ja-nee-btn { padding: 8px 16px; margin-right: 8px; font-size: 14px; cursor: pointer; }
-        .eq-section { margin-top: 12px; padding: 12px; background: #ffe; border-radius: 5px; }
-        .eq-section input[type="text"] { width: 60%; padding: 6px; }
-        .score-line { float: right; font-size: 13px; color: #555; }
+        .mix-row { margin: 16px 0; padding: 16px; background: var(--accent-soft); border-radius: 8px; }
+        .ja-nee-btn { padding: 9px 18px; margin-right: 8px; font-size: 13.5px; }
+        .eq-section { margin-top: 14px; padding: 14px; background: var(--warn-soft); border-radius: 8px; }
+        .eq-section input[type="text"] { width: 60%; padding: 8px; }
+        .score-line { float: right; font-size: 13px; color: var(--text-muted); font-weight: 600; }
 
-        .reagent-block { margin: 10px 0; padding: 10px; background: #eef; border-radius: 5px; }
-        .reagent-row { margin: 6px 0; }
-        .reagent-row select { padding: 4px; margin-right: 8px; }
-        .test-log { margin-top: 10px; padding: 10px; background: #f8f8f8; border-radius: 5px; max-height: 160px; overflow-y: auto; }
-        .test-log p { margin: 4px 0; font-size: 14px; }
+        .reagent-block { margin: 12px 0; padding: 14px; background: var(--accent-soft); border-radius: 8px; }
+        .reagent-row { margin: 8px 0; }
+        .reagent-row select { margin-right: 8px; }
+        .test-log { margin-top: 12px; padding: 12px; background: #f5f7f9; border-radius: 8px; max-height: 160px; overflow-y: auto; border: 1px solid var(--border); }
+        .test-log p { margin: 5px 0; font-size: 13.5px; }
 
-        .grid-wrap { display: flex; gap: 24px; margin-top: 14px; flex-wrap: wrap; }
+        .grid-wrap { display: flex; gap: 28px; margin-top: 16px; flex-wrap: wrap; }
         .grid-col { flex: 1; min-width: 240px; }
-        .ion-row { display: flex; align-items: center; padding: 3px 0; font-size: 14px; }
+        .grid-col h4 { margin: 0 0 8px 0; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+        .ion-row { display: flex; align-items: center; padding: 4px 0; font-size: 13.5px; border-bottom: 1px solid #f0f2f5; }
         .toggle-btn {
-            padding: 3px 8px; margin-left: 6px; font-size: 12px; cursor: pointer;
-            border: 1px solid #999; border-radius: 4px; background: #f4f4f4;
+            padding: 4px 10px; margin-left: 6px; font-size: 12px; cursor: pointer;
+            border: 1px solid var(--border); border-radius: 6px; background: #f4f6f8; font-weight: 600; color: var(--text-muted);
         }
-        .toggle-btn.active-yes { background: #bfe6bf; border-color: #2a7a2a; font-weight: bold; }
-        .toggle-btn.active-no { background: #e6bfbf; border-color: #7a2a2a; font-weight: bold; }
+        .toggle-btn.active-yes { background: var(--success-soft); border-color: var(--success); color: var(--success); }
+        .toggle-btn.active-no { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
 
-        .check-btn { margin-top: 12px; padding: 8px 16px; cursor: pointer; }
-        .note { margin-top: 16px; font-size: 12px; color: #777; font-style: italic; }
+        .check-btn { margin-top: 16px; }
+        .note { margin-top: 18px; font-size: 12px; color: var(--text-muted); font-style: italic; }
     </style>
 </head>
 <body>
@@ -48,6 +94,7 @@
     <button class="tab-btn" id="tabbtn0" onclick="showTab(0)">Namen & Formules</button>
     <button class="tab-btn" id="tabbtn1" onclick="showTab(1)">Mengen van 2 oplossingen</button>
     <button class="tab-btn" id="tabbtn2" onclick="showTab(2)">Onbekende oplossing</button>
+    <button class="tab-btn" id="tabbtn3" onclick="showTab(3)">Oplossen, indampen & mengen (simulatie)</button>
 </div>
 
 <!-- ===================== TAB 0: ORIGINEEL, ONGEWIJZIGD ===================== -->
@@ -58,6 +105,7 @@
         <p id="vraag">Laad vraag...</p>
         <input type="text" id="antwoord" placeholder="Typ je antwoord...">
         <button onclick="checkAnswer()">Controleer</button>
+        <button onclick="showAnswer()" style="background:#8b95a1;">Toon antwoord</button>
         <p id="feedback"></p>
     </div>
 </div>
@@ -117,6 +165,62 @@
     <p id="unkResult"></p>
     <p><button onclick="startUnknown()">Nieuwe onbekende stof ➜</button></p>
     <p class="note">ℹ️ Reagentia worden gekozen als nitraat- (kation-test) of natriumzout (anion-test), omdat NO3- en Na+ nooit zelf een neerslag geven — zo test je telkens precies één ion. Combinaties met redoxchemie of hydrolyse (zie tab 2) worden gemeld maar niet als geldige test gelogd.</p>
+</div>
+</div>
+
+<!-- ===================== TAB 3: OPLOSSEN, INDAMPEN & MENGEN (SIMULATIE) ===================== -->
+<div id="tab3" style="display:none">
+<div class="box-wide">
+    <h2>Oplossen, indampen & mengen — simulatie</h2>
+
+    <div class="tab-buttons">
+        <button class="tab-btn" id="simModeBtn0" onclick="simSetMode(0)">Eén zout: oplossen &amp; indampen</button>
+        <button class="tab-btn" id="simModeBtn1" onclick="simSetMode(1)">Twee oplossingen mengen</button>
+    </div>
+
+    <div id="simMode0">
+        <div class="reagent-row">
+            Kies een zout: <select id="simSaltSelect"></select>
+            Aantal formule-eenheden:
+            <select id="simUnitCount">
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+            </select>
+            <button onclick="simLoadSalt()">Laad zout</button>
+        </div>
+        <div class="reagent-row">
+            <button onclick="simDissolve()">Los op in water</button>
+            <button onclick="simEvaporate()">Laat water verdampen</button>
+        </div>
+        <svg id="simSvg0" viewBox="0 0 480 300" style="width:100%; max-width:480px; display:block; margin-top:8px;">
+            <path d="M 60 20 L 60 258 Q 60 274 76 274 L 404 274 Q 420 274 420 258 L 420 20" fill="none" stroke="#7c8a99" stroke-width="3" stroke-linecap="round"/>
+            <path id="simWater0" d="M 63 258 L 63 258 Q 63 271 77 271 L 403 271 Q 417 271 417 258 L 417 258 Z" fill="#bcdcf2" opacity="0"/>
+            <g id="simIonsLayer0"></g>
+        </svg>
+        <p id="simStatus0" style="font-size:14px; color:var(--text-muted);">Kies een zout en klik op "Laad zout" om te beginnen.</p>
+        <p id="simEq0" style="font-family:'Courier New',monospace; font-size:15px; margin-top:2px; color:var(--text);"></p>
+    </div>
+
+    <div id="simMode1" style="display:none">
+        <div class="reagent-row">
+            Oplossing A: <select id="simSaltA"></select>
+            Oplossing B: <select id="simSaltB"></select>
+            <button onclick="simLoadMix()">Los beide op</button>
+        </div>
+        <div class="reagent-row">
+            <button onclick="simMixNow()">Meng oplossingen</button>
+        </div>
+        <svg id="simSvg1" viewBox="0 0 480 300" style="width:100%; max-width:480px; display:block; margin-top:8px;">
+            <path d="M 60 20 L 60 258 Q 60 274 76 274 L 404 274 Q 420 274 420 258 L 420 20" fill="none" stroke="#7c8a99" stroke-width="3" stroke-linecap="round"/>
+            <path id="simWater1" d="M 63 45 L 63 258 Q 63 271 77 271 L 403 271 Q 417 271 417 258 L 417 45 Z" fill="#bcdcf2" opacity="0.35"/>
+            <g id="simMoundsLayer1"></g>
+            <g id="simIonsLayer1"></g>
+        </svg>
+        <p id="simStatus1" style="font-size:14px; color:var(--text-muted);">Kies twee zouten en klik op "Los beide op" om te beginnen.</p>
+        <p id="simEq1" style="font-family:'Courier New',monospace; font-size:15px; margin-top:2px; color:var(--text);"></p>
+    </div>
+
 </div>
 </div>
 
@@ -217,12 +321,28 @@
             if (input.toLowerCase() === huidigeVraag.naam.toLowerCase()) correct = true;
         }
 
+        const feedback = document.getElementById('feedback');
         if (correct) {
-            document.getElementById('feedback').innerText = "Goed gedaan!";
-            setTimeout(() => { document.getElementById('feedback').innerText = ""; document.getElementById('antwoord').value = ""; nieuweVraag(); }, 1500);
+            feedback.innerText = "Goed gedaan!";
+            feedback.style.color = 'var(--success)';
+            setTimeout(() => { feedback.innerText = ""; document.getElementById('antwoord').value = ""; nieuweVraag(); }, 1500);
         } else {
-            document.getElementById('feedback').innerText = "Probeer het nog eens!";
+            feedback.innerText = "Probeer het nog eens!";
+            feedback.style.color = 'var(--danger)';
         }
+    }
+
+    function showAnswer() {
+        const type = document.getElementById('vraag').dataset.type;
+        const correctAnswer = type === "naam" ? huidigeVraag.formule : huidigeVraag.naam;
+        const feedback = document.getElementById('feedback');
+        feedback.innerHTML = 'Antwoord: <b>' + correctAnswer + '</b>';
+        feedback.style.color = 'var(--text-muted)';
+        setTimeout(() => {
+            feedback.innerText = ''; feedback.style.color = '';
+            document.getElementById('antwoord').value = '';
+            nieuweVraag();
+        }, 2800);
     }
 
 /* ===================================================================
@@ -233,30 +353,30 @@
    =================================================================== */
 
     const KATIONEN = [
-        { id:'Na',  naam:'natrium',     formule:'Na',  weergave:'Na+',   charge: 1, poly:false },
-        { id:'K',   naam:'kalium',      formule:'K',   weergave:'K+',    charge: 1, poly:false },
-        { id:'NH4', naam:'ammonium',    formule:'NH4', weergave:'NH4+',  charge: 1, poly:true  },
-        { id:'Ag',  naam:'zilver',      formule:'Ag',  weergave:'Ag+',   charge: 1, poly:false },
-        { id:'Pb',  naam:'lood(II)',    formule:'Pb',  weergave:'Pb2+',  charge: 2, poly:false },
-        { id:'Ca',  naam:'calcium',     formule:'Ca',  weergave:'Ca2+',  charge: 2, poly:false },
-        { id:'Ba',  naam:'barium',      formule:'Ba',  weergave:'Ba2+',  charge: 2, poly:false },
-        { id:'Cu',  naam:'koper(II)',   formule:'Cu',  weergave:'Cu2+',  charge: 2, poly:false },
-        { id:'Fe2', naam:'ijzer(II)',   formule:'Fe',  weergave:'Fe2+',  charge: 2, poly:false },
-        { id:'Fe3', naam:'ijzer(III)',  formule:'Fe',  weergave:'Fe3+',  charge: 3, poly:false },
-        { id:'Zn',  naam:'zink',        formule:'Zn',  weergave:'Zn2+',  charge: 2, poly:false },
-        { id:'Al',  naam:'aluminium',   formule:'Al',  weergave:'Al3+',  charge: 3, poly:false }
+        { id:'Na',  naam:'natrium',     formule:'Na',  weergave:'Na+',   charge: 1, poly:false, rpm:102 },
+        { id:'K',   naam:'kalium',      formule:'K',   weergave:'K+',    charge: 1, poly:false, rpm:138 },
+        { id:'NH4', naam:'ammonium',    formule:'NH4', weergave:'NH4+',  charge: 1, poly:true,  rpm:148 },
+        { id:'Ag',  naam:'zilver',      formule:'Ag',  weergave:'Ag+',   charge: 1, poly:false, rpm:115 },
+        { id:'Pb',  naam:'lood(II)',    formule:'Pb',  weergave:'Pb2+',  charge: 2, poly:false, rpm:119 },
+        { id:'Ca',  naam:'calcium',     formule:'Ca',  weergave:'Ca2+',  charge: 2, poly:false, rpm:100 },
+        { id:'Ba',  naam:'barium',      formule:'Ba',  weergave:'Ba2+',  charge: 2, poly:false, rpm:135 },
+        { id:'Cu',  naam:'koper(II)',   formule:'Cu',  weergave:'Cu2+',  charge: 2, poly:false, rpm:73  },
+        { id:'Fe2', naam:'ijzer(II)',   formule:'Fe',  weergave:'Fe2+',  charge: 2, poly:false, rpm:78  },
+        { id:'Fe3', naam:'ijzer(III)',  formule:'Fe',  weergave:'Fe3+',  charge: 3, poly:false, rpm:65  },
+        { id:'Zn',  naam:'zink',        formule:'Zn',  weergave:'Zn2+',  charge: 2, poly:false, rpm:74  },
+        { id:'Al',  naam:'aluminium',   formule:'Al',  weergave:'Al3+',  charge: 3, poly:false, rpm:53.5 }
     ];
 
     const ANIONEN = [
-        { id:'Cl',  naam:'chloride',  formule:'Cl',  weergave:'Cl-',    charge:-1, poly:false },
-        { id:'Br',  naam:'bromide',   formule:'Br',  weergave:'Br-',    charge:-1, poly:false },
-        { id:'I',   naam:'jodide',    formule:'I',   weergave:'I-',     charge:-1, poly:false },
-        { id:'NO3', naam:'nitraat',   formule:'NO3', weergave:'NO3-',   charge:-1, poly:true  },
-        { id:'SO4', naam:'sulfaat',   formule:'SO4', weergave:'SO4 2-', charge:-2, poly:true  },
-        { id:'CO3', naam:'carbonaat', formule:'CO3', weergave:'CO3 2-', charge:-2, poly:true  },
-        { id:'PO4', naam:'fosfaat',   formule:'PO4', weergave:'PO4 3-', charge:-3, poly:true  },
-        { id:'OH',  naam:'hydroxide', formule:'OH',  weergave:'OH-',    charge:-1, poly:true  },
-        { id:'Ac',  naam:'acetaat',   formule:'CH3COO', weergave:'CH3COO-', charge:-1, poly:true }
+        { id:'Cl',  naam:'chloride',  formule:'Cl',  weergave:'Cl-',    charge:-1, poly:false, rpm:181 },
+        { id:'Br',  naam:'bromide',   formule:'Br',  weergave:'Br-',    charge:-1, poly:false, rpm:196 },
+        { id:'I',   naam:'jodide',    formule:'I',   weergave:'I-',     charge:-1, poly:false, rpm:220 },
+        { id:'NO3', naam:'nitraat',   formule:'NO3', weergave:'NO3-',   charge:-1, poly:true,  rpm:179 },
+        { id:'SO4', naam:'sulfaat',   formule:'SO4', weergave:'SO4 2-', charge:-2, poly:true,  rpm:230 },
+        { id:'CO3', naam:'carbonaat', formule:'CO3', weergave:'CO3 2-', charge:-2, poly:true,  rpm:178 },
+        { id:'PO4', naam:'fosfaat',   formule:'PO4', weergave:'PO4 3-', charge:-3, poly:true,  rpm:238 },
+        { id:'OH',  naam:'hydroxide', formule:'OH',  weergave:'OH-',    charge:-1, poly:true,  rpm:133 },
+        { id:'Ac',  naam:'acetaat',   formule:'CH3COO', weergave:'CH3COO-', charge:-1, poly:true, rpm:148 }
     ];
 
     // Vereenvoudigde oplosbaarheidstabel (S = oplosbaar, N = vormt neerslag, X = uitgesloten:
@@ -624,6 +744,641 @@
     }
 
 /* ===================================================================
+   TAB 3 — OPLOSSEN, INDAMPEN & MENGEN (SIMULATIE)
+   Hergebruikt KATIONEN/ANIONEN/getSolubility/buildFormula/saltName uit
+   tab 1/2 hierboven, zodat alles chemisch consistent blijft.
+   =================================================================== */
+
+    // Binnenkant van het getekende bekerglas (svg-coördinaten), gebruikt om te
+    // garanderen dat geen enkel ion buiten het glas terechtkomt.
+    const BEAKER = { left: 63, right: 417, top: 22, bottom: 258 };
+
+    function simIonBounds(ion, extra) {
+        extra = extra || 0;
+        return {
+            minX: BEAKER.left + ion.r + 4 + extra,
+            maxX: BEAKER.right - ion.r - 4 - extra,
+            minY: BEAKER.top + ion.r + 16 + extra,
+            maxY: BEAKER.bottom - ion.r - 8 - extra
+        };
+    }
+
+    function simSharedBounds(ions, extra) {
+        const maxR = ions.length ? Math.max(...ions.map(i => i.r)) : 12;
+        return {
+            minX: BEAKER.left + maxR + 4 + (extra || 0),
+            maxX: BEAKER.right - maxR - 4 - (extra || 0),
+            minY: BEAKER.top + maxR + 16 + (extra || 0),
+            maxY: BEAKER.bottom - maxR - 8 - (extra || 0)
+        };
+    }
+
+    function simRelaxTargets(ions, iterations, boundsFn) {
+        boundsFn = boundsFn || simIonBounds;
+        iterations = iterations || 30;
+        for (let iter = 0; iter < iterations; iter++) {
+            let moved = false;
+            for (let i = 0; i < ions.length; i++) {
+                for (let j = i + 1; j < ions.length; j++) {
+                    const a = ions[i], b = ions[j];
+                    const dx = b.tx - a.tx, dy = b.ty - a.ty;
+                    const dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
+                    const minDist = a.r + b.r + 6;
+                    if (dist < minDist) {
+                        moved = true;
+                        const push = (minDist - dist) / 2;
+                        const ux = dx / dist, uy = dy / dist;
+                        a.tx -= ux * push; a.ty -= uy * push;
+                        b.tx += ux * push; b.ty += uy * push;
+                    }
+                }
+            }
+            ions.forEach(ion => {
+                const b = boundsFn(ion);
+                ion.tx = Math.max(b.minX, Math.min(b.maxX, ion.tx));
+                ion.ty = Math.max(b.minY, Math.min(b.maxY, ion.ty));
+            });
+            if (!moved) break;
+        }
+    }
+
+    function simPlaceRing(arr, cx, cy, radius) {
+        const count = arr.length;
+        if (count === 0) return;
+        if (count === 1) {
+            arr[0].tx = cx; arr[0].ty = cy;
+            return;
+        }
+        arr.forEach((ion, i) => {
+            const angle = (i / count) * Math.PI * 2 - Math.PI / 2;
+            ion.tx = cx + radius * Math.cos(angle);
+            ion.ty = cy + radius * Math.sin(angle);
+        });
+    }
+
+    function simAssignLatticePositions(ions, centerX, centerY, subC, subA) {
+        const cations = ions.filter(ion => ion.isCation);
+        const anions = ions.filter(ion => !ion.isCation);
+        const maxR = Math.max(...ions.map(ion => ion.r));
+        const bounds = simSharedBounds(ions, 4);
+        const availW = bounds.maxX - bounds.minX;
+        const availH = bounds.maxY - bounds.minY;
+        // centreer altijd op het midden van de veilige zone zelf (die afhangt
+        // van de ionstraal), niet op een vast punt dat soms te dicht bij de rand ligt
+        centerX = (bounds.minX + bounds.maxX) / 2;
+        centerY = (bounds.minY + bounds.maxY) / 2;
+
+        if (subC === subA) {
+            // 1:1 verhouding: een eenvoudig schaakbord per los ion volstaat en
+            // geeft de nettste, meest herkenbare afwisseling.
+            const total = ions.length;
+            const cols = Math.max(1, Math.ceil(Math.sqrt(total)));
+            const rows = Math.ceil(total / cols);
+            let spacing = maxR * 2 + 6;
+            const neededW = (cols - 1) * spacing;
+            const neededH = (rows - 1) * spacing;
+            const scale = Math.min(1, availW / (neededW || 1), availH / (neededH || 1));
+            spacing *= scale;
+            const startX = centerX - (cols - 1) * spacing / 2;
+            const startY = centerY - (rows - 1) * spacing / 2;
+            let ci = 0, ai = 0;
+            for (let idx = 0; idx < total; idx++) {
+                const r = Math.floor(idx / cols);
+                const c = idx % cols;
+                const parity = (r + c) % 2;
+                const x = startX + c * spacing;
+                const y = startY + r * spacing;
+                let ion;
+                if (parity === 0 && ci < cations.length) ion = cations[ci++];
+                else if (ai < anions.length) ion = anions[ai++];
+                else if (ci < cations.length) ion = cations[ci++];
+                else ion = anions[ai++];
+                ion.tx = x; ion.ty = y;
+            }
+            return;
+        }
+
+        // Scheve verhouding: elke formule-eenheid wordt getekend als een tegel
+        // (minderheids-ion in het midden, meerderheids-ionen eromheen), en die
+        // tegel wordt herhaald. Zo kunnen gelijke ladingen structureel niet
+        // clusteren, en is de herhalende verhouding letterlijk zichtbaar.
+        const n = Math.round(cations.length / subC);
+        const minorityIsCation = subC < subA;
+        const minorityCount = minorityIsCation ? subC : subA;
+        const majorityCount = minorityIsCation ? subA : subC;
+        let innerR = minorityCount > 1 ? maxR * 1.3 : 0;
+        const gap = 5;
+        const ringForSpacing = (2 * maxR + gap) / (2 * Math.sin(Math.PI / majorityCount));
+        const ringForCenter = innerR + 2 * maxR + gap;
+        let outerR = Math.max(ringForSpacing, ringForCenter, maxR * 2.4);
+        let cellSize = outerR * 2 + maxR * 2 + 12;
+        const cols = Math.max(1, Math.ceil(Math.sqrt(n)));
+        const rows = Math.ceil(n / cols);
+
+        // Als het volledige tegelrooster (incl. buitenste ringen) niet past
+        // binnen de veilige zone, schaal cellSize/outerR/innerR gelijkmatig
+        // terug i.p.v. losse ionen tegen de rand te klemmen (dat gaf overlap).
+        const neededW = (cols - 1) * cellSize + 2 * outerR;
+        const neededH = (rows - 1) * cellSize + 2 * outerR;
+        const fitScale = Math.min(1, availW / (neededW || 1), availH / (neededH || 1));
+        if (fitScale < 1) {
+            cellSize *= fitScale; outerR *= fitScale; innerR *= fitScale;
+        }
+
+        const gridW = (cols - 1) * cellSize;
+        const gridH = (rows - 1) * cellSize;
+        const startX = centerX - gridW / 2;
+        const startY = centerY - gridH / 2;
+
+        for (let u = 0; u < n; u++) {
+            const r = Math.floor(u / cols), c = u % cols;
+            const cx = startX + c * cellSize;
+            const cy = startY + r * cellSize;
+            const unitCations = cations.slice(u * subC, u * subC + subC);
+            const unitAnions = anions.slice(u * subA, u * subA + subA);
+            const minorityArr = minorityIsCation ? unitCations : unitAnions;
+            const majorityArr = minorityIsCation ? unitAnions : unitCations;
+            simPlaceRing(minorityArr, cx, cy, innerR);
+            simPlaceRing(majorityArr, cx, cy, outerR);
+        }
+    }
+
+    function simDissolveEquation(cation, anion, reverse) {
+        const { formula, subC, subA } = buildFormula(cation, anion);
+        const cPart = (subC > 1 ? subC + ' ' : '') + cation.weergave + ' (aq)';
+        const aPart = (subA > 1 ? subA + ' ' : '') + anion.weergave + ' (aq)';
+        const solidPart = formula + ' (s)';
+        return reverse ? (cPart + ' + ' + aPart + ' → ' + solidPart)
+                       : (solidPart + ' → ' + cPart + ' + ' + aPart);
+    }
+
+    function simPrecipitateEquation(cation, anion) {
+        const { formula, subC, subA } = buildFormula(cation, anion);
+        const cPart = (subC > 1 ? subC + ' ' : '') + cation.weergave + ' (aq)';
+        const aPart = (subA > 1 ? subA + ' ' : '') + anion.weergave + ' (aq)';
+        return cPart + ' + ' + aPart + ' → ' + formula + ' (s)';
+    }
+
+    function simBeakerWaterPath(topY) {
+        topY = Math.max(22, Math.min(258, topY));
+        return 'M 63 ' + topY + ' L 63 258 Q 63 271 77 271 L 403 271 Q 417 271 417 258 L 417 ' + topY + ' Z';
+    }
+
+    function simSolubleSaltList() {
+        const list = [];
+        KATIONEN.forEach(c => {
+            ANIONEN.forEach(a => {
+                if (getSolubility(c.id, a.id) === 'S') {
+                    const { formula } = buildFormula(c, a);
+                    list.push({ cation: c, anion: a, label: formula + ' (' + saltName(c, a) + ')' });
+                }
+            });
+        });
+        return list;
+    }
+
+    function simPopulateSelect(selectId) {
+        const sel = document.getElementById(selectId);
+        sel.innerHTML = '';
+        simSolubleSaltList().forEach((s, idx) => {
+            const opt = document.createElement('option');
+            opt.value = idx;
+            opt.text = s.label;
+            sel.appendChild(opt);
+        });
+    }
+
+    function simSetMode(n) {
+        document.getElementById('simMode0').style.display = n === 0 ? 'block' : 'none';
+        document.getElementById('simMode1').style.display = n === 1 ? 'block' : 'none';
+        document.getElementById('simModeBtn0').classList.toggle('active', n === 0);
+        document.getElementById('simModeBtn1').classList.toggle('active', n === 1);
+    }
+
+    function simIonRadius(rpm) {
+        // Schaalt reële ionstraal (pm) naar een leesbare pixelstraal (8-20px).
+        // Bereik gebaseerd op de kleinste/grootste ion in onze tabellen (Al3+ ~53pm, PO4 3- ~238pm).
+        const minPm = 53, maxPm = 238, minPx = 8, maxPx = 20;
+        const t = Math.max(0, Math.min(1, (rpm - minPm) / (maxPm - minPm)));
+        return minPx + t * (maxPx - minPx);
+    }
+
+    function simMakeIon(ionDef, isCation, x, y) {
+        const r = simIonRadius(ionDef.rpm || (isCation ? 100 : 180));
+        return {
+            ref: ionDef, isCation, group: null, state: 'floating',
+            x, y, tx: x, ty: y, vx: 0, vy: 0,
+            r,
+            color: isCation ? '#2b5fa8' : '#c1502e',
+            label: ionDef.weergave,
+            hydration: 0
+        };
+    }
+
+    function simDrawIon(ion) {
+        const fontSize = Math.max(7, Math.min(10, ion.r * 0.72));
+        return '<circle cx="' + ion.x + '" cy="' + ion.y + '" r="' + ion.r + '" fill="' + ion.color + '" stroke="#222" stroke-width="1"/>' +
+               '<text x="' + ion.x + '" y="' + (ion.y + fontSize * 0.35) + '" font-size="' + fontSize + '" fill="#fff" text-anchor="middle">' + ion.label + '</text>';
+    }
+
+    function simDrawHydration(ion) {
+        let out = '';
+        const opacity = ion.hydration.toFixed(2);
+        const angles = [0, 120, 240];
+        const radius = ion.r + 12;
+        angles.forEach(a => {
+            const rad = a * Math.PI / 180;
+            const wx = ion.x + radius * Math.cos(rad);
+            const wy = ion.y + radius * Math.sin(rad);
+            let dx = ion.x - wx, dy = ion.y - wy;
+            const len = Math.sqrt(dx * dx + dy * dy) || 1;
+            dx /= len; dy /= len;
+            const px = -dy, py = dx;
+            let oX, oY, h1X, h1Y, h2X, h2Y;
+            if (ion.isCation) {
+                // zuurstof (O, δ-) wijst naar het kation toe
+                oX = wx + dx * 5;  oY = wy + dy * 5;
+                h1X = wx - dx * 4 + px * 5; h1Y = wy - dy * 4 + py * 5;
+                h2X = wx - dx * 4 - px * 5; h2Y = wy - dy * 4 - py * 5;
+            } else {
+                // waterstofatomen (H, δ+) wijzen naar het anion toe
+                h1X = wx + dx * 5 + px * 4; h1Y = wy + dy * 5 + py * 4;
+                h2X = wx + dx * 5 - px * 4; h2Y = wy + dy * 5 - py * 4;
+                oX = wx - dx * 5; oY = wy - dy * 5;
+            }
+            out += '<g opacity="' + opacity + '">' +
+                   '<circle cx="' + oX + '" cy="' + oY + '" r="3.2" fill="#c0392b"/>' +
+                   '<circle cx="' + h1X + '" cy="' + h1Y + '" r="2" fill="#5dade2"/>' +
+                   '<circle cx="' + h2X + '" cy="' + h2Y + '" r="2" fill="#5dade2"/>' +
+                   '</g>';
+        });
+        return out;
+    }
+
+    /* ---------- MODE 0: één zout oplossen / indampen ---------- */
+
+    let simIons0 = [];
+    let simState0 = 'empty'; // empty | solid | dissolving | dissolved | evaporating
+    let simSalt0 = null;
+    let simAnimId0 = null;
+
+    function simLoadSalt() {
+        const list = simSolubleSaltList();
+        const idx = parseInt(document.getElementById('simSaltSelect').value);
+        const n = parseInt(document.getElementById('simUnitCount').value);
+        const s = list[idx];
+        simSalt0 = s;
+        const { subC, subA } = buildFormula(s.cation, s.anion);
+        simIons0 = [];
+        const totalC = subC * n, totalA = subA * n;
+        for (let k = 0; k < totalC; k++) simIons0.push(simMakeIon(s.cation, true, 0, 0));
+        for (let k = 0; k < totalA; k++) simIons0.push(simMakeIon(s.anion, false, 0, 0));
+        simAssignLatticePositions(simIons0, 240, 230, subC, subA);
+        simIons0.forEach(ion => { ion.x = ion.tx; ion.y = ion.ty; });
+        simState0 = 'solid';
+        document.getElementById('simStatus0').innerText =
+            'Vast zout ' + s.label + ' klaar (verhouding ' + subC + ' : ' + subA + '). Klik op "Los op in water".';
+        document.getElementById('simEq0').innerText = '';
+        simSetWater0(258, 0);
+        simStopAnim0();
+        simRender0();
+    }
+
+    function simDissolve() {
+        if (!simSalt0 || simState0 === 'dissolved' || simState0 === 'dissolving') return;
+        simState0 = 'dissolving';
+        simIons0.forEach(ion => {
+            const b = simIonBounds(ion);
+            ion.tx = b.minX + Math.random() * (b.maxX - b.minX);
+            ion.ty = b.minY + Math.random() * (b.maxY - b.minY);
+        });
+        simRelaxTargets(simIons0, 40);
+        document.getElementById('simStatus0').innerText = 'Het rooster valt uiteen: watermoleculen omringen elk ion (hydratatie).';
+        simRunTween0(true, false, () => {
+            simState0 = 'dissolved';
+            document.getElementById('simStatus0').innerText =
+                'Opgelost: ' + simSalt0.label + ' geeft losse, gehydrateerde ionen in de verhouding uit de formule.';
+            document.getElementById('simEq0').innerText = simDissolveEquation(simSalt0.cation, simSalt0.anion, false);
+            simStartJitter0();
+        });
+    }
+
+    function simEvaporate() {
+        if (simState0 !== 'dissolved') return;
+        simState0 = 'evaporating';
+        document.getElementById('simStatus0').innerText = 'Water verdampt: de ionen komen weer dichter bij elkaar...';
+        const { subC, subA } = buildFormula(simSalt0.cation, simSalt0.anion);
+        simAssignLatticePositions(simIons0, 240, 230, subC, subA);
+        simRunTween0(false, true, () => {
+            simState0 = 'solid';
+            document.getElementById('simStatus0').innerText = 'Het water is verdampt: de ionen kristalliseren weer tot een vast rooster.';
+            document.getElementById('simEq0').innerText = simDissolveEquation(simSalt0.cation, simSalt0.anion, true);
+        });
+    }
+
+    function simSetWater0(topY, opacity) {
+        const el = document.getElementById('simWater0');
+        if (!el) return;
+        el.setAttribute('d', simBeakerWaterPath(topY));
+        el.setAttribute('opacity', opacity.toFixed(2));
+    }
+
+    function simRunTween0(fadeIn, fadeOut, onDone) {
+        simStopAnim0();
+        let frame = 0;
+        const totalFrames = 55;
+        function step() {
+            frame++;
+            const t = frame / totalFrames;
+            simIons0.forEach(ion => {
+                ion.x += (ion.tx - ion.x) * 0.08;
+                ion.y += (ion.ty - ion.y) * 0.08;
+                if (fadeIn) ion.hydration = Math.min(1, ion.hydration + 1 / totalFrames);
+                if (fadeOut) ion.hydration = Math.max(0, ion.hydration - 1 / totalFrames);
+            });
+            if (fadeIn) simSetWater0(258 - (258 - 45) * t, 0.35 * t);
+            if (fadeOut) simSetWater0(45 + (258 - 45) * t, 0.35 * (1 - t));
+            simRender0();
+            if (frame < totalFrames) {
+                simAnimId0 = requestAnimationFrame(step);
+            } else if (onDone) {
+                onDone();
+            }
+        }
+        simAnimId0 = requestAnimationFrame(step);
+    }
+
+    function simStartJitter0() {
+        function step() {
+            if (simState0 !== 'dissolved') return;
+            simIons0.forEach(ion => {
+                ion.vx += (Math.random() - 0.5) * 0.35;
+                ion.vy += (Math.random() - 0.5) * 0.35;
+                ion.vx *= 0.95; ion.vy *= 0.95;
+                ion.vx = Math.max(-1.8, Math.min(1.8, ion.vx));
+                ion.vy = Math.max(-1.8, Math.min(1.8, ion.vy));
+            });
+            for (let i = 0; i < simIons0.length; i++) {
+                for (let j = i + 1; j < simIons0.length; j++) {
+                    const a = simIons0[i], b = simIons0[j];
+                    const dx = b.x - a.x, dy = b.y - a.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
+                    const minDist = a.r + b.r + 4;
+                    if (dist < minDist) {
+                        const push = (minDist - dist) / dist * 0.06;
+                        a.vx -= dx * push; a.vy -= dy * push;
+                        b.vx += dx * push; b.vy += dy * push;
+                    }
+                }
+            }
+            simIons0.forEach(ion => {
+                ion.x += ion.vx; ion.y += ion.vy;
+                const b = simIonBounds(ion);
+                if (ion.x < b.minX || ion.x > b.maxX) ion.vx *= -1;
+                if (ion.y < b.minY || ion.y > b.maxY) ion.vy *= -1;
+                ion.x = Math.max(b.minX, Math.min(b.maxX, ion.x));
+                ion.y = Math.max(b.minY, Math.min(b.maxY, ion.y));
+            });
+            simRender0();
+            simAnimId0 = requestAnimationFrame(step);
+        }
+        simAnimId0 = requestAnimationFrame(step);
+    }
+
+    function simStopAnim0() {
+        if (simAnimId0) cancelAnimationFrame(simAnimId0);
+        simAnimId0 = null;
+    }
+
+    function simRender0() {
+        const layer = document.getElementById('simIonsLayer0');
+        if (!layer) return;
+        let html = '';
+        simIons0.forEach(ion => {
+            if (ion.hydration > 0.02) html += simDrawHydration(ion);
+            html += simDrawIon(ion);
+        });
+        layer.innerHTML = html;
+    }
+
+    /* ---------- MODE 1: twee oplossingen mengen ---------- */
+
+    let simIons1 = [];
+    let simMounds1 = [];
+    let simSaltA = null, simSaltB = null;
+    let simState1 = 'empty'; // empty | dissolvedSeparate | mixed
+    let simAnimId1 = null;
+
+    function simMakeMixIon(ionDef, isCation, group, x, y) {
+        const r = simIonRadius(ionDef.rpm || (isCation ? 100 : 180));
+        return {
+            ref: ionDef, isCation, group, state: 'floating',
+            x, y, tx: x, ty: y, vx: 0, vy: 0,
+            r,
+            color: isCation ? '#2b5fa8' : '#c1502e',
+            label: ionDef.weergave,
+            hydration: 1
+        };
+    }
+
+    function simLoadMix() {
+        const list = simSolubleSaltList();
+        const idxA = parseInt(document.getElementById('simSaltA').value);
+        const idxB = parseInt(document.getElementById('simSaltB').value);
+        simSaltA = list[idxA];
+        simSaltB = list[idxB];
+        simMounds1 = [];
+        const n = 2;
+        const { subC: subCA, subA: subAA } = buildFormula(simSaltA.cation, simSaltA.anion);
+        const { subC: subCB, subA: subAB } = buildFormula(simSaltB.cation, simSaltB.anion);
+        const groupAIons = [];
+        const groupBIons = [];
+        for (let k = 0; k < subCA * n; k++) groupAIons.push(simMakeMixIon(simSaltA.cation, true, 'A', 0, 0));
+        for (let k = 0; k < subAA * n; k++) groupAIons.push(simMakeMixIon(simSaltA.anion, false, 'A', 0, 0));
+        for (let k = 0; k < subCB * n; k++) groupBIons.push(simMakeMixIon(simSaltB.cation, true, 'B', 0, 0));
+        for (let k = 0; k < subAB * n; k++) groupBIons.push(simMakeMixIon(simSaltB.anion, false, 'B', 0, 0));
+        simIons1 = groupAIons.concat(groupBIons);
+
+        const boundsA = ion => { const b = simIonBounds(ion); b.maxX = Math.min(b.maxX, 228); return b; };
+        const boundsB = ion => { const b = simIonBounds(ion); b.minX = Math.max(b.minX, 252); return b; };
+        groupAIons.forEach(ion => {
+            const b = boundsA(ion);
+            ion.tx = b.minX + Math.random() * (b.maxX - b.minX);
+            ion.ty = b.minY + Math.random() * (b.maxY - b.minY);
+        });
+        groupBIons.forEach(ion => {
+            const b = boundsB(ion);
+            ion.tx = b.minX + Math.random() * (b.maxX - b.minX);
+            ion.ty = b.minY + Math.random() * (b.maxY - b.minY);
+        });
+        simRelaxTargets(groupAIons, 40, boundsA);
+        simRelaxTargets(groupBIons, 40, boundsB);
+        simIons1.forEach(ion => { ion.x = ion.tx; ion.y = ion.ty; });
+
+        simState1 = 'dissolvedSeparate';
+        document.getElementById('simStatus1').innerText =
+            'Twee losse oplossingen: ' + simSaltA.label + ' (links) en ' + simSaltB.label + ' (rechts). Klik op "Meng oplossingen".';
+        document.getElementById('simEq1').innerText = '';
+        simStopAnim1();
+        simRender1();
+        simStartJitter1();
+    }
+
+    function simMixNow() {
+        if (simState1 !== 'dissolvedSeparate') return;
+        simState1 = 'mixed';
+        document.getElementById('simStatus1').innerText = 'Mengen...';
+        simIons1.forEach(ion => {
+            const b = simIonBounds(ion);
+            ion.tx = b.minX + Math.random() * (b.maxX - b.minX);
+            ion.ty = b.minY + Math.random() * (b.maxY - b.minY);
+        });
+        simRelaxTargets(simIons1, 40);
+        simRunTween1(() => {
+            const cross1 = getSolubility(simSaltA.cation.id, simSaltB.anion.id);
+            const cross2 = getSolubility(simSaltB.cation.id, simSaltA.anion.id);
+            const neerslag1 = cross1 === 'N';
+            const neerslag2 = cross2 === 'N';
+            let msg = '';
+            const eqLines = [];
+            let clusterX = 150;
+            if (neerslag1) {
+                simPrecipitate1(simSaltA.cation.id, simSaltB.anion.id, clusterX);
+                msg += 'Neerslag: ' + saltName(simSaltA.cation, simSaltB.anion) + ' (' + buildFormula(simSaltA.cation, simSaltB.anion).formula + ', kleur: ' + getColor(simSaltA.cation.id, simSaltB.anion.id) + '). ';
+                eqLines.push(simPrecipitateEquation(simSaltA.cation, simSaltB.anion));
+                clusterX += 180;
+            }
+            if (neerslag2) {
+                simPrecipitate1(simSaltB.cation.id, simSaltA.anion.id, clusterX);
+                msg += 'Neerslag: ' + saltName(simSaltB.cation, simSaltA.anion) + ' (' + buildFormula(simSaltB.cation, simSaltA.anion).formula + ', kleur: ' + getColor(simSaltB.cation.id, simSaltA.anion.id) + ').';
+                eqLines.push(simPrecipitateEquation(simSaltB.cation, simSaltA.anion));
+            }
+            if (!neerslag1 && !neerslag2) {
+                msg = 'Geen neerslag: alle ionen (' + [simSaltA.cation.weergave, simSaltA.anion.weergave, simSaltB.cation.weergave, simSaltB.anion.weergave].join(', ') + ') blijven los in oplossing bewegen.';
+            }
+            document.getElementById('simStatus1').innerText = msg;
+            document.getElementById('simEq1').innerHTML = eqLines.join('<br>');
+            simStartJitter1();
+        });
+    }
+
+    function simPrecipitate1(cationId, anionId, clusterX) {
+        const matches = simIons1.filter(ion => ion.ref.id === cationId || ion.ref.id === anionId);
+        const cols = Math.max(1, Math.ceil(Math.sqrt(matches.length)));
+        matches.forEach((ion, i) => {
+            ion.state = 'precipitated';
+            ion.tx = clusterX - (cols * 9) + (i % cols) * 18;
+            ion.ty = 250 + Math.floor(i / cols) * 18;
+            ion.hydration = 0;
+        });
+        const maxR = Math.max(...matches.map(ion => ion.r));
+        const minX = Math.min(...matches.map(ion => ion.tx)) - maxR - 6;
+        const maxX = Math.max(...matches.map(ion => ion.tx)) + maxR + 6;
+        const minY = Math.min(...matches.map(ion => ion.ty)) - maxR - 6;
+        const maxY = Math.max(...matches.map(ion => ion.ty)) + maxR + 8;
+        simMounds1.push({ x: minX, y: minY, w: maxX - minX, h: maxY - minY });
+        let frame = 0;
+        const totalFrames = 40;
+        function step() {
+            frame++;
+            matches.forEach(ion => {
+                ion.x += (ion.tx - ion.x) * 0.12;
+                ion.y += (ion.ty - ion.y) * 0.12;
+            });
+            simRender1();
+            if (frame < totalFrames) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
+
+    function simRunTween1(onDone) {
+        simStopAnim1();
+        let frame = 0;
+        const totalFrames = 50;
+        function step() {
+            frame++;
+            simIons1.forEach(ion => {
+                ion.x += (ion.tx - ion.x) * 0.1;
+                ion.y += (ion.ty - ion.y) * 0.1;
+            });
+            simRender1();
+            if (frame < totalFrames) {
+                simAnimId1 = requestAnimationFrame(step);
+            } else if (onDone) {
+                onDone();
+            }
+        }
+        simAnimId1 = requestAnimationFrame(step);
+    }
+
+    function simStartJitter1() {
+        function step() {
+            if (simState1 !== 'dissolvedSeparate' && simState1 !== 'mixed') return;
+            const floating = simIons1.filter(ion => ion.state !== 'precipitated');
+            floating.forEach(ion => {
+                ion.vx += (Math.random() - 0.5) * 0.35;
+                ion.vy += (Math.random() - 0.5) * 0.35;
+                ion.vx *= 0.95; ion.vy *= 0.95;
+                ion.vx = Math.max(-1.8, Math.min(1.8, ion.vx));
+                ion.vy = Math.max(-1.8, Math.min(1.8, ion.vy));
+            });
+            for (let i = 0; i < floating.length; i++) {
+                for (let j = i + 1; j < floating.length; j++) {
+                    const a = floating[i], b = floating[j];
+                    const dx = b.x - a.x, dy = b.y - a.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
+                    const minDist = a.r + b.r + 4;
+                    if (dist < minDist) {
+                        const push = (minDist - dist) / dist * 0.06;
+                        a.vx -= dx * push; a.vy -= dy * push;
+                        b.vx += dx * push; b.vy += dy * push;
+                    }
+                }
+            }
+            floating.forEach(ion => {
+                ion.x += ion.vx; ion.y += ion.vy;
+                const b = simIonBounds(ion);
+                if (simState1 === 'dissolvedSeparate') {
+                    if (ion.group === 'A') b.maxX = Math.min(b.maxX, 228);
+                    else b.minX = Math.max(b.minX, 252);
+                }
+                if (ion.x < b.minX || ion.x > b.maxX) ion.vx *= -1;
+                if (ion.y < b.minY || ion.y > b.maxY) ion.vy *= -1;
+                ion.x = Math.max(b.minX, Math.min(b.maxX, ion.x));
+                ion.y = Math.max(b.minY, Math.min(b.maxY, ion.y));
+            });
+            simRender1();
+            simAnimId1 = requestAnimationFrame(step);
+        }
+        simAnimId1 = requestAnimationFrame(step);
+    }
+
+    function simStopAnim1() {
+        if (simAnimId1) cancelAnimationFrame(simAnimId1);
+        simAnimId1 = null;
+    }
+
+    function simRender1() {
+        const moundsLayer = document.getElementById('simMoundsLayer1');
+        const ionsLayer = document.getElementById('simIonsLayer1');
+        if (!moundsLayer || !ionsLayer) return;
+        let moundHtml = '';
+        simMounds1.forEach(m => {
+            moundHtml += '<rect x="' + m.x + '" y="' + m.y + '" width="' + m.w + '" height="' + m.h + '" rx="12" fill="#7c8a99" opacity="0.22"/>';
+        });
+        moundsLayer.innerHTML = moundHtml;
+        let html = '';
+        if (simState1 === 'dissolvedSeparate') {
+            html += '<line x1="240" y1="26" x2="240" y2="270" stroke="#a9b6c2" stroke-dasharray="4,4"/>';
+        }
+        simIons1.forEach(ion => {
+            if (ion.hydration > 0.02) html += simDrawHydration(ion);
+            html += simDrawIon(ion);
+        });
+        ionsLayer.innerHTML = html;
+    }
+
+/* ===================================================================
    TABS & INIT
    =================================================================== */
 
@@ -631,14 +1386,21 @@
         document.getElementById('tab0').style.display = n === 0 ? 'block' : 'none';
         document.getElementById('tab1').style.display = n === 1 ? 'block' : 'none';
         document.getElementById('tab2').style.display = n === 2 ? 'block' : 'none';
+        document.getElementById('tab3').style.display = n === 3 ? 'block' : 'none';
         document.getElementById('tabbtn0').classList.toggle('active', n === 0);
         document.getElementById('tabbtn1').classList.toggle('active', n === 1);
         document.getElementById('tabbtn2').classList.toggle('active', n === 2);
+        document.getElementById('tabbtn3').classList.toggle('active', n === 3);
+        if (n !== 3) { simStopAnim0(); simStopAnim1(); }
     }
 
     nieuweVraag();
     startMix();
     startUnknown();
+    simPopulateSelect('simSaltSelect');
+    simPopulateSelect('simSaltA');
+    simPopulateSelect('simSaltB');
+    simSetMode(0);
     showTab(0);
 </script>
 </body>
