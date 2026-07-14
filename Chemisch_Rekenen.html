@@ -85,6 +85,7 @@
         <label><input type="checkbox" class="modChk" value="dichtheid" checked onchange="bijwerkMaxStappen()"> Dichtheid</label>
         <label><input type="checkbox" class="modChk" value="concentratie" checked onchange="bijwerkMaxStappen()"> Concentratie (mol/L, g/L)</label>
         <label><input type="checkbox" class="modChk" value="molverhouding" checked onchange="bijwerkMaxStappen()"> Molverhouding (reactievergelijking)</label>
+        <label style="grid-column: 1 / -1; padding-left:18px;"><input type="checkbox" id="terugrekenenChk" checked> ↳ Ook terugrekenen (vanuit gewenst product de benodigde reactant berekenen)</label>
         <label><input type="checkbox" class="modChk" value="rendement" checked onchange="bijwerkMaxStappen()"> Rendement</label>
         <label><input type="checkbox" class="modChk" value="massaPercentage" checked onchange="bijwerkMaxStappen()"> Massapercentage / ppm / ppb</label>
         <label><input type="checkbox" class="modChk" value="volumePercentage" checked onchange="bijwerkMaxStappen()"> Volumepercentage / ppm / ppb</label>
@@ -137,6 +138,7 @@
         <button class="secundair" onclick="terugNaarSetup()">Andere instellingen</button>
     </div>
     <p id="rekFeedback"></p>
+    <p id="stappenUitleg" style="font-size:13px; color:var(--text-muted); margin:0 0 4px 0;"></p>
     <div class="actie-row" id="stappenKnoppenRij"></div>
     <div id="stappenWeergave" style="font-size:13.5px; color:var(--text); line-height:1.7;"></div>
     <div class="actie-row">
@@ -467,16 +469,27 @@ function genConcentratie(level) {
 function genMolverhouding(level) {
     const r = randChoice(REACTIES);
     const reactantIdxen = r.stoffen.map((s, i) => s.kant === 'reactant' ? i : -1).filter(i => i >= 0);
-    const idxGiven = randChoice(reactantIdxen);
-    let idxAsk = randInt(0, r.stoffen.length - 1);
-    while (idxAsk === idxGiven) idxAsk = randInt(0, r.stoffen.length - 1);
-    const given = r.stoffen[idxGiven], ask = r.stoffen[idxAsk];
-    const nGiven = level <= 2 ? randChoice([1, 2, 3, 4]) : roundSig(randInt(10, 400) / 100, 2);
-    const nAsk = nGiven * (ask.coef / given.coef);
+    const idxA = randChoice(reactantIdxen); // A is altijd de reactant die "reageert"
+    let idxB = randInt(0, r.stoffen.length - 1);
+    while (idxB === idxA) idxB = randInt(0, r.stoffen.length - 1);
+    const a = r.stoffen[idxA], b = r.stoffen[idxB];
+    const terug = terugrekenenAan && Math.random() < 0.5;
+    if (!terug) {
+        const nGiven = level <= 2 ? randChoice([1, 2, 3, 4]) : roundSig(randInt(10, 400) / 100, 2);
+        const nAsk = nGiven * (b.coef / a.coef);
+        return {
+            prompt: `Reactie: ${r.tekst}. Je hebt ${nGiven} mol ${a.formule}. Hoeveel mol ${b.formule} kan hieruit (maximaal) gevormd/verbruikt worden?`,
+            answer: rondAfSig(nAsk, minSig(nGiven)), unit: 'mol',
+            stappen: [ stap(`mol ${b.formule} = mol ${a.formule} × (coëfficiënt ${b.formule} / coëfficiënt ${a.formule}) = ${nGiven} × (${b.coef}/${a.coef})`, nAsk, 'mol') ]
+        };
+    }
+    // terugrekenen: gegeven een gewenste hoeveelheid van B, bereken hoeveel A (reactant) nodig is
+    const nBGewenst = level <= 2 ? randChoice([1, 2, 3, 4]) : roundSig(randInt(10, 400) / 100, 2);
+    const nANodig = nBGewenst * (a.coef / b.coef);
     return {
-        prompt: `Reactie: ${r.tekst}. Je hebt ${nGiven} mol ${given.formule}. Hoeveel mol ${ask.formule} kan hieruit (maximaal) gevormd/verbruikt worden?`,
-        answer: rondAfSig(nAsk, minSig(nGiven)), unit: 'mol',
-        stappen: [ stap(`mol ${ask.formule} = mol ${given.formule} × (coëfficiënt ${ask.formule} / coëfficiënt ${given.formule}) = ${nGiven} × (${ask.coef}/${given.coef})`, nAsk, 'mol') ]
+        prompt: `Reactie: ${r.tekst}. Je wilt ${nBGewenst} mol ${b.formule} maken/verbruiken. Hoeveel mol ${a.formule} (reactant) heb je hiervoor minimaal nodig?`,
+        answer: rondAfSig(nANodig, minSig(nBGewenst)), unit: 'mol',
+        stappen: [ stap(`mol ${a.formule} nodig = mol ${b.formule} × (coëfficiënt ${a.formule} / coëfficiënt ${b.formule}) = ${nBGewenst} × (${a.coef}/${b.coef})`, nANodig, 'mol') ]
     };
 }
 
@@ -801,8 +814,9 @@ function k2_massaVolume() {
 function k2_massaMolverhouding() {
     const paar = kiesStofPaar(() => true);
     const { reactie, a, b } = paar;
-    const Ma = molarMass(a.formule);
-    if (Math.random() < 0.5) {
+    const Ma = molarMass(a.formule), Mb = molarMass(b.formule);
+    const variant = randChoice(terugrekenenAan ? ['massaA_molB', 'molA_massaB', 'terug_massaB_massaA'] : ['massaA_molB', 'molA_massaB']);
+    if (variant === 'massaA_molB') {
         const massaA = randInt(5, 300), nA = massaA / Ma, nB = nA * (b.coef / a.coef);
         return {
             prompt: `Reactie: ${reactie.tekst}. Je hebt ${massaA} g ${naamVoor(a.formule)} (${a.formule}, M = ${roundSig(Ma,2)} g/mol). Bereken hoeveel mol ${naamVoor(b.formule)} (${b.formule}) hieruit maximaal kan ontstaan/reageren.`,
@@ -812,14 +826,26 @@ function k2_massaMolverhouding() {
                 stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef})`, nB, 'mol')
             ]
         };
+    } else if (variant === 'molA_massaB') {
+        const nA = roundSig(randInt(10, 400) / 100, 2), nB = nA * (b.coef / a.coef), massaB = nB * Mb;
+        return {
+            prompt: `Reactie: ${reactie.tekst}. Je hebt ${nA} mol ${naamVoor(a.formule)} (${a.formule}). Bereken de massa ${naamVoor(b.formule)} (${b.formule}, M = ${roundSig(Mb,2)} g/mol) die hieruit maximaal kan ontstaan/reageren.`,
+            answer: rondAfSig(massaB, minSig(nA)), unit: 'g',
+            stappen: [
+                stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef}) = ${nA} × (${b.coef}/${a.coef})`, nB, 'mol'),
+                stap(`massa ${b.formule} = mol × molmassa = ${roundSig(nB,4)} mol × ${roundSig(Mb,2)} g/mol`, massaB, 'g')
+            ]
+        };
     }
-    const Mb = molarMass(b.formule), nA = roundSig(randInt(10, 400) / 100, 2), nB = nA * (b.coef / a.coef), massaB = nB * Mb;
+    // terugrekenen: gewenste massa B (doel) -> benodigde massa A
+    const massaBGewenst = randInt(5, 300), nBGewenst = massaBGewenst / Mb, nANodig = nBGewenst * (a.coef / b.coef), massaANodig = nANodig * Ma;
     return {
-        prompt: `Reactie: ${reactie.tekst}. Je hebt ${nA} mol ${naamVoor(a.formule)} (${a.formule}). Bereken de massa ${naamVoor(b.formule)} (${b.formule}, M = ${roundSig(Mb,2)} g/mol) die hieruit maximaal kan ontstaan/reageren.`,
-        answer: rondAfSig(massaB, minSig(nA)), unit: 'g',
+        prompt: `Reactie: ${reactie.tekst}. Je wilt ${massaBGewenst} g ${naamVoor(b.formule)} (${b.formule}, M = ${roundSig(Mb,2)} g/mol) maken. Hoeveel gram ${naamVoor(a.formule)} (${a.formule}) heb je hiervoor minimaal nodig?`,
+        answer: rondAfSig(massaANodig, minSig(massaBGewenst)), unit: 'g',
         stappen: [
-            stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef}) = ${nA} × (${b.coef}/${a.coef})`, nB, 'mol'),
-            stap(`massa ${b.formule} = mol × molmassa = ${roundSig(nB,4)} mol × ${roundSig(Mb,2)} g/mol`, massaB, 'g')
+            stap(`mol ${b.formule} nodig = massa / molmassa = ${massaBGewenst} g / ${roundSig(Mb,2)} g/mol`, nBGewenst, 'mol'),
+            stap(`mol ${a.formule} nodig = mol ${b.formule} × (${a.coef}/${b.coef})`, nANodig, 'mol'),
+            stap(`massa ${a.formule} nodig = mol × molmassa = ${roundSig(nANodig,4)} mol × ${roundSig(Ma,2)} g/mol`, massaANodig, 'g')
         ]
     };
 }
@@ -829,27 +855,53 @@ function k2_volumeMolverhouding() {
     if (!paar) return k2_massaMolverhouding();
     const { reactie, a, b } = paar;
     const vm = kiesVm(), cond = vmConditie(vm);
-    const Va = roundSig(randInt(50, 1000) / 100, 2), nA = Va / vm, nB = nA * (b.coef / a.coef);
-    if (!GAS_FORMULAS.has(b.formule)) {
-        const Mb = molarMass(b.formule), massaB = nB * Mb;
+    if (!terugrekenenAan || Math.random() < 0.5) {
+        const Va = roundSig(randInt(50, 1000) / 100, 2), nA = Va / vm, nB = nA * (b.coef / a.coef);
+        if (!GAS_FORMULAS.has(b.formule)) {
+            const Mb = molarMass(b.formule), massaB = nB * Mb;
+            return {
+                prompt: `Reactie: ${reactie.tekst}. Je hebt ${Va} L ${naamVoor(a.formule)} (${a.formule}) bij ${cond} (Vm = ${vm} L/mol). Bereken de massa ${naamVoor(b.formule)} (${b.formule}, M = ${roundSig(Mb,2)} g/mol) die hieruit maximaal kan ontstaan/reageren.`,
+                answer: rondAfSig(massaB, minSig(Va)), unit: 'g',
+                stappen: [
+                    stap(`mol ${a.formule} = volume / Vm = ${Va} L / ${vm} L/mol`, nA, 'mol'),
+                    stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef})`, nB, 'mol'),
+                    stap(`massa ${b.formule} = mol × molmassa = ${roundSig(nB,4)} mol × ${roundSig(Mb,2)} g/mol`, massaB, 'g')
+                ]
+            };
+        }
+        const Vb = nB * vm;
         return {
-            prompt: `Reactie: ${reactie.tekst}. Je hebt ${Va} L ${naamVoor(a.formule)} (${a.formule}) bij ${cond} (Vm = ${vm} L/mol). Bereken de massa ${naamVoor(b.formule)} (${b.formule}, M = ${roundSig(Mb,2)} g/mol) die hieruit maximaal kan ontstaan/reageren.`,
-            answer: rondAfSig(massaB, minSig(Va)), unit: 'g',
+            prompt: `Reactie: ${reactie.tekst}. Je hebt ${Va} L ${naamVoor(a.formule)} (${a.formule}) bij ${cond} (Vm = ${vm} L/mol). Bereken het volume ${naamVoor(b.formule)} (${b.formule}) dat hieruit maximaal kan ontstaan/reageren (zelfde omstandigheden).`,
+            answer: rondAfSig(Vb, minSig(Va)), unit: 'L',
             stappen: [
                 stap(`mol ${a.formule} = volume / Vm = ${Va} L / ${vm} L/mol`, nA, 'mol'),
                 stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef})`, nB, 'mol'),
-                stap(`massa ${b.formule} = mol × molmassa = ${roundSig(nB,4)} mol × ${roundSig(Mb,2)} g/mol`, massaB, 'g')
+                stap(`volume ${b.formule} = mol × Vm = ${roundSig(nB,4)} mol × ${vm} L/mol`, Vb, 'L')
             ]
         };
     }
-    const Vb = nB * vm;
+    // terugrekenen: gewenste hoeveelheid B (doel) -> benodigd volume A
+    if (!GAS_FORMULAS.has(b.formule)) {
+        const Mb = molarMass(b.formule);
+        const massaBGewenst = randInt(5, 300), nBGewenst = massaBGewenst / Mb, nANodig = nBGewenst * (a.coef / b.coef), VaNodig = nANodig * vm;
+        return {
+            prompt: `Reactie: ${reactie.tekst}. Je wilt ${massaBGewenst} g ${naamVoor(b.formule)} (${b.formule}, M = ${roundSig(Mb,2)} g/mol) maken. Hoeveel L ${naamVoor(a.formule)} (${a.formule}) heb je hiervoor nodig bij ${cond} (Vm = ${vm} L/mol)?`,
+            answer: rondAfSig(VaNodig, minSig(massaBGewenst)), unit: 'L',
+            stappen: [
+                stap(`mol ${b.formule} nodig = massa / molmassa = ${massaBGewenst} g / ${roundSig(Mb,2)} g/mol`, nBGewenst, 'mol'),
+                stap(`mol ${a.formule} nodig = mol ${b.formule} × (${a.coef}/${b.coef})`, nANodig, 'mol'),
+                stap(`volume ${a.formule} nodig = mol × Vm = ${roundSig(nANodig,4)} mol × ${vm} L/mol`, VaNodig, 'L')
+            ]
+        };
+    }
+    const VbGewenst = roundSig(randInt(50, 1000) / 100, 2), nBGewenst = VbGewenst / vm, nANodig = nBGewenst * (a.coef / b.coef), VaNodig = nANodig * vm;
     return {
-        prompt: `Reactie: ${reactie.tekst}. Je hebt ${Va} L ${naamVoor(a.formule)} (${a.formule}) bij ${cond} (Vm = ${vm} L/mol). Bereken het volume ${naamVoor(b.formule)} (${b.formule}) dat hieruit maximaal kan ontstaan/reageren (zelfde omstandigheden).`,
-        answer: rondAfSig(Vb, minSig(Va)), unit: 'L',
+        prompt: `Reactie: ${reactie.tekst}. Je wilt ${VbGewenst} L ${naamVoor(b.formule)} (${b.formule}) maken bij ${cond}. Hoeveel L ${naamVoor(a.formule)} (${a.formule}) heb je hiervoor nodig (zelfde omstandigheden)?`,
+        answer: rondAfSig(VaNodig, minSig(VbGewenst)), unit: 'L',
         stappen: [
-            stap(`mol ${a.formule} = volume / Vm = ${Va} L / ${vm} L/mol`, nA, 'mol'),
-            stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef})`, nB, 'mol'),
-            stap(`volume ${b.formule} = mol × Vm = ${roundSig(nB,4)} mol × ${vm} L/mol`, Vb, 'L')
+            stap(`mol ${b.formule} nodig = volume / Vm = ${VbGewenst} L / ${vm} L/mol`, nBGewenst, 'mol'),
+            stap(`mol ${a.formule} nodig = mol ${b.formule} × (${a.coef}/${b.coef})`, nANodig, 'mol'),
+            stap(`volume ${a.formule} nodig = mol × Vm = ${roundSig(nANodig,4)} mol × ${vm} L/mol`, VaNodig, 'L')
         ]
     };
 }
@@ -857,15 +909,27 @@ function k2_volumeMolverhouding() {
 function k2_concentratieMolverhouding() {
     const paar = kiesStofPaar(p => p.reactie.oplossingGeschikt === true);
     const { reactie, a, b } = paar;
-    const V = roundSig(randInt(10, 300) / 100, 2), cVal = roundSig(randInt(10, 300) / 100, 2);
-    const nA = cVal * V, nB = nA * (b.coef / a.coef);
-    const antwoord = rondAfSig(nB, minSig(V, cVal));
+    if (!terugrekenenAan || Math.random() < 0.5) {
+        const V = roundSig(randInt(10, 300) / 100, 2), cVal = roundSig(randInt(10, 300) / 100, 2);
+        const nA = cVal * V, nB = nA * (b.coef / a.coef);
+        return {
+            prompt: `Reactie: ${reactie.tekst}. Je hebt ${V} L oplossing met concentratie ${cVal} mol/L ${naamVoor(a.formule)} (${a.formule}). Bereken hoeveel mol ${naamVoor(b.formule)} (${b.formule}) hieruit maximaal kan ontstaan/reageren.`,
+            answer: rondAfSig(nB, minSig(V, cVal)), unit: 'mol',
+            stappen: [
+                stap(`mol ${a.formule} = concentratie × volume = ${cVal} mol/L × ${V} L`, nA, 'mol'),
+                stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef})`, nB, 'mol')
+            ]
+        };
+    }
+    // terugrekenen: gewenste hoeveelheid B (doel) -> benodigd volume van de A-oplossing
+    const cValA = roundSig(randInt(10, 300) / 100, 2);
+    const nBGewenst = roundSig(randInt(10, 300) / 100, 2), nANodig = nBGewenst * (a.coef / b.coef), VNodig = nANodig / cValA;
     return {
-        prompt: `Reactie: ${reactie.tekst}. Je hebt ${V} L oplossing met concentratie ${cVal} mol/L ${naamVoor(a.formule)} (${a.formule}). Bereken hoeveel mol ${naamVoor(b.formule)} (${b.formule}) hieruit maximaal kan ontstaan/reageren.`,
-        answer: antwoord, unit: 'mol',
+        prompt: `Reactie: ${reactie.tekst}. Je wilt ${nBGewenst} mol ${naamVoor(b.formule)} (${b.formule}) maken/verbruiken. Je hebt een oplossing van ${naamVoor(a.formule)} (${a.formule}) met concentratie ${cValA} mol/L. Hoeveel liter van deze oplossing heb je hiervoor minimaal nodig?`,
+        answer: rondAfSig(VNodig, minSig(nBGewenst, cValA)), unit: 'L',
         stappen: [
-            stap(`mol ${a.formule} = concentratie × volume = ${cVal} mol/L × ${V} L`, nA, 'mol'),
-            stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef})`, nB, 'mol')
+            stap(`mol ${a.formule} nodig = mol ${b.formule} × (${a.coef}/${b.coef}) = ${nBGewenst} × (${a.coef}/${b.coef})`, nANodig, 'mol'),
+            stap(`volume nodig = mol / concentratie = ${roundSig(nANodig,4)} mol / ${cValA} mol/L`, VNodig, 'L')
         ]
     };
 }
@@ -915,14 +979,27 @@ function k3_massaMolverhoudingMassa() {
     const paar = kiesStofPaar(p => p.b.kant === 'product');
     const { reactie, a, b } = paar;
     const Ma = molarMass(a.formule), Mb = molarMass(b.formule);
-    const massaA = randInt(10, 300), nA = massaA / Ma, nB = nA * (b.coef / a.coef), massaB = nB * Mb;
+    if (!terugrekenenAan || Math.random() < 0.5) {
+        const massaA = randInt(10, 300), nA = massaA / Ma, nB = nA * (b.coef / a.coef), massaB = nB * Mb;
+        return {
+            prompt: `Reactie: ${reactie.tekst}. Je laat ${massaA} g ${naamVoor(a.formule)} (${a.formule}) volledig reageren. Bereken de massa ${naamVoor(b.formule)} (${b.formule}) die hierbij maximaal ontstaat.`,
+            answer: rondAfSig(massaB, minSig(massaA)), unit: 'g',
+            stappen: [
+                stap(`mol ${a.formule} = massa / molmassa = ${massaA} g / ${roundSig(Ma,2)} g/mol`, nA, 'mol'),
+                stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef})`, nB, 'mol'),
+                stap(`massa ${b.formule} = mol × molmassa = ${roundSig(nB,4)} mol × ${roundSig(Mb,2)} g/mol`, massaB, 'g')
+            ]
+        };
+    }
+    // terugrekenen: gewenste massa B (doel) -> benodigde massa A
+    const massaBGewenst = randInt(10, 300), nBGewenst = massaBGewenst / Mb, nANodig = nBGewenst * (a.coef / b.coef), massaANodig = nANodig * Ma;
     return {
-        prompt: `Reactie: ${reactie.tekst}. Je laat ${massaA} g ${naamVoor(a.formule)} (${a.formule}) volledig reageren. Bereken de massa ${naamVoor(b.formule)} (${b.formule}) die hierbij maximaal ontstaat.`,
-        answer: rondAfSig(massaB, minSig(massaA)), unit: 'g',
+        prompt: `Reactie: ${reactie.tekst}. Je wilt ${massaBGewenst} g ${naamVoor(b.formule)} (${b.formule}) maken. Hoeveel gram ${naamVoor(a.formule)} (${a.formule}) heb je hiervoor minimaal nodig?`,
+        answer: rondAfSig(massaANodig, minSig(massaBGewenst)), unit: 'g',
         stappen: [
-            stap(`mol ${a.formule} = massa / molmassa = ${massaA} g / ${roundSig(Ma,2)} g/mol`, nA, 'mol'),
-            stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef})`, nB, 'mol'),
-            stap(`massa ${b.formule} = mol × molmassa = ${roundSig(nB,4)} mol × ${roundSig(Mb,2)} g/mol`, massaB, 'g')
+            stap(`mol ${b.formule} nodig = massa / molmassa = ${massaBGewenst} g / ${roundSig(Mb,2)} g/mol`, nBGewenst, 'mol'),
+            stap(`mol ${a.formule} nodig = mol ${b.formule} × (${a.coef}/${b.coef})`, nANodig, 'mol'),
+            stap(`massa ${a.formule} nodig = mol × molmassa = ${roundSig(nANodig,4)} mol × ${roundSig(Ma,2)} g/mol`, massaANodig, 'g')
         ]
     };
 }
@@ -933,14 +1010,27 @@ function k3_massaMolverhoudingVolume() {
     const { reactie, a, b } = paar;
     const Ma = molarMass(a.formule);
     const vm = kiesVm(), cond = vmConditie(vm);
-    const massaA = randInt(10, 300), nA = massaA / Ma, nB = nA * (b.coef / a.coef), Vb = nB * vm;
+    if (!terugrekenenAan || Math.random() < 0.5) {
+        const massaA = randInt(10, 300), nA = massaA / Ma, nB = nA * (b.coef / a.coef), Vb = nB * vm;
+        return {
+            prompt: `Reactie: ${reactie.tekst}. Je laat ${massaA} g ${naamVoor(a.formule)} (${a.formule}, M = ${roundSig(Ma,2)} g/mol) volledig reageren. Bereken het volume ${naamVoor(b.formule)} (${b.formule}) dat hierbij ontstaat, bij ${cond} (Vm = ${vm} L/mol).`,
+            answer: rondAfSig(Vb, minSig(massaA)), unit: 'L',
+            stappen: [
+                stap(`mol ${a.formule} = massa / molmassa = ${massaA} g / ${roundSig(Ma,2)} g/mol`, nA, 'mol'),
+                stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef})`, nB, 'mol'),
+                stap(`volume ${b.formule} = mol × Vm = ${roundSig(nB,4)} mol × ${vm} L/mol`, Vb, 'L')
+            ]
+        };
+    }
+    // terugrekenen: gewenst volume B (doel) -> benodigde massa A
+    const VbGewenst = roundSig(randInt(50, 1000) / 100, 2), nBGewenst = VbGewenst / vm, nANodig = nBGewenst * (a.coef / b.coef), massaANodig = nANodig * Ma;
     return {
-        prompt: `Reactie: ${reactie.tekst}. Je laat ${massaA} g ${naamVoor(a.formule)} (${a.formule}, M = ${roundSig(Ma,2)} g/mol) volledig reageren. Bereken het volume ${naamVoor(b.formule)} (${b.formule}) dat hierbij ontstaat, bij ${cond} (Vm = ${vm} L/mol).`,
-        answer: rondAfSig(Vb, minSig(massaA)), unit: 'L',
+        prompt: `Reactie: ${reactie.tekst}. Je wilt ${VbGewenst} L ${naamVoor(b.formule)} (${b.formule}) maken bij ${cond} (Vm = ${vm} L/mol). Hoeveel gram ${naamVoor(a.formule)} (${a.formule}, M = ${roundSig(Ma,2)} g/mol) heb je hiervoor minimaal nodig?`,
+        answer: rondAfSig(massaANodig, minSig(VbGewenst)), unit: 'g',
         stappen: [
-            stap(`mol ${a.formule} = massa / molmassa = ${massaA} g / ${roundSig(Ma,2)} g/mol`, nA, 'mol'),
-            stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef})`, nB, 'mol'),
-            stap(`volume ${b.formule} = mol × Vm = ${roundSig(nB,4)} mol × ${vm} L/mol`, Vb, 'L')
+            stap(`mol ${b.formule} nodig = volume / Vm = ${VbGewenst} L / ${vm} L/mol`, nBGewenst, 'mol'),
+            stap(`mol ${a.formule} nodig = mol ${b.formule} × (${a.coef}/${b.coef})`, nANodig, 'mol'),
+            stap(`massa ${a.formule} nodig = mol × molmassa = ${roundSig(nANodig,4)} mol × ${roundSig(Ma,2)} g/mol`, massaANodig, 'g')
         ]
     };
 }
@@ -951,14 +1041,27 @@ function k3_volumeMolverhoudingMassa() {
     const { reactie, a, b } = paar;
     const vm = kiesVm(), cond = vmConditie(vm);
     const Mb = molarMass(b.formule);
-    const Va = roundSig(randInt(50, 1000) / 100, 2), nA = Va / vm, nB = nA * (b.coef / a.coef), massaB = nB * Mb;
+    if (!terugrekenenAan || Math.random() < 0.5) {
+        const Va = roundSig(randInt(50, 1000) / 100, 2), nA = Va / vm, nB = nA * (b.coef / a.coef), massaB = nB * Mb;
+        return {
+            prompt: `Reactie: ${reactie.tekst}. Je laat ${Va} L ${naamVoor(a.formule)} (${a.formule}) bij ${cond} (Vm = ${vm} L/mol) volledig reageren. Bereken de massa ${naamVoor(b.formule)} (${b.formule}, M = ${roundSig(Mb,2)} g/mol) die hierbij maximaal ontstaat.`,
+            answer: rondAfSig(massaB, minSig(Va)), unit: 'g',
+            stappen: [
+                stap(`mol ${a.formule} = volume / Vm = ${Va} L / ${vm} L/mol`, nA, 'mol'),
+                stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef})`, nB, 'mol'),
+                stap(`massa ${b.formule} = mol × molmassa = ${roundSig(nB,4)} mol × ${roundSig(Mb,2)} g/mol`, massaB, 'g')
+            ]
+        };
+    }
+    // terugrekenen: gewenste massa B (doel) -> benodigd volume A
+    const massaBGewenst = randInt(10, 300), nBGewenst = massaBGewenst / Mb, nANodig = nBGewenst * (a.coef / b.coef), VaNodig = nANodig * vm;
     return {
-        prompt: `Reactie: ${reactie.tekst}. Je laat ${Va} L ${naamVoor(a.formule)} (${a.formule}) bij ${cond} (Vm = ${vm} L/mol) volledig reageren. Bereken de massa ${naamVoor(b.formule)} (${b.formule}, M = ${roundSig(Mb,2)} g/mol) die hierbij maximaal ontstaat.`,
-        answer: rondAfSig(massaB, minSig(Va)), unit: 'g',
+        prompt: `Reactie: ${reactie.tekst}. Je wilt ${massaBGewenst} g ${naamVoor(b.formule)} (${b.formule}, M = ${roundSig(Mb,2)} g/mol) maken. Hoeveel L ${naamVoor(a.formule)} (${a.formule}) heb je hiervoor nodig bij ${cond} (Vm = ${vm} L/mol)?`,
+        answer: rondAfSig(VaNodig, minSig(massaBGewenst)), unit: 'L',
         stappen: [
-            stap(`mol ${a.formule} = volume / Vm = ${Va} L / ${vm} L/mol`, nA, 'mol'),
-            stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef})`, nB, 'mol'),
-            stap(`massa ${b.formule} = mol × molmassa = ${roundSig(nB,4)} mol × ${roundSig(Mb,2)} g/mol`, massaB, 'g')
+            stap(`mol ${b.formule} nodig = massa / molmassa = ${massaBGewenst} g / ${roundSig(Mb,2)} g/mol`, nBGewenst, 'mol'),
+            stap(`mol ${a.formule} nodig = mol ${b.formule} × (${a.coef}/${b.coef})`, nANodig, 'mol'),
+            stap(`volume ${a.formule} nodig = mol × Vm = ${roundSig(nANodig,4)} mol × ${vm} L/mol`, VaNodig, 'L')
         ]
     };
 }
@@ -967,16 +1070,29 @@ function k3_concentratieMolverhoudingMassa() {
     const paar = kiesStofPaar(p => p.reactie.oplossingGeschikt === true);
     const { reactie, a, b } = paar;
     const Mb = molarMass(b.formule);
-    const V = roundSig(randInt(10, 300) / 100, 2), cVal = roundSig(randInt(10, 300) / 100, 2);
-    const nA = cVal * V, nB = nA * (b.coef / a.coef), massaB = nB * Mb;
-    const antwoord = rondAfSig(massaB, minSig(V, cVal));
+    if (!terugrekenenAan || Math.random() < 0.5) {
+        const V = roundSig(randInt(10, 300) / 100, 2), cVal = roundSig(randInt(10, 300) / 100, 2);
+        const nA = cVal * V, nB = nA * (b.coef / a.coef), massaB = nB * Mb;
+        return {
+            prompt: `Reactie: ${reactie.tekst}. Je hebt ${V} L oplossing met concentratie ${cVal} mol/L ${naamVoor(a.formule)} (${a.formule}). Bereken de massa ${naamVoor(b.formule)} (${b.formule}, M = ${roundSig(Mb,2)} g/mol) die hieruit maximaal kan ontstaan/reageren.`,
+            answer: rondAfSig(massaB, minSig(V, cVal)), unit: 'g',
+            stappen: [
+                stap(`mol ${a.formule} = concentratie × volume = ${cVal} mol/L × ${V} L`, nA, 'mol'),
+                stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef})`, nB, 'mol'),
+                stap(`massa ${b.formule} = mol × molmassa = ${roundSig(nB,4)} mol × ${roundSig(Mb,2)} g/mol`, massaB, 'g')
+            ]
+        };
+    }
+    // terugrekenen: gewenste massa B (doel) -> benodigd volume van de A-oplossing
+    const cValA = roundSig(randInt(10, 300) / 100, 2);
+    const massaBGewenst = randInt(10, 300), nBGewenst = massaBGewenst / Mb, nANodig = nBGewenst * (a.coef / b.coef), VNodig = nANodig / cValA;
     return {
-        prompt: `Reactie: ${reactie.tekst}. Je hebt ${V} L oplossing met concentratie ${cVal} mol/L ${naamVoor(a.formule)} (${a.formule}). Bereken de massa ${naamVoor(b.formule)} (${b.formule}, M = ${roundSig(Mb,2)} g/mol) die hieruit maximaal kan ontstaan/reageren.`,
-        answer: antwoord, unit: 'g',
+        prompt: `Reactie: ${reactie.tekst}. Je wilt ${massaBGewenst} g ${naamVoor(b.formule)} (${b.formule}, M = ${roundSig(Mb,2)} g/mol) maken. Je hebt een oplossing van ${naamVoor(a.formule)} (${a.formule}) met concentratie ${cValA} mol/L. Hoeveel liter van deze oplossing heb je hiervoor minimaal nodig?`,
+        answer: rondAfSig(VNodig, minSig(massaBGewenst, cValA)), unit: 'L',
         stappen: [
-            stap(`mol ${a.formule} = concentratie × volume = ${cVal} mol/L × ${V} L`, nA, 'mol'),
-            stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef})`, nB, 'mol'),
-            stap(`massa ${b.formule} = mol × molmassa = ${roundSig(nB,4)} mol × ${roundSig(Mb,2)} g/mol`, massaB, 'g')
+            stap(`mol ${b.formule} nodig = massa / molmassa = ${massaBGewenst} g / ${roundSig(Mb,2)} g/mol`, nBGewenst, 'mol'),
+            stap(`mol ${a.formule} nodig = mol ${b.formule} × (${a.coef}/${b.coef})`, nANodig, 'mol'),
+            stap(`volume nodig = mol / concentratie = ${roundSig(nANodig,4)} mol / ${cValA} mol/L`, VNodig, 'L')
         ]
     };
 }
@@ -1094,6 +1210,7 @@ const KETEN_TEMPLATES = {
 
 let chainOps = [];      // subset van massaMol/molairVolume/concentratie/molverhouding/rendement
 let flatOps = [];        // subset van massaPercentage/volumePercentage/samenstelling
+let terugrekenenAan = true; // modifier: mogen molverhoudingsvragen ook 'terugrekenen' zijn?
 let minStappen = 1;
 let maxStappen = 4;
 let score = 0;
@@ -1162,6 +1279,7 @@ function startSessie() {
     }
     chainOps = gekozenModules.filter(m => CHAIN_OP_KEYS.includes(m));
     flatOps = gekozenModules.filter(m => FLAT_OP_KEYS.includes(m));
+    terugrekenenAan = document.getElementById('terugrekenenChk').checked;
     minStappen = parseInt(document.getElementById('minStappenSelect').value);
     maxStappen = parseInt(document.getElementById('maxStappenSelect').value);
     if (minStappen > maxStappen) { const tmp = minStappen; minStappen = maxStappen; maxStappen = tmp; }
@@ -1204,6 +1322,7 @@ function nieuweRekVraag() {
         document.getElementById('rekEenheid').innerText = '';
         document.getElementById('stappenKnoppenRij').innerHTML = '';
         document.getElementById('stappenWeergave').innerHTML = '';
+        document.getElementById('stappenUitleg').innerText = '';
         document.getElementById('volgendeVraagBtn').style.display = 'none';
         return;
     }
@@ -1226,8 +1345,10 @@ function nieuweRekVraag() {
 // toegevoegde waarde t.o.v. "Toon antwoord", dus dan tonen we geen knoppen.
 function renderStappenKnoppen() {
     const rij = document.getElementById('stappenKnoppenRij');
+    const uitleg = document.getElementById('stappenUitleg');
     const stappen = currentQuestion.stappen || [];
-    if (stappen.length <= 1) { rij.innerHTML = ''; return; }
+    if (stappen.length <= 1) { rij.innerHTML = ''; uitleg.innerText = ''; return; }
+    uitleg.innerText = 'Klik op Stap 1 om de uitwerking van de eerste stap te zien.';
     let html = '';
     stappen.forEach((s, i) => {
         html += `<button class="secundair" style="padding:5px 10px; font-size:12px;" onclick="toonStap(${i})">Stap ${i + 1}</button>`;
@@ -1258,6 +1379,7 @@ function toonAlleStappen() {
     stappenGetoond = stappenGetoond.map(() => true);
     renderStappenWeergave();
     document.getElementById('stappenKnoppenRij').innerHTML = '';
+    document.getElementById('stappenUitleg').innerText = '';
 }
 
 function parseAntwoord(str) {
