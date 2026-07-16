@@ -221,6 +221,21 @@ function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) 
 function randChoice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 function roundSig(num, decimals) { const f = Math.pow(10, decimals); return Math.round(num * f) / f; }
 
+// randInt, maar herkanst zolang de uitkomst in 'verboden' zit. Gebruikt om te voorkomen dat een
+// rekenparameter (volume, concentratie, mol, massa) toevallig op exact 1 uitkomt: delen of
+// vermenigvuldigen door 1 verhult de rekenstap in plaats van hem te oefenen.
+function randIntSkip(min, max, verboden) {
+    let v;
+    do { v = randInt(min, max); } while (verboden.includes(v));
+    return v;
+}
+// randChoice, maar filtert eerst triviale waarden (bijv. 1) uit de array — met terugval op de
+// volledige array als filteren niets zou overlaten.
+function randChoiceSkip(arr, verboden) {
+    const gefilterd = arr.filter(v => !verboden.includes(v));
+    return randChoice(gefilterd.length ? gefilterd : arr);
+}
+
 // Bouwt één regel van een stapsgewijze uitleg: omschrijving + tussenwaarde + eenheid.
 function stap(omschrijving, waarde, eenheid) {
     return { omschrijving, waarde: (typeof waarde === 'number' ? roundSig(waarde, 4) : waarde), eenheid };
@@ -431,10 +446,10 @@ function genMolairVolume(level) {
 function genConcentratie(level) {
     const c = randChoice(OPLOSBARE_STOFFEN);
     const M = molarMass(c.formule);
-    const V = level <= 2 ? randChoice([0.1, 0.25, 0.5, 1, 2]) : roundSig(randInt(10, 300) / 100, 2);
+    const V = level <= 2 ? randChoiceSkip([0.1, 0.25, 0.5, 1, 2], [1]) : roundSig(randIntSkip(10, 300, [100]) / 100, 2);
     const mode = randChoice(['nV_naar_c', 'mV_naar_c', 'cV_naar_n', 'cV_naar_m']);
     if (mode === 'nV_naar_c') {
-        const n = level <= 2 ? randChoice([0.1, 0.2, 0.5, 1]) : roundSig(randInt(5, 200) / 100, 2);
+        const n = level <= 2 ? randChoiceSkip([0.1, 0.2, 0.5, 1], [1]) : roundSig(randIntSkip(5, 200, [100]) / 100, 2);
         const cVal = n / V;
         return {
             prompt: `Je lost ${n} mol ${c.naam} (${c.formule}) op tot ${V} L oplossing. Bereken de concentratie (mol/L).`,
@@ -450,7 +465,7 @@ function genConcentratie(level) {
             stappen: [ stap(`concentratie = massa / volume = ${m} g / ${V} L`, cVal, 'g/L') ]
         };
     } else if (mode === 'cV_naar_n') {
-        const cVal = level <= 2 ? randChoice([0.1, 0.5, 1, 2]) : roundSig(randInt(5, 300) / 100, 2);
+        const cVal = level <= 2 ? randChoiceSkip([0.1, 0.5, 1, 2], [1]) : roundSig(randIntSkip(5, 300, [100]) / 100, 2);
         const n = cVal * V;
         return {
             prompt: `Je hebt ${V} L oplossing met concentratie ${cVal} mol/L ${c.naam} (${c.formule}). Bereken het aantal mol.`,
@@ -912,7 +927,7 @@ function k2_concentratieMolverhouding() {
     const paar = kiesStofPaar(p => p.reactie.oplossingGeschikt === true);
     const { reactie, a, b } = paar;
     if (!terugrekenenAan || Math.random() < 0.5) {
-        const V = roundSig(randInt(10, 300) / 100, 2), cVal = roundSig(randInt(10, 300) / 100, 2);
+        const V = roundSig(randIntSkip(10, 300, [100]) / 100, 2), cVal = roundSig(randIntSkip(10, 300, [100]) / 100, 2);
         const nA = cVal * V, nB = nA * (b.coef / a.coef);
         return {
             prompt: `Reactie: ${reactie.tekst}. Je hebt ${V} L oplossing met concentratie ${cVal} mol/L ${naamVoor(a.formule)} (${a.formule}). Bereken hoeveel mol ${naamVoor(b.formule)} (${b.formule}) hieruit maximaal kan ontstaan/reageren.`,
@@ -924,14 +939,47 @@ function k2_concentratieMolverhouding() {
         };
     }
     // terugrekenen: gewenste hoeveelheid B (doel) -> benodigd volume van de A-oplossing
-    const cValA = roundSig(randInt(10, 300) / 100, 2);
-    const nBGewenst = roundSig(randInt(10, 300) / 100, 2), nANodig = nBGewenst * (a.coef / b.coef), VNodig = nANodig / cValA;
+    const cValA = roundSig(randIntSkip(10, 300, [100]) / 100, 2);
+    const nBGewenst = roundSig(randIntSkip(10, 300, [100]) / 100, 2), nANodig = nBGewenst * (a.coef / b.coef), VNodig = nANodig / cValA;
     return {
         prompt: `Reactie: ${reactie.tekst}. Je wilt ${nBGewenst} mol ${naamVoor(b.formule)} (${b.formule}) maken/verbruiken. Je hebt een oplossing van ${naamVoor(a.formule)} (${a.formule}) met concentratie ${cValA} mol/L. Hoeveel liter van deze oplossing heb je hiervoor minimaal nodig?`,
         answer: rondAfSig(VNodig, minSig(nBGewenst, cValA)), unit: 'L',
         stappen: [
             stap(`mol ${a.formule} nodig = mol ${b.formule} × (${a.coef}/${b.coef}) = ${nBGewenst} × (${a.coef}/${b.coef})`, nANodig, 'mol'),
             stap(`volume nodig = mol / concentratie = ${roundSig(nANodig,4)} mol / ${cValA} mol/L`, VNodig, 'L')
+        ]
+    };
+}
+
+// Leerdoel: de concentratie (mol/L) rechtstreeks afleiden uit een inweeg-scenario zoals in het
+// lab — je weegt een massa af en lost die op tot een bepaald volume — in plaats van pas te starten
+// vanaf een al gegeven aantal mol. Vereist massaMol + concentratie beide aan.
+function k2_massaMolConcentratie() {
+    const c = randChoice(OPLOSBARE_STOFFEN);
+    const M = molarMass(c.formule);
+    if (!terugrekenenAan || Math.random() < 0.5) {
+        const m = randIntSkip(5, 200, [1]);
+        const V = roundSig(randIntSkip(10, 300, [100]) / 100, 2);
+        const n = m / M, cVal = n / V;
+        return {
+            prompt: `Je lost ${m} g ${c.naam} (${c.formule}, M = ${roundSig(M,2)} g/mol) op tot ${V} L oplossing. Bereken de concentratie (mol/L).`,
+            answer: rondAfSig(cVal, minSig(m, V)), unit: 'mol/L',
+            stappen: [
+                stap(`mol = massa / molmassa = ${m} g / ${roundSig(M,2)} g/mol`, n, 'mol'),
+                stap(`concentratie = mol / volume = ${roundSig(n,4)} mol / ${V} L`, cVal, 'mol/L')
+            ]
+        };
+    }
+    // terugrekenen: gewenste concentratie en volume van de oplossing -> in te wegen massa
+    const V = roundSig(randIntSkip(10, 300, [100]) / 100, 2);
+    const cVal = roundSig(randIntSkip(10, 300, [100]) / 100, 2);
+    const n = cVal * V, m = n * M;
+    return {
+        prompt: `Je wilt ${V} L oplossing maken met concentratie ${cVal} mol/L ${c.naam} (${c.formule}, M = ${roundSig(M,2)} g/mol). Hoeveel gram moet je afwegen?`,
+        answer: rondAfSig(m, minSig(V, cVal)), unit: 'g',
+        stappen: [
+            stap(`mol nodig = concentratie × volume = ${cVal} mol/L × ${V} L`, n, 'mol'),
+            stap(`massa = mol × molmassa = ${roundSig(n,4)} mol × ${roundSig(M,2)} g/mol`, m, 'g')
         ]
     };
 }
@@ -1073,7 +1121,7 @@ function k3_concentratieMolverhoudingMassa() {
     const { reactie, a, b } = paar;
     const Mb = molarMass(b.formule);
     if (!terugrekenenAan || Math.random() < 0.5) {
-        const V = roundSig(randInt(10, 300) / 100, 2), cVal = roundSig(randInt(10, 300) / 100, 2);
+        const V = roundSig(randIntSkip(10, 300, [100]) / 100, 2), cVal = roundSig(randIntSkip(10, 300, [100]) / 100, 2);
         const nA = cVal * V, nB = nA * (b.coef / a.coef), massaB = nB * Mb;
         return {
             prompt: `Reactie: ${reactie.tekst}. Je hebt ${V} L oplossing met concentratie ${cVal} mol/L ${naamVoor(a.formule)} (${a.formule}). Bereken de massa ${naamVoor(b.formule)} (${b.formule}, M = ${roundSig(Mb,2)} g/mol) die hieruit maximaal kan ontstaan/reageren.`,
@@ -1086,7 +1134,7 @@ function k3_concentratieMolverhoudingMassa() {
         };
     }
     // terugrekenen: gewenste massa B (doel) -> benodigd volume van de A-oplossing
-    const cValA = roundSig(randInt(10, 300) / 100, 2);
+    const cValA = roundSig(randIntSkip(10, 300, [100]) / 100, 2);
     const massaBGewenst = randInt(10, 300), nBGewenst = massaBGewenst / Mb, nANodig = nBGewenst * (a.coef / b.coef), VNodig = nANodig / cValA;
     return {
         prompt: `Reactie: ${reactie.tekst}. Je wilt ${massaBGewenst} g ${naamVoor(b.formule)} (${b.formule}, M = ${roundSig(Mb,2)} g/mol) maken. Je hebt een oplossing van ${naamVoor(a.formule)} (${a.formule}) met concentratie ${cValA} mol/L. Hoeveel liter van deze oplossing heb je hiervoor minimaal nodig?`,
@@ -1138,7 +1186,7 @@ function k4_concentratieMolverhoudingRendementMassa() {
     const paar = kiesStofPaar(p => p.reactie.oplossingGeschikt === true && p.b.kant === 'product');
     const { reactie, a, b } = paar;
     const Mb = molarMass(b.formule);
-    const V = roundSig(randInt(10, 300) / 100, 2), cVal = roundSig(randInt(10, 300) / 100, 2);
+    const V = roundSig(randIntSkip(10, 300, [100]) / 100, 2), cVal = roundSig(randIntSkip(10, 300, [100]) / 100, 2);
     const nA = cVal * V, nBTh = nA * (b.coef / a.coef);
     const rendementPct = kiesRendementPct(), nBWerk = nBTh * rendementPct / 100, massaBWerk = nBWerk * Mb;
     return {
@@ -1187,6 +1235,7 @@ const KETEN_TEMPLATES = {
         { fn: k2_massaMolverhouding, ops: ['massaMol', 'molverhouding'] },
         { fn: k2_volumeMolverhouding, ops: ['molairVolume', 'molverhouding'] },
         { fn: k2_concentratieMolverhouding, ops: ['concentratie', 'molverhouding'] },
+        { fn: k2_massaMolConcentratie, ops: ['massaMol', 'concentratie'] },
         { fn: k2_massaRendement, ops: ['massaMol', 'rendement'] },
         { fn: k2_molverhoudingRendement, ops: ['molverhouding', 'rendement'] },
         { fn: k2_molmassaDichtheid, ops: ['massaMol', 'dichtheid'] }
