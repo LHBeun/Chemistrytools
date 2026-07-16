@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reactievergelijkingen & Massabehoud</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+            padding: 16px;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+        .mission-bar {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            max-height: 80px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+        .mission-btn {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        .mission-btn:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+        .mission-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .reaction-area {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            margin-bottom: 14px;
+            overflow-x: auto;
+        }
+        .scales-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 6px;
+            min-width: 480px;
+        }
+        .scale-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 120px;
+        }
+        .scale-formula {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 5px;
+        }
+        .drop-zone {
+            width: 120px;
+            min-height: 150px;
+            background: #f1f5f9;
+            border-radius: 12px;
+            border: 2px dashed #cbd5e1;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            align-content: flex-start;
+            justify-content: center;
+            position: relative;
+            transition: all 0.2s;
+        }
+        .drop-zone.drag-over {
+            border-color: #3b82f6;
+            background: #e0f2fe;
+        }
+        .drop-zone.solved {
+            border-style: solid;
+            border-color: #86efac;
+            background: #f0fdf4;
+        }
+        .drop-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #94a3b8;
+            font-size: 0.7rem;
+            text-align: center;
+            pointer-events: none;
+        }
+        .operator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #94a3b8;
+            font-size: 1.1rem;
+            padding: 0 5px;
+            margin-top: 28px;
+        }
+        .operator.arrow {
+            font-size: 1.5rem;
+            padding: 0 10px;
+        }
+        .scale-mass {
+            margin-top: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #64748b;
+            font-variant-numeric: tabular-nums;
+            text-align: center;
+            line-height: 1.4;
+        }
+        .scale-mass .count {
+            color: #3b82f6;
+        }
+        .totals-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 32px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 2px dashed #e2e8f0;
+        }
+        .total-box {
+            text-align: center;
+        }
+        .total-label {
+            font-size: 0.65rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+        .total-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            transition: color 0.4s;
+        }
+        .total-value.neutral { color: #64748b; }
+        .total-value.balanced { color: #059669; }
+        .total-value.unbalanced { color: #dc2626; }
+        .atom-on-scale {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            border: 2px solid;
+            cursor: pointer;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            transition: transform 0.15s;
+            animation: atomPop 0.3s ease;
+            user-select: none;
+        }
+        .atom-on-scale:hover {
+            transform: scale(1.15);
+        }
+        .molecule-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            padding: 4px 10px;
+            background: rgba(59,130,246,0.08);
+            border: 2px solid #3b82f6;
+            border-radius: 18px;
+            margin: 2px;
+            animation: molPop 0.5s ease both;
+        }
+        .molecule-group .group-atom {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+            border: 2px solid;
+        }
+        .molecule-group .group-label {
+            font-weight: 700;
+            color: #3b82f6;
+            font-size: 0.85rem;
+            margin-left: 3px;
+        }
+        .leftover-atom {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+            border: 2px dashed;
+            opacity: 0.6;
+            margin: 2px;
+        }
+        .inventory {
+            background: white;
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            margin-bottom: 14px;
+        }
+        .inventory-title {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #334155;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .atom-pool {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .atom-source {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            border: 2px solid;
+            transition: transform 0.15s;
+            user-select: none;
+        }
+        .atom-source:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+        .atom-source:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+        .atom-source .symbol { font-size: 1.1rem; font-weight: 700; }
+        .atom-source .mass { font-size: 0.6rem; opacity: 0.9; }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 11px 22px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59,130,246,0.4);
+        }
+        .btn-random {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            box-shadow: 0 4px 12px rgba(139,92,246,0.3);
+        }
+        .btn-random:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139,92,246,0.4);
+        }
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #64748b;
+            border: 2px solid #e2e8f0;
+        }
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+        .feedback {
+            text-align: center;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            min-height: 44px;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+        }
+        .feedback.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 2px solid #86efac;
+        }
+        .feedback.warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 2px solid #fcd34d;
+        }
+        .feedback.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 2px solid #fecaca;
+        }
+        .equation-display {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1e293b;
+            min-height: 32px;
+            transition: all 0.5s;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border: 2px dashed #e2e8f0;
+            margin-bottom: 14px;
+        }
+        .equation-display.revealed {
+            color: #059669;
+            background: #f0fdf4;
+            border-color: #86efac;
+            font-size: 1.5rem;
+        }
+        @keyframes atomPop {
+            0% { transform: scale(0); opacity: 0; }
+            60% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes molPop {
+            0% { transform: scale(0) rotate(-8deg); opacity: 0; }
+            60% { transform: scale(1.08) rotate(2deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        @media (max-width: 640px) {
+            .scales-row { gap: 4px; }
+            .scale-wrapper { min-width: 90px; }
+            .drop-zone { width: 90px; min-height: 120px; }
+            .total-value { font-size: 1.3rem; }
+            .totals-row { gap: 20px; }
+            .equation-display { font-size: 1.1rem; }
+            .equation-display.revealed { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚖️ Reactievergelijkingen & Massabehoud</h1>
+        <p class="subtitle">Sleep atomen naar de schaaltjes. Ontdek de coëfficiënten!</p>
+
+        <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap;">
+            <button class="btn btn-random" onclick="randomMission()">🎲 Willekeurige reactie</button>
+            <span id="missionCounter" style="font-size: 0.85rem; color: #64748b; font-weight: 600; background: white; padding: 6px 14px; border-radius: 20px; border: 1px solid #e2e8f0;">Reactie 1 / 20</span>
+        </div>
+
+        <div class="mission-bar" id="missionBar"></div>
+
+        <div class="equation-display" id="equation"></div>
+
+        <div class="reaction-area">
+            <div class="scales-row" id="scalesRow"></div>
+            <div class="totals-row">
+                <div class="total-box">
+                    <div class="total-label">Totaal links</div>
+                    <div class="total-value neutral" id="totalLeft">0,00 g</div>
+                </div>
+                <div class="operator arrow">→</div>
+                <div class="total-box">
+                    <div class="total-label">Totaal rechts</div>
+                    <div class="total-value neutral" id="totalRight">0,00 g</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="inventory">
+            <div class="inventory-title">📦 Voorraadbak</div>
+            <div class="atom-pool" id="atomPool"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="checkBalance()">✨ Controleer Balans</button>
+            <button class="btn btn-secondary" onclick="resetAll()">🔄 Reset</button>
+        </div>
+
+        <div class="feedback" id="feedback" style="background: transparent; color: transparent; border: none;"></div>
+    </div>
+
+    <script>
+
+        const ATOM_DATA = {
+            H:  { symbol: 'H',  mass: 1.008, name: 'Waterstof', color: '#f59e0b', bg: '#fef3c7', text: '#92400e' },
+            O:  { symbol: 'O',  mass: 16.00, name: 'Zuurstof',  color: '#ef4444', bg: '#fee2e2', text: '#991b1b' },
+            C:  { symbol: 'C',  mass: 12.01, name: 'Koolstof',  color: '#6366f1', bg: '#e0e7ff', text: '#3730a3' },
+            N:  { symbol: 'N',  mass: 14.01, name: 'Stikstof',  color: '#10b981', bg: '#d1fae5', text: '#065f46' },
+            Cl: { symbol: 'Cl', mass: 35.45, name: 'Chloor',    color: '#84cc16', bg: '#ecfccb', text: '#3f6212' },
+            S:  { symbol: 'S',  mass: 32.07, name: 'Zwavel',    color: '#eab308', bg: '#fef9c3', text: '#713f12' },
+            Fe: { symbol: 'Fe', mass: 55.85, name: 'IJzer',     color: '#6b7280', bg: '#f3f4f6', text: '#374151' },
+            Al: { symbol: 'Al', mass: 26.98, name: 'Aluminium', color: '#9ca3af', bg: '#f3f4f6', text: '#4b5563' },
+            Mg: { symbol: 'Mg', mass: 24.31, name: 'Magnesium', color: '#22c55e', bg: '#dcfce7', text: '#14532d' },
+            Na: { symbol: 'Na', mass: 22.99, name: 'Natrium',   color: '#a855f7', bg: '#f3e8ff', text: '#581c87' },
+            Cu: { symbol: 'Cu', mass: 63.55, name: 'Koper',     color: '#f97316', bg: '#ffedd5', text: '#7c2d12' },
+            Zn: { symbol: 'Zn', mass: 65.38, name: 'Zink',      color: '#64748b', bg: '#f1f5f9', text: '#334155' },
+            Ca: { symbol: 'Ca', mass: 40.08, name: 'Calcium',   color: '#14b8a6', bg: '#ccfbf1', text: '#134e4a' }
+        };
+
+        const MISSIONS = [
+            {
+                id: 'water', name: 'Vorming van water',
+                leftSubstances: [
+                    { formula: 'H₂',  coefficient: 2, id: 'l1', molecule: ['H','H'] },
+                    { formula: 'O₂',  coefficient: 1, id: 'l2', molecule: ['O','O'] }
+                ],
+                rightSubstances: [
+                    { formula: 'H₂O', coefficient: 2, id: 'r1', molecule: ['H','H','O'] }
+                ],
+                targetLeft:  { H: 4, O: 2 }, targetRight: { H: 4, O: 2 },
+                availableAtoms: ['H', 'O']
+            },
+            {
+                id: 'methaan', name: 'Verbranding van methaan',
+                leftSubstances: [
+                    { formula: 'CH₄', coefficient: 1, id: 'l1', molecule: ['C','H','H','H','H'] },
+                    { formula: 'O₂',  coefficient: 2, id: 'l2', molecule: ['O','O'] }
+                ],
+                rightSubstances: [
+                    { formula: 'CO₂', coefficient: 1, id: 'r1', molecule: ['C','O','O'] },
+                    { formula: 'H₂O', coefficient: 2, id: 'r2', molecule: ['H','H','O'] }
+                ],
+                targetLeft:  { C: 1, H: 4, O: 4 }, targetRight: { C: 1, H: 4, O: 4 },
+                availableAtoms: ['C', 'H', 'O']
+            },
+            {
+                id: 'ammoniak', name: 'Vorming van ammoniak',
+                leftSubstances: [
+                    { formula: 'N₂',  coefficient: 1, id: 'l1', molecule: ['N','N'] },
+                    { formula: 'H₂',  coefficient: 3, id: 'l2', molecule: ['H','H'] }
+                ],
+                rightSubstances: [
+                    { formula: 'NH₃', coefficient: 2, id: 'r1', molecule: ['N','H','H','H'] }
+                ],
+                targetLeft:  { N: 2, H: 6 }, targetRight: { N: 2, H: 6 },
+                availableAtoms: ['N', 'H']
+            },
+            {
+                id: 'magnesium', name: 'Verbranding van magnesium',
+                leftSubstances: [
+                    { formula: 'Mg',  coefficient: 2, id: 'l1', molecule: ['Mg'] },
+                    { formula: 'O₂',  coefficient: 1, id: 'l2', molecule: ['O','O'] }
+                ],
+                rightSubstances: [
+                    { formula: 'MgO', coefficient: 2, id: 'r1', molecule: ['Mg','O'] }
+                ],
+                targetLeft:  { Mg: 2, O: 2 }, targetRight: { Mg: 2, O: 2 },
+                availableAtoms: ['Mg', 'O']
+            },
+            {
+                id: 'koolstof', name: 'Verbranding van koolstof (volledig)',
+                leftSubstances: [
+                    { formula: 'C',   coefficient: 1, id: 'l1', molecule: ['C'] },
+                    { formula: 'O₂',  coefficient: 1, id: 'l2', molecule: ['O','O'] }
+                ],
+                rightSubstances: [
+                    { formula: 'CO₂', coefficient: 1, id: 'r1', molecule: ['C','O','O'] }
+                ],
+                targetLeft:  { C: 1, O: 2 }, targetRight: { C: 1, O: 2 },
+                availableAtoms: ['C', 'O']
+            },
+            {
+                id: 'co', name: 'Verbranding van koolstof (onvolledig)',
+                leftSubstances: [
+                    { formula: 'C',   coefficient: 2, id: 'l1', molecule: ['C'] },
+                    { formula: 'O₂',  coefficient: 1, id: 'l2', molecule: ['O','O'] }
+                ],
+                rightSubstances: [
+                    { formula: 'CO',  coefficient: 2, id: 'r1', molecule: ['C','O'] }
+                ],
+                targetLeft:  { C: 2, O: 2 }, targetRight: { C: 2, O: 2 },
+                availableAtoms: ['C', 'O']
+            },
+            {
+                id: 'hcl', name: 'Vorming van waterstofchloride',
+                leftSubstances: [
+                    { formula: 'H₂',  coefficient: 1, id: 'l1', molecule: ['H','H'] },
+                    { formula: 'Cl₂', coefficient: 1, id: 'l2', molecule: ['Cl','Cl'] }
+                ],
+                rightSubstances: [
+                    { formula: 'HCl', coefficient: 2, id: 'r1', molecule: ['H','Cl'] }
+                ],
+                targetLeft:  { H: 2, Cl: 2 }, targetRight: { H: 2, Cl: 2 },
+                availableAtoms: ['H', 'Cl']
+            },
+            {
+                id: 'zwavel', name: 'Verbranding van zwavel',
+                leftSubstances: [
+                    { formula: 'S',   coefficient: 1, id: 'l1', molecule: ['S'] },
+                    { formula: 'O₂',  coefficient: 1, id: 'l2', molecule: ['O','O'] }
+                ],
+                rightSubstances: [
+                    { formula: 'SO₂', coefficient: 1, id: 'r1', molecule: ['S','O','O'] }
+                ],
+                targetLeft:  { S: 1, O: 2 }, targetRight: { S: 1, O: 2 },
+                availableAtoms: ['S', 'O']
+            },
+            {
+                id: 'so3', name: 'Vorming van zwaveltrioxide',
+                leftSubstances: [
+                    { formula: 'SO₂', coefficient: 2, id: 'l1', molecule: ['S','O','O'] },
+                    { formula: 'O₂',  coefficient: 1, id: 'l2', molecule: ['O','O'] }
+                ],
+                rightSubstances: [
+                    { formula: 'SO₃', coefficient: 2, id: 'r1', molecule: ['S','O','O','O'] }
+                ],
+                targetLeft:  { S: 2, O: 6 }, targetRight: { S: 2, O: 6 },
+                availableAtoms: ['S', 'O']
+            },
+            {
+                id: 'roest', name: 'Roesten van ijzer',
+                leftSubstances: [
+                    { formula: 'Fe',  coefficient: 4, id: 'l1', molecule: ['Fe'] },
+                    { formula: 'O₂',  coefficient: 3, id: 'l2', molecule: ['O','O'] }
+                ],
+                rightSubstances: [
+                    { formula: 'Fe₂O₃', coefficient: 2, id: 'r1', molecule: ['Fe','Fe','O','O','O'] }
+                ],
+                targetLeft:  { Fe: 4, O: 6 }, targetRight: { Fe: 4, O: 6 },
+                availableAtoms: ['Fe', 'O']
+            },
+            {
+                id: 'aluminium', name: 'Verbranding van aluminium',
+                leftSubstances: [
+                    { formula: 'Al',  coefficient: 4, id: 'l1', molecule: ['Al'] },
+                    { formula: 'O₂',  coefficient: 3, id: 'l2', molecule: ['O','O'] }
+                ],
+                rightSubstances: [
+                    { formula: 'Al₂O₃', coefficient: 2, id: 'r1', molecule: ['Al','Al','O','O','O'] }
+                ],
+                targetLeft:  { Al: 4, O: 6 }, targetRight: { Al: 4, O: 6 },
+                availableAtoms: ['Al', 'O']
+            },
+            {
+                id: 'nacl', name: 'Vorming van natriumchloride',
+                leftSubstances: [
+                    { formula: 'Na',  coefficient: 2, id: 'l1', molecule: ['Na'] },
+                    { formula: 'Cl₂', coefficient: 1, id: 'l2', molecule: ['Cl','Cl'] }
+                ],
+                rightSubstances: [
+                    { formula: 'NaCl', coefficient: 2, id: 'r1', molecule: ['Na','Cl'] }
+                ],
+                targetLeft:  { Na: 2, Cl: 2 }, targetRight: { Na: 2, Cl: 2 },
+                availableAtoms: ['Na', 'Cl']
+            },
+            {
+                id: 'koper', name: 'Verbranding van koper',
+                leftSubstances: [
+                    { formula: 'Cu',  coefficient: 2, id: 'l1', molecule: ['Cu'] },
+                    { formula: 'O₂',  coefficient: 1, id: 'l2', molecule: ['O','O'] }
+                ],
+                rightSubstances: [
+                    { formula: 'CuO', coefficient: 2, id: 'r1', molecule: ['Cu','O'] }
+                ],
+                targetLeft:  { Cu: 2, O: 2 }, targetRight: { Cu: 2, O: 2 },
+                availableAtoms: ['Cu', 'O']
+            },
+            {
+                id: 'zink', name: 'Verbranding van zink',
+                leftSubstances: [
+                    { formula: 'Zn',  coefficient: 2, id: 'l1', molecule: ['Zn'] },
+                    { formula: 'O₂',  coefficient: 1, id: 'l2', molecule: ['O','O'] }
+                ],
+                rightSubstances: [
+                    { formula: 'ZnO', coefficient: 2, id: 'r1', molecule: ['Zn','O'] }
+                ],
+                targetLeft:  { Zn: 2, O: 2 }, targetRight: { Zn: 2, O: 2 },
+                availableAtoms: ['Zn', 'O']
+            },
+            {
+                id: 'calcium', name: 'Verbranding van calcium',
+                leftSubstances: [
+                    { formula: 'Ca',  coefficient: 2, id: 'l1', molecule: ['Ca'] },
+                    { formula: 'O₂',  coefficient: 1, id: 'l2', molecule: ['O','O'] }
+                ],
+                rightSubstances: [
+                    { formula: 'CaO', coefficient: 2, id: 'r1', molecule: ['Ca','O'] }
+                ],
+                targetLeft:  { Ca: 2, O: 2 }, targetRight: { Ca: 2, O: 2 },
+                availableAtoms: ['Ca', 'O']
+            },
+            {
+                id: 'elektrolyse', name: 'Elektrolyse van water',
+                leftSubstances: [
+                    { formula: 'H₂O', coefficient: 2, id: 'l1', molecule: ['H','H','O'] }
+                ],
+                rightSubstances: [
+                    { formula: 'H₂',  coefficient: 2, id: 'r1', molecule: ['H','H'] },
+                    { formula: 'O₂',  coefficient: 1, id: 'r2', molecule: ['O','O'] }
+                ],
+                targetLeft:  { H: 4, O: 2 }, targetRight: { H: 4, O: 2 },
+                availableAtoms: ['H', 'O']
+            },
+            {
+                id: 'kalksteen', name: 'Ontleding van kalksteen',
+                leftSubstances: [
+                    { formula: 'CaCO₃', coefficient: 1, id: 'l1', molecule: ['Ca','C','O','O','O'] }
+                ],
+                rightSubstances: [
+                    { formula: 'CaO',  coefficient: 1, id: 'r1', molecule: ['Ca','O'] },
+                    { formula: 'CO₂',  coefficient: 1, id: 'r2', molecule: ['C','O','O'] }
+                ],
+                targetLeft:  { Ca: 1, C: 1, O: 3 }, targetRight: { Ca: 1, C: 1, O: 3 },
+                availableAtoms: ['Ca', 'C', 'O']
+            },
+            {
+                id: 'slaken', name: 'Slaken van kalk',
+                leftSubstances: [
+                    { formula: 'CaO',  coefficient: 1, id: 'l1', molecule: ['Ca','O'] },
+                    { formula: 'H₂O',  coefficient: 1, id: 'l2', molecule: ['H','H','O'] }
+                ],
+                rightSubstances: [
+                    { formula: 'Ca(OH)₂', coefficient: 1, id: 'r1', molecule: ['Ca','O','H','O','H'] }
+                ],
+                targetLeft:  { Ca: 1, O: 2, H: 2 }, targetRight: { Ca: 1, O: 2, H: 2 },
+                availableAtoms: ['Ca', 'H', 'O']
+            },
+            {
+                id: 'no', name: 'Vorming van stikstofmonoxide',
+                leftSubstances: [
+                    { formula: 'N₂',  coefficient: 1, id: 'l1', molecule: ['N','N'] },
+                    { formula: 'O₂',  coefficient: 1, id: 'l2', molecule: ['O','O'] }
+                ],
+                rightSubstances: [
+                    { formula: 'NO',  coefficient: 2, id: 'r1', molecule: ['N','O'] }
+                ],
+                targetLeft:  { N: 2, O: 2 }, targetRight: { N: 2, O: 2 },
+                availableAtoms: ['N', 'O']
+            },
+            {
+                id: 'co2', name: 'Verbranding van koolstofmonoxide',
+                leftSubstances: [
+                    { formula: 'CO',  coefficient: 2, id: 'l1', molecule: ['C','O'] },
+                    { formula: 'O₂',  coefficient: 1, id: 'l2', molecule: ['O','O'] }
+                ],
+                rightSubstances: [
+                    { formula: 'CO₂', coefficient: 2, id: 'r1', molecule: ['C','O','O'] }
+                ],
+                targetLeft:  { C: 2, O: 4 }, targetRight: { C: 2, O: 4 },
+                availableAtoms: ['C', 'O']
+            }
+        ];
+
+        let currentMission = 0;
+        let scaleAtoms = {};
+        let nextId = 0;
+        let isSolved = false;
+
+        function init() {
+            renderMissionBar();
+            loadMission(Math.floor(Math.random() * MISSIONS.length));
+        }
+
+        function renderMissionBar() {
+            const bar = document.getElementById('missionBar');
+            bar.innerHTML = '';
+            MISSIONS.forEach((m, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'mission-btn' + (i === currentMission ? ' active' : '');
+                btn.textContent = (i + 1);
+                btn.title = m.name;
+                btn.onclick = () => loadMission(i);
+                bar.appendChild(btn);
+            });
+        }
+
+        function loadMission(idx) {
+            currentMission = idx;
+            isSolved = false;
+            scaleAtoms = {};
+            const m = MISSIONS[idx];
+            [...m.leftSubstances, ...m.rightSubstances].forEach(s => { scaleAtoms[s.id] = []; });
+            document.getElementById('missionCounter').textContent = 'Reactie ' + (idx + 1) + ' / ' + MISSIONS.length;
+            renderMissionBar();
+            renderScales();
+            renderAtomPool();
+            renderEquation();
+            updateAllMasses();
+            clearFeedback();
+        }
+
+        function randomMission() {
+            let idx;
+            do { idx = Math.floor(Math.random() * MISSIONS.length); }
+            while (idx === currentMission && MISSIONS.length > 1);
+            loadMission(idx);
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // EQUATION with ? placeholders
+        // ═══════════════════════════════════════════════════════════════
+        function renderEquation() {
+            const m = MISSIONS[currentMission];
+            const eqDiv = document.getElementById('equation');
+            eqDiv.classList.remove('revealed');
+            let html = '';
+            m.leftSubstances.forEach((sub, i) => {
+                if (i > 0) html += ' <span style="color:#94a3b8;">+</span> ';
+                html += '<span style="color:#94a3b8;font-weight:700;">?</span>' + sub.formula;
+            });
+            html += ' <span style="color:#94a3b8;">→</span> ';
+            m.rightSubstances.forEach((sub, i) => {
+                if (i > 0) html += ' <span style="color:#94a3b8;">+</span> ';
+                html += '<span style="color:#94a3b8;font-weight:700;">?</span>' + sub.formula;
+            });
+            eqDiv.innerHTML = html;
+        }
+
+        function revealEquation() {
+            const m = MISSIONS[currentMission];
+            const eqDiv = document.getElementById('equation');
+            eqDiv.classList.add('revealed');
+            let html = '';
+            m.leftSubstances.forEach((sub, i) => {
+                if (i > 0) html += ' <span style="color:#86efac;">+</span> ';
+                const coeff = sub.coefficient === 1 ? '' : '<span style="color:#059669;font-weight:700;">' + sub.coefficient + '</span>';
+                html += coeff + sub.formula;
+            });
+            html += ' <span style="color:#86efac;">→</span> ';
+            m.rightSubstances.forEach((sub, i) => {
+                if (i > 0) html += ' <span style="color:#86efac;">+</span> ';
+                const coeff = sub.coefficient === 1 ? '' : '<span style="color:#059669;font-weight:700;">' + sub.coefficient + '</span>';
+                html += coeff + sub.formula;
+            });
+            eqDiv.innerHTML = html;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // MOLECULE COUNTING & MOLAR MASS
+        // ═══════════════════════════════════════════════════════════════
+        function getMoleculeCount(scaleId, moleculeComposition) {
+            const atoms = scaleAtoms[scaleId] || [];
+            const counts = {};
+            atoms.forEach(a => { counts[a.type] = (counts[a.type] || 0) + 1; });
+            const needed = {};
+            moleculeComposition.forEach(a => { needed[a] = (needed[a] || 0) + 1; });
+            let minCount = Infinity;
+            for (const [type, need] of Object.entries(needed)) {
+                const have = counts[type] || 0;
+                const possible = Math.floor(have / need);
+                if (possible < minCount) minCount = possible;
+            }
+            return minCount === Infinity ? 0 : minCount;
+        }
+
+        function getMolarMass(moleculeComposition) {
+            return moleculeComposition.reduce((sum, atomType) => sum + ATOM_DATA[atomType].mass, 0);
+        }
+
+        function getLeftoverAtoms(scaleId, moleculeComposition) {
+            const atoms = [...(scaleAtoms[scaleId] || [])];
+            const needed = {};
+            moleculeComposition.forEach(a => { needed[a] = (needed[a] || 0) + 1; });
+            const count = getMoleculeCount(scaleId, moleculeComposition);
+            for (const [type, need] of Object.entries(needed)) {
+                for (let i = 0; i < count * need; i++) {
+                    const idx = atoms.findIndex(a => a.type === type);
+                    if (idx !== -1) atoms.splice(idx, 1);
+                }
+            }
+            return atoms;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // SCALES
+        // ═══════════════════════════════════════════════════════════════
+        function renderScales() {
+            const row = document.getElementById('scalesRow');
+            row.innerHTML = '';
+            const m = MISSIONS[currentMission];
+            m.leftSubstances.forEach((sub, i) => {
+                if (i > 0) row.appendChild(makeOp('+'));
+                row.appendChild(makeScale(sub));
+            });
+            row.appendChild(makeOp('→', true));
+            m.rightSubstances.forEach((sub, i) => {
+                if (i > 0) row.appendChild(makeOp('+'));
+                row.appendChild(makeScale(sub));
+            });
+        }
+
+        function makeOp(text, big) {
+            const d = document.createElement('div');
+            d.className = 'operator' + (big ? ' arrow' : '');
+            d.textContent = text;
+            return d;
+        }
+
+        function makeScale(sub) {
+            const w = document.createElement('div');
+            w.className = 'scale-wrapper';
+            const f = document.createElement('div');
+            f.className = 'scale-formula';
+            f.textContent = sub.formula;
+            w.appendChild(f);
+            const z = document.createElement('div');
+            z.className = 'drop-zone';
+            z.id = 'zone_' + sub.id;
+            z.ondragover = (e) => { e.preventDefault(); if (!isSolved) z.classList.add('drag-over'); };
+            z.ondragleave = () => z.classList.remove('drag-over');
+            z.ondrop = (e) => {
+                e.preventDefault();
+                z.classList.remove('drag-over');
+                if (isSolved) return;
+                const t = e.dataTransfer.getData('atomType');
+                if (t) addAtom(sub.id, t);
+            };
+            w.appendChild(z);
+            const m = document.createElement('div');
+            m.className = 'scale-mass';
+            m.id = 'mass_' + sub.id;
+            w.appendChild(m);
+            renderZone(sub.id);
+            return w;
+        }
+
+        function renderZone(scaleId) {
+            const z = document.getElementById('zone_' + scaleId);
+            if (!z) return;
+            const list = scaleAtoms[scaleId] || [];
+            z.innerHTML = '';
+            if (list.length === 0 && !isSolved) {
+                const h = document.createElement('div');
+                h.className = 'drop-hint';
+                h.innerHTML = 'Sleep<br>atomen';
+                z.appendChild(h);
+            }
+            list.forEach(atom => {
+                const d = ATOM_DATA[atom.type];
+                const el = document.createElement('div');
+                el.className = 'atom-on-scale';
+                el.style.background = 'linear-gradient(135deg, ' + d.bg + ', white)';
+                el.style.borderColor = d.color;
+                el.style.color = d.text;
+                el.textContent = d.symbol;
+                el.title = d.name + ' — ' + d.mass.toFixed(2) + ' u (klik om te verwijderen)';
+                el.onclick = () => removeAtom(scaleId, atom.id);
+                z.appendChild(el);
+            });
+            updateScaleMass(scaleId);
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // MASS DISPLAY: n × M g/mol per scale, grams for totals
+        // ═══════════════════════════════════════════════════════════════
+        function updateScaleMass(scaleId) {
+            const m = MISSIONS[currentMission];
+            const sub = [...m.leftSubstances, ...m.rightSubstances].find(s => s.id === scaleId);
+            if (!sub) return;
+
+            const count = getMoleculeCount(scaleId, sub.molecule);
+            const molarMass = getMolarMass(sub.molecule);
+            const massEl = document.getElementById('mass_' + scaleId);
+
+            if (count === 0) {
+                massEl.innerHTML = '0 × ' + molarMass.toFixed(2).replace('.', ',') + ' g/mol<br>= <strong>0,00 g</strong>';
+            } else {
+                const totalGrams = count * molarMass;
+                massEl.innerHTML = '<span class="count">' + count + '</span> × ' + molarMass.toFixed(2).replace('.', ',') + ' g/mol<br>= <strong>' + totalGrams.toFixed(2).replace('.', ',') + ' g</strong>';
+            }
+        }
+
+        function updateAllMasses() {
+            const m = MISSIONS[currentMission];
+            [...m.leftSubstances, ...m.rightSubstances].forEach(s => updateScaleMass(s.id));
+            updateTotals();
+        }
+
+        function updateTotals() {
+            const m = MISSIONS[currentMission];
+            let leftGrams = 0, rightGrams = 0;
+            m.leftSubstances.forEach(s => {
+                const count = getMoleculeCount(s.id, s.molecule);
+                leftGrams += count * getMolarMass(s.molecule);
+            });
+            m.rightSubstances.forEach(s => {
+                const count = getMoleculeCount(s.id, s.molecule);
+                rightGrams += count * getMolarMass(s.molecule);
+            });
+            document.getElementById('totalLeft').textContent = leftGrams.toFixed(2).replace('.', ',') + ' g';
+            document.getElementById('totalRight').textContent = rightGrams.toFixed(2).replace('.', ',') + ' g';
+            const eq = Math.abs(leftGrams - rightGrams) < 0.01 && leftGrams > 0;
+            const c = eq ? 'balanced' : (leftGrams > 0 || rightGrams > 0) ? 'unbalanced' : 'neutral';
+            document.getElementById('totalLeft').className = 'total-value ' + c;
+            document.getElementById('totalRight').className = 'total-value ' + c;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // ATOM POOL
+        // ═══════════════════════════════════════════════════════════════
+        function renderAtomPool() {
+            const pool = document.getElementById('atomPool');
+            pool.innerHTML = '';
+            const m = MISSIONS[currentMission];
+            m.availableAtoms.forEach(type => {
+                const d = ATOM_DATA[type];
+                const el = document.createElement('div');
+                el.className = 'atom-source';
+                el.draggable = true;
+                el.style.background = 'linear-gradient(135deg, ' + d.bg + ', white)';
+                el.style.borderColor = d.color;
+                el.style.color = d.text;
+                el.innerHTML = '<span class="symbol">' + d.symbol + '</span><span class="mass">' + d.mass.toFixed(2) + '</span>';
+                el.ondragstart = (e) => { e.dataTransfer.setData('atomType', type); e.dataTransfer.effectAllowed = 'copy'; };
+                el.onclick = () => {
+                    if (isSolved) return;
+                    const m = MISSIONS[currentMission];
+                    let best = null, bestM = Infinity;
+                    [...m.leftSubstances, ...m.rightSubstances].forEach(s => {
+                        const count = getMoleculeCount(s.id, s.molecule);
+                        const mass = count * getMolarMass(s.molecule);
+                        if (mass < bestM) { bestM = mass; best = s.id; }
+                    });
+                    if (best) addAtom(best, type);
+                };
+                pool.appendChild(el);
+            });
+        }
+
+        function addAtom(scaleId, type) {
+            const d = ATOM_DATA[type];
+            if (!scaleAtoms[scaleId]) scaleAtoms[scaleId] = [];
+            scaleAtoms[scaleId].push({ id: nextId++, type: type, mass: d.mass });
+            renderZone(scaleId);
+            updateTotals();
+            clearFeedback();
+        }
+
+        function removeAtom(scaleId, atomId) {
+            if (isSolved) return;
+            scaleAtoms[scaleId] = scaleAtoms[scaleId].filter(a => a.id !== atomId);
+            renderZone(scaleId);
+            updateTotals();
+            clearFeedback();
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // BALANCE CHECK
+        // ═══════════════════════════════════════════════════════════════
+        function checkBalance() {
+            const m = MISSIONS[currentMission];
+            let leftGrams = 0, rightGrams = 0, lc = {}, rc = {};
+            m.leftSubstances.forEach(s => {
+                const list = scaleAtoms[s.id] || [];
+                leftGrams += getMoleculeCount(s.id, s.molecule) * getMolarMass(s.molecule);
+                list.forEach(a => { lc[a.type] = (lc[a.type] || 0) + 1; });
+            });
+            m.rightSubstances.forEach(s => {
+                const list = scaleAtoms[s.id] || [];
+                rightGrams += getMoleculeCount(s.id, s.molecule) * getMolarMass(s.molecule);
+                list.forEach(a => { rc[a.type] = (rc[a.type] || 0) + 1; });
+            });
+
+            const fb = document.getElementById('feedback');
+
+            if (leftGrams === 0 && rightGrams === 0) { showFB('warning', '⚠️ Sleep eerst atomen naar de schaaltjes.'); return; }
+
+            const massOK = Math.abs(leftGrams - rightGrams) < 0.01 && leftGrams > 0;
+            const allT = new Set([...Object.keys(lc), ...Object.keys(rc)]);
+            let atomsOK = true;
+            for (const t of allT) { if ((lc[t] || 0) !== (rc[t] || 0)) { atomsOK = false; break; } }
+            if (Object.keys(lc).length !== Object.keys(rc).length) atomsOK = false;
+
+            if (massOK && atomsOK) {
+                isSolved = true;
+                showFB('success', '✅ Perfect! Massa én atomen zijn in balans! De coëfficiënten worden onthuld...');
+                revealEquation();
+                animateMolecules();
+            } else if (!massOK) {
+                showFB('error', '❌ De totale massa links en rechts is niet gelijk. Pas de hoeveelheden aan!');
+            } else {
+                showFB('warning', '⚠️ Het aantal atomen per soort klopt nog niet. Tel ze na per element!');
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // MOLECULE ANIMATION
+        // ═══════════════════════════════════════════════════════════════
+        function animateMolecules() {
+            const m = MISSIONS[currentMission];
+            [...m.leftSubstances, ...m.rightSubstances].forEach((sub, sIdx) => {
+                const z = document.getElementById('zone_' + sub.id);
+                const list = [...(scaleAtoms[sub.id] || [])];
+                z.innerHTML = '';
+                z.classList.add('solved');
+
+                const mol = sub.molecule;
+                const groups = [];
+                while (true) {
+                    const need = {};
+                    mol.forEach(a => { need[a] = (need[a] || 0) + 1; });
+                    let can = true;
+                    for (const [t, c] of Object.entries(need)) { if (list.filter(a => a.type === t).length < c) { can = false; break; } }
+                    if (!can) break;
+                    const grp = [];
+                    for (const [t, c] of Object.entries(need)) {
+                        for (let i = 0; i < c; i++) { const idx = list.findIndex(a => a.type === t); grp.push(list[idx]); list.splice(idx, 1); }
+                    }
+                    groups.push(grp);
+                }
+
+                groups.forEach((grp, gIdx) => {
+                    const w = document.createElement('div');
+                    w.className = 'molecule-group';
+                    w.style.animationDelay = (gIdx * 0.1 + sIdx * 0.15) + 's';
+                    grp.forEach(atom => {
+                        const d = ATOM_DATA[atom.type];
+                        const b = document.createElement('div');
+                        b.className = 'group-atom';
+                        b.style.background = 'linear-gradient(135deg, ' + d.bg + ', white)';
+                        b.style.borderColor = d.color;
+                        b.style.color = d.text;
+                        b.textContent = d.symbol;
+                        w.appendChild(b);
+                    });
+                    const l = document.createElement('span');
+                    l.className = 'group-label';
+                    l.textContent = sub.formula;
+                    w.appendChild(l);
+                    z.appendChild(w);
+                });
+
+                list.forEach(atom => {
+                    const d = ATOM_DATA[atom.type];
+                    const el = document.createElement('div');
+                    el.className = 'leftover-atom';
+                    el.style.background = 'linear-gradient(135deg, ' + d.bg + ', white)';
+                    el.style.borderColor = d.color;
+                    el.style.color = d.text;
+                    el.textContent = d.symbol;
+                    z.appendChild(el);
+                });
+            });
+        }
+
+        function showFB(type, msg) {
+            const fb = document.getElementById('feedback');
+            const map = { success: ['#dcfce7','#166534','#86efac'], warning: ['#fef3c7','#92400e','#fcd34d'], error: ['#fef2f2','#991b1b','#fecaca'] };
+            const [bg, text, border] = map[type];
+            fb.className = 'feedback ' + type;
+        }
+
+        function clearFeedback() {
+            const fb = document.getElementById('feedback');
+            fb.className = 'feedback';
+            fb.style.background = 'transparent';
+            fb.style.color = 'transparent';
+            fb.style.border = 'none';
+            fb.textContent = '';
+        }
+
+        function resetAll() {
+            isSolved = false;
+            const m = MISSIONS[currentMission];
+            [...m.leftSubstances, ...m.rightSubstances].forEach(s => { scaleAtoms[s.id] = []; });
+            renderScales();
+            renderEquation();
+            updateAllMasses();
+            clearFeedback();
+        }
+
+        init();
+    </script>
+</body>
+</html>
