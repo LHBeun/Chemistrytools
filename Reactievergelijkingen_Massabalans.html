@@ -366,6 +366,95 @@
             border-color: #86efac;
             font-size: 1.5rem;
         }
+        .tab-bar {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            border-radius: 10px 10px 0 0;
+            border: 2px solid #e2e8f0;
+            border-bottom: none;
+            background: #f1f5f9;
+            color: #64748b;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover { color: #3b82f6; }
+        .tab-btn.active {
+            background: white;
+            color: #3b82f6;
+            border-color: #3b82f6;
+            box-shadow: 0 -2px 6px rgba(0,0,0,0.04);
+        }
+        .voorraad-row {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .voorraad-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 12px 18px;
+            text-align: center;
+            min-width: 150px;
+        }
+        .voorraad-formula {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #334155;
+        }
+        .voorraad-detail {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+        .voorraad-detail strong { color: #1e293b; }
+        .overmaat-section {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 2px dashed #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .overmaat-label {
+            font-size: 0.8rem;
+            color: #92400e;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .overmaat-zone {
+            width: 100%;
+            max-width: 340px;
+            min-height: 90px;
+            background: #fffbeb;
+            border-color: #fcd34d;
+        }
+        .overmaat-zone.drag-over {
+            border-color: #f59e0b;
+            background: #fef3c7;
+        }
+        .om-explanation {
+            background: #f0fdf4;
+            border: 2px solid #86efac;
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 0.85rem;
+            color: #14532d;
+            line-height: 1.7;
+            margin-top: 8px;
+        }
+        .om-explanation strong { color: #059669; }
         @keyframes atomPop {
             0% { transform: scale(0); opacity: 0; }
             60% { transform: scale(1.2); opacity: 1; }
@@ -384,13 +473,22 @@
             .totals-row { gap: 20px; }
             .equation-display { font-size: 1.1rem; }
             .equation-display.revealed { font-size: 1.2rem; }
+            .voorraad-card { min-width: 120px; padding: 10px 12px; }
+            .tab-btn { padding: 8px 12px; font-size: 0.8rem; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>⚖️ Reactievergelijkingen & Massabehoud</h1>
-        <p class="subtitle">Sleep atomen naar de schaaltjes. Ontdek de coëfficiënten!</p>
+        <h1 id="pageTitle">⚖️ Reactievergelijkingen & Massabehoud</h1>
+        <p class="subtitle" id="pageSubtitle">Sleep atomen naar de schaaltjes. Ontdek de coëfficiënten!</p>
+
+        <div class="tab-bar">
+            <button class="tab-btn active" id="tabBtn1" onclick="switchTab(1)">⚖️ Massabehoud</button>
+            <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)">🧪 Over/Ondermaat</button>
+        </div>
+
+        <div id="tab1Panel">
 
         <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap;">
             <button class="btn btn-random" onclick="randomMission()">🎲 Willekeurige reactie</button>
@@ -427,6 +525,46 @@
         </div>
 
         <div class="feedback" id="feedback" style="background: transparent; color: transparent; border: none;"></div>
+
+        </div>
+        <!-- ============ TAB 2: OVER/ONDERMAAT ============ -->
+        <div id="tab2Panel" style="display:none;">
+
+            <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap;">
+                <button class="btn btn-random" onclick="randomOMScenario()">🎲 Nieuwe opgave</button>
+                <span id="omMissionCounter" style="font-size: 0.85rem; color: #64748b; font-weight: 600; background: white; padding: 6px 14px; border-radius: 20px; border: 1px solid #e2e8f0;"></span>
+            </div>
+
+            <div class="mission-bar" id="omMissionBar"></div>
+
+            <div class="equation-display" id="omEquation"></div>
+
+            <div class="reaction-area">
+                <div class="voorraad-row" id="omVoorraadRow"></div>
+            </div>
+
+            <div class="reaction-area">
+                <div class="scales-row" id="omScalesRow"></div>
+                <div class="overmaat-section">
+                    <div class="overmaat-label">📤 Overmaatbak <span style="font-weight:400; color:#94a3b8;">(wat overblijft van de reactant in overmaat)</span></div>
+                    <div class="drop-zone overmaat-zone" id="omOvermaatZone"></div>
+                </div>
+            </div>
+
+            <div class="inventory">
+                <div class="inventory-title">📦 Voorraadbak (stoffen, 1 mol per brok)</div>
+                <div class="atom-pool" id="omPool"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" onclick="checkOM()">✨ Controleer</button>
+                <button class="btn btn-secondary" onclick="resetOM()">🔄 Reset</button>
+            </div>
+
+            <div class="feedback" id="omFeedback" style="background: transparent; color: transparent; border: none;"></div>
+            <div class="om-explanation" id="omExplanation" style="display:none;"></div>
+
+        </div>
     </div>
 
     <script>
@@ -1107,6 +1245,368 @@
             renderEquation();
             updateAllMasses();
             clearFeedback();
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // TABS
+        // ═══════════════════════════════════════════════════════════════
+        function switchTab(n) {
+            document.getElementById('tab1Panel').style.display = n === 1 ? '' : 'none';
+            document.getElementById('tab2Panel').style.display = n === 2 ? '' : 'none';
+            document.getElementById('tabBtn1').classList.toggle('active', n === 1);
+            document.getElementById('tabBtn2').classList.toggle('active', n === 2);
+            if (n === 2 && !omInitialized) initOM();
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // OVER/ONDERMAAT MODULE
+        // Leerdoel: massa -> mol omrekenen, beperkende reactant bepalen,
+        // hoeveelheid product berekenen, overmaat herkennen.
+        // Alleen reacties met precies 2 reactanten zijn hiervoor geschikt.
+        // ═══════════════════════════════════════════════════════════════
+        const VALID_MISSIONS_OM = MISSIONS.filter(m => m.leftSubstances.length === 2);
+        const OM_PALETTE = [
+            { color: '#3b82f6', bg: '#dbeafe', text: '#1e3a8a' },
+            { color: '#ef4444', bg: '#fee2e2', text: '#991b1b' },
+            { color: '#10b981', bg: '#d1fae5', text: '#065f46' },
+            { color: '#f59e0b', bg: '#fef3c7', text: '#92400e' }
+        ];
+
+        let omInitialized = false;
+        let omMissionIdx = 0;
+        let omScenario = null;
+        let omPlaced = {};
+        let omNextId = 0;
+        let omSolved = false;
+
+        function omColor(subId) {
+            const ids = [...omScenario.reactants.map(r => r.sub.id), ...omScenario.products.map(p => p.sub.id)];
+            return OM_PALETTE[ids.indexOf(subId) % OM_PALETTE.length];
+        }
+
+        function pickInt(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); }
+
+        function initOM() {
+            omInitialized = true;
+            renderOMMissionBar();
+            loadOMScenario(Math.floor(Math.random() * VALID_MISSIONS_OM.length));
+        }
+
+        function renderOMMissionBar() {
+            const bar = document.getElementById('omMissionBar');
+            bar.innerHTML = '';
+            VALID_MISSIONS_OM.forEach((m, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'mission-btn' + (i === omMissionIdx ? ' active' : '');
+                btn.textContent = (i + 1);
+                btn.title = m.name;
+                btn.onclick = () => loadOMScenario(i);
+                bar.appendChild(btn);
+            });
+        }
+
+        function generateOMScenario(mission) {
+            const reactants = mission.leftSubstances.map(s => ({ sub: s, m: Math.max(1, Math.round(getMolarMass(s.molecule))) }));
+            const products = mission.rightSubstances.map(s => ({ sub: s, m: Math.max(1, Math.round(getMolarMass(s.molecule))) }));
+
+            const x = pickInt(1, 3);
+            const limitingIdx = Math.random() < 0.5 ? 0 : 1;
+            const otherIdx = 1 - limitingIdx;
+            const excess = pickInt(1, 4);
+
+            const avail = [0, 0];
+            avail[limitingIdx] = x * reactants[limitingIdx].sub.coefficient;
+            avail[otherIdx] = x * reactants[otherIdx].sub.coefficient + excess;
+
+            const reactAmount = [x * reactants[0].sub.coefficient, x * reactants[1].sub.coefficient];
+            const massGiven = [avail[0] * reactants[0].m, avail[1] * reactants[1].m];
+            const productAmount = products.map(p => x * p.sub.coefficient);
+
+            return {
+                mission, reactants, products, x, limitingIdx, otherIdx,
+                excessAmount: excess,
+                overmaatType: reactants[otherIdx].sub.id,
+                avail, reactAmount, massGiven, productAmount
+            };
+        }
+
+        function loadOMScenario(idx) {
+            omMissionIdx = idx;
+            omSolved = false;
+            omPlaced = {};
+            omScenario = generateOMScenario(VALID_MISSIONS_OM[idx]);
+            document.getElementById('omMissionCounter').textContent = 'Reactie ' + (idx + 1) + ' / ' + VALID_MISSIONS_OM.length;
+            renderOMMissionBar();
+            renderOMEquation();
+            renderOMVoorraadRow();
+            renderOMScales();
+            wireOvermaatZone();
+            renderOMZoneContent('omOvermaatZone');
+            renderOMPool();
+            clearOMFeedback();
+            const ex = document.getElementById('omExplanation');
+            ex.style.display = 'none';
+            ex.classList.remove('om-explanation');
+            ex.className = 'om-explanation';
+        }
+
+        function randomOMScenario() {
+            loadOMScenario(Math.floor(Math.random() * VALID_MISSIONS_OM.length));
+        }
+
+        function renderOMEquation() {
+            const eqDiv = document.getElementById('omEquation');
+            let html = '';
+            omScenario.reactants.forEach((r, i) => {
+                if (i > 0) html += ' <span style="color:#94a3b8;">+</span> ';
+                const c = r.sub.coefficient === 1 ? '' : '<span style="font-weight:700;">' + r.sub.coefficient + '</span>';
+                html += c + r.sub.formula;
+            });
+            html += ' <span style="color:#94a3b8;">→</span> ';
+            omScenario.products.forEach((p, i) => {
+                if (i > 0) html += ' <span style="color:#94a3b8;">+</span> ';
+                const c = p.sub.coefficient === 1 ? '' : '<span style="font-weight:700;">' + p.sub.coefficient + '</span>';
+                html += c + p.sub.formula;
+            });
+            eqDiv.innerHTML = html;
+        }
+
+        function renderOMVoorraadRow() {
+            const row = document.getElementById('omVoorraadRow');
+            row.innerHTML = '';
+            omScenario.reactants.forEach((r, i) => {
+                const card = document.createElement('div');
+                card.className = 'voorraad-card';
+                card.innerHTML = '<div class="voorraad-formula">' + r.sub.formula + '</div>' +
+                    '<div class="voorraad-detail">Molmassa: <strong>' + r.m + ' g/mol</strong><br>' +
+                    'In voorraad: <strong>' + (omScenario.avail[i] * r.m) + ' g</strong></div>';
+                row.appendChild(card);
+            });
+        }
+
+        function renderOMScales() {
+            const row = document.getElementById('omScalesRow');
+            row.innerHTML = '';
+            omScenario.reactants.forEach((r, i) => {
+                if (i > 0) row.appendChild(makeOp('+'));
+                row.appendChild(makeOMZoneCard(r.sub.formula, 'omReact_' + r.sub.id, 'Reageert'));
+            });
+            row.appendChild(makeOp('→', true));
+            omScenario.products.forEach((p, i) => {
+                if (i > 0) row.appendChild(makeOp('+'));
+                row.appendChild(makeOMZoneCard(p.sub.formula, 'omProd_' + p.sub.id, 'Gevormd'));
+            });
+        }
+
+        function makeOMZoneCard(formula, zoneId, label) {
+            const w = document.createElement('div');
+            w.className = 'scale-wrapper';
+            const f = document.createElement('div');
+            f.className = 'scale-formula';
+            f.textContent = formula;
+            w.appendChild(f);
+            const lab = document.createElement('div');
+            lab.style.cssText = 'font-size:0.65rem;color:#94a3b8;font-weight:700;text-transform:uppercase;margin-bottom:4px;';
+            lab.textContent = label;
+            w.appendChild(lab);
+            const z = document.createElement('div');
+            z.className = 'drop-zone';
+            z.id = zoneId;
+            z.ondragover = (e) => { e.preventDefault(); if (!omSolved) z.classList.add('drag-over'); };
+            z.ondragleave = () => z.classList.remove('drag-over');
+            z.ondrop = (e) => {
+                e.preventDefault();
+                z.classList.remove('drag-over');
+                if (omSolved) return;
+                const subId = e.dataTransfer.getData('subId');
+                if (subId) addOMToken(zoneId, subId);
+            };
+            w.appendChild(z);
+            renderOMZoneContent(zoneId);
+            return w;
+        }
+
+        function wireOvermaatZone() {
+            const z = document.getElementById('omOvermaatZone');
+            z.ondragover = (e) => { e.preventDefault(); if (!omSolved) z.classList.add('drag-over'); };
+            z.ondragleave = () => z.classList.remove('drag-over');
+            z.ondrop = (e) => {
+                e.preventDefault();
+                z.classList.remove('drag-over');
+                if (omSolved) return;
+                const subId = e.dataTransfer.getData('subId');
+                if (subId) addOMToken('omOvermaatZone', subId);
+            };
+        }
+
+        function findOMSub(subId) {
+            const all = [...omScenario.reactants, ...omScenario.products];
+            return all.find(s => s.sub.id === subId);
+        }
+
+        function addOMToken(zoneId, subId) {
+            if (omSolved) return;
+            if (!omPlaced[zoneId]) omPlaced[zoneId] = [];
+            omPlaced[zoneId].push({ id: omNextId++, subId: subId });
+            renderOMZoneContent(zoneId);
+            clearOMFeedback();
+        }
+
+        function removeOMToken(zoneId, tokenId) {
+            if (omSolved) return;
+            omPlaced[zoneId] = (omPlaced[zoneId] || []).filter(t => t.id !== tokenId);
+            renderOMZoneContent(zoneId);
+            clearOMFeedback();
+        }
+
+        function renderOMZoneContent(zoneId) {
+            const z = document.getElementById(zoneId);
+            if (!z) return;
+            const list = omPlaced[zoneId] || [];
+            z.innerHTML = '';
+            if (list.length === 0 && !omSolved) {
+                const h = document.createElement('div');
+                h.className = 'drop-hint';
+                h.innerHTML = zoneId === 'omOvermaatZone' ? 'Sleep hier<br>de overmaat' : 'Sleep<br>stof';
+                z.appendChild(h);
+            }
+            list.forEach(tok => {
+                const found = findOMSub(tok.subId);
+                const c = omColor(tok.subId);
+                const el = document.createElement('div');
+                el.className = 'atom-on-scale';
+                el.style.width = 'auto';
+                el.style.minWidth = '36px';
+                el.style.padding = '0 8px';
+                el.style.borderRadius = '18px';
+                el.style.background = 'linear-gradient(135deg, ' + c.bg + ', white)';
+                el.style.borderColor = c.color;
+                el.style.color = c.text;
+                el.textContent = found ? found.sub.formula : '?';
+                el.title = 'Klik om te verwijderen';
+                el.onclick = () => removeOMToken(zoneId, tok.id);
+                z.appendChild(el);
+            });
+        }
+
+        function renderOMPool() {
+            const pool = document.getElementById('omPool');
+            pool.innerHTML = '';
+            [...omScenario.reactants, ...omScenario.products].forEach(entry => {
+                const c = omColor(entry.sub.id);
+                const el = document.createElement('div');
+                el.className = 'atom-source';
+                el.style.width = '68px';
+                el.style.height = '68px';
+                el.style.borderRadius = '16px';
+                el.draggable = true;
+                el.style.background = 'linear-gradient(135deg, ' + c.bg + ', white)';
+                el.style.borderColor = c.color;
+                el.style.color = c.text;
+                el.innerHTML = '<span class="symbol">' + entry.sub.formula + '</span><span class="mass">' + entry.m + ' g/mol</span>';
+                el.ondragstart = (e) => { e.dataTransfer.setData('subId', entry.sub.id); e.dataTransfer.effectAllowed = 'copy'; };
+                el.onclick = () => {
+                    if (omSolved) return;
+                    const isProduct = omScenario.products.includes(entry);
+                    const zoneId = isProduct ? 'omProd_' + entry.sub.id : 'omReact_' + entry.sub.id;
+                    addOMToken(zoneId, entry.sub.id);
+                };
+                pool.appendChild(el);
+            });
+        }
+
+        function checkOM() {
+            const s = omScenario;
+            let anyPlaced = false;
+            Object.values(omPlaced).forEach(list => { if (list.length) anyPlaced = true; });
+            if (!anyPlaced) { showOMFB('warning', '⚠️ Sleep eerst stoffen naar de vakken.'); return; }
+
+            let reactOK = true;
+            s.reactants.forEach((r, i) => {
+                const list = omPlaced['omReact_' + r.sub.id] || [];
+                const correct = list.filter(t => t.subId === r.sub.id).length;
+                const wrong = list.length - correct;
+                if (correct !== s.reactAmount[i] || wrong > 0) reactOK = false;
+            });
+
+            const omList = omPlaced['omOvermaatZone'] || [];
+            const omCorrect = omList.filter(t => t.subId === s.overmaatType).length;
+            const omWrong = omList.length - omCorrect;
+            const overmaatOK = (omCorrect === s.excessAmount && omWrong === 0);
+
+            let productOK = true;
+            s.products.forEach((p, i) => {
+                const list = omPlaced['omProd_' + p.sub.id] || [];
+                const correct = list.filter(t => t.subId === p.sub.id).length;
+                const wrong = list.length - correct;
+                if (correct !== s.productAmount[i] || wrong > 0) productOK = false;
+            });
+
+            if (reactOK && overmaatOK && productOK) {
+                omSolved = true;
+                showOMFB('success', '✅ Precies goed! Massa, beperkende reactant, overmaat en product kloppen allemaal.');
+                showOMExplanation();
+                [...Object.keys(omPlaced)].forEach(z => document.getElementById(z) && document.getElementById(z).classList.add('solved'));
+            } else if (!reactOK) {
+                showOMFB('error', '❌ Het aantal mol dat reageert klopt nog niet. Reken per reactant massa → mol, en kijk welke reactant beperkend is.');
+            } else if (!overmaatOK) {
+                showOMFB('warning', '⚠️ De hoeveelheid in de overmaatbak klopt nog niet.');
+            } else {
+                showOMFB('warning', '⚠️ De hoeveelheid gevormd product klopt nog niet.');
+            }
+        }
+
+        function showOMExplanation() {
+            const s = omScenario;
+            const ex = document.getElementById('omExplanation');
+            let html = '<strong>Uitwerking:</strong><br>';
+            s.reactants.forEach((r, i) => {
+                html += r.sub.formula + ': ' + s.avail[i] * r.m + ' g ÷ ' + r.m + ' g/mol = <strong>' + s.avail[i] + ' mol</strong> beschikbaar<br>';
+            });
+            const limName = s.reactants[s.limitingIdx].sub.formula;
+            const otherName = s.reactants[s.otherIdx].sub.formula;
+            html += limName + ' is de <strong>beperkende reactant</strong> (op basis van de verhouding ' + s.reactants[0].sub.coefficient + ' : ' + s.reactants[1].sub.coefficient + ').<br>';
+            s.reactants.forEach((r, i) => {
+                html += 'Er reageert <strong>' + s.reactAmount[i] + ' mol ' + r.sub.formula + '</strong> (' + (s.reactAmount[i] * r.m) + ' g).<br>';
+            });
+            const otherM = s.reactants[s.otherIdx].m;
+            html += 'Overmaat: <strong>' + s.excessAmount + ' mol ' + otherName + '</strong> (' + (s.excessAmount * otherM) + ' g) blijft over.<br>';
+            s.products.forEach((p, i) => {
+                html += 'Gevormd: <strong>' + s.productAmount[i] + ' mol ' + p.sub.formula + '</strong> (' + (s.productAmount[i] * p.m) + ' g).';
+                if (i < s.products.length - 1) html += '<br>';
+            });
+            ex.innerHTML = html;
+            ex.style.display = 'block';
+        }
+
+        function showOMFB(type, msg) {
+            const fb = document.getElementById('omFeedback');
+            fb.className = 'feedback ' + type;
+            fb.style.background = '';
+            fb.style.color = '';
+            fb.style.border = '';
+            fb.textContent = msg;
+        }
+
+        function clearOMFeedback() {
+            const fb = document.getElementById('omFeedback');
+            fb.className = 'feedback';
+            fb.style.background = 'transparent';
+            fb.style.color = 'transparent';
+            fb.style.border = 'none';
+            fb.textContent = '';
+        }
+
+        function resetOM() {
+            omSolved = false;
+            omPlaced = {};
+            document.querySelectorAll('#tab2Panel .drop-zone').forEach(z => z.classList.remove('solved'));
+            renderOMScales();
+            wireOvermaatZone();
+            renderOMZoneContent('omOvermaatZone');
+            clearOMFeedback();
+            const ex = document.getElementById('omExplanation');
+            ex.style.display = 'none';
         }
 
         init();
