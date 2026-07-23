@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Chemisch SET</title>
+<style>
+  :root{
+    --ink:#1f2a24; --paper:#ffffff; --line:#d8ddd9;
+    --good:#2f7a4f; --goodbg:#eaf6ee;
+    --bad:#a4402f; --badbg:#fbeeec;
+    --accent:#3d6b52;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Georgia','Iowan Old Style',serif;
+    background:var(--paper); color:var(--ink); padding:24px 20px 60px;
+  }
+  h1{font-size:22px; font-weight:600; margin:0 0 4px; letter-spacing:.2px;}
+  .sub{font-size:13px; color:#6b756f; margin:0 0 20px; font-family:'Helvetica Neue',Arial,sans-serif;}
+
+  .modebar{display:flex; gap:8px; margin-bottom:18px; font-family:'Helvetica Neue',Arial,sans-serif;}
+  .modebtn{
+    padding:8px 16px; border:1px solid var(--line); background:var(--paper);
+    border-radius:6px; cursor:pointer; font-size:13px; color:var(--ink);
+  }
+  .modebtn.active{background:var(--accent); color:#fff; border-color:var(--accent);}
+
+  .toolbar{
+    display:flex; align-items:center; gap:14px; margin-bottom:18px;
+    font-family:'Helvetica Neue',Arial,sans-serif; font-size:14px; flex-wrap:wrap;
+  }
+  .toolbar button{
+    padding:9px 16px; border:1px solid var(--accent); background:var(--accent);
+    color:#fff; border-radius:6px; cursor:pointer; font-size:13.5px;
+  }
+  .toolbar button.secondary{background:var(--paper); color:var(--accent);}
+  .toolbar button:disabled{opacity:.4; cursor:default;}
+  .score{font-variant-numeric:tabular-nums; font-size:15px;}
+  .deckcount{color:#8a938d;}
+
+  .feedback{
+    min-height:22px; margin-bottom:14px; font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:14px; padding:8px 12px; border-radius:6px; display:inline-block;
+  }
+  .feedback.correct{background:var(--goodbg); color:var(--good);}
+  .feedback.wrong{background:var(--badbg); color:var(--bad);}
+
+  .board{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:14px; max-width:980px;
+  }
+  .card{
+    border:1.5px solid var(--line); border-radius:10px; background:var(--paper);
+    aspect-ratio:3/4; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; padding:10px; transition:box-shadow .15s, border-color .15s, transform .1s;
+  }
+  .card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08);}
+  .card.selected{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent) inset;}
+  .card .naam{
+    font-size:14px; text-align:center; line-height:1.35; font-family:'Georgia',serif;
+    word-break:break-word;
+  }
+  .card svg{width:100%; height:100%;}
+
+  .endmsg{
+    margin-top:20px; font-family:'Helvetica Neue',Arial,sans-serif; font-size:15px;
+    padding:14px 16px; background:#f4f6f4; border-radius:8px; max-width:520px;
+  }
+  .kenmerken{
+    font-family:'Helvetica Neue',Arial,sans-serif; font-size:12.5px; color:#7a847e;
+    margin-bottom:16px; max-width:640px; line-height:1.6;
+  }
+</style>
+</head>
+<body>
+
+<h1>Chemisch SET</h1>
+<p class="sub">Vind drie kaarten die voor elk kenmerk allemaal gelijk óf allemaal verschillend zijn.</p>
+<p class="kenmerken">Kenmerken: <b>aantal C-atomen</b> (5 / 6 / 7) · <b>dubbele bindingen</b> (0 / 1 / 2) · <b>vorm</b> (lineair / vertakt / cyclisch) · <b>halogeensubstituenten</b> (0 / 1 / 2)</p>
+
+<div class="modebar">
+  <button class="modebtn active" id="modeSolo" onclick="setMode('solo')">Solo</button>
+  <button class="modebtn" id="modeGroep" onclick="setMode('groep')">Groep</button>
+</div>
+
+<div class="toolbar">
+  <button onclick="checkSelection()" id="btnCheck">Controleer</button>
+  <button class="secondary" onclick="dealMore(3)" id="btnMore">3 kaarten erbij</button>
+  <button class="secondary" onclick="newGame()">Nieuw spel</button>
+  <span class="score" id="scoreDisplay"></span>
+  <span class="deckcount" id="deckDisplay"></span>
+</div>
+
+<div class="feedback" id="feedback" style="display:none;"></div>
+
+<div class="board" id="board"></div>
+<div class="endmsg" id="endmsg" style="display:none;"></div>
+
+<script>
+const CARDS = [{"naam": "pentaan", "smiles": "CCCCC", "vorm": "lineair", "ctot": 5, "db": 0, "hal": 0, "haltypes": []}, {"naam": "1-fluorpentaan", "smiles": "CCCCCF", "vorm": "lineair", "ctot": 5, "db": 0, "hal": 1, "haltypes": ["F"]}, {"naam": "1,1-difluorpentaan", "smiles": "CCCCC(F)F", "vorm": "lineair", "ctot": 5, "db": 0, "hal": 2, "haltypes": ["F", "F"]}, {"naam": "pent-1-een", "smiles": "C=CCCC", "vorm": "lineair", "ctot": 5, "db": 1, "hal": 0, "haltypes": []}, {"naam": "5-chloorpent-1-een", "smiles": "C=CCCCCl", "vorm": "lineair", "ctot": 5, "db": 1, "hal": 1, "haltypes": ["Cl"]}, {"naam": "5,5-dichloorpent-1-een", "smiles": "C=CCCC(Cl)Cl", "vorm": "lineair", "ctot": 5, "db": 1, "hal": 2, "haltypes": ["Cl", "Cl"]}, {"naam": "penta-1,3-dieen", "smiles": "C=CC=CC", "vorm": "lineair", "ctot": 5, "db": 2, "hal": 0, "haltypes": []}, {"naam": "5-broompenta-1,3-dieen", "smiles": "C=CC=CCBr", "vorm": "lineair", "ctot": 5, "db": 2, "hal": 1, "haltypes": ["Br"]}, {"naam": "5,5-dibroompenta-1,3-dieen", "smiles": "C=CC=CC(Br)Br", "vorm": "lineair", "ctot": 5, "db": 2, "hal": 2, "haltypes": ["Br", "Br"]}, {"naam": "hexaan", "smiles": "CCCCCC", "vorm": "lineair", "ctot": 6, "db": 0, "hal": 0, "haltypes": []}, {"naam": "1-fluorhexaan", "smiles": "CCCCCCF", "vorm": "lineair", "ctot": 6, "db": 0, "hal": 1, "haltypes": ["F"]}, {"naam": "1-chloor-1-fluorhexaan", "smiles": "CCCCCC(F)Cl", "vorm": "lineair", "ctot": 6, "db": 0, "hal": 2, "haltypes": ["F", "Cl"]}, {"naam": "hex-1-een", "smiles": "C=CCCCC", "vorm": "lineair", "ctot": 6, "db": 1, "hal": 0, "haltypes": []}, {"naam": "6-chloorhex-1-een", "smiles": "C=CCCCCCl", "vorm": "lineair", "ctot": 6, "db": 1, "hal": 1, "haltypes": ["Cl"]}, {"naam": "6-broom-6-chloorhex-1-een", "smiles": "C=CCCCC(Cl)Br", "vorm": "lineair", "ctot": 6, "db": 1, "hal": 2, "haltypes": ["Cl", "Br"]}, {"naam": "hexa-1,3-dieen", "smiles": "C=CC=CCC", "vorm": "lineair", "ctot": 6, "db": 2, "hal": 0, "haltypes": []}, {"naam": "6-broomhexa-1,3-dieen", "smiles": "C=CC=CCCBr", "vorm": "lineair", "ctot": 6, "db": 2, "hal": 1, "haltypes": ["Br"]}, {"naam": "6-broom-6-fluorhexa-1,3-dieen", "smiles": "C=CC=CCC(F)Br", "vorm": "lineair", "ctot": 6, "db": 2, "hal": 2, "haltypes": ["F", "Br"]}, {"naam": "heptaan", "smiles": "CCCCCCC", "vorm": "lineair", "ctot": 7, "db": 0, "hal": 0, "haltypes": []}, {"naam": "1-fluorheptaan", "smiles": "CCCCCCCF", "vorm": "lineair", "ctot": 7, "db": 0, "hal": 1, "haltypes": ["F"]}, {"naam": "1,1-difluorheptaan", "smiles": "CCCCCCC(F)F", "vorm": "lineair", "ctot": 7, "db": 0, "hal": 2, "haltypes": ["F", "F"]}, {"naam": "hept-1-een", "smiles": "C=CCCCCC", "vorm": "lineair", "ctot": 7, "db": 1, "hal": 0, "haltypes": []}, {"naam": "7-chloorhept-1-een", "smiles": "C=CCCCCCCl", "vorm": "lineair", "ctot": 7, "db": 1, "hal": 1, "haltypes": ["Cl"]}, {"naam": "7,7-dichloorhept-1-een", "smiles": "C=CCCCCC(Cl)Cl", "vorm": "lineair", "ctot": 7, "db": 1, "hal": 2, "haltypes": ["Cl", "Cl"]}, {"naam": "hepta-1,3-dieen", "smiles": "C=CC=CCCC", "vorm": "lineair", "ctot": 7, "db": 2, "hal": 0, "haltypes": []}, {"naam": "7-broomhepta-1,3-dieen", "smiles": "C=CC=CCCCBr", "vorm": "lineair", "ctot": 7, "db": 2, "hal": 1, "haltypes": ["Br"]}, {"naam": "7,7-dibroomhepta-1,3-dieen", "smiles": "C=CC=CCCC(Br)Br", "vorm": "lineair", "ctot": 7, "db": 2, "hal": 2, "haltypes": ["Br", "Br"]}, {"naam": "2-methylbutaan", "smiles": "CCC(C)C", "vorm": "vertakt", "ctot": 5, "db": 0, "hal": 0, "haltypes": []}, {"naam": "1-fluor-3-methylbutaan", "smiles": "CC(C)CCF", "vorm": "vertakt", "ctot": 5, "db": 0, "hal": 1, "haltypes": ["F"]}, {"naam": "1-chloor-1-fluor-3-methylbutaan", "smiles": "CC(C)CC(F)Cl", "vorm": "vertakt", "ctot": 5, "db": 0, "hal": 2, "haltypes": ["F", "Cl"]}, {"naam": "2-methylbut-1-een", "smiles": "C=C(C)CC", "vorm": "vertakt", "ctot": 5, "db": 1, "hal": 0, "haltypes": []}, {"naam": "4-chloor-2-methylbut-1-een", "smiles": "C=C(C)CCCl", "vorm": "vertakt", "ctot": 5, "db": 1, "hal": 1, "haltypes": ["Cl"]}, {"naam": "4-broom-4-chloor-2-methylbut-1-een", "smiles": "C=C(C)CC(Cl)Br", "vorm": "vertakt", "ctot": 5, "db": 1, "hal": 2, "haltypes": ["Cl", "Br"]}, {"naam": "2-methylbuta-1,3-dieen", "smiles": "C=CC(=C)C", "vorm": "vertakt", "ctot": 5, "db": 2, "hal": 0, "haltypes": []}, {"naam": "4-broom-2-methylbuta-1,3-dieen", "smiles": "C=C(C)C=CBr", "vorm": "vertakt", "ctot": 5, "db": 2, "hal": 1, "haltypes": ["Br"]}, {"naam": "4-broom-4-fluor-2-methylbuta-1,3-dieen", "smiles": "C=C(C)C=C(F)Br", "vorm": "vertakt", "ctot": 5, "db": 2, "hal": 2, "haltypes": ["F", "Br"]}, {"naam": "2-methylpentaan", "smiles": "CCCC(C)C", "vorm": "vertakt", "ctot": 6, "db": 0, "hal": 0, "haltypes": []}, {"naam": "1-fluor-4-methylpentaan", "smiles": "CC(C)CCCF", "vorm": "vertakt", "ctot": 6, "db": 0, "hal": 1, "haltypes": ["F"]}, {"naam": "1,1-difluor-4-methylpentaan", "smiles": "CC(C)CCC(F)F", "vorm": "vertakt", "ctot": 6, "db": 0, "hal": 2, "haltypes": ["F", "F"]}, {"naam": "2-methylpent-1-een", "smiles": "C=C(C)CCC", "vorm": "vertakt", "ctot": 6, "db": 1, "hal": 0, "haltypes": []}, {"naam": "5-chloor-2-methylpent-1-een", "smiles": "C=C(C)CCCCl", "vorm": "vertakt", "ctot": 6, "db": 1, "hal": 1, "haltypes": ["Cl"]}, {"naam": "5,5-dichloor-2-methylpent-1-een", "smiles": "C=C(C)CCC(Cl)Cl", "vorm": "vertakt", "ctot": 6, "db": 1, "hal": 2, "haltypes": ["Cl", "Cl"]}, {"naam": "2-methylpenta-1,3-dieen", "smiles": "C=C(C)C=CC", "vorm": "vertakt", "ctot": 6, "db": 2, "hal": 0, "haltypes": []}, {"naam": "5-broom-2-methylpenta-1,3-dieen", "smiles": "C=C(C)C=CCBr", "vorm": "vertakt", "ctot": 6, "db": 2, "hal": 1, "haltypes": ["Br"]}, {"naam": "5,5-dibroom-2-methylpenta-1,3-dieen", "smiles": "C=C(C)C=CC(Br)Br", "vorm": "vertakt", "ctot": 6, "db": 2, "hal": 2, "haltypes": ["Br", "Br"]}, {"naam": "2-methylhexaan", "smiles": "CCCCC(C)C", "vorm": "vertakt", "ctot": 7, "db": 0, "hal": 0, "haltypes": []}, {"naam": "1-fluor-5-methylhexaan", "smiles": "CC(C)CCCCF", "vorm": "vertakt", "ctot": 7, "db": 0, "hal": 1, "haltypes": ["F"]}, {"naam": "1-chloor-1-fluor-5-methylhexaan", "smiles": "CC(C)CCCC(F)Cl", "vorm": "vertakt", "ctot": 7, "db": 0, "hal": 2, "haltypes": ["F", "Cl"]}, {"naam": "2-methylhex-1-een", "smiles": "C=C(C)CCCC", "vorm": "vertakt", "ctot": 7, "db": 1, "hal": 0, "haltypes": []}, {"naam": "6-chloor-2-methylhex-1-een", "smiles": "C=C(C)CCCCCl", "vorm": "vertakt", "ctot": 7, "db": 1, "hal": 1, "haltypes": ["Cl"]}, {"naam": "6-broom-6-chloor-2-methylhex-1-een", "smiles": "C=C(C)CCCC(Cl)Br", "vorm": "vertakt", "ctot": 7, "db": 1, "hal": 2, "haltypes": ["Cl", "Br"]}, {"naam": "2-methylhexa-1,3-dieen", "smiles": "C=C(C)C=CCC", "vorm": "vertakt", "ctot": 7, "db": 2, "hal": 0, "haltypes": []}, {"naam": "6-broom-2-methylhexa-1,3-dieen", "smiles": "C=C(C)C=CCCBr", "vorm": "vertakt", "ctot": 7, "db": 2, "hal": 1, "haltypes": ["Br"]}, {"naam": "6-broom-6-fluor-2-methylhexa-1,3-dieen", "smiles": "C=C(C)C=CCC(F)Br", "vorm": "vertakt", "ctot": 7, "db": 2, "hal": 2, "haltypes": ["F", "Br"]}, {"naam": "cyclopentaan", "smiles": "C1CCCC1", "vorm": "cyclisch", "ctot": 5, "db": 0, "hal": 0, "haltypes": []}, {"naam": "1-fluorcyclopentaan", "smiles": "FC1CCCC1", "vorm": "cyclisch", "ctot": 5, "db": 0, "hal": 1, "haltypes": ["F"]}, {"naam": "1,1-difluorcyclopentaan", "smiles": "FC1(F)CCCC1", "vorm": "cyclisch", "ctot": 5, "db": 0, "hal": 2, "haltypes": ["F", "F"]}, {"naam": "cyclopenteen", "smiles": "C1=CCCC1", "vorm": "cyclisch", "ctot": 5, "db": 1, "hal": 0, "haltypes": []}, {"naam": "5-chloorcyclopenteen", "smiles": "ClC1C=CCC1", "vorm": "cyclisch", "ctot": 5, "db": 1, "hal": 1, "haltypes": ["Cl"]}, {"naam": "5,5-dichloorcyclopenteen", "smiles": "ClC1(Cl)C=CCC1", "vorm": "cyclisch", "ctot": 5, "db": 1, "hal": 2, "haltypes": ["Cl", "Cl"]}, {"naam": "cyclopenta-1,3-dieen", "smiles": "C1=CCC=C1", "vorm": "cyclisch", "ctot": 5, "db": 2, "hal": 0, "haltypes": []}, {"naam": "5-broomcyclopenta-1,3-dieen", "smiles": "BrC1C=CC=C1", "vorm": "cyclisch", "ctot": 5, "db": 2, "hal": 1, "haltypes": ["Br"]}, {"naam": "5,5-dibroomcyclopenta-1,3-dieen", "smiles": "BrC1(Br)C=CC=C1", "vorm": "cyclisch", "ctot": 5, "db": 2, "hal": 2, "haltypes": ["Br", "Br"]}, {"naam": "cyclohexaan", "smiles": "C1CCCCC1", "vorm": "cyclisch", "ctot": 6, "db": 0, "hal": 0, "haltypes": []}, {"naam": "1-fluorcyclohexaan", "smiles": "FC1CCCCC1", "vorm": "cyclisch", "ctot": 6, "db": 0, "hal": 1, "haltypes": ["F"]}, {"naam": "1-chloor-1-fluorcyclohexaan", "smiles": "FC1(Cl)CCCCC1", "vorm": "cyclisch", "ctot": 6, "db": 0, "hal": 2, "haltypes": ["F", "Cl"]}, {"naam": "cyclohexeen", "smiles": "C1=CCCCC1", "vorm": "cyclisch", "ctot": 6, "db": 1, "hal": 0, "haltypes": []}, {"naam": "6-chloorcyclohexeen", "smiles": "ClC1C=CCCC1", "vorm": "cyclisch", "ctot": 6, "db": 1, "hal": 1, "haltypes": ["Cl"]}, {"naam": "6-broom-6-chloorcyclohexeen", "smiles": "ClC1(Br)C=CCCC1", "vorm": "cyclisch", "ctot": 6, "db": 1, "hal": 2, "haltypes": ["Cl", "Br"]}, {"naam": "cyclohexa-1,3-dieen", "smiles": "C1=CCCC=C1", "vorm": "cyclisch", "ctot": 6, "db": 2, "hal": 0, "haltypes": []}, {"naam": "6-broomcyclohexa-1,3-dieen", "smiles": "BrC1C=CC=CC1", "vorm": "cyclisch", "ctot": 6, "db": 2, "hal": 1, "haltypes": ["Br"]}, {"naam": "6-broom-6-fluorcyclohexa-1,3-dieen", "smiles": "FC1(Br)C=CC=CC1", "vorm": "cyclisch", "ctot": 6, "db": 2, "hal": 2, "haltypes": ["F", "Br"]}, {"naam": "cycloheptaan", "smiles": "C1CCCCCC1", "vorm": "cyclisch", "ctot": 7, "db": 0, "hal": 0, "haltypes": []}, {"naam": "1-fluorcycloheptaan", "smiles": "FC1CCCCCC1", "vorm": "cyclisch", "ctot": 7, "db": 0, "hal": 1, "haltypes": ["F"]}, {"naam": "1,1-difluorcycloheptaan", "smiles": "FC1(F)CCCCCC1", "vorm": "cyclisch", "ctot": 7, "db": 0, "hal": 2, "haltypes": ["F", "F"]}, {"naam": "cyclohepteen", "smiles": "C1=CCCCCC1", "vorm": "cyclisch", "ctot": 7, "db": 1, "hal": 0, "haltypes": []}, {"naam": "7-chloorcyclohepteen", "smiles": "ClC1C=CCCCC1", "vorm": "cyclisch", "ctot": 7, "db": 1, "hal": 1, "haltypes": ["Cl"]}, {"naam": "7,7-dichloorcyclohepteen", "smiles": "ClC1(Cl)C=CCCCC1", "vorm": "cyclisch", "ctot": 7, "db": 1, "hal": 2, "haltypes": ["Cl", "Cl"]}, {"naam": "cyclohepta-1,3-dieen", "smiles": "C1=CCCCC=C1", "vorm": "cyclisch", "ctot": 7, "db": 2, "hal": 0, "haltypes": []}, {"naam": "7-broomcyclohepta-1,3-dieen", "smiles": "BrC1C=CC=CCC1", "vorm": "cyclisch", "ctot": 7, "db": 2, "hal": 1, "haltypes": ["Br"]}, {"naam": "7,7-dibroomcyclohepta-1,3-dieen", "smiles": "BrC1(Br)C=CC=CCC1", "vorm": "cyclisch", "ctot": 7, "db": 2, "hal": 2, "haltypes": ["Br", "Br"]}];
+
+let mode = 'solo';
+let deck = [];
+let board = []; // {card, show:'naam'|'structuur'}
+let selected = new Set();
+let score = 0;
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function setMode(m){
+  mode = m;
+  document.getElementById('modeSolo').classList.toggle('active', m==='solo');
+  document.getElementById('modeGroep').classList.toggle('active', m==='groep');
+  newGame();
+}
+
+function newGame(){
+  deck = shuffle(CARDS);
+  board = [];
+  selected.clear();
+  score = 0;
+  document.getElementById('endmsg').style.display='none';
+  dealMore(12, true);
+  renderAll();
+}
+
+function dealMore(n, isInitial){
+  for(let i=0;i<n && deck.length>0;i++){
+    const c = deck.pop();
+    board.push({card:c, show: Math.random()<0.5 ? 'naam':'structuur'});
+  }
+  renderAll();
+  checkEnd();
+}
+
+function checkEnd(){
+  if(deck.length===0 && !hasAnySet()){
+    document.getElementById('endmsg').style.display='block';
+    document.getElementById('endmsg').textContent = mode==='solo'
+      ? `Spel afgelopen — geen kaarten en geen sets meer. Eindscore: ${score}.`
+      : `Spel afgelopen — geen kaarten en geen sets meer op het bord.`;
+    document.getElementById('btnCheck').disabled = true;
+    document.getElementById('btnMore').disabled = true;
+  } else {
+    document.getElementById('btnCheck').disabled = false;
+    document.getElementById('btnMore').disabled = deck.length===0;
+  }
+}
+
+function hasAnySet(){
+  const n = board.length;
+  for(let i=0;i<n;i++) for(let j=i+1;j<n;j++) for(let k=j+1;k<n;k++){
+    if(isValidSet([board[i].card, board[j].card, board[k].card])) return true;
+  }
+  return false;
+}
+
+function isValidSet(cards){
+  const traits = ['ctot','db','vorm','hal'];
+  return traits.every(t=>{
+    const vals = cards.map(c=>c[t]);
+    const allSame = vals.every(v=>v===vals[0]);
+    const allDiff = new Set(vals).size===3;
+    return allSame || allDiff;
+  });
+}
+
+function toggleSelect(idx){
+  if(selected.has(idx)) selected.delete(idx);
+  else if(selected.size<3) selected.add(idx);
+  renderAll();
+}
+
+function checkSelection(){
+  if(selected.size!==3){
+    showFeedback('Selecteer precies 3 kaarten.', false);
+    return;
+  }
+  const idxs = Array.from(selected);
+  const cards = idxs.map(i=>board[i].card);
+  const ok = isValidSet(cards);
+  if(ok){
+    showFeedback('✓ Klopt! Geldige set.', true);
+    if(mode==='solo') score += 1;
+    idxs.sort((a,b)=>b-a).forEach(i=>board.splice(i,1));
+    selected.clear();
+    const remaining = board.length;
+    if(remaining < 12){
+      dealMore(3);
+    } else {
+      renderAll();
+      checkEnd();
+    }
+  } else {
+    showFeedback('✗ Geen geldige set — voor elk kenmerk moet het alle drie gelijk óf alle drie verschillend zijn.', false);
+    if(mode==='solo') score -= 1;
+    selected.clear();
+    renderAll();
+  }
+}
+
+function showFeedback(msg, ok){
+  const fb = document.getElementById('feedback');
+  fb.style.display='inline-block';
+  fb.className = 'feedback ' + (ok?'correct':'wrong');
+  fb.textContent = msg;
+}
+
+function renderAll(){
+  const boardEl = document.getElementById('board');
+  boardEl.innerHTML='';
+  board.forEach((entry, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'card' + (selected.has(idx)?' selected':'');
+    div.onclick = ()=>toggleSelect(idx);
+    if(entry.show==='naam'){
+      const p = document.createElement('div');
+      p.className='naam';
+      p.textContent = entry.card.naam;
+      div.appendChild(p);
+    } else {
+      div.innerHTML = drawStructure(entry.card);
+    }
+    boardEl.appendChild(div);
+  });
+  document.getElementById('scoreDisplay').textContent = mode==='solo' ? `Score: ${score}` : '';
+  document.getElementById('deckDisplay').textContent = `Nog in stapel: ${deck.length}`;
+  document.getElementById('btnMore').disabled = deck.length===0;
+}
+
+// ---------- structure rendering ----------
+function drawStructure(card){
+  const {vorm, ctot, db, haltypes} = card;
+  const W=180, H=180;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  const stroke = 'stroke="#1f2a24" stroke-width="2.4" fill="none" stroke-linecap="round"';
+
+  function doubleLine(x1,y1,x2,y2,offx,offy){
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${stroke}/>` +
+           `<line x1="${x1+offx}" y1="${y1+offy}" x2="${x2+offx}" y2="${y2+offy}" ${stroke}/>`;
+  }
+  function haloLabel(x,y,dx,dy,text){
+    return `<text x="${x+dx}" y="${y+dy}" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="600" fill="#1f2a24" text-anchor="middle">${text}</text>`;
+  }
+
+  if(vorm==='cyclisch'){
+    const n = ctot, R = 58, cx=W/2, cy=H/2+4;
+    const pts = [];
+    for(let i=0;i<n;i++){
+      const ang = -Math.PI/2 + i*2*Math.PI/n;
+      pts.push([cx+R*Math.cos(ang), cy+R*Math.sin(ang)]);
+    }
+    for(let i=0;i<n;i++){
+      const [x1,y1]=pts[i], [x2,y2]=pts[(i+1)%n];
+      const isDouble = (i===0 && db>=1) || (i===2 && db===2);
+      if(isDouble){
+        const mx=(x1+x2)/2, my=(y1+y2)/2;
+        const nx=(cx-mx), ny=(cy-my);
+        const len=Math.hypot(nx,ny); const offx=nx/len*6, offy=ny/len*6;
+        svg += doubleLine(x1,y1,x2,y2, offx, offy);
+      } else {
+        svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${stroke}/>`;
+      }
+    }
+    // halogens on last vertex (index n-1, adjacent to vertex 0)
+    const [hx,hy] = pts[n-1];
+    const outAng = Math.atan2(hy-cy, hx-cx);
+    if(haltypes.length===1){
+      svg += haloLabel(hx,hy, 16*Math.cos(outAng), 16*Math.sin(outAng)+5, haltypes[0]);
+    } else if(haltypes.length===2){
+      svg += haloLabel(hx,hy, 16*Math.cos(outAng-0.5), 16*Math.sin(outAng-0.5)+5, haltypes[0]);
+      svg += haloLabel(hx,hy, 16*Math.cos(outAng+0.5), 16*Math.sin(outAng+0.5)+5, haltypes[1]);
+    }
+  } else {
+    // lineair or vertakt: zigzag chain
+    const n = vorm==='vertakt' ? ctot-1 : ctot;
+    const dx = 140/(n-1||1), startx=20, y0=100, amp=22;
+    const pts=[];
+    for(let i=0;i<n;i++){
+      pts.push([startx+i*dx, y0 + (i%2===0?amp:-amp)]);
+    }
+    for(let i=0;i<n-1;i++){
+      const [x1,y1]=pts[i], [x2,y2]=pts[i+1];
+      const isDouble = (i===0 && db>=1) || (i===2 && db===2);
+      if(isDouble){
+        svg += doubleLine(x1,y1,x2,y2, 0, (y1<y2? -6:6));
+      } else {
+        svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${stroke}/>`;
+      }
+    }
+    if(vorm==='vertakt'){
+      // branch (methyl) off vertex index 1
+      const [bx,by] = pts[1];
+      const bty = by - amp*1.4;
+      svg += `<line x1="${bx}" y1="${by}" x2="${bx}" y2="${bty}" ${stroke}/>`;
+    }
+    const [hx,hy] = pts[n-1];
+    if(haltypes.length===1){
+      svg += haloLabel(hx,hy, 14, hy<y0?-12:16, haltypes[0]);
+    } else if(haltypes.length===2){
+      svg += haloLabel(hx,hy, 4, -16, haltypes[0]);
+      svg += haloLabel(hx,hy, 18, 14, haltypes[1]);
+    }
+  }
+  svg += '</svg>';
+  return svg;
+}
+
+newGame();
+</script>
+</body>
+</html>
