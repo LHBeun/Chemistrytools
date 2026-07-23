@@ -112,6 +112,13 @@
   }
   .guess-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+  .component-legend {
+    display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; font-size: 0.8em; color: var(--muted);
+  }
+  .component-legend .item { display: flex; align-items: center; gap: 6px; }
+  .component-legend .swatch { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .component-legend .note { font-size: 0.92em; font-style: italic; }
+
   @media (max-width: 700px) {
     .graphs { grid-template-columns: 1fr; }
     .controls-grid { grid-template-columns: 1fr; }
@@ -144,6 +151,7 @@
       <span class="fase-badge" id="fase-badge">—</span>
     </div>
     <canvas id="canvas-particles"></canvas>
+    <div class="component-legend" id="component-legend"></div>
   </div>
   <div class="panel">
     <div class="graph-title">
@@ -194,9 +202,17 @@ const SUBSTANCES = {
   methanol:      { naam: 'Methanol',                     formule: 'CH₃OH',
                     TmLow: -98,  TmHigh: -98,  TbLow: 65,   TbHigh: 65,   mengsel: false },
   zoutwater:     { naam: 'Zout water',                   formule: 'H₂O + NaCl (opgelost)',
-                    TmLow: -6,   TmHigh: 0,    TbLow: 100,  TbHigh: 104,  mengsel: true },
+                    TmLow: -6,   TmHigh: 0,    TbLow: 100,  TbHigh: 104,  mengsel: true,
+                    components: [
+                      { naam: 'H₂O',  fractie: 0.8, vluchtig: true,  bias: 0, kleur: 'std' },
+                      { naam: 'NaCl', fractie: 0.2, vluchtig: false, bias: 0, kleur: '#94a3b8' }
+                    ] },
   waterethanol:  { naam: 'Water-ethanolmengsel',         formule: 'H₂O + C₂H₅OH',
-                    TmLow: -25,  TmHigh: 0,    TbLow: 78,   TbHigh: 100,  mengsel: true },
+                    TmLow: -25,  TmHigh: 0,    TbLow: 78,   TbHigh: 100,  mengsel: true,
+                    components: [
+                      { naam: 'C₂H₅OH', fractie: 0.5, vluchtig: true, bias: 0,   kleur: 'ethanol' },
+                      { naam: 'H₂O',     fractie: 0.5, vluchtig: true, bias: 0.5, kleur: 'std' }
+                    ] },
   co2:           { naam: 'Koolstofdioxide (droogijs)',    formule: 'CO₂',
                     TmLow: -78.5, TmHigh: -78.5, TbLow: -78.5, TbHigh: -78.5, mengsel: false, noLiquid: true },
 };
@@ -214,9 +230,16 @@ const ABS_ZERO      = -273;
 
 const N_PARTICLES = 48;
 
+// Vaste kleuren voor mengsel-componenten die niet de standaard fase-kleur gebruiken
+const COMPONENT_COLORS = {
+  ethanol: { solid: '#7e22ce', liquid: '#a855f7', gas: '#e9d5ff' } // paarse tinten, los van blauw/teal/oranje van de fase-legenda
+};
+
 // ─── State ────────────────────────────────────────────────────────────────
 let currentKey = 'water';
-let T = 0, phase = 'solid', meltProgress = 0, boilProgress = 0, simTime = 0;
+let T = 0, phase = 'solid', meltProgress = 0, boilProgress = 0, simTime = 0, displayTime = 0;
+let sessionYMin = 0, sessionYMax = 0; // gevolgd bereik van T deze run — bepaalt de y-as
+const SINGLE_PHASE_COMPRESSION = 0.15; // eenfase-opwarming telt maar 15% mee in de x-as, plateaus 100%
 let heatPower = 0;
 let paused = false;
 let history = [];
@@ -245,6 +268,7 @@ function buildStofPicker() {
     btn.onclick = () => selectSubstance(key);
     (s.mengsel ? mengRow : purRow).appendChild(btn);
   });
+  document.getElementById('stof-tip').textContent = '';
 }
 
 function selectSubstance(key) {
@@ -262,13 +286,17 @@ function resetSim() {
   meltProgress = 0;
   boilProgress = 0;
   simTime = 0;
+  displayTime = 0;
   heatPower = 0;
-  paused = false;
-  document.getElementById('pause-btn').textContent = '⏸ Pauze';
+  paused = true;
+  sessionYMin = T;
+  sessionYMax = T;
+  document.getElementById('pause-btn').textContent = '▶ Hervat';
   document.getElementById('power-slider').value = 0;
   document.getElementById('power-val').textContent = '0.0';
-  history = [{ t: 0, T }];
+  history = [{ t: 0, td: 0, T }];
   initParticles();
+  renderComponentLegend();
   updateReadouts();
   drawParticles();
   drawCurve();
@@ -281,24 +309,43 @@ function setHeatPower(v) {
 
 // ─── Deeltjes initialiseren ───────────────────────────────────────────────
 function initParticles() {
+  const s = SUBSTANCES[currentKey];
   particles = [];
   for (let i = 0; i < N_PARTICLES; i++) {
     particles.push({
       idx: i,
       x: 0, y: 0, vx: 0, vy: 0,
-      meltThreshold: 0, boilThreshold: 0
+      meltThreshold: 0, boilThreshold: 0,
+      component: null
     });
   }
+
+  // Smeltvolgorde: altijd gelijkmatig willekeurig verdeeld over alle deeltjes,
+  // ongeacht component (opgeloste stof gedraagt zich hier niet apart).
   const meltOrder = shuffle(particles.map((_, i) => i));
   meltOrder.forEach((pIdx, rank) => { particles[pIdx].meltThreshold = (rank + 0.5) / N_PARTICLES; });
-  const boilOrder = shuffle(particles.map((_, i) => i));
-  boilOrder.forEach((pIdx, rank) => { particles[pIdx].boilThreshold = (rank + 0.5) / N_PARTICLES; });
+
+  if (s.components) {
+    // Deeltjes over componenten verdelen naar rato van hun fractie
+    const order = shuffle(particles.map((_, i) => i));
+    let cursor = 0;
+    s.components.forEach((c, ci) => {
+      const n = ci === s.components.length - 1
+        ? order.length - cursor                      // laatste component vangt afrondingsverschil op
+        : Math.round(c.fractie * N_PARTICLES);
+      for (let k = 0; k < n && cursor < order.length; k++, cursor++) {
+        particles[order[cursor]].component = ci;
+      }
+    });
+  }
 }
 
 // ─── Fysica: energie toevoeren/onttrekken ────────────────────────────────
 function step(dt) {
   if (paused) return;
+  const wasPlateau = (phase === 'meltrange' || phase === 'boilrange');
   simTime += dt; // tijd loopt altijd door, ook als het verwarmingsvermogen op 0 staat
+  displayTime += dt * (wasPlateau ? 1 : SINGLE_PHASE_COMPRESSION);
 
   const s = SUBSTANCES[currentKey];
 
@@ -342,8 +389,10 @@ function step(dt) {
     if (T < ABS_ZERO) T = ABS_ZERO;
   }
 
-  history.push({ t: simTime, T });
-  if (history.length > 4000) history.shift(); // geheugen begrenzen bij lange sessies
+  sessionYMin = Math.min(sessionYMin, T);
+  sessionYMax = Math.max(sessionYMax, T);
+  history.push({ t: simTime, td: displayTime, T });
+  if (history.length > 20000) history.shift(); // ruim genoeg voor een volledige sessie
 }
 
 function togglePause() {
@@ -352,23 +401,39 @@ function togglePause() {
 }
 
 // ─── Deeltjes: lokale fase + beweging ─────────────────────────────────────
-function localPhase(p) {
-  const s = SUBSTANCES[currentKey];
-  if (s.noLiquid) {
-    // sublimeren/rijpen: een deeltje is óf nog vast, óf al gas — nooit vloeibaar
-    if (phase === 'solid') return 'solid';
-    if (phase === 'gas') return 'gas';
-    const fracFusion = LATENT_FUSION / (LATENT_FUSION + LATENT_VAPOR);
-    const overall = phase === 'meltrange'
-      ? meltProgress * fracFusion
-      : fracFusion + boilProgress * (1 - fracFusion); // boilrange
-    return p.meltThreshold < overall ? 'gas' : 'solid';
-  }
+function localPhaseSublimatie(p) {
+  // Alleen voor stoffen zonder vloeibare fase (bijv. CO₂): een deeltje is óf nog
+  // vast, óf al gas — dit blijft de vaste-volgorde aanpak, want er is geen poel
+  // die "geïsoleerd" kan ogen (geen vloeistoffysica hier).
   if (phase === 'solid') return 'solid';
-  if (phase === 'meltrange') return p.meltThreshold < meltProgress ? 'liquid' : 'solid';
-  if (phase === 'liquid') return 'liquid';
-  if (phase === 'boilrange') return p.boilThreshold < boilProgress ? 'gas' : 'liquid';
-  return 'gas';
+  if (phase === 'gas') return 'gas';
+  const fracFusion = LATENT_FUSION / (LATENT_FUSION + LATENT_VAPOR);
+  const overall = phase === 'meltrange'
+    ? meltProgress * fracFusion
+    : fracFusion + boilProgress * (1 - fracFusion); // boilrange
+  return p.meltThreshold < overall ? 'gas' : 'solid';
+}
+
+// Bepaalt WELKE deeltjes nu gas zijn tijdens het koken — dynamisch, elk frame
+// opnieuw, op basis van hun huidige positie: wie het dichtst bij het
+// vloeistofoppervlak zit (kleinste y) verdampt eerst. Zo verdwijnt de vloeistof
+// altijd van bovenaf als een samenhangende poel, nooit een willekeurig deeltje
+// uit het midden. Bij mengsels weegt eerst de component-voorkeur (bias), en
+// pas daarbinnen de positie.
+function bepaalGasDeeltjes() {
+  const s = SUBSTANCES[currentKey];
+  const eligible = particles.filter(p => !s.components || s.components[p.component].vluchtig);
+  if (phase === 'gas') return new Set(eligible.map(p => p.idx));
+  if (phase !== 'boilrange') return new Set();
+
+  const biasOf = p => s.components ? s.components[p.component].bias : 0;
+  const targetCount = Math.round(boilProgress * eligible.length);
+  const sorted = [...eligible].sort((a, b) => {
+    const bd = biasOf(a) - biasOf(b);
+    if (Math.abs(bd) > 1e-6) return bd;
+    return a.y - b.y;
+  });
+  return new Set(sorted.slice(0, targetCount).map(p => p.idx));
 }
 
 function updateParticles(box) {
@@ -376,6 +441,23 @@ function updateParticles(box) {
   const rangeLo = s.TmLow - 30, rangeHi = s.TbHigh + 30;
   const heat = Math.max(0, Math.min(1, (T - rangeLo) / (rangeHi - rangeLo)));
   const speedFactor = 0.3 + heat * 1.4;
+
+  // Fase van elk deeltje eerst bepalen (onafhankelijk van de rest van deze functie),
+  // zodat de poelgrootte hieronder kan meebewegen met hoeveel deeltjes nog vloeibaar zijn.
+  if (s.noLiquid) {
+    particles.forEach(p => { p._lp = localPhaseSublimatie(p); });
+  } else {
+    const gasIdx = bepaalGasDeeltjes();
+    particles.forEach(p => {
+      const nietVluchtig = s.components && !s.components[p.component].vluchtig;
+      if (phase === 'solid') p._lp = 'solid';
+      else if (phase === 'meltrange') p._lp = p.meltThreshold < meltProgress ? 'liquid' : 'solid';
+      else if (phase === 'liquid') p._lp = 'liquid';
+      else p._lp = (!nietVluchtig && gasIdx.has(p.idx)) ? 'gas' : 'liquid'; // boilrange of gas
+    });
+  }
+  const nLiquid = particles.filter(p => p._lp === 'liquid').length;
+  const nSolid  = particles.filter(p => p._lp === 'solid').length;
 
   // Vast/vloeibaar: deeltjes dicht pakken (zo goed als aanrakend). PACK_SPACING is
   // net iets groter dan de tekendiameter (2×r=12) zodat ze elkaar bijna raken.
@@ -390,13 +472,21 @@ function updateParticles(box) {
   const latticeBottom = box.top + box.h - 8;
   const latticeTop = latticeBottom - latticeH;
 
-  // Vloeistofpoel: zelfde dichte voetafdruk, met wat extra ruimte om te bewegen
-  const poolTop = latticeTop - PACK_SPACING * 1.6;
+  // Vloeistofpoel: de hoogte volgt het aantal deeltjes dat nú vloeibaar is (net
+  // als een dalend vloeistofniveau in een bekerglas), i.p.v. een vaste grootte
+  // met steeds minder deeltjes erin — dat zou geïsoleerde stippen opleveren.
   const poolBottom = box.top + box.h - 4;
+  const poolTopFull = latticeTop - PACK_SPACING * 1.6;
+  const maxPoolHeight = poolBottom - poolTopFull;
+  const minPoolHeight = PACK_SPACING * 1.3; // dun laagje, ook als er nog maar weinig over is
+  const liquidFrac = nLiquid / N_PARTICLES;
+  const poolTop = nLiquid > 0 ? poolBottom - Math.max(minPoolHeight, maxPoolHeight * liquidFrac) : poolBottom;
 
   // Gas mag alleen bóven de vloeistofspiegel komen zolang er nog een gecondenseerde
   // fase (vast/vloeibaar) aanwezig is — precies zoals stoom boven kokende vloeistof.
-  const hasCondensedPhase = phase !== 'gas';
+  // (Gebaseerd op de deeltjes zelf, niet op de globale fase: bij een niet-vluchtige
+  // opgeloste stof blijft er immers altijd wat vloeistof achter.)
+  const hasCondensedPhase = nSolid > 0 || nLiquid > 0;
   const gasTop = box.top + 6;
   const gasBottom = hasCondensedPhase ? (poolTop - 4) : (box.top + box.h - 6);
 
@@ -406,7 +496,7 @@ function updateParticles(box) {
     const homeY = latticeTop + (row + 0.5) * PACK_SPACING;
     if (p.x === 0 && p.y === 0) { p.x = homeX; p.y = homeY; }
 
-    const lp = localPhase(p);
+    const lp = p._lp;
 
     if (!paused) {
       if (lp === 'solid') {
@@ -414,6 +504,18 @@ function updateParticles(box) {
         p.x += (homeX - p.x) * 0.25 + (Math.random() - 0.5) * jitter;
         p.y += (homeY - p.y) * 0.25 + (Math.random() - 0.5) * jitter;
       } else if (lp === 'liquid') {
+        const nietVluchtig = s.components && !s.components[p.component].vluchtig;
+        if (nietVluchtig) {
+          // Niet-vluchtige opgeloste stof (bijv. NaCl): bezinkt rustig i.p.v. vrij
+          // rond te stromen zoals een vloeistof — blijft binnen de poel, weinig beweging.
+          const jitter = 0.35 * speedFactor;
+          p.x += (Math.random() - 0.5) * jitter;
+          p.y += (Math.random() - 0.5) * jitter * 0.6;
+          if (p.x < latticeLeft)          p.x = latticeLeft;
+          if (p.x > latticeLeft+latticeW) p.x = latticeLeft+latticeW;
+          if (p.y < poolTop)    p.y = poolTop + Math.random() * 4;
+          if (p.y > poolBottom) p.y = poolBottom;
+        } else {
         const accel = 0.22 * speedFactor;
         p.vx = (p.vx + (Math.random() - 0.5) * accel) * 0.88;
         p.vy = (p.vy + (Math.random() - 0.5) * accel) * 0.88;
@@ -423,6 +525,7 @@ function updateParticles(box) {
         if (p.x > latticeLeft+latticeW) { p.x = latticeLeft+latticeW; p.vx = -Math.abs(p.vx); }
         if (p.y < poolTop) { p.vy += 0.6; } // net gecondenseerd: val de poel in
         else if (p.y > poolBottom) { p.y = poolBottom; p.vy = -Math.abs(p.vy); }
+        }
       } else { // gas
         const accel = 0.55 * speedFactor;
         p.vx = (p.vx + (Math.random() - 0.5) * accel) * 0.98;
@@ -449,6 +552,33 @@ function getCss(varName) {
   return getComputedStyle(document.documentElement).getPropertyValue(varName).trim() || '#3f6fd1';
 }
 
+// Kleur van een deeltje: standaard volgt die de fase (zoals altijd). Bij
+// mengsels krijgt een niet-standaard component (bijv. NaCl of ethanol) zijn
+// eigen kleur(en), zodat leerlingen de twee stoffen uit elkaar kunnen houden.
+function getParticleColor(p) {
+  const s = SUBSTANCES[currentKey];
+  if (s.components) {
+    const comp = s.components[p.component];
+    if (comp.kleur === 'ethanol') return COMPONENT_COLORS.ethanol[p._lp] || COMPONENT_COLORS.ethanol.liquid;
+    if (comp.kleur !== 'std') return comp.kleur; // vaste kleur, ongeacht fase (bijv. grijs zout)
+  }
+  return COLOR_BY_PHASE[p._lp] || COLOR_BY_PHASE.solid;
+}
+
+// Legenda tonen wanneer een mengsel actief is, zodat de kleuren direct duidelijk zijn
+function renderComponentLegend() {
+  const el = document.getElementById('component-legend');
+  const s = SUBSTANCES[currentKey];
+  if (!s.components) { el.innerHTML = ''; return; }
+  el.innerHTML = s.components.map(c => {
+    const swatchColor = c.kleur === 'ethanol' ? COMPONENT_COLORS.ethanol.liquid
+                       : c.kleur === 'std' ? COLOR_BY_PHASE.liquid
+                       : c.kleur;
+    const note = c.vluchtig ? '' : ' — blijft achter, verdampt niet';
+    return `<div class="item"><span class="swatch" style="background:${swatchColor}"></span>${c.naam}${note}</div>`;
+  }).join('') + `<div class="note">Kleur volgt de fase, behalve bij niet-vluchtige of extra gemarkeerde deeltjes.</div>`;
+}
+
 function drawParticles() {
   const canvas = document.getElementById('canvas-particles');
   const dpr = window.devicePixelRatio || 1;
@@ -467,7 +597,7 @@ function drawParticles() {
   ctx.strokeRect(box.left, box.top, box.w, box.h);
 
   // vloeistofspiegel (indicatie), alleen zichtbaar als er nog condensed fase is
-  const showSurface = phase !== 'gas';
+  const showSurface = particles.some(p => p._lp === 'liquid' || p._lp === 'solid');
   if (showSurface) {
     ctx.strokeStyle = 'rgba(13,148,136,0.45)'; ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
@@ -478,7 +608,7 @@ function drawParticles() {
   particles.forEach(p => {
     ctx.beginPath();
     ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
-    ctx.fillStyle = COLOR_BY_PHASE[p._lp] || COLOR_BY_PHASE.solid;
+    ctx.fillStyle = getParticleColor(p);
     ctx.globalAlpha = 0.85;
     ctx.fill();
     ctx.globalAlpha = 1;
@@ -500,6 +630,15 @@ function drawParticles() {
 }
 
 // ─── Canvas: verwarmingscurve tekenen ─────────────────────────────────────
+function findNearestByTd(targetTd) {
+  let nearest = history[0], bestDiff = Infinity;
+  for (const h of history) {
+    const diff = Math.abs(h.td - targetTd);
+    if (diff < bestDiff) { bestDiff = diff; nearest = h; }
+  }
+  return nearest;
+}
+
 function drawCurve() {
   const canvas = document.getElementById('canvas-curve');
   const dpr = window.devicePixelRatio || 1;
@@ -513,10 +652,10 @@ function drawCurve() {
   const ml = 50, mr = 12, mt = 12, mb = 30;
   const gW = W - ml - mr, gH = H - mt - mb;
 
-  const s = SUBSTANCES[currentKey];
-  const allT = history.map(h => h.T);
-  let yMin = Math.min(s.TmLow - 30, ...allT), yMax = Math.max(s.TbHigh + 30, ...allT);
-  const tMax = Math.max(10, simTime * 1.05);
+  const range = Math.max(1, sessionYMax - sessionYMin);
+  const margin = Math.max(2, range * 0.15);
+  let yMin = sessionYMin - margin, yMax = sessionYMax + margin;
+  const tdMax = Math.max(3, displayTime * 1.05);
 
   ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
   for (let i = 0; i <= 4; i++) { const y = mt + gH * i / 4; ctx.beginPath(); ctx.moveTo(ml, y); ctx.lineTo(ml + gW, y); ctx.stroke(); }
@@ -525,20 +664,25 @@ function drawCurve() {
   ctx.strokeStyle = '#64748b'; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(ml, mt); ctx.lineTo(ml, mt + gH); ctx.lineTo(ml + gW, mt + gH); ctx.stroke();
 
-  const px = t => ml + (t / tMax) * gW;
+  const px = td => ml + (td / tdMax) * gW;
   const py = temp => mt + gH * (1 - (temp - yMin) / (yMax - yMin));
 
   ctx.fillStyle = '#475569'; ctx.font = '10px Segoe UI';
   ctx.textAlign = 'right';
   for (let i = 0; i <= 4; i++) { const val = yMax - (yMax - yMin) * i / 4; const y = mt + gH * i / 4; ctx.fillText(val.toFixed(0) + '°C', ml - 6, y + 3); }
   ctx.textAlign = 'center';
-  for (let i = 0; i <= 5; i++) { const val = tMax * i / 5; const x = ml + gW * i / 5; ctx.fillText(val.toFixed(0) + 's', x, mt + gH + 16); }
+  for (let i = 0; i <= 5; i++) {
+    const tdVal = tdMax * i / 5;
+    const x = ml + gW * i / 5;
+    const realT = findNearestByTd(tdVal).t; // eerlijk label: de werkelijke tijd op dit punt
+    ctx.fillText(realT.toFixed(0) + 's', x, mt + gH + 16);
+  }
 
   if (history.length > 1) {
     ctx.beginPath();
     ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 2;
     history.forEach((h, i) => {
-      const x = px(h.t), y = py(h.T);
+      const x = px(h.td), y = py(h.T);
       i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
     });
     ctx.stroke();
@@ -549,20 +693,16 @@ function drawCurve() {
   if (last) {
     ctx.beginPath();
     ctx.fillStyle = '#16a34a';
-    ctx.arc(px(last.t), py(last.T), 4, 0, Math.PI * 2);
+    ctx.arc(px(last.td), py(last.T), 4, 0, Math.PI * 2);
     ctx.fill();
   }
 
   // hover-tooltip: toon x/y-waarde van de dichtstbijzijnde meting bij de cursor
   if (hoverPx && history.length > 0) {
-    const hoverT = (hoverPx.x - ml) / gW * tMax;
-    let nearest = history[0], bestDiff = Infinity;
-    for (const h of history) {
-      const diff = Math.abs(h.t - hoverT);
-      if (diff < bestDiff) { bestDiff = diff; nearest = h; }
-    }
+    const hoverTd = (hoverPx.x - ml) / gW * tdMax;
+    const nearest = findNearestByTd(hoverTd);
     if (hoverPx.x >= ml && hoverPx.x <= ml + gW && hoverPx.y >= mt && hoverPx.y <= mt + gH) {
-      const hx = px(nearest.t), hy = py(nearest.T);
+      const hx = px(nearest.td), hy = py(nearest.T);
 
       ctx.strokeStyle = 'rgba(100,116,139,0.5)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
       ctx.beginPath(); ctx.moveTo(hx, mt); ctx.lineTo(hx, mt + gH); ctx.stroke();
