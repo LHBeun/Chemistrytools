@@ -56,6 +56,8 @@
   }
   .card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08);}
   .card.selected{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent) inset;}
+  .card.hint{border-color:#c98a2e; box-shadow:0 0 0 2px #c98a2e inset; animation:hintpulse 1.4s ease-in-out infinite;}
+  @keyframes hintpulse{0%,100%{opacity:1;}50%{opacity:.55;}}
   .card .naam{
     font-size:14px; text-align:center; line-height:1.35; font-family:'Georgia',serif;
     word-break:break-word;
@@ -87,11 +89,21 @@
   <button onclick="checkSelection()" id="btnCheck">Controleer</button>
   <button class="secondary" onclick="dealMore(3)" id="btnMore">3 kaarten erbij</button>
   <button class="secondary" onclick="newGame()">Nieuw spel</button>
+  <label style="font-size:13px;">
+    Weergave:
+    <select id="weergaveSelect" onchange="wijzigWeergave()" style="margin-left:6px;padding:4px 6px;border-radius:5px;border:1px solid var(--line);">
+      <option value="gemengd">Gemengd</option>
+      <option value="naam">Alleen namen</option>
+      <option value="structuur">Alleen structuren</option>
+    </select>
+  </label>
+  <button class="secondary" onclick="toonHint()" id="btnHint">Hint</button>
   <span class="score" id="scoreDisplay"></span>
   <span class="deckcount" id="deckDisplay"></span>
 </div>
 
 <div class="feedback" id="feedback" style="display:none;"></div>
+<p id="geenSetNotice" style="display:none; font-family:'Helvetica Neue',Arial,sans-serif; font-size:13px; color:#8a5a2f; background:#fdf3e7; padding:7px 12px; border-radius:6px; display:inline-block;">Geen set mogelijk op het huidige bord — probeer "3 kaarten erbij".</p>
 
 <div class="board" id="board"></div>
 <div class="endmsg" id="endmsg" style="display:none;"></div>
@@ -131,17 +143,39 @@ function newGame(){
   renderAll();
 }
 
+function kiesWeergave(){
+  const modus = document.getElementById('weergaveSelect').value;
+  if(modus==='naam') return 'naam';
+  if(modus==='structuur') return 'structuur';
+  return Math.random()<0.5 ? 'naam':'structuur';
+}
+
 function dealMore(n, isInitial){
   for(let i=0;i<n && deck.length>0;i++){
     const c = deck.pop();
-    board.push({card:c, show: Math.random()<0.5 ? 'naam':'structuur'});
+    board.push({card:c, show: kiesWeergave()});
   }
   renderAll();
   checkEnd();
 }
 
+function wijzigWeergave(){
+  const modus = document.getElementById('weergaveSelect').value;
+  if(modus!=='gemengd'){
+    board.forEach(entry=>entry.show=modus);
+  } else {
+    board.forEach(entry=>entry.show = Math.random()<0.5 ? 'naam':'structuur');
+  }
+  renderAll();
+}
+
 function checkEnd(){
-  if(deck.length===0 && !hasAnySet()){
+  const notice = document.getElementById('geenSetNotice');
+  const setBestaat = findASet() !== null;
+  notice.style.display = setBestaat ? 'none' : 'inline-block';
+  document.getElementById('btnHint').disabled = !setBestaat;
+
+  if(deck.length===0 && !setBestaat){
     document.getElementById('endmsg').style.display='block';
     document.getElementById('endmsg').textContent = mode==='solo'
       ? `Spel afgelopen — geen kaarten en geen sets meer. Eindscore: ${score}.`
@@ -154,12 +188,26 @@ function checkEnd(){
   }
 }
 
-function hasAnySet(){
+function findASet(){
   const n = board.length;
   for(let i=0;i<n;i++) for(let j=i+1;j<n;j++) for(let k=j+1;k<n;k++){
-    if(isValidSet([board[i].card, board[j].card, board[k].card])) return true;
+    if(isValidSet([board[i].card, board[j].card, board[k].card])) return [i,j,k];
   }
-  return false;
+  return null;
+}
+
+function hasAnySet(){
+  return findASet() !== null;
+}
+
+function toonHint(){
+  const set = findASet();
+  if(!set){
+    showFeedback('Geen set mogelijk op dit bord.', false);
+    return;
+  }
+  const idx = set[Math.floor(Math.random()*3)];
+  document.querySelectorAll('.card')[idx].classList.add('hint');
 }
 
 function isValidSet(cards){
