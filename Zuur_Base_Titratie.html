@@ -545,20 +545,53 @@ function calcPH(Vb, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2) {
   return 7;
 }
 
+// Zet een indicatornaam om naar dezelfde ASCII-slug als de `value`-attributen
+// van de indicator-dropdown (bijv. "Fenolftaleïne" -> "fenolftaleine"). Zonder
+// deze stap blijft de ë staan na .toLowerCase() (dat verwijdert geen diakrieten),
+// waardoor "fenolftaleïne" nooit gelijk kan zijn aan de dropdown-waarde
+// "fenolftaleine" — ook niet als de juiste optie gekozen is.
+// Eén bron van waarheid voor de vier indicatoren, met een kant-en-klare ASCII-
+// slug per indicator (matcht de `value`-attributen in de dropdown) — zo hoeft
+// de weergavenaam nooit meer omgezet te worden naar een vergelijkbare waarde.
+const INDICATOREN = [
+  { name: 'Methyloranje',     slug: 'methyloranje',     range: [3.1, 4.4],  color: '#f97316' },
+  { name: 'Methylrood',       slug: 'methylrood',       range: [4.4, 6.2],  color: '#ef4444' },
+  { name: 'Bromthymolblauw',  slug: 'bromthymolblauw',  range: [6.0, 7.6],  color: '#3b82f6' },
+  { name: 'Fenolftaleïne',    slug: 'fenolftaleine',    range: [8.2, 10.0], color: '#ec4899' }
+];
+
+// Alle indicatoren waarvan het omslagbereik deze pH bevat — meestal 1, soms 2
+// (de bereiken overlappen elkaar bewust net iets, bijv. 6.0-6.2 valt zowel
+// onder methylrood als bromthymolblauw), soms 0 (het gat tussen 7.6 en 8.2).
+function matchendeIndicatoren(pH) {
+  return INDICATOREN.filter(i => pH >= i.range[0] && pH <= i.range[1]);
+}
+
+// Voor de quiz: alle slugs die als correct antwoord gelden bij deze pH. Bij
+// een overlap of het gat tussen bromthymolblauw/fenolftaleine worden beide
+// buurindicatoren goedgekeurd, in plaats van dat er maar één "toevallig
+// eerst genoemde" indicator als enig juist antwoord geldt.
+function acceptabeleIndicatorSlugs(pH) {
+  const matches = matchendeIndicatoren(pH);
+  if (matches.length) return matches.map(m => m.slug);
+  if (pH < 3.1) return ['methyloranje'];
+  if (pH > 10.0) return ['fenolftaleine'];
+  return ['bromthymolblauw', 'fenolftaleine']; // het gat: 7.6 < pH < 8.2
+}
+
+// Voor de simulatieweergave: één representatief object (naam+kleur) per pH,
+// puur informatief — hier wordt niets afgerekend, dus bij een grensgeval
+// tonen we gewoon beide namen in de tekst.
 function getIndicators(pHList) {
-  const inds = [
-    { name: 'Methyloranje', range: [3.1, 4.4], color: '#f97316' },
-    { name: 'Methylrood', range: [4.4, 6.2], color: '#ef4444' },
-    { name: 'Bromthymolblauw', range: [6.0, 7.6], color: '#3b82f6' },
-    { name: 'Fenolftaleïne', range: [8.2, 10.0], color: '#ec4899' }
-  ];
   return pHList.map(pH => {
-    for (let i of inds) {
-      if (pH >= i.range[0] && pH <= i.range[1]) return i;
+    const matches = matchendeIndicatoren(pH);
+    if (matches.length === 1) return matches[0];
+    if (matches.length > 1) {
+      return { name: matches.map(m => m.name).join(' / ') + ' (grensgeval)', color: matches[0].color };
     }
-    if (pH < 3.1) return { name: 'Methyloranje (pH te laag)', color: '#f97316', range: [3.1, 4.4] };
-    if (pH > 10.0) return { name: 'Fenolftaleïne (pH te hoog)', color: '#ec4899', range: [8.2, 10.0] };
-    return { name: 'Geen geschikte indicator', color: '#6b7280', range: [0, 14] };
+    if (pH < 3.1) return { name: 'Methyloranje (pH te laag)', color: '#f97316' };
+    if (pH > 10.0) return { name: 'Fenolftaleïne (pH te hoog)', color: '#ec4899' };
+    return { name: 'Bromthymolblauw / Fenolftaleïne (grensgeval)', color: '#6b7280' };
   });
 }
 
@@ -954,18 +987,18 @@ function generateQuiz() {
   if (!divalent) {
     addQuestion(container, 'q5', 'Welke indicator past bij dit eq-punt?', 'select', {
       options: indOptions,
-      correct: inds[0].name.toLowerCase().split(' ')[0],
+      correct: acceptabeleIndicatorSlugs(pHList[0]),
       feedback: `Het eq-punt ligt bij pH ${pHList[0].toFixed(1)}. Kies een indicator waarvan het omslagbereik dit pH omvat.`
     });
   } else {
     addQuestion(container, 'q5a', 'Welke indicator past bij het eerste eq-punt?', 'select', {
       options: indOptions,
-      correct: inds[0].name.toLowerCase().split(' ')[0],
+      correct: acceptabeleIndicatorSlugs(pHList[0]),
       feedback: `Het eerste eq-punt ligt bij pH ${pHList[0].toFixed(1)}.`
     });
     addQuestion(container, 'q5b', 'Welke indicator past bij het tweede eq-punt?', 'select', {
       options: indOptions,
-      correct: inds[1].name.toLowerCase().split(' ')[0],
+      correct: acceptabeleIndicatorSlugs(pHList[1]),
       feedback: `Het tweede eq-punt ligt bij pH ${pHList[1].toFixed(1)}.`
     });
   }
@@ -1007,13 +1040,18 @@ function checkAnswer(id, type) {
   let isCorrect = false;
 
   if (type === 'select') {
-    isCorrect = val === config.correct;
+    // config.correct is bij de meeste vragen één string, maar bij de
+    // indicator-vragen soms een array (grensgeval met 2 aanvaardbare
+    // antwoorden) — beide vormen accepteren.
+    isCorrect = Array.isArray(config.correct) ? config.correct.includes(val) : val === config.correct;
   } else {
     const num = parseFloat(val);
     if (!isNaN(num)) {
       isCorrect = Math.abs(num - config.correct) <= config.tolerance;
     }
   }
+
+  const juistTekst = Array.isArray(config.correct) ? config.correct.join(' of ') : config.correct;
 
   fb.classList.add('show');
   if (isCorrect) {
@@ -1024,7 +1062,7 @@ function checkAnswer(id, type) {
   } else {
     wrap.classList.add('wrong');
     wrap.classList.remove('correct');
-    fb.innerHTML = `<span style="color:#ef4444; font-weight:600;">✗ Fout.</span> ${config.feedback} <br><strong>Juist antwoord: ${config.correct}</strong>`;
+    fb.innerHTML = `<span style="color:#ef4444; font-weight:600;">✗ Fout.</span> ${config.feedback} <br><strong>Juist antwoord: ${juistTekst}</strong>`;
     if (!wrap.dataset.scored) { quizTotal++; wrap.dataset.scored = '1'; }
   }
   updateScore();
