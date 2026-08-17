@@ -30,6 +30,15 @@
   h1{margin:0; font-size:25px; font-weight:650; letter-spacing:-0.01em;}
   header.top p.sub{color:var(--text-dim); font-size:13.5px; line-height:1.55; max-width:760px; margin:10px 0 0;}
 
+  nav.mech-picker{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
+  .mech-btn{
+    background:var(--panel); border:1px solid var(--line); color:var(--text-dim);
+    font-family:var(--mono); font-size:12px; letter-spacing:.02em; padding:8px 14px;
+    border-radius:7px; cursor:pointer; transition:all .15s;
+  }
+  .mech-btn:hover{border-color:var(--accent-dim); color:var(--text);}
+  .mech-btn.active{background:var(--purple-dim); border-color:var(--purple); color:#fbf5ff;}
+
   nav.stages{display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;}
   .stage-btn{
     background:var(--panel); border:1px solid var(--line); color:var(--text-dim);
@@ -162,6 +171,8 @@
     <p class="sub">In deze simulatie achterhaal je het reactiemechanisme door de snelheidsbepalende stap te bepalen.</p>
   </header>
 
+  <nav class="mech-picker" id="mech-picker"></nav>
+
   <div class="panel" id="overall-eq-banner" style="padding:14px 22px; margin-bottom:14px; text-align:center;">
     <span style="font-family:var(--mono); font-size:11px; color:var(--text-dim); letter-spacing:.04em; text-transform:uppercase;">Totale reactievergelijking</span>
     <div id="overall-eq-text" style="font-family:var(--mono); font-size:19px; margin-top:4px; color:var(--text);"></div>
@@ -182,23 +193,81 @@
 // ============================================================
 // Each mechanism is pure data: a list of elementary steps (reactants, products, rate constant).
 // The simulation engine below builds the ODEs automatically from this, so adding a new mechanism
-// to this array is the ONLY thing needed to extend the tool to more presets later -- no new
-// integration code, no new chart code, nothing else to touch.
+// to this array is the ONLY thing needed to extend the tool to more presets -- no new
+// integration code, no new chart code, nothing else to touch. The five mechanisms below are
+// deliberately chosen to cover every combination of order 0/1/2 in A and B in complementary
+// pairs (mechanism 2 mirrors 1 with B instead of A, mechanism 5 mirrors 4), so a learner who
+// works through several of them can't quietly assume "the RDS is always about A".
+const TABLE_EXPERIMENTS = [
+  { A0: 1, B0: 1 }, { A0: 2, B0: 1 }, { A0: 3, B0: 1 },
+  { A0: 2, B0: 1 }, { A0: 2, B0: 2 }, { A0: 2, B0: 3 },
+];
+
 const MECHANISMS = [
   {
     id: 'A-then-AB',
-    label: 'Mechanisme 1',
+    label: 'Mechanisme 1 · orde 1 in A',
     steps: [
       { reactants: ['A'], products: ['I'], k: 0.05, label: 'A → I' },
-      { reactants: ['I', 'B'], products: ['P'], k: 5.0, label: 'I + B → P' },
+      { reactants: ['I', 'B'], products: ['P'], k: 200, label: 'I + B → P' },
     ],
-    rdsIndex: 0, // which step in `steps` is rate-determining
+    rdsIndex: 0,
     expectedOrder: { A: 1, B: 0 },
-    expectedRdsParticles: ['A'], // what the mechanism-builder answer should contain
-    tableExperiments: [
-      { A0: 1, B0: 1 }, { A0: 2, B0: 1 }, { A0: 3, B0: 1 },
-      { A0: 2, B0: 1 }, { A0: 2, B0: 2 }, { A0: 2, B0: 3 },
+    expectedRdsParticles: ['A'],
+    tableExperiments: TABLE_EXPERIMENTS,
+    revealNote: `A → I lijkt zonder partner te gebeuren, maar dat is het niet helemaal: A wordt "aangeslagen" doordat het botst met een willekeurig deeltje en daarbij meer energie krijgt dan de activeringsenergie. Bij een hogere temperatuur leveren meer van die botsingen genoeg energie op, dus stijgt de snelheid met T — precies zoals je al gewend bent. Maar bij hogere totale concentratie gebeurt er nog iets: het aangeslagen deeltje botst dan ook vaker opnieuw voordat het de kans krijgt om te reageren, en die botsing kan de energie er net zo goed weer afhalen als dat reageren zelf gebeurt. "Vaker aangeslagen" en "vaker weer gedeactiveerd" middelen elkaar dan uit — daarom hangt de snelheid alleen af van hoeveel A er is, niet van het aantal botsingen per seconde en dus ook niet van de totale concentratie van deeltjes in het reactievat.`,
+  },
+  {
+    id: 'B-then-AB',
+    label: 'Mechanisme 2 · orde 1 in B',
+    steps: [
+      { reactants: ['B'], products: ['I'], k: 0.05, label: 'B → I' },
+      { reactants: ['I', 'A'], products: ['P'], k: 200, label: 'I + A → P' },
     ],
+    rdsIndex: 0,
+    expectedOrder: { A: 0, B: 1 },
+    expectedRdsParticles: ['B'],
+    tableExperiments: TABLE_EXPERIMENTS,
+    revealNote: `Hetzelfde verhaal als bij een unimoleculaire A-stap, nu met B in de hoofdrol: B wordt "aangeslagen" door een willekeurige botsing, en bij hogere totale concentratie wordt dat aangeslagen deeltje ook weer vaker gedeactiveerd vóór het kan reageren. Die twee effecten heffen elkaar op, dus de snelheid hangt alleen af van hoeveel B er is — A doet in de snelheidsbepalende stap helemaal niet mee, ook al staat het wél in de totale reactievergelijking (via de snelle tweede stap).`,
+  },
+  {
+    id: 'AB-then-I',
+    label: 'Mechanisme 3 · orde 1 in A én B',
+    steps: [
+      { reactants: ['A', 'B'], products: ['I'], k: 0.05, label: 'A + B → I' },
+      { reactants: ['I'], products: ['P'], k: 200, label: 'I → P' },
+    ],
+    rdsIndex: 0,
+    expectedOrder: { A: 1, B: 1 },
+    expectedRdsParticles: ['A', 'B'],
+    tableExperiments: TABLE_EXPERIMENTS,
+    revealNote: `Hier is de snelheidsbepalende stap een gewone bimoleculaire botsing tussen A en B — geen aparte activerings-redenering nodig zoals bij een stap met maar één soort deeltje: de snelheidswet volgt hier direct uit de stoichiometrie van deze ene elementaire stap. Precies daarom is dit ook de mechanisme-variant waarbij de snelheidswet toevallig lijkt op de totale reactievergelijking — maar dat is een samenloop van omstandigheden van dít mechanisme, geen algemene regel.`,
+  },
+  {
+    id: '2A-then-AB',
+    label: 'Mechanisme 4 · orde 2 in A',
+    steps: [
+      { reactants: ['A', 'A'], products: ['I'], k: 0.01, label: '2 A → I' },
+      { reactants: ['I', 'B'], products: ['P'], k: 200, label: 'I + B → P' },
+    ],
+    rdsIndex: 0,
+    expectedOrder: { A: 2, B: 0 },
+    expectedRdsParticles: ['A', 'A'],
+    tableExperiments: TABLE_EXPERIMENTS,
+    revealNote: `De snelheidsbepalende stap is hier een botsing tussen twéé A-deeltjes tegelijk. Daardoor schaalt de snelheid met [A]², niet met [A]: een verdubbeling van [A] verviervoudigt de kans dat twee A-deeltjes elkaar tegenkomen. B speelt in deze stap geen rol — pas daarna, in de snelle tweede stap, wordt B verbruikt.`,
+  },
+  {
+    id: '2B-then-AB',
+    label: 'Mechanisme 5 · orde 2 in B',
+    steps: [
+      { reactants: ['B', 'B'], products: ['I'], k: 0.01, label: '2 B → I' },
+      { reactants: ['I', 'A'], products: ['P'], k: 200, label: 'I + A → P' },
+    ],
+    rdsIndex: 0,
+    expectedOrder: { A: 0, B: 2 },
+    expectedRdsParticles: ['B', 'B'],
+    tableExperiments: TABLE_EXPERIMENTS,
+    revealNote: `Het spiegelbeeld van mechanisme 4: nu botsen twee B-deeltjes in de snelheidsbepalende stap, dus schaalt de snelheid met [B]². A komt pas om de hoek kijken in de snelle tweede stap, en heeft daardoor geen invloed op de gemeten snelheid.`,
   },
 ];
 
@@ -291,13 +360,19 @@ function simulateMechanism(steps, initialConcentrations, tMax, dt){
   return history;
 }
 
-// Measures the rate of P formation in a "quasi-steady-state window" (t=0.5 to t=1.0 by default)
-// rather than literally at t=0. Right at t=0 the intermediate I hasn't built up yet, so dP/dt is
-// dominated by how fast I happens to be accumulating rather than by the rate-determining step --
-// an unfair, noisy read for a learner trying to deduce a rate law. Waiting until I has reached a
-// stable level (the window below) gives a rate that genuinely reflects the RDS, matching how a
-// real kinetics experiment would be measured (not literally instantaneously at mixing).
-function measureRate(steps, initialConcentrations, windowStart=0.5, windowEnd=1.0, dt=0.001){
+// Measures the rate of P formation in a "quasi-steady-state window" (t=0.05 to t=0.07 by
+// default) rather than literally at t=0. Right at t=0 the intermediate I hasn't built up yet, so
+// dP/dt is dominated by how fast I happens to be accumulating rather than by the
+// rate-determining step -- an unfair, noisy read for a learner trying to deduce a rate law.
+// Waiting until I has reached a stable level (the window below) gives a rate that genuinely
+// reflects the RDS. The window is deliberately kept early and narrow: for a 2nd-order RDS
+// (e.g. 2A -> I), the reactant itself depletes measurably fast at higher starting concentrations,
+// and any depletion during the window means the measured rate no longer corresponds to the
+// concentration printed in the table -- exactly the "initial rates" problem real kinetics
+// experiments also have to guard against. The fast step's rate constant (k2, see MECHANISMS) is
+// tuned high enough that I reaches its quasi-steady level well before this window starts, so the
+// window can stay this early without under-measuring I's buildup.
+function measureRate(steps, initialConcentrations, windowStart=0.05, windowEnd=0.07, dt=0.001){
   const history = simulateMechanism(steps, initialConcentrations, windowEnd, dt);
   const i0 = Math.round(windowStart/dt), i1 = Math.round(windowEnd/dt);
   const P0 = history[i0].conc['P'] || 0;
@@ -306,10 +381,32 @@ function measureRate(steps, initialConcentrations, windowStart=0.5, windowEnd=1.
 }
 
 // ============================================================
+// SMALL TEXT HELPERS (used to make feedback copy mechanism-agnostic)
+// ============================================================
+function orderPhrase(order, sp){
+  if(order === 0) return `geen effect van [${sp}]`;
+  if(order === 1) return `recht evenredig met [${sp}]`;
+  if(order === 2) return `kwadratisch met [${sp}]`;
+  return `orde ${order} in [${sp}]`;
+}
+
+function describeParticles(particles){
+  const counts = {};
+  for(const p of particles) counts[p] = (counts[p]||0) + 1;
+  const woorden = {1:'één', 2:'twee', 3:'drie'};
+  const parts = Object.keys(counts).sort().map(sp=>{
+    const n = counts[sp];
+    const telwoord = woorden[n] || String(n);
+    return `${telwoord} ${sp}-deeltje${n>1?'s':''}`;
+  });
+  return parts.join(' en ');
+}
+
+// ============================================================
 // APP STATE
 // ============================================================
 const el = id => document.getElementById(id);
-const currentMechanism = MECHANISMS[0];
+let currentMechanism = MECHANISMS[0];
 
 const STAGES = ['verkennen', 'tabel-orde', 'mechanisme'];
 const STAGE_LABELS = {
@@ -320,6 +417,25 @@ const STAGE_LABELS = {
 let currentStageIdx = 0;
 let unlockedStageIdx = 0; // can't jump ahead of what's been reached
 let answers = { orderA: null, orderB: null, rdsTiles: [] };
+
+function renderMechanismPicker(){
+  const nav = el('mech-picker');
+  nav.innerHTML = '';
+  MECHANISMS.forEach((mech, idx)=>{
+    const btn = document.createElement('button');
+    btn.className = 'mech-btn' + (mech === currentMechanism ? ' active' : '');
+    btn.textContent = mech.label;
+    btn.addEventListener('click', ()=>{
+      if(mech === currentMechanism) return;
+      currentMechanism = mech;
+      answers = { orderA: null, orderB: null, rdsTiles: [] };
+      currentStageIdx = 0;
+      unlockedStageIdx = 0;
+      renderAll();
+    });
+    nav.appendChild(btn);
+  });
+}
 
 function renderStageNav(){
   const nav = el('stage-nav');
@@ -341,6 +457,7 @@ function goToStage(idx){
 }
 
 function renderAll(){
+  renderMechanismPicker();
   el('overall-eq-text').textContent = overallEquationHtml(currentMechanism.steps);
   renderStageNav();
   const content = el('stage-content');
@@ -366,6 +483,17 @@ function legendSwatchStyle(sp){
     return `background:repeating-linear-gradient(90deg, ${SPECIES_COLORS.B} 0, ${SPECIES_COLORS.B} 5px, transparent 5px, transparent 8px);`;
   }
   return `background:${SPECIES_COLORS[sp]};`;
+}
+
+// Formats an axis value with just enough precision to be readable at its own scale --
+// [I]'s peak can be tiny (a fast intermediate barely accumulates), where a fixed 3-decimal
+// format would just print "0.000".
+function formatAxisValue(x){
+  if(x === 0) return '0';
+  if(x >= 1) return x.toFixed(2);
+  if(x >= 0.01) return x.toFixed(3);
+  if(x >= 0.0001) return x.toFixed(5);
+  return x.toExponential(1);
 }
 
 function drawConcentrationChart(canvas, history, options){
@@ -419,12 +547,15 @@ function drawConcentrationChart(canvas, history, options){
   ctx.fillText(tMax.toFixed(0)+'s', W-padding.right, H-padding.bottom+14);
 
   // right y-axis labels (I, its own scale), tinted to match I's line color so it's clear which
-  // axis belongs to which line
+  // axis belongs to which line. I's peak can be very small (a fast intermediate barely
+  // accumulates before being consumed), so a fixed 3-decimal format would just print "0.000" --
+  // scale the precision to the actual magnitude instead, falling back to exponential notation
+  // for genuinely tiny values.
   if(hasI){
     ctx.fillStyle = SPECIES_COLORS['I'];
     ctx.font = '10px monospace';
     ctx.textAlign = 'left';
-    ctx.fillText(maxConcI.toFixed(3), W-padding.right+6, padding.top+4);
+    ctx.fillText(formatAxisValue(maxConcI), W-padding.right+6, padding.top+4);
     ctx.fillText('0', W-padding.right+6, H-padding.bottom+2);
   }
 
@@ -528,7 +659,7 @@ function renderExploreStage(content){
     el('explore-A-val').textContent = A0.toFixed(1)+' M';
     el('explore-B-val').textContent = B0.toFixed(1)+' M';
 
-    const history = simulateMechanism(currentMechanism.steps, {A:A0, B:B0}, 70, 0.01);
+    const history = simulateMechanism(currentMechanism.steps, {A:A0, B:B0}, 70, 0.001);
     const visibleSpecies = ['A','B','I','P'].filter(sp=>exploreVisibleSpecies[sp]);
     drawConcentrationChart(el('explore-chart'), history, {species: visibleSpecies});
 
@@ -626,11 +757,12 @@ function renderTableOrderStage(content){
 
   function checkOrderCompletion(){
     if(answers.orderA === null || answers.orderB === null) return;
-    const correct = answers.orderA === currentMechanism.expectedOrder.A && answers.orderB === currentMechanism.expectedOrder.B;
+    const expected = currentMechanism.expectedOrder;
+    const correct = answers.orderA === expected.A && answers.orderB === expected.B;
     const fb = el('order-feedback');
     fb.className = 'feedback show ' + (correct ? 'correct' : 'incorrect');
     if(correct){
-      fb.textContent = 'Klopt! De snelheid is recht evenredig met [A] en verandert niet met [B] — dat betekent A in zijn eentje (of vermenigvuldigd met een constante) de snelheid bepaalt.';
+      fb.textContent = `Klopt! De snelheid is ${orderPhrase(expected.A,'A')} en ${orderPhrase(expected.B,'B')}.`;
       el('order-A-row').querySelectorAll('.mc-btn').forEach(b=>{ if(parseInt(b.dataset.val)===answers.orderA) b.classList.add('correct'); });
       el('order-B-row').querySelectorAll('.mc-btn').forEach(b=>{ if(parseInt(b.dataset.val)===answers.orderB) b.classList.add('correct'); });
       el('order-next-btn').disabled = false;
@@ -725,11 +857,13 @@ function renderMechanismStage(content){
     const correct = sorted.length === expected.length && sorted.every((v,i)=>v===expected[i]);
     const fb = el('mechanism-feedback');
     fb.className = 'feedback show ' + (correct ? 'correct' : 'incorrect');
+    const eo = currentMechanism.expectedOrder;
     if(correct){
-      fb.textContent = 'Precies. Eén A-deeltje, alleen, in de snelheidsbepalende stap — dat past bij orde 1 in A en orde 0 in B.';
+      const beschrijving = describeParticles(currentMechanism.expectedRdsParticles);
+      fb.textContent = `Precies. ${beschrijving.charAt(0).toUpperCase()+beschrijving.slice(1)} in de snelheidsbepalende stap — dat past bij orde ${eo.A} in A en orde ${eo.B} in B.`;
       el('mech-reveal-btn').disabled = false;
     } else {
-      fb.textContent = 'Denk aan wat je net vond: orde 1 in A betekent dat er één A-deeltje meedoet in de snelheidsbepalende stap. Orde 0 in B betekent dat B daar niet bij hoort.';
+      fb.textContent = `Denk aan wat je net vond: orde ${eo.A} in A en orde ${eo.B} in B — dat vertelt je precies hoeveel deeltjes van elke soort in de snelheidsbepalende stap horen (en welke soort daar mogelijk helemaal niet bij hoort).`;
       el('mech-reveal-btn').disabled = true;
     }
   });
@@ -760,7 +894,7 @@ function renderMechanismStage(content){
     section.innerHTML = `
       <h2>Het echte mechanisme</h2>
       <div>${stepsHtml}</div>
-      <p class="sub" style="margin-top:14px;">A → I lijkt zonder partner te gebeuren, maar dat is het niet helemaal: A wordt "aangeslagen" doordat het botst met een willekeurig deeltje en daarbij meer energie krijgt dan de activeringsenergie. Bij een hogere temperatuur leveren meer van die botsingen genoeg energie op, dus stijgt de snelheid met T — precies zoals je al gewend bent. Maar bij hogere totale concentratie gebeurt er nog iets: het aangeslagen deeltje botst dan ook vaker opnieuw voordat het de kans krijgt om te reageren, en die botsing kan de energie er net zo goed weer afhalen als dat reageren zelf gebeurt. "Vaker aangeslagen" en "vaker weer gedeactiveerd" middelen elkaar dan uit — daarom hangt de snelheid alleen af van hoeveel A er is, niet van het aantal botsingen per seconde en dus ook niet van de totale concentratie van deeltjes in het reactievat.</p>
+      <p class="sub" style="margin-top:14px;">${currentMechanism.revealNote}</p>
 
       <canvas id="reveal-chart" width="700" height="280"></canvas>
       <div class="legend" id="reveal-legend"></div>
@@ -778,8 +912,8 @@ function renderMechanismStage(content){
       legend.appendChild(span);
     }
 
-    const history = simulateMechanism(currentMechanism.steps, {A:exploreA0, B:exploreB0}, 70, 0.01);
-    drawConcentrationChart(el('reveal-chart'), history, {markWindow:[0.5,1.0]});
+    const history = simulateMechanism(currentMechanism.steps, {A:exploreA0, B:exploreB0}, 70, 0.001);
+    drawConcentrationChart(el('reveal-chart'), history, {markWindow:[0.05,0.07]});
 
     el('reveal-restart-btn').addEventListener('click', ()=>{
       answers = { orderA: null, orderB: null, rdsTiles: [] };
