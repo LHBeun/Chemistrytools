@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Chemische Evolutie — Van Molecuul tot Brein</title>
+<style>
+  :root{--ink:#1a1a1a;--paper:#ffffff;--line:#d8d8d8;--accent:#7a1f2b;--accent2:#1f4d5c;--good:#3a6b35;--muted:#666;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,'Times New Roman',serif;-webkit-print-color-adjust:exact;}
+  header{padding:22px 28px 12px;border-bottom:2px solid var(--ink);}
+  header h1{margin:0;font-size:1.45rem;letter-spacing:.5px;}
+  header p{margin:4px 0 0;color:var(--muted);font-size:.9rem;}
+  .progress{display:flex;gap:6px;padding:14px 28px;flex-wrap:wrap;border-bottom:1px solid var(--line);}
+  .dot{width:26px;height:26px;border-radius:50%;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;
+    font-size:.75rem;font-family:Arial,sans-serif;background:var(--paper);color:var(--muted);}
+  .dot.done{background:var(--ink);color:var(--paper);}
+  .dot.current{border-color:var(--accent);color:var(--accent);font-weight:bold;}
+  main{display:grid;grid-template-columns:1fr 1.2fr;gap:0;min-height:70vh;}
+  .stage-visual{padding:22px 26px;border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;}
+  .stage-visual h2{font-size:1.1rem;margin:0 0 8px;}
+  .intro{color:#333;font-size:.92rem;line-height:1.55;font-family:Georgia,serif;margin-bottom:14px;}
+  svg{width:100%;max-width:320px;height:190px;}
+  .controls{padding:22px 26px;}
+  .databoek{border:1px solid var(--ink);padding:12px 14px;margin-bottom:18px;font-family:Arial,sans-serif;font-size:.78rem;background:#fafafa;}
+  .databoek h3{margin:0 0 8px;font-size:.8rem;letter-spacing:.5px;text-transform:uppercase;color:var(--accent2);}
+  .fblock{margin-bottom:10px;padding-bottom:9px;border-bottom:1px solid #e5e5e5;}
+  .fblock:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+  .fblock b{display:block;color:var(--ink);margin-bottom:2px;}
+  .fblock .formula{font-family:'Courier New',monospace;background:#eef2f2;padding:3px 6px;display:inline-block;margin:2px 0;font-size:.77rem;}
+  .fblock .symbols{color:#555;font-style:italic;margin:2px 0;}
+  .fblock .given{margin-left:8px;color:#333;}
+  .fblock .given div:before{content:"• ";}
+
+  .var-block{margin-bottom:20px;font-family:Arial,sans-serif; padding-bottom:16px; border-bottom:1px dashed var(--line);}
+  .var-block:last-of-type{border-bottom:none;}
+  .var-block .vh{display:flex;align-items:center;gap:8px;font-size:.95rem;margin-bottom:5px;}
+  .var-block .vh .tag{font-size:.68rem;padding:1px 7px;border-radius:9px;background:#eee;color:#777;font-family:Arial,sans-serif;}
+  .var-block .vh .tag.done{background:var(--good);color:#fff;}
+  .var-block .story{color:#444;font-size:.85rem;line-height:1.5;margin-bottom:8px;font-family:Georgia,serif;}
+  .bound-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .bound-field label{display:block;font-size:.76rem;color:var(--muted);margin-bottom:2px;}
+  .bound-field input{width:100%;padding:6px 8px;border:1px solid #bbb;font-family:Arial,sans-serif;font-size:.9rem;}
+  .bound-field input.correct{border-color:var(--good); background:#f2f7f1;}
+  .explain{display:none;margin-top:6px;padding:8px 10px;background:#f2f7f1;border-left:3px solid var(--good);font-size:.8rem;color:#264422;font-family:Arial,sans-serif;}
+  .explain.show{display:block;}
+
+  .feedback-box{display:none;margin-top:6px;padding:13px 15px;border:2px solid var(--good);background:#f2f7f1;font-family:Arial,sans-serif;font-size:.87rem;color:#264422;}
+  .feedback-box.show{display:block;}
+  .feedback-box h4{margin:0 0 6px;color:var(--good);}
+  .next-btn{margin-top:12px;padding:8px 16px;background:var(--accent);color:#fff;border:none;font-family:Arial,sans-serif;font-size:.9rem;cursor:pointer;display:none;}
+  .next-btn.show{display:inline-block;}
+  .epilogue{padding:60px 40px;text-align:center;font-family:Georgia,serif;}
+  .epilogue h2{font-size:1.8rem;}
+  .epilogue p{max-width:600px;margin:14px auto;line-height:1.6;color:#333;}
+  footer{padding:10px 28px;color:var(--muted);font-size:.72rem;font-family:Arial,sans-serif;border-top:1px solid var(--line);}
+</style>
+</head>
+<body>
+<header>
+  <h1>Chemische Evolutie — Van Molecuul tot Brein</h1>
+  <p id="stage-label">Stage 1 van 8</p>
+</header>
+<div class="progress" id="progress"></div>
+<main id="main-area"></main>
+<footer>6 VWO · bereken zelf de onder- en bovengrens uit de gegeven constanten (Arrhenius, Van 't Hoff, Henderson-Hasselbalch, Nernst, K<sub>d</sub>-binding) · marge ±3%</footer>
+
+<script>
+const TOL = 0.03;
+
+const stages = [
+/* ===================== STAGE 1 ===================== */
+{
+  name:"Oersoep → organische moleculen",
+  intro:"Op de jonge, gloeiend hete Aarde is er nog geen leven — alleen een dichte damp van methaan, ammoniak, waterstof en waterdamp, doorkliefd door blikseminslagen en fel ultraviolet licht van een nog onbeschermde zon. Ergens in die chaos moet de eerste stap gezet worden: van kale gasmoleculen naar de eerste bouwstenen van het leven.",
+  databoek:[
+    {title:"Temperatuur — Arrhenius", formula:"k = A·e^(−Eₐ/RT)  →  T = Eₐ / (R·ln(A/k))",
+     symbols:"k = reactiesnelheidsconstante (s⁻¹) · A = frequentiefactor (s⁻¹) · Eₐ = activeringsenergie (J/mol) · R = 8,314 J/(mol·K)",
+     given:["Vorming (CH₄/NH₃ → HCN e.a.): Eₐ = 75 kJ/mol, A = 2,5×10⁹ s⁻¹, benodigd k ≥ 5,0×10⁻⁵ s⁻¹",
+            "Ontleding van het gevormde product: Eₐ = 89,2 kJ/mol, A = 2,5×10⁹ s⁻¹, grens k ≤ 5,0×10⁻⁵ s⁻¹"]},
+    {title:"CH₄-fractie — reactiequotiënt Q vs. K꜀", formula:"Q = [HCN][H₂]³ / ([CH₄][NH₃])",
+     symbols:"[X] = concentratie van X (mol/L) · Q = reactiequotiënt op dit moment · K꜀ = evenwichtsconstante bij deze T",
+     given:["Reactie: CH₄ + NH₃ ⇌ HCN + 3 H₂ · totale gasconcentratie = 1,0 mol/L · [NH₃] vast = 0,20 mol/L",
+            "Achtergrondconcentraties: [HCN] = 0,03 mol/L, [H₂] = 0,10 mol/L, K꜀ = 5,0×10⁻⁴ (eis: Q ≤ K꜀)",
+            "Voor de bovengrens (massabalans): [NH₃] vast 20%, minimaal 20% H₂O nodig in het mengsel, 5% blijft inert gas"]},
+    {title:"Golflengte — fotonenergie", formula:"E_foton = hc/λ  ·  E_mol = E_foton × N_A",
+     symbols:"h = 6,626×10⁻³⁴ J·s · c = 3,00×10⁸ m/s · N_A = 6,022×10²³ mol⁻¹ · λ = golflengte (m)",
+     given:["Te breken binding (C–H in CH₄): bindingsenergie = 413 kJ/mol → bepaalt de maximale λ",
+            "Niet te breken binding (C≡N in het gevormde HCN): bindingsenergie = 891 kJ/mol → bepaalt de minimale λ"]}
+  ],
+  vars:[
+    {id:"T", label:"Temperatuur", unit:"K", low:286, high:340,
+     story:"De energie voor deze eerste stap moet uit warmte komen — maar te weinig warmt niets op, en te veel breekt alles weer af voordat het kan ontstaan.",
+     lowExplain:"Bij deze temperatuur ligt de snelheidsconstante van de vormingsreactie precies op de ondergrens k = 5,0×10⁻⁵ s⁻¹ — eronder verloopt de vorming van HCN en aldehyden te traag om ooit iets op te bouwen.",
+     highExplain:"Boven deze temperatuur wordt de ontledingsreactie van de net gevormde moleculen sneller dan de vorming zelf — alles wat ontstaat, valt meteen weer uiteen."},
+    {id:"CH4", label:"CH₄-fractie in gasmengsel", unit:"%", low:30, high:55,
+     story:"Het gasmengsel moet ook de juiste samenstelling hebben: genoeg methaan om de reactie op gang te houden, maar niet zoveel dat er straks geen ruimte meer over is voor water en andere bouwstenen.",
+     lowExplain:"Bij dit percentage ligt het reactiequotiënt Q precies op de evenwichtsconstante K꜀ — eronder verloopt de vorming van HCN te langzaam om verder te komen.",
+     highExplain:"Boven dit percentage is er simpelweg geen ruimte meer in het gasmengsel over voor de waterdamp die de volgende stap nodig heeft."},
+    {id:"lam", label:"Golflengte van de straling", unit:"nm", low:134, high:290,
+     story:"En dan is er nog het licht zelf: te weinig energie per foton breekt geen enkele binding, te veel energie breekt zelfs de bindingen die je juist wilt behouden.",
+     lowExplain:"Onder deze golflengte draagt elk foton genoeg energie om ook de sterke C≡N-binding in het net gevormde HCN weer te verbreken.",
+     highExplain:"Boven deze golflengte is er te weinig energie per foton om zelfs de C–H-binding in methaan te breken — er gebeurt dan simpelweg niets."}
+  ],
+  success:"De temperatuur ligt tussen de Arrhenius-vormingsdrempel en de ontledingsgrens, Q blijft onder K꜀ zonder de massabalans te overschrijden, en de golflengte levert precies genoeg energie om C–H te breken zonder C≡N te raken. HCN, formaldehyde en eenvoudige aminozuren vormen zich uit het gasmengsel.",
+  svg:(p)=>`<svg viewBox="0 0 320 190"><rect width="320" height="190" fill="#fff"/>
+    ${Array.from({length:14}).map((_,i)=>`<circle cx="${20+((i*44)%280)}" cy="${20+((i*31)%150)}" r="${3+p*4}" fill="#7a1f2b" opacity="${0.3+p*0.5}"/>`).join('')}
+    <text x="160" y="180" text-anchor="middle" font-family="Arial" font-size="11" fill="#666">gaswolk → eerste moleculen</text></svg>`
+},
+/* ===================== STAGE 2 ===================== */
+{
+  name:"Monomeer → polymeer",
+  intro:"Op het oppervlak van kleimineralen, waar de zon het water periodiek laat verdampen, komen de eerste aminozuren samen. Om ze aaneen te rijgen tot peptiden moet het milieu precies goed zijn: droog genoeg om water af te kunnen stoten, maar niet zo extreem dat de kwetsbare nieuwe binding meteen weer uiteenvalt.",
+  databoek:[
+    {title:"pH — Henderson-Hasselbalch", formula:"pH = pK_z + log([A⁻]/[HA])",
+     symbols:"pK_z = zuurconstante · [A⁻]/[HA] = verhouding gedeprotoneerde/geprotoneerde vorm",
+     given:["Ondergrens: pK_z(-NH₃⁺) = 9,6, benodigde fractie -NH₂ (nucleofiel) ≥ 10%",
+            "Bovengrens (basische hydrolyse van de gevormde peptidebinding): k = k₀·[OH⁻], k₀ = 100 L/(mol·s), grens k ≤ 3,16×10⁻² s⁻¹"]},
+    {title:"Concentratie — reactiequotiënt Q vs. K꜀", formula:"Q = [dipeptide][H₂O] / [monomeer]²",
+     symbols:"[X] = concentratie (mol/L) · Q = reactiequotiënt · K꜀ = evenwichtsconstante",
+     given:["K꜀ = 8,0×10⁻³, achtergrond [dipeptide] = 0,01 mol/L, [H₂O] = 0,5 mol/L (eis: Q ≤ K꜀)",
+            "Bovengrens: oplosbaarheidsgrens van het monomeer S = 1,6 mol/L"]},
+    {title:"Temperatuur — Arrhenius (2×)", formula:"k = A·e^(−Eₐ/RT)  →  T = Eₐ/(R·ln(A/k))",
+     symbols:"zie stage 1 voor alle symbolen",
+     given:["Dehydratatie: Eₐ = 90 kJ/mol, A = 1,0×10¹⁰ s⁻¹, k_min = 1,0×10⁻⁴ s⁻¹",
+            "Thermische ontleding peptidebinding: Eₐ = 115 kJ/mol, A = 5,0×10¹² s⁻¹, k_max = 1,0×10⁻⁴ s⁻¹"]}
+  ],
+  vars:[
+    {id:"pH", label:"pH", unit:"", low:8.65, high:10.5,
+     story:"De pH bepaalt of de aminogroep klaarstaat om aan te vallen, of dat de pas gevormde binding er juist weer af wordt gebroken.",
+     lowExplain:"Bij deze pH is minstens 10% van de aminogroepen gedeprotoneerd tot het nucleofiele -NH₂ — eronder is er te weinig reactieve vorm beschikbaar.",
+     highExplain:"Boven deze pH stijgt de hydroxideconcentratie zo hoog dat basisch-gekatalyseerde hydrolyse de peptidebinding sneller afbreekt dan ze gevormd wordt."},
+    {id:"C", label:"Concentratie monomeer", unit:"mol/L", low:0.79, high:1.6,
+     story:"Hoe meer monomeren dicht bij elkaar zitten, hoe vaker ze botsen en hoe groter de kans op reactie — maar los er te veel op, en ze slaan juist neer voordat ze kunnen reageren.",
+     lowExplain:"Bij deze concentratie duwt het reactiequotiënt Q de condensatiereactie net over de evenwichtsconstante K꜀ heen — eronder verloopt de vorming te langzaam.",
+     highExplain:"Boven deze concentratie overschrijd je de oplosbaarheidsgrens en klonteren de monomeren samen tot een inactief neerslag."},
+    {id:"T", label:"Temperatuur", unit:"K", low:336, high:360,
+     story:"En net als bij de allereerste stap is er ook hier een venster tussen te koud — te trage dehydratatie — en te heet, waarbij de binding zelf weer thermisch afbreekt.",
+     lowExplain:"Bij deze temperatuur bereikt de dehydratatiereactie precies de minimale snelheidsconstante om binnen redelijke tijd tot condensatie te komen.",
+     highExplain:"Boven deze temperatuur ontleedt de peptidebinding zelf alweer door de warmte, sneller dan hij gevormd wordt."}
+  ],
+  success:"Bij deze pH is de aminogroep net voldoende nucleofiel zonder dat de peptidebinding alweer hydrolyseert, de concentratie duwt Q onder K꜀ zonder de oplosbaarheidsgrens te overschrijden, en de temperatuur zit tussen de dehydratatiedrempel en de thermische ontledingsgrens. Aminozuren koppelen aaneen tot korte peptiden.",
+  svg:(p)=>`<svg viewBox="0 0 320 190"><rect width="320" height="190" fill="#fff"/>
+    <polyline points="${Array.from({length:7}).map((_,i)=>`${25+i*42},${95+((i%2)*2-1)*8*p}`).join(' ')}" fill="none" stroke="#1f4d5c" stroke-width="${3+p*3}"/>
+    ${Array.from({length:7}).map((_,i)=>`<circle cx="${25+i*42}" cy="${95+((i%2)*2-1)*8*p}" r="6.5" fill="#1f4d5c"/>`).join('')}
+    <text x="160" y="175" text-anchor="middle" font-family="Arial" font-size="11" fill="#666">monomeren → keten</text></svg>`
+},
+/* ===================== STAGE 3 ===================== */
+{
+  name:"Polymeer → membraan / protocel",
+  intro:"Losse peptiden en vetzuurachtige moleculen drijven nu rond in het water — maar pas wanneer ze zich spontaan organiseren tot een dubbellaag, ontstaat er iets dat op een cel begint te lijken: een eigen binnenkant, afgescheiden van de buitenwereld.",
+  databoek:[
+    {title:"Concentratie amfifiel — Van 't Hoff (bij vaste referentietemperatuur)", formula:"ln(CMC) = ΔH°/(RT) − ΔS°/R    (CMC in mol/L)",
+     symbols:"ΔH° = vormingsenthalpie van de micel (J/mol) · ΔS° = vormingsentropie (J/(mol·K))",
+     given:["ΔH°_mic = +17,8 kJ/mol, ΔS°_mic = +113 J/(mol·K), T = 305 K (referentietemperatuur)",
+            "Bovengrens (gegeven): boven 5,0 mmol/L ontstaan andere aggregaatvormen i.p.v. bilagen"]},
+    {title:"Temperatuur — fysische grenzen (gegeven, geen berekening)", formula:"—", symbols:"—",
+     given:["Krafft-temperatuur T_K = 290 K (ondergrens — eronder zijn de ketens te star)",
+            "Faseovergangstemperatuur van de bilaag = 320 K (bovengrens — erboven wordt de bilaag te fluïde)"]},
+    {title:"pH — Henderson-Hasselbalch (kopgroep)", formula:"pH = pK_z + log([A⁻]/[HA])", symbols:"pK_z(kopgroep) = 7,0",
+     given:["Ondergrens: benodigde fractie gedeprotoneerd ≥ 25%", "Bovengrens: benodigde fractie geprotoneerd ≥ 10%"]}
+  ],
+  vars:[
+    {id:"amf", label:"Concentratie amfifiel", unit:"mmol/L", low:1.40, high:5.0,
+     story:"Beneden een kritische concentratie gebeurt er helemaal niets; de amfifielen blijven los in oplossing zwemmen.",
+     lowExplain:"Bij deze concentratie (berekend met Van 't Hoff bij de gegeven referentietemperatuur) ligt de concentratie precies op de CMC — eronder vormen zich geen micellen of bilagen.",
+     highExplain:"Boven deze concentratie ontstaan er andere aggregaatvormen, zoals staafvormige micellen, in plaats van de gewenste bilaag."},
+    {id:"T", label:"Temperatuur", unit:"K", low:290, high:320,
+     story:"De temperatuur zelf hoeft hier niet berekend te worden — dit zijn twee harde, gegeven natuurkundige constanten van het amfifiel.",
+     lowExplain:"Dit is de Krafft-temperatuur: eronder zijn de staarten van het amfifiel te star om samen een vloeibare bilaag te vormen.",
+     highExplain:"Dit is de faseovergangstemperatuur van de bilaag: erboven wordt het membraan te fluïde en valt het uiteen."},
+    {id:"pH", label:"pH", unit:"", low:6.52, high:7.95,
+     story:"En de kopgroepen van het amfifiel hebben, net als de aminozuren eerder, een lading nodig die niet te zwak en niet te sterk is.",
+     lowExplain:"Bij deze pH is minstens 25% van de kopgroepen gedeprotoneerd — genoeg lading voor een stabiele, geordende pakking.",
+     highExplain:"Boven deze pH is minder dan 10% van de kopgroepen nog geprotoneerd, en stoten de volledig geladen koppen elkaar te sterk af."}
+  ],
+  success:"De concentratie ligt boven de berekende CMC maar onder de omslag naar andere aggregaten, de temperatuur zit tussen de Krafft-grens en de instabiliteitsgrens, en de pH houdt de kopgroep net voldoende geladen. De eerste protocel-achtige blaasjes ontstaan.",
+  svg:(p)=>`<svg viewBox="0 0 320 190"><rect width="320" height="190" fill="#fff"/>
+    <circle cx="160" cy="95" r="${36+p*30}" fill="none" stroke="#7a1f2b" stroke-width="${2+p*4}" stroke-dasharray="${p<1?'4,4':'0'}"/>
+    ${p>0.99?'<circle cx="160" cy="95" r="9" fill="#7a1f2b" opacity="0.4"/>':''}
+    <text x="160" y="175" text-anchor="middle" font-family="Arial" font-size="11" fill="#666">membraan / protocel</text></svg>`
+},
+/* ===================== STAGE 4 ===================== */
+{
+  name:"Zelfreplicatie (RNA-wereld)",
+  intro:"In kleine, door membranen omsloten druppeltjes ontstaat het eerste molecuul dat zichzelf kan kopiëren: een streng RNA. Dat is een precair evenwicht — de streng moet stabiel genoeg gevouwen blijven om als sjabloon te dienen, maar de synthese van de kopie moet ook snel genoeg verlopen.",
+  databoek:[
+    {title:"Temperatuur — Arrhenius (synthese) + Van 't Hoff (vouwing)",
+     formula:"synthese: k=A·e^(−Eₐ/RT) → T_min  ·  vouwing: ln(K_vouw) = −ΔH_vouw/(RT) + ΔS_vouw/R, eis K_vouw ≥ 1",
+     symbols:"K_vouw = [gevouwen]/[ongevouwen] · ΔH_vouw, ΔS_vouw = vouwingsenthalpie/-entropie",
+     given:["Synthese: Eₐ = 70 kJ/mol, A = 1,0×10⁹ s⁻¹, k_min = 1,0×10⁻⁴ s⁻¹",
+            "Vouwing: ΔH_vouw = −150 kJ/mol, ΔS_vouw = −455 J/(mol·K)"]},
+    {title:"pH — Henderson-Hasselbalch (fosfaatgroep)", formula:"pH = pK_z + log([A⁻]/[HA])", symbols:"pK_z(fosfaatgroep) = 6,0",
+     given:["Ondergrens: benodigde fractie gedeprotoneerd ≥ 70%",
+            "Bovengrens (base-hydrolyse): k = k₀[OH⁻], k₀ = 50 L/(mol·s), grens k ≤ 5,0×10⁻³ s⁻¹"]},
+    {title:"Mg²⁺ — bindingsvergelijking (K_d)", formula:"θ = [Mg²⁺] / ([Mg²⁺] + K_d)", symbols:"θ = bezettingsfractie · K_d = dissociatieconstante (mmol/L)",
+     given:["Stabiliserende binding: K_d = 5 mmol/L, benodigd θ ≥ 0,5",
+            "Niet-specifieke overbinding: K_d = 30 mmol/L, grens θ ≤ 0,3"]}
+  ],
+  vars:[
+    {id:"T", label:"Temperatuur", unit:"K", low:281, high:330,
+     story:"Te koud, en er gebeurt simpelweg te weinig; te warm, en de streng smelt uiteen tot losse, betekenisloze nucleotiden.",
+     lowExplain:"Bij deze temperatuur haalt de synthesereactie precies de minimale snelheidsconstante om binnen een redelijke tijd een kopie te maken.",
+     highExplain:"Boven deze temperatuur daalt de vouwingsevenwichtsconstante K_vouw onder 1 — de streng denatureert sneller dan hij zich vouwt."},
+    {id:"pH", label:"pH", unit:"", low:6.37, high:10.0,
+     story:"De fosfaatgroepen in de ruggengraat van het RNA hebben, net als eerdere ladingsgevoelige groepen, hun eigen smalle venster.",
+     lowExplain:"Bij deze pH is minstens 70% van de fosfaatgroepen gedeprotoneerd — genoeg negatieve lading om de ruggengraat stabiel te houden.",
+     highExplain:"Boven deze pH stijgt de hydroxideconcentratie zo hoog dat basische hydrolyse het RNA sneller afbreekt dan gewenst."},
+    {id:"Mg", label:"Mg²⁺-concentratie", unit:"mmol/L", low:5, high:12.86,
+     story:"En dan is er nog het magnesium: te weinig, en de streng vouwt zich niet goed op; te veel, en het bindt zich overal aspecifiek en verstart de hele structuur.",
+     lowExplain:"Bij deze concentratie is de bezettingsfractie van de stabiliserende Mg²⁺-bindingsplaats precies 50% — eronder is de vouwing te instabiel.",
+     highExplain:"Boven deze concentratie neemt de aspecifieke, verstijvende Mg²⁺-binding te veel toe en wordt de structuur te star om nog actief te zijn."}
+  ],
+  success:"De temperatuur ligt boven de synthesedrempel maar onder de smelttemperatuur van de streng, de pH houdt de fosfaatgroepen stabiel zonder hydrolyse, en de Mg²⁺-concentratie stabiliseert de vouwing zonder te overcondenseren. Het eerste zelfrepliderende RNA-molecuul kopieert zichzelf.",
+  svg:(p)=>`<svg viewBox="0 0 320 190"><rect width="320" height="190" fill="#fff"/>
+    <path d="M50 42 Q160 ${12+p*28} 270 42 Q160 ${178-p*28} 50 165" fill="none" stroke="#7a1f2b" stroke-width="3"/>
+    <path d="M50 165 Q160 ${178-p*28} 270 165 Q160 ${12+p*28} 50 42" fill="none" stroke="#1f4d5c" stroke-width="3" opacity="${p}"/>
+    <text x="160" y="182" text-anchor="middle" font-family="Arial" font-size="11" fill="#666">RNA-streng ⇌ kopie</text></svg>`
+},
+/* ===================== STAGE 5 ===================== */
+{
+  name:"Proto-metabolisme (redox)",
+  intro:"Zelfreplicatie alleen is niet genoeg — er is ook een energiebron nodig om alle andere processen aan te drijven. In de eerste protocellen ontstaat daarom een primitief soort stofwisseling: een spontane overdracht van elektronen van een donor naar een acceptor.",
+  databoek:[
+    {title:"Q — gegeven ondergrens + Nernst-bovengrens", formula:"E = E° − (RT/nF)·ln(Q)",
+     symbols:"E° = standaardpotentiaalverschil · n = aantal elektronen · F = 96485 C/mol · R = 8,314 J/(mol·K)",
+     given:["Ondergrens (gegeven): onder Q = 0,05 is er onvoldoende donor beschikbaar",
+            "E°(acceptor) = +0,40 V, E°(donor) = −0,30 V, n = 2, T = 298 K (referentie), benodigd E ≥ 0,68 V → bovengrens"]},
+    {title:"pH — Henderson-Hasselbalch + Ksp", formula:"pH = pK_z + log([A⁻]/[HA])  ·  K_sp = [acceptor][OH⁻]²",
+     symbols:"K_sp = oplosbaarheidsproduct",
+     given:["Ondergrens: pK_z(donor) = 5,0, benodigde fractie actieve vorm ≥ 60%",
+            "Bovengrens: K_sp(acceptor-hydroxide) = 1,0×10⁻¹⁴, [acceptor] = 0,05 mol/L"]},
+    {title:"Temperatuur — Arrhenius (2×)", formula:"k = A·e^(−Eₐ/RT) → T = Eₐ/(R·ln(A/k))", symbols:"zie stage 1",
+     given:["Elektronoverdracht: Eₐ = 75 kJ/mol, A = 2,0×10⁹ s⁻¹, k_min = 1,0×10⁻⁴ s⁻¹",
+            "Denaturatie katalytisch oppervlak: Eₐ = 100 kJ/mol, A = 5,0×10¹² s⁻¹, k_max = 1,0×10⁻⁴ s⁻¹"]}
+  ],
+  vars:[
+    {id:"Q", label:"Concentratieverhouding donor/acceptor (Q)", unit:"", low:0.05, high:4.75,
+     story:"Hoeveel donor er beschikbaar is ten opzichte van de acceptor bepaalt, via de Nernst-vergelijking, of de elektronenoverdracht energetisch de moeite waard blijft.",
+     lowExplain:"Onder deze waarde is er simpelweg te weinig donor beschikbaar om de reactie draaiende te houden.",
+     highExplain:"Boven deze waarde daalt de celspanning E volgens de Nernst-vergelijking onder de benodigde 0,68 V — de overdracht wordt te traag om nuttig te zijn."},
+    {id:"pH", label:"pH", unit:"", low:5.18, high:7.65,
+     story:"Ook hier moeten donor en acceptor in hun actieve, opgeloste vorm blijven — niet geprotoneerd tot inactiviteit, en niet neergeslagen als onoplosbaar hydroxide.",
+     lowExplain:"Bij deze pH is minstens 60% van de donor in de actieve vorm aanwezig.",
+     highExplain:"Boven deze pH overschrijdt de hydroxideconcentratie het oplosbaarheidsproduct van de acceptor, die dan neerslaat en niet meer beschikbaar is."},
+    {id:"T", label:"Temperatuur", unit:"K", low:295, high:313,
+     story:"En de elektronenoverdracht zelf heeft, net als elke andere reactie in dit verhaal, zijn eigen Arrhenius-venster tussen te traag en te heet.",
+     lowExplain:"Bij deze temperatuur haalt de elektronoverdracht precies de minimale snelheidsconstante.",
+     highExplain:"Boven deze temperatuur denatureert het katalytische oppervlak dat de overdracht mogelijk maakt."}
+  ],
+  success:"Met deze Q blijft E ruim boven 0,68 V volgens de Nernst-vergelijking, de pH houdt donor en acceptor in actieve vorm zonder neerslag, en de temperatuur zit tussen de kinetische ondergrens en de denaturatiegrens. De elektronenoverdracht is spontaan — het eerste proto-metabolisme.",
+  svg:(p)=>`<svg viewBox="0 0 320 190"><rect width="320" height="190" fill="#fff"/>
+    <line x1="50" y1="95" x2="270" y2="95" stroke="#ccc" stroke-width="2"/>
+    <circle cx="${50+p*220}" cy="95" r="12" fill="#7a1f2b"/>
+    <text x="50" y="123" font-family="Arial" font-size="10" fill="#666">donor</text>
+    <text x="240" y="123" font-family="Arial" font-size="10" fill="#666">acceptor</text>
+    <text x="160" y="175" text-anchor="middle" font-family="Arial" font-size="11" fill="#666">elektronoverdracht</text></svg>`
+},
+/* ===================== STAGE 6 ===================== */
+{
+  name:"Complexe cel (chemiosmose)",
+  intro:"De cel die nu ontstaat is complexer dan zijn voorganger: hij bouwt een intern compartiment op, met een eigen membraan dat protonen kan vasthouden. Zo ontstaat een gradiënt die als energiebron dient — mits het membraan zelf de juiste vloeibaarheid heeft en de gradiënt niet té groot wordt.",
+  databoek:[
+    {title:"Membraansamenstelling — cis-vetzuren vs. cholesterol", formula:"T_m,eff = T_m,0 − a·(%cis) + b·(%chol)   —   vloeibaar vereist: T_omgeving > T_m,eff  én  T_omgeving − T_m,eff ≤ ΔT_max",
+     symbols:"T_m,eff = effectieve faseovergangstemperatuur · T_m,0 = overgangstemperatuur zonder cis/cholesterol",
+     given:["T_m,0 = 340 K, a = 0,8 K per % cis, b = 0,3 K per % cholesterol, %cholesterol = 20% (vast)",
+            "T_omgeving = 305 K (vast) · ΔT_max = 25 K"]},
+    {title:"ΔpH — protonmotorische kracht", formula:"pmf = 2,3·(RT/F)·ΔpH",
+     symbols:"pmf = protonmotorische kracht (V) · R = 8,314 J/(mol·K) · F = 96485 C/mol",
+     given:["T = 305 K (vast) · benodigd 0,09 V ≤ pmf ≤ 0,20 V"]}
+  ],
+  vars:[
+    {id:"cis", label:"% cis-onverzadigde vetzuren", unit:"%", low:51.25, high:82.5,
+     story:"De vloeibaarheid van het membraan wordt bepaald door hoeveel cis-onverzadigde vetzuren erin zitten (die verlagen de overgangstemperatuur), tegenover het vaste cholesterolgehalte van 20% (dat er juist tegenin werkt).",
+     lowExplain:"Bij dit percentage daalt de effectieve overgangstemperatuur van het membraan net onder de omgevingstemperatuur — het membraan wordt vloeibaar genoeg om te functioneren.",
+     highExplain:"Boven dit percentage wordt het membraan zo fluïde dat de opgebouwde protonengradiënt er ongecontroleerd doorheen lekt."},
+    {id:"dpH", label:"ΔpH tussen compartimenten", unit:"", low:1.49, high:3.31,
+     story:"En de ΔpH tussen binnen en buiten mag niet te klein zijn — anders is er geen bruikbare energie — maar ook niet te groot, want dan raken de membraaneiwitten zelf beschadigd.",
+     lowExplain:"Bij deze ΔpH levert de protonmotorische kracht precies de benodigde 0,09 V op.",
+     highExplain:"Boven deze ΔpH stijgt de protonmotorische kracht boven 0,20 V — genoeg om de membraaneiwitten zelf te beschadigen."}
+  ],
+  success:"Deze combinatie van cis-onverzadigde vetzuren brengt de effectieve overgangstemperatuur net onder de omgevingstemperatuur zonder het membraan te lek te maken, en de ΔpH levert een protonmotorische kracht die groot genoeg is zonder de membraaneiwitten te beschadigen. Een complexere cel met interne compartimenten ontstaat.",
+  svg:(p)=>`<svg viewBox="0 0 320 190"><rect width="320" height="190" fill="#fff"/>
+    <rect x="55" y="32" width="210" height="126" rx="63" fill="none" stroke="#1f4d5c" stroke-width="3"/>
+    <rect x="90" y="58" width="140" height="72" rx="36" fill="none" stroke="#7a1f2b" stroke-width="${2+p*3}" opacity="${p}"/>
+    <text x="160" y="175" text-anchor="middle" font-family="Arial" font-size="11" fill="#666">binnenmembraan-compartiment</text></svg>`
+},
+/* ===================== STAGE 7 ===================== */
+{
+  name:"Meercelligheid (signaaloverdracht)",
+  intro:"De cellen leven niet langer geïsoleerd: ze beginnen chemische signalen naar elkaar uit te wisselen. Een boodschappermolecuul moet daarvoor in precies de juiste concentratie aanwezig zijn — genoeg om de receptor te bereiken, maar niet zoveel dat de receptor verzadigd raakt en doof wordt voor verdere verandering.",
+  databoek:[
+    {title:"Signaalconcentratie — K_d-binding", formula:"θ = [L] / ([L] + K_d)", symbols:"θ = bezettingsfractie · K_d = dissociatieconstante",
+     given:["K_d = 2×10⁻⁷ mol/L · detectie: θ ≥ 0,5 (ondergrens) · verzadiging: θ ≤ 0,75 (bovengrens)"]},
+    {title:"Afstand — diffusie (gebruik je eigen bovengrens voor [L]!)", formula:"C(d) = [L]·e^(−d/λ)   —   eis: C(d) ≥ K_d  ⇒  d ≤ λ·ln([L]/K_d)",
+     symbols:"C(d) = concentratie op afstand d · λ = diffusielengteschaal",
+     given:["λ = 20 · gebruik voor deze berekening je zojuist gevonden bovengrens voor [L] (6×10⁻⁷ mol/L)",
+            "Ondergrens (gegeven, ter voorkoming van autocriene overbelasting): d ≥ 2"]},
+    {title:"Temperatuur — Arrhenius (2×)", formula:"k = A·e^(−Eₐ/RT) → T = Eₐ/(R·ln(A/k))", symbols:"zie stage 1",
+     given:["Diffusiesnelheid: Eₐ = 85 kJ/mol, A = 1,0×10¹¹ s⁻¹, k_min = 1,0×10⁻⁴ s⁻¹",
+            "Denaturatie receptor: Eₐ = 110 kJ/mol, A = 3,0×10¹³ s⁻¹, k_max = 1,0×10⁻⁴ s⁻¹"]}
+  ],
+  vars:[
+    {id:"L", label:"Signaalmoleculeconcentratie", unit:"×10⁻⁷ mol/L", low:2, high:6,
+     story:"De bezettingsfractie van de receptor bepaalt of het signaal wordt opgemerkt — te weinig signaalmolecuul, en er gebeurt niets; te veel, en de receptor kan niet meer onderscheiden.",
+     lowExplain:"Bij deze concentratie is de bezettingsfractie θ van de receptor precies 0,5 — eronder wordt het signaal niet betrouwbaar opgemerkt.",
+     highExplain:"Boven deze concentratie stijgt θ boven 0,75 en raakt de receptor verzadigd — hij reageert niet langer op veranderingen."},
+    {id:"d", label:"Afstand tot bron", unit:"", low:2, high:21.97,
+     story:"En hoe ver het signaal nog waarneembaar is, hangt af van hoeveel er precies wordt uitgescheiden — gebruik je zonet berekende bovengrens voor de concentratie als vertrekpunt.",
+     lowExplain:"Deze ondergrens is gegeven: te dichtbij ontstaat het risico op autocriene overbelasting van de eigen cel.",
+     highExplain:"Bij deze afstand, uitgaande van de maximale toegestane signaalconcentratie, is de verdunning door diffusie precies zo groot dat de concentratie nog net op K_d ligt — verder weg wordt het signaal niet meer opgemerkt."},
+    {id:"T", label:"Temperatuur", unit:"K", low:296, high:329,
+     story:"En de diffusiesnelheid van het signaal zelf kent, zoals overal in dit verhaal, een venster tussen te traag en de denaturatie van de receptor.",
+     lowExplain:"Bij deze temperatuur is de diffusie precies snel genoeg.",
+     highExplain:"Boven deze temperatuur denatureert de receptor die het signaal moet herkennen."}
+  ],
+  success:"De signaalconcentratie zit rond K_d zonder de receptor te verzadigen, en op basis van díe concentratie blijft de afstand binnen het bereik waar het signaal nog net gedetecteerd wordt. Naburige cellen reageren nu gecoördineerd.",
+  svg:(p)=>`<svg viewBox="0 0 320 190"><rect width="320" height="190" fill="#fff"/>
+    <circle cx="105" cy="95" r="30" fill="none" stroke="#7a1f2b" stroke-width="3"/>
+    <circle cx="220" cy="95" r="30" fill="none" stroke="#7a1f2b" stroke-width="3" opacity="${p}"/>
+    <line x1="135" y1="95" x2="190" y2="95" stroke="#1f4d5c" stroke-width="${1+p*3}" stroke-dasharray="4,3"/>
+    <text x="160" y="175" text-anchor="middle" font-family="Arial" font-size="11" fill="#666">cel-cel signalering</text></svg>`
+},
+/* ===================== STAGE 8 ===================== */
+{
+  name:"Zenuwstelsel (actiepotentiaal)",
+  intro:"In een netwerk van cellen die razendsnel met elkaar moeten communiceren, ontstaat het zenuwstelsel: gespecialiseerde cellen die een elektrisch signaal kunnen doorgeven via plotselinge veranderingen in hun membraanpotentiaal — de actiepotentiaal.",
+  databoek:[
+    {title:"Membraanpotentiaal — vereenvoudigde GHK-vergelijking", formula:"V_m = (P_Na·E_Na + P_K·E_K) / (P_Na + P_K)   ·   E_ion = (RT/F)·ln([ion]buiten/[ion]binnen)",
+     symbols:"r = P_Na/(P_Na+P_K) = aandeel van de totale permeabiliteit dat van Na⁺ afkomstig is",
+     given:["[Na⁺]buiten = 145, [Na⁺]binnen = 15 mmol/L · [K⁺]buiten = 5, [K⁺]binnen = 140 mmol/L",
+            "T = 310 K (referentie), R = 8,314 J/(mol·K), F = 96485 C/mol",
+            "Drempelvenster voor een actiepotentiaal: −60 mV ≤ V_m ≤ −50 mV"]},
+    {title:"Temperatuur — Arrhenius (2×)", formula:"k = A·e^(−Eₐ/RT) → T = Eₐ/(R·ln(A/k))", symbols:"zie stage 1",
+     given:["Kanaalkinetiek: Eₐ = 95 kJ/mol, A = 8,0×10¹² s⁻¹, k_min = 1,0×10⁻⁴ s⁻¹",
+            "Denaturatie kanaaleiwitten: Eₐ = 105 kJ/mol, A = 1,0×10¹³ s⁻¹, k_max = 1,0×10⁻⁴ s⁻¹"]}
+  ],
+  vars:[
+    {id:"r", label:"Aandeel Na⁺ in totale permeabiliteit (r = P_Na/(P_Na+P_K))", unit:"", low:0.194, high:0.261,
+     story:"Of de actiepotentiaal afgaat, hangt af van de verhouding tussen de doorlaatbaarheid voor Na⁺ en K⁺: te weinig Na⁺-aandeel, en de drempel wordt nooit gehaald; te veel, en de cel schiet voorbij het punt waarop het signaal nog genormeerd is.",
+     lowExplain:"Bij deze verhouding bereikt de membraanpotentiaal (via de GHK-vergelijking) precies −60 mV — de onderkant van het drempelvenster.",
+     highExplain:"Boven deze verhouding overschrijdt de membraanpotentiaal −50 mV en schiet te ver door richting de Na⁺-evenwichtspotentiaal."},
+    {id:"T", label:"Temperatuur", unit:"K", low:294, high:323,
+     story:"En ook de ionkanalen zelf hebben hun eigen Arrhenius-venster tussen te traag en denaturatie.",
+     lowExplain:"Bij deze temperatuur werken de ionkanalen precies snel genoeg.",
+     highExplain:"Boven deze temperatuur denatureren de kanaaleiwitten."}
+  ],
+  success:"De verhouding tussen Na⁺- en K⁺-permeabiliteit brengt de membraanpotentiaal via de GHK-vergelijking precies in het drempelvenster rond −55 mV, en de temperatuur houdt de kanalen snel genoeg zonder te denatureren. Een actiepotentiaal vuurt af.",
+  svg:(p)=>`<svg viewBox="0 0 320 190"><rect width="320" height="190" fill="#fff"/>
+    <path d="M35 155 L115 155 Q135 ${155-p*105} 155 155 L 285 155" fill="none" stroke="#7a1f2b" stroke-width="3"/>
+    <text x="160" y="175" text-anchor="middle" font-family="Arial" font-size="11" fill="#666">actiepotentiaal</text></svg>`
+}
+];
+
+let current = 0;
+let solved = new Array(stages.length).fill(false);
+
+function renderProgress(){
+  const el = document.getElementById('progress');
+  el.innerHTML = stages.map((s,i)=>{
+    let cls = 'dot';
+    if(solved[i]) cls += ' done'; else if(i===current) cls += ' current';
+    return `<div class="${cls}" title="${s.name}">${i+1}</div>`;
+  }).join('') + `<div class="dot${current===stages.length?' current':''}">★</div>`;
+}
+
+function withinTol(val, target){
+  if(isNaN(val)) return false;
+  return Math.abs(val - target) <= Math.abs(target) * TOL;
+}
+
+function renderStage(){
+  if(current >= stages.length){ renderEpilogue(); return; }
+  const s = stages[current];
+  document.getElementById('stage-label').textContent = `Stage ${current+1} van ${stages.length} — ${s.name}`;
+  const progressFrac = solved[current] ? 1 : 0;
+
+  const html = `
+    <div class="stage-visual">
+      <h2>${s.name}</h2>
+      <div class="intro">${s.intro}</div>
+      <div id="svg-holder">${s.svg(progressFrac)}</div>
+    </div>
+    <div class="controls">
+      <div class="databoek">
+        <h3>Databoek — Stage ${current+1}</h3>
+        ${s.databoek.map(b=>`
+          <div class="fblock">
+            <b>${b.title}</b>
+            ${b.formula!=="—" ? `<div class="formula">${b.formula}</div>` : ''}
+            ${b.symbols!=="—" ? `<div class="symbols">${b.symbols}</div>` : ''}
+            <div class="given">${b.given.map(g=>`<div>${g}</div>`).join('')}</div>
+          </div>
+        `).join('')}
+      </div>
+      ${s.vars.map(v=>`
+        <div class="var-block" id="block-${v.id}">
+          <div class="vh"><span>${v.label}</span><span class="tag" id="tag-${v.id}">nog niet opgelost</span></div>
+          <div class="story">${v.story}</div>
+          <div class="bound-row">
+            <div class="bound-field">
+              <label>Ondergrens (${v.unit})</label>
+              <input type="number" step="any" id="lo-${v.id}">
+            </div>
+            <div class="bound-field">
+              <label>Bovengrens (${v.unit})</label>
+              <input type="number" step="any" id="hi-${v.id}">
+            </div>
+          </div>
+          <div class="explain" id="exp-lo-${v.id}">${v.lowExplain}</div>
+          <div class="explain" id="exp-hi-${v.id}">${v.highExplain}</div>
+        </div>
+      `).join('')}
+      <div class="feedback-box" id="feedback">
+        <h4>Reactie geslaagd</h4>
+        <p id="feedback-text"></p>
+      </div>
+      <button class="next-btn" id="next-btn">Volgende stage →</button>
+    </div>
+  `;
+  document.getElementById('main-area').innerHTML = html;
+
+  s.vars.forEach(v=>{
+    const loInput = document.getElementById(`lo-${v.id}`);
+    const hiInput = document.getElementById(`hi-${v.id}`);
+    [loInput, hiInput].forEach((input, idx)=>{
+      input.addEventListener('input', ()=>{
+        const target = idx===0 ? v.low : v.high;
+        const ok = withinTol(parseFloat(input.value), target);
+        input.classList.toggle('correct', ok);
+        const expEl = document.getElementById(idx===0?`exp-lo-${v.id}`:`exp-hi-${v.id}`);
+        expEl.classList.toggle('show', ok);
+        updateVarTag(v);
+        checkStage();
+      });
+    });
+  });
+
+  document.getElementById('next-btn').addEventListener('click', ()=>{
+    current++;
+    renderProgress();
+    renderStage();
+  });
+
+  renderProgress();
+}
+
+function updateVarTag(v){
+  const loOk = withinTol(parseFloat(document.getElementById(`lo-${v.id}`).value), v.low);
+  const hiOk = withinTol(parseFloat(document.getElementById(`hi-${v.id}`).value), v.high);
+  const tag = document.getElementById(`tag-${v.id}`);
+  const done = loOk && hiOk;
+  tag.textContent = done ? 'opgelost' : 'nog niet opgelost';
+  tag.classList.toggle('done', done);
+}
+
+function checkStage(){
+  const s = stages[current];
+  const allGood = s.vars.every(v=>{
+    const loOk = withinTol(parseFloat(document.getElementById(`lo-${v.id}`).value), v.low);
+    const hiOk = withinTol(parseFloat(document.getElementById(`hi-${v.id}`).value), v.high);
+    return loOk && hiOk;
+  });
+  if(allGood && !solved[current]){
+    solved[current] = true;
+    document.getElementById('feedback-text').textContent = s.success;
+    document.getElementById('feedback').classList.add('show');
+    document.getElementById('next-btn').classList.add('show');
+    document.getElementById('svg-holder').innerHTML = s.svg(1);
+    renderProgress();
+  }
+}
+
+function renderEpilogue(){
+  document.getElementById('stage-label').textContent = `Epiloog`;
+  document.getElementById('main-area').innerHTML = `
+    <div class="epilogue" style="grid-column:1/3;">
+      <h2>Van netwerk naar intelligentie... naar AI?</h2>
+      <p>De cellen die ooit alleen chemische signalen uitwisselden, vormen nu netwerken die patronen herkennen, herinneren en voorspellen. Ergens tussen de miljarden gekoppelde reacties ontstaat iets dat we "denken" noemen.</p>
+      <p>En de machines die jij bouwt om dit soort processen te simuleren — zijn die ook een vorm van chemische evolutie, alleen dan in silicium in plaats van koolstof?</p>
+      <p style="color:#999;font-size:.85rem;">— einde van de reis van molecuul tot brein —</p>
+    </div>
+  `;
+  renderProgress();
+}
+
+renderStage();
+</script>
+</body>
+</html>
