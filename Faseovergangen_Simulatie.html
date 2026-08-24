@@ -111,6 +111,9 @@
     border-radius: 5px; padding: 3px 8px; font-size: 0.78em; cursor: pointer; margin-left: 4px;
   }
   .guess-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .guess-row { display: flex; align-items: center; flex-wrap: wrap; gap: 2px; }
+  .guess-row + .guess-row { margin-top: 4px; }
+  .guess-unit { font-size: 0.78em; color: var(--muted); width: 20px; flex-shrink: 0; }
 
   .component-legend {
     display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; font-size: 0.8em; color: var(--muted);
@@ -230,6 +233,21 @@ const ABS_ZERO      = -273;
 
 const N_PARTICLES = 48;
 
+// Rooster-opstelling (vast/vloeibaar): PACK_SPACING is de kolom/rij-afstand, net iets
+// groter dan de tekendiameter zodat deeltjes elkaar bijna raken. computeLatticeDims()
+// wordt zowel bij het bepalen van de smeltvolgorde (rand-naar-binnen, zie initParticles)
+// als bij het tekenen (updateParticles) gebruikt, zodat "rand" in beide gevallen
+// dezelfde rooster-indeling betekent.
+const PACK_SPACING = 14;
+function computeLatticeDims(canvasWidth) {
+  const boxW = (canvasWidth || 400) - 32;
+  const fillLeft = 14, fillRight = boxW - 14;
+  const usableWidth = Math.max(1, fillRight - fillLeft);
+  const cols = Math.max(4, Math.floor(usableWidth / PACK_SPACING));
+  const rows = Math.ceil(N_PARTICLES / cols);
+  return { cols, rows };
+}
+
 // Vaste kleuren voor mengsel-componenten die niet de standaard fase-kleur gebruiken
 const COMPONENT_COLORS = {
   ethanol: { solid: '#7e22ce', liquid: '#a855f7', gas: '#e9d5ff' } // paarse tinten, los van blauw/teal/oranje van de fase-legenda
@@ -310,20 +328,37 @@ function setHeatPower(v) {
 // ─── Deeltjes initialiseren ───────────────────────────────────────────────
 function initParticles() {
   const s = SUBSTANCES[currentKey];
+  const canvas = document.getElementById('canvas-particles');
+  const { cols, rows } = computeLatticeDims(canvas ? canvas.clientWidth : 0);
   particles = [];
   for (let i = 0; i < N_PARTICLES; i++) {
     particles.push({
       idx: i,
-      x: 0, y: 0, vx: 0, vy: 0,
+      x: 0, y: 0, vx: 0, vy: 0, ySmooth: 0,
+      wanderX: 0, wanderY: 0, wanderTimer: 0,
       meltThreshold: 0, boilThreshold: 0,
       component: null
     });
   }
 
-  // Smeltvolgorde: altijd gelijkmatig willekeurig verdeeld over alle deeltjes,
-  // ongeacht component (opgeloste stof gedraagt zich hier niet apart).
-  const meltOrder = shuffle(particles.map((_, i) => i));
-  meltOrder.forEach((pIdx, rank) => { particles[pIdx].meltThreshold = (rank + 0.5) / N_PARTICLES; });
+  // Smeltvolgorde: gebaseerd op de afstand tot de rand van het rooster (in
+  // kolommen/rijen), zodat de buitenste deeltjes van het vaste blok als eerste
+  // smelten en het smeltfront van alle kanten naar binnen trekt — net zoals
+  // warmte van buitenaf het blok in trekt. We tellen de kolom- en rij-afstand
+  // tot hún dichtstbijzijnde rand bij elkaar op (i.p.v. het minimum ervan te
+  // nemen): het rooster is meestal veel breder dan hoog (vaak maar 2 rijen),
+  // en bij een minimum zou de rij-afstand dan voor iedereen op 0 uitkomen —
+  // dan zou alléén de willekeurige ruis de volgorde bepalen en smelt het weer
+  // overal door elkaar. Met de som blijft de kolom-positie altijd meetellen.
+  // Kleine ruis erbovenop voorkomt een té perfect symmetrisch front. Dit staat
+  // los van component (opgeloste stof gedraagt zich hier niet apart).
+  const jittered = particles.map((p, i) => {
+    const col = i % cols, row = Math.floor(i / cols);
+    const edgeDist = Math.min(col, cols - 1 - col) + Math.min(row, rows - 1 - row);
+    return { i, val: edgeDist + Math.random() * 0.6 };
+  });
+  jittered.sort((a, b) => a.val - b.val);
+  jittered.forEach((entry, rank) => { particles[entry.i].meltThreshold = (rank + 0.5) / N_PARTICLES; });
 
   if (s.components) {
     // Deeltjes over componenten verdelen naar rato van hun fractie
@@ -416,10 +451,14 @@ function localPhaseSublimatie(p) {
 
 // Bepaalt WELKE deeltjes nu gas zijn tijdens het koken — dynamisch, elk frame
 // opnieuw, op basis van hun huidige positie: wie het dichtst bij het
-// vloeistofoppervlak zit (kleinste y) verdampt eerst. Zo verdwijnt de vloeistof
-// altijd van bovenaf als een samenhangende poel, nooit een willekeurig deeltje
-// uit het midden. Bij mengsels weegt eerst de component-voorkeur (bias), en
-// pas daarbinnen de positie.
+// vloeistofoppervlak zit (kleinste ySmooth) verdampt eerst. We sorteren op een
+// glad-gestreken (low-pass gefilterde) y-positie i.p.v. de ruwe, trillende y:
+// anders wisselt de "wie zit er nu bovenaan"-volgorde elk frame door het eigen
+// getril van vloeistofdeeltjes, en lijkt het alsof willekeurige deeltjes uit
+// het midden verdampen i.p.v. een rand die gestaag naar binnen trekt. Zo
+// verdwijnt de vloeistof altijd van bovenaf als een samenhangende, krimpende
+// poel. Bij mengsels weegt eerst de component-voorkeur (bias), en pas
+// daarbinnen de (gladgestreken) positie.
 function bepaalGasDeeltjes() {
   const s = SUBSTANCES[currentKey];
   const eligible = particles.filter(p => !s.components || s.components[p.component].vluchtig);
@@ -431,7 +470,7 @@ function bepaalGasDeeltjes() {
   const sorted = [...eligible].sort((a, b) => {
     const bd = biasOf(a) - biasOf(b);
     if (Math.abs(bd) > 1e-6) return bd;
-    return a.y - b.y;
+    return a.ySmooth - b.ySmooth;
   });
   return new Set(sorted.slice(0, targetCount).map(p => p.idx));
 }
@@ -441,6 +480,11 @@ function updateParticles(box) {
   const rangeLo = s.TmLow - 30, rangeHi = s.TbHigh + 30;
   const heat = Math.max(0, Math.min(1, (T - rangeLo) / (rangeHi - rangeLo)));
   const speedFactor = 0.3 + heat * 1.4;
+
+  // Glad-gestreken (low-pass) y-positie bijhouden vóór de fasebepaling: bepaalGasDeeltjes()
+  // gebruikt deze om te bepalen wie er "bovenaan" zit, zonder dat het eigen getril van
+  // vloeistofdeeltjes die volgorde elk frame door elkaar husselt.
+  particles.forEach(p => { p.ySmooth += (p.y - p.ySmooth) * 0.15; });
 
   // Fase van elk deeltje eerst bepalen (onafhankelijk van de rest van deze functie),
   // zodat de poelgrootte hieronder kan meebewegen met hoeveel deeltjes nog vloeibaar zijn.
@@ -461,11 +505,11 @@ function updateParticles(box) {
 
   // Vast/vloeibaar: deeltjes dicht pakken (zo goed als aanrakend). PACK_SPACING is
   // net iets groter dan de tekendiameter (2×r=12) zodat ze elkaar bijna raken.
-  const PACK_SPACING = 14;
+  // Zelfde rooster-indeling (computeLatticeDims) als bij het bepalen van de
+  // smeltvolgorde, zodat "rand" op beide plekken hetzelfde betekent.
   const fillLeft = box.left + 14, fillRight = box.left + box.w - 14;
   const usableWidth = fillRight - fillLeft;
-  const cols = Math.max(4, Math.floor(usableWidth / PACK_SPACING));
-  const rows = Math.ceil(N_PARTICLES / cols);
+  const { cols, rows } = computeLatticeDims(box.w + 32);
   const latticeW = cols * PACK_SPACING;
   const latticeH = rows * PACK_SPACING;
   const latticeLeft = fillLeft + (usableWidth - latticeW) / 2;
@@ -516,15 +560,28 @@ function updateParticles(box) {
           if (p.y < poolTop)    p.y = poolTop + Math.random() * 4;
           if (p.y > poolBottom) p.y = poolBottom;
         } else {
-        const accel = 0.22 * speedFactor;
-        p.vx = (p.vx + (Math.random() - 0.5) * accel) * 0.88;
-        p.vy = (p.vy + (Math.random() - 0.5) * accel) * 0.88;
-        p.x += p.vx; p.y += p.vy;
+        // Vrije vloeistofdeeltjes diffunderen: elk deeltje krijgt af en toe een nieuw
+        // willekeurig punt ergens in de poel als "wandel-doel" en drijft daar geleidelijk
+        // naartoe, met wat lokaal getril erbovenop. Zo migreren ze zichtbaar door de hele
+        // poel — net als echte diffusie — in plaats van alleen op hun eigen plek te trillen
+        // zoals een vaste stof. Trager en lokaler dan een gas (geen rechte, lange vluchten).
+        p.wanderTimer -= 1;
+        if (p.wanderTimer <= 0) {
+          p.wanderX = latticeLeft + Math.random() * latticeW;
+          p.wanderY = poolTop + Math.random() * Math.max(1, poolBottom - poolTop);
+          p.wanderTimer = 40 + Math.random() * 60; // ~0,7-1,7 s bij 60 fps
+        }
+        const ease = 0.03 * speedFactor;
+        const jitter = 0.5 * speedFactor;
+        p.x += (p.wanderX - p.x) * ease + (Math.random() - 0.5) * jitter;
+        p.y += (p.wanderY - p.y) * ease + (Math.random() - 0.5) * jitter;
         // vloeistof blijft echt in de dichte poel — harde wanden, geen uitzwerven
-        if (p.x < latticeLeft)          { p.x = latticeLeft;          p.vx = Math.abs(p.vx); }
-        if (p.x > latticeLeft+latticeW) { p.x = latticeLeft+latticeW; p.vx = -Math.abs(p.vx); }
-        if (p.y < poolTop) { p.vy += 0.6; } // net gecondenseerd: val de poel in
-        else if (p.y > poolBottom) { p.y = poolBottom; p.vy = -Math.abs(p.vy); }
+        if (p.x < latticeLeft)          p.x = latticeLeft;
+        if (p.x > latticeLeft+latticeW) p.x = latticeLeft+latticeW;
+        // Stevige correctie bij het oppervlak: voorkomt dat een deeltje los boven het
+        // (krimpende) plasje blijft "zweven" zodra de poel tijdens het koken ondieper wordt.
+        if (p.y < poolTop)    p.y = poolTop + Math.random() * 2;
+        if (p.y > poolBottom) p.y = poolBottom;
         }
       } else { // gas
         const accel = 0.55 * speedFactor;
@@ -743,6 +800,19 @@ function updateReadouts() {
 // ─── Vergelijkingstabel ────────────────────────────────────────────────────
 const GUESS_TOLERANCE = 3; // °C — ruim genoeg om vanaf de grafiek af te lezen
 
+// Eén guess-veld (invoer + checkknop + vinkje) voor een gegeven grootheid ('tm'/'tb')
+// en eenheid ('c'/'k') — leerling mag zowel in °C als in K antwoorden, elk apart nagekeken.
+function guessField(key, field, unit, label) {
+  return `<span class="guess-unit">${label}</span>
+    <input type="number" step="0.5" class="guess-input" id="guess-${key}-${field}-${unit}" placeholder="${label}">
+    <button class="guess-btn" onclick="checkGuess('${key}','${field}','${unit}')">✓</button>
+    <span class="guess-check" id="check-${key}-${field}-${unit}"></span>`;
+}
+function guessCell(key, field) {
+  return `<div class="guess-row">${guessField(key, field, 'c', '°C')}</div>
+    <div class="guess-row">${guessField(key, field, 'k', 'K')}</div>`;
+}
+
 function renderVglTable() {
   const tbl = document.getElementById('vgl-table');
   const rows = Object.entries(SUBSTANCES).map(([key, s]) => {
@@ -750,26 +820,14 @@ function renderVglTable() {
       return `<tr>
         <td>${s.naam}</td>
         <td>${s.formule}</td>
-        <td colspan="2">
-          <input type="number" step="0.5" class="guess-input" id="guess-${key}-tm" placeholder="°C">
-          <button class="guess-btn" onclick="checkGuess('${key}','tm')">Controleer sublimatiepunt</button>
-          <span class="guess-check" id="check-${key}-tm"></span>
-        </td>
+        <td colspan="2">${guessCell(key, 'tm')}</td>
       </tr>`;
     }
     return `<tr>
       <td>${s.naam}</td>
       <td>${s.formule}</td>
-      <td>
-        <input type="number" step="0.5" class="guess-input" id="guess-${key}-tm" placeholder="°C">
-        <button class="guess-btn" onclick="checkGuess('${key}','tm')">✓</button>
-        <span class="guess-check" id="check-${key}-tm"></span>
-      </td>
-      <td>
-        <input type="number" step="0.5" class="guess-input" id="guess-${key}-tb" placeholder="°C">
-        <button class="guess-btn" onclick="checkGuess('${key}','tb')">✓</button>
-        <span class="guess-check" id="check-${key}-tb"></span>
-      </td>
+      <td>${guessCell(key, 'tm')}</td>
+      <td>${guessCell(key, 'tb')}</td>
     </tr>`;
   }).join('');
   tbl.innerHTML = `
@@ -777,15 +835,16 @@ function renderVglTable() {
     <tbody>${rows}</tbody>`;
 }
 
-function checkGuess(key, field) {
+function checkGuess(key, field, unit) {
   const s = SUBSTANCES[key];
-  const input = document.getElementById(`guess-${key}-${field}`);
-  const check = document.getElementById(`check-${key}-${field}`);
+  const input = document.getElementById(`guess-${key}-${field}-${unit}`);
+  const check = document.getElementById(`check-${key}-${field}-${unit}`);
   const guess = parseFloat(input.value);
   if (isNaN(guess)) return;
 
-  const lo = field === 'tm' ? s.TmLow : s.TbLow;
-  const hi = field === 'tm' ? s.TmHigh : s.TbHigh;
+  let lo = field === 'tm' ? s.TmLow : s.TbLow;
+  let hi = field === 'tm' ? s.TmHigh : s.TbHigh;
+  if (unit === 'k') { lo += 273; hi += 273; }
   const ok = guess >= lo - GUESS_TOLERANCE && guess <= hi + GUESS_TOLERANCE;
 
   input.classList.toggle('correct', ok);
