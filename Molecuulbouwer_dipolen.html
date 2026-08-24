@@ -38,6 +38,7 @@
     justify-content:center;font-weight:700;font-size:12px;color:#10131a;flex-shrink:0;}
   .elbtn .en{margin-left:auto;font-size:11px;color:var(--textdim);}
   .elbtn.armed{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);}
+  .elbtn.expand{border-left:3px solid var(--warn);}
   .elbtn:hover{border-color:#555;}
   #paletteHint{font-size:11.5px;color:var(--textdim);margin-top:14px;line-height:1.5;
     padding:10px;background:var(--panel2);border-radius:6px;}
@@ -133,7 +134,9 @@
           1. Klik een element, klik in het lege veld → komt in het midden te staan.<br><br>
           2. Klik op een geplaatst atoom → er verschijnt een open binding (van de gekozen orde).<br><br>
           3. Klik op het open uiteinde, kies daarna een element → dat atoom verschijnt daar.<br><br>
-          Rechtermuisklik op een atoom, open uiteinde, of bindingslijn = verwijderen (incl. alles eraan vast).
+          4. Beweeg over het <b>midden</b> van een enkele of dubbele binding (niet vlak bij een atoom) → de lijn licht blauw op, je cursor wordt een handje. Klik daar om te draaien (enkele binding: 60° per klik, conformatie; dubbele binding: cis/trans wisselen).<br><br>
+          Rechtermuisklik op een atoom, open uiteinde, of bindingslijn = verwijderen (incl. alles eraan vast).<br><br>
+          Elementen met een <span style="color:var(--warn);font-weight:700">gele rand</span> (P, S, Cl, Br) kunnen een <b>uitgebreid octet</b> vormen: meer bindingen dan hun normale valentie toestaat (bijv. P normaal 3, maar tot 5 in PCl₅). Dit kan <b>alleen</b> voor elementen uit periode 3 en hoger — H, B, C, N, O en F kunnen het octet nooit uitbreiden.
         </div>
       </div>
       <div id="sceneWrap">
@@ -161,6 +164,7 @@
           <div class="lg">Lettergrootte van δ ∝ grootte partiële lading</div>
           <div class="lg">Klik op een enkele binding = 60° ronddraaien (conformatie)</div>
           <div class="lg">Klik op een dúbbele binding = cis/trans wisselen</div>
+          <div class="lg"><span style="display:inline-block;width:11px;height:11px;border-left:3px solid var(--warn)"></span> = kan uitgebreid octet vormen (P, S, Cl, Br)</div>
         </div>
       </div>
     </div>
@@ -170,18 +174,28 @@
 <script>
 // ===================== DATA =====================
 const ELEMENTS = {
-  H:  {name:'Waterstof', en:2.20, group:1, maxValence:1, color:'#f2f2f2'},
-  B:  {name:'Boor',      en:2.04, group:3, maxValence:3, color:'#ffb5b5'},
-  C:  {name:'Koolstof',  en:2.55, group:4, maxValence:4, color:'#8a8f99'},
-  N:  {name:'Stikstof',  en:3.04, group:5, maxValence:3, color:'#4d6dff'},
-  O:  {name:'Zuurstof',  en:3.44, group:6, maxValence:2, color:'#ff4d4d'},
-  F:  {name:'Fluor',     en:3.98, group:7, maxValence:1, color:'#7be07b'},
-  Si: {name:'Silicium',  en:1.90, group:4, maxValence:4, color:'#d6c27a'},
-  P:  {name:'Fosfor',    en:2.19, group:5, maxValence:3, color:'#ff9d3d'},
-  S:  {name:'Zwavel',    en:2.58, group:6, maxValence:2, color:'#e8d34d'},
-  Cl: {name:'Chloor',    en:3.16, group:7, maxValence:1, color:'#5de05d'},
-  Br: {name:'Broom',     en:2.96, group:7, maxValence:1, color:'#a6473a'},
+  H:  {name:'Waterstof', en:2.20, group:1, maxValence:1, color:'#f2f2f2', canExpand:false},
+  B:  {name:'Boor',      en:2.04, group:3, maxValence:3, color:'#ffb5b5', canExpand:false},
+  C:  {name:'Koolstof',  en:2.55, group:4, maxValence:4, color:'#8a8f99', canExpand:false},
+  N:  {name:'Stikstof',  en:3.04, group:5, maxValence:3, color:'#4d6dff', canExpand:false},
+  O:  {name:'Zuurstof',  en:3.44, group:6, maxValence:2, color:'#ff4d4d', canExpand:false},
+  F:  {name:'Fluor',     en:3.98, group:7, maxValence:1, color:'#7be07b', canExpand:false},
+  Si: {name:'Silicium',  en:1.90, group:4, maxValence:4, color:'#d6c27a', canExpand:false},
+  P:  {name:'Fosfor',    en:2.19, group:5, maxValence:3, color:'#ff9d3d', canExpand:true},
+  S:  {name:'Zwavel',    en:2.58, group:6, maxValence:2, color:'#e8d34d', canExpand:true},
+  Cl: {name:'Chloor',    en:3.16, group:7, maxValence:1, color:'#5de05d', canExpand:true},
+  Br: {name:'Broom',     en:2.96, group:7, maxValence:1, color:'#a6473a', canExpand:true},
 };
+// Elementen uit periode 3 en hoger (Si, P, S, Cl, Br) kunnen in werkelijkheid een
+// uitgebreid octet vormen: meer bindingen dan hun normale valentie (bijv. PCl5, SF6).
+// Periode-2-elementen (B, C, N, O, F) en H kunnen dit nooit. De absolute bovengrens
+// bij expansie is het aantal valentie-elektronen (group): elke binding kost minstens
+// 1 eigen elektron, dus meer bindingen dan dat kan niet. Voor Si maakt dit in dit
+// model geen verschil (group == maxValence), dus die staat hier als niet-uitbreidbaar.
+function maxBonds(symbol){
+  const el = ELEMENTS[symbol];
+  return el.canExpand ? el.group : el.maxValence;
+}
 const RADIUS = 0.34;
 const STUB_RADIUS = 0.20;
 const BOND_LEN = 1.25;
@@ -364,6 +378,20 @@ function render(){
     });
   });
 
+  if(hoveredBond){
+    const child=findNode(hoveredBond.childId), parent=findNode(hoveredBond.parentId);
+    if(child && parent){
+      const pa=projected[parent.id], pb=projected[child.id];
+      ctx.save();
+      ctx.lineCap='round';
+      ctx.strokeStyle=getCss('--accent');
+      ctx.globalAlpha=0.55;
+      ctx.lineWidth=9*devicePixelRatio;
+      ctx.beginPath(); ctx.moveTo(pa.sx,pa.sy); ctx.lineTo(pb.sx,pb.sy); ctx.stroke();
+      ctx.restore();
+    }
+  }
+
   if(showCentr){
     const {plus,minus} = computeCentroids(charge);
     if(plus && minus){
@@ -454,7 +482,11 @@ function buildPalette(){
   const list=document.getElementById('elList'); list.innerHTML='';
   Object.entries(ELEMENTS).forEach(([sym,el])=>{
     const btn=document.createElement('button');
-    btn.className='elbtn'; btn.dataset.sym=sym;
+    btn.className='elbtn'+(el.canExpand?' expand':''); btn.dataset.sym=sym;
+    const cap = maxBonds(sym);
+    btn.title = el.canExpand
+      ? `${el.name} — normaal max. ${el.maxValence} binding(en); kan een uitgebreid octet vormen tot ${cap} bindingen`
+      : `${el.name} — max. ${el.maxValence} binding(en) (geen uitgebreid octet mogelijk)`;
     btn.innerHTML=`<span class="sym" style="background:${el.color}">${sym}</span>
       <span>${el.name}</span><span class="en">${el.en.toFixed(2)}</span>`;
     btn.onclick=()=>onPaletteClick(sym);
@@ -518,7 +550,7 @@ function hitTestBondFull(mx,my){
       const key=[a.id,b.id].sort().join('-'); if(seen.has(key)) return; seen.add(key);
       const pa=project(a.pos), pb=project(findNode(b.id).pos);
       const d=pointSegDist(mx,my,pa.sx,pa.sy,pb.sx,pb.sy);
-      if(d<10*devicePixelRatio && d<bestD){
+      if(d<13*devicePixelRatio && d<bestD){
         bestD=d;
         const isAChild = parentMap[a.id]===b.id;
         const childId = isAChild ? a.id : b.id;
@@ -535,15 +567,38 @@ function hitTestBond(mx,my){
 }
 
 let dragging=false,lastX=0,lastY=0,dragMoved=false;
+let hoveredBond=null;
 canvas.addEventListener('mousedown',e=>{ dragging=true; dragMoved=false; lastX=e.clientX; lastY=e.clientY; });
 window.addEventListener('mouseup',e=>{ if(dragging && !dragMoved) handleClick(e); dragging=false; });
 window.addEventListener('mousemove',e=>{
-  if(!dragging) return;
-  const dx=e.clientX-lastX, dy=e.clientY-lastY;
-  if(Math.abs(dx)>3||Math.abs(dy)>3) dragMoved=true;
-  if(dragMoved){
-    camYaw+=dx*0.008; camPitch=Math.max(-1.4,Math.min(1.4,camPitch+dy*0.008));
-    lastX=e.clientX; lastY=e.clientY; render();
+  if(dragging){
+    const dx=e.clientX-lastX, dy=e.clientY-lastY;
+    if(Math.abs(dx)>3||Math.abs(dy)>3) dragMoved=true;
+    if(dragMoved){
+      camYaw+=dx*0.008; camPitch=Math.max(-1.4,Math.min(1.4,camPitch+dy*0.008));
+      lastX=e.clientX; lastY=e.clientY; render();
+    }
+    return;
+  }
+  // Niet aan het slepen: kijk of de cursor boven een draaibare binding zweeft,
+  // zodat je vóór het klikken al ziet waar je moet klikken om te roteren.
+  const rect=canvas.getBoundingClientRect();
+  if(e.clientX<rect.left||e.clientX>rect.right||e.clientY<rect.top||e.clientY>rect.bottom){
+    if(hoveredBond){ hoveredBond=null; canvas.style.cursor='grab'; render(); }
+    return;
+  }
+  const mx=(e.clientX-rect.left)*devicePixelRatio, my=(e.clientY-rect.top)*devicePixelRatio;
+  const atomHit = hitTest(mx,my);
+  let next=null;
+  if(!atomHit){
+    const bondHit = hitTestBondFull(mx,my);
+    if(bondHit && bondHit.order!==3) next=bondHit;
+  }
+  const changed = (next?.childId!==hoveredBond?.childId) || (next?.parentId!==hoveredBond?.parentId);
+  if(changed){
+    hoveredBond=next;
+    canvas.style.cursor = next ? 'pointer' : 'grab';
+    render();
   }
 });
 canvas.addEventListener('wheel',e=>{
@@ -607,9 +662,13 @@ function addRootAtom(symbol){
 }
 function addStub(parentAtom, order){
   const sum = bondOrderSum(parentAtom);
-  const max = ELEMENTS[parentAtom.symbol].maxValence;
-  if(sum+order > max){
-    flashWarning(`${parentAtom.symbol} kan dit er niet meer bij (max. bindingscapaciteit ${max}, nu al ${sum} in gebruik).`);
+  const el = ELEMENTS[parentAtom.symbol];
+  const cap = maxBonds(parentAtom.symbol);
+  if(sum+order > cap){
+    const msg = el.canExpand
+      ? `${parentAtom.symbol} kan dit er niet meer bij — ook met een uitgebreid octet ligt de grens hier op ${cap} bindingen (nu al ${sum} in gebruik), want dat zijn al zijn valentie-elektronen.`
+      : `${parentAtom.symbol} kan dit er niet meer bij (max. bindingscapaciteit ${cap}, nu al ${sum} in gebruik) — dit element (periode 2 of H) kan het octet niet uitbreiden.`;
+    flashWarning(msg);
     return;
   }
   const stub={id:nextId++, symbol:null, bonds:[{id:parentAtom.id,order,twist:0}], pos:{x:0,y:0,z:0}};
@@ -636,7 +695,7 @@ function updateAll(){ updateInfoPanel(); updateFormula(); render(); }
 function elementCountFormula(){
   const counts={};
   atoms.forEach(a=>{ if(!isStub(a)) counts[a.symbol]=(counts[a.symbol]||0)+1; });
-  const order=['C','Si','N','P','O','S','B','H','F','Cl','Br'];
+  const order=['C','Si','N','P','O','S','B','H','Br','Cl','F'];
   let s=''; order.forEach(sym=>{ if(counts[sym]) s+=sym+(counts[sym]>1?counts[sym]:''); });
   Object.keys(counts).forEach(sym=>{ if(!order.includes(sym)) s+=sym+(counts[sym]>1?counts[sym]:''); });
   const openStubs = atoms.filter(isStub).length;
@@ -742,7 +801,7 @@ function countsEqual(a,b){
   return true;
 }
 function prettyFormula(counts){
-  const order=['C','Si','N','P','O','S','B','H','F','Cl','Br'];
+  const order=['C','Si','N','P','O','S','B','H','Br','Cl','F'];
   let s=''; order.forEach(sym=>{ if(counts[sym]) s+=sym+(counts[sym]>1?counts[sym]:''); });
   Object.keys(counts).forEach(sym=>{ if(!order.includes(sym)) s+=sym+(counts[sym]>1?counts[sym]:''); });
   return s||'—';
@@ -780,6 +839,12 @@ const OPDRACHTEN = [
    tekst:'Plaats C in het midden, klik erop, kies "Dubbel" en vul met C. Voeg aan élke C een enkele binding met H en een enkele binding met Cl toe. Klik daarna op de dúbbele binding tussen de twee C\'s om te wisselen tussen cis en trans — draai de molecule rond om te checken dat de twee Cl\'s nu aan dezelfde kant zitten (cis).'},
   {titel:'trans-1,2-dichlooretheen', target:{C:2,H:2,Cl:2}, antwoord:false,
    tekst:'Zelfde molecuul als hierboven (C₂H₂Cl₂) — klik nu op de dubbele binding om naar de trans-vorm te wisselen: de twee Cl\'s aan tegenover elkaar liggende kanten. Zelfde brutoformule, ander antwoord!'},
+  {titel:'Fosforpentachloride (PCl₅) — uitgebreid octet', target:{P:1,Cl:5}, antwoord:false,
+   tekst:'Plaats P in het midden en voeg vijf enkele bindingen toe, elk gevuld met Cl. Dit lukt alleen omdat P (periode 3) een uitgebreid octet kan vormen: normaal maakt P maar 3 bindingen (met 1 vrij paar, zoals in PCl₃), maar hier gebruikt P al zijn 5 valentie-elektronen in bindingen en blijft er geen vrij paar over.'},
+  {titel:'Zwavelhexafluoride (SF₆) — uitgebreid octet', target:{S:1,F:6}, antwoord:false,
+   tekst:'Plaats S in het midden en voeg zes enkele bindingen toe, elk gevuld met F. Ook dit is een uitgebreid octet: S maakt normaal maar 2 bindingen (zoals in H₂S), maar kan als periode-3-element tot 6 bindingen vormen.'},
+  {titel:'Chloortrifluoride (ClF₃) — uitgebreid octet', target:{Cl:1,F:3}, antwoord:true,
+   tekst:'Plaats Cl in het midden en voeg drie enkele bindingen toe, elk gevuld met F. Ook dit is een uitgebreid octet (Cl maakt normaal maar 1 binding). Zet "vrije paren" aan: de twee vrije paren op Cl maken de vorm sterk asymmetrisch (T-vorm) — heel anders dan de symmetrische PCl₅ en SF₆ hierboven, met een ander effect op de polariteit.'},
 ];
 
 let opdrachtAnswers = {};
