@@ -150,33 +150,6 @@
   .indicator-box h4 { margin: 0 0 6px 0; font-size: 0.9rem; color: #065f46; }
   .indicator-box p { margin: 0; font-size: 0.85rem; color: #065f46; }
 
-  .didactic-box {
-    margin-top: 16px;
-    padding: 14px;
-    border-radius: 8px;
-    background: #f0f9ff;
-    border-left: 4px solid #0ea5e9;
-  }
-  .didactic-box h4 {
-    margin: 0 0 8px 0;
-    font-size: 0.9rem;
-    color: #0369a1;
-  }
-  .didactic-box p {
-    margin: 0 0 6px 0;
-    font-size: 0.85rem;
-    color: #0c4a6e;
-    line-height: 1.5;
-  }
-  .didactic-box p:last-child { margin-bottom: 0; }
-  .didactic-box code {
-    background: #e0f2fe;
-    padding: 1px 4px;
-    border-radius: 4px;
-    font-family: 'Courier New', monospace;
-    font-size: 0.82rem;
-  }
-
   canvas {
     width: 100%;
     height: 420px;
@@ -388,19 +361,6 @@
         <h4>🎨 Aanbevolen indicator</h4>
         <p id="simIndicatorText"></p>
       </div>
-
-      <div class="didactic-box" id="didacticBox" style="display:none;">
-        <h4>📚 Hoe deze curve écht wordt berekend</h4>
-        <p><strong>Eén exacte ladingsbalans, overal.</strong> Op elk volume Vb wordt [H⁺] opgelost uit de volledige
-        ladingsbalans (positieve lading = negatieve lading), bijvoorbeeld voor <code>wa_sb</code>:<br>
-        <code>[H⁺] + [Na⁺] = [OH⁻] + [A⁻]</code>, met [A⁻] geschreven als functie van [H⁺] via Kₐ.</p>
-        <p><strong>De 'regimes' zijn geen aparte formules, maar limietgevallen</strong> van diezelfde vergelijking:
-        ver vóór het eq-punt reduceert ze tot Henderson-Hasselbalch (pH ≈ pKₐ + log([A⁻]/[HA])); bij V=0 tot
-        [H⁺] ≈ √(Kₐ·Cₐ); ver ná het eq-punt tot de simpele overmaatformule. Vlak bij het eq-punt kloppen die
-        vereenvoudigingen niet meer (bijvoorbeeld log van (bijna) nul) — de exacte ladingsbalans blijft daar
-        wél gewoon geldig, dus de curve loopt door één en dezelfde berekening glad door het eq-punt heen,
-        zonder dat er ergens tussen twee formules hoeft te worden gewisseld.</p>
-      </div>
     </div>
 
     <div class="panel">
@@ -598,19 +558,12 @@ function toggleSimDivalent() {
   const pKb1Wrap = document.getElementById('simPKb1Wrap');
   const eq2Info = document.getElementById('simEq2Info');
   const divalentRow = document.getElementById('divalentRow');
-  const didacticBox = document.getElementById('didacticBox');
 
   pKaWrap.classList.add('hidden');
   pKa1Wrap.classList.add('hidden');
   pKbWrap.classList.add('hidden');
   pKb1Wrap.classList.add('hidden');
   eq2Info.classList.add('hidden');
-
-  if (combo === 'wa_sb' || combo === 'wb_sa') {
-    didacticBox.style.display = 'block';
-  } else {
-    didacticBox.style.display = 'none';
-  }
 
   if (combo === 'wa_sb') {
     divalentRow.style.display = 'flex';
@@ -783,10 +736,19 @@ function drawCurveOnCanvas(canvasId, points, Vmax, Veq, Veq2, pHList) {
   canvas.dataset.Vmax = Vmax;
 }
 
+// Bewaart per canvas de actuele puntenreeks, zodat setupTooltip() bij elke nieuwe
+// curve (bijv. elke "Nieuwe opdracht") niet telkens een nieuwe mousemove-listener
+// hoeft toe te voegen — dat zou zich na veel klikken in één sessie blijven opstapelen.
+const tooltipPointsByCanvas = {};
+
 function setupTooltip(canvasId, tooltipId, points) {
+  tooltipPointsByCanvas[canvasId] = points;
   const canvas = document.getElementById(canvasId);
+  if (canvas.dataset.tooltipBound) return; // listener staat al, punten zijn hierboven al bijgewerkt
+  canvas.dataset.tooltipBound = '1';
   const tooltip = document.getElementById(tooltipId);
   canvas.addEventListener('mousemove', function(e) {
+    const points = tooltipPointsByCanvas[canvasId];
     const rect = canvas.getBoundingClientRect();
     // De canvas heeft een vaste interne tekenresolutie (canvas.width/height),
     // maar wordt via CSS geschaald naar de containerbreedte (width: 100%).
