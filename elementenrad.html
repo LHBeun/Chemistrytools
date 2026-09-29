@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elementenbingo-rad</title>
+<style>
+  :root{
+    --bg:#ffffff; --ink:#1f2937; --muted:#6b7280; --line:#d1d5db;
+    --accent:#2b9667; --accent-soft:#e3f2ec;
+    --metaal:#dbe7fb; --nietmetaal:#dff1e1; --edelgas:#fbecc8; --halfmetaal:#e9e0f7;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",Arial,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+  header{display:flex;align-items:center;gap:16px;padding:12px 24px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  h1{font-size:22px;margin:0;color:var(--accent)}
+  .spacer{flex:1}
+  label{font-size:15px;color:var(--muted)}
+  select,button{font:inherit;font-size:15px}
+  select{padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:#fff}
+  button{padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer}
+  button:hover{background:#f3f4f6}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  button.primary:hover{background:#237d56}
+  button:disabled{opacity:.4;cursor:default}
+  main{flex:1;display:flex;align-items:center;justify-content:center;gap:48px;padding:24px;flex-wrap:wrap}
+  .wheelwrap{position:relative}
+  canvas{display:block;max-width:92vw}
+  .pointer{position:absolute;left:50%;top:-6px;transform:translateX(-50%);width:0;height:0;
+    border-left:18px solid transparent;border-right:18px solid transparent;border-top:34px solid var(--ink);filter:drop-shadow(0 2px 2px rgba(0,0,0,.2))}
+  .panel{display:flex;flex-direction:column;align-items:center;gap:18px;min-width:min(420px,92vw)}
+  .card{width:min(420px,92vw);height:300px;border:2px solid var(--line);border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.06)}
+  .hint{font-size:16px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .question{font-size:110px;font-weight:700;line-height:1}
+  .question.naam{font-size:64px}
+  .recent{font-size:15px;color:var(--muted);min-height:20px;text-align:center}
+  .overlay{position:fixed;inset:0;background:#ffffff;display:none;flex-direction:column;padding:24px 32px;overflow:auto;z-index:10}
+  .overlay.open{display:flex}
+  .overlay h2{margin:0 0 4px;color:var(--accent)}
+  .overlay .top{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .item{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--c)}
+  .item .nr{font-size:12px;color:var(--muted)}
+  .item .g{font-size:26px;font-weight:700;line-height:1.15}
+  .item .a{font-size:15px;color:#374151}
+  .buttons{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .status{font-size:15px;color:var(--muted)}
+  .keys{font-size:13px;color:var(--muted)}
+  details{padding:0 24px 18px}
+  summary{cursor:pointer;color:var(--muted);font-size:14px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .chip{padding:4px 10px;border-radius:14px;border:1px solid var(--line);font-size:14px;cursor:pointer;user-select:none}
+  .chip.off{opacity:.35;text-decoration:line-through}
+  .legend{display:flex;gap:14px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+  .legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c);border:1px solid var(--line)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Elementenbingo-rad</h1>
+  <label>Toon:
+    <select id="mode">
+      <option value="wissel">afwisselend naam / symbool</option>
+      <option value="symbool">symbool (noem de naam)</option>
+      <option value="naam">naam (noem het symbool)</option>
+    </select>
+  </label>
+  <div class="spacer"></div>
+  <span class="status" id="status"></span>
+  <button id="reset">Reset</button>
+</header>
+
+<main>
+  <div class="wheelwrap">
+    <div class="pointer"></div>
+    <canvas id="wheel"></canvas>
+  </div>
+  <div class="panel">
+    <div class="card">
+      <div class="hint" id="hint">Druk op spatie om te draaien</div>
+      <div class="question" id="question">?</div>
+    </div>
+    <div class="recent" id="recent"></div>
+    <div class="buttons">
+      <button class="primary" id="go">Draai</button>
+      <button id="overzicht">Toon overzicht</button>
+    </div>
+    <div class="keys">Spatie = draaien · O = overzicht aan/uit</div>
+    <div class="legend">
+      <span style="--c:var(--metaal)">metaal</span>
+      <span style="--c:var(--nietmetaal)">niet-metaal</span>
+      <span style="--c:var(--halfmetaal)">halfmetaal</span>
+      <span style="--c:var(--edelgas)">edelgas</span>
+    </div>
+  </div>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="top"><div><h2>Voorbijgekomen elementen</h2><div class="recent" id="ovinfo" style="text-align:left"></div></div>
+  <div class="spacer"></div><button id="sluit">Sluiten</button></div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<details>
+  <summary>Elementen aan/uit zetten (klik op een element)</summary>
+  <div class="chips" id="chips"></div>
+</details>
+
+<script>
+const ELEMENTEN = [
+  ["H","waterstof","nietmetaal"],["He","helium","edelgas"],["Li","lithium","metaal"],
+  ["Na","natrium","metaal"],["Mg","magnesium","metaal"],["K","kalium","metaal"],
+  ["Ca","calcium","metaal"],["Ba","barium","metaal"],["Cr","chroom","metaal"],
+  ["Mn","mangaan","metaal"],["Fe","ijzer","metaal"],["Co","kobalt","metaal"],
+  ["Ni","nikkel","metaal"],["Cu","koper","metaal"],["Zn","zink","metaal"],
+  ["Ag","zilver","metaal"],["Cd","cadmium","metaal"],["Sn","tin","metaal"],
+  ["Pt","platina","metaal"],["Au","goud","metaal"],["Hg","kwik","metaal"],
+  ["Pb","lood","metaal"],["Al","aluminium","metaal"],["Si","silicium","halfmetaal"],
+  ["C","koolstof","nietmetaal"],["N","stikstof","nietmetaal"],["O","zuurstof","nietmetaal"],
+  ["F","fluor","nietmetaal"],["P","fosfor","nietmetaal"],["S","zwavel","nietmetaal"],
+  ["Cl","chloor","nietmetaal"],["Br","broom","nietmetaal"],["I","jood","nietmetaal"],
+  ["Ne","neon","edelgas"],["Ar","argon","edelgas"],["U","uraan","metaal"]
+].map(([s,n,c])=>({s,n,c,aan:true}));
+
+const css = getComputedStyle(document.documentElement);
+const KLEUR = {metaal:css.getPropertyValue('--metaal'),nietmetaal:css.getPropertyValue('--nietmetaal'),
+  edelgas:css.getPropertyValue('--edelgas'),halfmetaal:css.getPropertyValue('--halfmetaal')};
+
+const cv = document.getElementById('wheel'), ctx = cv.getContext('2d');
+const $ = id => document.getElementById(id);
+let pool = [], geschiedenis = [], rot = 0, fase = 'klaar', huidig = null, laatsteToonNaam = true, draaiend = false;
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function maatRad(){
+  const size = Math.min(window.innerHeight*0.72, window.innerWidth*0.5, 620);
+  const s = Math.max(size, Math.min(window.innerWidth*0.9, 420));
+  const dpr = window.devicePixelRatio||1;
+  cv.style.width = cv.style.height = s+'px';
+  cv.width = cv.height = s*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  teken();
+}
+
+function teken(){
+  const s = cv.clientWidth, r = s/2 - 6, cx = s/2, cy = s/2;
+  ctx.clearRect(0,0,s,s);
+  const n = pool.length;
+  if(n===0){
+    ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);ctx.fillStyle='#f3f4f6';ctx.fill();
+    ctx.strokeStyle='#9ca3af';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='#6b7280';ctx.font='600 22px Segoe UI, Arial';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('Alles gehad!',cx,cy);return;
+  }
+  const seg = 2*Math.PI/n;
+  for(let i=0;i<n;i++){
+    const a0 = rot + i*seg - Math.PI/2, a1 = a0+seg;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,a0,a1);ctx.closePath();
+    ctx.fillStyle = KLEUR[pool[i].c];ctx.fill();
+    ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.stroke();
+    if(n<=60){
+      ctx.save();ctx.translate(cx,cy);ctx.rotate(a0+seg/2);
+      ctx.fillStyle='rgba(31,41,55,.45)';ctx.font=`600 ${Math.max(12,Math.min(22,r*seg*0.45))}px Segoe UI, Arial`;
+      ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText('?',r-14,0);ctx.restore();
+    }
+  }
+  ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);ctx.strokeStyle='#9ca3af';ctx.lineWidth=3;ctx.stroke();
+  ctx.beginPath();ctx.arc(cx,cy,r*0.16,0,2*Math.PI);ctx.fillStyle='#ffffff';ctx.fill();
+  ctx.strokeStyle='#2b9667';ctx.lineWidth=4;ctx.stroke();
+  ctx.fillStyle='#2b9667';ctx.font=`700 ${Math.round(r*0.1)}px Segoe UI, Arial`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(pool.length,cx,cy);
+}
+
+function status(){
+  const tot = ELEMENTEN.filter(e=>e.aan).length;
+  $('status').textContent = `${geschiedenis.length} van ${tot} geweest`;
+  const laatst = geschiedenis.slice(-4,-1).reverse().map(h=>h.naam?h.e.n:h.e.s);
+  $('recent').textContent = laatst.length ? 'Eerder: ' + laatst.join(' · ') : '';
+}
+
+function reset(vraag){
+  if(vraag && geschiedenis.length && !confirm('Nieuw spel beginnen? De lijst met voorbijgekomen elementen wordt gewist.')) return;
+  pool = shuffle(ELEMENTEN.filter(e=>e.aan).slice()); geschiedenis = []; sluitOverzicht();
+  huidig = null; fase='klaar'; rot = 0;
+  $('question').textContent='?';$('question').className='question';
+  $('hint').textContent='Druk op spatie om te draaien';
+  $('go').disabled = pool.length===0;
+  teken();status();
+}
+
+function kiesToonNaam(){
+  const m = $('mode').value;
+  if(m==='naam') return true;
+  if(m==='symbool') return false;
+  laatsteToonNaam = !laatsteToonNaam; return laatsteToonNaam;
+}
+
+function draai(){
+  if(draaiend) return;
+  // vorige element uit het rad halen
+  if(huidig && pool.includes(huidig)){ pool.splice(pool.indexOf(huidig),1); rot = 0; shuffle(pool); }
+  if(pool.length===0){teken();fase='klaar';$('go').disabled=true;$('hint').textContent='Alle elementen geweest';$('question').textContent='✓';$('question').className='question';return}
+  $('hint').textContent='…';$('question').textContent='';
+  const n = pool.length, seg = 2*Math.PI/n, idx = Math.floor(Math.random()*n);
+  // segment idx moet onder de wijzer (boven) eindigen: rot + (idx+0.5)*seg ≡ 0 (mod 2π)
+  const jitter = (Math.random()-0.5)*seg*0.6;
+  let doel = -((idx+0.5)*seg) + jitter;
+  const huidigMod = ((rot%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
+  let delta = ((doel - huidigMod)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
+  const eind = rot + delta + 2*Math.PI*(4+Math.floor(Math.random()*2));
+  const start = rot, duur = n===1 ? 1200 : 3600, t0 = performance.now();
+  draaiend = true;$('go').disabled = true;
+  function stap(t){
+    const p = Math.min(1,(t-t0)/duur), e = 1-Math.pow(1-p,4);
+    rot = start + (eind-start)*e; teken();
+    if(p<1) requestAnimationFrame(stap);
+    else{ draaiend=false; huidig = pool[idx]; toonVraag(); }
+  }
+  requestAnimationFrame(stap);
+}
+
+function toonVraag(){
+  const naam = kiesToonNaam();
+  $('question').textContent = naam ? huidig.n : huidig.s;
+  $('question').className = 'question' + (naam ? ' naam' : '');
+  $('hint').textContent = naam ? 'Zoek het symbool op je kaart' : 'Zoek de naam op je kaart';
+  geschiedenis.push({e:huidig,naam}); status();
+  fase = 'vraag'; $('go').disabled = false;
+}
+
+function volgende(){ if(!draaiend && !$('overlay').classList.contains('open')) draai(); }
+
+function toonOverzicht(){
+  const g = $('grid'); g.innerHTML='';
+  geschiedenis.forEach((h,i)=>{
+    const d=document.createElement('div'); d.className='item'; d.style.setProperty('--c',KLEUR[h.e.c]);
+    d.innerHTML=`<div class="nr">${i+1}. getoond: ${h.naam?'naam':'symbool'}</div><div class="g">${h.naam?h.e.n:h.e.s}</div><div class="a">${h.naam?h.e.s:h.e.n}</div>`;
+    g.appendChild(d);
+  });
+  $('ovinfo').textContent = `${geschiedenis.length} elementen, in volgorde. Groot = wat getoond is, klein = wat leerlingen moesten afstrepen.`;
+  $('overlay').classList.add('open');
+}
+function sluitOverzicht(){ $('overlay').classList.remove('open'); }
+
+function chips(){
+  const box = $('chips'); box.innerHTML='';
+  ELEMENTEN.forEach(e=>{
+    const c = document.createElement('span'); c.className='chip'+(e.aan?'':' off');
+    c.style.background = KLEUR[e.c]; c.textContent = `${e.s} – ${e.n}`;
+    c.onclick = ()=>{ if(geschiedenis.length && !confirm('Elementen aanpassen start een nieuw spel. Doorgaan?')) return; e.aan=!e.aan;chips();reset();};
+    box.appendChild(c);
+  });
+}
+
+$('go').onclick = volgende;
+$('overzicht').onclick = toonOverzicht;
+$('sluit').onclick = sluitOverzicht;
+$('reset').onclick = ()=>reset(true);
+$('mode').onchange = ()=>{laatsteToonNaam = true;};
+document.addEventListener('keydown',ev=>{
+  if(ev.target.tagName==='SELECT') return;
+  if(ev.code==='Space'){ev.preventDefault();volgende();}
+  else if(ev.key==='o'||ev.key==='O') { $('overlay').classList.contains('open') ? sluitOverzicht() : toonOverzicht(); }
+  else if(ev.key==='Escape') sluitOverzicht();
+});
+window.addEventListener('resize',maatRad);
+
+chips(); reset(); maatRad();
+</script>
+</body>
+</html>
