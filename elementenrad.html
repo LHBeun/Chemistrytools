@@ -58,11 +58,11 @@
 <body>
 <header>
   <h1>Elementenbingo-rad</h1>
-  <label>Toon:
+  <label>In het rad:
     <select id="mode">
-      <option value="wissel">afwisselend naam / symbool</option>
-      <option value="symbool">symbool (noem de naam)</option>
-      <option value="naam">naam (noem het symbool)</option>
+      <option value="beide">naam én symbool (elk element 2×)</option>
+      <option value="symbool">alleen symbolen (noem de naam)</option>
+      <option value="naam">alleen namen (noem het symbool)</option>
     </select>
   </label>
   <div class="spacer"></div>
@@ -128,9 +128,19 @@ const KLEUR = {metaal:css.getPropertyValue('--metaal'),nietmetaal:css.getPropert
 
 const cv = document.getElementById('wheel'), ctx = cv.getContext('2d');
 const $ = id => document.getElementById(id);
-let pool = [], geschiedenis = [], rot = 0, fase = 'klaar', huidig = null, laatsteToonNaam = true, draaiend = false;
+// pool bevat kaartjes {e, naam}: naam=true -> naam wordt getoond, naam=false -> symbool wordt getoond
+let pool = [], geschiedenis = [], rot = 0, huidig = null, draaiend = false, totaal = 0, vorigeModus = 'beide';
 
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function bouwPool(){
+  const m = $('mode').value, items = [];
+  ELEMENTEN.filter(e=>e.aan).forEach(e=>{
+    if(m!=='symbool') items.push({e,naam:true});
+    if(m!=='naam') items.push({e,naam:false});
+  });
+  return shuffle(items);
+}
 
 function maatRad(){
   const size = Math.min(window.innerHeight*0.72, window.innerWidth*0.5, 620);
@@ -156,12 +166,12 @@ function teken(){
   for(let i=0;i<n;i++){
     const a0 = rot + i*seg - Math.PI/2, a1 = a0+seg;
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,a0,a1);ctx.closePath();
-    ctx.fillStyle = KLEUR[pool[i].c];ctx.fill();
-    ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.stroke();
-    if(n<=60){
+    ctx.fillStyle = KLEUR[pool[i].e.c];ctx.fill();
+    ctx.strokeStyle='#ffffff';ctx.lineWidth=n>50?1:2;ctx.stroke();
+    if(n<=80){
       ctx.save();ctx.translate(cx,cy);ctx.rotate(a0+seg/2);
-      ctx.fillStyle='rgba(31,41,55,.45)';ctx.font=`600 ${Math.max(12,Math.min(22,r*seg*0.45))}px Segoe UI, Arial`;
-      ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText('?',r-14,0);ctx.restore();
+      ctx.fillStyle='rgba(31,41,55,.45)';ctx.font=`600 ${Math.max(10,Math.min(22,r*seg*0.45))}px Segoe UI, Arial`;
+      ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText('?',r-12,0);ctx.restore();
     }
   }
   ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);ctx.strokeStyle='#9ca3af';ctx.lineWidth=3;ctx.stroke();
@@ -172,41 +182,33 @@ function teken(){
 }
 
 function status(){
-  const tot = ELEMENTEN.filter(e=>e.aan).length;
-  $('status').textContent = `${geschiedenis.length} van ${tot} geweest`;
+  $('status').textContent = `${geschiedenis.length} van ${totaal} geweest`;
   const laatst = geschiedenis.slice(-4,-1).reverse().map(h=>h.naam?h.e.n:h.e.s);
   $('recent').textContent = laatst.length ? 'Eerder: ' + laatst.join(' · ') : '';
 }
 
 function reset(vraag){
   if(vraag && geschiedenis.length && !confirm('Nieuw spel beginnen? De lijst met voorbijgekomen elementen wordt gewist.')) return;
-  pool = shuffle(ELEMENTEN.filter(e=>e.aan).slice()); geschiedenis = []; sluitOverzicht();
-  huidig = null; fase='klaar'; rot = 0;
+  pool = bouwPool(); totaal = pool.length; geschiedenis = []; sluitOverzicht();
+  huidig = null; rot = 0;
   $('question').textContent='?';$('question').className='question';
   $('hint').textContent='Druk op spatie om te draaien';
   $('go').disabled = pool.length===0;
   teken();status();
 }
 
-function kiesToonNaam(){
-  const m = $('mode').value;
-  if(m==='naam') return true;
-  if(m==='symbool') return false;
-  laatsteToonNaam = !laatsteToonNaam; return laatsteToonNaam;
-}
-
 function draai(){
   if(draaiend) return;
-  // vorige element uit het rad halen
+  // vorige kaartje uit het rad halen
   if(huidig && pool.includes(huidig)){ pool.splice(pool.indexOf(huidig),1); rot = 0; shuffle(pool); }
-  if(pool.length===0){teken();fase='klaar';$('go').disabled=true;$('hint').textContent='Alle elementen geweest';$('question').textContent='✓';$('question').className='question';return}
+  if(pool.length===0){teken();$('go').disabled=true;$('hint').textContent='Alles geweest';$('question').textContent='✓';$('question').className='question';return}
   $('hint').textContent='…';$('question').textContent='';
   const n = pool.length, seg = 2*Math.PI/n, idx = Math.floor(Math.random()*n);
   // segment idx moet onder de wijzer (boven) eindigen: rot + (idx+0.5)*seg ≡ 0 (mod 2π)
   const jitter = (Math.random()-0.5)*seg*0.6;
-  let doel = -((idx+0.5)*seg) + jitter;
+  const doel = -((idx+0.5)*seg) + jitter;
   const huidigMod = ((rot%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
-  let delta = ((doel - huidigMod)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
+  const delta = ((doel - huidigMod)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
   const eind = rot + delta + 2*Math.PI*(4+Math.floor(Math.random()*2));
   const start = rot, duur = n===1 ? 1200 : 3600, t0 = performance.now();
   draaiend = true;$('go').disabled = true;
@@ -220,12 +222,12 @@ function draai(){
 }
 
 function toonVraag(){
-  const naam = kiesToonNaam();
-  $('question').textContent = naam ? huidig.n : huidig.s;
+  const naam = huidig.naam, e = huidig.e;
+  $('question').textContent = naam ? e.n : e.s;
   $('question').className = 'question' + (naam ? ' naam' : '');
   $('hint').textContent = naam ? 'Zoek het symbool op je kaart' : 'Zoek de naam op je kaart';
-  geschiedenis.push({e:huidig,naam}); status();
-  fase = 'vraag'; $('go').disabled = false;
+  geschiedenis.push({e,naam}); status();
+  $('go').disabled = false;
 }
 
 function volgende(){ if(!draaiend && !$('overlay').classList.contains('open')) draai(); }
@@ -237,7 +239,7 @@ function toonOverzicht(){
     d.innerHTML=`<div class="nr">${i+1}. getoond: ${h.naam?'naam':'symbool'}</div><div class="g">${h.naam?h.e.n:h.e.s}</div><div class="a">${h.naam?h.e.s:h.e.n}</div>`;
     g.appendChild(d);
   });
-  $('ovinfo').textContent = `${geschiedenis.length} elementen, in volgorde. Groot = wat getoond is, klein = wat leerlingen moesten afstrepen.`;
+  $('ovinfo').textContent = `${geschiedenis.length} getoond, in volgorde. Groot = wat getoond is, klein = wat leerlingen moesten afstrepen.`;
   $('overlay').classList.add('open');
 }
 function sluitOverzicht(){ $('overlay').classList.remove('open'); }
@@ -256,7 +258,10 @@ $('go').onclick = volgende;
 $('overzicht').onclick = toonOverzicht;
 $('sluit').onclick = sluitOverzicht;
 $('reset').onclick = ()=>reset(true);
-$('mode').onchange = ()=>{laatsteToonNaam = true;};
+$('mode').onchange = ()=>{
+  if(geschiedenis.length && !confirm('Een andere instelling start een nieuw spel. Doorgaan?')){ $('mode').value = vorigeModus; return; }
+  vorigeModus = $('mode').value; reset();
+};
 document.addEventListener('keydown',ev=>{
   if(ev.target.tagName==='SELECT') return;
   if(ev.code==='Space'){ev.preventDefault();volgende();}
