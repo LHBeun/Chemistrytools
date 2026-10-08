@@ -85,6 +85,7 @@ sub{font-size:.68em;line-height:0}
       <div class="seg" role="group" aria-label="Kies een set">
         <button id="set-basis" aria-pressed="true">Basis</button>
         <button id="set-uitdaging" aria-pressed="false">Uitdaging</button>
+        <button id="set-triviaal" aria-pressed="false">Triviale namen</button>
       </div>
       <button class="btn" id="nieuw">Nieuw spel</button>
     </div>
@@ -141,6 +142,7 @@ const SETS={
     ["CO2","koolstofdioxide"],["SO3","zwaveltrioxide"],["N2","stikstof"],["CCl4","koolstoftetrachloride"],["NO2","stikstofdioxide"],
     ["O2","zuurstof"],["N2O4","distikstoftetraoxide"],["CS2","koolstofdisulfide"],["Br2","broom"],["P2O5","difosforpentaoxide"],
     ["I2","jood"],["H2","waterstof"],["F2","fluor"]],
+  triviaal:[["H2O","water"],["NH3","ammoniak"],["CH4","methaan"],["C2H6O","alcohol"],["H2SO4","zwavelzuur"],["CO2","koolstofdioxide"],["SO2","zwaveldioxide"]],
   uitdaging:[["Cl2O7","dichloorheptaoxide"],["P4O10","tetrafosfordecaoxide"],["N2O5","distikstofpentaoxide"],["N2O3","distikstoftrioxide"],
     ["NO","stikstofmono-oxide"],["N2O","distikstofmono-oxide"],["NO2","stikstofdioxide"],["SiF4","siliciumtetrafluoride"],["SF6","zwavelhexafluoride"],
     ["PCl3","fosfortrichloride"],["CF4","koolstoftetrafluoride"],["NI3","stikstoftrijodide"],["S2Cl2","dizwaveldichloride"],["IF7","joodheptafluoride"],
@@ -161,6 +163,7 @@ function newGame(setName){
   clearInterval(window._tick);
   $('set-basis').setAttribute('aria-pressed',setName==='basis');
   $('set-uitdaging').setAttribute('aria-pressed',setName==='uitdaging');
+  $('set-triviaal').setAttribute('aria-pressed',setName==='triviaal');
   $('feedback').textContent='';$('feedback').className='feedback';
   $('done').hidden=true;$('hand-sec').hidden=false;$('task').hidden=false;
   render();
@@ -207,6 +210,7 @@ function finish(){
 
 // ---------- Opschrijven ----------
 let mode='domino', W={};
+const ALTF={C2H6O:['C2H5OH','CH3CH2OH']}, ALTN={alcohol:['ethanol']};
 const canonF=f=>f.replace(/\s+/g,'');
 const nrm=n=>n.toLowerCase().replace(/\s+/g,'');
 const variant=n=>nrm(n).replace(/-/g,'').replace(/monoxide/g,'monooxide').replace(/tetroxide/g,'tetraoxide').replace(/pentoxide/g,'pentaoxide')
@@ -237,12 +241,14 @@ function judge(ans){
   if(it.dir==='f'){
     const a=canonF(ans);
     if(a===it.f)return{ok:true};
+    if((ALTF[it.f]||[]).includes(a))return{ok:true,note:'Ook goed. In het boek schrijven ze '+subChars(it.f)+'.'};
     if(a.toLowerCase()===it.f.toLowerCase())return{ok:false,hint:'Let op de hoofdletters: elk elementsymbool begint met één hoofdletter. Bijvoorbeeld: Co is kobalt, CO is koolstofmono-oxide.'};
     if(isElement(it.f)&&a===it.f.replace('2',''))return{ok:false,hint:'Dit is een van de zeven BrINClHOF-elementen. Hoe komen die voor?'};
     return{ok:false,hint:'Kijk naar de telwoorden: die geven het aantal atomen van elk element.'};
   }else{
     const a=nrm(ans);
     if(a===nrm(it.n))return{ok:true};
+    if((ALTN[it.n]||[]).includes(a))return{ok:true,note:'Klopt. In het boek heet deze stof '+it.n+'.'};
     if(variant(ans)===variant(it.n))return{ok:true,note:'Let op: in de methode schrijf je '+it.n+'.'};
     if(isElement(it.f)&&(a==='di'+nrm(it.n)))return{ok:false,hint:'Bij een element noem je alleen de naam van het element, zonder telwoord.'};
     if(/oxide|chloride|fluoride|sulfide|jodide/.test(a)&&!/(oxide|chloride|fluoride|sulfide|jodide)$/.test(a))return{ok:false,hint:'Het laatste deel van de naam eindigt op -ide.'};
@@ -288,7 +294,7 @@ function setMode(m){
   if(m==='schrijf')newWrite();
 }
 $('mode-domino').onclick=()=>setMode('domino');$('mode-schrijf').onclick=()=>setMode('schrijf');
-$('set-basis').onclick=()=>{newGame('basis');if(mode==='schrijf')newWrite()};$('set-uitdaging').onclick=()=>{newGame('uitdaging');if(mode==='schrijf')newWrite()};$('nieuw').onclick=()=>{newGame(st.set);if(mode==='schrijf')newWrite()};
+$('set-basis').onclick=()=>{newGame('basis');if(mode==='schrijf')newWrite()};$('set-uitdaging').onclick=()=>{newGame('uitdaging');if(mode==='schrijf')newWrite()};$('set-triviaal').onclick=()=>{newGame('triviaal');if(mode==='schrijf')newWrite()};$('nieuw').onclick=()=>{newGame(st.set);if(mode==='schrijf')newWrite()};
 newGame('basis');
 </script>
 </body>
