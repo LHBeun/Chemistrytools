@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Naam-domino</title>
+<style>
+/* Layout: één kolom speelveld — boven de opdracht (zoek-balk), dan de ketting, dan de hand met tegels */
+:root{ color-scheme:light;
+  --bg:#ffffff; --panel:#f4f7f9; --tile:#fffdf7; --tile-edge:#c9d2da; --ink:#17232d; --muted:#5a6873;
+  --accent:#1f6f8b; --accent-soft:#d5e8ef; --good:#2e8b57; --good-soft:#dcefe3; --bad:#c2452d; --bad-soft:#f6ded8;
+  --display:'Segoe UI Black','Arial Black',system-ui,sans-serif; --body:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box} html,body{background:var(--bg);margin:0}
+body{color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:16px;padding-block:20px 40px;display:grid;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(1.6rem,4vw,2.3rem);margin:0;letter-spacing:-.01em;text-wrap:balance}
+h1 .pip{display:inline-block;width:.42em;height:.42em;border-radius:50%;background:var(--accent);vertical-align:.18em;margin:0 .08em}
+.sub{margin:4px 0 0;color:var(--muted);max-width:60ch}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--tile-edge);border-radius:999px;overflow:hidden;background:var(--panel)}
+.seg button{border:0;background:transparent;color:var(--ink);font:inherit;padding:8px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--bg);font-weight:700}
+.btn{border:1px solid var(--tile-edge);background:var(--panel);color:var(--ink);font:inherit;padding:8px 14px;border-radius:999px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.stats{display:flex;gap:18px;flex-wrap:wrap;font-variant-numeric:tabular-nums;color:var(--muted);font-size:.95rem}
+.stats b{color:var(--ink)}
+.task{background:var(--accent-soft);border-radius:14px;padding:14px 18px;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px}
+.task .lbl{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.task .name{font-family:var(--display);font-weight:500;font-size:clamp(1.15rem,3.4vw,1.6rem);overflow-wrap:anywhere}
+.section-lbl{font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0 0 8px}
+.chain{display:flex;flex-wrap:wrap;gap:6px}
+.hand{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.tile{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr);align-items:stretch;background:var(--tile);border:1.5px solid var(--tile-edge);border-radius:10px;
+  color:var(--ink);font:inherit;padding:0;text-align:left;min-height:62px;box-shadow:0 1px 0 var(--tile-edge)}
+.tile .f{display:flex;align-items:center;justify-content:center;font-size:1.35rem;font-weight:700;padding:8px;border-right:1.5px dashed var(--tile-edge)}
+.tile .n{display:flex;align-items:center;padding:8px 10px;font-size:.92rem;hyphens:manual;min-width:0}
+.hand .tile{cursor:pointer;transition:transform .12s ease,border-color .12s}
+.hand .tile:hover{transform:translateY(-2px);border-color:var(--accent)}
+.chain .tile{min-height:44px;grid-template-columns:auto auto}
+.chain .tile .f{font-size:1rem;padding:4px 8px}
+.chain .tile .n{font-size:.8rem;padding:4px 8px}
+.chain .tile.start{border-color:var(--accent)}
+.chain .tile.new{border-color:var(--good);background:var(--good-soft)}
+.tile.wrong{border-color:var(--bad);background:var(--bad-soft);animation:shake .35s}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@media (prefers-reduced-motion: reduce){.tile.wrong{animation:none}.hand .tile{transition:none}}
+.feedback{min-height:1.5em;font-weight:700}
+.feedback.ok{color:var(--good)} .feedback.no{color:var(--bad)}
+.done{background:var(--panel);border:1.5px solid var(--good);border-radius:14px;padding:18px;display:grid;gap:10px}
+.done h2{font-family:var(--display);font-weight:700;font-size:1.35rem;margin:0}
+.done ul{margin:0;padding-left:1.2em}
+.hint{color:var(--muted);font-size:.92rem;margin:0}
+sub{font-size:.68em;line-height:0}
+[hidden]{display:none!important}
+.wrap-inner{display:grid;gap:18px}
+.card{background:var(--panel);border:1.5px solid var(--tile-edge);border-radius:14px;padding:18px;display:grid;gap:10px}
+.card .lbl{margin:0;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.card .prompt{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(1.4rem,4.5vw,2.1rem);overflow-wrap:anywhere}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+#w-input{flex:1 1 220px;min-width:0;font:inherit;font-size:1.2rem;padding:10px 12px;border:1.5px solid var(--tile-edge);border-radius:10px;background:var(--tile);color:var(--ink)}
+#w-input:focus{outline:3px solid var(--accent);outline-offset:1px}
+.btn.primary{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:700}
+.preview{margin:0;min-height:1.4em;color:var(--muted);font-size:1.1rem}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.feedback .note{display:block;font-weight:400;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Naam<span class="pip"></span>domino</h1>
+      <p class="sub" id="sub-domino">Leg de ketting rond: kies steeds de tegel met de <b>formule</b> die hoort bij de <b>naam</b> aan het eind van de ketting. Gebruik je aantekeningen.</p>
+      <p class="sub" id="sub-schrijf" hidden>Schrijf zelf de formule of de naam op. Fout? Je krijgt een tweede kans, en wat nog niet lukt komt later terug.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Kies een modus">
+        <button id="mode-domino" aria-pressed="true">Domino</button>
+        <button id="mode-schrijf" aria-pressed="false">Opschrijven</button>
+      </div>
+      <div class="seg" role="group" aria-label="Kies een set">
+        <button id="set-basis" aria-pressed="true">Basis</button>
+        <button id="set-uitdaging" aria-pressed="false">Uitdaging</button>
+      </div>
+      <button class="btn" id="nieuw">Nieuw spel</button>
+    </div>
+  </header>
+
+  <div id="domino" class="wrap-inner">
+  <div class="stats" aria-live="polite">
+    <span>Gelegd: <b id="st-gelegd">0</b> / <b id="st-totaal">0</b></span>
+    <span>Fouten: <b id="st-fouten">0</b></span>
+    <span>Tijd: <b id="st-tijd">0:00</b></span>
+    <span id="st-best"></span>
+  </div>
+
+  <div class="task" id="task">
+    <span class="lbl">Zoek de formule van</span>
+    <span class="name" id="target"></span>
+  </div>
+  <div class="feedback" id="feedback" aria-live="polite"></div>
+
+  <section>
+    <p class="section-lbl">De ketting</p>
+    <div class="chain" id="chain"></div>
+  </section>
+
+  <section id="hand-sec">
+    <p class="section-lbl">Jouw tegels</p>
+    <div class="hand" id="hand"></div>
+  </section>
+
+  <div class="done" id="done" hidden></div>
+  </div>
+
+  <div id="schrijf" class="wrap-inner" hidden>
+    <div class="stats"><span>Nog te gaan: <b id="w-nr">12</b></span><span>Eerste keer goed: <b id="w-goed">0</b></span></div>
+    <div class="card" id="w-card">
+      <p class="lbl" id="w-vraag">Geef de formule van</p>
+      <p class="prompt" id="w-prompt"></p>
+      <form id="w-form" autocomplete="off">
+        <label for="w-input" class="sr">Jouw antwoord</label>
+        <div class="row"><input id="w-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="typ je antwoord">
+        <button class="btn primary" type="submit" id="w-check">Controleer</button></div>
+        <p class="preview" id="w-preview" aria-hidden="true"></p>
+      </form>
+      <p class="feedback" id="w-fb" aria-live="polite"></p>
+      <button class="btn" id="w-next" hidden>Volgende</button>
+    </div>
+    <div class="done" id="w-done" hidden></div>
+  </div>
+</div>
+
+<script>
+const SETS={
+  basis:[["SO2","zwaveldioxide"],["CO","koolstofmono-oxide"],["N2O","distikstofmono-oxide"],["Cl2","chloor"],["PCl5","fosforpentachloride"],
+    ["CO2","koolstofdioxide"],["SO3","zwaveltrioxide"],["N2","stikstof"],["CCl4","koolstoftetrachloride"],["NO2","stikstofdioxide"],
+    ["O2","zuurstof"],["N2O4","distikstoftetraoxide"],["CS2","koolstofdisulfide"],["Br2","broom"],["P2O5","difosforpentaoxide"],
+    ["I2","jood"],["H2","waterstof"],["F2","fluor"]],
+  uitdaging:[["Cl2O7","dichloorheptaoxide"],["P4O10","tetrafosfordecaoxide"],["N2O5","distikstofpentaoxide"],["N2O3","distikstoftrioxide"],
+    ["NO","stikstofmono-oxide"],["N2O","distikstofmono-oxide"],["NO2","stikstofdioxide"],["SiF4","siliciumtetrafluoride"],["SF6","zwavelhexafluoride"],
+    ["PCl3","fosfortrichloride"],["CF4","koolstoftetrafluoride"],["NI3","stikstoftrijodide"],["S2Cl2","dizwaveldichloride"],["IF7","joodheptafluoride"],
+    ["Br2","broom"],["F2","fluor"]]
+};
+const $=id=>document.getElementById(id);
+const fmt=f=>'<span>'+f.replace(/(\d+)/g,'<sub>$1</sub>')+'</span>';
+const shy=n=>n.replace(/(di|tri|tetra|penta|hexa|hepta|deca)(?=(oxide|chloride|fluoride|sulfide|jodide|stikstof|fosfor|chloor|zwavel))/g,'$1\u00AD')
+  .replace(/(koolstof|stikstof|zwavel|fosfor|chloor|silicium|jood)(?=[a-z])/g,'$1\u00AD');
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+let st={};
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+function newGame(setName){
+  setName=setName||st.set||'basis';
+  const order=shuffle(SETS[setName]);
+  const tiles=order.map((s,i)=>({id:i,formula:s[0],name:order[(i+1)%order.length][1]}));
+  st={set:setName,order,tiles,chain:[tiles[0]],hand:shuffle(tiles.slice(1)),fouten:0,log:[],t0:null,t:0,done:false,lastNew:null};
+  clearInterval(window._tick);
+  $('set-basis').setAttribute('aria-pressed',setName==='basis');
+  $('set-uitdaging').setAttribute('aria-pressed',setName==='uitdaging');
+  $('feedback').textContent='';$('feedback').className='feedback';
+  $('done').hidden=true;$('hand-sec').hidden=false;$('task').hidden=false;
+  render();
+}
+function targetName(){return st.chain[st.chain.length-1].name}
+function tileHTML(t,cls=''){return `<span class="f">${fmt(t.formula)}</span><span class="n">${shy(t.name)}</span>`}
+function render(){
+  $('target').textContent=targetName();
+  $('chain').innerHTML=st.chain.map((t,i)=>`<div class="tile ${i===0?'start':''} ${t.id===st.lastNew?'new':''}">${tileHTML(t)}</div>`).join('');
+  const hand=$('hand');hand.innerHTML='';
+  st.hand.forEach(t=>{const b=document.createElement('button');b.className='tile';b.id='tile-'+t.id;b.innerHTML=tileHTML(t);
+    b.setAttribute('aria-label',`tegel ${t.formula}, met naam ${t.name}`);b.onclick=()=>pick(t,b);hand.appendChild(b)});
+  $('st-gelegd').textContent=st.chain.length;$('st-totaal').textContent=st.tiles.length;$('st-fouten').textContent=st.fouten;
+  const best=store('best-'+st.set);$('st-best').innerHTML=best?`Beste tijd ${st.set}: <b>${best}</b>`:'';
+}
+function clock(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function startClock(){if(st.t0)return;st.t0=Date.now();window._tick=setInterval(()=>{st.t=Math.round((Date.now()-st.t0)/1000);$('st-tijd').textContent=clock(st.t)},500)}
+function pick(t,el){
+  if(st.done)return;startClock();
+  const need=targetName();
+  const want=st.order.find(s=>s[1]===need)[0];
+  if(t.formula===want){
+    st.hand=st.hand.filter(x=>x.id!==t.id);st.chain.push(t);st.lastNew=t.id;
+    $('feedback').textContent='Goed: '+need+' is '+t.formula.replace(/\d+/g,d=>d.split('').map(c=>'₀₁₂₃₄₅₆₇₈₉'[c]).join(''))+'.';$('feedback').className='feedback ok';
+    if(st.hand.length===0)finish();else render();
+  }else{
+    st.fouten++;st.log.push([need,t.formula]);
+    $('st-fouten').textContent=st.fouten;
+    $('feedback').textContent='Niet goed. Kijk nog eens naar de telwoorden en het eerste element.';$('feedback').className='feedback no';
+    el.classList.remove('wrong');void el.offsetWidth;el.classList.add('wrong');
+  }
+}
+function finish(){
+  st.done=true;clearInterval(window._tick);st.t=Math.round((Date.now()-st.t0)/1000);$('st-tijd').textContent=clock(st.t);
+  render();$('hand-sec').hidden=true;$('task').hidden=true;$('feedback').textContent='';
+  const prev=store('best-'+st.set);let rec='';
+  const toSec=s=>{const[a,b]=s.split(':');return +a*60+ +b};
+  if(st.fouten===0&&(!prev||st.t<toSec(prev))){store('best-'+st.set,clock(st.t));rec=' Nieuwe beste tijd zonder fouten!'}
+  const sub=f=>fmt(f);
+  const errs=st.log.length?`<p class="hint">Hier ging het mis. Bekijk deze nog eens in je aantekeningen:</p><ul>${st.log.map(([n,f])=>`<li>bij <b>${n}</b> koos je ${sub(f)}; goed is ${sub(st.order.find(s=>s[1]===n)[0])}</li>`).join('')}</ul>`:'<p class="hint">Geen enkele fout. Probeer de andere set, of speel nog eens voor een snellere tijd.</p>';
+  $('done').innerHTML=`<h2>De ketting is rond!</h2><p>De laatste naam, <b>${targetName()}</b>, hoort bij de startformule ${sub(st.chain[0].formula)}. Tijd: <b>${clock(st.t)}</b> · fouten: <b>${st.fouten}</b>.${rec}</p>${errs}<div><button class="btn" id="again">Nog een keer (andere volgorde)</button></div>`;
+  $('done').hidden=false;$('again').onclick=()=>newGame(st.set);
+}
+
+// ---------- Opschrijven ----------
+let mode='domino', W={};
+const canonF=f=>f.replace(/\s+/g,'');
+const nrm=n=>n.toLowerCase().replace(/\s+/g,'');
+const variant=n=>nrm(n).replace(/-/g,'').replace(/monoxide/g,'monooxide').replace(/tetroxide/g,'tetraoxide').replace(/pentoxide/g,'pentaoxide')
+  .replace(/hexoxide/g,'hexaoxide').replace(/heptoxide/g,'heptaoxide').replace(/decoxide/g,'decaoxide');
+const isElement=f=>/^[A-Z][a-z]?2$/.test(f);
+const subChars=f=>f.replace(/\d/g,c=>'₀₁₂₃₄₅₆₇₈₉'[c]);
+function newWrite(){
+  const set=st.set||'basis';
+  const items=shuffle(SETS[set]).slice(0,12).map(([f,n])=>({f,n,dir:Math.random()<.5?'f':'n',tries:0,missed:false}));
+  W={set,queue:items,total:items.length,done:0,goed:0,missed:[],cur:null};
+  $('w-done').hidden=true;$('w-card').hidden=false;
+  nextItem();
+}
+function nextItem(){
+  W.cur=W.queue.shift();
+  if(!W.cur){finishWrite();return}
+  W.cur.tries=0;
+  $('w-vraag').textContent=W.cur.dir==='f'?'Geef de formule van':'Geef de naam van';
+  $('w-prompt').innerHTML=W.cur.dir==='f'?W.cur.n:fmt(W.cur.f);
+  $('w-input').value='';$('w-preview').innerHTML='';$('w-input').disabled=false;$('w-check').disabled=false;
+  $('w-input').placeholder=W.cur.dir==='f'?'bijvoorbeeld SO2':'bijvoorbeeld zwaveldioxide';
+  $('w-fb').innerHTML='';$('w-fb').className='feedback';$('w-next').hidden=true;
+  $('w-nr').textContent=W.queue.length+1;$('w-goed').textContent=W.goed;
+  try{$('w-input').focus({preventScroll:true})}catch(e){}
+}
+function judge(ans){
+  const it=W.cur;
+  if(it.dir==='f'){
+    const a=canonF(ans);
+    if(a===it.f)return{ok:true};
+    if(a.toLowerCase()===it.f.toLowerCase())return{ok:false,hint:'Let op de hoofdletters: elk elementsymbool begint met één hoofdletter. Bijvoorbeeld: Co is kobalt, CO is koolstofmono-oxide.'};
+    if(isElement(it.f)&&a===it.f.replace('2',''))return{ok:false,hint:'Dit is een van de zeven BrINClHOF-elementen. Hoe komen die voor?'};
+    return{ok:false,hint:'Kijk naar de telwoorden: die geven het aantal atomen van elk element.'};
+  }else{
+    const a=nrm(ans);
+    if(a===nrm(it.n))return{ok:true};
+    if(variant(ans)===variant(it.n))return{ok:true,note:'Let op: in de methode schrijf je '+it.n+'.'};
+    if(isElement(it.f)&&(a==='di'+nrm(it.n)))return{ok:false,hint:'Bij een element noem je alleen de naam van het element, zonder telwoord.'};
+    if(/oxide|chloride|fluoride|sulfide|jodide/.test(a)&&!/(oxide|chloride|fluoride|sulfide|jodide)$/.test(a))return{ok:false,hint:'Het laatste deel van de naam eindigt op -ide.'};
+    return{ok:false,hint:'Eerst het eerste element (met telwoord, behalve mono), dan het tweede element met telwoord en -ide.'};
+  }
+}
+function checkWrite(ev){
+  ev.preventDefault();
+  const ans=$('w-input').value.trim(); if(!ans)return;
+  const it=W.cur; it.tries++;
+  const r=judge(ans);
+  const answer=it.dir==='f'?fmt(it.f):it.n;
+  if(r.ok){
+    if(it.tries===1&&!it.missed)W.goed++;
+    W.done++;
+    $('w-fb').innerHTML='Goed!'+(r.note?'<span class="note">'+r.note+'</span>':'');$('w-fb').className='feedback ok';
+    endItem();
+  }else if(it.tries<2){
+    $('w-fb').innerHTML='Nog niet goed.<span class="note">'+r.hint+' Probeer het nog een keer.</span>';$('w-fb').className='feedback no';
+    $('w-input').select();
+  }else{
+    $('w-fb').innerHTML='Het goede antwoord is: '+answer+'<span class="note">Deze komt straks nog een keer terug.</span>';$('w-fb').className='feedback no';
+    if(!it.missed)W.missed.push(it);
+    it.missed=true; W.queue.splice(Math.min(3,W.queue.length),0,it);
+    endItem();
+  }
+  $('w-goed').textContent=W.goed;
+}
+function endItem(){$('w-input').disabled=true;$('w-check').disabled=true;$('w-next').hidden=false;try{$('w-next').focus()}catch(e){}}
+function finishWrite(){
+  $('w-card').hidden=true;
+  const list=W.missed.length?'<p class="hint">Deze gingen nog niet in één keer goed. Zoek ze op in je aantekeningen:</p><ul>'+W.missed.map(it=>'<li>'+fmt(it.f)+' = '+it.n+'</li>').join('')+'</ul>':'<p class="hint">Alles in één keer goed. Probeer de set Uitdaging.</p>';
+  $('w-done').innerHTML='<h2>Ronde klaar</h2><p>Eerste keer goed: <b>'+W.goed+' van de '+W.total+'</b>.</p>'+list+'<div><button class="btn" id="w-again">Nieuwe ronde</button></div>';
+  $('w-done').hidden=false;$('w-again').onclick=newWrite;
+}
+$('w-form').addEventListener('submit',checkWrite);
+$('w-next').onclick=nextItem;
+$('w-input').addEventListener('input',()=>{const v=$('w-input').value;$('w-preview').innerHTML=(W.cur&&W.cur.dir==='f'&&v.trim())?'= '+fmt(canonF(v)):''});
+function setMode(m){
+  mode=m;$('mode-domino').setAttribute('aria-pressed',m==='domino');$('mode-schrijf').setAttribute('aria-pressed',m==='schrijf');
+  $('domino').hidden=m!=='domino';$('schrijf').hidden=m!=='schrijf';
+  $('sub-domino').hidden=m!=='domino';$('sub-schrijf').hidden=m!=='schrijf';
+  if(m==='schrijf')newWrite();
+}
+$('mode-domino').onclick=()=>setMode('domino');$('mode-schrijf').onclick=()=>setMode('schrijf');
+$('set-basis').onclick=()=>{newGame('basis');if(mode==='schrijf')newWrite()};$('set-uitdaging').onclick=()=>{newGame('uitdaging');if(mode==='schrijf')newWrite()};$('nieuw').onclick=()=>{newGame(st.set);if(mode==='schrijf')newWrite()};
+newGame('basis');
+</script>
+</body>
+</html>
