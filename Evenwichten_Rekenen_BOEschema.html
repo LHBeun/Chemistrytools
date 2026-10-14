@@ -91,6 +91,44 @@ select.o-sign.err,select.o-coef.err{border-color:var(--err);background:#f7e9e6}
 .pstep.active{border-color:var(--accent);color:var(--accent);background:rgba(107,138,18,.08)}
 .pstep.done{border-color:var(--ok);color:var(--ok);background:rgba(79,195,161,.08)}
 </style>
+
+<style id="theme">
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#ffffff;color:#1c1e1f}
+h1{color:#1F5FBF;font-size:1.45em}
+.rxnbar{background:#fff;border:2px solid #1F5FBF;}
+.rxneq{font-family:inherit;font-size:1.35em;font-weight:600;color:#1c1e1f}
+.newbtn{background:#1F5FBF;color:#ffffff;border-color:#1F5FBF}
+.newbtn:hover{opacity:.9;background:#1F5FBF}
+.badge-A,.badge-B{background:#E8F0FC;color:#1F5FBF;border:1px solid #1F5FBF}
+.pstep{background:#fff;border:1.5px solid #c9c9c9;color:#666;padding:5px 14px}
+.pstep.active{background:#1F5FBF;border-color:#1F5FBF;color:#ffffff}
+.pstep.done{background:#E4F4E8;border-color:#1A7F37;color:#1A7F37}
+.pstep.done::before{content:'✓ '}
+.given-box{background:#F3F7FD;border:1px solid #1F5FBF;border-left:6px solid #1F5FBF}
+.given-box .hl,.given-box .hl2{color:#1c1e1f;font-weight:800}
+.boe-wrap,.step-section{background:#fff;border:1px solid #d8d8d4;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.boe-title,.step-title{color:#1F5FBF}
+table.boe{font-family:inherit}
+table.boe th{background:#1F5FBF;color:#ffffff;font-size:.95em}
+table.boe th.row-lbl{color:#ffffff}
+table.boe td.row-lbl{background:#E8F0FC;color:#1F5FBF;font-size:1.05em}
+table.boe td.fixed{background:#fff;font-weight:600}
+table.boe td.auto-fill{background:#E4F4E8;color:#1A7F37;font-weight:600}
+table.boe td.input-cell{background:#fff}
+select.o-sign,select.o-coef,.num-input,.ans-input{background:#fff;border:2px solid #bdbdbd;color:#1c1e1f;font-size:1em}
+select.o-sign:focus,select.o-coef:focus,.num-input:focus,.ans-input:focus{border-color:#1F5FBF;box-shadow:0 0 0 3px #1F5FBF33}
+select.o-sign.ok,select.o-coef.ok,.num-input.ok,.ans-input.ok{border-color:#1A7F37;background:#E4F4E8;color:#1A7F37}
+select.o-sign.err,select.o-coef.err,.num-input.err,.ans-input.err{border-color:#C62828;background:#FDECEC;color:#C62828}
+.check-btn{background:#1F5FBF;color:#ffffff;border-color:#1F5FBF}
+.check-btn:hover{background:#1F5FBF;opacity:.9}
+.fb{font-size:.95em;border-width:1.5px;border-left-width:6px}
+.fb.ok{background:#E4F4E8;border-color:#1A7F37;color:#14532d}
+.fb.err{background:#FDECEC;border-color:#C62828;color:#7f1d1d}
+.fb.warn{background:#FFF6E0;border-color:#E8A33D;color:#7a4b00}
+.formula-box{background:#E8F0FC;color:#1c1e1f;font-family:inherit;font-weight:600}
+.unit-lbl,.ans-input,.num-input,select.o-sign,select.o-coef,.kc-unit{font-family:inherit}
+.unit-lbl{font-size:.95em;color:#333}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -148,21 +186,23 @@ select.o-sign.err,select.o-coef.err{border-color:var(--err);background:#f7e9e6}
 // co: [a,b,c,d] = stoichiometrische coëfficiënten [reactant A, reactant B, product C, product D]
 // Voor Kc: Kc = [C]^c * [D]^d / ([A]^a * [B]^b)
 // Vaste stof: solidA/solidB/solidC — niet in Kc, grijs in tabel
+// quad:false = exacte oplossing is hoger dan kwadratisch -> alleen scenario B
+// De Kc-waarden gelden bij een bepaalde temperatuur; ze worden als gegeven gepresenteerd.
 const RXNS=[
   { eq:'N₂(g) + 3H₂(g) ⇌ 2NH₃(g)',
     names:['N₂','H₂','NH₃',null], co:[1,3,2,0], solid:[false,false,false,false],
-    KcRef:0.20, Tref:500 },
+    KcRef:0.20, Tref:500, quad:false },
   { eq:'H₂(g) + I₂(g) ⇌ 2HI(g)',
     names:['H₂','I₂','HI',null], co:[1,1,2,0], solid:[false,false,false,false],
     KcRef:50, Tref:700 },
   { eq:'2SO₂(g) + O₂(g) ⇌ 2SO₃(g)',
     names:['SO₂','O₂','SO₃',null], co:[2,1,2,0], solid:[false,false,false,false],
-    KcRef:13.0, Tref:900 },
+    KcRef:13.0, Tref:900, quad:false },
   { eq:'N₂O₄(g) ⇌ 2NO₂(g)',
     names:['N₂O₄',null,'NO₂',null], co:[1,0,2,0], solid:[false,false,false,false],
     KcRef:4.5, Tref:350 },
-  { eq:'CH₃COOH(aq) ⇌ CH₃COO⁻(aq) + H⁺(aq)',
-    names:['CH₃COOH',null,'CH₃COO⁻','H⁺'], co:[1,0,1,1], solid:[false,false,false,false],
+  { eq:'CH₃COOH(aq) + H₂O(l) ⇌ CH₃COO⁻(aq) + H₃O⁺(aq)', zuur:true,
+    names:['CH₃COOH',null,'CH₃COO⁻','H₃O⁺'], co:[1,0,1,1], solid:[false,false,false,false],
     KcRef:1.8e-5, Tref:298 },
   { eq:'C(s) + CO₂(g) ⇌ 2CO(g)',
     names:['C','CO₂','CO',null], co:[1,1,2,0], solid:[true,false,false,false],
@@ -180,10 +220,29 @@ let Q={}, phase='boe'; // phases: boe → x → verw → exact → final
 
 function fmt(x,d=3){
   if(!isFinite(x))return'—';
-  if(Math.abs(x)<0.001||Math.abs(x)>=10000)return x.toExponential(2);
+  if(x!==0&&(Math.abs(x)<0.001||Math.abs(x)>=10000)){
+    const e=Math.floor(Math.log10(Math.abs(x))), m=(x/Math.pow(10,e)).toPrecision(d).replace('.',',');
+    const sup={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+    return m+'·10'+String(e).split('').map(ch=>sup[ch]).join('');
+  }
   return parseFloat(x.toPrecision(d)).toString().replace('.',',');
 }
-function fmtKc(x){ return x.toExponential(3); }
+function fmtKc(x){
+  const e=Math.floor(Math.log10(Math.abs(x)));
+  if(e>=-2&&e<=3) return fmt(x,3);
+  const m=(x/Math.pow(10,e)).toFixed(2).replace('.',',');
+  const sup={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  return m+'·10'+String(e).split('').map(ch=>sup[ch]).join('');
+}
+function fmtB(x){ return x.toFixed(2).replace('.',','); }
+function sup(n){ const m={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'}; return String(n).split('').map(c=>m[c]).join(''); }
+function num(v){ return parseFloat(String(v).trim().replace(',','.')); }
+function r3(x){ return parseFloat(x.toPrecision(3)); }
+function kLabel(rxn){ return rxn.zuur?'Kc (= Kz)':'Kc'; }
+// pogingen per stap: eerst een hint, na een tweede fout het antwoord
+const tries={};
+function wrongMsg(key,hint,answer){ tries[key]=(tries[key]||0)+1; return tries[key]>=2 ? hint+' Antwoord: '+answer : hint+' Probeer het nog eens.'; }
+function fluidReact(rxn){ return [0,1].filter(i=>rxn.names[i]&&!rxn.solid[i]&&rxn.co[i]>0); }
 
 // Eenheid van Kc: (mol/L)^(Δn) waarbij Δn = som product-exponenten - som reactant-exponenten
 function kcUnit(co){
@@ -200,7 +259,7 @@ function kcUnit(co){
 // Kc-expressie als string
 function kcExpr(names,co,solid){
   const[a,b,c,d]=co;
-  const term=(name,exp,s)=>s?null:(exp===0?null:(exp===1?`[${name}]`:`[${name}]^${exp}`));
+  const term=(name,exp,s)=>s?null:(exp===0?null:(exp===1?`[${name}]`:`[${name}]${sup(exp)}`));
   const num=[term(names[2],c,solid[2]),term(names[3],d,solid[3])].filter(Boolean);
   const den=[term(names[0],a,solid[0]),term(names[1],b,solid[1])].filter(Boolean);
   const ns=num.length?num.join('·'):'1';
@@ -217,8 +276,9 @@ function setProgress(steps,current){
 // ── Nieuwe opgave genereren ────────────────────────────────────────────────
 function newQ(){
   const rxn=RXNS[Math.floor(Math.random()*RXNS.length)];
-  // Scenario A (Kc gegeven) of B (concentratie gegeven)
-  const scenario=Math.random()<0.5?'A':'B';
+  // Scenario A (Kc gegeven) of B (concentratie gegeven); hoger dan kwadratisch -> alleen B
+  const scenario=(rxn.quad===false)?'B':(Math.random()<0.5?'A':'B');
+  for(const k in tries) delete tries[k];
   const[a,b,c,d]=rxn.co;
 
   // Actieve stoffen (niet null, niet vaste stof die al in A-positie zit)
@@ -237,7 +297,7 @@ function newQ(){
   const Kc=rxn.KcRef;
 
   function calcXverw(A0,B0){
-    const denom_val=Math.pow(A0,a)*(b>0?Math.pow(B0,b):1);
+    const denom_val=(rxn.solid[0]?1:Math.pow(A0,a))*((b>0&&!rxn.solid[1])?Math.pow(B0,b):1);
     const coef_prod=Math.pow(c,c)*(d>0?Math.pow(d,d):1);
     const exponent=c+(d>0?d:0);
     return Math.pow(Kc*denom_val/coef_prod, 1/exponent);
@@ -255,7 +315,7 @@ function newQ(){
       if(b>0&&!rxn.solid[1])den*=Math.pow(cB,b);
       return num/den-Kc;
     };
-    const xMax=Math.min(a>0?A0/a:Infinity, (b>0&&B0>0)?B0/b:Infinity)*0.9999;
+    const xMax=Math.min((a>0&&!rxn.solid[0])?A0/a:Infinity, (b>0&&!rxn.solid[1]&&B0>0)?B0/b:Infinity)*0.9999;
     if(evalKc(0)*evalKc(xMax)>0) return null;
     let lo=0,hi=xMax;
     for(let i=0;i<80;i++){
@@ -267,8 +327,8 @@ function newQ(){
 
   let Bvals, x_eq, x_verw, found=false;
   for(let attempt=0; attempt<60 && !found; attempt++){
-    const A0=+(0.05+Math.random()*2.95).toFixed(3);
-    const B0=(b>0 && !rxn.solid[1]) ? +(0.05+Math.random()*2.95).toFixed(3) : 0;
+    const A0=rxn.solid[0]?0:+(0.05+Math.random()*2.95).toFixed(2);
+    const B0=(b>0 && !rxn.solid[1]) ? +(0.05+Math.random()*2.95).toFixed(2) : 0;
     const xe=solveXeq(A0,B0);
     if(xe===null) continue; // chemisch onmogelijk bij deze combinatie — opnieuw loten
     Bvals={A:A0,B:B0,C:0,D:0};
@@ -292,16 +352,26 @@ function newQ(){
   // Scenario B: welke evenwichtsconcentratie geven we?
   // Kies een fluïde stof met duidelijke concentratie
   let givenEqIdx=null, givenEqVal=null;
+  let xB=null, KcB=null;
   if(scenario==='B'){
-    const candidates=fluidActive.filter(s=>s.co>0);
+    const keys=['A','B','C','D'];
+    // alleen stoffen waaruit x nauwkeurig te bepalen is: producten, of beginstoffen die minstens 5 % afnemen
+    let candidates=fluidActive.filter(s=>s.idx>=2 || (s.co*x_eq)/Bvals[keys[s.idx]]>=0.05);
+    if(!candidates.length) candidates=fluidActive.filter(s=>s.idx>=2);
     const pick=candidates[Math.floor(Math.random()*candidates.length)];
     givenEqIdx=pick.idx; // 0=A,1=B,2=C,3=D
-    const keys=['A','B','C','D'];
-    givenEqVal=+E[keys[givenEqIdx]].toFixed(2);
+    givenEqVal=parseFloat(E[keys[givenEqIdx]].toPrecision(4));
+    // alles verder rekent met het getoonde getal
+    xB = givenEqIdx<=1 ? (Bvals[keys[givenEqIdx]]-givenEqVal)/pick.co : givenEqVal/pick.co;
+    let nu=1,de=1;
+    [0,1,2,3].forEach(i=>{ if(!rxn.names[i]||rxn.solid[i]||rxn.co[i]===0) return;
+      const ce=Bvals[keys[i]]+(i<=1?-1:1)*rxn.co[i]*xB;
+      if(i>=2) nu*=Math.pow(ce,rxn.co[i]); else de*=Math.pow(ce,rxn.co[i]); });
+    KcB=nu/de;
   }
   // x_verw is al berekend in de generatielus hierboven (alleen relevant voor scenario A).
 
-  Q={ rxn, scenario, Bvals, E, Kc, x_eq, x_verw, givenEqIdx, givenEqVal,
+  Q={ rxn, scenario, Bvals, E, Kc, x_eq, x_verw, givenEqIdx, givenEqVal, xB, KcB,
       phase:'boe', boeDone:false, xDone:false, verwDone:false };
 
   render();
@@ -325,7 +395,7 @@ function render(){
   // Voortgang
   const steps=scenario==='A'
     ?['1. BOE invullen','2. x oplossen (verwaarlozing)','3. Verwaarlozing check','4. Evenwichtsconcentraties']
-    :['1. BOE invullen','2. x berekenen','3. Kc berekenen'];
+    :['1. x berekenen en BOE invullen','2. Kc berekenen'];
   setProgress(steps,0);
 
   // Gegeven info
@@ -334,13 +404,13 @@ function render(){
   givenHTML+=`<strong>Beginconcentraties:</strong><br>`;
   names.forEach((nm,i)=>{
     if(!nm||solid[i]) return;
-    givenHTML+=`[${nm}]₀ = <span class="hl">${fmt(Bvals[keyNames[i]])} mol/L</span> &nbsp;`;
+    givenHTML+=`[${nm}]₀ = <span class="hl">${fmtB(Bvals[keyNames[i]])} mol/L</span> &nbsp;`;
   });
   if(scenario==='A'){
-    givenHTML+=`<br><br><strong>Gegeven:</strong> Kc = <span class="hl">${fmtKc(Kc)}</span> <span class="hl2">${kcUnit(rxn.co)}</span>`;
+    givenHTML+=`<br><br><strong>Gegeven:</strong> ${kLabel(rxn)} = <span class="hl">${fmtKc(Kc)}</span> (bij de temperatuur van de proef)`;
   } else {
     const gnm=names[givenEqIdx];
-    givenHTML+=`<br><br><strong>Gegeven evenwichtsconcentratie:</strong> [${gnm}]<sub>eq</sub> = <span class="hl">${fmt(givenEqVal)} mol/L</span>`;
+    givenHTML+=`<br><br><strong>Gegeven evenwichtsconcentratie:</strong> [${gnm}]<sub>eq</sub> = <span class="hl">${fmt(givenEqVal,4)} mol/L</span>`;
   }
   document.getElementById('given-box').innerHTML=givenHTML;
   document.getElementById('given-box').style.display='block';
@@ -348,7 +418,7 @@ function render(){
   // Hint
   document.getElementById('boe-hint').textContent=
     scenario==='A'?'Vul de O-rij in met ±nx (gebruik dropdowns), de E-rij wordt automatisch aangevuld.'
-                  :'Vul de O- en E-rij numeriek in.';
+                  :'Bereken eerst x uit de gegeven evenwichtsconcentratie. Vul daarna de O- en E-rij in.';
 
   // BOE tabel
   buildBOETable();
@@ -375,7 +445,7 @@ function buildBOETable(){
   // B-rij (altijd vast)
   html+=`<tr><td class="row-lbl">B</td>${cols.map(col=>{
     if(col.solid) return `<td class="solid">—</td>`;
-    return `<td class="fixed">${fmt(Bvals[keyNames[col.i]])} mol/L</td>`;
+    return `<td class="fixed">${fmtB(Bvals[keyNames[col.i]])} mol/L</td>`;
   }).join('')}</tr>`;
 
   // O-rij
@@ -401,7 +471,7 @@ function buildBOETable(){
     // Numeriek
     html+=`<tr><td class="row-lbl">O</td>${cols.map(col=>{
       if(col.solid) return `<td class="solid">—</td>`;
-      return `<td class="input-cell"><input type="number" class="num-input" id="o-${col.i}" step="0.0001" placeholder="…"></td>`;
+      return `<td class="input-cell"><input type="text" inputmode="decimal" class="num-input" id="o-${col.i}" step="0.0001" placeholder="…"></td>`;
     }).join('')}</tr>`;
   }
 
@@ -416,8 +486,8 @@ function buildBOETable(){
     html+=`<tr><td class="row-lbl">E</td>${cols.map(col=>{
       if(col.solid) return `<td class="solid">—</td>`;
       // Gegeven evenwichtsconcentratie vast
-      if(col.i===givenEqIdx) return `<td class="fixed">${fmt(givenEqVal)} mol/L</td>`;
-      return `<td class="input-cell"><input type="number" class="num-input" id="e-${col.i}" step="0.0001" placeholder="…"></td>`;
+      if(col.i===givenEqIdx) return `<td class="fixed">${fmt(givenEqVal,4)} mol/L</td>`;
+      return `<td class="input-cell"><input type="text" inputmode="decimal" class="num-input" id="e-${col.i}" step="0.0001" placeholder="…"></td>`;
     }).join('')}</tr>`;
   }
 
@@ -426,7 +496,8 @@ function buildBOETable(){
 
 // ── BOE controleren ───────────────────────────────────────────────────────
 function checkBOE(){
-  const{rxn,scenario,Bvals,E,x_eq,givenEqIdx,givenEqVal}=Q;
+  const{rxn,scenario,Bvals,E,givenEqIdx,givenEqVal}=Q;
+  const x_eq=Q.scenario==='B'?Q.xB:Q.x_eq;
   const[a,b,c,d]=rxn.co;
   const names=rxn.names;
   const solid=rxn.solid;
@@ -454,14 +525,15 @@ function checkBOE(){
       coefEl.classList.toggle('err',!okCoef);
       if(!okSign||!okCoef){
         allOk=false;
-        errors.push(`${col.nm}: verwacht ${correctSign==='-'?'−':'+'}${correctCoef}x`);
+        errors.push(col.nm);
+        Q._boeAns=(Q._boeAns||{}); Q._boeAns[col.nm]=`${correctSign==='-'?'−':'+'}${correctCoef}x`;
       }
     });
     if(allOk){
       // Vul E-rij automatisch in
       cols.forEach(col=>{
         const sign=col.i<=1?-1:1;
-        const expr=`${fmt(Bvals[keyNames[col.i]])} ${sign>0?'+':'−'} ${col.co}x`;
+        const expr=`${fmtB(Bvals[keyNames[col.i]])} ${sign>0?'+':'−'} ${col.co}x`;
         const cell=document.getElementById('e-cell-'+col.i);
         if(cell) cell.textContent=expr;
       });
@@ -469,7 +541,7 @@ function checkBOE(){
       Q.boeDone=true;
       showStepX();
     } else {
-      showFB('fb-boe','err',`✗ Controleer: ${errors.join(' | ')}`);
+      showFB('fb-boe','err','✗ '+wrongMsg('boeA',`Controleer ${errors.join(', ')}. Beginstoffen nemen af (−), producten nemen toe (+); de coëfficiënt haal je uit de reactievergelijking.`, errors.map(n=>n+': '+Q._boeAns[n]).join(' | ')));
     }
 
   } else {
@@ -484,26 +556,26 @@ function checkBOE(){
       const correctE=Bvals[keyN]+correctO;
 
       if(oEl){
-        const uO=parseFloat(oEl.value);
+        const uO=num(oEl.value);
         const okO=!isNaN(uO)&&Math.abs(uO-correctO)/Math.max(Math.abs(correctO),1e-10)<tol;
         oEl.classList.toggle('ok',okO);oEl.classList.toggle('err',!okO);
-        if(!okO){allOk=false;oErrors.push(`O(${col.nm}): verwacht ${fmt(correctO)}`);}
+        if(!okO){allOk=false;oErrors.push(`O(${col.nm}) = ${fmt(correctO)}`);}
       }
       if(eEl){
-        const uE=parseFloat(eEl.value);
+        const uE=num(eEl.value);
         const okE=!isNaN(uE)&&Math.abs(uE-correctE)/Math.max(Math.abs(correctE),1e-10)<tol;
         eEl.classList.toggle('ok',okE);eEl.classList.toggle('err',!okE);
-        if(!okE){allOk=false;eErrors.push(`E(${col.nm}): verwacht ${fmt(correctE)}`);}
+        if(!okE){allOk=false;eErrors.push(`E(${col.nm}) = ${fmt(correctE)}`);}
       }
     });
     if(allOk){
       showFB('fb-boe','ok','✓ BOE-schema correct! Ga verder met stap 2: Kc berekenen.');
       Q.boeDone=true;
-      Q.x_correct=x_eq; // x al bepaald via bisectie
+      Q.x_correct=x_eq; // x uit de getoonde evenwichtsconcentratie
       showFinalB();
     } else {
       const all=[...oErrors,...eErrors];
-      showFB('fb-boe','err','✗ '+all.join(' | '));
+      showFB('fb-boe','err','✗ '+wrongMsg('boeB','Niet alles klopt (rood). Tip: x = verandering van de gegeven stof gedeeld door zijn coëfficiënt; O = ± coëfficiënt × x; E = B + O.', all.join(' | ')));
     }
   }
 }
@@ -530,18 +602,18 @@ function showStepX(){
       if(!nm||rxn.solid[i])return null;
       const key=keyNames[i];
       const sign=i<=1?'-':'+';
-      return `[${nm}] = ${fmt(Bvals[key])} ${sign} ${rxn.co[i]}x`;
+      return `[${nm}] = ${fmtB(Bvals[key])} ${sign} ${rxn.co[i]}x`;
     }).filter(Boolean).join('<br>');
     document.getElementById('step-x-body').innerHTML=`
-      <div class="formula-box">${expr} = ${fmtKc(Kc)}</div>
+      <div class="formula-box">${expr.replace('Kc',kLabel(rxn))} = ${fmtKc(Kc)}</div>
       <p style="margin-bottom:8px">Vul de E-rij in:</p>
-      <div style="font-family:var(--mono);font-size:.88em;line-height:2;margin-bottom:12px">${Bvarsubs}</div>
-      <p><strong>Verwaarlozing:</strong> stel x ≪ beginconcentratie reactant, zodat:</p>
+      <div style="font-size:.95em;line-height:2;margin-bottom:12px;font-weight:600">${Bvarsubs}</div>
+      <p><strong>Verwaarlozing:</strong> stel dat er zo weinig reageert dat de beginstoffen nauwelijks afnemen, zodat:</p>
       <div class="formula-box" id="verw-expr"></div>
       <p style="margin-bottom:8px">Los op voor x (verwaarlozing):</p>
       <div class="input-row">
         <span class="unit-lbl">x ≈</span>
-        <input type="number" class="ans-input" id="ans-xverw" step="0.00001" placeholder="…">
+        <input type="text" inputmode="decimal" class="ans-input" id="ans-xverw" step="0.00001" placeholder="…">
         <span class="unit-lbl">mol/L</span>
         <button class="check-btn" onclick="checkXverw()">Controleer</button>
       </div>
@@ -562,11 +634,11 @@ function showStepX(){
     Q.x_correct=x_correct;
     document.getElementById('step-x-body').innerHTML=`
       <p>Uit de gegeven evenwichtsconcentratie van ${gnm}:<br>
-      <span style="font-family:var(--mono)">[${gnm}]<sub>eq</sub> = ${fmt(Bvals[gkey])} ${isReactant?'−':'+'}
+      <span style="font-weight:600">[${gnm}]<sub>eq</sub> = ${fmtB(Bvals[gkey])} ${isReactant?'−':'+'}
       ${gco}x = ${fmt(givenEqVal)}</span></p>
       <div class="input-row">
         <span class="unit-lbl">x =</span>
-        <input type="number" class="ans-input" id="ans-x" step="0.00001" placeholder="…">
+        <input type="text" inputmode="decimal" class="ans-input" id="ans-x" step="0.00001" placeholder="…">
         <span class="unit-lbl">mol/L</span>
         <button class="check-btn" onclick="checkXB()">Controleer</button>
       </div>
@@ -578,28 +650,28 @@ function buildVerwExpr(){
   const{rxn,Bvals,Kc}=Q;
   const[a,b,c,d]=rxn.co;
   const solid=rxn.solid;
-  const BA=fmt(Bvals.A), BB=b>0?fmt(Bvals.B):'';
+  const BA=fmtB(Bvals.A), BB=b>0?fmtB(Bvals.B):'';
   // Teller: (coef·x)^exp — coëfficiënt én exponent correct
   const termNum=(coef,exp,isSolid)=>{
     if(isSolid||coef===0)return null;
     const inner=coef===1?'x':`${coef}x`;
-    return exp===1?`(${inner})`:`(${inner})^${exp}`;
+    return exp===1?`(${inner})`:`(${inner})${sup(exp)}`;
   };
   const numParts=[termNum(c,c,solid[2]),termNum(d,d,solid[3])].filter(Boolean);
   // Noemer: [B]₀^exp
   const termDen=(val,exp,isSolid)=>{
     if(isSolid||exp===0)return null;
-    return exp===1?val:exp===2?`${val}²`:`${val}^${exp}`;
+    return exp===1?val:`${val}${sup(exp)}`;
   };
   const denParts=[termDen(BA,a,solid[0]),termDen(BB,b,solid[1])].filter(Boolean);
   const num=numParts.join('·')||'1';
   const den=denParts.join('·')||'1';
-  document.getElementById('verw-expr').textContent=`Kc ≈ ${num} / ${den} = ${fmtKc(Kc)}`;
+  document.getElementById('verw-expr').textContent=`${kLabel(rxn)} ≈ ${num} / ${den} = ${fmtKc(Kc)}`;
 }
 
 function checkXverw(){
   const{x_verw,Bvals,rxn}=Q;
-  const u=parseFloat(document.getElementById('ans-xverw').value);
+  const u=num(document.getElementById('ans-xverw').value);
   const ok=!isNaN(u)&&Math.abs(u-x_verw)/Math.abs(x_verw)<0.05;
   const el=document.getElementById('ans-xverw');
   el.classList.toggle('ok',ok);el.classList.toggle('err',!ok);
@@ -608,13 +680,13 @@ function checkXverw(){
     Q.x_verw_user=x_verw;
     showVerwCheck();
   } else {
-    showFB('fb-xverw','err',`✗ Niet correct. Controleer je berekening. x ≈ ${fmt(x_verw,4)} mol/L`);
+    showFB('fb-xverw','err','✗ '+wrongMsg('xverw','Niet correct. Vul de verwaarloosde uitdrukking in en los x op (let op de wortel).', `x ≈ ${fmt(x_verw,4)} mol/L`));
   }
 }
 
 function checkXB(){
   const{x_correct}=Q;
-  const u=parseFloat(document.getElementById('ans-x').value);
+  const u=num(document.getElementById('ans-x').value);
   const ok=!isNaN(u)&&Math.abs(u-x_correct)/Math.abs(x_correct)<0.05;
   const el=document.getElementById('ans-x');
   el.classList.toggle('ok',ok);el.classList.toggle('err',!ok);
@@ -623,7 +695,7 @@ function checkXB(){
     Q.xDone=true;
     showFinalB();
   } else {
-    showFB('fb-x','err',`✗ Niet correct. x = ${fmt(x_correct,4)} mol/L`);
+    showFB('fb-x','err','✗ '+wrongMsg('xB','Niet correct.', `x = ${fmt(x_correct,4)} mol/L`));
   }
 }
 
@@ -635,10 +707,15 @@ function showVerwCheck(){
   const steps=['1. BOE invullen','2. x oplossen (verwaarlozing)','3. Verwaarlozing check','4. Evenwichtsconcentraties'];
   setProgress(steps,2);
 
+  const fr=fluidReact(rxn);
+  let worst=fr[0], worstPct=-1;
+  fr.forEach(i=>{ const p=rxn.co[i]*x_verw/Bvals[i===0?'A':'B']*100; if(p>worstPct){worstPct=p;worst=i;} });
+  Q.pct=worstPct; Q.pctIdx=worst;
+  const coTxt=rxn.co[worst]===1?'x':rxn.co[worst]+'x';
   document.getElementById('step-verw-body').innerHTML=`
-    <p>Bereken zelf het percentage: x / [${rxn.names[0]}]₀ × 100%</p>
+    <p>Controleer bij de beginstof die relatief het meest afneemt. Bereken zelf: ${coTxt} / [${rxn.names[worst]}]₀ × 100%</p>
     <div class="input-row">
-      <input type="number" class="ans-input" id="ans-pct" step="0.1" placeholder="…">
+      <input type="text" inputmode="decimal" class="ans-input" id="ans-pct" step="0.1" placeholder="…">
       <span class="unit-lbl">%</span>
       <button class="check-btn" onclick="checkPct()">Controleer</button>
     </div>
@@ -646,10 +723,9 @@ function showVerwCheck(){
 }
 
 function checkPct(){
-  const{x_verw,Bvals}=Q;
-  const pct=Math.abs(x_verw)/Bvals.A*100;
-  Q.pct=pct;
-  const u=parseFloat(document.getElementById('ans-pct').value);
+  const{x_verw,Bvals,rxn}=Q;
+  const pct=Q.pct, wi=Q.pctIdx, wnm=rxn.names[wi], wB=Bvals[wi===0?'A':'B'], wco=rxn.co[wi];
+  const u=num(document.getElementById('ans-pct').value);
   const ok=!isNaN(u)&&Math.abs(u-pct)<0.5; // 0.5% absolute tolerantie
   const el=document.getElementById('ans-pct');
   el.classList.toggle('ok',ok);el.classList.toggle('err',!ok);
@@ -657,7 +733,7 @@ function checkPct(){
   fb.style.display='block';
   if(ok){
     fb.className='fb ok';
-    fb.innerHTML=`✓ Correct! x / [${Q.rxn.names[0]}]₀ × 100% = ${pct.toFixed(1)}%
+    fb.innerHTML=`✓ Correct! ${wco===1?'':wco}x / [${wnm}]₀ × 100% = ${pct.toFixed(1)}%
       <br><br>Welke foutmarge vind jij acceptabel?
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
         <button class="check-btn" onclick="checkMarge(1)">1%</button>
@@ -667,7 +743,7 @@ function checkPct(){
       <div id="fb-marge" style="margin-top:10px"></div>`;
   } else {
     fb.className='fb err';
-    fb.innerHTML=`✗ Niet correct. ${fmt(x_verw,4)} / ${fmt(Bvals.A)} × 100% = ${pct.toFixed(1)}%`;
+    fb.innerHTML='✗ '+wrongMsg('pct','Niet correct.', `${wco===1?'':wco+' × '}${fmt(x_verw,4)} / ${fmtB(wB)} × 100% = ${pct.toFixed(1)}%`);
   }
 }
 
@@ -680,15 +756,15 @@ function checkMarge(chosen){
   if(valid){
     fb.innerHTML=`<div class="fb ok" style="display:block">✓ ${pct.toFixed(1)}% ≤ ${chosen}% → verwaarlozing acceptabel.
       <br><button class="check-btn" onclick="showFinalA()" style="margin-top:10px">Verder →</button></div>`;
-    Q.x_final=x_verw;
+    Q.x_final=x_verw; Q.verwValid=true;
   } else {
     const extra = pct>100
-      ? `<br><br><em>Bij deze reactie is Kc relatief groot (Kc = ${fmtKc(Kc)}). Een grote Kc betekent dat het evenwicht ver naar de productkant ligt — er reageert dus relatief veel van de beginstof weg. De verwaarlozingsbenadering gaat er juist van uit dat er weinig wegreageert (x ≪ [A]₀), dus bij een groot Kc gaat die aanname volledig de mist in: de "benaderde" x kan dan zelfs groter uitvallen dan de beginconcentratie zelf, wat fysisch onmogelijk is. Dat is precies het signaal dat je hier niet mag verwaarlozen.</em>`
+      ? `<br><br><em>Bij deze reactie is K relatief groot (K = ${fmtKc(Kc)}). Een grote Kc betekent dat het evenwicht ver naar de productkant ligt — er reageert dus relatief veel van de beginstof weg. De verwaarlozingsbenadering gaat er juist van uit dat er weinig wegreageert (x ≪ [A]₀), dus bij een groot Kc gaat die aanname volledig de mist in: de "benaderde" x kan dan zelfs groter uitvallen dan de beginconcentratie zelf, wat fysisch onmogelijk is. Dat is precies het signaal dat je hier niet mag verwaarlozen.</em>`
       : '';
     fb.innerHTML=`<div class="fb warn" style="display:block">⚠ ${pct.toFixed(1)}% > ${chosen}% → verwaarlozing niet acceptabel.
       Bereken x exact via de onderstaande stap.${extra}
       <br><button class="check-btn" onclick="showExact()" style="margin-top:10px">Exact oplossen →</button></div>`;
-    Q.x_final=x_eq;
+    Q.x_final=x_eq; Q.verwValid=false;
   }
 }
 
@@ -710,14 +786,14 @@ function showExact(){
   // Kc-expressie met x ingevuld
   const termExact=(nm,exp,isSolid,idx)=>{
     if(!nm||isSolid||exp===0)return null;
-    const B=fmt(Bvals[keyNames[idx]]);
+    const B=fmtB(Bvals[keyNames[idx]]);
     const s=sign(idx)>0?'+':'-';
-    const inner=exp===1?`(${B} ${s} ${co[idx]}x)`:`(${B} ${s} ${co[idx]}x)^${exp}`;
+    const inner=exp===1?`(${B} ${s} ${co[idx]}x)`:`(${B} ${s} ${co[idx]}x)${sup(exp)}`;
     return inner;
   };
   const numTerms=[termExact(names[2],c,solid[2],2),termExact(names[3],d,solid[3],3)].filter(Boolean);
   const denTerms=[termExact(names[0],a,solid[0],0),termExact(names[1],b,solid[1],1)].filter(Boolean);
-  const exprFull=`Kc = ${numTerms.join('·')||'1'} / ${denTerms.join('·')||'1'} = ${fmtKc(Kc)}`;
+  const exprFull=`${kLabel(rxn)} = ${numTerms.join('·')||'1'} / ${denTerms.join('·')||'1'} = ${fmtKc(Kc)}`;
 
   document.getElementById('step-exact-body').innerHTML=`
     <p>Los x exact op. Gebruik de volledige Kc-uitdrukking:</p>
@@ -725,7 +801,7 @@ function showExact(){
     <p style="margin-bottom:10px">Werk dit zelf uit (herschrijf als kwadratische vergelijking of gebruik de abc-formule) en vul x in:</p>
     <div class="input-row">
       <span class="unit-lbl">x =</span>
-      <input type="number" class="ans-input" id="ans-xexact" step="0.00001" placeholder="…">
+      <input type="text" inputmode="decimal" class="ans-input" id="ans-xexact" step="0.00001" placeholder="…">
       <span class="unit-lbl">mol/L</span>
       <button class="check-btn" onclick="checkXExact()">Controleer</button>
     </div>
@@ -734,12 +810,12 @@ function showExact(){
 
 function checkXExact(){
   const{x_final}=Q;
-  const u=parseFloat(document.getElementById('ans-xexact').value);
+  const u=num(document.getElementById('ans-xexact').value);
   const ok=!isNaN(u)&&Math.abs(u-x_final)/Math.abs(x_final)<0.05;
   const el=document.getElementById('ans-xexact');
   el.classList.toggle('ok',ok);el.classList.toggle('err',!ok);
   if(ok){ showFB('fb-xexact','ok',`✓ Correct! x = ${fmt(x_final,5)} mol/L`); showFinalA(); }
-  else   { showFB('fb-xexact','err',`✗ Niet correct. x = ${fmt(x_final,5)} mol/L`); }
+  else   { showFB('fb-xexact','err','✗ '+wrongMsg('xexact','Niet correct. Schrijf de vergelijking als ax² + bx + c = 0 en neem de oplossing die chemisch kan (x > 0 en geen negatieve concentraties).', `x = ${fmt(x_final,5)} mol/L`)); }
 }
 
 // ── Eindstap A: evenwichtsconcentraties ───────────────────────────────────
@@ -763,7 +839,7 @@ function showFinalA(){
   let inputsHTML=activeFluid.map(col=>`
     <div class="input-row">
       <span class="unit-lbl">[${col.nm}]<sub>eq</sub> =</span>
-      <input type="number" class="ans-input" id="finA-${col.i}" step="0.0001" placeholder="…">
+      <input type="text" inputmode="decimal" class="ans-input" id="finA-${col.i}" step="0.0001" placeholder="…">
       <span class="unit-lbl">mol/L</span>
     </div>`).join('');
 
@@ -786,7 +862,7 @@ function checkFinalA(){
   activeFluid.forEach(col=>{
     const correct=Bvals[keyNames[col.i]]+sign(col.i)*col.co*x_final;
     const el=document.getElementById('finA-'+col.i);
-    const u=parseFloat(el.value);
+    const u=num(el.value);
     const ok=!isNaN(u)&&Math.abs(u-correct)/Math.abs(correct)<0.04;
     el.classList.toggle('ok',ok);el.classList.toggle('err',!ok);
     if(!ok){allOk=false;details.push(`[${col.nm}]eq = ${fmt(correct,4)}`);}
@@ -794,7 +870,7 @@ function checkFinalA(){
   if(allOk){
     showFB('fb-finalA','ok','✓ Alle evenwichtsconcentraties correct! Uitstekend.');
   } else {
-    showFB('fb-finalA','err','✗ '+details.join(' | '));
+    showFB('fb-finalA','err','✗ '+wrongMsg('finA','Niet alles klopt (rood). E = B ± coëfficiënt × x.', details.join(' | ')));
   }
 }
 
@@ -819,8 +895,7 @@ function showFinalB(){
   names.forEach((nm,i)=>{if(nm&&!solid[i])Evals[i]=Bvals[keyNames[i]]+sign(i)*co[i]*x_correct;});
 
   // Kc-expressie
-  const expr=kcExpr(names,rxn.co,solid);
-  const unit=kcUnit(rxn.co);
+  const expr=kcExpr(names,rxn.co,solid).replace('Kc',kLabel(rxn));
 
   // Numerieke invulling tonen
   const activeFluid=names.map((nm,i)=>nm&&!solid[i]&&co[i]>0?{nm,i,co:co[i]}:null).filter(Boolean);
@@ -832,24 +907,22 @@ function showFinalB(){
     <p>Vul in de Kc-expressie:</p>
     <div class="formula-box">${expr}</div>
     <div class="input-row">
-      <span class="unit-lbl">Kc =</span>
-      <input type="number" class="ans-input" id="ans-kc" step="0.000001" placeholder="…">
-      <span class="unit-lbl kc-unit">${unit}</span>
+      <span class="unit-lbl">${kLabel(rxn)} =</span>
+      <input type="text" inputmode="decimal" class="ans-input" id="ans-kc" step="0.000001" placeholder="…">
       <button class="check-btn" onclick="checkKc()">Controleer</button>
     </div>
     <div class="fb" id="fb-kc"></div>`;
 }
 
 function checkKc(){
-  const{Kc}=Q;
-  const u=parseFloat(document.getElementById('ans-kc').value);
+  const Kc=Q.KcB;
+  const u=num(document.getElementById('ans-kc').value.replace(/·10\^?/,'e').replace('*10^','e'));
   const ok=!isNaN(u)&&Math.abs(u-Kc)/Math.abs(Kc)<0.05;
   const el=document.getElementById('ans-kc');
   el.classList.toggle('ok',ok);el.classList.toggle('err',!ok);
-  const unit=kcUnit(Q.rxn.co);
-  showFB('fb-kc',ok?'ok':'err',
-    ok?`✓ Correct! Kc = ${fmtKc(Kc)} ${unit}`
-      :`✗ Niet correct. Kc = ${fmtKc(Kc)} ${unit}`);
+  const lbl=kLabel(Q.rxn);
+  if(ok) showFB('fb-kc','ok',`✓ Correct! ${lbl} = ${fmtKc(Kc)}`);
+  else showFB('fb-kc','err','✗ '+wrongMsg('kc','Niet correct. Vul de evenwichtsconcentraties in de K-uitdrukking in; let op de machten.', `${lbl} = ${fmtKc(Kc)}`));
 }
 
 // ── Hulpfuncties ──────────────────────────────────────────────────────────
@@ -860,7 +933,6 @@ function showFB(id,type,msg){
   el.style.display='block';
 }
 
-const ro=new ResizeObserver(()=>{});
 newQ();
 </script>
 </body>
