@@ -70,8 +70,8 @@ select { width: 100%; padding: 10px; border: 1px solid var(--border); border-rad
         <option value="">-- Selecteer --</option>
         <option value="add">Stof toevoegen</option>
         <option value="remove">Stof verwijderen</option>
-        <option value="volume_decrease">Volume verkleinen</option>
-        <option value="volume_increase">Volume vergroten</option>
+        <option value="volume_decrease" id="opt-vdec">Volume verkleinen</option>
+        <option value="volume_increase" id="opt-vinc">Volume vergroten</option>
         <option value="temp_increase">Temperatuur verhogen</option>
         <option value="temp_decrease">Temperatuur verlagen</option>
         <option value="catalyst">Katalysator toevoegen</option>
@@ -85,6 +85,7 @@ select { width: 100%; padding: 10px; border: 1px solid var(--border); border-rad
 
 
     <div id="step-inputs" style="display:none;">
+      <div style="font-size:13px;color:var(--text-sec);margin-bottom:10px;">Let op: <b>neemt meer toe</b> of <b>neemt meer af</b> betekent: deze snelheid verandert sterker dan de andere richting. Veranderen v→ en v← evenveel, dan kies je bij allebei gewoon toe of af.</div>
       <div class="grid-3">
         <div class="section">
           <div class="label">v→</div>
@@ -125,20 +126,19 @@ select { width: 100%; padding: 10px; border: 1px solid var(--border); border-rad
 const reactions = {
   no2: { eq: '2NO₂(g) ⇌ N₂O₄(g)', dH: 'exotherm', species: { 'NO₂': 'g', 'N₂O₄': 'g' }, gas: true },
   hi: { eq: 'H₂(g) + I₂(g) ⇌ 2HI(g)', dH: 'exotherm', species: { 'H₂': 'g', 'I₂': 'g', 'HI': 'g' }, gas: true },
-  fescn: { eq: 'Fe³⁺(aq) + SCN⁻(aq) ⇌ FeSCN²⁺(aq)', dH: 'exotherm', species: { 'Fe³⁺': 'aq', 'SCN⁻': 'aq', 'FeSCN²⁺': 'aq' }, gas: false },
-  brcl: { eq: '2Br⁻(aq) + Cl₂(aq) ⇌ Br₂(aq) + 2Cl⁻(aq)', dH: 'exotherm', species: { 'Br⁻': 'aq', 'Cl₂': 'aq', 'Br₂': 'aq', 'Cl⁻': 'aq' }, gas: false },
-  agcl: { eq: 'AgCl(s) ⇌ Ag⁺(aq) + Cl⁻(aq)', dH: 'endotherm', species: { 'AgCl': 's', 'Ag⁺': 'aq', 'Cl⁻': 'aq' }, gas: false },
-  acetic: { eq: 'CH₃COOH(aq) + H₂O(l) ⇌ CH₃COO⁻(aq) + H₃O⁺(aq)', dH: 'endotherm', species: { 'CH₃COOH': 'aq', 'H₂O': 'l', 'CH₃COO⁻': 'aq', 'H₃O⁺': 'aq' }, gas: false },
-  nh4cl: { eq: 'NH₄Cl(s) ⇌ NH₃(g) + HCl(g)', dH: 'endotherm', species: { 'NH₄Cl': 's', 'NH₃': 'g', 'HCl': 'g' }, gas: false },
-  caco3: { eq: 'CaCO₃(s) ⇌ CaO(s) + CO₂(g)', dH: 'endotherm', species: { 'CaCO₃': 's', 'CaO': 's', 'CO₂': 'g' }, gas: false },
+  fescn: { eq: 'Fe³⁺(aq) + SCN⁻(aq) ⇌ FeSCN²⁺(aq)', dH: 'exotherm', species: { 'Fe³⁺': 'aq', 'SCN⁻': 'aq', 'FeSCN²⁺': 'aq' }, gas: false, opl: true },
+  brcl: { eq: '2Br⁻(aq) + Cl₂(aq) ⇌ Br₂(aq) + 2Cl⁻(aq)', dH: 'exotherm', species: { 'Br⁻': 'aq', 'Cl₂': 'aq', 'Br₂': 'aq', 'Cl⁻': 'aq' }, gas: false, opl: true },
+  agcl: { eq: 'AgCl(s) ⇌ Ag⁺(aq) + Cl⁻(aq)', dH: 'endotherm', species: { 'AgCl': 's', 'Ag⁺': 'aq', 'Cl⁻': 'aq' }, gas: false, opl: true },
+  acetic: { eq: 'CH₃COOH(aq) + H₂O(l) ⇌ CH₃COO⁻(aq) + H₃O⁺(aq)', dH: 'endotherm', species: { 'CH₃COOH': 'aq', 'H₂O': 'l', 'CH₃COO⁻': 'aq', 'H₃O⁺': 'aq' }, gas: false, opl: true },
+  nh4cl: { eq: 'NH₄Cl(s) ⇌ NH₃(g) + HCl(g)', dH: 'endotherm', species: { 'NH₄Cl': 's', 'NH₃': 'g', 'HCl': 'g' }, gas: true },
   n2h2: { eq: 'N₂(g) + 3H₂(g) ⇌ 2NH₃(g)', dH: 'exotherm', species: { 'N₂': 'g', 'H₂': 'g', 'NH₃': 'g' }, gas: true },
   cowater: { eq: 'CO(g) + H₂O(g) ⇌ CO₂(g) + H₂(g)', dH: 'exotherm', species: { 'CO': 'g', 'H₂O': 'g', 'CO₂': 'g', 'H₂': 'g' }, gas: true },
   pcl5: { eq: 'PCl₅(g) ⇌ PCl₃(g) + Cl₂(g)', dH: 'endotherm', species: { 'PCl₅': 'g', 'PCl₃': 'g', 'Cl₂': 'g' }, gas: true },
   so2cl2: { eq: 'SO₂Cl₂(g) ⇌ SO₂(g) + Cl₂(g)', dH: 'endotherm', species: { 'SO₂Cl₂': 'g', 'SO₂': 'g', 'Cl₂': 'g' }, gas: true },
   so2o2: { eq: '2SO₂(g) + O₂(g) ⇌ 2SO₃(g)', dH: 'exotherm', species: { 'SO₂': 'g', 'O₂': 'g', 'SO₃': 'g' }, gas: true },
-  ester: { eq: 'CH₃COOC₂H₅(aq) + H₂O(l) ⇌ CH₃COOH(aq) + C₂H₅OH(aq)', dH: 'endotherm', species: { 'CH₃COOC₂H₅': 'aq', 'H₂O': 'l', 'CH₃COOH': 'aq', 'C₂H₅OH': 'aq' }, gas: false },
-  nh3base: { eq: 'NH₃(aq) + H₂O(l) ⇌ NH₄⁺(aq) + OH⁻(aq)', dH: 'exotherm', species: { 'NH₃': 'aq', 'H₂O': 'l', 'NH₄⁺': 'aq', 'OH⁻': 'aq' }, gas: false },
-  h2co3: { eq: 'H₂CO₃(aq) ⇌ H₂O(l) + CO₂(g)', dH: 'endotherm', species: { 'H₂CO₃': 'aq', 'H₂O': 'l', 'CO₂': 'g' }, gas: false }
+  ester: { eq: 'CH₃COOC₂H₅(aq) + H₂O(l) ⇌ CH₃COOH(aq) + C₂H₅OH(aq)', dH: 'endotherm', species: { 'CH₃COOC₂H₅': 'aq', 'H₂O': 'l', 'CH₃COOH': 'aq', 'C₂H₅OH': 'aq' }, gas: false, opl: true },
+  nh3base: { eq: 'NH₃(aq) + H₂O(l) ⇌ NH₄⁺(aq) + OH⁻(aq)', dH: 'exotherm', species: { 'NH₃': 'aq', 'H₂O': 'l', 'NH₄⁺': 'aq', 'OH⁻': 'aq' }, gas: false, opl: true },
+  h2co3: { eq: 'H₂CO₃(aq) ⇌ H₂O(l) + CO₂(aq)', dH: 'endotherm', species: { 'H₂CO₃': 'aq', 'H₂O': 'l', 'CO₂': 'aq' }, gas: false, opl: true }
 };
 
 const speedTxt = { '++': 'Neemt meer toe', '+': 'Neemt toe', '0': 'Blijft gelijk', '-': 'Neemt af', '--': 'Neemt meer af' };
@@ -146,14 +146,24 @@ const netTxt = { right: '→ rechts', left: '← links', eq: 'Evenwicht' };
 const kTxt = { up: 'Neemt toe', down: 'Neemt af', same: 'Gelijk' };
 
 function switchTab(name) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.getAttribute('onclick').includes("'" + name + "'")));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  event.target.classList.add('active');
   document.getElementById('panel-' + name).classList.add('active');
+}
+
+function volTxt(r, change) {
+  if (r.opl) return change === 'volume_decrease' ? 'Indampen (het volume van de oplossing verkleint)' : 'Verdunnen met water (het volume van de oplossing vergroot)';
+  return change === 'volume_decrease' ? 'Volume verkleinen' : 'Volume vergroten';
 }
 
 function onReactionChange() {
   const rid = document.getElementById('prac-reaction').value;
+  document.getElementById('prac-change').value = '';
+  document.getElementById('prac-substance').innerHTML = '';
+  if (rid) {
+    document.getElementById('opt-vdec').textContent = volTxt(reactions[rid], 'volume_decrease');
+    document.getElementById('opt-vinc').textContent = volTxt(reactions[rid], 'volume_increase');
+  }
   if (!rid) {
     document.getElementById('step-change').style.display = 'none';
     return;
@@ -185,6 +195,7 @@ function onChangeChange() {
     }
     document.getElementById('step-substance').style.display = 'block';
   } else {
+    document.getElementById('prac-substance').innerHTML = '';
     document.getElementById('step-inputs').style.display = 'block';
   }
 }
@@ -209,7 +220,7 @@ function getAnswer(rid, change, substance, inert) {
     if (key === 'temp_increase') return { vf: '+', vr: '++', net: 'left', K: 'down', expl: 'Beide stijgen, maar endotherm (links) harder. v← = ++, v→ = +. K daalt.' };
     if (key === 'temp_decrease') return { vf: '-', vr: '--', net: 'right', K: 'up', expl: 'Beide dalen, maar exotherm (rechts) minder hard. v← = --, v→ = -. K stijgt.' };
     if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide richtingen evenveel versneld. Beide +.' };
-    if (inert === 'yes') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij const V: partiële drukken ongewijzigd.' };
+    if (key === 'add_inert') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij constant volume: [NO₂] en [N₂O₄] veranderen niet, dus v→ en v← blijven gelijk.' };
   }
   if (rid === 'hi') {
     if (key === 'add_H₂' || key === 'add_I₂') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer reagens → direct hogere v→. [HI] ongewijzigd, dus v← gelijk.' };
@@ -254,7 +265,7 @@ function getAnswer(rid, change, substance, inert) {
     if (key === 'volume_increase') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Verdunnen: [Ag⁺] en [Cl⁻] dalen → v← daalt. v→ blijft gelijk.' };
     if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (oplossen) stijgt harder. v→ = ++, v← = +. K stijgt.' };
     if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (oplossen) daalt harder. v→ = --, v← = -. K daalt.' };
-    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Voor het oplossen en neerslaan van AgCl bestaat in werkelijkheid geen katalysator. Als die er wel zou zijn, versnelt hij beide richtingen evenveel: beide +.' };
   }
   if (rid === 'acetic') {
     if (key === 'add_CH₃COOH') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer zuur → direct hogere v→. [CH₃COO⁻] en [H₃O⁺] ongewijzigd, dus v← gelijk.' };
@@ -281,19 +292,7 @@ function getAnswer(rid, change, substance, inert) {
     if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (sublimeren) stijgt harder. v→ = ++, v← = +. K stijgt.' };
     if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (sublimeren) daalt harder. v→ = --, v← = -. K daalt.' };
     if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
-  }
-  if (rid === 'caco3') {
-    if (key === 'add_CaCO₃') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer oppervlak CaCO₃ → direct hogere v→. [CO₂] en CaO-oppervlak ongewijzigd, dus v← gelijk.' };
-    if (key === 'remove_CaCO₃') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder oppervlak CaCO₃ → direct lagere v→. v← blijft gelijk.' };
-    if (key === 'add_CaO') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer oppervlak CaO → direct hogere v←. v→ blijft gelijk.' };
-    if (key === 'remove_CaO') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder oppervlak CaO → direct lagere v←. v→ blijft gelijk.' };
-    if (key === 'add_CO₂') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer CO₂ → direct hogere v←. v→ blijft gelijk.' };
-    if (key === 'remove_CO₂') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder CO₂ → direct lagere v←. v→ blijft gelijk.' };
-    if (key === 'volume_decrease') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: '[CO₂] stijgt → v← stijgt (+). v→ blijft gelijk (oppervlak).' };
-    if (key === 'volume_increase') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: '[CO₂] daalt → v← daalt (-). v→ blijft gelijk.' };
-    if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (ontleden) stijgt harder. v→ = ++, v← = +. K stijgt.' };
-    if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (ontleden) daalt harder. v→ = --, v← = -. K daalt.' };
-    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+    if (key === 'add_inert') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij constant volume: [NH₃] en [HCl] veranderen niet, dus v→ en v← blijven gelijk.' };
   }
   if (rid === 'n2h2') {
     if (key === 'add_N₂' || key === 'add_H₂') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer reagens → direct hogere v→. [NH₃] ongewijzigd, dus v← gelijk.' };
@@ -384,10 +383,10 @@ function getAnswer(rid, change, substance, inert) {
   if (rid === 'h2co3') {
     if (key === 'add_H₂CO₃') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer H₂CO₃ → direct hogere v→. [CO₂(aq)] ongewijzigd, dus v← gelijk.' };
     if (key === 'add_H₂O') return { vf: '-', vr: '-', net: 'eq', K: 'same', expl: 'Verdunning: [H₂CO₃] daalt → v→ -. [CO₂(aq)] daalt → v← -. Beide evenveel, netto eq.' };
-    if (key === 'add_CO₂') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer CO₂ → direct hogere v←. [H₂CO₃] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'add_CO₂') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer CO₂(aq) → direct hogere v←. [H₂CO₃] ongewijzigd, dus v→ gelijk.' };
     if (key === 'remove_H₂CO₃') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder H₂CO₃ → direct lagere v→. [CO₂(aq)] ongewijzigd, dus v← gelijk.' };
     if (key === 'remove_H₂O') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Concentreren: [H₂CO₃] stijgt → v→ +. [CO₂(aq)] stijgt → v← +. Beide evenveel, netto eq.' };
-    if (key === 'remove_CO₂') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder CO₂ → direct lagere v←. [H₂CO₃] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_CO₂') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder CO₂(aq) → direct lagere v←. [H₂CO₃] ongewijzigd, dus v→ gelijk.' };
     if (key === 'volume_decrease') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Concentreren: [H₂CO₃] stijgt → v→ +. [CO₂(aq)] stijgt → v← +. Beide evenveel, netto eq.' };
     if (key === 'volume_increase') return { vf: '-', vr: '-', net: 'eq', K: 'same', expl: 'Verdunning: [H₂CO₃] daalt → v→ -. [CO₂(aq)] daalt → v← -. Beide evenveel, netto eq.' };
     if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (ontbinding) stijgt harder. v→ = ++, v← = +. K stijgt.' };
@@ -400,10 +399,11 @@ function getAnswer(rid, change, substance, inert) {
 function checkPractice() {
   const rid = document.getElementById('prac-reaction').value;
   const change = document.getElementById('prac-change').value;
-  const substance = document.getElementById('prac-substance').value;
+  const substance = (change === 'add' || change === 'remove') ? document.getElementById('prac-substance').value : '';
+  if (!rid || !change || ((change === 'add' || change === 'remove') && !substance)) { document.getElementById('prac-feedback').innerHTML = '<div style="color:var(--danger)">Kies eerst een reactie, een verandering en (als dat nodig is) een stof.</div>'; return; }
 
   const ans = getAnswer(rid, change, substance, 'no');
-  if (!ans) { document.getElementById('prac-feedback').innerHTML = '<div style="color:var(--danger)">Combinatie niet gevonden.</div>'; return; }
+  if (!ans) { document.getElementById('prac-feedback').innerHTML = '<div style="color:var(--danger)">Deze combinatie zit (nog) niet in de simulatie.</div>'; return; }
 
   const vf = document.getElementById('prac-vf').value;
   const vr = document.getElementById('prac-vr').value;
@@ -447,6 +447,7 @@ function startQuiz() {
     }
   }
 
+  if (rid === 'agcl' && change === 'catalyst') { startQuiz(); return; }
   const ans = getAnswer(rid, change, substance, inert);
   if (!ans) { startQuiz(); return; }
 
@@ -457,8 +458,7 @@ function startQuiz() {
   let changeText = '';
   if (change === 'add') changeText = (substance === 'inert' ? 'Inert gas' : substance) + ' toevoegen';
   else if (change === 'remove') changeText = substance + ' verwijderen';
-  else if (change === 'volume_decrease') changeText = 'Volume verkleinen';
-  else if (change === 'volume_increase') changeText = 'Volume vergroten';
+  else if (change === 'volume_decrease' || change === 'volume_increase') changeText = volTxt(r, change);
   else if (change === 'temp_increase') changeText = 'Temperatuur verhogen';
   else if (change === 'temp_decrease') changeText = 'Temperatuur verlagen';
   else if (change === 'catalyst') changeText = 'Katalysator toevoegen';
@@ -466,6 +466,7 @@ function startQuiz() {
 
   html += '<div class="section" style="text-align:center;font-size:16px;font-weight:600;">' + changeText + '</div>';
 
+  html += '<div style="font-size:13px;color:var(--text-sec);margin-bottom:10px;">Let op: <b>neemt meer toe</b> of <b>neemt meer af</b> betekent: deze snelheid verandert sterker dan de andere richting. Veranderen v→ en v← evenveel, dan kies je bij allebei gewoon toe of af.</div>';
   html += '<div class="grid-3">';
   html += '<div class="section"><div class="label">v→</div><select id="quiz-vf"><option value="">-- Kies --</option><option value="++">Neemt meer toe</option><option value="+">Neemt toe</option><option value="0">Blijft gelijk</option><option value="-">Neemt af</option><option value="--">Neemt meer af</option></select></div>';
   html += '<div class="section"><div class="label">v←</div><select id="quiz-vr"><option value="">-- Kies --</option><option value="++">Neemt meer toe</option><option value="+">Neemt toe</option><option value="0">Blijft gelijk</option><option value="-">Neemt af</option><option value="--">Neemt meer af</option></select></div>';
