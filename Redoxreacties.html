@@ -158,7 +158,6 @@
 
 // Half-reactions (Binas tabel 48, gecontroleerd, ontdubbeld)
 const RAW=[
-  { d:"F2/F^-", v:2.87, eq:"F2 + 2 e- -> 2 F^-", elek:"Pt" },
   { d:"MnO4^-/Mn^2+", v:1.51, eq:"MnO4^- + 8 H^+ + 5 e- -> Mn^2+ + 4 H2O", elek:"Pt" },
   { d:"Cl2/Cl^-", v:1.36, eq:"Cl2 + 2 e- -> 2 Cl^-", elek:"Pt" },
   { d:"Cr2O7^2-/Cr^3+", v:1.33, eq:"Cr2O7^2- + 14 H^+ + 6 e- -> 2 Cr^3+ + 7 H2O", elek:"Pt" },
@@ -171,61 +170,50 @@ const RAW=[
   { d:"Sn^4+/Sn^2+", v:0.15, eq:"Sn^4+ + 2 e- -> Sn^2+", elek:"Pt" },
   { d:"H^+/H2", v:0.00, eq:"2 H^+ + 2 e- -> H2", elek:"Pt" },
   { d:"Pb^2+/Pb", v:-0.13, eq:"Pb^2+ + 2 e- -> Pb", elek:"Pb" },
+  { d:"PbSO4/Pb", v:-0.36, eq:"PbSO4 + 2 e- -> Pb + SO4^2-", elek:"Pb", sulfaat:true },
   { d:"Sn^2+/Sn", v:-0.14, eq:"Sn^2+ + 2 e- -> Sn", elek:"Sn" },
   { d:"Ni^2+/Ni", v:-0.26, eq:"Ni^2+ + 2 e- -> Ni", elek:"Ni" },
   { d:"Co^2+/Co", v:-0.28, eq:"Co^2+ + 2 e- -> Co", elek:"Co" },
-  { d:"Fe^2+/Fe", v:-0.41, eq:"Fe^2+ + 2 e- -> Fe", elek:"Fe" },
+  { d:"Fe^2+/Fe", v:-0.45, eq:"Fe^2+ + 2 e- -> Fe", elek:"Fe" },
   { d:"Zn^2+/Zn", v:-0.76, eq:"Zn^2+ + 2 e- -> Zn", elek:"Zn" },
-  { d:"Al^3+/Al", v:-1.71, eq:"Al^3+ + 3 e- -> Al", elek:"Al" },
+  { d:"Al^3+/Al", v:-1.66, eq:"Al^3+ + 3 e- -> Al", elek:"Al" },
   { d:"Mg^2+/Mg", v:-2.37, eq:"Mg^2+ + 2 e- -> Mg", elek:"Mg" }
 ];
 
-const SULFATE_INSOL={"Pb2+":"PbSO4","Ba2+":"BaSO4","Ca2+":"CaSO4","Sr2+":"SrSO4"};
 
-function milieu(eq){ if(/\bH\+/.test(eq))return"zuur"; if(/OH-/.test(eq))return"basisch"; return"neutraal"; }
+
+function milieu(eq){ if(/H\^\+/.test(eq))return"zuur"; if(/OH\^?-/.test(eq))return"basisch"; return"neutraal"; }
 function compatible(m1,m2){ if(m1==="neutraal"||m2==="neutraal")return true; return m1===m2; }
 
 let cel=[], anodeIdx=0, kathodeIdx=1, solution={};
 
-/* Build a half-cell description with counter-ions */
-function beschrijfHalfcel(r, isAnodeIfMetal){
-  // species in solution + counter-ions (Na+ for anions, NO3- for cations as toeschouwer-bron)
+/* Halfcel beschrijven: elektrode + deeltjes in oplossing (met tegenionen) */
+function beschrijfHalfcel(r){
   const m=milieu(r.eq);
-  let stoffen=[];
   const ox=r.d.split("/")[0], red=r.d.split("/")[1];
-
-  // electrode
-  let elekText = r.elek==="Pt" ? "Platina (inert)" : r.elek;
-
-  // describe present species generically (oxidator+reductor of the couple) with counter-ions
-  // We keep it readable: show the redox-active species with counter-ions Na+ / NO3-
-  // For metal electrodes the metal is the electrode itself.
-  let speciesList=[];
-  // dissolved ionic species: also list the accompanying counter-ion as a separate species
-  function speciesWithCounter(sp){
-    // returns array of species present (the ion + its counter-ion)
-    if(/[+]$/.test(sp)) return [sp,"NO3-"];     // cation accompanied by nitraat
-    if(/-$/.test(sp))   return [sp,"Na+"];      // anion accompanied by natrium
+  const elekText = r.elek==="Pt" ? "Platina (inert)" : r.elek;
+  const lijst=[];
+  // tegenion: in zuur milieu sulfaat (nitraat + zuur is zelf een oxidator), anders nitraat;
+  // negatieve ionen krijgen K+ (permanganaat, dichromaat) of Na+ (halogeniden)
+  function metTegenion(sp){
+    if(/\+$/.test(sp)) return [sp, m==="zuur" ? "SO4^2-" : "NO3^-"];
+    if(/-$/.test(sp))   return [sp, /MnO4|Cr2O7/.test(sp) ? "K^+" : "Na^+"];
     return [sp];
   }
-
-  // List the species present in solution (excluding the solid metal electrode itself).
-  if(r.elek!=="Pt"){
-    // metal couple: solution contains the cation (ox form) + counter-ion; metal is the electrode
-    speciesList.push(...speciesWithCounter(ox));
+  if(r.sulfaat){
+    lijst.push("Na^+","SO4^2-");                       // lood in een natriumsulfaatoplossing
+  } else if(r.elek!=="Pt"){
+    lijst.push(...metTegenion(ox));                    // metaal is de elektrode, het ion zit in oplossing
   } else {
-    // inert electrode: both forms of the couple are in solution, each with counter-ion if ionic
-    speciesList.push(...speciesWithCounter(ox));
-    speciesList.push(...speciesWithCounter(red));
+    [ox,red].forEach(sp=>{
+      if(sp==="H2O") return;
+      if(sp==="H2"||sp==="O2"){ lijst.push(sp+" (g, wordt ingeleid)"); return; }
+      lijst.push(...metTegenion(sp));
+    });
   }
-  // milieu species
-  if(m==="zuur"){ speciesList.push("H2SO4"); }
-  if(m==="basisch"){ speciesList.push("NaOH"); }
-  speciesList.push("water");
-
-  // de-duplicate while preserving order
-  const seen=new Set(); const uniq=[];
-  for(const s of speciesList){ if(!seen.has(s)){seen.add(s);uniq.push(s);} }
+  if(m==="zuur") lijst.push("H^+","SO4^2-");
+  lijst.push("water");
+  const uniq=[...new Set(lijst)];
   return {elekText, speciesList:uniq, milieu:m};
 }
 
@@ -235,38 +223,32 @@ function nieuweCel(){
   ['reactie1','reactie2','totaalReactie'].forEach(id=>document.getElementById(id).value='');
   ['eStroom','posIonen','negIonen','anodeKeuze','massa1','massa2'].forEach(id=>document.getElementById(id).value='');
 
-  // pick two compatible half-reactions with different potentials
+  // twee verenigbare halfcellen met minstens 0,10 V verschil; PbSO4/Pb alleen als anode
   let h1,h2,tries=0;
+  function ongeldig(a,b){
+    if(a===b || Math.abs(a.v-b.v)<0.10 || !compatible(milieu(a.eq),milieu(b.eq))) return true;
+    if(a.d.indexOf("Pb")===0 && b.d.indexOf("Pb")===0) return true;       // geen twee lood-halfcellen
+    if(a.sulfaat && a.v>b.v) return true;
+    if(b.sulfaat && b.v>a.v) return true;
+    return false;
+  }
   do{
     h1=RAW[Math.floor(Math.random()*RAW.length)];
     h2=RAW[Math.floor(Math.random()*RAW.length)];
     tries++;
-  }while((h1===h2 || h1.v===h2.v || !compatible(milieu(h1.eq),milieu(h2.eq))) && tries<200);
+  }while(ongeldig(h1,h2) && tries<500);
 
   cel=[h1,h2];
   if(Math.random()>0.5)cel.reverse();
-
-  // determine anode (lower V) / kathode (higher V)
   anodeIdx = cel[0].v < cel[1].v ? 0 : 1;
   kathodeIdx = 1-anodeIdx;
-
-  // precipitate: only if anode is a metal oxidising to a sulfate-insoluble cation AND milieu allows sulfate
-  // Here sulfate is present if either half-cell is zuur (H2SO4). We add a Na2SO4 context for the anode metal.
-  const anodeOxCation = cel[anodeIdx].d.split("/")[0];
-  solution.precip = SULFATE_INSOL[anodeOxCation] || null;
+  solution.precip = cel[anodeIdx].sulfaat ? "PbSO4" : null;
 
   // render half-cells (fmtSub only on chemical species, never on HTML tags)
   [0,1].forEach(i=>{
     const b=beschrijfHalfcel(cel[i]);
     const el=document.getElementById('hc'+(i+1));
     let stoffen=b.speciesList.slice();
-    // For a metal anode that forms a precipitate: the cation is not present at the start
-    // (it forms during oxidation). Show a sulfate source so the neerslag can appear afterwards.
-    if(solution.precip && i===anodeIdx){
-      const cat=cel[anodeIdx].d.split("/")[0];
-      stoffen = stoffen.filter(s=>s!==cat && s!=="NO3-");   // remove the not-yet-present cation + its nitraat
-      if(!stoffen.some(s=>/SO4/.test(s)||/H2SO4/.test(s))) stoffen.unshift("Na2SO4");
-    }
     const stoffenHTML = stoffen.map(s=>fmtSub(s)).join(", ");
     let out=`<h3>Halfcel ${i+1}</h3>`;
     out+=`<div class="elek">Elektrode: <b>${b.elekText}</b></div>`;
@@ -278,11 +260,13 @@ function nieuweCel(){
   // precipitate hint area (only show that sulfate is present, not the answer)
   const pi=document.getElementById('precipInfo');
   if(solution.precip){
-    pi.innerHTML=`<div class="precip-note">Let op: in dit systeem is sulfaat (SO4<sub>2-</sub>) aanwezig. Houd in de gaten of er na de redoxreactie een neerslag ontstaat.</div>`;
+    pi.innerHTML=`<div class="precip-note">Let op: in de halfcel met de loodelektrode is sulfaat (SO<sub>4</sub><sup>2-</sup>) aanwezig. Kijk in Binas tabel 45A of de ionen die ontstaan een neerslag vormen met sulfaat, en zoek dan in tabel 48 de juiste halfreactie.</div>`;
   } else pi.innerHTML='';
 }
 
 function fmtSub(s){
+  const k=s.indexOf(" (");
+  if(k>0) return fmtSub(s.slice(0,k)) + s.slice(k);
   // Charges are written with caret: ^2-, ^+, ^- . Atom counts are bare digits after a letter/).
   return s
     .replace(/\^(\d*[+-])/g,'<sup>$1</sup>')          // caret charge -> superscript
@@ -353,36 +337,67 @@ function normReact(s){
     .replace(/\^/g,'')
     .trim();
 }
-function sameReaction(a,b){
-  // Compare as multisets of terms per side. The inter-term separator is a plus with
-  // a space on BOTH sides ( + ). A charge plus (H+, Zn2+) has no space before it, so it
-  // is preserved. We first protect charge-pluses, then split.
-  function norm(x){
-    let s=x.toLowerCase()
-      .replace(/[\u2013\u2014]/g,'-')
-      .replace(/=>|\u21cc|\u2192/g,'->')
-      .replace(/\^/g,'');
-    // protect the arrow and the inter-term plus with placeholders, then strip all spaces
-    s=s.replace(/\s*->\s*/g,'\u00A7');        // arrow -> §
-    s=s.replace(/\s+\+\s+/g,'\u00A4');       // term separator -> ¤
-    s=s.replace(/\s+/g,'');                  // remove remaining spaces (charges stay intact)
-    s=s.replace(/\u00A7/g,' -> ');            // restore arrow
-    s=s.replace(/\u00A4/g,' + ');             // restore separator
-    return s.trim();
+// Leest een reactievergelijking in als twee lijsten {deeltje: coëfficiënt}.
+// Spaties, pijlvormen, toestandsaanduidingen en ^ maken niet uit.
+function leesReactie(x){
+  if(!x) return null;
+  let s=x.replace(/[−–—]/g,'-').replace(/=>|⇌|→|⟶|-->/g,'->')
+         .replace(/\((s|l|g|aq)\)/gi,'').replace(/\^/g,'').replace(/\s+/g,'').replace(/⁺/g,'+').replace(/⁻/g,'-');
+  const delen=s.split('->');
+  if(delen.length!==2) return null;
+  function kant(t){
+    // een + is een lading als hij direct na een deeltje staat en gevolgd wordt door een + of het einde
+    const termen=[]; let huidig='';
+    for(let i=0;i<t.length;i++){
+      const c=t[i];
+      if(c==='+'){
+        const voor=t[i-1]||'', na=t[i+1];
+        const isLading=/[A-Za-z0-9)]/.test(voor) && (na===undefined || na==='+');
+        if(isLading){ huidig+=c; continue; }
+        termen.push(huidig); huidig=''; continue;
+      }
+      huidig+=c;
+    }
+    termen.push(huidig);
+    const map={};
+    for(let term of termen){
+      if(!term) return null;
+      const m=term.match(/^(\d*)(.+)$/);
+      let coef=m[1]?parseInt(m[1]):1, sp=m[2];
+      if(/^e-?$/i.test(sp)) sp='e-';
+      sp=sp.toLowerCase();
+      map[sp]=(map[sp]||0)+coef;
+    }
+    return map;
   }
-  function sides(x){
-    const p=norm(x).split(' -> ');
-    if(p.length!==2)return null;
-    return p.map(side=>side.split(' + ').map(t=>t.trim().replace(/^1(?=[a-z])/i,'')).sort().join('|'));
-  }
-  const sa=sides(a), sb=sides(b);
-  if(!sa||!sb)return false;
-  return sa[0]===sb[0]&&sa[1]===sb[1];
+  const L=kant(delen[0]), R=kant(delen[1]);
+  if(!L||!R) return null;
+  return [L,R];
 }
+// 0 = fout, 1 = precies goed, 2 = goed maar met een factor vermenigvuldigd
+function vergelijkReactie(antwoord, juist){
+  const A=leesReactie(antwoord), J=leesReactie(juist);
+  if(!A||!J) return 0;
+  let factor=null;
+  for(let k=0;k<2;k++){
+    const a=A[k], j=J[k];
+    const ka=Object.keys(a).sort(), kj=Object.keys(j).sort();
+    if(ka.join('|')!==kj.join('|')) return 0;
+    for(const sp of kj){
+      const f=a[sp]/j[sp];
+      if(factor===null) factor=f;
+      else if(Math.abs(f-factor)>1e-9) return 0;
+    }
+  }
+  if(!(factor>0)) return 0;
+  return Math.abs(factor-1)<1e-9 ? 1 : 2;
+}
+function sameReaction(a,b){ return vergelijkReactie(a,b)>0; }
 
 function massaVerwacht(idx){
   const r=cel[idx];
   if(r.elek==="Pt")return"gelijk";
+  if(r.sulfaat) return idx===anodeIdx?"toe":"af";   // Pb wordt PbSO4 dat op de elektrode neerslaat
   return idx===anodeIdx?"af":"toe";
 }
 
@@ -395,8 +410,17 @@ function checkAlles(){
   function line(label, ok, studentVal, correctVal){
     const div=document.createElement('div');
     div.className='result-line '+(ok?'ok':'no');
-    div.innerHTML=`<span class="icon">${ok?'✓':'✗'}</span><span class="label">${label}</span><span class="val">${ok?'correct':('jouw antwoord: '+(studentVal||'—')+' · juist: '+correctVal)}</span>`;
+    div.innerHTML=`<span class="icon">${ok?'✓':'✗'}</span><span class="label">${label}</span><span class="val">${ok?'correct':('jouw antwoord: '+(studentVal ? studentVal.replace(/</g,'&lt;') : '—')+' · juist: '+(/->/.test(correctVal)?'<span class="reaction-box">'+fmtSub(correctVal)+'</span>':correctVal))}</span>`;
     res.appendChild(div);
+  }
+  function reactieLine(label, studentVal, correctVal){
+    const r=vergelijkReactie(studentVal, correctVal);
+    if(r===2){
+      const div=document.createElement('div');
+      div.className='result-line ok';
+      div.innerHTML=`<span class="icon">✓</span><span class="label">${label}</span><span class="val">correct, maar schrijf hem met de kleinste gehele getallen: <span class="reaction-box">${fmtSub(correctVal)}</span></span>`;
+      res.appendChild(div);
+    } else line(label, r===1, studentVal, correctVal);
   }
 
   // anode choice
@@ -410,12 +434,12 @@ function checkAlles(){
   // Halfcel 1 should contain its own reaction: if cell index 0 is anode -> oxidation, else reduction
   const expect1 = (0===anodeIdx)? sol.oxReactie : sol.redReactie;
   const expect2 = (1===anodeIdx)? sol.oxReactie : sol.redReactie;
-  line('Deelreactie Halfcel 1', sameReaction(r1,expect1), r1, expect1);
-  line('Deelreactie Halfcel 2', sameReaction(r2,expect2), r2, expect2);
+  reactieLine('Deelreactie Halfcel 1', r1, expect1);
+  reactieLine('Deelreactie Halfcel 2', r2, expect2);
 
   // totaal
   const rt=document.getElementById('totaalReactie').value;
-  line('Totaalreactie', sameReaction(rt,sol.totaal), rt, sol.totaal);
+  reactieLine('Totaalreactie', rt, sol.totaal);
 
   // elektronenstroom: from anode to kathode
   const eAns=document.getElementById('eStroom').value;
@@ -445,9 +469,11 @@ function checkAlles(){
   html+=`Elektronen gelijkmaken: oxidatie ×${sol.fA}, reductie ×${sol.fK} (${sol.eTot} e<sup>-</sup>).<br>`;
   html+=`Totaalreactie: <span class="reaction-box">${fmtSub(sol.totaal)}</span><br><br>`;
   if(solution.precip){
-    html+=`<b>Neerslag:</b> aan de anode ontstaat ${cel[anodeIdx].d.split("/")[0]} door oxidatie. Met de aanwezige SO<sub>4</sub><sup>2-</sup> vormt dit een neerslag van ${fmtSub(solution.precip)}.<br><br>`;
+    html+=`<b>Neerslag:</b> Pb<sup>2+</sup> vormt met SO<sub>4</sub><sup>2-</sup> een slecht oplosbaar zout (Binas 45A). Daarom geldt hier de halfreactie PbSO<sub>4</sub>/Pb (−0,36 V) en niet Pb<sup>2+</sup>/Pb.<br><br>`;
   }
-  html+=`Massa: een Platina-elektrode blijft gelijk (inert); een metaal-anode lost op (af) en op een metaal-kathode slaat metaal neer (toe).`;
+  html+= solution.precip
+    ? `Massa: de Pb-elektrode wordt <b>zwaarder</b>: elk Pb-atoom wordt PbSO<sub>4</sub>, dat op de elektrode neerslaat (zoals in een loodaccu). Een platina-elektrode blijft gelijk; op een metaal-kathode slaat metaal neer (toe).`
+    : `Massa: een platina-elektrode blijft gelijk (inert); een metaal-anode lost op (af) en op een metaal-kathode slaat metaal neer (toe).`;
   u.innerHTML=html;
 }
 
