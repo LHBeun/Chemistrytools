@@ -2,44 +2,43 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<title>Mengsels — deeltjessimulatie</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mengsels en scheiden</title>
 <style>
   :root{
-    --bg:#0e0f12; --panel:#17191e; --panel2:#1f222a; --border:#2c3038;
-    --text:#e8e9ec; --muted:#9aa0ab; --accent:#5bb8ff; --accent2:#ffb35b;
-    --good:#5bd98a; --bad:#ff6b6b;
+    --bg:#f4f5f7; --panel:#ffffff; --panel2:#f7f8fa; --border:#dfe3e8;
+    --text:#1f2933; --muted:#64707d; --accent:#1c6fae; --good:#2f9e57; --bad:#c94b4b; --warn:#a15c00;
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Segoe UI,Roboto,sans-serif;}
-  .wrap{display:flex;gap:16px;padding:16px;max-width:1280px;margin:0 auto;flex-wrap:wrap;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,"Segoe UI",Roboto,sans-serif;}
+  .wrap{display:flex;gap:16px;padding:16px;max-width:1320px;margin:0 auto;flex-wrap:wrap;align-items:flex-start;}
   .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;}
   h1{font-size:18px;margin:0 0 4px;}
-  h2{font-size:14px;margin:0 0 10px;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;}
-  .sub{color:var(--muted);font-size:13px;margin-bottom:14px;}
-  .left{width:280px;flex:0 0 280px;}
-  .mid{flex:1 1 480px;min-width:480px;}
-  .right{width:280px;flex:0 0 280px;}
-  .stofrow{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--border);
-    border-radius:8px;padding:8px;margin-bottom:8px;}
-  select{flex:1;background:#111317;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px;}
-  input[type=range]{width:80px;}
-  .amt{width:30px;text-align:right;color:var(--muted);font-size:12px;}
-  button{background:var(--accent);color:#06121d;border:none;border-radius:8px;padding:9px 14px;
-    font-weight:600;cursor:pointer;width:100%;margin-top:6px;}
+  h2{font-size:13px;margin:0 0 10px;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;}
+  h3{font-size:13.5px;margin:14px 0 6px;}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:12px;line-height:1.45;}
+  .left{width:290px;flex:0 0 290px;}
+  .mid{flex:1 1 520px;min-width:480px;}
+  .right{width:330px;flex:0 0 330px;}
+  .stofrow{margin-bottom:8px;}
+  select{width:100%;background:#fff;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px;font-size:13px;}
+  button{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer;width:100%;margin-top:6px;font-size:13.5px;}
   button.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--border);}
   button:disabled{opacity:.4;cursor:not-allowed;}
-  canvas{background:#0a0c10;border:1px solid var(--border);border-radius:10px;display:block;}
-  .status{margin-top:10px;font-size:13px;color:var(--muted);min-height:38px;}
-  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;font-size:12px;color:var(--muted);}
+  canvas{background:#fff;border:1px solid var(--border);border-radius:10px;display:block;max-width:100%;}
+  .status{margin-top:10px;font-size:13px;color:var(--muted);min-height:20px;}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:12px;color:var(--muted);}
   .legend span{display:inline-flex;align-items:center;gap:5px;}
-  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
-  .methods label{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--border);
-    border-radius:7px;padding:7px 9px;margin-bottom:6px;font-size:13px;cursor:pointer;}
+  .dot{width:11px;height:11px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.25);}
+  .keuze label{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--border);
+    border-radius:7px;padding:6px 9px;margin-bottom:5px;font-size:13px;cursor:pointer;}
+  .methode{background:var(--panel2);border:1px solid var(--border);border-radius:7px;padding:6px 9px;margin-bottom:5px;font-size:13px;}
+  .methode label{display:flex;align-items:center;gap:8px;cursor:pointer;}
+  .methode select{margin-top:6px;font-size:12.5px;padding:5px;}
   .feedback{margin-top:10px;font-size:13px;line-height:1.5;}
-  .feedback .ok{color:var(--good);}
-  .feedback .err{color:var(--bad);}
-  .hidden{display:none;}
-  .emul-row{border-top:1px dashed var(--border);margin-top:10px;padding-top:10px;}
+  .ok{color:var(--good);} .err{color:var(--bad);} .warn{color:var(--warn);}
+  .reactie{background:#fff6e0;border:1px solid #f0d9a8;border-radius:8px;padding:10px;font-size:13px;line-height:1.5;margin-top:8px;}
+  .emul-row{border-top:1px dashed var(--border);margin-top:10px;padding-top:10px;font-size:13px;}
 </style>
 </head>
 <body>
@@ -47,713 +46,507 @@
 
   <div class="panel left">
     <h1>Mengsel maken</h1>
-    <div class="sub">Kies tot 3 stoffen, evt. een emulgator.</div>
+    <div class="sub">Kies 1 tot 3 stoffen. Je kunt ook een emulgator toevoegen.</div>
     <div id="stofrows"></div>
     <div class="emul-row">
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;">
-        <input type="checkbox" id="useEmul"> Emulgator toevoegen
-      </label>
+      <label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="useEmul"> Emulgator toevoegen</label>
     </div>
-    <button id="startBtn">Start simulatie</button>
-    <button id="resetBtn" class="secondary">Reset</button>
+    <button id="startBtn">Mengsel maken</button>
+    <button id="resetBtn" class="secondary">Opnieuw</button>
   </div>
 
   <div class="panel mid">
-    <h2>Simulatie</h2>
-    <canvas id="cv" width="560" height="420"></canvas>
-    <button id="schudBtn" class="secondary" disabled style="margin-top:8px;">🫳 Schudden</button>
-    <div class="status" id="status">Kies stoffen en klik op start.</div>
-    <div class="sub" style="margin:6px 0 0;font-size:12px;">Tip: run hetzelfde mengsel eerst zónder en dan mét emulgator, en schud steeds. Vergelijk wat er gebeurt.</div>
+    <h2>Wat zie je?</h2>
+    <canvas id="cv" width="580" height="430"></canvas>
+    <button id="schudBtn" class="secondary" disabled style="margin-top:8px;">Schudden</button>
+    <div class="status" id="status">Kies stoffen en klik op "Mengsel maken".</div>
+    <div id="reactieBox"></div>
+    <div class="sub" style="margin:8px 0 0;font-size:12px;">Tip: maak hetzelfde mengsel eerst zónder en dan mét emulgator, en schud steeds. Wat is het verschil?</div>
     <div class="legend" id="legend"></div>
   </div>
 
   <div class="panel right">
-    <h2>Scheidingsvraag</h2>
-    <div class="sub" id="vraagSub">Wacht tot het mengsel gestabiliseerd is.</div>
-    <div class="methods" id="methods"></div>
-    <button id="checkBtn" disabled>Controleer</button>
+    <h2>Vragen</h2>
+    <div class="sub" id="vraagSub">Wacht tot het mengsel tot rust is gekomen.</div>
+    <div id="vragen" style="display:none;">
+      <h3>1. Wat voor mengsel is dit?</h3>
+      <div class="keuze" id="soorten"></div>
+      <h3>2. Welke scheidingsmethode(n) gebruik je, en op basis van welk verschil in stofeigenschap?</h3>
+      <div id="methods"></div>
+      <button id="checkBtn">Controleer</button>
+    </div>
     <div class="feedback" id="feedback"></div>
   </div>
 
 </div>
 
 <script>
-/* ---------- stofdatabase ---------- */
-/* polarity/density zijn voor de simulatie/scheidingslogica, niet zichtbaar voor de leerling */
+/* =====================================================================
+   STOFFEN — korte, herkenbare lijst voor 3V/4V.
+   Elke stof: triviale naam (+ systematische naam), fase bij kamertemperatuur,
+   dichtheid (g/cm³), kookpunt (°C), kleur in de simulatie.
+   Vaste stoffen: in welke vloeistoffen ze oplossen, en of ze als ionen oplossen.
+   ===================================================================== */
 const STOFFEN = {
-  // vloeistoffen
-  water:        {naam:"Water", polarity:0.95, density:1.00, ionic:false, kookpunt:100, state:"liquid"},
-  ethanol:      {naam:"Ethanol", polarity:0.55, density:0.79, ionic:false, kookpunt:78, state:"liquid"},
-  methanol:     {naam:"Methanol", polarity:0.60, density:0.79, ionic:false, kookpunt:65, state:"liquid"},
-  propanol:     {naam:"1-Propanol", polarity:0.50, density:0.80, ionic:false, kookpunt:97, state:"liquid"},
-  isopropanol:  {naam:"Isopropanol", polarity:0.52, density:0.79, ionic:false, kookpunt:82, state:"liquid"},
-  glycerol:     {naam:"Glycerol", polarity:0.65, density:1.26, ionic:false, kookpunt:290, state:"liquid"},
-  azijnzuur:    {naam:"Azijnzuur", polarity:0.50, density:1.05, ionic:false, kookpunt:118, state:"liquid"},
-  aceton:       {naam:"Aceton", polarity:0.45, density:0.79, ionic:false, kookpunt:56, state:"liquid"},
-  ethylacetaat: {naam:"Ethylacetaat", polarity:-0.20, density:0.90, ionic:false, kookpunt:77, state:"liquid"},
-  diethylether: {naam:"Diethylether", polarity:-0.30, density:0.71, ionic:false, kookpunt:35, state:"liquid"},
-  chloroform:   {naam:"Chloroform", polarity:-0.40, density:1.49, ionic:false, kookpunt:61, state:"liquid"},
-  tolueen:      {naam:"Tolueen", polarity:-0.65, density:0.87, ionic:false, kookpunt:111, state:"liquid"},
-  terpentine:   {naam:"Terpentine", polarity:-0.70, density:0.87, ionic:false, kookpunt:150, state:"liquid"},
-  olijfolie:    {naam:"Olijfolie", polarity:-0.75, density:0.91, ionic:false, kookpunt:null, state:"liquid"},
-  cyclohexaan:  {naam:"Cyclohexaan", polarity:-0.80, density:0.78, ionic:false, kookpunt:81, state:"liquid"},
-  benzine:      {naam:"Benzine", polarity:-0.78, density:0.74, ionic:false, kookpunt:95, state:"liquid"},
-  hexaan:       {naam:"Hexaan", polarity:-0.85, density:0.66, ionic:false, kookpunt:69, state:"liquid"},
-  heptaan:      {naam:"Heptaan", polarity:-0.83, density:0.68, ionic:false, kookpunt:98, state:"liquid"},
-  octaan:       {naam:"Octaan", polarity:-0.82, density:0.70, ionic:false, kookpunt:126, state:"liquid"},
-  pentaan:      {naam:"Pentaan", polarity:-0.90, density:0.63, ionic:false, kookpunt:36, state:"liquid"},
+  water:     {naam:'water', fase:'vloeistof', dichtheid:1.00, kookpunt:100, kleur:'#8cc3ec'},
+  ethanol:   {naam:'alcohol (ethanol)', fase:'vloeistof', dichtheid:0.79, kookpunt:78, kleur:'#f1d36b'},
+  aceton:    {naam:'aceton (propanon)', fase:'vloeistof', dichtheid:0.79, kookpunt:56, kleur:'#c9b6ea'},
+  azijn:     {naam:'azijn (ethaanzuur in water)', fase:'vloeistof', dichtheid:1.01, kookpunt:100, kleur:'#f4e7b0', zuur:true},
+  glycerol:  {naam:'glycerol (propaan-1,2,3-triol)', fase:'vloeistof', dichtheid:1.26, kookpunt:290, kleur:'#a9e2d6'},
+  olie:      {naam:'olijfolie (mengsel van esters)', fase:'vloeistof', dichtheid:0.91, kookpunt:null, kleur:'#d9b13b'},
+  hexaan:    {naam:'wasbenzine (hexaan)', fase:'vloeistof', dichtheid:0.66, kookpunt:69, kleur:'#c7cbd1'},
 
-  // oplosbare ionische vaste stoffen (dissociëren in water)
-  nacl:     {naam:"Keukenzout (NaCl)", polarity:1.0, density:2.16, ionic:true, kookpunt:1465, state:"solid",
-             ionA:{naam:"Na⁺", charge:1}, ionB:{naam:"Cl⁻", charge:-1}},
-  kno3:     {naam:"Kaliumnitraat (KNO₃)", polarity:1.0, density:2.11, ionic:true, kookpunt:400, state:"solid",
-             ionA:{naam:"K⁺", charge:1}, ionB:{naam:"NO₃⁻", charge:-1}},
-  nahco3:   {naam:"Zuiveringszout (NaHCO₃)", polarity:1.0, density:2.20, ionic:true, kookpunt:null, state:"solid",
-             ionA:{naam:"Na⁺", charge:1}, ionB:{naam:"HCO₃⁻", charge:-1}},
-  cuso4:    {naam:"Kopersulfaat (CuSO₄)", polarity:1.0, density:3.60, ionic:true, kookpunt:null, state:"solid",
-             ionA:{naam:"Cu²⁺", charge:2}, ionB:{naam:"SO₄²⁻", charge:-2}},
-  cacl2:    {naam:"Calciumchloride (CaCl₂)", polarity:1.0, density:2.15, ionic:true, kookpunt:null, state:"solid",
-             ionA:{naam:"Ca²⁺", charge:2}, ionB:{naam:"Cl⁻", charge:-1}},
-
-  // oplosbare moleculaire vaste stoffen (lossen op zonder te dissociëren)
-  suiker:   {naam:"Suiker (sacharose)", polarity:0.7, density:1.59, ionic:false, kookpunt:null, state:"solid", dissolves:true},
-  glucose:  {naam:"Glucose", polarity:0.75, density:1.54, ionic:false, kookpunt:null, state:"solid", dissolves:true},
-  ureum:    {naam:"Ureum", polarity:0.60, density:1.32, ionic:false, kookpunt:null, state:"solid", dissolves:true},
-
-  // onoplosbare vaste stoffen (blijven vast, ook met water aanwezig)
-  zand:     {naam:"Zand", polarity:-0.3, density:2.65, ionic:false, kookpunt:null, state:"solid"},
-  krijt:    {naam:"Krijt (CaCO₃)", polarity:0.1, density:2.71, ionic:false, kookpunt:null, state:"solid"},
-  zwavel:   {naam:"Zwavelpoeder", polarity:-0.6, density:2.07, ionic:false, kookpunt:null, state:"solid"},
-  houtskool:{naam:"Actieve kool", polarity:-0.5, density:1.80, ionic:false, kookpunt:null, state:"solid"},
+  zout:      {naam:'keukenzout (natriumchloride)', fase:'vast', dichtheid:2.16, kleur:'#e6e6e6', lostOpIn:['water','azijn','glycerol'],
+              ionen:[{naam:'Na⁺', n:1, kleur:'#9aa3ad'}, {naam:'Cl⁻', n:1, kleur:'#5fbf6a'}]},
+  kopersulfaat:{naam:'kopersulfaat (koper(II)sulfaat)', fase:'vast', dichtheid:3.60, kleur:'#3d7fd6', lostOpIn:['water','azijn','glycerol'],
+              ionen:[{naam:'Cu²⁺', n:1, kleur:'#2f6fd0'}, {naam:'SO₄²⁻', n:1, kleur:'#8b6bb8'}]},
+  zuiveringszout:{naam:'zuiveringszout (natriumwaterstofcarbonaat)', fase:'vast', dichtheid:2.20, kleur:'#f3f0e6', lostOpIn:['water','glycerol'],
+              ionen:[{naam:'Na⁺', n:1, kleur:'#9aa3ad'}, {naam:'HCO₃⁻', n:1, kleur:'#d98c5f'}]},
+  suiker:    {naam:'suiker (sacharose)', fase:'vast', dichtheid:1.59, kleur:'#ffffff', lostOpIn:['water','azijn','glycerol']},
+  inkt:      {naam:'inkt (mengsel van kleurstoffen)', fase:'vast', dichtheid:1.40, kleur:'#24308f', lostOpIn:['water','ethanol','azijn','glycerol','aceton']},
+  jood:      {naam:'jood (diiood)', fase:'vast', dichtheid:4.93, kleur:'#4a2a5a', lostOpIn:['ethanol','aceton','hexaan','olie'], opgelostKleur:'#9b4fb0'},
+  zand:      {naam:'zand (siliciumdioxide)', fase:'vast', dichtheid:2.65, kleur:'#d8b878', lostOpIn:[]},
+  krijt:     {naam:'krijt (calciumcarbonaat)', fase:'vast', dichtheid:2.71, kleur:'#f7f7f2', lostOpIn:[]},
 };
-const EMULGATOR = {naam:"Emulgator", headPol:0.85, tailPol:-0.85};
 
-/* ---------- UI opbouw: 3 stof-rijen ---------- */
+// Mengbaarheid van vloeistoffen (bij kamertemperatuur), als expliciete tabel:
+// één polariteitsgetal is te grof (alcohol en aceton mengen met water én met wasbenzine).
+const MENGBAAR = new Set([
+  'water|ethanol','water|aceton','water|azijn','water|glycerol',
+  'ethanol|aceton','ethanol|azijn','ethanol|glycerol','ethanol|hexaan',
+  'aceton|azijn','aceton|olie','aceton|hexaan',
+  'azijn|glycerol',
+  'olie|hexaan',
+]);
+function mengbaar(a,b){ return MENGBAAR.has(a+'|'+b) || MENGBAAR.has(b+'|'+a); }
+const WATERACHTIG = ['water','azijn','glycerol'];
+const APOLAIR = ['olie','hexaan'];
+
+// Reacties: dan is het geen mengsel van de gekozen stoffen meer.
+const REACTIES = [
+  {nodig:['azijn','krijt'], vast:'krijt', gas:true,
+   tekst:'Krijt (calciumcarbonaat) reageert met het ethaanzuur in azijn. Je ziet bruisen: er ontstaat koolstofdioxide (gas), water en calciumethanoaat, dat oplost.'},
+  {nodig:['azijn','zuiveringszout'], vast:'zuiveringszout', gas:true,
+   tekst:'Zuiveringszout (natriumwaterstofcarbonaat) reageert met het ethaanzuur in azijn. Je ziet bruisen: er ontstaat koolstofdioxide (gas), water en natriumethanoaat, dat oplost.'},
+  {nodig:['kopersulfaat','zuiveringszout'], vloeistof:'water', vast:'zuiveringszout', gas:true, neerslag:true,
+   tekst:'Opgelost kopersulfaat en zuiveringszout reageren met elkaar: er ontstaat een groenblauwe vaste stof (een neerslag) en koolstofdioxide (gas).'},
+];
+
+const METHODEN = [
+  {id:'filtreren', naam:'Filtreren', principe:['deeltjesgrootte']},
+  {id:'bezinken', naam:'Bezinken en decanteren', principe:['dichtheid']},
+  {id:'centrifugeren', naam:'Centrifugeren', principe:['dichtheid']},
+  {id:'scheitrechter', naam:'Scheiden met een scheitrechter', principe:['dichtheid','mengbaarheid']},
+  {id:'indampen', naam:'Indampen', principe:['kookpunt']},
+  {id:'destilleren', naam:'Destilleren', principe:['kookpunt']},
+  {id:'extraheren', naam:'Extraheren', principe:['oplosbaarheid']},
+  {id:'adsorberen', naam:'Adsorberen', principe:['aanhechtingsvermogen']},
+  {id:'chromatografie', naam:'Chromatografie', principe:['aanhechtingsvermogen','oplosbaarheid']},
+];
+const PRINCIPES = ['deeltjesgrootte','dichtheid','mengbaarheid','kookpunt','oplosbaarheid','aanhechtingsvermogen'];
+const SOORTEN = [
+  {id:'oplossing', naam:'oplossing (helder, opgeloste deeltjes)'},
+  {id:'suspensie', naam:'suspensie (vaste deeltjes in een vloeistof)'},
+  {id:'emulsie', naam:'emulsie (druppeltjes vloeistof in een andere vloeistof)'},
+  {id:'lagen', naam:'niet-mengbare vloeistoffen (lagen)'},
+  {id:'vast', naam:'mengsel van vaste stoffen'},
+  {id:'zuiver', naam:'geen mengsel: één zuivere stof'},
+];
+
+/* ---------- UI: 3 keuzerijen, geen dubbele keuze ---------- */
 const stofrows = document.getElementById('stofrows');
-const keys = Object.keys(STOFFEN).sort((a,b)=>STOFFEN[a].naam.localeCompare(STOFFEN[b].naam));
+const vloeibaar = Object.keys(STOFFEN).filter(k=>STOFFEN[k].fase==='vloeistof');
+const vast = Object.keys(STOFFEN).filter(k=>STOFFEN[k].fase==='vast');
 for(let i=0;i<3;i++){
-  const row = document.createElement('div');
-  row.className='stofrow';
-  row.innerHTML = `
-    <select data-idx="${i}">
-      <option value="">— geen —</option>
-      ${keys.map(k=>`<option value="${k}">${STOFFEN[k].naam}</option>`).join('')}
-    </select>
-  `;
+  const row = document.createElement('div'); row.className='stofrow';
+  row.innerHTML = `<select data-idx="${i}"><option value="">— geen —</option>
+    <optgroup label="Vloeistoffen">${vloeibaar.map(k=>`<option value="${k}">${STOFFEN[k].naam}</option>`).join('')}</optgroup>
+    <optgroup label="Vaste stoffen">${vast.map(k=>`<option value="${k}">${STOFFEN[k].naam}</option>`).join('')}</optgroup></select>`;
   stofrows.appendChild(row);
 }
+function updateKeuzes(){
+  const sels = [...document.querySelectorAll('#stofrows select')];
+  const gekozen = sels.map(s=>s.value);
+  sels.forEach((s,i)=>{ [...s.options].forEach(o=>{ o.disabled = o.value && gekozen.some((g,j)=>j!==i && g===o.value); }); });
+}
+document.querySelectorAll('#stofrows select').forEach(s=>s.addEventListener('change', updateKeuzes));
 
-/* ---------- simulatie state ---------- */
+/* =====================================================================
+   ANALYSE: welke lagen, wat lost op, reactie, emulsie
+   ===================================================================== */
+let gekozen = [], hasEmul = false, analyse = null;
+
+function maakAnalyse(){
+  const vl = gekozen.filter(k=>STOFFEN[k].fase==='vloeistof');
+  const vs = gekozen.filter(k=>STOFFEN[k].fase==='vast');
+  // reactie?
+  let reactie = null;
+  for(const r of REACTIES){
+    if(r.nodig.every(k=>gekozen.includes(k)) && (!r.vloeistof || gekozen.some(k=>WATERACHTIG.includes(k)))){ reactie = r; break; }
+  }
+  // vloeistoffen clusteren op mengbaarheid
+  // Een vloeistof komt in een laag als hij met ÁLLE vloeistoffen in die laag mengt. Volgorde: waterachtig
+  // eerst, dan alcohol/aceton, dan apolair. Zo komt alcohol bij water + wasbenzine in de waterlaag.
+  const volgorde = ['water','azijn','glycerol','ethanol','aceton','olie','hexaan'];
+  const clusters = [];
+  [...vl].sort((a,b)=>volgorde.indexOf(a)-volgorde.indexOf(b)).forEach(k=>{
+    const c = clusters.find(c=>c.every(m=>mengbaar(m,k)));
+    if(c) c.push(k); else clusters.push([k]);
+  });
+  let lagen = clusters.map(v=>({vloeistoffen:v, opgelost:[]}));
+  // emulsie: emulgator + een waterachtige laag + een apolaire laag
+  let emulsie = false;
+  if(hasEmul && lagen.length >= 2){
+    const w = lagen.find(l=>l.vloeistoffen.some(k=>WATERACHTIG.includes(k)));
+    const a = lagen.find(l=>l.vloeistoffen.some(k=>APOLAIR.includes(k)) && l!==w);
+    if(w && a){ emulsie = {water:w, olie:a}; }
+  }
+  // vaste stoffen: oplossen in de eerste laag met een geschikt oplosmiddel (anders blijft hij vast)
+  const onopgelost = [];
+  vs.forEach(k=>{
+    const laag = lagen.find(l=>l.vloeistoffen.some(v=>STOFFEN[k].lostOpIn.includes(v)));
+    if(laag) laag.opgelost.push(k); else onopgelost.push(k);
+  });
+  lagen.forEach(l=>{ l.dichtheid = l.vloeistoffen.reduce((s,k)=>s+STOFFEN[k].dichtheid,0)/l.vloeistoffen.length; });
+  return {vl, vs, lagen, onopgelost, emulsie, reactie};
+}
+
+/* =====================================================================
+   VERWACHTE ANTWOORDEN
+   Elke eis is een lijst van methoden waarvan er minstens één gekozen moet zijn.
+   ===================================================================== */
+function verwachting(an){
+  const soorten = new Set(), eisen = [], uitleg = [];
+  const naam = k=>STOFFEN[k].naam;
+  if(gekozen.length === 1){
+    soorten.add('zuiver');
+    uitleg.push(`${naam(gekozen[0])} is één stof: er valt niets te scheiden.`);
+    return {soorten, eisen, uitleg};
+  }
+  if(an.vl.length === 0){
+    soorten.add('vast');
+    // droog mengsel van vaste stoffen: werkt extraheren met water (of wasbenzine)?
+    let gelukt = false;
+    for(const opl of ['water','hexaan']){
+      const los = an.vs.filter(k=>STOFFEN[k].lostOpIn.includes(opl)), niet = an.vs.filter(k=>!STOFFEN[k].lostOpIn.includes(opl));
+      if(los.length && niet.length){
+        eisen.push({opties:['extraheren'], tekst:`extraheren met ${opl==='water'?'water':'wasbenzine'}`});
+        eisen.push({opties:['filtreren','bezinken','centrifugeren'], tekst:'filtreren (of bezinken en decanteren)'});
+        eisen.push({opties:['indampen','destilleren'], tekst:'indampen (of destilleren)'});
+        uitleg.push(`Voeg ${opl==='water'?'water':'wasbenzine'} toe: ${los.map(naam).join(' en ')} lost op, ${niet.map(naam).join(' en ')} niet (extraheren, verschil in oplosbaarheid). Filtreer de vaste stof eruit en damp de oplossing in.`);
+        if(los.length>1) uitleg.push(`Let op: ${los.map(naam).join(' en ')} lossen allebei op en blijven na indampen samen achter.`);
+        gelukt = true; break;
+      }
+    }
+    if(!gelukt) uitleg.push('Deze vaste stoffen zijn met de methoden uit deze lijst niet goed van elkaar te scheiden.');
+    return {soorten, eisen, uitleg};
+  }
+  // onopgeloste vaste stof in een vloeistof: suspensie
+  if(an.onopgelost.length){
+    soorten.add('suspensie');
+    eisen.push({opties:['filtreren','bezinken','centrifugeren'], tekst:'filtreren, bezinken en decanteren, of centrifugeren'});
+    uitleg.push(`${an.onopgelost.map(naam).join(' en ')} lost niet op en blijft als vaste deeltjes in de vloeistof: een suspensie. Scheiden kan met filtreren (verschil in deeltjesgrootte), of met bezinken en decanteren of centrifugeren (verschil in dichtheid).`);
+    if(an.onopgelost.length>1) uitleg.push(`${an.onopgelost.map(naam).join(' en ')} blijven daarna samen over als mengsel van vaste stoffen.`);
+  }
+  // lagen of emulsie
+  if(an.lagen.length >= 2){
+    const namen = an.lagen.map(l=>l.vloeistoffen.map(naam).join(' + '));
+    if(an.emulsie){
+      soorten.add('emulsie');
+      eisen.push({opties:['centrifugeren'], tekst:'centrifugeren'});
+      uitleg.push(`${namen.join(' en ')} mengen niet, maar door de emulgator blijven de druppeltjes zweven: een stabiele emulsie. Afschenken of een scheitrechter werkt niet meer; centrifugeren wel (verschil in dichtheid).`);
+    } else {
+      soorten.add('lagen');
+      eisen.push({opties:['scheitrechter','bezinken'], tekst:'scheitrechter (of decanteren)'});
+      uitleg.push(`${namen.join(' en ')} mengen niet en vormen lagen, de lichtste bovenop. Scheiden met een scheitrechter (verschil in dichtheid; de vloeistoffen mengen niet).`);
+    }
+  }
+  // binnen elke laag: opgeloste stoffen en/of mengbare vloeistoffen
+  an.lagen.forEach(l=>{
+    const comp = l.vloeistoffen.length + l.opgelost.length;
+    if(comp < 2) return;
+    soorten.add('oplossing');
+    if(l.vloeistoffen.length >= 2){
+      const kp = l.vloeistoffen.map(k=>STOFFEN[k].kookpunt);
+      eisen.push({opties:['destilleren'], tekst:'destilleren'});
+      uitleg.push(`${l.vloeistoffen.map(naam).join(' en ')} mengen volledig: een oplossing. Scheiden met destilleren (verschil in kookpunt${kp.every(x=>x!=null)?': '+kp.map(x=>x+' °C').join(' en '):''}).`);
+    }
+    if(l.opgelost.length){
+      const opties = ['indampen','destilleren'];
+      if(l.opgelost.includes('inkt')) opties.push('adsorberen','chromatografie');
+      eisen.push({opties, tekst: opties.includes('adsorberen') ? 'indampen, destilleren, adsorberen of chromatografie' : 'indampen (of destilleren)'});
+      uitleg.push(`${l.opgelost.map(naam).join(' en ')} lost op in ${l.vloeistoffen.map(naam).join(' + ')}: een oplossing, filtreren werkt niet. Met indampen blijft de vaste stof achter; met destilleren vang je ook de vloeistof op (verschil in kookpunt).`);
+      if(l.opgelost.includes('inkt')) uitleg.push('De kleurstoffen in inkt kun je ook met actieve kool uit de vloeistof halen (adsorberen) of van elkaar scheiden met chromatografie (verschil in aanhechtingsvermogen).');
+      if(l.opgelost.includes('jood') && an.lagen.length>=2) uitleg.push('Jood lost wel op in wasbenzine of olie en nauwelijks in water. Daarom komt het in die laag terecht: zo werkt extraheren.');
+      if(l.opgelost.length>1) uitleg.push(`Let op: ${l.opgelost.map(naam).join(' en ')} blijven na indampen samen achter.`);
+    }
+  });
+  if(hasEmul && !an.emulsie) uitleg.push('De emulgator heeft hier geen effect: er zijn geen twee niet-mengbare vloeistoffen (water en olie of wasbenzine).');
+  if(soorten.size===0){ soorten.add('zuiver'); uitleg.push('Er is hier niets te scheiden.'); }
+  return {soorten, eisen, uitleg};
+}
+
+/* =====================================================================
+   DEELTJES EN LAGEN (de deeltjes bewegen naar een doelpositie)
+   ===================================================================== */
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const W = cv.width, H = cv.height;
-let particles = [];
-let running = false;
-let phase = 'idle'; // 'idle' | 'settling' | 'stable' | 'shaking'
-let currentLerp = 0.08;
-let shakeEndAt = 0;
-let selectedStoffen = []; // {key, amount}
-let hasEmul = false;
-
-const FAST_LERP = 0.08;          // eerste keer vullen: snel naar de eindpositie
-const SLOW_LERP = 0.013;         // na schudden: ~10 seconden zichtbaar ontmengen
-const SHAKE_DURATION_MS = 2000; // duur van de chaotische roerfase
-const SHAKE_JITTER = 3.4;       // kracht van de willekeurige beweging tijdens schudden
-
-const R_LIQUID = 8;
-const R_SOLID = 12;
-const R_ION = 6;
-
-let kleurenMap = {}; // roleKey -> hex kleur, opnieuw berekend bij elke start
-
-function bepaalRolKeys(){
-  const heeftWater = selectedStoffen.some(s=>s.key==='water');
-  const roles = [];
-  selectedStoffen.forEach(s=>{
-    const stof = STOFFEN[s.key];
-    if(stof.ionic && heeftWater){ roles.push(s.key+'_ionA', s.key+'_ionB'); }
-    else if(stof.dissolves && heeftWater){ roles.push(s.key+'_dissolved'); }
-    else { roles.push(s.key); }
-  });
-  if(hasEmul){ roles.push('emul_head','emul_tail'); }
-  return roles;
-}
-
-function bouwKleurenMap(){
-  const roles = bepaalRolKeys();
-  kleurenMap = {};
-  roles.forEach((role,i)=>{
-    const hue = Math.round(i*(360/roles.length));
-    kleurenMap[role] = `hsl(${hue},75%,62%)`;
-  });
-}
-
-function buildLegend(){
-  const legend = document.getElementById('legend');
-  legend.innerHTML = '';
-  const heeftWater = selectedStoffen.some(s=>s.key==='water');
-  selectedStoffen.forEach(s=>{
-    const st = STOFFEN[s.key];
-    if(st.ionic && heeftWater){
-      legend.innerHTML += `<span><span class="dot" style="background:${kleurenMap[s.key+'_ionA']}"></span>${st.ionA.naam}</span>`;
-      legend.innerHTML += `<span><span class="dot" style="background:${kleurenMap[s.key+'_ionB']}"></span>${st.ionB.naam}</span>`;
-    } else if(st.dissolves && heeftWater){
-      legend.innerHTML += `<span><span class="dot" style="background:${kleurenMap[s.key+'_dissolved']}"></span>${st.naam} (opgelost)</span>`;
-    } else {
-      legend.innerHTML += `<span><span class="dot" style="background:${kleurenMap[s.key]}"></span>${st.naam}</span>`;
-    }
-  });
-  if(hasEmul){
-    legend.innerHTML += `<span><span class="dot" style="background:${kleurenMap.emul_head}"></span>Emulgator kop (polair)</span>`;
-    legend.innerHTML += `<span><span class="dot" style="background:${kleurenMap.emul_tail}"></span>Emulgator staart (apolair)</span>`;
-  }
-}
-
-document.getElementById('startBtn').addEventListener('click', ()=>{
-  selectedStoffen = [];
-  document.querySelectorAll('#stofrows select').forEach((sel,i)=>{
-    if(sel.value){
-      selectedStoffen.push({key:sel.value});
-    }
-  });
-  hasEmul = document.getElementById('useEmul').checked;
-
-  if(selectedStoffen.length===0){
-    document.getElementById('status').textContent = "Kies minstens 1 stof.";
-    return;
-  }
-  initParticles();
-  buildLegend();
-  buildMethodChecklist();
-  phase = 'settling'; currentLerp = FAST_LERP;
-  document.getElementById('checkBtn').disabled = true;
-  document.getElementById('schudBtn').disabled = true;
-  document.getElementById('feedback').innerHTML = '';
-  document.getElementById('vraagSub').textContent = 'Wacht tot het mengsel gestabiliseerd is.';
-  running = true;
-  document.getElementById('status').textContent = 'Simulatie loopt…';
-});
-
-document.getElementById('resetBtn').addEventListener('click', ()=>{
-  running = false; particles = []; phase = 'idle';
-  ctx.clearRect(0,0,W,H);
-  document.getElementById('status').textContent = 'Kies stoffen en klik op start.';
-  document.getElementById('checkBtn').disabled = true;
-  document.getElementById('schudBtn').disabled = true;
-  document.getElementById('feedback').innerHTML = '';
-  document.getElementById('methods').innerHTML='';
-});
-
-document.getElementById('schudBtn').addEventListener('click', ()=>{
-  if(phase!=='stable') return;
-  // eerst echt door elkaar husselen over het hele vat (anders oogt schudden niet als mengen)
-  particles.forEach(p=>{
-    p.x = p.r + Math.random()*(W-2*p.r);
-    p.y = p.r + Math.random()*(H-2*p.r);
-    p.vx = (Math.random()-0.5)*10;
-    p.vy = (Math.random()-0.5)*10;
-  });
-  phase = 'shaking';
-  shakeEndAt = performance.now() + SHAKE_DURATION_MS;
-  document.getElementById('schudBtn').disabled = true;
-  document.getElementById('checkBtn').disabled = true;
-  document.getElementById('status').textContent = 'Schudden… 🫳';
-});
-
-const N_TOTAL = 460;     // totaal aantal 'slots' om het vat te vullen
-const SOLID_UNITS = 10;   // vaste/opgeloste stof: klein en vast aantal, ongeacht de rest
-const EMUL_UNITS = 36;    // emulgator: vast aantal kop-staart-eenheden
-const APOLAIR_MET_EMUL = 60; // met emulgator: olie als druppeltjes, dus klein en vast
-const DROPLET_SIZE = 12;  // gemiddeld aantal olie-deeltjes per druppel -> bepaalt aantal druppels
+let particles = [], running = false, phase = 'idle', currentLerp = 0.08, shakeEndAt = 0, reactieEind = 0;
+const FAST_LERP = 0.08, SLOW_LERP = 0.013, SHAKE_MS = 2000, SHAKE_JITTER = 3.4;
+const R_LIQ = 8, R_SOLID = 11, R_ION = 6;
+const N_VLOEISTOF = 400, N_VAST = 12, N_EMUL = 36, N_OLIE_EMUL = 60, DRUPPEL = 12;
 
 function initParticles(){
   particles = [];
-  bouwKleurenMap();
-  const heeftWater = selectedStoffen.some(s=>s.key==='water');
-  const vloeistoffen = selectedStoffen.filter(s=>STOFFEN[s.key].state==='liquid');
-  const vasteStoffen = selectedStoffen.filter(s=>STOFFEN[s.key].state==='solid');
-
-  let budget = N_TOTAL;
-  vasteStoffen.forEach(s=>{ budget -= STOFFEN[s.key].ionic ? SOLID_UNITS*2 : SOLID_UNITS; });
-  if(hasEmul) budget -= EMUL_UNITS;
-
-  const apolaireVloeistoffen = vloeistoffen.filter(s=>STOFFEN[s.key].polarity<-0.3);
-  const overigeVloeistoffen = vloeistoffen.filter(s=>STOFFEN[s.key].polarity>=-0.3);
-
-  let aantalPerStof = {};
-  if(hasEmul && apolaireVloeistoffen.length>0){
-    // met emulgator: apolaire vloeistof wordt klein gehouden (druppeltjes i.p.v. een laag)
-    const perApolair = Math.max(6, Math.round(APOLAIR_MET_EMUL/apolaireVloeistoffen.length));
-    apolaireVloeistoffen.forEach(s=>aantalPerStof[s.key]=perApolair);
-    const restBudget = budget - perApolair*apolaireVloeistoffen.length;
-    const perOverig = overigeVloeistoffen.length ? Math.max(1, Math.round(restBudget/overigeVloeistoffen.length)) : 0;
-    overigeVloeistoffen.forEach(s=>aantalPerStof[s.key]=perOverig);
-  } else {
-    // zonder emulgator: gelijk verdeeld, zodat niet-mengbare vloeistoffen een duidelijke laag vormen
-    const perVloeistof = vloeistoffen.length ? Math.max(1, Math.round(budget/vloeistoffen.length)) : 0;
-    vloeistoffen.forEach(s=>aantalPerStof[s.key]=perVloeistof);
-  }
-
-  vloeistoffen.forEach(s=>{
-    const stof = STOFFEN[s.key];
-    const n = aantalPerStof[s.key] || 0;
-    for(let i=0;i<n;i++){
-      particles.push({key:s.key, group:'liquid_'+s.key, r:R_LIQUID,
-        polarity:stof.polarity, density:stof.density, charge:0, color:kleurenMap[s.key], isIon:false});
-    }
+  const an = analyse;
+  let perVl = an.vl.length ? Math.round(N_VLOEISTOF/an.vl.length) : 0;
+  an.vl.forEach(k=>{
+    let n = perVl;
+    if(an.emulsie && APOLAIR.includes(k)) n = Math.round(N_OLIE_EMUL/an.emulsie.olie.vloeistoffen.length);
+    for(let i=0;i<n;i++) particles.push({key:k, r:R_LIQ, color:STOFFEN[k].kleur, laag:k});
   });
-
-  vasteStoffen.forEach(s=>{
-    const stof = STOFFEN[s.key];
-    if(stof.ionic && heeftWater){
-      for(let i=0;i<SOLID_UNITS;i++){
-        particles.push({key:'ion_a', group:'water', r:R_ION,
-          polarity:1, density:1.0, charge:stof.ionA.charge, color:kleurenMap[s.key+'_ionA'], isIon:true});
-        particles.push({key:'ion_b', group:'water', r:R_ION,
-          polarity:1, density:1.0, charge:stof.ionB.charge, color:kleurenMap[s.key+'_ionB'], isIon:true});
+  an.lagen.forEach(l=>{
+    l.opgelost.forEach(k=>{
+      const s = STOFFEN[k];
+      if(s.ionen){
+        s.ionen.forEach(ion=>{ for(let i=0;i<N_VAST*ion.n;i++) particles.push({key:k, ion:ion.naam, r:R_ION, color:ion.kleur, laag:l.vloeistoffen[0], opgelost:true}); });
+      } else {
+        for(let i=0;i<N_VAST;i++) particles.push({key:k, r:R_ION+1, color:s.opgelostKleur||s.kleur, laag:l.vloeistoffen[0], opgelost:true});
       }
-    } else if(stof.dissolves && heeftWater){
-      for(let i=0;i<SOLID_UNITS;i++){
-        particles.push({key:s.key, group:'water', r:R_LIQUID,
-          polarity:stof.polarity, density:1.0, charge:0, color:kleurenMap[s.key+'_dissolved'], isIon:false, dissolved:true});
-      }
-    } else {
-      // niet opgelost (geen water aanwezig): blijft vaste stof, eigen bodemlaag
-      for(let i=0;i<SOLID_UNITS;i++){
-        particles.push({key:s.key, group:'solid_'+s.key, r:R_SOLID,
-          polarity:stof.polarity, density:stof.density, charge:0, color:kleurenMap[s.key], isIon:false});
-      }
-    }
+    });
   });
-
+  an.onopgelost.forEach(k=>{ for(let i=0;i<N_VAST;i++) particles.push({key:k, r:R_SOLID, color:STOFFEN[k].kleur, laag:'vast_'+k, vast:true}); });
   if(hasEmul){
-    for(let i=0;i<EMUL_UNITS;i++){
-      particles.push({key:'emul', group:'emul', r:R_LIQUID,
-        polarity:0, density:0.9, charge:0, isIon:false,
-        angle: Math.random()*Math.PI*2});
-    }
+    for(let i=0;i<N_EMUL;i++) particles.push({key:'emul', r:R_LIQ, laag: an.lagen.length ? an.lagen[0].vloeistoffen[0] : 'emul', angle:Math.random()*Math.PI*2});
   }
-
-  // startpositie: willekeurig verspreid (geeft een korte "roer"-animatie naar de uiteindelijke lagen)
-  particles.forEach(p=>{
-    p.x = R_LIQUID + Math.random()*(W-2*R_LIQUID);
-    p.y = R_LIQUID + Math.random()*(H-2*R_LIQUID);
-  });
-
+  particles.forEach(p=>{ p.x = R_LIQ + Math.random()*(W-2*R_LIQ); p.y = R_LIQ + Math.random()*(H-2*R_LIQ); });
   berekenLagen();
 }
 
-/* ---------- laagindeling: mengbaarheid + dichtheid bepalen de doelpositie ---------- */
-const MISCIBLE_THRESHOLD = 0.5; // |Δpolariteit| onder deze grens = mengbaar
-
 function berekenLagen(){
-  // groepeer per 'group'-label, behalve liquids die we eerst clusteren op mengbaarheid
-  const liquidGroups = {}; // groupKey -> {polarity, density, particles:[]}
-  const otherGroups = {};  // solid_*, water (opgelost), emul apart
-
-  particles.forEach(p=>{
-    if(p.group.startsWith('liquid_')){
-      if(!liquidGroups[p.group]) liquidGroups[p.group] = {polarity:p.polarity, density:p.density, particles:[]};
-      liquidGroups[p.group].particles.push(p);
-    } else {
-      if(!otherGroups[p.group]) otherGroups[p.group] = {density:p.density, particles:[]};
-      otherGroups[p.group].particles.push(p);
-    }
-  });
-
-  // union-find op vloeistoffen o.b.v. polariteitsverschil
-  const keysL = Object.keys(liquidGroups);
-  const parent = {}; keysL.forEach(k=>parent[k]=k);
-  function find(k){ return parent[k]===k ? k : (parent[k]=find(parent[k])); }
-  function union(a,b){ parent[find(a)] = find(b); }
-  for(let i=0;i<keysL.length;i++) for(let j=i+1;j<keysL.length;j++){
-    const diff = Math.abs(liquidGroups[keysL[i]].polarity - liquidGroups[keysL[j]].polarity);
-    if(diff <= MISCIBLE_THRESHOLD) union(keysL[i], keysL[j]);
+  const an = analyse;
+  // bouw de lagen: elke vloeistoflaag (met opgeloste stoffen), elke onopgeloste vaste stof een eigen bodemlaag
+  const lijst = [];
+  const laagVan = {};
+  an.lagen.forEach(l=>{ const L = {particles:[], dichtheid:l.dichtheid, ref:l}; lijst.push(L); l.vloeistoffen.forEach(k=>laagVan[k]=L); });
+  an.onopgelost.forEach(k=>{ const L = {particles:[], dichtheid:STOFFEN[k].dichtheid}; lijst.push(L); laagVan['vast_'+k] = L; });
+  if(an.emulsie){
+    // water- en olielaag worden één geëmulgeerde laag
+    const Lw = laagVan[an.emulsie.water.vloeistoffen[0]], Lo = laagVan[an.emulsie.olie.vloeistoffen[0]];
+    Lw.isEmulsie = true; Lo.samengevoegd = true;
+    an.emulsie.olie.vloeistoffen.forEach(k=>laagVan[k]=Lw);
   }
-
-  // emulgator kan een polaire en apolaire cluster samenvoegen tot één geëmulgeerde laag
-  const hasEmulParticles = otherGroups['emul'] && otherGroups['emul'].particles.length>0;
-  let emulMerged = false, polClusterKey = null;
-  if(hasEmulParticles && hasEmul){
-    const polCluster = keysL.find(k=>liquidGroups[k].polarity>0.3);
-    const apolCluster = keysL.find(k=>liquidGroups[k].polarity<-0.3);
-    if(polCluster && apolCluster){ union(polCluster, apolCluster); emulMerged = true; polClusterKey = polCluster; }
-  }
-
-  // bouw finale lagen
-  const layers = {}; // rootKey -> {particles:[], densitySum, count}
-  keysL.forEach(k=>{
-    const root = find(k);
-    if(!layers[root]) layers[root] = {particles:[], densitySum:0, count:0};
-    liquidGroups[k].particles.forEach(p=>{ layers[root].particles.push(p); });
-    layers[root].densitySum += liquidGroups[k].density * liquidGroups[k].particles.length;
-    layers[root].count += liquidGroups[k].particles.length;
-  });
-  // opgeloste stoffen (ionen / suiker) horen bij de laag die water bevat
-  if(otherGroups['water']){
-    let target;
-    if(liquidGroups['liquid_water']){
-      target = find('liquid_water');
-    } else {
-      target = '__water_dissolved__';
-      layers[target] = layers[target] || {particles:[], densitySum:0, count:0};
-    }
-    otherGroups['water'].particles.forEach(p=>{
-      layers[target].particles.push(p);
-      layers[target].densitySum += 1.0;
-      layers[target].count += 1;
-    });
-  }
-  // emulgatordeeltjes: bij samenvoeging in de gemengde laag, anders eigen dunne laag
-  if(hasEmulParticles){
-    if(emulMerged){
-      const mergedRoot = find(polClusterKey);
-      layers[mergedRoot].isEmulsion = true;
-      otherGroups['emul'].particles.forEach(p=>{
-        layers[mergedRoot].particles.push(p);
-        layers[mergedRoot].densitySum += 0.9;
-        layers[mergedRoot].count += 1;
-      });
-    } else {
-      layers['__emul__'] = {particles:[...otherGroups['emul'].particles],
-        densitySum:0.9*otherGroups['emul'].particles.length, count:otherGroups['emul'].particles.length};
-    }
-  }
-  // vaste stoffen die niet oplosten: eigen bodemlaag per stof
-  Object.keys(otherGroups).forEach(g=>{
-    if(g.startsWith('solid_')){
-      layers[g] = {particles:[...otherGroups[g].particles], densitySum:otherGroups[g].density*otherGroups[g].particles.length, count:otherGroups[g].particles.length};
-    }
-  });
-
-  // sorteer lagen op gemiddelde dichtheid (lichtste boven, zwaarste onder)
-  const layerList = Object.values(layers).filter(l=>l.count>0).map(l=>({...l, avgDensity:l.densitySum/l.count}));
-  layerList.sort((a,b)=>a.avgDensity-b.avgDensity);
-
-  // wijs doelposities toe: per laag een aaneengesloten, gepakte band die precies past
-  const spacingX = R_LIQUID*2 + 1;
-  const spacingY = spacingX * 0.87;
-  const pad = R_LIQUID + 6;
+  if(hasEmul && !an.lagen.length){ const L={particles:[], dichtheid:0.9}; lijst.push(L); laagVan['emul']=L; }
+  particles.forEach(p=>{ if(p.weg) return; const L = laagVan[p.laag] || lijst[0]; L.particles.push(p); });
+  const lagen = lijst.filter(L=>!L.samengevoegd && L.particles.length).sort((a,b)=>a.dichtheid-b.dichtheid);
+  // vaste stof zonder vloeistof: gewoon een hoopje onderin
+  const spacingX = R_LIQ*2+1, spacingY = spacingX*0.87, pad = R_LIQ+6;
   const cellsPerRow = Math.max(1, Math.floor((W-2*pad)/spacingX));
-  let yCursor = pad;
-
-  layerList.forEach(layer=>{
-    const rows = Math.max(1, Math.ceil(layer.particles.length/cellsPerRow));
-    const bandHeight = rows*spacingY;
-
-    if(layer.isEmulsion){
-      layoutEmulsieLaag(layer, pad, yCursor, W-2*pad, bandHeight, spacingX, spacingY, cellsPerRow, rows);
-    } else {
-      // door elkaar husselen = willekeurige menging binnen de laag
-      for(let i=layer.particles.length-1;i>0;i--){
-        const j = Math.floor(Math.random()*(i+1));
-        [layer.particles[i],layer.particles[j]] = [layer.particles[j],layer.particles[i]];
-      }
-      let idx = 0;
-      for(let r=0; r<rows; r++){
-        const offset = (r%2===0) ? 0 : spacingX/2;
-        for(let c=0; c<cellsPerRow && idx<layer.particles.length; c++){
-          const p = layer.particles[idx++];
-          p.tx = pad + offset + c*spacingX;
-          p.ty = yCursor + r*spacingY + spacingY/2;
-        }
-      }
+  const totaalRijen = lagen.reduce((s,L)=>s+Math.max(1,Math.ceil(L.particles.length/cellsPerRow)),0);
+  let y = Math.max(pad, H - pad - totaalRijen*spacingY);     // lagen liggen onderin het vat
+  lagen.forEach(L=>{
+    const rows = Math.max(1, Math.ceil(L.particles.length/cellsPerRow));
+    if(L.isEmulsie) layoutEmulsie(L, pad, y, W-2*pad, rows*spacingY, spacingX, spacingY, cellsPerRow, rows);
+    else {
+      const ps = L.particles; for(let i=ps.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [ps[i],ps[j]]=[ps[j],ps[i]]; }
+      let idx=0;
+      for(let r=0;r<rows;r++){ const off = r%2 ? spacingX/2 : 0;
+        for(let c=0;c<cellsPerRow && idx<ps.length;c++){ const p=ps[idx++]; p.tx = pad+off+c*spacingX; p.ty = y + r*spacingY + spacingY/2; } }
     }
-    yCursor += bandHeight;
+    y += rows*spacingY;
   });
 }
 
-/* ---------- micel-indeling: olie-clusters omringd door naar buiten gerichte emulgator-ringen ----------
-   Elke druppel krijgt een eerlijk eigen aandeel: een kern van apolaire deeltjes,
-   direct omringd door een ring van emulgatormoleculen (kop naar buiten, staart naar binnen).
-   Geen globale afstand-sortering meer (die liet één druppel de rest leegtrekken) maar
-   een voronoi-verdeling: elke cel hoort bij precies één druppelcentrum. */
-function layoutEmulsieLaag(layer, x0, y0, width, height, spacingX, spacingY, cellsPerRow, rows){
+function layoutEmulsie(L, x0, y0, width, height, spacingX, spacingY, cellsPerRow, rows){
   const cells = [];
-  for(let r=0;r<rows;r++){
-    const offset = (r%2===0) ? 0 : spacingX/2;
-    for(let c=0;c<cellsPerRow;c++){
-      cells.push({x:x0+offset+c*spacingX, y:y0+r*spacingY+spacingY/2, id:cells.length});
-    }
-  }
-  const olie = layer.particles.filter(p=>p.key!=='emul' && p.polarity<-0.3);
-  const emulP = layer.particles.filter(p=>p.key==='emul');
-  const rest = layer.particles.filter(p=>p.key!=='emul' && !(p.polarity<-0.3));
-
-  // K druppelcentra kiezen, met poging tot gelijkmatige spreiding
-  const K = Math.max(1, Math.round(olie.length/DROPLET_SIZE));
-  const shuffledCells = [...cells];
-  for(let i=shuffledCells.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [shuffledCells[i],shuffledCells[j]] = [shuffledCells[j],shuffledCells[i]];
-  }
-  const centers = [];
-  const minSep = Math.max(width,height)/(K+1);
-  for(const c of shuffledCells){
-    if(centers.length>=K) break;
-    if(centers.length===0 || centers.every(ct=>Math.hypot(ct.x-c.x,ct.y-c.y)>minSep)) centers.push({x:c.x,y:c.y});
-  }
-  while(centers.length<K) centers.push(shuffledCells[Math.floor(Math.random()*shuffledCells.length)]);
-
-  // voronoi: elke cel hoort bij precies één (dichtstbijzijnde) druppelcentrum
+  for(let r=0;r<rows;r++){ const off=r%2?spacingX/2:0; for(let c=0;c<cellsPerRow;c++) cells.push({x:x0+off+c*spacingX, y:y0+r*spacingY+spacingY/2, id:cells.length}); }
+  const olie = L.particles.filter(p=>APOLAIR.includes(p.key) || (p.opgelost && p.laag && APOLAIR.includes(p.laag)));
+  const emulP = L.particles.filter(p=>p.key==='emul');
+  const rest = L.particles.filter(p=>!olie.includes(p) && p.key!=='emul');
+  const K = Math.max(1, Math.round(olie.length/DRUPPEL));
+  const sh = [...cells]; for(let i=sh.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [sh[i],sh[j]]=[sh[j],sh[i]]; }
+  const centers = [], minSep = Math.max(width,height)/(K+1);
+  for(const c of sh){ if(centers.length>=K) break; if(centers.every(ct=>Math.hypot(ct.x-c.x,ct.y-c.y)>minSep)) centers.push(c); }
+  while(centers.length<K) centers.push(sh[Math.floor(Math.random()*sh.length)]);
   const groups = centers.map(ct=>({center:ct, cells:[]}));
-  cells.forEach(c=>{
-    let best=Infinity, bi=0;
-    centers.forEach((ct,i)=>{ const d=Math.hypot(ct.x-c.x,ct.y-c.y); if(d<best){best=d;bi=i;} });
-    groups[bi].cells.push({id:c.id, x:c.x, y:c.y, dist:best});
-  });
+  cells.forEach(c=>{ let best=Infinity, bi=0; centers.forEach((ct,i)=>{ const d=Math.hypot(ct.x-c.x,ct.y-c.y); if(d<best){best=d;bi=i;} }); groups[bi].cells.push({...c, dist:best}); });
   groups.forEach(g=>g.cells.sort((a,b)=>a.dist-b.dist));
-
-  // olie en emulgator zo gelijk mogelijk verdelen over de K druppels
-  function verdeling(totaal,k){
-    const basis = Math.floor(totaal/k), overschot = totaal - basis*k;
-    return Array.from({length:k}, (_,i)=> basis + (i<overschot?1:0));
-  }
-  const olieVerdeling = verdeling(olie.length, K);
-  const emulVerdeling = verdeling(emulP.length, K);
-
-  for(let i=olie.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [olie[i],olie[j]]=[olie[j],olie[i]]; }
-  for(let i=emulP.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [emulP[i],emulP[j]]=[emulP[j],emulP[i]]; }
-
-  let oi=0, ei=0;
-  const gebruikt = new Set();
-  const restOlie = [], restEmul = [];
-  groups.forEach((g,i)=>{
-    let ci = 0;
-    // kern: olie, dichtst bij het centrum
-    for(let n=0;n<olieVerdeling[i]; n++){
-      const cell = g.cells[ci++];
-      const p = olie[oi++];
-      if(!p) continue;
-      if(!cell){ restOlie.push(p); continue; }
-      p.tx=cell.x; p.ty=cell.y;
-      gebruikt.add(cell.id);
-    }
-    // ring direct daaromheen: emulgator, kop naar buiten (water), staart naar binnen (olie)
-    for(let n=0;n<emulVerdeling[i]; n++){
-      const cell = g.cells[ci++];
-      const p = emulP[ei++];
-      if(!p) continue;
-      if(!cell){ restEmul.push(p); continue; }
-      p.tx=cell.x; p.ty=cell.y;
-      p.angle = Math.atan2(cell.y-g.center.y, cell.x-g.center.x);
-      gebruikt.add(cell.id);
-    }
+  const verdeel = (t,k)=>Array.from({length:k},(_,i)=>Math.floor(t/k)+(i<t%k?1:0));
+  const ov = verdeel(olie.length,K), ev = verdeel(emulP.length,K);
+  let oi=0, ei=0; const gebruikt = new Set(); const restO=[], restE=[];
+  groups.forEach((g,i)=>{ let ci=0;
+    for(let n=0;n<ov[i];n++){ const c=g.cells[ci++], p=olie[oi++]; if(!p) continue; if(!c){restO.push(p);continue;} p.tx=c.x;p.ty=c.y;gebruikt.add(c.id); }
+    for(let n=0;n<ev[i];n++){ const c=g.cells[ci++], p=emulP[ei++]; if(!p) continue; if(!c){restE.push(p);continue;} p.tx=c.x;p.ty=c.y;p.angle=Math.atan2(c.y-g.center.y,c.x-g.center.x);gebruikt.add(c.id); }
   });
-
-  // vrije cellen: eerst evt. resterende olie/emulgator door afronding, dan de rest (water/opgeloste stof)
-  const vrijeCellen = cells.filter(c=>!gebruikt.has(c.id));
-  for(let i=vrijeCellen.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [vrijeCellen[i],vrijeCellen[j]]=[vrijeCellen[j],vrijeCellen[i]]; }
-  let vi=0;
-  restOlie.forEach(p=>{ const c=vrijeCellen[vi++]; if(c){p.tx=c.x;p.ty=c.y;} });
-  restEmul.forEach(p=>{ const c=vrijeCellen[vi++]; if(c){p.tx=c.x;p.ty=c.y;p.angle=Math.random()*Math.PI*2;} });
-
-  for(let i=rest.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [rest[i],rest[j]] = [rest[j],rest[i]];
-  }
-  rest.forEach(p=>{
-    const c = vrijeCellen[vi++];
-    if(!c) return;
-    p.tx=c.x; p.ty=c.y;
-  });
+  const vrij = cells.filter(c=>!gebruikt.has(c.id)); for(let i=vrij.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [vrij[i],vrij[j]]=[vrij[j],vrij[i]]; }
+  let vi=0; [...restO, ...restE, ...rest].forEach(p=>{ const c=vrij[vi++]; if(c){p.tx=c.x;p.ty=c.y;} });
 }
 
-function draw(){
+/* ---------- tekenen ---------- */
+function draw(now){
   ctx.clearRect(0,0,W,H);
-
   if(phase==='shaking'){
     particles.forEach(p=>{
-      p.vx = (p.vx||0)*0.92 + (Math.random()-0.5)*SHAKE_JITTER;
-      p.vy = (p.vy||0)*0.92 + (Math.random()-0.5)*SHAKE_JITTER;
-      p.x += p.vx; p.y += p.vy;
-      const m = p.r + 2;
-      if(p.x<m){ p.x=m; p.vx = Math.abs(p.vx); }
-      if(p.x>W-m){ p.x=W-m; p.vx = -Math.abs(p.vx); }
-      if(p.y<m){ p.y=m; p.vy = Math.abs(p.vy); }
-      if(p.y>H-m){ p.y=H-m; p.vy = -Math.abs(p.vy); }
-      if(p.key==='emul') p.angle += (Math.random()-0.5)*0.6;
+      p.vx=(p.vx||0)*0.92+(Math.random()-0.5)*SHAKE_JITTER; p.vy=(p.vy||0)*0.92+(Math.random()-0.5)*SHAKE_JITTER;
+      p.x+=p.vx; p.y+=p.vy; const m=p.r+2;
+      if(p.x<m){p.x=m;p.vx=Math.abs(p.vx);} if(p.x>W-m){p.x=W-m;p.vx=-Math.abs(p.vx);}
+      if(p.y<m){p.y=m;p.vy=Math.abs(p.vy);} if(p.y>H-m){p.y=H-m;p.vy=-Math.abs(p.vy);}
+      if(p.key==='emul') p.angle+=(Math.random()-0.5)*0.6;
     });
-    if(performance.now() >= shakeEndAt){
-      berekenLagen();           // doelposities herberekenen (zelfde recept, nieuwe verdeling)
-      phase = 'settling';
-      currentLerp = SLOW_LERP;  // nu langzaam: ontmengen kost tijd
-      document.getElementById('status').textContent = 'Mengsel komt tot rust…';
-    }
-  } else if(phase==='settling'){
-    let nogInBeweging = false;
-    particles.forEach(p=>{
-      const dx = (p.tx-p.x), dy = (p.ty-p.y);
-      if(Math.abs(dx)>0.3 || Math.abs(dy)>0.3) nogInBeweging = true;
-      p.x += dx*currentLerp;
-      p.y += dy*currentLerp;
-    });
-    if(!nogInBeweging){
-      phase = 'stable';
-      document.getElementById('status').textContent = 'Mengsel gestabiliseerd. Beantwoord de scheidingsvraag rechts →';
-      document.getElementById('vraagSub').textContent = 'Welke scheidingsmethode(n) zijn nodig om dit mengsel te scheiden?';
-      document.getElementById('checkBtn').disabled = false;
-      document.getElementById('schudBtn').disabled = false;
-    }
+    if(now>=shakeEndAt){ berekenLagen(); phase='settling'; currentLerp=SLOW_LERP; zetStatus('Het mengsel komt tot rust…'); }
+  } else if(phase==='settling' || phase==='reactie'){
+    let beweegt=false;
+    particles.forEach(p=>{ if(p.weg || p.key==='gas') return; const dx=p.tx-p.x, dy=p.ty-p.y; if(Math.abs(dx)>0.3||Math.abs(dy)>0.3) beweegt=true; p.x+=dx*currentLerp; p.y+=dy*currentLerp; });
+    if(phase==='reactie') stapReactie(now);
+    else if(!beweegt) klaarVoorVragen();
   }
-
+  // bubbels (gas)
   particles.forEach(p=>{
+    if(p.weg) return;
+    if(p.key==='gas'){
+      p.y -= 1.2 + Math.random()*0.6; p.x += (Math.random()-0.5)*0.8;
+      if(p.y < 4) p.weg = true;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.strokeStyle='#7a8794'; ctx.lineWidth=1.2; ctx.stroke(); return;
+    }
     if(p.key==='emul'){
-      const headR = R_LIQUID*0.6, tailR = R_LIQUID*0.45, off = R_LIQUID*0.55;
-      const hx = p.x+Math.cos(p.angle)*off, hy = p.y+Math.sin(p.angle)*off;
-      const tx_ = p.x-Math.cos(p.angle)*off, ty_ = p.y-Math.sin(p.angle)*off;
-      ctx.strokeStyle = kleurenMap.emul_tail; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(hx,hy); ctx.lineTo(tx_,ty_); ctx.stroke();
-      ctx.beginPath(); ctx.arc(tx_,ty_,tailR,0,Math.PI*2);
-      ctx.fillStyle = kleurenMap.emul_tail; ctx.fill(); // staart: apolair
-      ctx.beginPath(); ctx.arc(hx,hy,headR,0,Math.PI*2);
-      ctx.fillStyle = kleurenMap.emul_head; ctx.fill(); // kop: polair
+      const off=R_LIQ*0.55, hx=p.x+Math.cos(p.angle)*off, hy=p.y+Math.sin(p.angle)*off, tx=p.x-Math.cos(p.angle)*off, ty=p.y-Math.sin(p.angle)*off;
+      ctx.strokeStyle='#7d6a45'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(hx,hy); ctx.lineTo(tx,ty); ctx.stroke();
+      ctx.beginPath(); ctx.arc(tx,ty,R_LIQ*0.45,0,Math.PI*2); ctx.fillStyle='#7d6a45'; ctx.fill();
+      ctx.beginPath(); ctx.arc(hx,hy,R_LIQ*0.6,0,Math.PI*2); ctx.fillStyle='#e0533d'; ctx.fill();
       return;
     }
-
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fillStyle = p.color;
-    ctx.globalAlpha = p.isIon ? 0.95 : 0.85;
-    ctx.fill();
+    ctx.globalAlpha = p.fade!=null ? p.fade : 1;
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle=p.color; ctx.fill();
+    ctx.strokeStyle = p.vast ? 'rgba(0,0,0,.45)' : 'rgba(0,0,0,.18)'; ctx.lineWidth = p.vast ? 1.3 : 0.8; ctx.stroke();
     ctx.globalAlpha = 1;
   });
+  particles = particles.filter(p=>!p.weg);
 }
 
-function loop(){
-  if(running){
-    draw();
-  }
-  requestAnimationFrame(loop);
+/* ---------- reactie-animatie: vaste stof verdwijnt, gasbellen stijgen op ---------- */
+function startReactie(){
+  const r = analyse.reactie;
+  phase = 'reactie'; reactieEind = performance.now() + 5000;
+  document.getElementById('reactieBox').innerHTML = `<div class="reactie"><b>Er treedt een reactie op.</b> ${r.tekst}<br><br>Dit is dus geen mengsel van de stoffen die je koos: er ontstaan nieuwe stoffen. Kies een andere combinatie om te oefenen met scheiden.</div>`;
+  zetStatus('Er gebeurt iets…');
 }
-loop();
-
-/* ---------- scheidingsvraag ---------- */
-const ALLE_METHODEN = [
-  {id:'filtreren', naam:'Filtreren'},
-  {id:'decanteren', naam:'Decanteren'},
-  {id:'centrifugeren', naam:'Centrifugeren'},
-  {id:'indampen', naam:'Indampen'},
-  {id:'destilleren', naam:'Destilleren (eenvoudig)'},
-  {id:'destilleren_fractioneel', naam:'Destilleren (fractioneel)'},
-  {id:'extraheren', naam:'Extraheren'},
-];
-
-function buildMethodChecklist(){
-  const div = document.getElementById('methods');
-  div.innerHTML = ALLE_METHODEN.map(m=>`
-    <label><input type="checkbox" value="${m.id}"> ${m.naam}</label>
-  `).join('');
-}
-
-function clusterVloeistoffen(vloeistofKeys){
-  const parent = {}; vloeistofKeys.forEach(k=>parent[k]=k);
-  function find(k){ return parent[k]===k ? k : (parent[k]=find(parent[k])); }
-  function union(a,b){ parent[find(a)] = find(b); }
-  for(let i=0;i<vloeistofKeys.length;i++) for(let j=i+1;j<vloeistofKeys.length;j++){
-    const diff = Math.abs(STOFFEN[vloeistofKeys[i]].polarity - STOFFEN[vloeistofKeys[j]].polarity);
-    if(diff <= MISCIBLE_THRESHOLD) union(vloeistofKeys[i], vloeistofKeys[j]);
+function stapReactie(now){
+  const r = analyse.reactie;
+  const doel = particles.filter(p=>p.key===r.vast && !p.weg);
+  if(doel.length && Math.random()<0.25){
+    const p = doel[Math.floor(Math.random()*doel.length)];
+    p.fade = (p.fade==null?1:p.fade) - 0.34;
+    if(p.fade<=0){ p.weg = true; }
   }
-  return find;
+  if(r.gas && now<reactieEind && Math.random()<0.5){
+    const bron = doel.length ? doel[Math.floor(Math.random()*doel.length)] : {x:Math.random()*W, y:H-20};
+    particles.push({key:'gas', r:3+Math.random()*3, x:bron.x+(Math.random()-0.5)*10, y:bron.y, tx:0, ty:0});
+  }
+  if(r.neerslag && Math.random()<0.05 && particles.filter(p=>p.key==='neerslag').length<14){
+    particles.push({key:'neerslag', r:R_SOLID, color:'#6fb8a6', vast:true, x:Math.random()*W, y:H*0.5, tx:30+Math.random()*(W-60), ty:H-14-Math.random()*16});
+  }
+  if(now>=reactieEind && !doel.length){ phase='stable'; zetStatus('De reactie is afgelopen.'); document.getElementById('schudBtn').disabled = true; }
 }
 
-function analyseerMengsel(){
-  const heeftWater = selectedStoffen.some(s=>s.key==='water');
-  const vloeistoffen = selectedStoffen.filter(s=>STOFFEN[s.key].state==='liquid');
-  const vasteStoffen = selectedStoffen.filter(s=>STOFFEN[s.key].state==='solid');
+function zetStatus(t){ document.getElementById('status').textContent = t; }
 
-  const vereist = new Set();
-  const uitleg = [];
+function klaarVoorVragen(){
+  phase = 'stable';
+  if(analyse.reactie){ startReactie(); return; }
+  zetStatus('Het mengsel is tot rust gekomen. Beantwoord de vragen rechts.');
+  document.getElementById('vraagSub').textContent = 'Kijk goed naar het vat en de legenda.';
+  document.getElementById('vragen').style.display = '';
+  document.getElementById('schudBtn').disabled = false;
+}
 
-  // vaste stof die niet oplost (onoplosbaar, of oplosbaar maar geen water aanwezig) -> filtreren
-  const nietOpgelost = vasteStoffen.filter(s=>!((STOFFEN[s.key].ionic||STOFFEN[s.key].dissolves) && heeftWater));
-  if(nietOpgelost.length){
-    vereist.add('filtreren');
-    uitleg.push(`${nietOpgelost.map(s=>STOFFEN[s.key].naam).join(', ')} blijft als losse vaste deeltjes aanwezig — filtreren scheidt dit van de vloeistof.`);
-  }
+function loop(now){ if(running) draw(now); requestAnimationFrame(loop); }
+requestAnimationFrame(loop);
 
-  // vaste stof die wel oplost in water -> indampen
-  const opgelost = vasteStoffen.filter(s=>(STOFFEN[s.key].ionic||STOFFEN[s.key].dissolves) && heeftWater);
-  if(opgelost.length){
-    vereist.add('indampen');
-    uitleg.push(`${opgelost.map(s=>STOFFEN[s.key].naam).join(', ')} lost volledig op in water — met filtreren niet te scheiden, met indampen blijft de vaste stof achter zodra het water verdampt.`);
-  }
+/* ---------- legenda ---------- */
+function buildLegend(){
+  const lg = document.getElementById('legend'); let h='';
+  const an = analyse, gezien = new Set();
+  const add = (kleur, tekst)=>{ if(gezien.has(tekst)) return; gezien.add(tekst); h += `<span><span class="dot" style="background:${kleur}"></span>${tekst}</span>`; };
+  an.vl.forEach(k=>add(STOFFEN[k].kleur, STOFFEN[k].naam));
+  an.lagen.forEach(l=>l.opgelost.forEach(k=>{
+    const s = STOFFEN[k];
+    if(s.ionen) s.ionen.forEach(i=>add(i.kleur, `${i.naam} (uit ${s.naam.split(' (')[0]}, opgelost)`));
+    else add(s.opgelostKleur||s.kleur, `${s.naam.split(' (')[0]} (opgelost)`);
+  }));
+  an.onopgelost.forEach(k=>add(STOFFEN[k].kleur, `${STOFFEN[k].naam} (vast)`));
+  if(hasEmul){ add('#e0533d','emulgator: kop (hydrofiel)'); add('#7d6a45','emulgator: staart (hydrofoob)'); }
+  if(an.reactie){ h += `<span><span class="dot" style="background:#fff;border-color:#7a8794"></span>gasbel (koolstofdioxide)</span>`; if(an.reactie.neerslag) add('#6fb8a6','neerslag'); }
+  lg.innerHTML = h;
+}
 
-  if(vloeistoffen.length>=2){
-    const vloeistofKeys = vloeistoffen.map(s=>s.key);
-    const find = clusterVloeistoffen(vloeistofKeys);
-    const clusters = {};
-    vloeistofKeys.forEach(k=>{
-      const root = find(k);
-      (clusters[root] = clusters[root]||[]).push(k);
-    });
-    const clusterList = Object.values(clusters);
-
-    // emulgator kan precies één polaire en één apolaire cluster laten 'mengen' (emulsie)
-    let emulsiePaar = null;
-    if(hasEmul){
-      const polC = clusterList.find(c=>c.some(k=>STOFFEN[k].polarity>0.3));
-      const apolC = clusterList.find(c=>c.some(k=>STOFFEN[k].polarity<-0.3));
-      if(polC && apolC && polC!==apolC) emulsiePaar = [polC, apolC];
-    }
-
-    for(let i=0;i<clusterList.length;i++){
-      for(let j=i+1;j<clusterList.length;j++){
-        const a = clusterList[i], b = clusterList[j];
-        const naamA = a.map(k=>STOFFEN[k].naam).join(' + ');
-        const naamB = b.map(k=>STOFFEN[k].naam).join(' + ');
-        const isEmulsiePaar = emulsiePaar && ((emulsiePaar[0]===a&&emulsiePaar[1]===b)||(emulsiePaar[0]===b&&emulsiePaar[1]===a));
-        if(isEmulsiePaar){
-          vereist.add('centrifugeren');
-          uitleg.push(`${naamA} en ${naamB} mengen normaal niet, maar met genoeg emulgator ontstaat een stabiele emulsie — decanteren alleen werkt dan niet, centrifugeren (eventueel met een demulgator) wel.`);
-        } else {
-          vereist.add('decanteren');
-          uitleg.push(`${naamA} en ${naamB} mengen niet en vormen aparte lagen op dichtheid — decanteren scheidt de lagen.`);
-        }
-      }
-    }
-
-    clusterList.forEach(c=>{
-      if(c.length<2) return;
-      const namen = c.map(k=>STOFFEN[k].naam).join(', ');
-      let minDiff = Infinity;
-      for(let i=0;i<c.length;i++) for(let j=i+1;j<c.length;j++){
-        const kpA = STOFFEN[c[i]].kookpunt, kpB = STOFFEN[c[j]].kookpunt;
-        if(kpA!=null && kpB!=null) minDiff = Math.min(minDiff, Math.abs(kpA-kpB));
-      }
-      if(minDiff===Infinity) return;
-      if(minDiff < 30){
-        vereist.add('destilleren_fractioneel');
-        uitleg.push(`${namen} mengen volledig en hebben een klein kookpuntverschil (${minDiff}°C) — fractionele destillatie is nodig.`);
-      } else {
-        vereist.add('destilleren');
-        uitleg.push(`${namen} mengen volledig en hebben een kookpuntverschil van ${minDiff}°C — gewone destillatie volstaat.`);
-      }
-    });
-  }
-
-  if(vereist.size===0){
-    uitleg.push('Deze combinatie levert (in dit prototype) geen scheiding op die hier gemodelleerd is.');
-  }
-
-  return {vereist, uitleg};
+/* ---------- vragen ---------- */
+function buildVragen(){
+  document.getElementById('soorten').innerHTML = SOORTEN.map(s=>`<label><input type="checkbox" value="${s.id}"> ${s.naam}</label>`).join('');
+  document.getElementById('methods').innerHTML = METHODEN.map(m=>`<div class="methode">
+      <label><input type="checkbox" class="mchk" value="${m.id}"> ${m.naam}</label>
+      <select class="psel" data-m="${m.id}" style="display:none;"><option value="">— op basis van verschil in … —</option>${PRINCIPES.map(p=>`<option value="${p}">${p}</option>`).join('')}</select>
+    </div>`).join('');
+  document.querySelectorAll('.mchk').forEach(c=>c.addEventListener('change', ()=>{
+    document.querySelector(`.psel[data-m="${c.value}"]`).style.display = c.checked ? '' : 'none';
+  }));
 }
 
 document.getElementById('checkBtn').addEventListener('click', ()=>{
-  const gekozen = new Set([...document.querySelectorAll('#methods input:checked')].map(i=>i.value));
-  const {vereist, uitleg} = analyseerMengsel();
-
-  let html = '';
-  const missend = [...vereist].filter(m=>!gekozen.has(m));
-  const teveel = [...gekozen].filter(m=>!vereist.has(m));
-
-  if(missend.length===0 && teveel.length===0){
-    html += `<div class="ok">✓ Helemaal correct.</div>`;
-  } else {
-    if(missend.length) html += `<div class="err">Mist nog: ${missend.map(m=>ALLE_METHODEN.find(x=>x.id===m).naam).join(', ')}</div>`;
-    if(teveel.length) html += `<div class="err">Niet nodig: ${teveel.map(m=>ALLE_METHODEN.find(x=>x.id===m).naam).join(', ')}</div>`;
+  const {soorten, eisen, uitleg} = verwachting(analyse);
+  const gekozenSoorten = new Set([...document.querySelectorAll('#soorten input:checked')].map(i=>i.value));
+  const gekozenM = [...document.querySelectorAll('.mchk:checked')].map(i=>i.value);
+  let h = '<b>1. Soort mengsel</b><br>';
+  const soortMist = [...soorten].filter(s=>!gekozenSoorten.has(s)), soortTeveel = [...gekozenSoorten].filter(s=>!soorten.has(s));
+  const sn = id=>SOORTEN.find(s=>s.id===id).naam.split(' (')[0];
+  if(!soortMist.length && !soortTeveel.length) h += `<span class="ok">✓ Goed.</span><br>`;
+  else { if(soortMist.length) h += `<span class="err">Mist nog: ${soortMist.map(sn).join(', ')}</span><br>`; if(soortTeveel.length) h += `<span class="err">Klopt niet: ${soortTeveel.map(sn).join(', ')}</span><br>`; }
+  h += '<br><b>2. Scheiden</b><br>';
+  const mn = id=>METHODEN.find(m=>m.id===id).naam;
+  if(!eisen.length && !gekozenM.length) h += `<span class="ok">✓ Goed: hier valt (met deze methoden) niets te scheiden.</span><br>`;
+  else {
+    let alles = true;
+    eisen.forEach(e=>{ if(!e.opties.some(o=>gekozenM.includes(o))){ alles=false; h += `<span class="err">Mist nog: ${e.tekst}</span><br>`; } });
+    const nuttig = new Set(eisen.flatMap(e=>e.opties));
+    gekozenM.filter(m=>!nuttig.has(m)).forEach(m=>{ alles=false; h += `<span class="err">${mn(m)} werkt hier niet of is niet nodig.</span><br>`; });
+    gekozenM.filter(m=>nuttig.has(m)).forEach(m=>{
+      const pr = document.querySelector(`.psel[data-m="${m}"]`).value;
+      const goed = METHODEN.find(x=>x.id===m).principe;
+      if(!pr){ alles=false; h += `<span class="warn">${mn(m)}: kies nog op basis van welk verschil.</span><br>`; }
+      else if(!goed.includes(pr)){ alles=false; h += `<span class="err">${mn(m)} werkt niet op basis van verschil in ${pr}, maar op basis van verschil in ${goed.join(' / ')}.</span><br>`; }
+    });
+    if(alles) h += `<span class="ok">✓ Goed.</span><br>`;
   }
-  html += `<div style="margin-top:8px;color:var(--muted)">${uitleg.join('<br><br>')}</div>`;
-  document.getElementById('feedback').innerHTML = html;
+  h += `<div style="margin-top:10px;color:var(--muted)">${uitleg.join('<br><br>')}</div>`;
+  document.getElementById('feedback').innerHTML = h;
+});
+
+/* ---------- knoppen ---------- */
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  gekozen = [...document.querySelectorAll('#stofrows select')].map(s=>s.value).filter(Boolean);
+  hasEmul = document.getElementById('useEmul').checked;
+  if(!gekozen.length){ zetStatus('Kies minstens één stof.'); return; }
+  analyse = maakAnalyse();
+  initParticles(); buildLegend(); buildVragen();
+  document.getElementById('reactieBox').innerHTML = '';
+  document.getElementById('feedback').innerHTML = '';
+  document.getElementById('vragen').style.display = 'none';
+  document.getElementById('vraagSub').textContent = 'Wacht tot het mengsel tot rust is gekomen.';
+  document.getElementById('schudBtn').disabled = true;
+  phase = 'settling'; currentLerp = FAST_LERP; running = true;
+  zetStatus('De stoffen worden bij elkaar gedaan…');
+});
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  running=false; particles=[]; phase='idle'; ctx.clearRect(0,0,W,H);
+  zetStatus('Kies stoffen en klik op "Mengsel maken".');
+  ['feedback','legend','reactieBox'].forEach(id=>document.getElementById(id).innerHTML='');
+  document.getElementById('vragen').style.display='none'; document.getElementById('schudBtn').disabled=true;
+});
+document.getElementById('schudBtn').addEventListener('click', ()=>{
+  if(phase!=='stable') return;
+  particles.forEach(p=>{ p.x=p.r+Math.random()*(W-2*p.r); p.y=p.r+Math.random()*(H-2*p.r); p.vx=(Math.random()-0.5)*10; p.vy=(Math.random()-0.5)*10; });
+  phase='shaking'; shakeEndAt=performance.now()+SHAKE_MS;
+  document.getElementById('schudBtn').disabled=true;
+  zetStatus('Schudden…');
 });
 </script>
 </body>
