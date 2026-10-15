@@ -132,6 +132,9 @@
   .toggle-btn.active{background:var(--accent2-dim); border-color:var(--accent2); color:#eafff9;}
   .toggle-btn:disabled{opacity:.4; cursor:not-allowed;}
 
+  .optie-row{display:flex; flex-wrap:wrap; gap:6px 18px; font-size:12.5px; color:var(--text-dim); margin:4px 0 10px;}
+  .optie-row label{display:inline-flex; align-items:center; gap:6px; cursor:pointer;}
+  .panel.uit{opacity:.45; pointer-events:none;}
   .wear-bar{height:4px; background:var(--panel-2); border-radius:3px; overflow:hidden; margin-top:6px;}
   .wear-fill{height:100%; width:100%; transition:width .3s;}
 
@@ -154,7 +157,7 @@
   <header class="top">
     <div class="eyebrow">Reactiekinetiek · botsingstheorie</div>
     <h1>Botsingssimulatie</h1>
-    <p class="sub">Verken hoe temperatuur, concentratie, katalysatoren en oriëntatie de reactiesnelheid bepalen.</p>
+    <p class="sub">Verken hoe temperatuur, concentratie en een katalysator de reactiesnelheid bepalen.</p>
   </header>
 
   <div class="layout">
@@ -165,14 +168,23 @@
           <button class="mode-btn" id="btn-run">Laat de reactie verlopen</button>
           <button class="mode-btn ghost" id="btn-reset-run" style="display:none;">Reset</button>
         </div>
+        <div class="optie-row">
+          <label><input type="checkbox" id="chk-product"> Toon het gevormde product AB (bij "Laat de reactie verlopen")</label>
+          <label><input type="checkbox" id="chk-energie"> Toon de energieverdeling van de botsingen</label>
+          <label><input type="checkbox" id="chk-diagram"> Toon het energiediagram</label>
+        </div>
         <p class="sub" id="mode-sub">De doos is een meetinstrument: botsingen tellen voor de reactiesnelheid, maar verbruiken niets — pas de knoppen aan en zie het effect direct.</p>
 
         <div class="arena-wrap">
           <canvas id="arena" width="800" height="600"></canvas>
           <div class="arena-overlay">
             <div class="info-chip">
-              <div class="lbl">Deeltjes A / B</div>
+              <div class="lbl" id="count-lbl">Deeltjes A / B</div>
               <div class="val" id="count-val">— / —</div>
+              <div class="lbl" id="opp-lbl" style="margin-top:6px; display:none;">A aan het oppervlak</div>
+              <div class="val" id="opp-val" style="display:none;">—</div>
+              <div class="lbl" style="margin-top:6px;">Temperatuur</div>
+              <div class="val" id="temp-val">—</div>
             </div>
             <div class="info-chip" style="text-align:right;">
               <div class="lbl">Effectieve botsingskans zonder katalysator</div>
@@ -186,8 +198,8 @@
         <div class="legend">
           <span><span class="dot" style="background:var(--accent);"></span> deeltje A</span>
           <span><span class="dot" style="background:var(--accent2);"></span> deeltje B</span>
-          <span><span class="dot" style="background:var(--enzyme);"></span> enzym E (homogeen)</span>
-          <span><span class="dot" style="background:var(--surface);"></span> actieve plek (heterogeen)</span>
+          <span id="legend-product" style="display:none;"><span class="dot" style="background:#9a958a;"></span> product AB</span>
+          <span><span class="dot" style="background:var(--enzyme);"></span> katalysatordeeltje</span>
         </div>
       </div>
 
@@ -196,16 +208,33 @@
         <div class="rate-bar-wrap">
           <div class="rate-bar-track"><div class="rate-bar-fill" id="rate-bar-fill" style="height:0%;"></div></div>
           <div class="rate-bar-label">
-            <span class="big"><span id="rate-bar-val">0.0</span> /s</span>
+            <span class="big"><span id="rate-bar-val">0,0</span> effectieve botsingen per s</span>
             <span style="color:var(--text-dim); font-size:12px;" id="rate-bar-sub"></span>
           </div>
         </div>
       </div>
 
+      <div class="panel" id="diagram-panel" style="display:none;">
+        <h2>Energiediagram</h2>
+        <canvas id="diagram-chart" width="760" height="230"></canvas>
+        <p class="sub" id="diagram-uitleg" style="margin-top:6px; font-size:12px;"></p>
+      </div>
+
+      <div class="panel" id="energie-panel" style="display:none;">
+        <h2>Energie van de botsingen tussen A en B <span style="color:var(--text-dim); font-weight:400;">(laatste seconden)</span></h2>
+        <canvas id="energie-chart" width="760" height="170"></canvas>
+        <p class="sub" style="margin-top:6px; font-size:12px;">Elke staaf telt botsingen met een bepaalde botsingsenergie. Alleen botsingen rechts van de streep E<sub>a</sub> zijn effectief. Met een katalysator verloopt de reactie via een andere route met een lagere activeringsenergie (stippellijn).</p>
+      </div>
+
       <div class="panel" id="rate-panel-run" style="display:none;">
-        <h2>Reactiesnelheid tijdens het verloop</h2>
+        <h2>Aantal deeltjes tijdens het verloop</h2>
+        <canvas id="count-chart" width="760" height="170"></canvas>
+        <h2 style="margin-top:14px;">Reactiesnelheid tijdens het verloop</h2>
         <canvas id="rate-chart" width="760" height="170"></canvas>
+        <h2 style="margin-top:14px;">Temperatuur tijdens het verloop</h2>
+        <canvas id="temp-chart" width="760" height="150"></canvas>
         <p class="sub" id="run-status" style="margin-top:8px;"></p>
+        <p class="sub" id="product-note" style="margin-top:6px; font-size:12px;"></p>
       </div>
     </div>
 
@@ -218,49 +247,64 @@
           <input type="range" id="ctrl-T" min="250" max="500" value="325" step="1">
         </div>
 
-        <div class="ctrl-group">
-          <div class="ctrl-head"><label>Concentratie A</label><span class="readout"><span id="readout-CA">0.40</span> M</span></div>
+        <div class="ctrl-group" id="grp-CA">
+          <div class="ctrl-head"><label>Concentratie A</label><span class="readout"><span id="readout-CA">0,40</span> mol/L</span></div>
           <input type="range" id="ctrl-CA" min="0.05" max="1.0" value="0.40" step="0.01">
         </div>
 
         <div class="ctrl-group">
-          <div class="ctrl-head"><label>Concentratie B</label><span class="readout"><span id="readout-CB">0.40</span> M</span></div>
+          <div class="ctrl-head"><label>Concentratie B</label><span class="readout"><span id="readout-CB">0,40</span> mol/L</span></div>
           <input type="range" id="ctrl-CB" min="0.05" max="1.0" value="0.40" step="0.01">
         </div>
 
-        <div class="ctrl-group">
-          <div class="ctrl-head"><label>Oriëntatiefactor</label><span class="readout" id="readout-O">0.30</span></div>
-          <input type="range" id="ctrl-O" min="0" max="1" value="0.30" step="0.01">
-          <p class="sub" style="margin-top:6px; font-size:12px;">Het holle (donkere) deel van een deeltje stelt de reactieve groep voor. Hoe groter dat gedeelte, hoe groter de kans dat twee deeltjes elkaar daar precies raken bij een botsing.</p>
-        </div>
       </div>
 
       <div class="panel">
-        <h2>Homogene katalysator <span style="color:var(--text-dim); font-weight:400;">(enzym)</span></h2>
+        <h2>Beginstof A</h2>
+        <div class="toggle-row">
+          <button class="toggle-btn active" data-vast="0">opgelost</button>
+          <button class="toggle-btn" data-vast="1">vast: 1 blok</button>
+          <button class="toggle-btn" data-vast="4">4 blokjes</button>
+          <button class="toggle-btn" data-vast="16">16 korrels</button>
+        </div>
+        <p class="sub" style="margin-top:8px; font-size:12px;">Bij een vaste stof is er steeds evenveel A (64 deeltjes), alleen anders verdeeld. Alleen deeltjes aan het oppervlak (donkere rand) kunnen door B geraakt worden. Fijner verdeeld = groter oppervlak.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Reactie-energie</h2>
+        <div class="toggle-row">
+          <button class="toggle-btn" data-q="-1">endotherm</button>
+          <button class="toggle-btn active" data-q="0">geen</button>
+          <button class="toggle-btn" data-q="1">exotherm</button>
+        </div>
+        <div class="toggle-row" style="margin-top:6px;">
+          <button class="toggle-btn active" data-qs="1">klein effect</button>
+          <button class="toggle-btn" data-qs="2">groot effect</button>
+        </div>
+        <div class="toggle-row" style="margin-top:6px;">
+          <button class="toggle-btn active" data-iso="1">geïsoleerde doos</button>
+          <button class="toggle-btn" data-iso="0">in een waterbad</button>
+        </div>
+        <p class="sub" style="margin-top:8px; font-size:12px;">Te zien bij "Laat de reactie verlopen". Exotherm: bij elke effectieve botsing komt energie vrij, de deeltjes gaan sneller bewegen (de temperatuur stijgt). Endotherm: er wordt energie opgenomen, de temperatuur daalt. In een waterbad wordt de warmte afgevoerd of aangevoerd en blijft de temperatuur gelijk.</p>
+      </div>
+
+      <div class="panel" id="panel-enz">
+        <h2>Katalysator</h2>
         <div class="toggle-row">
           <button class="toggle-btn active" data-enz="0">geen</button>
           <button class="toggle-btn" data-enz="1">weinig</button>
           <button class="toggle-btn" data-enz="2">veel</button>
         </div>
-        <p class="sub" style="margin-top:8px; font-size:12px;">Enzym-deeltjes (paars) binden tijdelijk aan een A of B en verhogen de reactiekans bij contact met een partner. Bij overschot substraat verzadigt het effect.</p>
-        <div class="wear-bar"><div class="wear-fill" id="enz-wear" style="background:var(--enzyme);"></div></div>
+        <p class="sub" style="margin-top:8px; font-size:12px;">Katalysatordeeltjes (paars) binden tijdelijk een A of B. Botst daar een partner tegenaan, dan verloopt de reactie via een andere route met een lagere activeringsenergie. De katalysator wordt niet verbruikt.</p>
+        <p class="sub" style="margin-top:6px; font-size:12px;">Deze katalysator is opgelost (homogeen), zoals een enzym. Een katalysator kan ook een vaste stof zijn waaraan de deeltjes aan het oppervlak reageren (heterogeen), zoals in een autokatalysator.</p>
+        <p class="sub kat-note" style="margin-top:6px; font-size:12px; display:none;">De katalysator werkt in deze simulatie alleen als A is opgelost.</p>
       </div>
 
-      <div class="panel">
-        <h2>Heterogene katalysator <span style="color:var(--text-dim); font-weight:400;">(oppervlak)</span></h2>
-        <div class="toggle-row">
-          <button class="toggle-btn active" data-het="0">geen</button>
-          <button class="toggle-btn" data-het="1">weinig plaatsen</button>
-          <button class="toggle-btn" data-het="2">veel plaatsen</button>
-        </div>
-        <p class="sub" style="margin-top:8px; font-size:12px;">Actieve plek(ken) onderin de doos binden een A-deeltje. Een botsing met B daar heeft een verhoogde kans op reactie.</p>
-        <div class="wear-bar"><div class="wear-fill" id="het-wear" style="background:var(--surface);"></div></div>
-      </div>
     </div>
   </div>
 
   <footer class="note">
-    Stand "Verkennen": de doos meet de reactiesnelheid zonder iets te verbruiken. Stand "Laat de reactie verlopen": een eenmalige, echte doorloop waarbij reactanten daadwerkelijk verdwijnen.
+    Stand "Verkennen": de doos meet de reactiesnelheid zonder iets te verbruiken (de concentraties blijven gelijk). Stand "Laat de reactie verlopen": een eenmalige doorloop waarbij A en B echt worden omgezet. Kleur van een deeltje: hoe dieper, hoe meer bewegingsenergie.
   </footer>
 </div>
 
@@ -270,12 +314,18 @@
 // ============================================================
 const W = 800, H = 600;
 const R_BODY = 12;
-const R_HEAD_MIN = 1.5, R_HEAD_MAX = 9.5; // head radius range, driven by the O knob
-const HEAD_OFFSET_FRAC = 0.85; // head center sits at this fraction of R_BODY from the body center
-const BASE_SPEED = 150; // px/s at T=50 (mid slider), scaled by sqrt(T/50) elsewhere
+const BASE_SPEED = 150; // px/s gemiddeld bij T_REF; snelheid schaalt met sqrt(T/T_REF), T in kelvin
+const T_REF = 375;     // K
+const DEELTJES_PER_MOL_L = 120; // aantal deeltjes in de doos = 120 × concentratie (mol/L): evenredig
 const WALL_BOUNCE_JITTER = 0.6; // radians, random nudge to heading on wall bounce
 const RATE_WINDOW_S = 3; // reaction rate = reactions in the last N seconds / N
-const ACTIVATION_ENERGY_BASE = 210;
+const ACTIVATION_ENERGY_BASE = 500;      // drempel voor de botsingsenergie (normaalcomponent), ongekatalyseerd
+const ACTIVATION_ENERGY_CAT = 60;        // via de katalysatorroute: lagere activeringsenergie
+const ENERGIE_HIST_MAX = 900;
+const VAST_AANTAL = 64;            // deeltjes A als vaste stof (8 × 8)
+const ROOSTER = R_BODY*2 + 0.6;    // afstand tussen roosterdeeltjes: B past er niet tussen
+const WARMTECAPACITEIT = 150;      // hoeveel de temperatuur per effectieve botsing verandert: q / WARMTECAPACITEIT
+const Q_PER_REACTIE = [0, 150, 400]; // reactie-energie per effectieve botsing (klein, groot), in K·WARMTECAPACITEIT             // x-as van het energiehistogram
 const SURFACE_STRIP_HEIGHT = 24; // px, height of the heterogeneous catalyst strip at the bottom
 const SURFACE_SITE_R = 9; // px, radius of an active site marker on the strip
 // How close a free B needs to get to a surface-bound A to attempt the catalyzed reaction. Only
@@ -286,7 +336,7 @@ const SURFACE_SITE_R = 9; // px, radius of an active site marker on the strip
 // increasing how often a passing B actually gets evaluated against a bound A -- contact MOMENTS,
 // not the per-contact success chance, were the real bottleneck (confirmed: even a 100%
 // per-contact chance at the bare R_BODY*2 radius plateaued under 10%).
-const SURFACE_CONTACT_RADIUS = R_BODY*2.2;
+const SURFACE_CONTACT_RADIUS = R_BODY*2.4;
 
 let rng = Math.random;
 
@@ -299,20 +349,15 @@ function angleDiff(a,b){
 // ============================================================
 // PARTICLE MODEL
 // ============================================================
-// A particle is a "figure-8": a body circle plus a smaller head circle riding on its rim in the
-// `heading` direction. The head's radius -- not an invisible angle margin -- IS the orientation
-// tolerance: a bigger head is physically easier to hit head-on-head, a tiny head demands a near-
-// perfect alignment. This makes the abstract "orientation factor" something the player can see
-// and reason about directly, rather than a hidden angular check happening off-screen.
-//
-// Color encodes kinetic energy per-particle (not just the global T knob): brighter/lighter =
-// faster right now. Because individual particle speeds carry their own random spread around the
-// mean set by T, particles at the "same" temperature still show a visible mix of brightness --
-// a small, honest preview of a Maxwell-Boltzmann-style speed distribution rather than a single
-// uniform glow that would misleadingly suggest every particle moves identically.
+// Een deeltje is een bolletje. De kleur geeft de bewegingsenergie van DAT deeltje weer (dieper =
+// sneller). Snelheden volgen een Maxwell-Boltzmannverdeling, dus ook bij één temperatuur zie je een
+// mengsel van langzame en snelle deeltjes.
 function makeParticle(type, speedScale){
   const angle = rng()*Math.PI*2;
-  const speed = BASE_SPEED*speedScale*(0.7+0.6*rng());
+  // snelheden volgens de (2D) Maxwell-Boltzmannverdeling: veel deeltjes rond het gemiddelde,
+  // een paar heel snelle. Gemiddelde snelheid = BASE_SPEED*speedScale.
+  const sigma = BASE_SPEED*speedScale/1.2533;
+  const speed = sigma*Math.sqrt(-2*Math.log(1-rng()));
   return {
     type, // 'A' | 'B' | 'E' (enzyme)
     x: R_BODY + rng()*(W-2*R_BODY),
@@ -362,16 +407,8 @@ function colorForParticle(p, heat){
   }
 }
 
-function headRadiusFromO(O){
-  return R_HEAD_MIN + (R_HEAD_MAX-R_HEAD_MIN)*(O/100);
-}
-
-function headPosition(p){
-  return {
-    x: p.x + Math.cos(p.heading)*R_BODY*HEAD_OFFSET_FRAC,
-    y: p.y + Math.sin(p.heading)*R_BODY*HEAD_OFFSET_FRAC,
-  };
-}
+// Botsingsenergie: alleen de snelheid LANGS de botsingslijn telt (een schampende botsing is zwak).
+function botsingsEnergie(vn){ return 0.5*vn*vn*0.01; }
 
 // ============================================================
 // BOX — the simulation itself
@@ -387,7 +424,13 @@ function headPosition(p){
 // honest reflections of the same underlying model rather than two different simulations.
 class Box{
   constructor(opts){
-    this.T = opts.T; this.CA = opts.CA; this.CB = opts.CB; this.O = opts.O;
+    this.T = opts.T; this.CA = opts.CA; this.CB = opts.CB; // T in K, C in mol/L
+    this.vast = opts.vast || 0;          // 0 = A opgelost, anders aantal blokjes vaste stof
+    this.qTeken = opts.qTeken || 0;      // +1 exotherm, -1 endotherm, 0 geen
+    this.qSterkte = opts.qSterkte || 1;  // 1 klein, 2 groot
+    this.geisoleerd = opts.geisoleerd !== false;
+    this.showProduct = !!opts.showProduct;
+    this.energyLog = []; // {t, E} van recente A-B botsingen (voor het histogram)
     this.enzymeLevel = opts.enzymeLevel || 0; // 0=geen, 1=weinig, 2=veel
     this.heterogeneLevel = opts.heterogeneLevel || 0; // 0=geen, 1=1 plek, 2=3 plekken
     this.consumeOnReaction = !!opts.consumeOnReaction;
@@ -395,11 +438,11 @@ class Box{
     this.reactionLog = []; // sim-time seconds of recent successes (bare + catalyzed combined), for the rate measurement
     this.bareCollisionLog = []; // sim-time seconds of every bare A-B body collision, success or not -- denominator for the bare success chance
     this.bareSuccessLog = []; // sim-time seconds of bare (non-catalyzed) successes only -- numerator for the bare success chance
+    this.attemptLog = []; // alle A-B contacten (kaal + via katalysator): noemer voor de totale kans
+    this.productCount = 0;
     this.simTime = 0;
     this.flashes = []; // {x,y,kind,age}: kind = 'success' | (nothing for plain bounces)
     this.lastSpeedScale = this.speedScale();
-    this.enzymeWear = 0; // 0..1, how worn the enzyme pool collectively is
-    this.surfaceWear = 0; // 0..1, how worn the heterogeneous surface collectively is
     this.sites = [];
     this.rebuildSites();
     this.rebuildParticles();
@@ -411,18 +454,13 @@ class Box{
     // an earlier calibration done before that fix looked right only because un-scaled wear was
     // silently suppressing the catalyzed route within seconds, masking how strong the route
     // actually was at steady state.
-    return [0, 10, 25][this.enzymeLevel] || 0;
+    return [0, 20, 45][this.enzymeLevel] || 0;
   }
 
   // The contact success chance an enzyme-bound particle gets when a free partner hits it. Fades
   // toward the bare (non-catalyzed, energy/head-gated) outcome as wear approaches 1 -- the
   // catalyst doesn't vanish abruptly, its advantage just erodes, which is what "slijtage" should
   // feel like in the box rather than a hard cliff.
-  enzymeContactChance(){
-    const fresh = 0.70;
-    const worn = 0.04; // close to a typical bare-collision success rate, not literally 0
-    return fresh - (fresh-worn)*this.enzymeWear;
-  }
 
   siteCount(){
     // Reaching a comparable catalyst effect to the enzyme (which sits near ~30%) turned out not
@@ -430,14 +468,9 @@ class Box{
     // a fixed-in-space site simply sees far fewer passing partners than a freely drifting enzyme.
     // Settled for a smaller but still clearly visible boost (~15-20% overall success chance at
     // "veel"), combined with the slightly widened SURFACE_CONTACT_RADIUS above.
-    return [0, 5, 15][this.heterogeneLevel] || 0;
+    return [0, 12, 30][this.heterogeneLevel] || 0;
   }
 
-  surfaceContactChance(){
-    const fresh = 0.65;
-    const worn = 0.04;
-    return fresh - (fresh-worn)*this.surfaceWear;
-  }
 
   rebuildSites(){
     // Release anything currently bound to an existing site before replacing the array -- without
@@ -463,9 +496,7 @@ class Box{
     }
   }
 
-  speedScale(){ return Math.sqrt(Math.max(this.T,1)/50); }
-
-  headRadius(){ return headRadiusFromO(this.O); }
+  speedScale(){ return Math.sqrt(Math.max(this.T,1)/T_REF); }
 
   effectiveActivationEnergy(){ return ACTIVATION_ENERGY_BASE; } // overridden by subclass/mixins later for catalysts
 
@@ -474,18 +505,44 @@ class Box{
   // events. Shared formula so A and B stay on the same density-to-particle-count curve; only the
   // concentration value fed in differs.
   targetCountFor(concentration){
-    return Math.round(20 + concentration*1.1);
+    return Math.round(DEELTJES_PER_MOL_L*concentration);
   }
   targetCountA(){ return this.targetCountFor(this.CA); }
   targetCountB(){ return this.targetCountFor(this.CB); }
 
+  // Vaste stof A: VAST_AANTAL deeltjes in 1, 4 of 16 vierkante blokjes, verspreid over de doos.
+  bouwVasteStof(){
+    const k = {1:8, 4:4, 16:2}[this.vast], g = Math.sqrt(this.vast);
+    const lijst = [];
+    for(let bi=0; bi<g; bi++) for(let bj=0; bj<g; bj++){
+      // blokken onder de infovakjes bovenin houden
+      const cx = 60 + (W-120)*(bi+0.5)/g, cy = 140 + (H-180)*(bj+0.5)/g;
+      for(let i=0;i<k;i++) for(let j=0;j<k;j++){
+        const p = makeParticle('A', 0);
+        p.x = cx + (i-(k-1)/2)*ROOSTER; p.y = cy + (j-(k-1)/2)*ROOSTER;
+        p.vx = 0; p.vy = 0; p.fixed = true;
+        lijst.push(p);
+      }
+    }
+    return lijst;
+  }
+
+  vrijePlek(p){
+    for(const q of this.particles){ if(q.fixed && Math.hypot(q.x-p.x, q.y-p.y) < R_BODY*2.2) return false; }
+    return true;
+  }
+
   rebuildParticles(){
-    const nA = this.targetCountA();
+    const nA = this.vast ? 0 : this.targetCountA();
     const nB = this.targetCountB();
-    this.particles = [];
+    this.particles = this.vast ? this.bouwVasteStof() : [];
     const speedScale = this.speedScale();
     for(let i=0;i<nA;i++) this.particles.push(makeParticle('A', speedScale));
-    for(let i=0;i<nB;i++) this.particles.push(makeParticle('B', speedScale));
+    for(let i=0;i<nB;i++){
+      let p, poging = 0;
+      do { p = makeParticle('B', speedScale); } while(this.vast && !this.vrijePlek(p) && ++poging < 50);
+      this.particles.push(p);
+    }
     const nEnz = this.enzymeCount();
     for(let i=0;i<nEnz;i++) this.particles.push(makeParticle('E', speedScale*0.6)); // enzymes drift a bit slower, they're bulkier
   }
@@ -530,7 +587,7 @@ class Box{
     const targets = {A: this.targetCountA(), B: this.targetCountB()};
     const speedScale = this.speedScale();
     const byId = new Map(this.particles.map(p=>[p.id,p]));
-    for(const type of ['A','B']){
+    for(const type of (this.vast ? ['B'] : ['A','B'])){
       const n = targets[type];
       const current = this.particles.filter(p=>p.type===type && p.alive);
       if(current.length < n){
@@ -557,8 +614,23 @@ class Box{
     this.particles = this.particles.filter(p=>p.alive);
   }
 
+  // Thermostaat: de doos staat in contact met de omgeving, dus de gemiddelde bewegingsenergie
+  // van de vrije deeltjes blijft passen bij de ingestelde temperatuur (kleine afwijkingen door
+  // binden/loslaten worden zo weggewerkt). De spreiding in snelheden blijft gewoon bestaan.
+  thermostaat(){
+    const vrij = this.particles.filter(p=>p.alive && p.type!=='E' && !p.fixed && !p.boundTo && p.boundToSite===null);
+    if(vrij.length < 2) return;
+    let som = 0; for(const p of vrij) som += p.vx*p.vx + p.vy*p.vy;
+    const rms = Math.sqrt(som/vrij.length);
+    const doel = BASE_SPEED*this.speedScale()*1.128; // rms-snelheid van de Maxwellverdeling
+    const f = Math.pow(doel/rms, 0.5); // bijsturen naar de (eventueel veranderde) temperatuur
+    for(const p of vrij){ p.vx *= f; p.vy *= f; }
+  }
+
   step(dt){
     this.simTime += dt;
+    this._thermoT = (this._thermoT||0) + dt;
+    if(this._thermoT > 0.1){ this._thermoT = 0; this.thermostaat(); }
 
     // free movement: anything not currently bound (to an enzyme OR a surface site) moves
     // normally and bounces off walls. The bottom wall sits above the catalyst strip only when
@@ -566,7 +638,8 @@ class Box{
     // full height instead of needlessly reserving an unused margin.
     const bottomWall = this.siteCount() > 0 ? H-R_BODY-SURFACE_STRIP_HEIGHT : H-R_BODY;
     for(const p of this.particles){
-      if(!p.alive || p.boundTo || p.boundToSite !== null) continue;
+      // een gebonden A/B rijdt mee met zijn katalysator; het katalysatordeeltje zelf beweegt gewoon door
+      if(!p.alive || p.fixed || (p.type!=='E' && p.boundTo) || p.boundToSite !== null) continue;
       p.x += p.vx*dt; p.y += p.vy*dt;
       if(p.x < R_BODY){ p.x = R_BODY; p.vx = Math.abs(p.vx); p.heading += (rng()-0.5)*WALL_BOUNCE_JITTER; }
       if(p.x > W-R_BODY){ p.x = W-R_BODY; p.vx = -Math.abs(p.vx); p.heading += (rng()-0.5)*WALL_BOUNCE_JITTER; }
@@ -606,12 +679,13 @@ class Box{
 
     // collisions among free (non-bound, non-enzyme) A/B particles -- the bare, uncatalyzed route,
     // unchanged from before.
-    const freeAB = this.particles.filter(p=>p.alive && !p.boundTo && p.boundToSite===null && (p.type==='A'||p.type==='B'));
-    for(let i=0;i<freeAB.length;i++){
-      const a = freeAB[i];
+    const freeAB = this.particles.filter(p=>p.alive && !p.fixed && !p.boundTo && p.boundToSite===null && (p.type==='A'||p.type==='B'));
+    const botsers = this.particles.filter(p=>p.alive && !p.boundTo && p.boundToSite===null && (p.type==='A'||p.type==='B'||p.type==='P'));
+    for(let i=0;i<botsers.length;i++){
+      const a = botsers[i];
       if(!a.alive) continue;
-      for(let j=i+1;j<freeAB.length;j++){
-        const b = freeAB[j];
+      for(let j=i+1;j<botsers.length;j++){
+        const b = botsers[j];
         if(!b.alive) continue;
         const dx=b.x-a.x, dy=b.y-a.y;
         const distSq = dx*dx+dy*dy;
@@ -701,13 +775,20 @@ class Box{
     if(this.bareSuccessLog.length && this.bareSuccessLog[0] < cutoff){
       this.bareSuccessLog = this.bareSuccessLog.filter(t=>t >= cutoff);
     }
+    if(this.attemptLog.length && this.attemptLog[0] < cutoff){
+      this.attemptLog = this.attemptLog.filter(t=>t >= cutoff);
+    }
+    const eCut = this.simTime - 6;
+    if(this.energyLog.length && this.energyLog[0].t < eCut){
+      this.energyLog = this.energyLog.filter(e=>e.t >= eCut);
+    }
   }
 
   bindToEnzyme(enzyme, sub){
     enzyme.boundTo = sub.id;
     sub.boundTo = enzyme.id;
     sub._bindAngle = rng()*Math.PI*2; // fixed angle offset for the "dumbbell" visual, re-rolled each binding
-    sub.boundTimer = 1.0 + rng()*0.8; // 1.0-1.8s binding window
+    sub.boundTimer = 1.5 + rng()*1.0; // 1,5-2,5 s gebonden
   }
 
   releaseBinding(enzyme, sub, reacted){
@@ -724,6 +805,10 @@ class Box{
   }
 
   attemptCatalyzedReaction(enzyme, bound, partner, dx, dy, dist){
+    // botsingsenergie bepalen VOORDAT het wegstuiteren de snelheid verandert
+    // naderingssnelheid langs de botsingslijn (dx,dy wijst van het gebonden deeltje naar de partner)
+    const vn0 = Math.max(0, -((partner.vx-enzyme.vx)*(dx/dist) + (partner.vy-enzyme.vy)*(dy/dist)));
+    const telt = vn0 > 0 && !(partner._laatstePoging > this.simTime - 0.2);
     // physically separate them like a normal bounce first, so a failed attempt still behaves
     // like a real collision rather than letting particles overlap forever.
     const overlap = (R_BODY*2-dist)/2;
@@ -731,22 +816,18 @@ class Box{
     bound.x -= nx*overlap; bound.y -= ny*overlap; // also nudges the enzyme next frame via the offset re-application
     partner.x += nx*overlap; partner.y += ny*overlap;
     const rsn = (partner.vx*nx+partner.vy*ny);
-    if(rsn < 0){ partner.vx -= rsn*nx; partner.vy -= rsn*ny; }
+    if(rsn < 0){ partner.vx -= 2*rsn*nx; partner.vy -= 2*rsn*ny; } // terugkaatsen zonder energieverlies of -winst
 
-    if(rng() < this.enzymeContactChance()){
+    if(!telt) return false;
+    partner._laatstePoging = this.simTime;
+    this.attemptLog.push(this.simTime);
+    const E = botsingsEnergie(vn0);
+    this.energyLog.push({t:this.simTime, E});
+    if(E >= ACTIVATION_ENERGY_CAT){
       const a = bound.type==='A' ? bound : partner;
       const b = bound.type==='A' ? partner : bound;
       this.onSuccessfulReaction(a,b, {catalyzed:'homogeneous'});
       this.releaseBinding(enzyme, bound, true);
-      // Wear accrues per successful catalyzed reaction, but scaled down by how many enzymes
-      // share the pool: with more enzymes working in parallel, each individual success should
-      // deplete the SHARED wear pool proportionally less, so the overall time-to-fully-worn stays
-      // roughly constant regardless of enzymeLevel. Without this scaling, raising enzymeCount()
-      // (done above to reach a visible ~30% catalyzed success rate) made the pool wear out within
-      // 20-30s instead of the intended ~100s of continuous heavy use.
-      const referenceEnzymeCount = 8; // the count this increment was originally tuned against
-      const wearIncrement = 0.0025 * (referenceEnzymeCount / Math.max(1, this.enzymeCount()));
-      this.enzymeWear = Math.min(1, this.enzymeWear + wearIncrement);
     }
     // failure: bound stays bound (timer keeps counting down from where it was), partner just
     // bounced off like any other failed attempt -- no marker.
@@ -755,13 +836,7 @@ class Box{
   bindToSite(site, sub){
     site.boundParticleId = sub.id;
     sub.boundToSite = this.sites.indexOf(site);
-    sub.boundTimer = 1.0 + rng()*0.8; // same binding window shape as the enzyme, for consistency
-    // The bound A always presents its head straight up into the solution, away from the strip --
-    // a real surface-bound molecule has a fixed orientation set by how it's anchored, not a
-    // random one. This also makes a passing B's job geometrically simpler: only B's own heading
-    // needs to happen to point downward at the moment of contact, instead of both particles'
-    // headings needing to randomly align.
-    sub.heading = -Math.PI/2;
+    sub.boundTimer = 2.5 + rng()*1.0; // een oppervlak houdt een deeltje wat langer vast
   }
 
   releaseSiteBinding(site, sub, reacted){
@@ -778,6 +853,8 @@ class Box{
   }
 
   attemptSurfaceReaction(site, bound, partner, dx, dy, dist){
+    const vn0 = Math.max(0, -(partner.vx*(dx/dist) + partner.vy*(dy/dist))); // de plek staat stil
+    const telt = vn0 > 0 && !(partner._laatstePoging > this.simTime - 0.2);
     // Only push the partner apart if there's an actual body overlap (dist < R_BODY*2) -- contact
     // attempts beyond that, out to SURFACE_CONTACT_RADIUS, represent the wider "local environment"
     // a bound molecule reacts across, not a literal second collision, so they shouldn't shove the
@@ -789,18 +866,17 @@ class Box{
       const overlap = (R_BODY*2-dist)/2;
       partner.x += nx*overlap; partner.y += ny*overlap;
       const rsn = (partner.vx*nx+partner.vy*ny);
-      if(rsn < 0){ partner.vx -= rsn*nx; partner.vy -= rsn*ny; }
+      if(rsn < 0){ partner.vx -= 2*rsn*nx; partner.vy -= 2*rsn*ny; } // elastisch
     }
 
-    if(rng() < this.surfaceContactChance()){
+    if(!telt) return false;
+    partner._laatstePoging = this.simTime;
+    this.attemptLog.push(this.simTime);
+    const E = botsingsEnergie(vn0);
+    this.energyLog.push({t:this.simTime, E});
+    if(E >= ACTIVATION_ENERGY_CAT){
       this.onSuccessfulReaction(bound, partner, {catalyzed:'heterogeneous'});
       this.releaseSiteBinding(site, bound, true);
-      // Same reasoning as the enzyme wear scaling above: more sites sharing the pool means each
-      // individual success should deplete it proportionally less, keeping time-to-fully-worn
-      // roughly constant across heterogeneLevel.
-      const referenceSiteCount = 3; // the count this increment was originally tuned against
-      const siteWearIncrement = 0.0025 * (referenceSiteCount / Math.max(1, this.siteCount()));
-      this.surfaceWear = Math.min(1, this.surfaceWear + siteWearIncrement);
       return true;
     }
     return false;
@@ -810,33 +886,37 @@ class Box{
   }
 
   resolveCollision(a,b,dx,dy,dist){
-    const overlap = (R_BODY*2 - dist)/2;
+    if(a.fixed && b.fixed) return;
     const nx = dx/dist, ny = dy/dist;
-    a.x -= nx*overlap; a.y -= ny*overlap;
-    b.x += nx*overlap; b.y += ny*overlap;
-
     const relVx = b.vx-a.vx, relVy = b.vy-a.vy;
     const relSpeedAlongNormal = relVx*nx + relVy*ny;
-    if(relSpeedAlongNormal >= 0) return; // already separating, not a real impact this frame
-    a.vx += relSpeedAlongNormal*nx; a.vy += relSpeedAlongNormal*ny;
-    b.vx -= relSpeedAlongNormal*nx; b.vy -= relSpeedAlongNormal*ny;
+    if(a.fixed || b.fixed){
+      // botsing met een deeltje in het rooster van de vaste stof: alleen het losse deeltje kaatst terug
+      const ov = R_BODY*2 - dist;
+      if(a.fixed){ b.x += nx*ov; b.y += ny*ov; } else { a.x -= nx*ov; a.y -= ny*ov; }
+      if(relSpeedAlongNormal >= 0) return;
+      if(a.fixed){ b.vx -= 2*relSpeedAlongNormal*nx; b.vy -= 2*relSpeedAlongNormal*ny; }
+      else       { a.vx += 2*relSpeedAlongNormal*nx; a.vy += 2*relSpeedAlongNormal*ny; }
+    } else {
+      const overlap = (R_BODY*2 - dist)/2;
+      a.x -= nx*overlap; a.y -= ny*overlap;
+      b.x += nx*overlap; b.y += ny*overlap;
+      if(relSpeedAlongNormal >= 0) return; // already separating, not a real impact this frame
+      a.vx += relSpeedAlongNormal*nx; a.vy += relSpeedAlongNormal*ny;
+      b.vx -= relSpeedAlongNormal*nx; b.vy -= relSpeedAlongNormal*ny;
+    }
 
-    if(a.type === b.type) return; // only A-B pairs can react; A-A/B-B always just bounce
+    if(a.type === b.type || a.type==='P' || b.type==='P') return; // alleen A-B kan reageren
     this.bareCollisionLog.push(this.simTime);
+    this.attemptLog.push(this.simTime);
 
-    const relSpeed = Math.hypot(relVx, relVy);
-    const collisionEnergy = 0.5*relSpeed*relSpeed*0.01;
+    // botsingsenergie op basis van de snelheid langs de botsingslijn (niet de schampende component)
+    // roosterdeeltjes trillen ook: we rekenen met dezelfde verdeling als bij twee losse deeltjes (factor 2)
+    const collisionEnergy = botsingsEnergie(relSpeedAlongNormal) * ((a.fixed || b.fixed) ? 2 : 1);
+    this.energyLog.push({t:this.simTime, E: collisionEnergy});
     const energyOk = collisionEnergy >= this.effectiveActivationEnergy();
 
-    // head-head overlap check: this IS the orientation factor now, expressed as geometry instead
-    // of a hidden angle margin -- two particles only react if their (variably-sized) heads are
-    // close enough together at the moment of body impact.
-    const headA = headPosition(a), headB = headPosition(b);
-    const headDist = Math.hypot(headB.x-headA.x, headB.y-headA.y);
-    const headRadius = this.headRadius();
-    const headsOverlap = headDist < headRadius*2;
-
-    if(energyOk && headsOverlap){
+    if(energyOk){
       this.bareSuccessLog.push(this.simTime);
       this.onSuccessfulReaction(a,b);
     }
@@ -848,6 +928,19 @@ class Box{
     this.flashes.push({x:(a.x+b.x)/2, y:(a.y+b.y)/2, kind:'success', age:0});
     if(this.consumeOnReaction){
       a.alive = false; b.alive = false;
+      this.productCount++;
+      // reactie-energie: in een geïsoleerde doos verandert de temperatuur, in een waterbad niet
+      if(this.qTeken !== 0 && this.geisoleerd){
+        this.T = Math.max(120, Math.min(900, this.T + this.qTeken*Q_PER_REACTIE[this.qSterkte]/WARMTECAPACITEIT));
+      }
+      if(this.showProduct){
+        // product AB: neemt de totale impuls van A en B mee, reageert zelf niet meer
+        const p = makeParticle('P', this.speedScale());
+        p.x = (a.x+b.x)/2; p.y = (a.y+b.y)/2;
+        p.vx = (a.vx+b.vx)/2; p.vy = (a.vy+b.vy)/2;
+        p.heading = Math.atan2(b.y-a.y, b.x-a.x);
+        this.particles.push(p);
+      }
     }
     // in explore mode, a and b simply remain -- already correct since we don't touch .alive here.
   }
@@ -858,7 +951,8 @@ class Box{
     for(let i=this.reactionLog.length-1;i>=0;i--){
       if(this.reactionLog[i] >= cutoff) count++; else break;
     }
-    return count / RATE_WINDOW_S;
+    // aan het begin van een doorloop is er nog geen 3 s aan meetdata: deel door de tijd die er wél is
+    return count / Math.min(RATE_WINDOW_S, Math.max(this.simTime, 0.5));
   }
 
   // Effective chance that a bare A-B body collision actually reacts, measured directly from
@@ -884,10 +978,22 @@ class Box{
   totalSuccessChance(){
     const cutoff = this.simTime - RATE_WINDOW_S;
     const countIn = (log)=>{ let c=0; for(let i=log.length-1;i>=0;i--){ if(log[i]>=cutoff) c++; else break; } return c; };
-    const collisions = countIn(this.bareCollisionLog);
     const allSuccesses = countIn(this.reactionLog);
-    if(collisions === 0) return null;
-    return allSuccesses/collisions;
+    const pogingen = countIn(this.attemptLog);
+    if(pogingen === 0) return null;
+    return allSuccesses/pogingen;
+  }
+
+  aantalAanOppervlak(){
+    const vast = this.particles.filter(p=>p.alive && p.fixed);
+    let n = 0;
+    for(const p of vast){
+      let buren = 0;
+      for(const q of vast){ if(q!==p && Math.abs(q.x-p.x)+Math.abs(q.y-p.y) < ROOSTER*1.1) buren++; }
+      p.aanOpp = buren < 4;
+      if(p.aanOpp) n++;
+    }
+    return n;
   }
 
   countAlive(type){
@@ -904,12 +1010,11 @@ const ctx = canvas.getContext('2d');
 const el = id => document.getElementById(id);
 
 const ui = {
-  ctrlT: el('ctrl-T'), ctrlCA: el('ctrl-CA'), ctrlCB: el('ctrl-CB'), ctrlO: el('ctrl-O'),
-  readoutT: el('readout-T'), readoutCA: el('readout-CA'), readoutCB: el('readout-CB'), readoutO: el('readout-O'),
+  ctrlT: el('ctrl-T'), ctrlCA: el('ctrl-CA'), ctrlCB: el('ctrl-CB'),
+  readoutT: el('readout-T'), readoutCA: el('readout-CA'), readoutCB: el('readout-CB'),
   countVal: el('count-val'), bareChanceVal: el('bare-chance-val'),
   catChanceRow: el('cat-chance-row'), catChanceVal: el('cat-chance-val'),
   rateBarFill: el('rate-bar-fill'), rateBarVal: el('rate-bar-val'), rateBarSub: el('rate-bar-sub'),
-  enzWear: el('enz-wear'), hetWear: el('het-wear'),
   btnExplore: el('btn-explore'), btnRun: el('btn-run'), btnResetRun: el('btn-reset-run'),
   modeSub: el('mode-sub'),
   ratePanelExplore: el('rate-panel-explore'), ratePanelRun: el('rate-panel-run'),
@@ -920,17 +1025,15 @@ const ui = {
 // rate tuning earlier was calibrated against that scale. These conversions are the only bridge
 // between "what the slider says" and "what the physics engine computes with" -- nothing about
 // the underlying balance changes, only the label the player reads.
-const T_MIN_K = 250, T_MAX_K = 500;
-const C_MIN_M = 0.05, C_MAX_M = 1.0;
-function kelvinToInternalT(kelvin){ return (kelvin-T_MIN_K)/(T_MAX_K-T_MIN_K)*100; }
-function molarToInternalC(molar){ return (molar-C_MIN_M)/(C_MAX_M-C_MIN_M)*100; }
-function factorToInternalO(factor){ return factor*100; }
+// Het model rekent nu direct in kelvin en mol/L (geen interne 0-100-schaal meer).
+function kelvinToInternalT(kelvin){ return kelvin; }
+function molarToInternalC(molar){ return molar; }
+function komma(v, d){ return Number(v).toFixed(d).replace('.', ','); }
 
 let box = new Box({
   T: kelvinToInternalT(parseFloat(ui.ctrlT.value)),
   CA: molarToInternalC(parseFloat(ui.ctrlCA.value)),
   CB: molarToInternalC(parseFloat(ui.ctrlCB.value)),
-  O: factorToInternalO(parseFloat(ui.ctrlO.value)),
   enzymeLevel:0, heterogeneLevel:0, consumeOnReaction:false,
 });
 let appMode = 'explore'; // 'explore' | 'run'
@@ -943,9 +1046,8 @@ let displayRate = 0;
 
 function updateKnobReadouts(){
   ui.readoutT.textContent = Math.round(parseFloat(ui.ctrlT.value));
-  ui.readoutCA.textContent = parseFloat(ui.ctrlCA.value).toFixed(2);
-  ui.readoutCB.textContent = parseFloat(ui.ctrlCB.value).toFixed(2);
-  ui.readoutO.textContent = parseFloat(ui.ctrlO.value).toFixed(2);
+  ui.readoutCA.textContent = komma(ui.ctrlCA.value, 2);
+  ui.readoutCB.textContent = komma(ui.ctrlCB.value, 2);
 }
 
 ui.ctrlT.addEventListener('input', ()=>{
@@ -963,15 +1065,40 @@ ui.ctrlCB.addEventListener('input', ()=>{
   box.syncParticleCount();
   updateKnobReadouts();
 });
-ui.ctrlO.addEventListener('input', ()=>{
-  box.O = factorToInternalO(parseFloat(ui.ctrlO.value));
-  updateKnobReadouts();
+function zetActief(attr, waarde){
+  document.querySelectorAll('['+attr+']').forEach(b=>b.classList.toggle('active', b.getAttribute(attr)===String(waarde)));
+}
+document.querySelectorAll('[data-vast]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    box.vast = parseInt(btn.dataset.vast);
+    zetActief('data-vast', box.vast);
+    const vast = box.vast > 0;
+    // katalysatoren werken in dit model alleen met opgeloste A
+    if(vast){
+      box.enzymeLevel = 0; box.heterogeneLevel = 0;
+      zetActief('data-enz', 0); zetActief('data-het', 0);
+      box.syncEnzymeCount(); box.rebuildSites();
+    }
+    el('panel-enz').classList.toggle('uit', vast);
+    document.querySelectorAll('.kat-note').forEach(n=>n.style.display = vast ? '' : 'none');
+    el('grp-CA').style.opacity = vast ? .4 : 1;
+    ui.ctrlCA.disabled = vast;
+    box.rebuildParticles();
+  });
+});
+document.querySelectorAll('[data-q]').forEach(btn=>btn.addEventListener('click', ()=>{ box.qTeken = parseInt(btn.dataset.q); zetActief('data-q', box.qTeken); }));
+document.querySelectorAll('[data-qs]').forEach(btn=>btn.addEventListener('click', ()=>{ box.qSterkte = parseInt(btn.dataset.qs); zetActief('data-qs', box.qSterkte); }));
+document.querySelectorAll('[data-iso]').forEach(btn=>btn.addEventListener('click', ()=>{ box.geisoleerd = btn.dataset.iso === '1'; zetActief('data-iso', btn.dataset.iso); }));
+el('chk-diagram').addEventListener('change', ()=>{
+  el('diagram-panel').style.display = el('chk-diagram').checked ? '' : 'none';
+});
+el('chk-energie').addEventListener('change', ()=>{
+  el('energie-panel').style.display = el('chk-energie').checked ? '' : 'none';
 });
 
 document.querySelectorAll('[data-enz]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     box.enzymeLevel = parseInt(btn.dataset.enz);
-    box.enzymeWear = 0; // fresh enzymes when switching levels
     box.syncEnzymeCount();
     document.querySelectorAll('[data-enz]').forEach(b=>b.classList.toggle('active', b===btn));
   });
@@ -979,7 +1106,6 @@ document.querySelectorAll('[data-enz]').forEach(btn=>{
 document.querySelectorAll('[data-het]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     box.heterogeneLevel = parseInt(btn.dataset.het);
-    box.surfaceWear = 0; // fresh surface when switching levels
     box.rebuildSites();
     document.querySelectorAll('[data-het]').forEach(b=>b.classList.toggle('active', b===btn));
   });
@@ -1005,7 +1131,7 @@ function draw(){
   // heterogeneous catalyst strip, if active
   if(b.sites.length > 0){
     const stripTop = H - SURFACE_STRIP_HEIGHT;
-    const wear = b.surfaceWear;
+    const wear = 0;
     const baseColor = [0xb8,0x50,0x3b]; // var(--surface)
     const fadeColor = [0xd8,0xd6,0xce]; // var(--line), what it fades toward as it wears out
     const lerp = (a,b,t)=>Math.round(a+(b-a)*t);
@@ -1053,30 +1179,29 @@ function draw(){
   }
 
   // particles: figure-8 shape, body + head, colored by per-particle kinetic energy
-  const refSpeed = BASE_SPEED*b.speedScale();
+  // vaste referentie (bij T_REF): bij een hogere temperatuur kleuren de deeltjes echt dieper
+  const refSpeed = BASE_SPEED;
   for(const p of b.particles){
     if(!p.alive) continue;
+    if(p.type === 'P'){
+      // product AB: een A-helft en een B-helft aan elkaar, grijs getint
+      const ox = Math.cos(p.heading)*R_BODY*0.55, oy = Math.sin(p.heading)*R_BODY*0.55;
+      ctx.beginPath(); ctx.arc(p.x-ox, p.y-oy, R_BODY*0.75, 0, Math.PI*2); ctx.fillStyle = '#b9a698'; ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x+ox, p.y+oy, R_BODY*0.75, 0, Math.PI*2); ctx.fillStyle = '#93aaa3'; ctx.fill();
+      continue;
+    }
+    if(p.fixed){
+      ctx.beginPath(); ctx.arc(p.x, p.y, R_BODY-0.5, 0, Math.PI*2);
+      ctx.fillStyle = colorForParticle(p, 0.45); ctx.fill();
+      if(p.aanOpp){ ctx.lineWidth = 2.2; ctx.strokeStyle = '#6e2c10'; ctx.stroke(); }
+      continue;
+    }
     const heat = heatOf(p, refSpeed);
     const color = colorForParticle(p, heat);
-
     ctx.beginPath();
     ctx.arc(p.x, p.y, R_BODY, 0, Math.PI*2);
     ctx.fillStyle = color;
     ctx.fill();
-
-    if(p.type !== 'E'){
-      const head = headPosition(p);
-      const headR = b.headRadius();
-      ctx.beginPath();
-      ctx.arc(head.x, head.y, headR, 0, Math.PI*2);
-      ctx.fillStyle = '#ffffff';
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(head.x, head.y, headR, 0, Math.PI*2);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    }
   }
 
   // explosion flashes for successful reactions
@@ -1110,7 +1235,9 @@ function draw(){
 // HUD always reflects whichever box is currently active rather than being explore-only.
 function updateSharedHud(){
   const b = activeBox();
-  ui.countVal.textContent = `${b.countAlive('A')} / ${b.countAlive('B')}`;
+  const metProduct = appMode==='run' && b.showProduct;
+  el('count-lbl').textContent = metProduct ? 'Deeltjes A / B / AB' : 'Deeltjes A / B';
+  ui.countVal.textContent = metProduct ? `${b.countAlive('A')} / ${b.countAlive('B')} / ${b.countAlive('P')}` : `${b.countAlive('A')} / ${b.countAlive('B')}`;
 
   const bareChance = b.bareSuccessChance();
   ui.bareChanceVal.textContent = bareChance === null ? '—' : Math.round(bareChance*100)+'%';
@@ -1123,21 +1250,26 @@ function updateSharedHud(){
     ui.catChanceVal.textContent = totalChance === null ? '—' : Math.round(totalChance*100)+'%';
   }
 
-  ui.enzWear.style.width = (b.enzymeLevel>0 ? Math.round((1-b.enzymeWear)*100) : 100)+'%';
-  ui.hetWear.style.width = (b.heterogeneLevel>0 ? Math.round((1-b.surfaceWear)*100) : 100)+'%';
+  const nOpp = b.vast ? b.aantalAanOppervlak() : 0;
+  el('opp-lbl').style.display = b.vast ? '' : 'none';
+  el('opp-val').style.display = b.vast ? '' : 'none';
+  if(b.vast) el('opp-val').textContent = String(nOpp);
+  el('temp-val').textContent = Math.round(b.T) + ' K';
+  if(el('chk-energie').checked) drawEnergieChart(b);
+  if(el('chk-diagram').checked) drawDiagram(b);
 }
 
 function updateExploreHud(dt){
   const trueRate = box.currentRate();
   // gentle random walk toward the true measured rate, so the bar visibly trembles a little
   // instead of snapping between window-quantized values -- still always settling near the truth.
-  displayRate += (trueRate - displayRate)*Math.min(1, dt*2) + (rng()-0.5)*0.05;
+  displayRate += (trueRate - displayRate)*Math.min(1, dt*2);
   displayRate = Math.max(0, displayRate);
 
-  const maxBar = 12; // /s, scale the bar's full height represents -- tuned to the measured ceiling with both catalysts maxed
+  const maxBar = 40; // /s, scale the bar's full height represents -- tuned to the measured ceiling with both catalysts maxed
   const pct = Math.min(100, (displayRate/maxBar)*100);
   ui.rateBarFill.style.height = pct+'%';
-  ui.rateBarVal.textContent = displayRate.toFixed(2);
+  ui.rateBarVal.textContent = komma(displayRate, 1);
 
   updateSharedHud();
 }
@@ -1159,11 +1291,17 @@ function startRun(){
   // box itself is left completely untouched and un-stepped while a run is active, so returning
   // to Verkennen later resumes exactly where it was.
   runBox = new Box({
-    T: box.T, CA: box.CA, CB: box.CB, O: box.O,
+    T: box.T, CA: box.CA, CB: box.CB,
     enzymeLevel: box.enzymeLevel, heterogeneLevel: box.heterogeneLevel,
-    consumeOnReaction: true,
+    vast: box.vast, qTeken: box.qTeken, qSterkte: box.qSterkte, geisoleerd: box.geisoleerd,
+    consumeOnReaction: true, showProduct: el('chk-product').checked,
   });
   runRateHistory = [];
+  el('chk-product').disabled = true;
+  el('legend-product').style.display = runBox.showProduct ? '' : 'none';
+  el('product-note').textContent = runBox.showProduct
+    ? 'Elke effectieve botsing levert één deeltje AB op. De atomen verdwijnen niet: ze zitten nu in het product.'
+    : 'Let op: het gevormde product wordt hier bewust niet getekend, zodat je alleen ziet hoe de beginstoffen opraken. In werkelijkheid verdwijnen de atomen niet: ze zitten in het product AB.';
   runFinished = false;
   runFinishReason = '';
   appMode = 'run';
@@ -1176,7 +1314,9 @@ function startRun(){
   ui.btnResetRun.style.display = '';
   ui.ratePanelExplore.style.display = 'none';
   ui.ratePanelRun.style.display = '';
-  ui.modeSub.textContent = 'De reactie verloopt nu echt: reactanten worden verbruikt, het gevormde product wordt niet weergegeven. Knoppen zijn vergrendeld tot je reset.';
+  ui.modeSub.textContent = runBox.showProduct
+    ? 'De reactie verloopt nu echt: A en B worden verbruikt en vormen product AB. Knoppen zijn vergrendeld tot je reset.'
+    : 'De reactie verloopt nu echt: A en B worden verbruikt (het product wordt bewust niet getekend). Knoppen zijn vergrendeld tot je reset.';
 }
 
 function resetRun(){
@@ -1184,6 +1324,8 @@ function resetRun(){
   runRateHistory = [];
   runFinished = false;
   appMode = 'explore';
+  el('chk-product').disabled = false;
+  el('legend-product').style.display = 'none';
 
   el('controls-wrap').classList.remove('locked');
   document.querySelectorAll('#controls-wrap input, #controls-wrap button').forEach(elm=>elm.disabled = false);
@@ -1230,11 +1372,11 @@ function drawRateChart(){
   rctx.fillStyle = '#6b6557';
   rctx.font = '10px monospace';
   rctx.textAlign = 'right';
-  rctx.fillText(maxRate.toFixed(2)+' /s', padding.left-6, padding.top+4);
+  rctx.fillText(komma(maxRate,1)+' /s', padding.left-6, padding.top+4);
   rctx.fillText('0', padding.left-6, H2-padding.bottom+2);
   rctx.textAlign = 'center';
   rctx.fillText('0', padding.left, H2-padding.bottom+14);
-  rctx.fillText(tMax.toFixed(0)+'s', W2-padding.right, H2-padding.bottom+14);
+  rctx.fillText(komma(tMax,0)+' s', W2-padding.right, H2-padding.bottom+14);
 
   rctx.beginPath();
   rctx.strokeStyle = '#c1652f';
@@ -1247,15 +1389,144 @@ function drawRateChart(){
   rctx.stroke();
 }
 
+function drawCountChart(){
+  const cv = el('count-chart'), c2 = cv.getContext('2d');
+  const W2 = cv.width, H2 = cv.height;
+  c2.clearRect(0,0,W2,H2);
+  const pad = {left:42, right:90, top:14, bottom:24};
+  const pw = W2-pad.left-pad.right, ph = H2-pad.top-pad.bottom;
+  if(runRateHistory.length < 2) return;
+  const tMax = Math.max(1, runRateHistory[runRateHistory.length-1].t);
+  const r0 = runRateHistory[0];
+  const nMax = Math.max(1, r0.nA, r0.nB, ...runRateHistory.map(p=>p.nP))*1.1;
+  c2.strokeStyle = '#8a8478'; c2.lineWidth = 1;
+  c2.beginPath(); c2.moveTo(pad.left,pad.top); c2.lineTo(pad.left,H2-pad.bottom); c2.lineTo(W2-pad.right,H2-pad.bottom); c2.stroke();
+  c2.fillStyle = '#6b6557'; c2.font = '10px monospace';
+  c2.textAlign = 'right'; c2.fillText(String(Math.round(nMax)), pad.left-6, pad.top+4); c2.fillText('0', pad.left-6, H2-pad.bottom+2);
+  c2.textAlign = 'center'; c2.fillText('0', pad.left, H2-pad.bottom+14); c2.fillText(komma(tMax,0)+' s', W2-pad.right, H2-pad.bottom+14);
+  const series = [['nA','#c1652f','A'],['nB','#2f8a78','B']];
+  if(runBox && runBox.showProduct) series.push(['nP','#8a8478','AB']);
+  series.forEach(([k,col,naam],si)=>{
+    c2.save(); if(k==='nB') c2.setLineDash([7,5]);
+    c2.beginPath(); c2.strokeStyle = col; c2.lineWidth = 2.2;
+    runRateHistory.forEach((p,i)=>{
+      const x = pad.left + (p.t/tMax)*pw, y = pad.top + ph - (p[k]/nMax)*ph;
+      if(i===0) c2.moveTo(x,y); else c2.lineTo(x,y);
+    });
+    c2.stroke(); c2.restore();
+    c2.fillStyle = col; c2.textAlign = 'left'; c2.font = '11px monospace';
+    c2.fillText('aantal '+naam, W2-pad.right+8, pad.top+12+si*16);
+  });
+}
+
+function drawEnergieChart(b){
+  const cv = el('energie-chart'), c2 = cv.getContext('2d');
+  const W2 = cv.width, H2 = cv.height;
+  c2.clearRect(0,0,W2,H2);
+  const pad = {left:42, right:14, top:14, bottom:26};
+  const pw = W2-pad.left-pad.right, ph = H2-pad.top-pad.bottom;
+  const nBins = 28, bins = new Array(nBins).fill(0);
+  for(const e of b.energyLog){ const k = Math.min(nBins-1, Math.floor(e.E/ENERGIE_HIST_MAX*nBins)); bins[k]++; }
+  const maxB = Math.max(1, ...bins);
+  const bw = pw/nBins;
+  bins.forEach((v,k)=>{
+    const x = pad.left + k*bw, h = v/maxB*ph;
+    const E0 = k/nBins*ENERGIE_HIST_MAX;
+    c2.fillStyle = E0 >= ACTIVATION_ENERGY_BASE ? '#c1652f' : '#d8d2c4';
+    c2.fillRect(x+1, pad.top+ph-h, bw-2, h);
+  });
+  c2.strokeStyle = '#8a8478'; c2.lineWidth = 1;
+  c2.beginPath(); c2.moveTo(pad.left,H2-pad.bottom); c2.lineTo(W2-pad.right,H2-pad.bottom); c2.stroke();
+  const lijn = (E, dash, tekst)=>{
+    const x = pad.left + E/ENERGIE_HIST_MAX*pw;
+    c2.save(); c2.setLineDash(dash); c2.strokeStyle = '#3b3a36'; c2.lineWidth = 1.6;
+    c2.beginPath(); c2.moveTo(x,pad.top); c2.lineTo(x,H2-pad.bottom); c2.stroke(); c2.restore();
+    c2.fillStyle = '#3b3a36'; c2.font = '11px monospace'; c2.textAlign = 'left'; c2.fillText(tekst, x+4, pad.top+10);
+  };
+  lijn(ACTIVATION_ENERGY_BASE, [], 'Ea');
+  if(b.enzymeLevel>0 || b.heterogeneLevel>0) lijn(ACTIVATION_ENERGY_CAT, [5,4], 'Ea met katalysator');
+  c2.fillStyle = '#6b6557'; c2.font = '10px monospace'; c2.textAlign = 'center';
+  c2.fillText('botsingsenergie →', pad.left+pw/2, H2-6);
+  c2.save(); c2.translate(12, pad.top+ph/2); c2.rotate(-Math.PI/2); c2.fillText('aantal botsingen', 0, 0); c2.restore();
+}
+
+function drawTempChart(){
+  const cv = el('temp-chart'), c2 = cv.getContext('2d');
+  const W2 = cv.width, H2 = cv.height;
+  c2.clearRect(0,0,W2,H2);
+  if(runRateHistory.length < 2) return;
+  const pad = {left:42, right:14, top:14, bottom:24};
+  const pw = W2-pad.left-pad.right, ph = H2-pad.top-pad.bottom;
+  const tMax = Math.max(1, runRateHistory[runRateHistory.length-1].t);
+  const Ts = runRateHistory.map(p=>p.T);
+  let lo = Math.min(...Ts), hi = Math.max(...Ts);
+  lo = Math.floor((lo-20)/10)*10; hi = Math.ceil((hi+20)/10)*10;
+  c2.strokeStyle = '#8a8478'; c2.lineWidth = 1;
+  c2.beginPath(); c2.moveTo(pad.left,pad.top); c2.lineTo(pad.left,H2-pad.bottom); c2.lineTo(W2-pad.right,H2-pad.bottom); c2.stroke();
+  c2.fillStyle = '#6b6557'; c2.font = '10px monospace'; c2.textAlign = 'right';
+  c2.fillText(hi+' K', pad.left-4, pad.top+4); c2.fillText(lo+' K', pad.left-4, H2-pad.bottom+2);
+  c2.textAlign = 'center'; c2.fillText('0', pad.left, H2-pad.bottom+14); c2.fillText(komma(tMax,0)+' s', W2-pad.right, H2-pad.bottom+14);
+  c2.beginPath(); c2.strokeStyle = '#b8503b'; c2.lineWidth = 2.2;
+  runRateHistory.forEach((p,i)=>{
+    const x = pad.left + (p.t/tMax)*pw, y = pad.top + ph - (p.T-lo)/(hi-lo)*ph;
+    if(i===0) c2.moveTo(x,y); else c2.lineTo(x,y);
+  });
+  c2.stroke();
+}
+
+// Schematisch energiediagram: beginstoffen, top (Ea), product (ΔE), en bij een katalysator een lagere top.
+function drawDiagram(b){
+  const cv = el('diagram-chart'), c2 = cv.getContext('2d');
+  const W2 = cv.width, H2 = cv.height;
+  c2.clearRect(0,0,W2,H2);
+  const ea = 90, dE = b.qTeken * (b.qSterkte === 2 ? 65 : 30); // pixels; positief = exotherm (product lager)
+  const yR = 120, yP = yR + dE, yTop = yR - ea;
+  const kat = b.enzymeLevel>0 || b.heterogeneLevel>0;
+  const yKat = yR - ea*0.45;
+  const x0 = 70, x1 = 200, x2 = 380, x3 = 560, x4 = 700;
+  c2.strokeStyle = '#8a8478'; c2.lineWidth = 1;
+  c2.beginPath(); c2.moveTo(40,10); c2.lineTo(40,H2-20); c2.lineTo(W2-20,H2-20); c2.stroke();
+  c2.save(); c2.fillStyle = '#6b6557'; c2.font = '11px monospace'; c2.translate(24, H2/2); c2.rotate(-Math.PI/2); c2.textAlign='center'; c2.fillText('energie', 0, 0); c2.restore();
+  c2.fillStyle = '#6b6557'; c2.font = '11px monospace'; c2.textAlign='center'; c2.fillText('reactieverloop →', W2/2, H2-5);
+  const kromme = (top, dash, kleur)=>{
+    c2.save(); c2.setLineDash(dash); c2.strokeStyle = kleur; c2.lineWidth = 2.4;
+    c2.beginPath(); c2.moveTo(x0,yR); c2.lineTo(x1,yR);
+    c2.bezierCurveTo(x1+70,yR, x2-60,top, x2,top);
+    c2.bezierCurveTo(x2+60,top, x3-70,yP, x3,yP);
+    c2.lineTo(x4,yP); c2.stroke(); c2.restore();
+  };
+  kromme(yTop, [], '#3b3a36');
+  if(kat) kromme(yKat, [6,5], '#8a5bd6');
+  c2.fillStyle = '#3b3a36'; c2.font = '12px sans-serif'; c2.textAlign = 'left';
+  c2.fillText('A + B', x0, yR-8); c2.fillText('AB', x4-30, yP-8);
+  const pijl = (x, yA, yB, tekst, kleur)=>{
+    c2.strokeStyle = kleur; c2.fillStyle = kleur; c2.lineWidth = 1.5;
+    c2.beginPath(); c2.moveTo(x,yA); c2.lineTo(x,yB); c2.stroke();
+    const r = yB < yA ? 1 : -1;
+    c2.beginPath(); c2.moveTo(x,yB); c2.lineTo(x-4,yB+6*r); c2.lineTo(x+4,yB+6*r); c2.closePath(); c2.fill();
+    c2.font = '12px sans-serif'; c2.textAlign = 'left'; c2.fillText(tekst, x+7, (yA+yB)/2+4);
+  };
+  c2.save(); c2.setLineDash([2,3]); c2.strokeStyle = '#b5b0a5'; c2.beginPath(); c2.moveTo(x1,yR); c2.lineTo(x4,yR); c2.stroke(); c2.restore();
+  pijl(x2-40, yR, yTop, 'Ea', '#3b3a36');
+  if(kat) pijl(x2+20, yR, yKat, 'Ea met katalysator', '#8a5bd6');
+  if(dE !== 0) pijl(x3+40, yR, yP, dE > 0 ? 'ΔE < 0 (exotherm)' : 'ΔE > 0 (endotherm)', '#b8503b');
+  el('diagram-uitleg').textContent = dE > 0
+    ? 'Exotherm: het product heeft minder chemische energie dan de beginstoffen. Het verschil komt vrij als warmte (bewegingsenergie van de deeltjes).'
+    : dE < 0 ? 'Endotherm: het product heeft meer chemische energie dan de beginstoffen. Die energie wordt opgenomen uit de bewegingsenergie van de deeltjes.'
+    : 'Geen warmte-effect: beginstoffen en product hebben (vrijwel) evenveel energie. Een katalysator verlaagt alleen de top (Ea), niet ΔE.';
+}
+
 function updateRunHud(){
   updateSharedHud();
+  drawCountChart();
   drawRateChart();
+  drawTempChart();
 
   const status = el('run-status');
   if(runFinished){
     status.textContent = runFinishReason;
   } else {
-    status.textContent = `Bezig — t = ${runBox.simTime.toFixed(1)}s`;
+    status.textContent = `Bezig — t = ${komma(runBox.simTime,1)} s`;
   }
 }
 
@@ -1271,13 +1542,13 @@ function tick(ts){
   if(appMode === 'run' && runBox){
     if(!runFinished){
       runBox.step(dt);
-      runRateHistory.push({t: runBox.simTime, rate: runBox.currentRate()});
+      runRateHistory.push({t: runBox.simTime, rate: runBox.currentRate(), nA: runBox.countAlive('A'), nB: runBox.countAlive('B'), nP: runBox.productCount, T: runBox.T});
 
       const aLeft = runBox.countAlive('A'), bLeft = runBox.countAlive('B');
       if(aLeft <= RUN_DEPLETION_THRESHOLD){
-        runFinished = true; runFinishReason = `Klaar — reactant A is (bijna) op na ${runBox.simTime.toFixed(1)}s.`;
+        runFinished = true; runFinishReason = `Klaar — reactant A is (bijna) op na ${komma(runBox.simTime,1)} s.`;
       } else if(bLeft <= RUN_DEPLETION_THRESHOLD){
-        runFinished = true; runFinishReason = `Klaar — reactant B is (bijna) op na ${runBox.simTime.toFixed(1)}s.`;
+        runFinished = true; runFinishReason = `Klaar — reactant B is (bijna) op na ${komma(runBox.simTime,1)} s.`;
       } else if(runBox.simTime >= MAX_RUN_DURATION){
         runFinished = true; runFinishReason = `Gestopt na ${MAX_RUN_DURATION}s — de reactie loopt nog door, maar erg langzaam.`;
       }
