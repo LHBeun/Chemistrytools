@@ -103,6 +103,9 @@
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
   .icon-btn { display: inline-flex; align-items: center; gap: 6px; }
   .ic { display: inline-flex; }
+  .ring-bond { z-index: 1; }
+  .ring-node-wrap { z-index: 2; }
+  .ring-node-wrap .atom-box { background: var(--panel); }
 </style>
 </head>
 <body>
@@ -147,6 +150,7 @@
     score: { correct: 0, total: 0 },
     ownNameInput: "",
     ownNameError: null,
+    ownNameNote: null,
     builder: { chain: [], selectedUnitId: null, isRing: false }
   };
 
@@ -287,10 +291,10 @@
     // every class, added one at a time as long as there's room and budget left.
     var featuresUsed = 0;
 
-    if (chosenClass === "alkeen" && length >= 3) {
+    if (chosenClass === "alkeen" && length >= 2) {
       chain[randInt(0, length - 2)].bondAfter = "double";
       featuresUsed += 1;
-    } else if (chosenClass === "alkyn" && length >= 3) {
+    } else if (chosenClass === "alkyn" && length >= 2) {
       chain[randInt(0, length - 2)].bondAfter = "triple";
       featuresUsed += 1;
     } else if (chosenClass === "alcohol") {
@@ -489,489 +493,352 @@
     var longLen = Math.max(lenA, lenB);
     if (shortLen > 4) { var tmp = shortLen; shortLen = 4; longLen = Math.max(longLen, tmp); }
 
-    var longSubst = null; // { kind: "OH"|"halogen"|"branch", ... }
+    var longSubst = null; // { kind: "OH"|"halogen"|"branch", pos: 0-index vanaf het O-atoom }
     if (Math.random() < 0.5 && longLen >= 2) {
       var substKind = randChoice(["OH", "halogen", "branch"]);
-      var pos = randInt(0, longLen - 1); // 0-indexed position along the long chain (counted from the ether oxygen end)
-      if (substKind === "OH") longSubst = { kind: "OH", pos: pos };
-      else if (substKind === "halogen") longSubst = { kind: "halogen", hal: randChoice(HALOGENS).key, pos: pos };
-      else longSubst = { kind: "branch", len: randInt(1, 2), pos: pos, side: Math.random() < 0.5 ? "up" : "down" };
+      if (substKind === "branch") {
+        var opts = [];
+        for (var bp = 1; bp <= longLen - 2; bp++) for (var bl = 1; bl <= 2; bl++) if (isValidBranchPlacement(longLen, bp, bl)) opts.push({ pos: bp, len: bl });
+        if (opts.length) { var oc = randChoice(opts); longSubst = { kind: "branch", len: oc.len, pos: oc.pos, side: "up" }; }
+      } else {
+        var pos = randInt(1, longLen - 1); // niet op het koolstofatoom naast het O-atoom
+        if (substKind === "OH") longSubst = { kind: "OH", pos: pos };
+        else longSubst = { kind: "halogen", hal: randChoice(HALOGENS).key, pos: pos };
+      }
     }
 
     return { isTwoChain: true, kind: "ether", shortLen: shortLen, longLen: longLen, longSubst: longSubst };
   }
 
-  var MULTIPLIER = { 1: "", 2: "di", 3: "tri", 4: "tetra" };
+  // ============================================================
+  // NAAMGEVING (herschreven)
+  // Eén motor voor ketens, ringen, benzeen en ethers. Regels voor de nummering, in volgorde:
+  //  1. laagste plaatsnummers voor de karakteristieke groep die de uitgang wordt
+  //  2. dan voor de meervoudige bindingen (een + yn samen), dan voor de dubbele bindingen
+  //  3. dan voor alle voorvoegsels samen (de hele reeks, eerste verschilpunt telt)
+  //  4. dan voor het voorvoegsel dat alfabetisch het eerst komt
+  // ============================================================
+  var MULTIPLIER = { 1: "", 2: "di", 3: "tri", 4: "tetra", 5: "penta", 6: "hexa" };
   function multiplierFor(count) { return (MULTIPLIER[count] !== undefined) ? MULTIPLIER[count] : (count + "-"); }
+  var SUFFIX_RANK = { COOH: 5, CHO: 4, KETO: 3, OH: 2, NH2: 1 };
+  var PREFIX_FOR_GROUP = { OH: "hydroxy", NH2: "amino", KETO: "oxo", CHO: "oxo" };
+  var ALKYL_NAME = { 1: "methyl", 2: "ethyl", 3: "propyl", 4: "butyl" };
+  var HALOGEN_NAME = { F: "fluor", Cl: "chloor", Br: "broom", I: "jood" };
 
-  // ============================================================
-  // NAMING: single-chain molecules
-  // ============================================================
-  function analyzeChain(mol) {
-    var chain = mol.chain;
-    var n = chain.length;
-    var fixedIdxFwd = -1; // index of a "principal group anchor" that forces numbering direction
-    for (var ci = 0; ci < n; ci++) {
-      var sc = chain[ci].substCounts;
-      if (!sc) continue;
-      // COOH always anchors the numbering. A terminal KETO is an aldehyde and anchors numbering
-      // the same way; an internal KETO is a plain ketone and must NOT force the direction (its
-      // locant is decided by the normal lowest-locant rule below, like any other substituent).
-      if (sc.COOH || (sc.KETO && isTerminalPosition(chain, ci))) { fixedIdxFwd = ci; break; }
-    }
-    if (fixedIdxFwd === 0) return { reversed: false };
-    if (fixedIdxFwd === n - 1) return { reversed: true };
-
-    function collectFeatures(reversed) {
-      var idx = function(i){ return reversed ? (n - 1 - i) : i; };
-      var feats = { doubleLocants: [], tripleLocants: [], substLocants: [], branchLocants: [] };
-      for (var i = 0; i < n; i++) {
-        var node = chain[idx(i)];
-        var pos = i + 1;
-        if (!reversed) {
-          if (node.bondAfter === "double") feats.doubleLocants.push(pos);
-          if (node.bondAfter === "triple") feats.tripleLocants.push(pos);
-        } else {
-          if (node.bondAfter === "double") feats.doubleLocants.push(pos - 1);
-          if (node.bondAfter === "triple") feats.tripleLocants.push(pos - 1);
+  // Zet een molecuul uit het datamodel van de tool om in een neutrale "kern":
+  // { kind: chain|ring|benzene, n, bonds: [type tussen positie j en j+1], groups: [[...per positie]] }
+  // Een groep is { g: "COOH"|"CHO"|"KETO"|"OH"|"NH2" } of { p: "<naam voorvoegsel>" }.
+  function coreFromChainMol(mol) {
+    var chain = mol.chain, n = chain.length;
+    var kind = mol.isBenzene ? "benzene" : (mol.isRing ? "ring" : "chain");
+    var bonds = [];
+    var nb = (kind === "chain") ? n - 1 : n;
+    for (var j = 0; j < nb; j++) bonds.push(chain[j].bondAfter || "single");
+    var groups = chain.map(function(node, i){
+      var gs = [];
+      var sc = node.substCounts || {};
+      Object.keys(sc).forEach(function(t){
+        for (var c = 0; c < sc[t]; c++) {
+          if (t === "KETO") gs.push({ g: (kind === "chain" && isTerminalPosition(chain, i)) ? "CHO" : "KETO" });
+          else if (t === "COOH" || t === "OH" || t === "NH2") gs.push({ g: t });
+          else if (HALOGEN_NAME[t]) gs.push({ p: HALOGEN_NAME[t] });
         }
-        var sc2 = node.substCounts || {};
-        var substTotal = 0;
-        Object.keys(sc2).forEach(function(k){ substTotal += sc2[k]; });
-        for (var c = 0; c < substTotal; c++) feats.substLocants.push(pos);
-        if (node.branchUp || node.branchDown) feats.branchLocants.push(pos);
+      });
+      if (node.branchUp) gs.push({ p: ALKYL_NAME[node.branchUp] });
+      if (node.branchDown) gs.push({ p: ALKYL_NAME[node.branchDown] });
+      return gs;
+    });
+    return { kind: kind, n: n, bonds: bonds, groups: groups };
+  }
+  function coreFromEther(mol) {
+    var n = mol.longLen;
+    var groups = [];
+    for (var i = 0; i < n; i++) groups.push([]);
+    groups[0].push({ p: STEM[mol.shortLen] + "oxy" });
+    var s = mol.longSubst;
+    if (s) {
+      if (s.kind === "OH") groups[s.pos].push({ g: "OH" });
+      else if (s.kind === "halogen") groups[s.pos].push({ p: HALOGEN_NAME[s.hal] });
+      else groups[s.pos].push({ p: ALKYL_NAME[s.len] });
+    }
+    var bonds = []; for (var j = 0; j < n - 1; j++) bonds.push("single");
+    return { kind: "chain", n: n, bonds: bonds, groups: groups };
+  }
+
+  function cmpLists(a, b) {
+    var len = Math.max(a.length, b.length);
+    for (var i = 0; i < len; i++) {
+      var av = a[i] === undefined ? Infinity : a[i], bv = b[i] === undefined ? Infinity : b[i];
+      if (av !== bv) return av - bv;
+    }
+    return 0;
+  }
+  function numericSort(a) { return a.slice().sort(function(x, y){ return x - y; }); }
+
+  // Kiest de beste nummering en levert alle gegevens om de naam op te bouwen.
+  function analyzeCore(core) {
+    var n = core.n;
+    var principal = null;
+    core.groups.forEach(function(gs){ gs.forEach(function(x){
+      if (x.g && (!principal || SUFFIX_RANK[x.g] > SUFFIX_RANK[principal])) principal = x.g;
+    }); });
+    // groepen met lagere rang worden voorvoegsel (hydroxy, amino, oxo)
+    var items = []; // {node, suffix:bool, name}
+    core.groups.forEach(function(gs, i){ gs.forEach(function(x){
+      if (x.g && x.g === principal) items.push({ node: i, suffix: true });
+      else if (x.g) items.push({ node: i, suffix: false, name: PREFIX_FOR_GROUP[x.g] });
+      else items.push({ node: i, suffix: false, name: x.p });
+    }); });
+    var numberings = [];
+    if (core.kind === "chain") {
+      numberings.push(function(i){ return i + 1; });
+      numberings.push(function(i){ return n - i; });
+    } else {
+      for (var st = 0; st < n; st++) {
+        [1, -1].forEach(function(dir){
+          var s0 = st, d0 = dir;
+          numberings.push(function(i){ return ((((i - s0) * d0) % n) + n) % n + 1; });
+        });
       }
-      return feats;
     }
-    var fwd = collectFeatures(false);
-    var rev = collectFeatures(true);
-    function firstPoint(arr) { return arr.length ? Math.min.apply(null, arr) : Infinity; }
-    var fwdKey = [firstPoint(fwd.substLocants), firstPoint(fwd.doubleLocants.concat(fwd.tripleLocants)), firstPoint(fwd.branchLocants)];
-    var revKey = [firstPoint(rev.substLocants), firstPoint(rev.doubleLocants.concat(rev.tripleLocants)), firstPoint(rev.branchLocants)];
-    var useReversed = false;
-    for (var i = 0; i < 3; i++) {
-      if (fwdKey[i] !== revKey[i]) { useReversed = revKey[i] < fwdKey[i]; break; }
+    var best = null;
+    numberings.forEach(function(posOf){
+      var suffixLocs = numericSort(items.filter(function(it){ return it.suffix; }).map(function(it){ return posOf(it.node); }));
+      var multLocs = [], dblLocs = [], dbl = [], tri = [];
+      if (core.kind !== "benzene") {
+        core.bonds.forEach(function(t, j){
+          if (t !== "double" && t !== "triple") return;
+          var a = posOf(j), b = posOf((j + 1) % n);
+          var loc = (core.kind === "ring" && Math.min(a, b) === 1 && Math.max(a, b) === n) ? n : Math.min(a, b);
+          multLocs.push(loc);
+          if (t === "double") { dblLocs.push(loc); dbl.push(loc); } else tri.push(loc);
+        });
+      }
+      var prefixItems = items.filter(function(it){ return !it.suffix; }).map(function(it){ return { name: it.name, loc: posOf(it.node) }; });
+      var prefixLocs = numericSort(prefixItems.map(function(p){ return p.loc; }));
+      var alpha = prefixItems.slice().sort(function(a, b){ return a.name.localeCompare(b.name) || (a.loc - b.loc); }).map(function(p){ return p.loc; });
+      var key = [suffixLocs, numericSort(multLocs), numericSort(dblLocs), prefixLocs, alpha];
+      var cand = { key: key, suffixLocs: suffixLocs, dbl: numericSort(dbl), tri: numericSort(tri), prefixItems: prefixItems };
+      if (!best) { best = cand; return; }
+      for (var k = 0; k < key.length; k++) {
+        var c = cmpLists(key[k], best.key[k]);
+        if (c < 0) { best = cand; return; }
+        if (c > 0) return;
+      }
+    });
+    best.principal = principal;
+    best.kind = core.kind; best.n = n;
+    return best;
+  }
+
+  // Bouwt een naam uit een geanalyseerde kern, met keuzes voor het weglaten van plaatsnummers.
+  function assembleName(a, opt) {
+    var n = a.n;
+    // voorvoegsels
+    var byName = {};
+    a.prefixItems.forEach(function(p){ (byName[p.name] = byName[p.name] || []).push(p.loc); });
+    var names = Object.keys(byName).sort(function(x, y){ return x.localeCompare(y); });
+    var prefix = names.map(function(nm){
+      var locs = numericSort(byName[nm]);
+      return (opt.prefixLoc ? locs.join(",") + "-" : "") + multiplierFor(locs.length) + nm;
+    }).join("-");
+    if (a.kind === "benzene") {
+      var cnt = a.suffixLocs.length;
+      if (!a.principal) return prefix + "benzeen";
+      if (cnt === 1) {
+        if (opt.fenol) return prefix + "fenol";
+        if (opt.suffixLoc) return prefix + "benzeen-1-ol";
+        return prefix + "benzenol";
+      }
+      return prefix + "benzeen-" + a.suffixLocs.join(",") + "-" + multiplierFor(cnt) + "ol";
     }
-    return { reversed: useReversed };
+    var stem = (a.kind === "ring" ? "cyclo" : "") + (STEM[n] || ("C" + n));
+    // onverzadigd deel
+    var unsat = "";
+    var nUnsat = a.dbl.length + a.tri.length;
+    if (nUnsat === 0) unsat = "aan";
+    else {
+      var parts = [];
+      if (a.dbl.length) parts.push((opt.unsatLoc ? "-" + a.dbl.join(",") + "-" : "") + multiplierFor(a.dbl.length) + "een");
+      if (a.tri.length) parts.push((opt.unsatLoc ? "-" + a.tri.join(",") + "-" : "") + multiplierFor(a.tri.length) + "yn");
+      unsat = (nUnsat > 1 ? "a" : "") + parts.join("");
+    }
+    var core = stem + unsat;
+    var pr = a.principal, cnt2 = a.suffixLocs.length, mult = multiplierFor(cnt2);
+    var tail;
+    if (!pr) tail = core;
+    else if (pr === "COOH") tail = core + mult + "zuur";
+    else if (pr === "CHO") {
+      if (cnt2 > 1) tail = core + "dial";
+      else tail = (nUnsat === 0) ? stem + "anal" : core.replace(/een$/, "en") + "al";
+    } else {
+      var word = { KETO: "on", OH: "ol", NH2: "amine" }[pr];
+      if (opt.suffixLoc) tail = core + "-" + a.suffixLocs.join(",") + "-" + mult + word;
+      else if (pr === "NH2") tail = core + mult + "amine";
+      else tail = (nUnsat === 0 ? stem + "an" : core.replace(/een$/, "en").replace(/yn$/, "yn")) + mult + word;
+    }
+    return prefix + tail;
+  }
+
+  // Welke weglatingen van plaatsnummers zijn toegestaan, en welke vorm is de hoofdnaam?
+  function nameVariants(a) {
+    var n = a.n;
+    var nPrefix = a.prefixItems.length, nSuffix = a.suffixLocs.length;
+    var nUnsat = a.dbl.length + a.tri.length;
+    var pr = a.principal;
+    var variants = []; // {opt, main:bool}
+    function add(opt, main) { variants.push({ opt: opt, main: main }); }
+    if (a.kind === "benzene") {
+      var single = (nPrefix + nSuffix === 1);
+      if (!pr) {
+        add({ prefixLoc: !single }, true);
+        if (single) add({ prefixLoc: true }, false);
+      } else if (nSuffix === 1) {
+        add({ prefixLoc: true, suffixLoc: false }, true);
+        add({ prefixLoc: true, fenol: true }, false);
+        add({ prefixLoc: true, suffixLoc: true }, false);
+      } else add({ prefixLoc: true }, true);
+      return variants;
+    }
+    if (a.kind === "ring") {
+      var onlyOne = (nPrefix + nSuffix === 1) && nUnsat === 0;
+      var unsatOmit = !pr && nUnsat === 1;
+      var suffixOmitOK = (pr === "OH" || pr === "NH2" || pr === "KETO") && nSuffix === 1;
+      var base = { prefixLoc: !(onlyOne && nPrefix === 1), unsatLoc: !unsatOmit, suffixLoc: !(onlyOne && nSuffix === 1) };
+      add(base, true);
+      if (onlyOne && nPrefix === 1) add({ prefixLoc: true, unsatLoc: base.unsatLoc, suffixLoc: true }, false);
+      if (onlyOne && nSuffix === 1) add({ prefixLoc: true, unsatLoc: base.unsatLoc, suffixLoc: true }, false);
+      if (unsatOmit) add({ prefixLoc: base.prefixLoc, unsatLoc: true, suffixLoc: true }, false);
+      if (suffixOmitOK && !onlyOne && nUnsat === 0) add({ prefixLoc: true, unsatLoc: true, suffixLoc: false }, false);
+      return variants;
+    }
+    // keten
+    if (n === 1) { add({ prefixLoc: false, unsatLoc: false, suffixLoc: false }, true); return variants; }
+    var total = nPrefix + nSuffix;
+    var unsatLocShown = !(n === 2 || (n === 3 && (!pr || pr === "COOH" || pr === "CHO")));
+    if (n === 2) {
+      var one = (total === 1);
+      add({ prefixLoc: !one, unsatLoc: false, suffixLoc: !one }, true);
+      if (one) add({ prefixLoc: true, unsatLoc: false, suffixLoc: true }, false);
+      return variants;
+    }
+    var ketoShort = (pr === "KETO" && nSuffix === 1 && nUnsat === 0 && (n === 3 || n === 4));
+    if (ketoShort) {
+      var alone = (nPrefix === 0);
+      add({ prefixLoc: true, unsatLoc: true, suffixLoc: !alone }, true);
+      add({ prefixLoc: true, unsatLoc: true, suffixLoc: alone }, false);
+      return variants;
+    }
+    add({ prefixLoc: true, unsatLoc: unsatLocShown, suffixLoc: true }, true);
+    if (!unsatLocShown && nUnsat > 0) add({ prefixLoc: true, unsatLoc: true, suffixLoc: true }, false);
+    return variants;
+  }
+
+  function namesForCore(core) {
+    var a = analyzeCore(core);
+    var vs = nameVariants(a);
+    var main = null, alts = [];
+    vs.forEach(function(v){
+      var nm = assembleName(a, v.opt);
+      if (v.main && !main) main = nm;
+      else if (alts.indexOf(nm) === -1) alts.push(nm);
+    });
+    alts = alts.filter(function(x){ return x !== main; });
+    return { main: main, alts: alts };
   }
 
   function nameMolecule(mol) {
-    if (mol.isTwoChain) return nameTwoChainMolecule(mol);
-    if (mol.isBenzene) return nameBenzeneMolecule(mol);
-    if (mol.isRing) return nameRingMolecule(mol);
-    var chain = mol.chain;
-    var n = chain.length;
-    var reversed = analyzeChain(mol).reversed;
-    function idx(i) { return reversed ? (n - 1 - i) : i; }
-
-    var substByType = {};
-    var doubleLocant = null, tripleLocant = null;
-    var branches = [];
-    var ketoLocant = null;
-    var ketoIsTerminal = false;
-
-    for (var i = 0; i < n; i++) {
-      var node = chain[idx(i)];
-      var pos = i + 1;
-      var sc = node.substCounts || {};
-      if (sc.KETO) { ketoLocant = pos; ketoIsTerminal = isTerminalPosition(chain, idx(i)); }
-      Object.keys(sc).forEach(function(type){
-        if (type === "KETO") return;
-        if (!substByType[type]) substByType[type] = [];
-        for (var c = 0; c < sc[type]; c++) substByType[type].push(pos);
-      });
-      if (!reversed) {
-        if (node.bondAfter === "double") doubleLocant = pos;
-        if (node.bondAfter === "triple") tripleLocant = pos;
-      } else {
-        if (node.bondAfter === "double") doubleLocant = pos - 1;
-        if (node.bondAfter === "triple") tripleLocant = pos - 1;
-      }
-      if (node.branchUp) branches.push({ locant: pos, length: node.branchUp });
-      if (node.branchDown) branches.push({ locant: pos, length: node.branchDown });
-    }
-
-    var stem = STEM[n] || ("C" + n + "-");
-    var unsatSuffix = doubleLocant ? "een" : (tripleLocant ? "yn" : "aan");
-    var unsatLocant = doubleLocant || tripleLocant;
-
-    var branchNames = { 1: "methyl", 2: "ethyl" };
-    var prefixStrings = [];
-    var branchesByLength = {};
-    branches.forEach(function(b){
-      if (!branchesByLength[b.length]) branchesByLength[b.length] = [];
-      branchesByLength[b.length].push(b.locant);
-    });
-    Object.keys(branchesByLength).forEach(function(lenKey){
-      var name = branchNames[lenKey] || (lenKey + "-yl");
-      var locants = branchesByLength[lenKey].slice().sort(function(a,b){ return a - b; });
-      var mult = multiplierFor(locants.length);
-      prefixStrings.push({ sortKey: name, text: locants.join(",") + "-" + mult + name });
-    });
-
-    var hasOH = !!(substByType.OH && substByType.OH.length > 0);
-    var hasCOOH = !!(substByType.COOH && substByType.COOH.length > 0);
-    var hasNH2 = !!(substByType.NH2 && substByType.NH2.length > 0);
-    var hasKETO = !!ketoLocant;
-    var hasAldehyde = hasKETO && ketoIsTerminal; // KETO on a terminal carbon = aldehyde (-al)
-    var hasKetoneInternal = hasKETO && !ketoIsTerminal; // KETO on an internal carbon = ketone (-on)
-    var halogenTypes = Object.keys(substByType).filter(function(t){ return t !== "OH" && t !== "COOH" && t !== "NH2"; });
-    var hasBranches = branches.length > 0;
-    var hasUnsaturation = !!unsatLocant;
-    var totalSubstTypes = Object.keys(substByType).length + (hasKETO ? 1 : 0);
-    var nameHasOnlyThisOneFeature = !hasBranches && !hasUnsaturation && totalSubstTypes === 1;
-
-    var omittableHalogenLocant = null;
-    if (!hasOH && !hasCOOH && !hasNH2 && !hasKETO && halogenTypes.length === 1 && nameHasOnlyThisOneFeature) {
-      var onlyType = halogenTypes[0];
-      var onlyLocants = substByType[onlyType].slice().sort(function(a,b){ return a-b; });
-      if (onlyLocants.length === 1 && onlyLocants[0] === 1) omittableHalogenLocant = { type: onlyType };
-    }
-
-    halogenTypes.forEach(function(type){
-      var hal = HALOGENS.filter(function(h){ return h.key === type; })[0];
-      if (!hal) return;
-      var locants = substByType[type].slice().sort(function(a,b){ return a - b; });
-      var count = locants.length;
-      var mult = multiplierFor(count);
-      var omitThis = omittableHalogenLocant && omittableHalogenLocant.type === type;
-      var locantPrefix = omitThis ? "" : (locants.join(",") + "-");
-      prefixStrings.push({ sortKey: hal.name, text: locantPrefix + mult + hal.name });
-    });
-
-    prefixStrings.sort(function(a, b){ return a.sortKey.localeCompare(b.sortKey); });
-    var prefixPart = prefixStrings.length ? (prefixStrings.map(function(p){ return p.text; }).join("-") + "-") : "";
-
-    var unsatLocantPart = (unsatLocant && n > 3) ? (unsatLocant + "-") : "";
-    var coreName = prefixPart + stem + unsatLocantPart + unsatSuffix;
-
-    mol.altName = null;
-    if (omittableHalogenLocant) {
-      var hal2 = HALOGENS.filter(function(h){ return h.key === omittableHalogenLocant.type; })[0];
-      var explicitPrefixStrings = prefixStrings.map(function(p){
-        if (p.sortKey === hal2.name) return { sortKey: p.sortKey, text: "1-" + p.text };
-        return p;
-      }).sort(function(a, b){ return a.sortKey.localeCompare(b.sortKey); });
-      var explicitPrefixPart = explicitPrefixStrings.length ? (explicitPrefixStrings.map(function(p){ return p.text; }).join("-") + "-") : "";
-      mol.altName = explicitPrefixPart + stem + unsatLocantPart + unsatSuffix;
-    }
-
-    if (hasOH) {
-      var ohLocants = substByType.OH.slice().sort(function(a,b){ return a - b; });
-      var ohCount = ohLocants.length;
-      var ohMult = multiplierFor(ohCount);
-      var omitLocant = (ohCount === 1 && ohLocants[0] === 1 && nameHasOnlyThisOneFeature);
-      if (omitLocant) {
-        var stemPart = stem + unsatLocantPart + unsatSuffix;
-        coreName = prefixPart + stemPart.replace(/aan$/, "an") + "ol";
-        mol.altName = prefixPart + stem + unsatLocantPart + unsatSuffix + "-1-" + ohMult + "ol";
-      } else {
-        var ohLocantPrefix = ohLocants.join(",") + "-";
-        coreName = prefixPart + stem + unsatLocantPart + unsatSuffix + "-" + ohLocantPrefix + ohMult + "ol";
-      }
-    }
-    if (hasCOOH) {
-      coreName = prefixPart + stem + unsatLocantPart + unsatSuffix + "zuur";
-    }
-    if (hasNH2) {
-      var nh2Locants = substByType.NH2.slice().sort(function(a,b){ return a - b; });
-      var nh2Count = nh2Locants.length;
-      var nh2Mult = multiplierFor(nh2Count);
-      var omitNh2Locant = (nh2Count === 1 && nh2Locants[0] === 1 && nameHasOnlyThisOneFeature);
-      if (omitNh2Locant) {
-        coreName = prefixPart + stem + unsatLocantPart + unsatSuffix + "amine";
-        mol.altName = prefixPart + stem + unsatLocantPart + unsatSuffix + "-1-" + nh2Mult + "amine";
-      } else {
-        var nh2LocantPrefix = nh2Locants.join(",") + "-";
-        coreName = prefixPart + stem + unsatLocantPart + unsatSuffix + "-" + nh2LocantPrefix + nh2Mult + "amine";
-      }
-    }
-    // Aldehyde: always locant 1 (principal group), suffix "-al" contracted onto the stem like the acid (no locant shown).
-    if (hasAldehyde) {
-      if (unsatSuffix === "aan") coreName = prefixPart + stem + "anal"; // ethanal, butanal etc.
-      else coreName = prefixPart + stem + unsatLocantPart + unsatSuffix + "al"; // for unsaturated aldehydes, keep the full suffix + al (simplification)
-    }
-    // Ketone: suffix "-on" with a locant; locant omittable only if it's the ONLY possible internal
-    // position AND there are no other features (e.g. propan-2-on -> propanon, since position 2 is
-    // the only internal carbon on a 3-chain).
-    if (hasKetoneInternal) {
-      // Ketone locant is omittable for chain lengths 3 and 4: on a 3-chain, position 2 is the only
-      // internal carbon possible. On a 4-chain, positions 2 and 3 are the only internal options, but
-      // by the chain's own symmetry (numbering from either end), both are reachable as locant 2 --
-      // so there's no ambiguity and the locant can be dropped. From length 5 onward, positions 2 and
-      // 3 are genuinely different (non-equivalent) carbons, so the locant must be shown.
-      var omitKetoLocant = ((n === 3 || n === 4) && nameHasOnlyThisOneFeature && !hasCOOH);
-      if (omitKetoLocant) {
-        coreName = prefixPart + stem.replace(/$/, "") + "anon";
-        mol.altName = prefixPart + stem + unsatLocantPart + unsatSuffix + "-" + ketoLocant + "-on";
-      } else {
-        coreName = prefixPart + stem + unsatLocantPart + unsatSuffix + "-" + ketoLocant + "-on";
-      }
-    }
-    return coreName;
-  }
-
-  function nameBenzeneMolecule(mol) {
-    var chain = mol.chain;
-    var n = 6;
-    function featuresFor(startIdx, dir) {
-      var branches = [];
-      var substByType = {};
-      for (var i = 0; i < n; i++) {
-        var srcIdx = ((startIdx + dir * i) % n + n) % n;
-        var node = chain[srcIdx];
-        var pos = i + 1;
-        var sc = node.substCounts || {};
-        Object.keys(sc).forEach(function(type){
-          if (!substByType[type]) substByType[type] = [];
-          for (var c = 0; c < sc[type]; c++) substByType[type].push(pos);
-        });
-        if (node.branchUp) branches.push({ locant: pos, length: node.branchUp });
-        if (node.branchDown) branches.push({ locant: pos, length: node.branchDown });
-      }
-      return { branches: branches, substByType: substByType };
-    }
-    function sortKeyFor(feat) {
-      var substAll = [];
-      Object.keys(feat.substByType).forEach(function(t){ substAll = substAll.concat(feat.substByType[t]); });
-      var branchLocants = feat.branches.map(function(b){ return b.locant; });
-      return substAll.concat(branchLocants).sort(function(a,b){ return a-b; });
-    }
-    function compareKeys(a, b) {
-      var len = Math.max(a.length, b.length);
-      for (var i = 0; i < len; i++) {
-        var av = a[i] === undefined ? Infinity : a[i];
-        var bv = b[i] === undefined ? Infinity : b[i];
-        if (av !== bv) return av - bv;
-      }
-      return 0;
-    }
-    var bestKey = null, bestFeat = null;
-    for (var start = 0; start < n; start++) {
-      [1, -1].forEach(function(dir){
-        var feat = featuresFor(start, dir);
-        var key = sortKeyFor(feat);
-        if (!bestKey || compareKeys(key, bestKey) < 0) { bestKey = key; bestFeat = feat; }
-      });
-    }
-    var feat = bestFeat;
-    var branchNames = { 1: "methyl", 2: "ethyl" };
-    var prefixStrings = [];
-    var branchesByLength = {};
-    feat.branches.forEach(function(b){
-      if (!branchesByLength[b.length]) branchesByLength[b.length] = [];
-      branchesByLength[b.length].push(b.locant);
-    });
-    Object.keys(branchesByLength).forEach(function(lenKey){
-      var name = branchNames[lenKey] || (lenKey + "-yl");
-      var locants = branchesByLength[lenKey].slice().sort(function(a,b){ return a - b; });
-      var mult = multiplierFor(locants.length);
-      prefixStrings.push({ sortKey: name, text: locants.join(",") + "-" + mult + name });
-    });
-    var hasOH = !!(feat.substByType.OH && feat.substByType.OH.length > 0);
-    var halogenTypes = Object.keys(feat.substByType).filter(function(t){ return t !== "OH"; });
-    var hasBranches = feat.branches.length > 0;
-    var totalSubstCount = feat.branches.length + Object.keys(feat.substByType).reduce(function(s,k){ return s + feat.substByType[k].length; }, 0);
-    var nameHasOnlyOneFeatureTotal = (totalSubstCount === 1);
-
-    var omittableHalogenLocant = null;
-    if (!hasOH && halogenTypes.length === 1 && !hasBranches && nameHasOnlyOneFeatureTotal) {
-      var onlyLocants = feat.substByType[halogenTypes[0]].slice().sort(function(a,b){ return a-b; });
-      if (onlyLocants.length === 1 && onlyLocants[0] === 1) omittableHalogenLocant = { type: halogenTypes[0] };
-    }
-    halogenTypes.forEach(function(type){
-      var hal = HALOGENS.filter(function(h){ return h.key === type; })[0];
-      if (!hal) return;
-      var locants = feat.substByType[type].slice().sort(function(a,b){ return a - b; });
-      var mult = multiplierFor(locants.length);
-      var omitThis = omittableHalogenLocant && omittableHalogenLocant.type === type;
-      var locantPrefix = omitThis ? "" : (locants.join(",") + "-");
-      prefixStrings.push({ sortKey: hal.name, text: locantPrefix + mult + hal.name });
-    });
-
-    var omittableBranchLocant = null;
-    if (!hasOH && halogenTypes.length === 0 && hasBranches && feat.branches.length === 1 && nameHasOnlyOneFeatureTotal && feat.branches[0].locant === 1) {
-      omittableBranchLocant = true;
-      prefixStrings = prefixStrings.map(function(p){
-        if (p.sortKey === branchNames[feat.branches[0].length]) return { sortKey: p.sortKey, text: p.text.replace(/^1-/, "") };
-        return p;
-      });
-    }
-    prefixStrings.sort(function(a, b){ return a.sortKey.localeCompare(b.sortKey); });
-    var prefixPart = prefixStrings.length ? (prefixStrings.map(function(p){ return p.text; }).join("-") + "-") : "";
-    var coreName = prefixPart + "benzeen";
-    mol.altName = null;
-
-    if (omittableHalogenLocant) {
-      var hal2 = HALOGENS.filter(function(h){ return h.key === omittableHalogenLocant.type; })[0];
-      var explicitPrefixStrings = prefixStrings.map(function(p){
-        if (p.sortKey === hal2.name) return { sortKey: p.sortKey, text: "1-" + p.text };
-        return p;
-      }).sort(function(a, b){ return a.sortKey.localeCompare(b.sortKey); });
-      mol.altName = explicitPrefixStrings.map(function(p){ return p.text; }).join("-") + "-benzeen";
-    }
-    if (omittableBranchLocant) {
-      var bName = branchNames[feat.branches[0].length];
-      var explicitPrefixStrings2 = prefixStrings.map(function(p){
-        if (p.sortKey === bName) return { sortKey: p.sortKey, text: "1-" + p.text };
-        return p;
-      }).sort(function(a, b){ return a.sortKey.localeCompare(b.sortKey); });
-      mol.altName = explicitPrefixStrings2.map(function(p){ return p.text; }).join("-") + "-benzeen";
-    }
-    if (hasOH) {
-      var ohLocants = feat.substByType.OH.slice().sort(function(a,b){ return a - b; });
-      var ohMult = multiplierFor(ohLocants.length);
-      var omitLocant = (ohLocants.length === 1 && ohLocants[0] === 1 && nameHasOnlyOneFeatureTotal);
-      if (omitLocant) { coreName = prefixPart + "benzenol"; mol.altName = prefixPart + "benzeen-1-ol"; }
-      else coreName = prefixPart + "benzeen-" + ohLocants.join(",") + "-" + ohMult + "ol";
-    }
-    return coreName;
-  }
-
-  function nameRingMolecule(mol) {
-    var chain = mol.chain;
-    var n = chain.length;
-    function featuresFor(startIdx, dir) {
-      var doubleLocant = null;
-      var branches = [];
-      var substByType = {};
-      for (var i = 0; i < n; i++) {
-        var srcIdx = ((startIdx + dir * i) % n + n) % n;
-        var node = chain[srcIdx];
-        var pos = i + 1;
-        var sc = node.substCounts || {};
-        Object.keys(sc).forEach(function(type){
-          if (!substByType[type]) substByType[type] = [];
-          for (var c = 0; c < sc[type]; c++) substByType[type].push(pos);
-        });
-        if (node.branchUp) branches.push({ locant: pos, length: node.branchUp });
-        if (node.branchDown) branches.push({ locant: pos, length: node.branchDown });
-      }
-      for (var oi = 0; oi < n; oi++) {
-        if (chain[oi].bondAfter === "double") {
-          var posA = (((oi - startIdx) * dir % n) + n) % n + 1;
-          var posB = ((((oi + 1) % n - startIdx) * dir % n) + n) % n + 1;
-          doubleLocant = Math.min(posA, posB);
-        }
-      }
-      return { doubleLocant: doubleLocant, branches: branches, substByType: substByType };
-    }
-    function sortKeyFor(feat) {
-      var substAll = [];
-      Object.keys(feat.substByType).forEach(function(t){ substAll = substAll.concat(feat.substByType[t]); });
-      var branchLocants = feat.branches.map(function(b){ return b.locant; });
-      function firstPoint(arr) { return arr.length ? Math.min.apply(null, arr) : Infinity; }
-      return [firstPoint(substAll), feat.doubleLocant || Infinity, firstPoint(branchLocants)];
-    }
-    var bestKey = null, bestFeat = null;
-    for (var start = 0; start < n; start++) {
-      [1, -1].forEach(function(dir){
-        var feat = featuresFor(start, dir);
-        var key = sortKeyFor(feat);
-        if (!bestKey || key[0] < bestKey[0] || (key[0]===bestKey[0] && key[1] < bestKey[1]) || (key[0]===bestKey[0] && key[1]===bestKey[1] && key[2] < bestKey[2])) {
-          bestKey = key; bestFeat = feat;
-        }
-      });
-    }
-    var feat = bestFeat;
-    var ringStem = RING_SIZE_NAMES[n] || ("cyclo-C" + n + "-");
-    var unsatSuffix = feat.doubleLocant ? "een" : "aan";
-    var unsatLocantPart = (feat.doubleLocant && n > 3) ? (feat.doubleLocant + "-") : "";
-    var branchNames = { 1: "methyl", 2: "ethyl" };
-    var prefixStrings = [];
-    var branchesByLength = {};
-    feat.branches.forEach(function(b){
-      if (!branchesByLength[b.length]) branchesByLength[b.length] = [];
-      branchesByLength[b.length].push(b.locant);
-    });
-    Object.keys(branchesByLength).forEach(function(lenKey){
-      var name = branchNames[lenKey] || (lenKey + "-yl");
-      var locants = branchesByLength[lenKey].slice().sort(function(a,b){ return a - b; });
-      var mult = multiplierFor(locants.length);
-      prefixStrings.push({ sortKey: name, text: locants.join(",") + "-" + mult + name });
-    });
-    var hasOH = !!(feat.substByType.OH && feat.substByType.OH.length > 0);
-    var halogenTypes = Object.keys(feat.substByType).filter(function(t){ return t !== "OH"; });
-    var hasBranches = feat.branches.length > 0;
-    var hasUnsaturation = !!feat.doubleLocant;
-    var totalSubstTypes = Object.keys(feat.substByType).length;
-    var nameHasOnlyThisOneFeature = !hasBranches && !hasUnsaturation && totalSubstTypes === 1;
-    var omittableHalogenLocant = null;
-    if (!hasOH && halogenTypes.length === 1 && nameHasOnlyThisOneFeature) {
-      var onlyLocants = feat.substByType[halogenTypes[0]].slice().sort(function(a,b){ return a-b; });
-      if (onlyLocants.length === 1 && onlyLocants[0] === 1) omittableHalogenLocant = { type: halogenTypes[0] };
-    }
-    halogenTypes.forEach(function(type){
-      var hal = HALOGENS.filter(function(h){ return h.key === type; })[0];
-      if (!hal) return;
-      var locants = feat.substByType[type].slice().sort(function(a,b){ return a - b; });
-      var mult = multiplierFor(locants.length);
-      var omitThis = omittableHalogenLocant && omittableHalogenLocant.type === type;
-      var locantPrefix = omitThis ? "" : (locants.join(",") + "-");
-      prefixStrings.push({ sortKey: hal.name, text: locantPrefix + mult + hal.name });
-    });
-    prefixStrings.sort(function(a, b){ return a.sortKey.localeCompare(b.sortKey); });
-    var prefixPart = prefixStrings.length ? (prefixStrings.map(function(p){ return p.text; }).join("-") + "-") : "";
-    var coreName = prefixPart + ringStem + unsatLocantPart + unsatSuffix;
-    mol.altName = null;
-    if (omittableHalogenLocant) {
-      var hal2 = HALOGENS.filter(function(h){ return h.key === omittableHalogenLocant.type; })[0];
-      var explicitPrefixStrings = prefixStrings.map(function(p){
-        if (p.sortKey === hal2.name) return { sortKey: p.sortKey, text: "1-" + p.text };
-        return p;
-      }).sort(function(a, b){ return a.sortKey.localeCompare(b.sortKey); });
-      var explicitPrefixPart = explicitPrefixStrings.map(function(p){ return p.text; }).join("-") + "-";
-      mol.altName = explicitPrefixPart + ringStem + unsatLocantPart + unsatSuffix;
-    }
-    if (hasOH) {
-      var ohLocants = feat.substByType.OH.slice().sort(function(a,b){ return a - b; });
-      var ohMult = multiplierFor(ohLocants.length);
-      var omitLocant = (ohLocants.length === 1 && ohLocants[0] === 1 && nameHasOnlyThisOneFeature);
-      if (omitLocant) {
-        coreName = prefixPart + (ringStem + unsatLocantPart + unsatSuffix).replace(/aan$/, "an") + "ol";
-        mol.altName = prefixPart + ringStem + unsatLocantPart + unsatSuffix + "-1-" + ohMult + "ol";
-      } else {
-        coreName = prefixPart + ringStem + unsatLocantPart + unsatSuffix + "-" + ohLocants.join(",") + "-" + ohMult + "ol";
-      }
-    }
-    return coreName;
-  }
-
-  // ---------- Naming: two-chain molecules (esters, ethers) ----------
-  function nameTwoChainMolecule(mol) {
-    if (mol.kind === "ester") {
-      // R-CO-O-R': acid part contributes "...oaat" (e.g. ethaan -> ethanoaat), alcohol part contributes "...yl".
-      var acidStem = STEM[mol.acidLen] || ("C" + mol.acidLen);
-      var alcStem = STEM[mol.alcLen] || ("C" + mol.alcLen);
-      var acidPart = acidStem + "aan".replace(/aan$/, "") + "aanoaat"; // placeholder, fixed below
-      acidPart = acidStem + "aanoaat".replace(/^/, ""); // ethaan -> ethaanoaat is wrong; correct form: ethaan -> ethanoaat (drop one 'a')
-      // Correct construction: stem + "aanoaat" contracts: e.g. "eth" + "aanoaat" = "ethaanoaat" -- but
-      // correct IUPAC Dutch is "ethanoaat" (single 'a'). So: stem + "anoaat".
-      acidPart = acidStem + "anoaat";
-      var alcPart = alcStem + "yl";
-      return alcPart + " " + acidPart;
+    var res;
+    if (mol.isTwoChain && mol.kind === "ester") {
+      res = { main: STEM[mol.alcLen] + "yl" + STEM[mol.acidLen] + "anoaat", alts: [] };
+    } else if (mol.isTwoChain) {
+      res = namesForCore(coreFromEther(mol));
     } else {
-      // Ether: R-O-R' -> "[shortest]oxy[longest, as full alkaan name incl. its substituent]"
-      var shortStem = STEM[mol.shortLen] || ("C" + mol.shortLen);
-      var longStem = STEM[mol.longLen] || ("C" + mol.longLen);
-      var shortPart = shortStem + "oxy";
-
-      var longPart = longStem + "aan";
-      if (mol.longSubst) {
-        var locant = mol.longSubst.pos + 1; // 1-indexed, counted from the ether-oxygen end of the long chain
-        if (mol.longSubst.kind === "OH") {
-          longPart = longStem + "aan-" + locant + "-ol";
-        } else if (mol.longSubst.kind === "halogen") {
-          var hal = HALOGENS.filter(function(h){ return h.key === mol.longSubst.hal; })[0];
-          longPart = locant + "-" + hal.name + longStem + "aan";
-        } else {
-          var branchNames2 = { 1: "methyl", 2: "ethyl" };
-          longPart = locant + "-" + branchNames2[mol.longSubst.len] + longStem + "aan";
-        }
-      }
-      return shortPart + longPart;
+      res = namesForCore(coreFromChainMol(mol));
     }
+    mol.altNames = res.alts;
+    mol.altName = res.alts.length ? res.alts[0] : null;
+    return res.main;
   }
+  function acceptedNames(mol, mainName) {
+    return [mainName].concat(mol.altNames || []);
+  }
+
+  // ============================================================
+  // STRUCTUURVERGELIJKING: elk molecuul -> moleculegraaf -> canonieke sleutel
+  // (zo maakt het niet uit hoe een leerling de keten in de bouwer tekent)
+  // ============================================================
+  function molToGraph(mol) {
+    var atoms = [], edges = [];
+    function atom(el) { atoms.push(el); return atoms.length - 1; }
+    function bond(a, b, o) { edges.push([a, b, o]); }
+    function alkyl(len, attach) { var prev = attach; for (var k = 0; k < len; k++) { var c = atom("C"); bond(prev, c, 1); prev = c; } }
+    if (mol.isTwoChain && mol.kind === "ester") {
+      var acid = []; for (var i = 0; i < mol.acidLen; i++) { acid.push(atom("C")); if (i) bond(acid[i - 1], acid[i], 1); }
+      var cc = acid[acid.length - 1];
+      bond(cc, atom("O"), 2);
+      var oe = atom("O"); bond(cc, oe, 1);
+      alkyl(mol.alcLen, oe);
+      return { atoms: atoms, edges: edges };
+    }
+    if (mol.isTwoChain) {
+      var oEth = atom("O");
+      alkyl(mol.shortLen, oEth);
+      var lc = []; for (var j = 0; j < mol.longLen; j++) { lc.push(atom("C")); bond(j ? lc[j - 1] : oEth, lc[j], 1); }
+      var s = mol.longSubst;
+      if (s) {
+        if (s.kind === "OH") bond(lc[s.pos], atom("O"), 1);
+        else if (s.kind === "halogen") bond(lc[s.pos], atom(s.hal), 1);
+        else alkyl(s.len, lc[s.pos]);
+      }
+      return { atoms: atoms, edges: edges };
+    }
+    var chain = mol.chain, n = chain.length;
+    var isRing = !!mol.isRing, isBenz = !!mol.isBenzene;
+    var cs = chain.map(function(){ return atom("C"); });
+    var nb = isRing ? n : n - 1;
+    for (var b = 0; b < nb; b++) {
+      var t = chain[b].bondAfter, a1 = cs[b], a2 = cs[(b + 1) % n];
+      if (isBenz) bond(a1, a2, 1.5);
+      else if (t === "ether") { var o = atom("O"); bond(a1, o, 1); bond(o, a2, 1); }
+      else bond(a1, a2, t === "double" ? 2 : (t === "triple" ? 3 : 1));
+    }
+    chain.forEach(function(node, i){
+      var sc = node.substCounts || {};
+      Object.keys(sc).forEach(function(k){
+        for (var c = 0; c < sc[k]; c++) {
+          if (k === "OH") bond(cs[i], atom("O"), 1);
+          else if (k === "NH2") bond(cs[i], atom("N"), 1);
+          else if (k === "KETO") bond(cs[i], atom("O"), 2);
+          else if (k === "COOH") { bond(cs[i], atom("O"), 2); bond(cs[i], atom("O"), 1); }
+          else bond(cs[i], atom(k), 1);
+        }
+      });
+      if (node.branchUp) alkyl(node.branchUp, cs[i]);
+      if (node.branchDown) alkyl(node.branchDown, cs[i]);
+    });
+    return { atoms: atoms, edges: edges };
+  }
+  function hashStr(str) {
+    var h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (var i = 0; i < str.length; i++) { var ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (h2 >>> 0).toString(36) + (h1 >>> 0).toString(36);
+  }
+  function graphKey(g) {
+    var nA = g.atoms.length;
+    var adj = g.atoms.map(function(){ return []; });
+    g.edges.forEach(function(e){ adj[e[0]].push([e[1], e[2]]); adj[e[1]].push([e[0], e[2]]); });
+    var lab = g.atoms.map(function(el, i){ return el + ":" + adj[i].map(function(x){ return x[1]; }).sort().join(","); });
+    for (var it = 0; it < nA + 1; it++) {
+      lab = lab.map(function(l, i){
+        return hashStr(l + "|" + adj[i].map(function(x){ return x[1] + "~" + lab[x[0]]; }).sort().join(";"));
+      });
+    }
+    return nA + "#" + g.edges.length + "#" + lab.slice().sort().join(".");
+  }
+  function structureKey(mol) { return graphKey(molToGraph(mol)); }
 
   // ============================================================
   // SINGLE-CHAIN RENDERING
@@ -1046,8 +913,8 @@
 
   function renderRingHtml(chain, selectedId) {
     var n = chain.length;
-    var size = 320;
-    var radius = 78;
+    var size = 380;
+    var radius = 80;
     var cx = size / 2, cy = size / 2;
     var points = [];
     for (var i = 0; i < n; i++) {
@@ -1072,7 +939,7 @@
     }
     var nodeOffset = 14;
     var branchAngleOffset = 0.5;
-    var branchStepDist = 30;
+    var branchStepDist = 46;
     for (var ni = 0; ni < n; ni++) {
       var node = chain[ni];
       var label;
@@ -1088,7 +955,7 @@
       var isSelected = selectedId && node.id === selectedId;
 
       if (node.branchUp) {
-        var dirAngle = nodeAngle - branchAngleOffset;
+        var dirAngle = nodeAngle - (node.branchDown ? branchAngleOffset : 0);
         var dux = Math.cos(dirAngle), duy = Math.sin(dirAngle);
         var fromX = px, fromY = py;
         for (var su = 0; su < node.branchUp; su++) {
@@ -1099,7 +966,7 @@
         }
       }
       if (node.branchDown) {
-        var dirAngleD = nodeAngle + branchAngleOffset;
+        var dirAngleD = nodeAngle + (node.branchUp ? branchAngleOffset : 0);
         var ddx = Math.cos(dirAngleD), ddy = Math.sin(dirAngleD);
         var fromXD = px, fromYD = py;
         for (var sd = 0; sd < node.branchDown; sd++) {
@@ -1144,56 +1011,40 @@
   }
 
   // ---------- Two-chain rendering (ester / ether) ----------
-  function simpleChainHtml(len, terminalLabelOverride) {
+  // Koolstofketen naast een O-atoom. oEnd = "first": het eerste C (links) zit aan O; "last": het laatste C zit aan O.
+  function chainNextToO(len, oEnd, subst) {
     var html = "";
     for (var i = 0; i < len; i++) {
       var isFirst = (i === 0), isLast = (i === len - 1);
-      var label;
-      if (isLast && terminalLabelOverride) label = terminalLabelOverride;
+      var h = 2;
+      if (len === 1) h = 3;
       else {
-        var h = (isFirst || isLast) ? 3 : 2;
-        label = "C" + (h > 1 ? "H" + h : (h===1?"H":""));
+        if (isFirst && oEnd !== "first") h += 1;
+        if (isLast && oEnd !== "last") h += 1;
       }
-      html += '<div class="chain-unit"><div class="atom-box">' + label + '</div></div>';
+      var substHere = subst && subst.pos === i;
+      if (substHere) h -= 1;
+      h = Math.max(0, h);
+      var label = "C" + (h > 1 ? "H" + h : (h === 1 ? "H" : ""));
+      if (substHere && subst.kind === "OH") label += "OH";
+      if (substHere && subst.kind === "halogen") label += subst.hal;
+      html += '<div class="chain-unit">';
+      if (substHere && subst.kind === "branch") html += '<div class="branch-stack up">' + renderBranchHtml(subst.len, true) + '<div class="branch-link"></div></div>';
+      html += '<div class="atom-box">' + label + '</div></div>';
       if (i < len - 1) html += '<div class="bond-line"></div>';
     }
     return html;
   }
   function esterChainHtml(len) {
-    // Acid-side chain: last carbon is the carbonyl carbon, shown as "C(=O)".
+    // zuurkant: het laatste C is het carbonyl-C
     var html = "";
     for (var i = 0; i < len; i++) {
       var isFirst = (i === 0), isLast = (i === len - 1);
       var label;
-      if (isLast) label = "C(=O)";
-      else { var h = isFirst ? 3 : 2; label = "C" + (h>1?"H"+h:"H"); }
+      if (isLast) label = (len === 1) ? "HC(=O)" : "C(=O)";
+      else label = isFirst ? "CH3" : "CH2";
       html += '<div class="chain-unit"><div class="atom-box">' + label + '</div></div>';
       if (i < len - 1) html += '<div class="bond-line"></div>';
-    }
-    return html;
-  }
-  function etherLongChainHtml(longLen, longSubst) {
-    var html = "";
-    for (var i = 0; i < longLen; i++) {
-      var isFirst = (i === 0), isLast = (i === longLen - 1);
-      var h = (isFirst || isLast) ? 3 : 2;
-      var substHere = longSubst && longSubst.pos === i;
-      var branchHtml = "";
-      if (substHere) {
-        if (longSubst.kind === "branch") h -= 1;
-        else h -= 1;
-      }
-      h = Math.max(0, h);
-      var label = "C" + (h > 1 ? "H" + h : (h===1?"H":""));
-      if (substHere && (longSubst.kind === "OH")) label += "OH";
-      if (substHere && longSubst.kind === "halogen") label += longSubst.hal;
-
-      html += '<div class="chain-unit">';
-      if (substHere && longSubst.kind === "branch") {
-        html += '<div class="branch-stack up">' + renderBranchHtml(longSubst.len, true) + '<div class="branch-link"></div></div>';
-      }
-      html += '<div class="atom-box">' + label + '</div></div>';
-      if (i < longLen - 1) html += '<div class="bond-line"></div>';
     }
     return html;
   }
@@ -1202,11 +1053,11 @@
     if (mol.kind === "ester") {
       html += esterChainHtml(mol.acidLen);
       html += '<div class="bond-line"></div><div class="atom-box linker">O</div><div class="bond-line"></div>';
-      html += simpleChainHtml(mol.alcLen);
+      html += chainNextToO(mol.alcLen, "first", null);
     } else {
-      html += etherLongChainHtml(mol.shortLen, null); // short side has no substituent in this scope
+      html += chainNextToO(mol.shortLen, "last", null);
       html += '<div class="bond-line"></div><div class="atom-box linker">O</div><div class="bond-line"></div>';
-      html += etherLongChainHtml(mol.longLen, mol.longSubst);
+      html += chainNextToO(mol.longLen, "first", mol.longSubst);
     }
     html += '</div>';
     return html;
@@ -1227,132 +1078,240 @@
   }
 
   // ============================================================
-  // NAME PARSER (single-chain classes only, per existing scope)
+  // NAAM -> STRUCTUUR (herschreven)
+  // Ondersteunt: alkanen/alkenen/alkynen (ook vertakt), halogeenverbindingen, alcoholen, aminen,
+  // carbonzuren, aldehyden, ketonen, cycloalkanen/-alkenen, benzeenverbindingen, ethers en esters.
   // ============================================================
   var STEM_REVERSE = { meth:1, eth:2, prop:3, but:4, pent:5, hex:6, hept:7, oct:8 };
-  var HALOGEN_NAME_TO_KEY = { chloor: "Cl", broom: "Br", fluor: "F", jood: "I" };
   var MAX_PARSE_CHAIN_LENGTH = 8;
   var MAX_TOTAL_FEATURES = 4;
+  var MULT_REVERSE = { "": 1, di: 2, tri: 3, tetra: 4, penta: 5, hexa: 6 };
+  var PREFIX_WORDS = [
+    ["methoxy", { alkoxy: 1 }], ["ethoxy", { alkoxy: 2 }], ["propoxy", { alkoxy: 3 }], ["butoxy", { alkoxy: 4 }],
+    ["methyl", { branch: 1 }], ["ethyl", { branch: 2 }],
+    ["chloor", { subst: "Cl" }], ["broom", { subst: "Br" }], ["fluor", { subst: "F" }], ["jood", { subst: "I" }],
+    ["hydroxy", { subst: "OH" }], ["amino", { subst: "NH2" }], ["oxo", { subst: "KETO" }]
+  ];
+  var STEM_ALT = "meth|eth|prop|but|pent|hex|hept|oct";
+
+  function parseLocs(str) { return str.split(",").map(function(x){ return parseInt(x, 10); }); }
 
   function parseOrganicName(rawInput) {
-    var input = (rawInput || "").trim().toLowerCase();
-    if (!input) return { mol: null, error: "Vul een naam in." };
-    var s = input.replace(/\s+/g, "");
-    var stemNames = Object.keys(STEM_REVERSE);
-    var coreMatch = null;
-    for (var si = 0; si < stemNames.length; si++) {
-      var stemName = stemNames[si];
-      var normalPattern = stemName + "(\\d+-)?(aan|een|yn)(-\\d[\\d,]*-(di|tri|tetra)?ol)?$";
-      var contractedPattern = stemName + "anol$";
-      var mContracted = s.match(new RegExp(contractedPattern));
-      if (mContracted) {
-        coreMatch = { stemName: stemName, match: [mContracted[0], undefined, "aan", "ol-contracted"], index: s.lastIndexOf(mContracted[0]) };
-        break;
-      }
-      var mNormal = s.match(new RegExp(normalPattern));
-      if (mNormal) { coreMatch = { stemName: stemName, match: mNormal, index: s.lastIndexOf(mNormal[0]) }; break; }
-    }
-    if (!coreMatch) return { mol: null, error: 'Kon geen herkenbare hoofdketen (bv. "...aan", "...een", "...yn") vinden in deze naam. (Esters/ethers kunnen hier nog niet getypt worden.)' };
+    var s = (rawInput || "").trim().toLowerCase();
+    if (!s) return { mol: null, error: "Vul een naam in." };
+    if (/\s/.test(s)) return { mol: null, error: "Een systematische naam schrijf je als één woord, zonder spaties." };
 
-    var n = STEM_REVERSE[coreMatch.stemName];
+    // ---- esters: alkylalkanoaat ----
+    var me = s.match(new RegExp("^(" + STEM_ALT + ")yl(" + STEM_ALT + ")anoaat$"));
+    if (me) {
+      var alc = STEM_REVERSE[me[1]], acid = STEM_REVERSE[me[2]];
+      if (alc > 6 || acid > 6) return { mol: null, error: "Esters met ketens langer dan 6 koolstofatomen worden niet ondersteund." };
+      return { mol: { isTwoChain: true, kind: "ester", acidLen: acid, alcLen: alc }, error: null };
+    }
+
+    // ---- uitgang (karakteristieke groep) ----
+    var suffix = null, rest = s, m;
+    if ((m = rest.match(/(di)?zuur$/))) { suffix = { g: "COOH", count: m[1] ? 2 : 1, locs: null }; rest = rest.slice(0, -m[0].length); }
+    else if ((m = rest.match(/-([\d,]+)-(di|tri|tetra)?(ol|on|amine)$/))) {
+      suffix = { g: { ol: "OH", on: "KETO", amine: "NH2" }[m[3]], locs: parseLocs(m[1]), count: MULT_REVERSE[m[2] || ""] };
+      if (suffix.locs.length !== suffix.count) return { mol: null, error: 'Het aantal plaatsnummers past niet bij het telwoord in "' + m[0] + '".' };
+      rest = rest.slice(0, -m[0].length);
+    }
+    else if ((m = rest.match(/dial$/))) { suffix = { g: "CHO", count: 2, locs: null }; rest = rest.slice(0, -4); }
+    else if ((m = rest.match(/(an|en|yn)al$/))) { suffix = { g: "CHO", count: 1, locs: null }; rest = rest.slice(0, -2); rest = rest.replace(/an$/, "aan").replace(/en$/, "een"); }
+    else if ((m = rest.match(/fenol$/))) { suffix = { g: "OH", count: 1, locs: [1] }; rest = rest.slice(0, -5) + "benzeen"; }
+    else if ((m = rest.match(/benzenol$/))) { suffix = { g: "OH", count: 1, locs: [1] }; rest = rest.slice(0, -8) + "benzeen"; }
+    else if ((m = rest.match(/(an|en)(di)?(ol|on)$/))) {
+      suffix = { g: m[3] === "ol" ? "OH" : "KETO", count: m[2] ? 2 : 1, locs: null };
+      rest = rest.slice(0, -m[0].length) + (m[1] === "an" ? "aan" : "een");
+    }
+    else if ((m = rest.match(/(aan|een|yn)(di)?amine$/))) { suffix = { g: "NH2", count: m[2] ? 2 : 1, locs: null }; rest = rest.slice(0, -m[0].length) + m[1]; }
+
+    // ---- hoofdketen / ring ----
+    var isBenzene = false, isRing = false, n = 0, unsat = { dbl: [], tri: [] };
+    var parsed = null;
+    if (/benzeen$/.test(rest)) {
+      isBenzene = true; n = 6;
+      parsed = parsePrefixString(rest.slice(0, -7).replace(/-$/, ""));
+      if (parsed.error) return { mol: null, error: parsed.error };
+    } else {
+      var re = new RegExp("^(cyclo)?(" + STEM_ALT + ")(?:a?(aan)|a?((?:-[\\d,]+-)?(?:di|tri)?(?:een|yn))+)$");
+      var hit = null, lastErr = null;
+      for (var cut = 0; cut < rest.length && !hit; cut++) {
+        var mp = rest.slice(cut).match(re);
+        if (!mp) continue;
+        var pre = rest.slice(0, cut).replace(/-$/, "");
+        var pp = parsePrefixString(pre);
+        if (pp.error) { lastErr = pp.error; continue; }
+        hit = { mp: mp, cut: cut, prefixes: pp.prefixes };
+      }
+      if (!hit) return { mol: null, error: lastErr || 'Kon geen herkenbare hoofdketen vinden (bijvoorbeeld "...aan", "...een", "...yn", "cyclo...", "benzeen").' };
+      var mp2 = hit.mp;
+      isRing = !!mp2[1]; n = STEM_REVERSE[mp2[2]];
+      parsed = { prefixes: hit.prefixes };
+      if (!mp2[3]) {
+        // onverzadigd deel: een of meer stukken "-L-een" / "een" / "-L-yn" / "yn"
+        var unsatPart = rest.slice(hit.cut + (mp2[1] ? 5 : 0) + mp2[2].length).replace(/^a/, "");
+        var partRe = /(?:-([\d,]+)-)?(di|tri)?(een|yn)/g, pm, consumed = 0;
+        while ((pm = partRe.exec(unsatPart))) {
+          if (pm.index !== consumed) return { mol: null, error: "Kon het onverzadigde deel van de naam niet lezen." };
+          consumed = pm.index + pm[0].length;
+          var cnt = MULT_REVERSE[pm[2] || ""];
+          var locs = pm[1] ? parseLocs(pm[1]) : null;
+          if (locs && locs.length !== cnt) return { mol: null, error: "Het aantal plaatsnummers bij de dubbele/drievoudige binding klopt niet met het telwoord." };
+          if (!locs) {
+            if (cnt > 1) return { mol: null, error: "Plaatsnummers ontbreken bij de meervoudige bindingen." };
+            var forced = (isRing && !(suffix && suffix.g !== "CHO" && suffix.g !== "COOH")) || n === 2 || (n === 3 && (!suffix || suffix.g === "COOH" || suffix.g === "CHO"));
+            if (!forced) return { mol: null, error: "Plaatsnummer ontbreekt bij de " + (pm[3] === "een" ? "dubbele" : "drievoudige") + " binding." };
+            locs = (n === 3 && suffix && (suffix.g === "COOH" || suffix.g === "CHO")) ? [2] : [1];
+          }
+          var target = (pm[3] === "een") ? unsat.dbl : unsat.tri;
+          target.push.apply(target, locs);
+        }
+        if (consumed !== unsatPart.length) return { mol: null, error: "Kon het onverzadigde deel van de naam niet lezen." };
+      }
+    }
     if (n > MAX_PARSE_CHAIN_LENGTH) return { mol: null, error: "Ketens langer dan " + MAX_PARSE_CHAIN_LENGTH + " koolstofatomen worden niet ondersteund." };
+    if (isRing && (n < 3 || n > 6)) return { mol: null, error: "Alleen ringen van 3 tot en met 6 koolstofatomen worden ondersteund." };
 
-    var unsatWord = coreMatch.match[2];
-    var unsatLocantRaw = null;
-    if (coreMatch.match[1]) unsatLocantRaw = parseInt(coreMatch.match[1].replace("-", ""), 10);
-    else if (unsatWord !== "aan") unsatLocantRaw = 1;
+    // ---- voorvoegsels ----
+    var prefixes = parsed.prefixes;
 
-    var olTail = coreMatch.match[3];
-    var hasOH = false;
-    var olLocants = [];
-    if (olTail === "ol-contracted") { hasOH = true; olLocants = [1]; }
-    else if (olTail) {
-      hasOH = true;
-      var olDigits = olTail.replace(/^-/, "").replace(/-(di|tri|tetra)?ol$/, "");
-      olLocants = olDigits.split(",").map(function(x){ return parseInt(x, 10); });
+    // ---- weggelaten plaatsnummers invullen waar dat eenduidig is ----
+    var totalFeat = prefixes.reduce(function(t, x){ return t + x.count; }, 0) + (suffix ? suffix.count : 0);
+    var nUnsat = unsat.dbl.length + unsat.tri.length;
+    prefixes.forEach(function(x){
+      if (x.locs) return;
+      var ok = (n === 1) || (!isBenzene && !isRing && n === 2 && totalFeat === 1) || ((isRing || isBenzene) && totalFeat === 1 && nUnsat === 0);
+      if (!ok) x.error = 'Plaatsnummer ontbreekt bij "' + x.word + '".';
+      else { x.locs = []; for (var c = 0; c < x.count; c++) x.locs.push(1); }
+    });
+    var errP = prefixes.filter(function(x){ return x.error; })[0];
+    if (errP) return { mol: null, error: errP.error };
+    if (suffix && !suffix.locs) {
+      if (suffix.g === "COOH" || suffix.g === "CHO") suffix.locs = suffix.count === 2 ? [1, n] : [1];
+      else if (suffix.g === "KETO" && !isRing && (n === 3 || n === 4) && suffix.count === 1) suffix.locs = [2];
+      else if ((suffix.g === "OH" || suffix.g === "NH2") && suffix.count === 1 && (n <= 2 || isRing || isBenzene)) suffix.locs = [1];
+      else return { mol: null, error: "Plaatsnummer ontbreekt bij de uitgang van de naam (bijvoorbeeld propaan-1-ol of propaan-2-ol)." };
     }
 
-    var prefixSegment = s.slice(0, coreMatch.index);
-    var branchTokens = [];
-    var substTokens = {};
-    var totalFeatureCount = 0;
-    var remaining = prefixSegment;
-    var guard = 0;
-    var parseError = null;
-    while (remaining.length > 0 && guard < 10 && !parseError) {
-      guard++;
-      var numMatch = remaining.match(/^(\d[\d,]*)-/);
-      if (!numMatch) { parseError = 'Kon het voorvoegsel "' + remaining + '" niet herkennen.'; break; }
-      var locantStrs = numMatch[1].split(",");
-      var locants = [];
-      for (var li = 0; li < locantStrs.length; li++) locants.push(parseInt(locantStrs[li], 10));
-      remaining = remaining.slice(numMatch[0].length);
-      var wordMatch = remaining.match(/^(di|tri|tetra)?(methyl|ethyl|chloor|broom|fluor|jood)/);
-      if (!wordMatch) { parseError = 'Kon het voorvoegsel "' + remaining + '" niet herkennen.'; break; }
-      var baseWord = wordMatch[2];
-      remaining = remaining.slice(wordMatch[0].length).replace(/^-/, "");
-      if (baseWord === "methyl" || baseWord === "ethyl") {
-        var blen = (baseWord === "methyl") ? 1 : 2;
-        for (var bi2 = 0; bi2 < locants.length; bi2++) { branchTokens.push({ locant: locants[bi2], length: blen }); totalFeatureCount++; }
-      } else {
-        var halKey = HALOGEN_NAME_TO_KEY[baseWord];
-        if (!substTokens[halKey]) substTokens[halKey] = [];
-        for (var hi = 0; hi < locants.length; hi++) { substTokens[halKey].push(locants[hi]); totalFeatureCount++; }
+    // ---- alle plaatsnummers binnen de keten? ----
+    var allLocs = [].concat(unsat.dbl, unsat.tri, suffix ? suffix.locs : []);
+    prefixes.forEach(function(x){ allLocs = allLocs.concat(x.locs); });
+    for (var li = 0; li < allLocs.length; li++) {
+      var L = allLocs[li];
+      if (L < 1 || L > n) return { mol: null, error: "Plaatsnummer " + L + " past niet bij een " + (isRing || isBenzene ? "ring" : "keten") + " van " + n + " koolstofatomen." };
+    }
+    if (isBenzene && nUnsat) return { mol: null, error: "Bij benzeen hoort geen plaatsnummer voor dubbele bindingen." };
+    if (suffix && (suffix.g === "COOH" || suffix.g === "CHO" || suffix.g === "NH2" || suffix.g === "KETO") && (isRing || isBenzene)) return { mol: null, error: "Deze combinatie van ring en uitgang wordt in deze tool niet ondersteund." };
+
+    // ---- ethers ----
+    var alkoxy = prefixes.filter(function(x){ return x.info.alkoxy; });
+    if (alkoxy.length) {
+      if (alkoxy.length > 1 || alkoxy[0].count > 1) return { mol: null, error: "Deze tool ondersteunt ethers met één alkoxygroep." };
+      if (isRing || isBenzene || nUnsat) return { mol: null, error: "Deze tool ondersteunt alleen ethers met een verzadigde rechte keten." };
+      var aLoc = alkoxy[0].locs[0];
+      if (aLoc !== 1 && aLoc !== n) return { mol: null, error: "Deze tool ondersteunt alleen ethers waarbij het O-atoom aan het eind van de hoofdketen zit." };
+      var others = prefixes.filter(function(x){ return !x.info.alkoxy; });
+      var feats = [];
+      others.forEach(function(x){ x.locs.forEach(function(L){ feats.push({ info: x.info, loc: L }); }); });
+      if (suffix) suffix.locs.forEach(function(L){ feats.push({ info: { subst: suffix.g }, loc: L }); });
+      if (feats.length > 1) return { mol: null, error: "Deze tool ondersteunt ethers met hoogstens één extra kenmerk op de hoofdketen." };
+      var shortLen = alkoxy[0].info.alkoxy;
+      var longSubst = null;
+      if (feats.length) {
+        var f = feats[0];
+        var pos = (aLoc === 1) ? f.loc - 1 : n - f.loc;
+        if (f.info.branch) longSubst = { kind: "branch", len: f.info.branch, pos: pos, side: "up" };
+        else if (f.info.subst === "OH") longSubst = { kind: "OH", pos: pos };
+        else if (HALOGEN_NAME[f.info.subst]) longSubst = { kind: "halogen", hal: f.info.subst, pos: pos };
+        else return { mol: null, error: "Deze combinatie wordt bij ethers niet ondersteund." };
+        if (pos === 0 && longSubst.kind !== "halogen") return { mol: null, error: "Deze tool ondersteunt geen extra groep op het koolstofatoom naast het O-atoom." };
+        if (longSubst.kind === "branch" && !isValidBranchPlacement(n, pos, longSubst.len)) return { mol: null, error: "Deze naam beschrijft geen geldige hoofdketen: er loopt een langere keten door de vertakking." };
       }
-    }
-    if (parseError) return { mol: null, error: parseError };
-    if (remaining.length > 0) return { mol: null, error: 'Kon het voorvoegsel niet volledig verwerken (rest: "' + remaining + '").' };
-
-    if (hasOH) totalFeatureCount += olLocants.length;
-    if (unsatWord !== "aan") totalFeatureCount += 1;
-    if (totalFeatureCount > MAX_TOTAL_FEATURES) return { mol: null, error: "Deze naam heeft meer dan " + MAX_TOTAL_FEATURES + " kenmerken in totaal. Dat overschrijdt de limiet van deze tool." };
-
-    var allLocants = [];
-    for (var bti = 0; bti < branchTokens.length; bti++) allLocants.push(branchTokens[bti].locant);
-    var substKeys = Object.keys(substTokens);
-    for (var ski = 0; ski < substKeys.length; ski++) { var tl = substTokens[substKeys[ski]]; for (var tli = 0; tli < tl.length; tli++) allLocants.push(tl[tli]); }
-    for (var oli = 0; oli < olLocants.length; oli++) allLocants.push(olLocants[oli]);
-    if (unsatLocantRaw) allLocants.push(unsatLocantRaw);
-    for (var ali = 0; ali < allLocants.length; ali++) {
-      if (allLocants[ali] < 1 || allLocants[ali] > n) return { mol: null, error: "Locant " + allLocants[ali] + " past niet binnen een keten van " + n + " koolstofatomen." };
+      if (shortLen > n) return { mol: null, error: "De hoofdketen moet de langste keten zijn; de alkoxygroep is hier langer dan de hoofdketen." };
+      return { mol: { isTwoChain: true, kind: "ether", shortLen: shortLen, longLen: n, longSubst: longSubst }, error: null };
     }
 
+    // ---- keten / ring / benzeen opbouwen ----
     var chain = blankChain(n);
-    if (unsatWord === "een") chain[unsatLocantRaw - 1].bondAfter = "double";
-    if (unsatWord === "yn") chain[unsatLocantRaw - 1].bondAfter = "triple";
-    for (var bti2 = 0; bti2 < branchTokens.length; bti2++) {
-      var bt = branchTokens[bti2];
-      var bnode = chain[bt.locant - 1];
-      if (!bnode.branchUp) bnode.branchUp = bt.length;
-      else if (!bnode.branchDown) bnode.branchDown = bt.length;
-      else return { mol: null, error: "Te veel vertakkingen op \u00e9\u00e9n koolstofatoom voor deze tool." };
+    if (isRing || isBenzene) chain.forEach(function(node){ node.isRingNode = true; });
+    if (isBenzene) chain.forEach(function(node, i){ node.isBenzeneNode = true; node.bondAfter = (i % 2 === 0) ? "double" : "single"; });
+    function setBond(L, type) {
+      var idx = L - 1;
+      if (!isRing && idx >= n - 1) return "Plaatsnummer " + L + " is te hoog voor een meervoudige binding in een keten van " + n + ".";
+      if (chain[idx].bondAfter !== "single") return "Twee meervoudige bindingen op dezelfde plek.";
+      chain[idx].bondAfter = type; return null;
     }
-    for (var ski2 = 0; ski2 < substKeys.length; ski2++) {
-      var type = substKeys[ski2];
-      var locs = substTokens[type];
-      for (var li2 = 0; li2 < locs.length; li2++) {
-        var snode = chain[locs[li2] - 1];
-        if (!snode.substCounts) snode.substCounts = {};
-        snode.substCounts[type] = (snode.substCounts[type] || 0) + 1;
+    for (var di = 0; di < unsat.dbl.length; di++) { var e1 = setBond(unsat.dbl[di], "double"); if (e1) return { mol: null, error: e1 }; }
+    for (var ti = 0; ti < unsat.tri.length; ti++) {
+      if (isRing) return { mol: null, error: "Een drievoudige binding in een ring wordt niet ondersteund." };
+      var e2 = setBond(unsat.tri[ti], "triple"); if (e2) return { mol: null, error: e2 };
+    }
+    function addSubst(L, key) { var nd = chain[L - 1]; nd.substCounts[key] = (nd.substCounts[key] || 0) + 1; }
+    var branchErr = null;
+    prefixes.forEach(function(x){
+      x.locs.forEach(function(L){
+        if (x.info.branch) {
+          var nd = chain[L - 1];
+          if (!nd.branchUp) nd.branchUp = x.info.branch;
+          else if (!nd.branchDown) nd.branchDown = x.info.branch;
+          else branchErr = "Te veel vertakkingen op één koolstofatoom.";
+        } else addSubst(L, x.info.subst);
+      });
+    });
+    if (branchErr) return { mol: null, error: branchErr };
+    if (suffix) suffix.locs.forEach(function(L){ addSubst(L, suffix.g === "CHO" ? "KETO" : suffix.g); });
+
+    var mol = isBenzene ? { chain: chain, length: 6, isRing: true, isBenzene: true }
+            : (isRing ? { chain: chain, length: n, isRing: true } : { chain: chain, length: n });
+
+    // ---- chemisch mogelijk? ----
+    for (var ci = 0; ci < n; ci++) {
+      var used = branchUsage(chain[ci]) + usedSubstCount(chain[ci]);
+      var cap = isBenzene ? 1 : (isRing ? maxHOnNode(chain, ci) : 4 - bondSlotsAround(chain, ci));
+      if (used > cap) return { mol: null, error: "Deze naam beschrijft een structuur die chemisch niet mogelijk is (te veel bindingen op koolstofatoom " + (ci + 1) + ")." };
+    }
+    if (!isRing && !isBenzene) {
+      for (var vi = 0; vi < n; vi++) {
+        var v = chain[vi];
+        if ((v.branchUp && !isValidBranchPlacement(n, vi, v.branchUp)) || (v.branchDown && !isValidBranchPlacement(n, vi, v.branchDown)))
+          return { mol: null, error: "Deze naam beschrijft geen geldige hoofdketen: er loopt een langere keten door de vertakking." };
+        if ((v.substCounts.COOH) && !isTerminalPosition(chain, vi)) return { mol: null, error: "Een zuurgroep zit altijd aan het eind van de keten." };
       }
     }
-    if (hasOH) {
-      for (var oli2 = 0; oli2 < olLocants.length; oli2++) {
-        var onode = chain[olLocants[oli2] - 1];
-        if (!onode.substCounts) onode.substCounts = {};
-        onode.substCounts.OH = (onode.substCounts.OH || 0) + 1;
+    if (countMoleculeFeatures(mol) > MAX_TOTAL_FEATURES) return { mol: null, error: "Deze naam heeft meer dan " + MAX_TOTAL_FEATURES + " kenmerken samen. Dat is meer dan deze tool aankan." };
+    return { mol: mol, error: null };
+  }
+  function parsePrefixString(p) {
+    var prefixes = [], guard = 0;
+    while (p.length > 0 && guard < 12) {
+      guard++;
+      var lm = p.match(/^([\d,]+)-/);
+      var locsP = null;
+      if (lm) { locsP = parseLocs(lm[1]); p = p.slice(lm[0].length); }
+      var mm = p.match(/^(di|tri|tetra|penta|hexa)?/);
+      var mult = mm[1] || "";
+      var found = null, after = p.slice(mult.length);
+      for (var wi = 0; wi < PREFIX_WORDS.length; wi++) { if (after.indexOf(PREFIX_WORDS[wi][0]) === 0) { found = PREFIX_WORDS[wi]; break; } }
+      if (!found && mult) { // "di"/"tri" kan ook het begin van een woord zijn; probeer zonder telwoord
+        after = p; mult = "";
+        for (var wj = 0; wj < PREFIX_WORDS.length; wj++) { if (after.indexOf(PREFIX_WORDS[wj][0]) === 0) { found = PREFIX_WORDS[wj]; break; } }
       }
+      if (!found) return { error: 'Kon het voorvoegsel "' + p + '" niet herkennen.' };
+      var count = MULT_REVERSE[mult];
+      if (locsP && locsP.length !== count) return { error: 'Het aantal plaatsnummers past niet bij het telwoord bij "' + found[0] + '".' };
+      prefixes.push({ info: found[1], word: found[0], locs: locsP, count: count });
+      p = after.slice(found[0].length).replace(/^-/, "");
     }
-    for (var ci2 = 0; ci2 < chain.length; ci2++) {
-      var used = branchUsage(chain[ci2]) + usedSubstCount(chain[ci2]);
-      if (used > maxHOnNode(chain, ci2)) return { mol: null, error: "Deze naam beschrijft een structuur die chemisch niet mogelijk is." };
-    }
-    for (var vi = 0; vi < chain.length; vi++) {
-      var vnode = chain[vi];
-      if (vnode.branchUp && !isValidBranchPlacement(n, vi, vnode.branchUp)) return { mol: null, error: "Deze naam beschrijft geen geldige hoofdketen: er loopt een l\u00e1ngere rechte keten door de vertakking." };
-      if (vnode.branchDown && !isValidBranchPlacement(n, vi, vnode.branchDown)) return { mol: null, error: "Deze naam beschrijft geen geldige hoofdketen: er loopt een l\u00e1ngere rechte keten door de vertakking." };
-    }
-    return { mol: { chain: chain, length: n }, error: null };
+    if (p.length > 0) return { error: 'Kon het voorvoegsel "' + p + '" niet herkennen.' };
+    return { prefixes: prefixes };
+  }
+  function bondSlotsAround(chain, i) {
+    var n = chain.length, used = 0;
+    if (i > 0) used += bondSlotsUsedAfter(chain[i - 1]);
+    if (i < n - 1) used += bondSlotsUsedAfter(chain[i]);
+    return used;
   }
 
   // ============================================================
@@ -1422,13 +1381,14 @@
   function renderOwnNameMode() {
     var html = "";
     if (!state.question) {
-      html += '<div class="q-prompt">Typ een systematische naam in (geen esters/ethers in deze modus, max 4 kenmerken samen):</div>';
+      html += '<div class="q-prompt">Typ een systematische naam in (max 4 kenmerken samen):</div>';
       html += '<div class="answer-row"><input type="text" id="own-name-input" placeholder="bv. 2-chloor-3-methylpentaan" value="' + escapeHtml(state.ownNameInput) + '"><button class="primary icon-btn" data-act="parse-own-name">' + icon('check') + 'Aan de slag</button></div>';
       if (state.ownNameError) html += '<div class="feedback incorrect" style="margin-top:10px"><div class="fb-head">' + icon('x') + 'Kon de naam niet verwerken</div><div>' + escapeHtml(state.ownNameError) + '</div></div>';
       return html;
     }
     var q = state.question;
     html += '<div class="q-prompt">Bouw de structuur van: <span class="name-target">' + escapeHtml(q.correctName) + '</span></div>';
+    if (state.ownNameNote) html += '<div class="feedback incorrect" style="margin:-4px 0 12px 0"><div>Let op: jouw naam beschrijft deze stof, maar de systematische naam is <b>' + escapeHtml(state.ownNameNote) + '</b>.</div></div>';
     html += renderBuilderToolbar() + renderBuilderCanvas();
     if (!state.checked) html += '<div class="controls-row"><div class="controls-left"><button class="primary icon-btn" data-act="check-builder">' + icon('check') + 'Controleer</button></div></div>';
     html += renderFeedbackBlockForBuilder(q.mol);
@@ -1472,7 +1432,7 @@
     var html = '<div class="feedback ' + (state.isCorrect ? 'correct' : 'incorrect') + '">';
     html += '<div class="fb-head">' + icon(state.isCorrect ? 'check' : 'x') + (state.isCorrect ? 'Goed!' : 'Nog niet goed') + '</div>';
     var nameText = escapeHtml(q.correctName);
-    if (q.mol.altName) nameText += ' (of: ' + escapeHtml(q.mol.altName) + ')';
+    if (q.mol.altNames && q.mol.altNames.length) nameText += '</b> <span style="color:var(--text-secondary)">(ook goed: ' + q.mol.altNames.map(escapeHtml).join(', ') + ')</span><b>';
     html += '<div>Correcte naam: <b>' + nameText + '</b></div></div>';
     return html;
   }
@@ -1569,14 +1529,14 @@
     var input = document.getElementById("answer-input");
     if (input) input.focus();
   }
-  function normalizeName(s) { return (s || "").toLowerCase().replace(/\s+/g, "").replace(/'/g, ""); }
+  function normalizeName(s) { return (s || "").trim().toLowerCase().replace(/'/g, "").replace(/[\u2010-\u2015]/g, "-"); }
   function checkNameAnswer() {
     var input = document.getElementById("answer-input");
     var raw = input ? input.value.trim() : "";
     if (!raw) return;
     var q = state.question;
     var given = normalizeName(raw);
-    var correct = (given === normalizeName(q.correctName)) || (q.mol.altName && given === normalizeName(q.mol.altName));
+    var correct = acceptedNames(q.mol, q.correctName).some(function(nm){ return given === normalizeName(nm); });
     state.userAnswer = raw; state.checked = true; state.isCorrect = correct;
     state.score.total++; if (correct) state.score.correct++;
     render();
@@ -1783,16 +1743,8 @@
     var isBenzeneQuestion = !!targetMol.isBenzene;
     var isRingQuestion = !!targetMol.isRing;
     var isTwoChainQuestion = !!targetMol.isTwoChain;
-    var correct;
-    if (isTwoChainQuestion) {
-      correct = !state.builder.isRing && twoChainEquivalent(built, targetMol);
-    } else if (isBenzeneQuestion) {
-      correct = !!state.builder.isBenzene && benzeneRingsEquivalent(built, target);
-    } else if (isRingQuestion) {
-      correct = !!state.builder.isRing && !state.builder.isBenzene && ringsEquivalent(built, target);
-    } else {
-      correct = !state.builder.isRing && chainsEquivalent(built, target);
-    }
+    var builtMol = { chain: built, isRing: !!state.builder.isRing, isBenzene: !!state.builder.isBenzene };
+    var correct = built.length > 0 && structureKey(builtMol) === structureKey(targetMol);
     var hasInvalidBranch = false;
     if (!isRingQuestion && !isBenzeneQuestion && !isTwoChainQuestion) {
       for (var i = 0; i < built.length; i++) {
@@ -1942,6 +1894,8 @@
             else {
               state.ownNameError = null;
               var canonicalName = nameMolecule(result.mol);
+              var typed = normalizeName(rawName);
+              state.ownNameNote = acceptedNames(result.mol, canonicalName).some(function(nm){ return normalizeName(nm) === typed; }) ? null : canonicalName;
               state.question = { mol: result.mol, correctName: canonicalName };
               state.builder = { chain: [], selectedUnitId: null, isRing: false };
               state.checked = false; state.isCorrect = false;
