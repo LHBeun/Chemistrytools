@@ -205,7 +205,7 @@ const SUBSTANCES = {
   methanol:      { naam: 'Methanol',                     formule: 'CH₃OH',
                     TmLow: -98,  TmHigh: -98,  TbLow: 65,   TbHigh: 65,   mengsel: false },
   zoutwater:     { naam: 'Zout water',                   formule: 'H₂O + NaCl (opgelost)',
-                    TmLow: -6,   TmHigh: 0,    TbLow: 100,  TbHigh: 104,  mengsel: true,
+                    TmLow: -21,  TmHigh: -8,   TbLow: 103,  TbHigh: 109,  mengsel: true,
                     components: [
                       { naam: 'H₂O',  fractie: 0.8, vluchtig: true,  bias: 0, kleur: 'std' },
                       { naam: 'NaCl', fractie: 0.2, vluchtig: false, bias: 0, kleur: '#94a3b8' }
@@ -499,6 +499,19 @@ function updateParticles(box) {
       else if (phase === 'liquid') p._lp = 'liquid';
       else p._lp = (!nietVluchtig && gasIdx.has(p.idx)) ? 'gas' : 'liquid'; // boilrange of gas
     });
+    // Is al het oplosmiddel verdampt, dan blijft de opgeloste stof (bijv. NaCl)
+    // achter als vaste stof: een klein kristalhoopje op de bodem.
+    if (s.components) {
+      const oplosmiddelOver = particles.some(p => s.components[p.component].vluchtig && p._lp === 'liquid');
+      if (!oplosmiddelOver && (phase === 'boilrange' || phase === 'gas')) {
+        particles.forEach(p => { if (!s.components[p.component].vluchtig) p._lp = 'solid'; });
+      }
+    }
+  }
+  // Plek in het kristalhoopje voor achtergebleven opgeloste stof (aaneengesloten op de bodem)
+  const residuRank = new Map();
+  if (s.components) {
+    particles.filter(p => !s.components[p.component].vluchtig).forEach((p, i) => residuRank.set(p.idx, i));
   }
   const nLiquid = particles.filter(p => p._lp === 'liquid').length;
   const nSolid  = particles.filter(p => p._lp === 'solid').length;
@@ -532,12 +545,31 @@ function updateParticles(box) {
   // opgeloste stof blijft er immers altijd wat vloeistof achter.)
   const hasCondensedPhase = nSolid > 0 || nLiquid > 0;
   const gasTop = box.top + 6;
-  const gasBottom = hasCondensedPhase ? (poolTop - 4) : (box.top + box.h - 6);
+  let gasBottom = hasCondensedPhase ? (poolTop - 4) : (box.top + box.h - 6);
+  // Alleen nog een kristalhoopje over? Dan blijft het gas boven dat hoopje.
+  if (nLiquid === 0 && residuRank.size > 0 && (phase === 'boilrange' || phase === 'gas')) {
+    const perRow = Math.max(1, Math.ceil(Math.sqrt(residuRank.size * 2)));
+    const pileRows = Math.ceil(residuRank.size / perRow);
+    gasBottom = latticeBottom - pileRows * PACK_SPACING - 6;
+  }
 
   particles.forEach(p => {
-    const col = p.idx % cols, row = Math.floor(p.idx / cols);
-    const homeX = latticeLeft + (col + 0.5) * PACK_SPACING;
-    const homeY = latticeTop + (row + 0.5) * PACK_SPACING;
+    let homeX, homeY;
+    const isResidu = residuRank.has(p.idx) && p._lp === 'solid' && (phase === 'boilrange' || phase === 'gas');
+    if (isResidu) {
+      // achtergebleven zout: compact hoopje midden op de bodem
+      const nRes = residuRank.size;
+      const perRow = Math.max(1, Math.ceil(Math.sqrt(nRes * 2)));
+      const r = residuRank.get(p.idx);
+      const rc = r % perRow, rr = Math.floor(r / perRow);
+      const rowW = perRow * PACK_SPACING;
+      homeX = latticeLeft + (latticeW - rowW) / 2 + (rc + 0.5) * PACK_SPACING;
+      homeY = latticeBottom - (rr + 0.5) * PACK_SPACING;
+    } else {
+      const col = p.idx % cols, row = Math.floor(p.idx / cols);
+      homeX = latticeLeft + (col + 0.5) * PACK_SPACING;
+      homeY = latticeTop + (row + 0.5) * PACK_SPACING;
+    }
     if (p.x === 0 && p.y === 0) { p.x = homeX; p.y = homeY; }
 
     const lp = p._lp;
@@ -548,18 +580,9 @@ function updateParticles(box) {
         p.x += (homeX - p.x) * 0.25 + (Math.random() - 0.5) * jitter;
         p.y += (homeY - p.y) * 0.25 + (Math.random() - 0.5) * jitter;
       } else if (lp === 'liquid') {
-        const nietVluchtig = s.components && !s.components[p.component].vluchtig;
-        if (nietVluchtig) {
-          // Niet-vluchtige opgeloste stof (bijv. NaCl): bezinkt rustig i.p.v. vrij
-          // rond te stromen zoals een vloeistof — blijft binnen de poel, weinig beweging.
-          const jitter = 0.35 * speedFactor;
-          p.x += (Math.random() - 0.5) * jitter;
-          p.y += (Math.random() - 0.5) * jitter * 0.6;
-          if (p.x < latticeLeft)          p.x = latticeLeft;
-          if (p.x > latticeLeft+latticeW) p.x = latticeLeft+latticeW;
-          if (p.y < poolTop)    p.y = poolTop + Math.random() * 4;
-          if (p.y > poolBottom) p.y = poolBottom;
-        } else {
+        // Opgeloste stof (bijv. NaCl) beweegt mee tussen de watermoleculen, net als
+        // de rest van de oplossing: hij is opgelost, dus niet meer vast.
+        {
         // Vrije vloeistofdeeltjes diffunderen: elk deeltje krijgt af en toe een nieuw
         // willekeurig punt ergens in de poel als "wandel-doel" en drijft daar geleidelijk
         // naartoe, met wat lokaal getril erbovenop. Zo migreren ze zichtbaar door de hele
@@ -682,6 +705,9 @@ function drawParticles() {
   if (s.noLiquid && (phase === 'meltrange' || phase === 'boilrange')) {
     cls = 'overgang'; lbl = 'Sublimeren / rijpen';
   }
+  if (phase === 'gas' && s.components && s.components.some(c => !c.vluchtig)) {
+    lbl = 'Gas + vaste stof (blijft achter)';
+  }
   badge.className = 'fase-badge ' + cls;
   badge.textContent = lbl;
 }
@@ -794,6 +820,7 @@ function updateReadouts() {
   const labelMap = { solid: 'vast', liquid: 'vloeibaar', gas: 'gas', meltrange: 'smelten/stollen', boilrange: 'koken/condenseren' };
   let label = labelMap[phase] || phase;
   if (s.noLiquid && (phase === 'meltrange' || phase === 'boilrange')) label = 'sublimeren/rijpen';
+  if (phase === 'gas' && s.components && s.components.some(c => !c.vluchtig)) label = 'gas + vaste stof';
   document.getElementById('read-fase').textContent = label + (paused ? ' (gepauzeerd)' : '');
 }
 
