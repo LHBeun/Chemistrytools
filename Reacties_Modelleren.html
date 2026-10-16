@@ -58,7 +58,7 @@ header button:hover { border-color: #c9a84c; color: #c9a84c; }
 .spc-inp:focus { border-color: #c9a84c; }
 .spc-name  { width: 48px; }
 .spc-coeff { width: 34px; }
-.spc-n0    { width: 44px; }
+.spc-n0    { width: 54px; }
 .spc-role  { background: #2a2a4a; border: 1px solid #3a3a5a; border-radius: 4px; color: #eee; padding: 2px 3px; font-size: 0.73rem; outline: none; cursor: pointer; }
 .spc-del   { background: none; border: none; color: #444; cursor: pointer; font-size: 0.88rem; padding: 0 2px; }
 .spc-del:hover { color: #e06060; }
@@ -72,6 +72,11 @@ header button:hover { border-color: #c9a84c; color: #c9a84c; }
 .f-status { width: 7px; height: 7px; border-radius: 50%; background: #333; flex-shrink: 0; }
 .f-status.ok { background: #2ecc71; }
 .f-status.err { background: #e74c3c; }
+.f-status.warn { background: #e67e22; }
+.de-check { font-size:0.72rem; color:#e67e22; margin:-4px 0 8px; line-height:1.4; }
+.ex-note { font-size:0.74rem; line-height:1.45; color:#aaa; background:#12122a; border:1px solid #2a2a4a; border-left:3px solid #c9a84c; border-radius:5px; padding:6px 8px; margin-bottom:8px; display:none; }
+details.adv { margin:4px 0 8px; } details.adv summary { font-size:0.72rem; color:#777; cursor:pointer; margin-bottom:6px; }
+header select { padding:5px 8px; border-radius:5px; border:1px solid #444; background:#2a2a4a; color:#bbb; font-size:0.78rem; cursor:pointer; }
 
 .formula-inp {
   width: 100%; background: #12122a; border: 1px solid #2a2a4a;
@@ -131,7 +136,7 @@ footer button:disabled { opacity: 0.3; cursor: default; }
 #btn-clear-snap:hover { border-color: #e06060; color: #e06060; }
 .speed-ctrl { display: flex; align-items: center; gap: 7px; font-size: 0.76rem; color: #555; margin-left: 14px; }
 .speed-ctrl input[type=range] { width: 76px; accent-color: #c9a84c; }
-.speed-ctrl .sv { color: #aaa; min-width: 32px; }
+.speed-ctrl .sv { color: #aaa; min-width: 80px; }
 .t-disp { font-size: 0.76rem; color: #444; margin-left: auto; }
 .t-disp span { color: #888; font-family: monospace; }
 .warn { font-size: 0.71rem; color: #e06060; margin-left: 6px; }
@@ -160,6 +165,8 @@ body.light #btn-add-spc:hover { border-color: #8a6d1f; color: #8a6d1f; }
 body.light .formula-lbl { color: #555; }
 body.light .formula-lbl .hi { color: #8a6d1f; }
 body.light .f-status { background: #ccc; }
+body.light .f-status.ok { background: #1e8449; } body.light .f-status.err { background: #c0392b; } body.light .f-status.warn { background: #ca6f1e; }
+body.light .de-check { color: #ca6f1e; }
 body.light .formula-inp { background: #ffffff; border-color: #c8c8d0; color: #222; }
 body.light .formula-inp:focus { border-color: #8a6d1f; }
 body.light .chip { background: #f4f4f8; border-color: #c8c8d0; color: #555; }
@@ -184,13 +191,16 @@ body.light .speed-ctrl .sv { color: #555; }
 body.light .t-disp { color: #999; }
 body.light .t-disp span { color: #555; }
 body.light .warn { color: #c0392b; }
+body.light .ex-note { background:#fbf8ef; border-color:#e0d8bf; border-left-color:#8a6d1f; color:#444; }
+body.light header select { background:#fff; border-color:#c8c8d0; color:#555; }
+body.light details.adv summary { color:#888; }
 </style>
 </head>
 <body>
 
 <header>
   <h1>Reactiemodellering — van snelheid tot evenwicht</h1>
-  <button id="btn-example">Laad Haber-Bosch voorbeeld</button>
+  <select id="sel-example"><option value="">Voorbeeld laden…</option><option value="hi">H₂ + I₂ ⇌ 2 HI</option><option value="no2">N₂O₄ ⇌ 2 NO₂</option><option value="haber">★ Haber-Bosch (model Temkin–Pyzhev)</option></select>
   <button id="btn-clear-all">Alles leegmaken</button>
   <button id="btn-theme">🖨 Licht thema</button>
 </header>
@@ -200,6 +210,7 @@ body.light .warn { color: #c0392b; }
   <!-- LEFT PANEL -->
   <div class="panel">
 
+    <div class="ex-note" id="ex-note"></div>
     <div class="sec">Stoffen in de reactie</div>
     <table id="species-table">
       <thead><tr>
@@ -216,28 +227,30 @@ body.light .warn { color: #c0392b; }
       <input type="number" id="inp-Ea1" min="0" max="500" step="1" placeholder="bijv. 80"><span class="unit">kJ/mol</span></div>
     <div class="field-row"><label><i>E</i><sub>a,terug</sub></label>
       <input type="number" id="inp-Ea2" min="0" max="500" step="1" placeholder="bijv. 172"><span class="unit">kJ/mol</span></div>
+    <details class="adv"><summary>Geavanceerd (A-factoren, tolerantie)</summary>
     <div class="field-row"><label><i>A</i><sub>heen</sub></label>
       <input type="number" id="inp-A1" min="0" step="any" placeholder="automatisch"><span class="unit">optioneel</span></div>
     <div class="field-row"><label><i>A</i><sub>terug</sub></label>
       <input type="number" id="inp-A2" min="0" step="any" placeholder="automatisch"><span class="unit">optioneel</span></div>
     <div class="field-row" style="font-size:0.70rem;color:#444;margin-top:-4px;margin-left:114px" id="lbl-Afactor">A-factor: automatisch</div>
-    <div class="field-row"><label>Volume <i>V</i></label>
-      <input type="number" id="inp-V" min="0.001" max="1000" step="0.1" placeholder="bijv. 1.0"><span class="unit">L</span></div>
     <div class="field-row"><label>Tolerantie</label>
       <input type="number" id="inp-tol" min="1e-12" max="0.1" step="any" placeholder="bijv. 1e-6"><span class="unit">(relatief)</span></div>
     <div class="field-row" style="font-size:0.72rem;color:#444;margin-top:-4px;margin-left:114px">Laat leeg → 10⁻⁶</div>
+    </details>
+    <div class="field-row"><label>Volume <i>V</i></label>
+      <input type="number" id="inp-V" min="0.001" max="1000" step="0.1" placeholder="bijv. 1.0"><span class="unit">L</span></div>
 
     <div class="sec">Reactiesnelheden</div>
 
     <div class="formula-row">
       <div class="formula-lbl"><div class="f-status" id="fs-vheen"></div><span><span class="hi">v<sub>heen</sub></span> =</span></div>
-      <input class="formula-inp" id="inp-vheen" placeholder="bijv. k1 * [A] * [B]^2">
+      <input class="formula-inp" id="inp-vheen" placeholder="bijv. k_heen * [A] * [B]^2">
       <div class="chips" id="chips-vheen"></div>
     </div>
 
     <div class="formula-row">
       <div class="formula-lbl"><div class="f-status" id="fs-vterug"></div><span><span class="hi">v<sub>terug</sub></span> =</span></div>
-      <input class="formula-inp" id="inp-vterug" placeholder="bijv. k_1 * [C]">
+      <input class="formula-inp" id="inp-vterug" placeholder="bijv. k_terug * [C]">
       <div class="chips" id="chips-vterug"></div>
     </div>
 
@@ -251,6 +264,7 @@ body.light .warn { color: #c0392b; }
 
     <div class="sec">Differentiaalvergelijkingen</div>
     <div id="de-fields"></div>
+    <div class="de-check" id="de-check"></div>
 
   </div>
 
@@ -268,6 +282,8 @@ body.light .warn { color: #c0392b; }
 
     <div class="sec">Actuele waarden</div>
     <div class="kv"><span class="k">Q<sub>c</sub></span><span class="v" id="info-Q">—</span></div>
+    <div class="kv"><span class="k">v<sub>heen</sub></span><span class="v" id="info-vh">—</span></div>
+    <div class="kv"><span class="k">v<sub>terug</sub></span><span class="v" id="info-vt">—</span></div>
     <div style="height:6px"></div>
     <div id="conc-live"></div>
   </div>
@@ -282,10 +298,10 @@ body.light .warn { color: #c0392b; }
   <span class="warn" id="warn-box"></span>
   <div class="speed-ctrl">
     Snelheid: <input type="range" id="sl-speed" min="0" max="5" value="2">
-    <span class="sv" id="lbl-speed">20×</span>
+    <span class="sv" id="lbl-speed">normaal</span>
   </div>
-  <span id="t-disp" style="display:none"></span>
-  <span id="eq-note" style="display:none"></span>
+  <span class="warn" id="eq-note" style="color:#2ecc71"></span>
+  <span class="t-disp">t = <span id="t-disp">0,00</span> s</span>
 </footer>
 
 <script>
@@ -309,6 +325,7 @@ function CV() {
         xTick:'#555555', yTick:'#888888', cross:'rgba(255,255,255,0.15)', snapGrays:['#666','#555','#444'] };
 }
 const SPEED_STEPS = [1, 5, 20, 100, 500, 2000];
+const SPEED_LABELS = ['heel langzaam','langzaam','normaal','snel','sneller','snelst'];
 
 let speciesList = [];
 let nextId = 1;
@@ -332,8 +349,17 @@ function colorFor(i) { return COLORS[i % COLORS.length]; }
 // A = 10^(13 − 3*(n−1)) where n is total reaction order
 function computeAFactor(order) { return Math.pow(10, 13 - 3 * (order - 1)); }
 
-function forwardOrder()  { return speciesList.filter(s=>s.role==='reactant').reduce((a,s)=>a+s.coeff,0) || 1; }
-function backwardOrder() { return speciesList.filter(s=>s.role==='product' ).reduce((a,s)=>a+s.coeff,0) || 1; }
+// Totale orde numeriek uit de ingevulde snelheidsvergelijking: alle concentraties ×2 → v ×2^n
+function numOrder(inputId, fallbackRole) {
+  const expr = document.getElementById(inputId).value;
+  const m1 = {}, m2 = {};
+  speciesList.forEach(s => { m1[s.name] = 0.3; m2[s.name] = 0.6; });
+  const v1 = evalExpr(expr, m1, 1, 1), v2 = evalExpr(expr, m2, 1, 1);
+  if (isFinite(v1) && isFinite(v2) && v1 > 0 && v2 > 0) return Math.log(v2 / v1) / Math.log(2);
+  return speciesList.filter(s=>s.role===fallbackRole).reduce((a,s)=>a+s.coeff,0) || 1;
+}
+function forwardOrder()  { return numOrder('inp-vheen', 'reactant'); }
+function backwardOrder() { return numOrder('inp-vterug', 'product'); }
 
 function updateAFactorLabel() {
   const m1 = P('inp-A1'), m2 = P('inp-A2');
@@ -399,12 +425,14 @@ function compileExpr(expr, speciesNames) {
     const esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     body = body.replace(new RegExp(`\\[${esc}\\]`, 'g'), `__c[${JSON.stringify(name)}]`);
   });
-  body = body.replace(/v_heen/g, '__vheen').replace(/v_terug/g, '__vterug');
-  body = body.replace(/k_1/g, '__kr').replace(/k1/g, '__k1');
+  body = body.replace(/(\d),(\d)/g, '$1.$2');
+  body = body.replace(/\bk_heen\b/g, '__KH').replace(/\bk_terug\b/g, '__KT');
+  body = body.replace(/\bk_1\b/g, '__KT').replace(/\bk1\b/g, '__KH');
+  body = body.replace(/\bv_heen\b/g, '__vheen').replace(/\bv_terug\b/g, '__vterug');
   body = body.replace(/\^/g, '**');
   let fn;
   try {
-    fn = new Function('__c', '__k1', '__kr', '__vheen', '__vterug', `"use strict"; return (${body});`);
+    fn = new Function('__c', '__KH', '__KT', '__vheen', '__vterug', `"use strict"; return (${body});`);
   } catch { fn = null; }
   _exprCache.set(key, fn);
   return fn;
@@ -447,6 +475,16 @@ function derivatives(conc) {
   if (dcdt.some(isNaN)) return null;
   return dcdt;
 }
+
+function rates(conc) {
+  const k1 = k1v(), kr = krv();
+  const concMap = {};
+  speciesList.forEach((s, i) => { concMap[s.name] = Math.max(0, conc[i]); });
+  const vh = evalExpr(document.getElementById('inp-vheen').value,  concMap, k1, kr);
+  const vt = evalExpr(document.getElementById('inp-vterug').value, concMap, k1, kr);
+  return (isNaN(vh) || isNaN(vt)) ? null : { vh, vt };
+}
+function fmtNL(n) { return fmt(n).replace('.', ','); }
 
 function vecAdd(a, k, s) { return a.map((x, i) => x + k[i] * s); }
 
@@ -493,7 +531,7 @@ function rkStep(conc, h, tol) {
 }
 
 // ── Sim loop (RK45 adaptive) ──
-const EQ_TOL = 0.01; // |Q − K| / K < 1% → equilibrium
+const EQ_TOL = 0.01; // |v_heen − v_terug| < 1% → evenwicht
 
 function loop() {
   const tol   = P('inp-tol') || 1e-6;
@@ -520,6 +558,15 @@ function loop() {
     speciesList.forEach((s, i) => { s.n = res.conc[i] * V; });
     history.push({ t: simT, conc: [...res.conc], Q: computeQ(res.conc) });
     accepted++;
+    // Auto-stop: evenwicht = v_heen ≈ v_terug (werkt voor elke snelheidsvergelijking)
+    if (!eqDetectedAt) {
+      const rv = rates(speciesList.map(s => Math.max(0, s.n / (P('inp-V') || 1))));
+      if (rv && rv.vh > 0 && rv.vt > 0 && Math.abs(rv.vh - rv.vt) / Math.max(rv.vh, rv.vt) < EQ_TOL) {
+        eqDetectedAt = simT;
+        eqStopAt     = simT + simT / 4;
+      }
+    }
+    if (eqStopAt && simT >= eqStopAt) break;
   }
 
   // Decimate history: when > 5000 points, halve the older 4000
@@ -530,28 +577,18 @@ function loop() {
     history = [...thinned, ...keep];
   }
 
-  // Auto-stop: |Q_intern − K| / K < 1%  (K = k1/kr, niet getoond aan leerling)
-  if (!eqDetectedAt) {
-    const k1 = k1v(), kr = krv();
-    if (isFinite(k1) && isFinite(kr) && kr > 0) {
-      const K = k1 / kr;
-      const Q = computeQInternal(speciesList.map(s => Math.max(0, s.n / (P('inp-V') || 1))));
-      if (isFinite(Q) && Q > 0 && Math.abs(Q - K) / K < EQ_TOL) {
-        eqDetectedAt = simT;
-        eqStopAt     = simT + simT / 4;
-      }
-    }
-  }
   if (eqStopAt && simT >= eqStopAt) {
     stopSim();
-    document.getElementById('eq-note').textContent = `Evenwicht ≈ ${eqDetectedAt.toFixed(2)} s`;
+    { const V = P('inp-V') || 1; const c = speciesList.map(s => Math.max(0, s.n / V));
+      document.getElementById('t-disp').textContent = fmtNL(simT); updateInfo(c, computeQ(c)); }
+    document.getElementById('eq-note').textContent = `Evenwicht (v_heen = v_terug) na ≈ ${fmtNL(eqDetectedAt)} s`;
     drawGraph();
     return;
   }
 
   const V    = P('inp-V') || 1;
   const conc = speciesList.map(s => Math.max(0, s.n / V));
-  document.getElementById('t-disp').textContent = simT.toFixed(3);
+  document.getElementById('t-disp').textContent = fmtNL(simT);
   updateInfo(conc, computeQ(conc));
   validateAll();
   drawGraph();
@@ -587,9 +624,9 @@ function resetSim() {
   eqDetectedAt = null; eqStopAt = null;
   document.getElementById('eq-note').textContent = '';
   const V = P('inp-V') || 1;
-  speciesList.forEach(s => { s.n = s.n0 * V; });
-  document.getElementById('t-disp').textContent = '0.00';
-  const conc = speciesList.map(s => s.n0);
+  speciesList.forEach(s => { s.n = s.n0; });
+  document.getElementById('t-disp').textContent = '0,00';
+  const conc = speciesList.map(s => s.n0 / V);
   updateInfo(conc, computeQ(conc));
   drawGraph();
 }
@@ -597,7 +634,7 @@ function resetSim() {
 // ── Species management ──
 function addSpecies(name='', coeff=1, role='reactant', n0=0, color=null, de='') {
   const id = nextId++;
-  speciesList.push({ id, name, coeff, role, n0, n: n0 * (P('inp-V') || 1), color: color || colorFor(speciesList.length), de_expr: de });
+  speciesList.push({ id, name, coeff, role, n0, n: n0, color: color || colorFor(speciesList.length), de_expr: de });
   renderSpeciesTable();
   renderDEFields();
   renderChips();
@@ -645,7 +682,7 @@ function renderSpeciesTable() {
       if (field === 'name')  { s.name  = this.value; renderDEFields(); renderChips(); renderPlotChecks(); }
       if (field === 'coeff') { s.coeff = Math.max(1, parseInt(this.value) || 1); updateAFactorLabel(); }
       if (field === 'role')  { s.role  = this.value; renderPlotChecks(); updateAFactorLabel(); }
-      if (field === 'n0')    { s.n0 = parseFloat(this.value) || 0; s.n = s.n0 * (P('inp-V') || 1); }
+      if (field === 'n0')    { s.n0 = parseFloat(String(this.value).replace(',', '.')) || 0; s.n = s.n0; }
     });
     if (el.classList.contains('spc-del')) el.addEventListener('click', () => removeSpecies(id));
   });
@@ -687,8 +724,8 @@ function makeChips(container, inputId, extras=[]) {
 }
 
 function renderChips() {
-  makeChips(document.getElementById('chips-vheen'),  'inp-vheen');
-  makeChips(document.getElementById('chips-vterug'), 'inp-vterug');
+  makeChips(document.getElementById('chips-vheen'),  'inp-vheen', ['k_heen']);
+  makeChips(document.getElementById('chips-vterug'), 'inp-vterug', ['k_terug']);
   makeChips(document.getElementById('chips-Q'),      'inp-Q');
   speciesList.forEach(s => {
     const cont = document.getElementById(`chips-de-${s.id}`);
@@ -741,10 +778,20 @@ function validateAll() {
   setStatus('fs-vterug', !isNaN(vt));
   setStatus('fs-Q',      !isNaN(qv));
 
+  // Controle: d[X]/dt moet gelijk zijn aan (±coëfficiënt) · (v_heen − v_terug)
+  const fout = [];
+  const vhT = isNaN(vh) ? 0.7 : vh, vtT = isNaN(vt) ? 0.3 : vt;
   speciesList.forEach(s => {
-    const val = evalExpr(s.de_expr, concMap, k1, kr, isNaN(vh) ? 0 : vh, isNaN(vt) ? 0 : vt);
-    setStatus(`fs-de-${s.id}`, !isNaN(val));
+    const val = evalExpr(s.de_expr, concMap, k1, kr, vhT, vtT);
+    if (isNaN(val)) { setStatus(`fs-de-${s.id}`, false); return; }
+    const verwacht = (s.role === 'reactant' ? -1 : 1) * s.coeff * (vhT - vtT);
+    const ok = Math.abs(val - verwacht) <= 1e-9 + 1e-6 * Math.abs(verwacht);
+    const el = document.getElementById(`fs-de-${s.id}`);
+    if (el) el.className = 'f-status ' + (ok ? 'ok' : 'warn');
+    if (!ok && s.de_expr.trim()) fout.push(s.name || '?');
   });
+  const dc = document.getElementById('de-check');
+  if (dc) dc.textContent = fout.length ? `⚠ d[${fout.join('], d[')}]/dt klopt niet met de coëfficiënten: voor elke stof geldt d[X]/dt = ±coëfficiënt · (v_heen − v_terug), met − voor beginstoffen.` : '';
 }
 
 function setStatus(id, ok) {
@@ -789,13 +836,16 @@ function fmt(n) {
 }
 
 function updateInfo(conc, Q) {
-  document.getElementById('info-Q').textContent = fmt(Q);
+  document.getElementById('info-Q').textContent = fmtNL(Q);
+  const rv = conc.length ? rates(conc) : null;
+  document.getElementById('info-vh').textContent = rv ? fmtNL(rv.vh) : '—';
+  document.getElementById('info-vt').textContent = rv ? fmtNL(rv.vt) : '—';
   const live = document.getElementById('conc-live');
   live.innerHTML = '';
   speciesList.forEach((s, i) => {
     const row = document.createElement('div');
     row.className = 'kv';
-    row.innerHTML = `<span class="k" style="color:${tc(s.color)}">[${s.name}]</span><span class="v">${fmt(conc[i])}</span>`;
+    row.innerHTML = `<span class="k" style="color:${tc(s.color)}">[${s.name}]</span><span class="v">${fmtNL(conc[i])}</span>`;
     live.appendChild(row);
   });
 }
@@ -828,8 +878,8 @@ canvas.addEventListener('mouseleave', () => {
 
 function fmtAxis(val) {
   if (!isFinite(val)) return '';
-  if (Math.abs(val) >= 1e4 || (Math.abs(val) < 0.01 && val !== 0)) return val.toExponential(1);
-  return val.toFixed(Math.abs(val) < 1 ? 3 : 2);
+  if (Math.abs(val) >= 1e4 || (Math.abs(val) < 0.01 && val !== 0)) return val.toExponential(1).replace('.', ',');
+  return val.toFixed(Math.abs(val) < 1 ? 3 : 2).replace('.', ',');
 }
 
 function makeScale(min, max, fallMin, fallMax) {
@@ -1035,12 +1085,12 @@ document.getElementById('chk-log').addEventListener('change', function() { logSc
 // ── Speed ──
 document.getElementById('sl-speed').addEventListener('input', function() {
   stepsPerFrame = SPEED_STEPS[+this.value];
-  document.getElementById('lbl-speed').textContent = stepsPerFrame + '×';
+  document.getElementById('lbl-speed').textContent = SPEED_LABELS[+this.value];
 });
 
 // ── v_heen / v_terug / Q live validation ──
 ['inp-vheen','inp-vterug','inp-Q'].forEach(id => {
-  document.getElementById(id).addEventListener('input', validateAll);
+  document.getElementById(id).addEventListener('input', () => { validateAll(); updateAFactorLabel(); });
 });
 
 // ── Parameter changes ──
@@ -1073,41 +1123,50 @@ document.getElementById('btn-theme').addEventListener('click', function() {
 });
 document.getElementById('btn-add-spc').addEventListener('click', () => addSpecies());
 
-// ── Example: Haber-Bosch ──
-document.getElementById('btn-example').addEventListener('click', () => {
+// ── Voorbeelden ──
+const EXAMPLES = {
+  hi: { note: '<b>H₂ + I₂ ⇌ 2 HI</b> (gasfase, 700 K). Bekend voorbeeld waarbij de gemeten snelheidsvergelijking v<sub>heen</sub> = k<sub>heen</sub>·[H₂]·[I₂] is. ΔH ≈ −9 kJ/mol; K<sub>c</sub> bij 700 K ≈ 54.',
+        T: 700, Ea1: 165, Ea2: 174, A1: 1e11, A2: 8.7e9, V: 1,
+        sp: [['H₂',1,'reactant',1.0,'-v_heen + v_terug'],['I₂',1,'reactant',1.0,'-v_heen + v_terug'],['HI',2,'product',0,'2*v_heen - 2*v_terug']],
+        vh: 'k_heen * [H₂] * [I₂]', vt: 'k_terug * [HI]^2', Q: '[HI]^2 / ([H₂] * [I₂])' },
+  no2: { note: '<b>N₂O₄ ⇌ 2 NO₂</b> (kleurloos ⇌ bruin, 298 K). Endotherm: ΔH ≈ +57 kJ/mol, K<sub>c</sub> ≈ 4,6·10⁻³ mol/L. In werkelijkheid gaat dit binnen microseconden; de A-factoren zijn hier verkleind zodat je het ziet gebeuren. Probeer: verander T tijdens de simulatie.',
+        T: 298, Ea1: 60, Ea2: 3, A1: 3.3e8, A2: 7.3, V: 1,
+        sp: [['N₂O₄',1,'reactant',0.10,'-v_heen + v_terug'],['NO₂',2,'product',0,'2*v_heen - 2*v_terug']],
+        vh: 'k_heen * [N₂O₄]', vt: 'k_terug * [NO₂]^2', Q: '[NO₂]^2 / [N₂O₄]' },
+  haber: { note: '★ <b>Haber-Bosch</b> verloopt op een ijzerkatalysator en is géén reactie in één stap. Temkin en Pyzhev (1939) vonden v<sub>heen</sub> = k<sub>heen</sub>·[N₂]·[H₂]<sup>1,5</sup>/[NH₃] en v<sub>terug</sub> = k<sub>terug</sub>·[NH₃]/[H₂]<sup>1,5</sup> (oorspronkelijk met partiaaldrukken). De orden zijn dus 1, 1,5 en zelfs −1! Toch geldt bij evenwicht Q = K. Ea en A zijn modelwaarden. Er moet bij de start al een beetje NH₃ zijn, anders deel je door nul.',
+        T: 800, Ea1: 80, Ea2: 172, A1: 1e4, A2: 1e10, V: 1,
+        sp: [['N₂',1,'reactant',1.0,'-v_heen + v_terug'],['H₂',3,'reactant',3.0,'-3*v_heen + 3*v_terug'],['NH₃',2,'product',0.01,'2*v_heen - 2*v_terug']],
+        vh: 'k_heen * [N₂] * [H₂]^1.5 / [NH₃]', vt: 'k_terug * [NH₃] / [H₂]^1.5', Q: '[NH₃]^2 / ([N₂] * [H₂]^3)' },
+};
+function loadExample(key) {
+  const ex = EXAMPLES[key]; if (!ex) return;
   stopSim(); speciesList = []; nextId = 1;
-  addSpecies('N₂',  1, 'reactant', 1.0, COLORS[0], '-v_heen + v_terug');
-  addSpecies('H₂',  3, 'reactant', 3.0, COLORS[1], '-3*v_heen + 3*v_terug');
-  addSpecies('NH₃', 2, 'product',  0.0, COLORS[2], '2*v_heen - 2*v_terug');
-  // Ea₁=80, Ea₂=172 → ΔH = 80-172 = -92 kJ/mol (exotherm)
-  // A₁ = 1e4 (orde 4), A₂ = 1e10 (orde 2) → K(800K) ≈ 1
-  document.getElementById('inp-T').value   = 800;
-  document.getElementById('inp-Ea1').value = 80;
-  document.getElementById('inp-Ea2').value = 172;
-  document.getElementById('inp-V').value   = 1.0;
-  document.getElementById('inp-vheen').value  = 'k1 * [N₂] * [H₂]^3';
-  document.getElementById('inp-vterug').value = 'k_1 * [NH₃]^2';
-  document.getElementById('inp-Q').value      = '[NH₃]^2 / ([N₂] * [H₂]^3)';
+  ex.sp.forEach(([n, c, r, n0, de], i) => addSpecies(n, c, r, n0, COLORS[i], de));
+  const set = (id, v) => document.getElementById(id).value = v;
+  set('inp-T', ex.T); set('inp-Ea1', ex.Ea1); set('inp-Ea2', ex.Ea2); set('inp-A1', ex.A1); set('inp-A2', ex.A2); set('inp-V', ex.V);
+  set('inp-vheen', ex.vh); set('inp-vterug', ex.vt); set('inp-Q', ex.Q);
+  const nt = document.getElementById('ex-note'); nt.innerHTML = ex.note; nt.style.display = 'block';
   history = []; simT = 0; snapshots = []; snapshotCount = 0;
   eqDetectedAt = null; eqStopAt = null;
-  document.getElementById('t-disp').textContent = '0.00';
+  document.getElementById('t-disp').textContent = '0,00';
   document.getElementById('eq-note').textContent = '';
-  updateAFactorLabel();
-  renderChips();
-  validateAll();
-  const conc = speciesList.map(s => s.n0);
+  updateAFactorLabel(); renderChips(); validateAll();
+  const V = P('inp-V') || 1;
+  const conc = speciesList.map(s => s.n0 / V);
   updateInfo(conc, computeQ(conc));
   drawGraph();
-});
+}
+document.getElementById('sel-example').addEventListener('change', function() { loadExample(this.value); this.value = ''; });
 
 // ── Clear all ──
 document.getElementById('btn-clear-all').addEventListener('click', () => {
   stopSim(); speciesList = []; nextId = 1;
   ['inp-T','inp-Ea1','inp-Ea2','inp-A1','inp-A2','inp-V','inp-vheen','inp-vterug','inp-Q'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('ex-note').style.display = 'none';
   renderSpeciesTable(); renderDEFields(); renderChips(); renderPlotChecks();
   history = []; simT = 0; snapshots = []; snapshotCount = 0;
   eqDetectedAt = null; eqStopAt = null;
-  document.getElementById('t-disp').textContent = '0.00';
+  document.getElementById('t-disp').textContent = '0,00';
   document.getElementById('eq-note').textContent = '';
   updateAFactorLabel();
   updateInfo([], NaN); drawGraph();
