@@ -222,10 +222,13 @@ header{padding-bottom:0;}
 
 <div class="paneel stap">
   <h2><span class="nr">3</span>Orde per stof</h2>
-  <div class="vtekst">Vergelijk steeds twee erlenmeyers bij (ongeveer) dezelfde temperatuur waarin alléén die ene concentratie verschilt. Bereken met welke factor v verandert en vergelijk dat met de factor waarmee de concentratie verandert.</div>
+  <div class="vtekst">Per stof zijn er twee erlenmeyers waarin alléén die concentratie verschilt van erlenmeyer 1: één keer ×1,5 en één keer ×2. Vergelijk erlenmeyer 1 met de verdubbeling: wordt v ×1, ×2 of ×4? Gebruik de erlenmeyer met ×1,5 als controle (dan wordt v ×1, ×1,5 of ×1,5² ≈ ×2,25).</div>
   <div class="rij" id="s3velden"></div>
   <div class="rij" style="margin-top:.5rem"><button onclick="check3()">Controleer</button></div>
   <div class="fb" id="f3"></div>
+  <div class="vtekst" id="s3btekst" style="margin-top:.8rem"></div>
+  <div class="rij">helling = <input type="text" id="a3b"><button onclick="check3b()">Controleer</button></div>
+  <div class="fb" id="f3b"></div>
 </div>
 
 <div class="paneel stap">
@@ -298,19 +301,19 @@ function zetFb(id, soort, html){ const el=document.getElementById(id); el.classN
    species: f = formule, c = coëfficiënt, ph = fase, kant L/R, ord = orde (alleen beginstoffen in oplossing/gas)
    ================================================================= */
 const ECHT = [
-  { naam:'Ontleding van distikstofpentaoxide', soort:'echt', Ea:103, Tref:318,
+  { naam:'Ontleding van distikstofpentaoxide', soort:'echt', tau:20, Ea:103, Tref:318,
     sp:[{f:'N2O5',c:2,ph:'g',kant:'L',ord:1},{f:'NO2',c:4,ph:'g',kant:'R'},{f:'O2',c:1,ph:'g',kant:'R'}],
     ordeInfo:'Literatuur: eerste orde in N₂O₅.' },
-  { naam:'Stikstofdioxide met koolstofmono-oxide', soort:'echt', Ea:134, Tref:473,
+  { naam:'Stikstofdioxide met koolstofmono-oxide', soort:'echt', tau:30, Ea:134, Tref:473,
     sp:[{f:'NO2',c:1,ph:'g',kant:'L',ord:2},{f:'CO',c:1,ph:'g',kant:'L',ord:0},{f:'NO',c:1,ph:'g',kant:'R'},{f:'CO2',c:1,ph:'g',kant:'R'}],
     ordeInfo:'Literatuur (onder ca. 500 K): tweede orde in NO₂ en nulde orde in CO. De orden volgen dus niet uit de coëfficiënten.' },
-  { naam:'Waterstof met jood', soort:'echt', Ea:165, Tref:700,
+  { naam:'Waterstof met jood', soort:'echt', tau:15, Ea:165, Tref:700,
     sp:[{f:'H2',c:1,ph:'g',kant:'L',ord:1},{f:'I2',c:1,ph:'g',kant:'L',ord:1},{f:'HI',c:2,ph:'g',kant:'R'}],
     ordeInfo:'Literatuur: eerste orde in H₂ en in I₂.' },
-  { naam:'Joderen van aceton (zuur als katalysator)', soort:'echt', Ea:86, Tref:298,
+  { naam:'Joderen van aceton (zuur als katalysator)', soort:'echt', tau:40, Ea:86, Tref:298,
     sp:[{f:'CH3COCH3',c:1,ph:'aq',kant:'L',ord:1},{f:'I2',c:1,ph:'aq',kant:'L',ord:0},{f:'CH3COCH2I',c:1,ph:'aq',kant:'R'},{f:'H^+',c:1,ph:'aq',kant:'R'},{f:'I^-',c:1,ph:'aq',kant:'R'}],
     ordeInfo:'Literatuur: eerste orde in aceton, nulde orde in I₂ (en eerste orde in H⁺; die concentratie is hier zo groot dat hij constant blijft).' },
-  { naam:'Marmer met zoutzuur', soort:'model', Ea:45, Tref:298, vast:true,
+  { naam:'Marmer met zoutzuur', soort:'model', tau:25, Ea:45, Tref:298, vast:true,
     sp:[{f:'CaCO3',c:1,ph:'s',kant:'L'},{f:'H3O^+',c:2,ph:'aq',kant:'L',ord:1},{f:'Ca^2+',c:1,ph:'aq',kant:'R'},{f:'H2O',c:3,ph:'l',kant:'R'},{f:'CO2',c:1,ph:'g',kant:'R'}],
     ordeInfo:'Modelwaarden: eerste orde in H₃O⁺, snelheid evenredig met het oppervlak van het marmer.' },
 ];
@@ -336,7 +339,7 @@ function maakFictief(){
     const tot = vloeibaar.reduce((a,x)=>a+x.ord,0);
     ok = tot>=1 && tot<=3;
   }
-  return {naam:'Fictieve reactie', soort:'fictief', Ea: randInt(40,100), Tref:298, vast:!!s.vast, sp,
+  return {naam:'Fictieve reactie', soort:'fictief', tau:[15,20,25,30,40][Math.floor(Math.random()*5)], Ea: randInt(40,100), Tref:298, vast:!!s.vast, sp,
           notitie:'Fictieve reactie: de orden en de activeringsenergie zijn willekeurig gekozen.'};
 }
 
@@ -350,7 +353,7 @@ function laadReactie(def){
   RX.totOrde = RX.beginVloeibaar.reduce((a,x)=>a+x.ord,0);
   // k zo kiezen dat v0 bij referentie = c0/25 per s
   const prod = RX.beginVloeibaar.reduce((a,x)=>a*Math.pow(0.5,x.ord),1);
-  RX.kRef = (0.50/25)/prod;
+  RX.kRef = (0.50/RX.tau)/prod;
   RX.Apre = RX.kRef*Math.exp(RX.Ea/(R*RX.Tref));
   // katalysator: Ea-verlaging zodat dezelfde versnelling ontstaat als bij 30-70 K hoger
   const Teq = RX.Tref + randInt(30,70);
@@ -761,7 +764,7 @@ function nieuweDataset(){
   const T1 = 19 + Math.round(Math.random()*30)/10;
   const basis = ()=>{ const v={}; RX.stoffen.forEach(s=>v[s.f]=s.refV); if(RX.klok) v[RX.klok.f]=RX.klok.refV; return v; };
   rijen.push({V:basis(), T:T1});
-  RX.stoffen.forEach(s=>{ const V=basis(); V[s.f] = s.refV*(Math.random()<0.5?1.5:2); rijen.push({V, T:T1+Math.round((Math.random()-0.5)*6)/10, varieer:s.f}); });
+  RX.stoffen.forEach(s=>{ [1.5,2].forEach(fac=>{ const V=basis(); V[s.f] = s.refV*fac; rijen.push({V, T: ruis ? T1+Math.round((Math.random()-0.5)*6)/10 : T1, varieer:s.f, fac}); }); });
   [10,20,30].forEach(dT=>rijen.push({V:basis(), T:T1+dT+Math.round((Math.random()*2-1)*15)/10, temp:true}));
   // k en A: echt via k298, fictief zo dat omslag erlenmeyer 1 ~ 80 s
   const conc = rij=>{ const c={}; RX.stoffen.forEach(s=>c[s.f]=s.voor*rij.V[s.f]/VT); if(RX.klok) c[RX.klok.f]=RX.klok.voor*rij.V[RX.klok.f]/VT; return c; };
@@ -818,6 +821,11 @@ function render(){
   // stap 3
   document.getElementById('s3velden').innerHTML = RX.stoffen.map(s=>`<label>orde in [${formule(s.f)}]: <select id="o-${s.f}"><option value="">–</option><option>0</option><option>1</option><option>2</option><option>3</option></select></label>`).join('')+
     `<label>totale orde: <select id="o-tot"><option value="">–</option><option>0</option><option>1</option><option>2</option><option>3</option></select></label>`;
+  // ★ stap 3b: ln v tegen ln c voor de eerste stof met orde > 0 (anders de eerste)
+  const sb = RX.stoffen.find(x=>x.ord>0) || RX.stoffen[0];
+  const rb = [data.rijen[0], ...data.rijen.filter(x=>x.varieer===sb.f)];
+  data.s3b = {stof:sb, rijen:rb, helling: fit(rb.map(r=>({x:Math.log(r.c[sb.f]), y:Math.log(r.v)}))).a};
+  document.getElementById('s3btekst').innerHTML = `<span class="ster">★</span> Je kunt de orde ook uit een grafiek halen. Uit v = k·[${formule(sb.f)}]<sup>n</sup>·… volgt: ln v = n·ln [${formule(sb.f)}] + constante. Zet voor erlenmeyer ${rb.map(r=>data.rijen.indexOf(r)+1).join(', ')} ln v uit tegen ln [${formule(sb.f)}] en bepaal de helling. Die helling is de orde n.`;
   // stap 4
   document.getElementById('s4tekst').innerHTML = 'Bereken k voor erlenmeyer 1 met de snelheidsvergelijking en de orden uit stap 3. Kies ook de eenheid.';
   document.getElementById('a4e').innerHTML='<option value="">eenheid</option>'+EENHEDEN.map(e=>`<option>${e}</option>`).join('');
@@ -860,11 +868,13 @@ function check3(){
   let fout=[]; RX.stoffen.forEach(s=>{ const a=document.getElementById('o-'+s.f).value; if(a===''||+a!==s.ord) fout.push(s); });
   const tot=RX.stoffen.reduce((a,s)=>a+s.ord,0), at=document.getElementById('o-tot').value; const totOk=at!==''&&+at===tot;
   const r1=data.rijen[0];
-  const regels=RX.stoffen.map(s=>{ const r=data.rijen.find(x=>x.varieer===s.f), i=data.rijen.indexOf(r)+1, fc=r.c[s.f]/r1.c[s.f], fv=r.v/r1.v;
+  const regels=RX.stoffen.map(s=>{ const r=data.rijen.find(x=>x.varieer===s.f&&x.fac===2), i=data.rijen.indexOf(r)+1, fc=r.c[s.f]/r1.c[s.f], fv=r.v/r1.v;
     return `[${formule(s.f)}]: erl. 1 → ${i}: c ×${fmt(fc,2)}, v ×${fmt(fv,3)} → orde ${s.ord}${s.ord?` (want ${fmt(fc,2)}${s.ord>1?sup(s.ord):''} = ${fmt(fc**s.ord,3)})`:' (v verandert niet)'}`; });
   if(!fout.length && totOk) zetFb('f3','goed','✓ Goed!<br>'+regels.join('<br>')+`<br>Totale orde: ${tot}.`+(RX.ordeInfo?'<br>'+RX.ordeInfo:''));
   else zetFb('f3','fout',`✗ Nog niet goed${fout.length?': '+fout.map(s=>'['+formule(s.f)+']').join(', '):''}${!totOk?' (totale orde = som van de orden)':''}. Tip: zoek bij elke stof de erlenmeyer waarin alléén die stof meer is. Bereken v<sub>2</sub>/v<sub>1</sub> en c<sub>2</sub>/c<sub>1</sub>. Is v ×1, ×(c-factor) of ×(c-factor)²? Een kleine afwijking komt door meetfouten.`+(RX.klokNaam==='I2'?' Pas op bij jood: als er meer jood is, duurt het langer, maar dat betekent niet dat de reactie langzamer is!':''));
 }
+function check3b(){ const a=leesGetal(document.getElementById('a3b').value), g=data.s3b.helling, ok=isFinite(a)&&Math.abs(a-g)<=0.1;
+  zetFb('f3b', ok?'goed':'fout', ok?`✓ Goed! De helling is ${fmt(g,3)}: afgerond orde ${Math.round(g)} in [${formule(data.s3b.stof.f)}]. Met meetfout is de helling nooit precies een heel getal.`:`✗ Nog niet goed. Bereken voor elke erlenmeyer ln c en ln v (gebruik v uit stap 2), en bepaal de helling: (ln v<sub>2</sub> − ln v<sub>1</sub>) / (ln c<sub>2</sub> − ln c<sub>1</sub>) tussen het eerste en laatste punt geeft al een goede schatting.`); }
 function check4(){ const r=data.rijen[0], a=leesGetal(document.getElementById('a4').value), e=document.getElementById('a4e').value, tot=RX.stoffen.reduce((x,s)=>x+s.ord,0);
   const okW=binnen(a,r.k,0.02), okE=e===EENHEDEN[tot];
   zetFb('f4', okW&&okE?'goed':'fout', (okW&&okE?'✓ Goed! ':'✗ ')+`k₁ = v₁ / (${RX.stoffen.filter(s=>s.ord).map(s=>`[${formule(s.f)}]${s.ord>1?'<sup>'+s.ord+'</sup>':''}`).join('·')}) = ${fmt(r.k)} ${EENHEDEN[tot]}`+(!okE?`. De eenheid: mol L⁻¹ s⁻¹ gedeeld door (mol L⁻¹)<sup>${tot}</sup>.`:'.')); }
@@ -919,6 +929,7 @@ window.check5=check5;
 window.check5b=check5b;
 window.check6=check6;
 window.check6b=check6b;
+window.check3b=check3b;
 })();
 </script>
 </body>
