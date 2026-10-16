@@ -39,7 +39,7 @@ header button:hover { border-color: #c9a84c; color: #c9a84c; }
 /* ── Param inputs ── */
 .field-row { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; font-size: 0.8rem; }
 .field-row label { color: #999; min-width: 108px; }
-.field-row input[type=number] {
+.field-row input[type=number], .field-row input[type=text] {
   width: 76px; background: #2a2a4a; border: 1px solid #444;
   border-radius: 5px; color: #eee; padding: 4px 7px; font-size: 0.8rem; outline: none;
 }
@@ -227,7 +227,11 @@ body.light details.adv summary { color:#888; }
       <input type="number" id="inp-Ea1" min="0" max="500" step="1" placeholder="bijv. 80"><span class="unit">kJ/mol</span></div>
     <div class="field-row"><label><i>E</i><sub>a,terug</sub></label>
       <input type="number" id="inp-Ea2" min="0" max="500" step="1" placeholder="bijv. 172"><span class="unit">kJ/mol</span></div>
-    <details class="adv"><summary>Geavanceerd (A-factoren, tolerantie)</summary>
+    <details class="adv" id="adv"><summary>Geavanceerd (k direct, A-factoren, tolerantie)</summary>
+    <div class="field-row"><label><i>k</i><sub>heen</sub> direct</label>
+      <input type="text" inputmode="decimal" id="inp-k1" placeholder="leeg = Arrhenius"><span class="unit">gaat vóór Ea/A</span></div>
+    <div class="field-row"><label><i>k</i><sub>terug</sub> direct</label>
+      <input type="text" inputmode="decimal" id="inp-k2" placeholder="leeg = Arrhenius"><span class="unit">0 = aflopend</span></div>
     <div class="field-row"><label><i>A</i><sub>heen</sub></label>
       <input type="number" id="inp-A1" min="0" step="any" placeholder="automatisch"><span class="unit">optioneel</span></div>
     <div class="field-row"><label><i>A</i><sub>terug</sub></label>
@@ -237,6 +241,8 @@ body.light details.adv summary { color:#888; }
       <input type="number" id="inp-tol" min="1e-12" max="0.1" step="any" placeholder="bijv. 1e-6"><span class="unit">(relatief)</span></div>
     <div class="field-row" style="font-size:0.72rem;color:#444;margin-top:-4px;margin-left:114px">Laat leeg → 10⁻⁶</div>
     </details>
+    <div class="field-row"><label>Stop bij <i>t</i></label>
+      <input type="text" inputmode="decimal" id="inp-tend" placeholder="leeg = bij evenwicht"><span class="unit">s</span></div>
     <div class="field-row"><label>Volume <i>V</i></label>
       <input type="number" id="inp-V" min="0.001" max="1000" step="0.1" placeholder="bijv. 1.0"><span class="unit">L</span></div>
 
@@ -378,12 +384,15 @@ function A2v() {
   const man = P('inp-A2');
   return (isFinite(man) && man > 0) ? man : computeAFactor(backwardOrder());
 }
+function kDirect(id) { const el = document.getElementById(id); if (!el || el.value.trim() === '') return NaN; const v = parseFloat(el.value.replace(',', '.')); return (isFinite(v) && v >= 0) ? v : NaN; }
 function k1v() {
+  const kd = kDirect('inp-k1'); if (!isNaN(kd)) return kd;
   const T = P('inp-T'), Ea1 = P('inp-Ea1');
   if (!T || !Ea1 || T <= 0) return NaN;
   return A1v() * Math.exp(-Ea1 * 1000 / (R_GAS * T));
 }
 function krv() {
+  const kd = kDirect('inp-k2'); if (!isNaN(kd)) return kd;
   const T = P('inp-T'), Ea2 = P('inp-Ea2');
   if (!T || !Ea2 || T <= 0) return NaN;
   return A2v() * Math.exp(-Ea2 * 1000 / (R_GAS * T));
@@ -541,6 +550,8 @@ function loop() {
   while (accepted < stepsPerFrame) {
     const V    = P('inp-V') || 1;
     const conc = speciesList.map(s => Math.max(0, s.n / V));
+    const tEnd = kDirect('inp-tend');
+    if (!isNaN(tEnd) && tEnd > 0) rkH = Math.min(rkH, Math.max(1e-9, tEnd - simT));
     const res  = rkStep(conc, rkH, tol);
 
     if (!res) { stopSim(); showWarn('Fout in vergelijking — controleer v of DV\'s'); return; }
@@ -567,6 +578,7 @@ function loop() {
       }
     }
     if (eqStopAt && simT >= eqStopAt) break;
+    if (!isNaN(tEnd) && tEnd > 0 && simT >= tEnd - 1e-9) { eqStopAt = simT; if (!eqDetectedAt) eqDetectedAt = -1; break; }
   }
 
   // Decimate history: when > 5000 points, halve the older 4000
@@ -581,7 +593,7 @@ function loop() {
     stopSim();
     { const V = P('inp-V') || 1; const c = speciesList.map(s => Math.max(0, s.n / V));
       document.getElementById('t-disp').textContent = fmtNL(simT); updateInfo(c, computeQ(c)); }
-    document.getElementById('eq-note').textContent = `Evenwicht (v_heen = v_terug) na ≈ ${fmtNL(eqDetectedAt)} s`;
+    document.getElementById('eq-note').textContent = eqDetectedAt > 0 ? `Evenwicht (v_heen = v_terug) na ≈ ${fmtNL(eqDetectedAt)} s` : `Gestopt bij t = ${fmtNL(simT)} s`;
     drawGraph();
     return;
   }
@@ -601,7 +613,7 @@ function clearWarn()  { document.getElementById('warn-box').textContent = ''; }
 function startSim() {
   clearWarn();
   if (!speciesList.length) { showWarn('Voeg stoffen toe'); return; }
-  if (!P('inp-T') || !P('inp-Ea1') || !P('inp-Ea2')) { showWarn('Vul T, Ea,heen en Ea,terug in'); return; }
+  if (isNaN(k1v()) || isNaN(krv())) { showWarn('Vul T, Ea,heen en Ea,terug in (of k direct onder Geavanceerd)'); return; }
   eqDetectedAt = null; eqStopAt = null;
   document.getElementById('eq-note').textContent = '';
   rkH = 1e-6;
@@ -887,6 +899,8 @@ function makeScale(min, max, fallMin, fallMax) {
   let hi = isFinite(max) ? max : fallMax;
   if (lo === hi) { lo -= 0.5; hi += 0.5; }
   const pad = (hi - lo) * 0.08;
+  // Concentraties en Q zijn nooit negatief: op lineaire schaal begint de as bij 0
+  if (!logScale) return { lo: 0, hi: (hi > 0 ? hi : 1) + pad };
   return { lo: lo - pad, hi: hi + pad };
 }
 
@@ -1025,12 +1039,12 @@ function drawAxes(ctx, mg, gW, gH, dp, scC, scQ, tMax, empty) {
     ctx.beginPath(); ctx.moveTo(mg.left, y); ctx.lineTo(mg.left + gW, y); ctx.stroke();
   }
   // Vertical gridlines + x labels
-  for (let i = 1; i <= 6; i++) {
+  for (let i = 0; i <= 6; i++) {
     const x = mg.left + (i/6) * gW;
-    ctx.beginPath(); ctx.moveTo(x, mg.top); ctx.lineTo(x, mg.top + gH); ctx.stroke();
+    if (i > 0) { ctx.beginPath(); ctx.moveTo(x, mg.top); ctx.lineTo(x, mg.top + gH); ctx.stroke(); }
     if (!empty) {
       const val = (i/6) * tMax;
-      const s = val >= 1000 ? val.toExponential(0) : val.toFixed(val < 10 ? 1 : 0);
+      const s = (i === 0 ? '0' : val >= 1000 ? val.toExponential(0) : val.toFixed(val < 10 ? 1 : 0)).replace('.', ',');
       ctx.fillStyle = CV().xTick; ctx.font = `${9*dp}px monospace`; ctx.textAlign = 'center';
       ctx.fillText(s, x, mg.top + gH + 14*dp);
     }
@@ -1094,7 +1108,7 @@ document.getElementById('sl-speed').addEventListener('input', function() {
 });
 
 // ── Parameter changes ──
-['inp-T','inp-Ea1','inp-Ea2','inp-A1','inp-A2','inp-V'].forEach(id => {
+['inp-T','inp-Ea1','inp-Ea2','inp-A1','inp-A2','inp-V','inp-k1','inp-k2'].forEach(id => {
   document.getElementById(id).addEventListener('input', () => {
     updateAFactorLabel();
     const conc = speciesList.map(s => Math.max(0, s.n / (P('inp-V') || 1)));
@@ -1144,6 +1158,7 @@ function loadExample(key) {
   ex.sp.forEach(([n, c, r, n0, de], i) => addSpecies(n, c, r, n0, COLORS[i], de));
   const set = (id, v) => document.getElementById(id).value = v;
   set('inp-T', ex.T); set('inp-Ea1', ex.Ea1); set('inp-Ea2', ex.Ea2); set('inp-A1', ex.A1); set('inp-A2', ex.A2); set('inp-V', ex.V);
+  set('inp-k1', ''); set('inp-k2', ''); set('inp-tend', '');
   set('inp-vheen', ex.vh); set('inp-vterug', ex.vt); set('inp-Q', ex.Q);
   const nt = document.getElementById('ex-note'); nt.innerHTML = ex.note; nt.style.display = 'block';
   history = []; simT = 0; snapshots = []; snapshotCount = 0;
@@ -1161,7 +1176,7 @@ document.getElementById('sel-example').addEventListener('change', function() { l
 // ── Clear all ──
 document.getElementById('btn-clear-all').addEventListener('click', () => {
   stopSim(); speciesList = []; nextId = 1;
-  ['inp-T','inp-Ea1','inp-Ea2','inp-A1','inp-A2','inp-V','inp-vheen','inp-vterug','inp-Q'].forEach(id => document.getElementById(id).value = '');
+  ['inp-T','inp-Ea1','inp-Ea2','inp-A1','inp-A2','inp-V','inp-vheen','inp-vterug','inp-Q','inp-k1','inp-k2','inp-tend'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('ex-note').style.display = 'none';
   renderSpeciesTable(); renderDEFields(); renderChips(); renderPlotChecks();
   history = []; simT = 0; snapshots = []; snapshotCount = 0;
