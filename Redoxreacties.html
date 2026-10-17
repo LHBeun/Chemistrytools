@@ -62,13 +62,18 @@
 --hs-text:#1d2330;--hs-font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
 html,body{background:var(--hs-bg)!important;color:var(--hs-text)}
 body{font-family:var(--hs-font)!important}
-.hs-header{background:var(--hs-acc);color:#fff;margin-bottom:18px}
+.hs-header{display:block!important;background:var(--hs-acc)!important;color:#fff;margin-bottom:18px;padding:0!important;border:none!important;border-radius:0!important}
 .hs-header .hs-wrap{max-width:var(--hs-max,1100px);margin:0 auto;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .hs-header h1{margin:0!important;padding:0!important;font-size:1.5rem!important;font-weight:650!important;color:#fff!important;text-align:left!important;letter-spacing:.2px;font-family:var(--hs-font)!important}
 .hs-header h1{flex:1 1 auto}
 .hs-header button{flex:0 0 auto;width:auto!important;margin:0!important;box-shadow:none!important;font-weight:500!important;font-family:var(--hs-font)!important;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px!important;border:1.5px solid #fff!important;background:transparent!important;color:#fff!important}
 .hs-header button:hover{background:rgba(255,255,255,.15)}
-body.hs-beamer>*:not(.hs-header):not(script):not(.hs-nozoom){zoom:1.3}
+body.hs-beamer>*:not(.hs-header):not(.hs-own):not(script):not(.hs-nozoom){zoom:1.3}
+.hs-own{background:var(--hs-acc)!important;color:#fff!important;border:none!important}
+.hs-own h1{color:#fff!important;font-family:var(--hs-font)!important}
+.hs-own .sub,.hs-own .subtitle{color:rgba(255,255,255,.85)!important}
+.hs-own>button:last-child{font:inherit;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px;border:1.5px solid #fff;background:transparent;color:#fff;margin-left:auto;flex:0 0 auto}
+.hs-own>button:last-child:hover{background:rgba(255,255,255,.15)}
 :root{--hs-max:812px}
 
 :root{--blue:#1F5FBF;--blue-bg:#E8F0FC;--green:#1A7F37;--green-bg:#E4F4E8;--red:#C62828;--red-bg:#FDECEC;--bg:#F6F8FB;--surface2:#F3F7FD;--border:#D5DCE8}
@@ -503,18 +508,26 @@ nieuweCel();
 
 
 
+
 <script id="huisstijl-js">
+window.HS_CFG={};
 (function(){
-  var h=document.querySelector('h1'); if(!h) return;
-  var hd=document.createElement('header'); hd.className='hs-header';
-  var w=document.createElement('div'); w.className='hs-wrap'; hd.appendChild(w);
-  var t=document.createElement('h1'); t.innerHTML=h.innerHTML; w.appendChild(t);
+  var cfg=window.HS_CFG||{};
   var b=document.createElement('button'); b.type='button'; b.textContent='Beamerstand'; b.title='Alles groter, voor op het digibord';
   b.onclick=function(){document.body.classList.toggle('hs-beamer'); window.dispatchEvent(new Event('resize'));};
-  w.appendChild(b); h.remove();
-  var cs=getComputedStyle(document.body);
-  hd.style.margin='-'+cs.paddingTop+' -'+cs.paddingRight+' 18px -'+cs.paddingLeft;
-  document.body.insertBefore(hd, document.body.firstChild);
+  var hd;
+  if(cfg.own){ hd=document.querySelector(cfg.own); hd.classList.add('hs-own'); hd.appendChild(b); }
+  else {
+    var h=cfg.title?null:document.querySelector(cfg.sel||'h1');
+    hd=document.createElement('header'); hd.className='hs-header';
+    var w=document.createElement('div'); w.className='hs-wrap'; hd.appendChild(w);
+    var t=document.createElement('h1'); t.innerHTML=cfg.title||(h?h.innerHTML:document.title); w.appendChild(t);
+    w.appendChild(b); if(h) h.remove();
+    var cs=getComputedStyle(document.body);
+    var px=function(a,b){return '-'+(parseFloat(cs[a])+parseFloat(cs[b]))+'px';};
+    hd.style.margin=px('paddingTop','marginTop')+' '+px('paddingRight','marginRight')+' 18px '+px('paddingLeft','marginLeft');
+    document.body.insertBefore(hd, document.body.firstChild);
+  }
   // zwevende elementen (tooltips) niet mee-zoomen in beamerstand
   document.querySelectorAll('body *').forEach(function(e){ if(e!==hd && !hd.contains(e) && getComputedStyle(e).position==='fixed'){ e.classList.add('hs-nozoom'); document.body.appendChild(e); } });
   // komma als decimaalteken in alles wat op het scherm komt
