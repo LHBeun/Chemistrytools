@@ -177,6 +177,7 @@ body>header{margin-bottom:10px}
     </div>
     <canvas id="canvas-particles"></canvas>
     <div class="component-legend" id="component-legend"></div>
+    <p id="water-note" style="display:none;margin:8px 2px 0;font-size:.85em;color:#595959">Water is bijzonder: in ijs zitten de moleculen iets verder uit elkaar dan in vloeibaar water. Daarom is ijs minder dicht en drijft het.</p>
   </div>
   <div class="panel">
     <div class="graph-title">
@@ -278,6 +279,10 @@ const COMPONENT_COLORS = {
 // ─── State ────────────────────────────────────────────────────────────────
 let currentKey = 'water';
 let T = 0, phase = 'solid', meltProgress = 0, boilProgress = 0, simTime = 0, displayTime = 0;
+// Vorm van de vaste stof: 'block' (startblokje midden in het bakje) of 'plate' (na stollen:
+// de vorm van de plas). freezing = true zolang er gestold wordt (smeltfront van wand naar binnen).
+let solidShape = 'block', freezing = false, pendingFreeze = false, pendingMelt = false;
+const BLOCK_COLS = 8; // 8 x 6 = 48 deeltjes
 let sessionYMin = 0, sessionYMax = 0; // gevolgd bereik van T deze run — bepaalt de y-as
 const SINGLE_PHASE_COMPRESSION = 0.15; // eenfase-opwarming telt maar 15% mee in de x-as, plateaus 100%
 let heatPower = 0;
@@ -321,6 +326,7 @@ function selectSubstance(key) {
 // ─── Simulatie resetten ───────────────────────────────────────────────────
 function resetSim() {
   const s = SUBSTANCES[currentKey];
+  const wn = document.getElementById('water-note'); if (wn) wn.style.display = currentKey === 'water' ? 'block' : 'none';
   T = s.TmLow - 20;
   phase = 'solid';
   meltProgress = 0;
@@ -374,13 +380,9 @@ function initParticles() {
   // overal door elkaar. Met de som blijft de kolom-positie altijd meetellen.
   // Kleine ruis erbovenop voorkomt een té perfect symmetrisch front. Dit staat
   // los van component (opgeloste stof gedraagt zich hier niet apart).
-  const jittered = particles.map((p, i) => {
-    const col = i % cols, row = Math.floor(i / cols);
-    const edgeDist = Math.min(col, cols - 1 - col) + Math.min(row, rows - 1 - row);
-    return { i, val: edgeDist + Math.random() * 0.6 };
-  });
-  jittered.sort((a, b) => a.val - b.val);
-  jittered.forEach((entry, rank) => { particles[entry.i].meltThreshold = (rank + 0.5) / N_PARTICLES; });
+  solidShape = 'block'; freezing = false; pendingFreeze = false; pendingMelt = false;
+  particles.forEach((p, i) => { p.slot = i; p.freezeRank = 0; });
+  setMeltOrder();
 
   if (s.components) {
     // Deeltjes over componenten verdelen naar rato van hun fractie
@@ -397,6 +399,25 @@ function initParticles() {
   }
 }
 
+// Afmetingen van het huidige rooster (blok of plaat)
+function latticeShape() {
+  if (solidShape === 'block') return { cols: BLOCK_COLS, rows: Math.ceil(N_PARTICLES / BLOCK_COLS) };
+  const canvas = document.getElementById('canvas-particles');
+  return computeLatticeDims(canvas ? canvas.clientWidth : 0);
+}
+// Smeltvolgorde: buitenste deeltjes van het huidige rooster eerst (warmte komt van buitenaf)
+function setMeltOrder() {
+  const { cols, rows } = latticeShape();
+  const jit = particles.map(p => {
+    const c = p.slot % cols, r = Math.floor(p.slot / cols);
+    // r telt vanaf de bodem: de bovenkant en de zijkanten smelten eerst, de onderste rij als
+    // laatste. Zo blijft het overgebleven stuk vaste stof op de bodem liggen in plaats van te zweven.
+    return { p, val: Math.min(c, cols - 1 - c) + (rows - 1 - r) + Math.random() * 0.6 };
+  });
+  jit.sort((a, b) => a.val - b.val);
+  jit.forEach((e, rank) => { e.p.meltThreshold = (rank + 0.5) / N_PARTICLES; });
+}
+
 // ─── Fysica: energie toevoeren/onttrekken ────────────────────────────────
 function step(dt) {
   if (paused) return;
@@ -411,7 +432,7 @@ function step(dt) {
 
     if (phase === 'solid') {
       T += energyDelta / CP_SOLID;
-      if (T >= s.TmLow) { phase = 'meltrange'; meltProgress = 0; T = s.TmLow; }
+      if (T >= s.TmLow) { phase = 'meltrange'; meltProgress = 0; T = s.TmLow; freezing = false; pendingMelt = true; }
     } else if (phase === 'meltrange') {
       meltProgress += energyDelta / LATENT_FUSION;
       if (meltProgress >= 1) {
@@ -419,14 +440,14 @@ function step(dt) {
         phase = s.noLiquid ? 'boilrange' : 'liquid';
         if (s.noLiquid) boilProgress = 0;
       } else if (meltProgress <= 0) {
-        meltProgress = 0; phase = 'solid'; T = s.TmLow;
+        meltProgress = 0; phase = 'solid'; T = s.TmLow; freezing = false;
       } else {
         T = s.TmLow + meltProgress * (s.TmHigh - s.TmLow);
       }
     } else if (phase === 'liquid') {
       T += energyDelta / CP_LIQUID;
       if (T >= s.TbLow) { phase = 'boilrange'; boilProgress = 0; T = s.TbLow; }
-      if (T <= s.TmHigh) { phase = 'meltrange'; meltProgress = 1; T = s.TmHigh; }
+      if (T <= s.TmHigh) { phase = 'meltrange'; meltProgress = 1; T = s.TmHigh; if (!s.noLiquid) pendingFreeze = true; }
     } else if (phase === 'boilrange') {
       boilProgress += energyDelta / LATENT_VAPOR;
       if (boilProgress >= 1) {
@@ -517,7 +538,8 @@ function updateParticles(box) {
     particles.forEach(p => {
       const nietVluchtig = s.components && !s.components[p.component].vluchtig;
       if (phase === 'solid') p._lp = 'solid';
-      else if (phase === 'meltrange') p._lp = p.meltThreshold < meltProgress ? 'liquid' : 'solid';
+      else if (phase === 'meltrange') p._lp = freezing ? (p.freezeRank < 1 - meltProgress ? 'solid' : 'liquid')
+                                                    : (p.meltThreshold < meltProgress ? 'liquid' : 'solid');
       else if (phase === 'liquid') p._lp = 'liquid';
       else p._lp = (!nietVluchtig && gasIdx.has(p.idx)) ? 'gas' : 'liquid'; // boilrange of gas
     });
@@ -550,6 +572,33 @@ function updateParticles(box) {
   const latticeLeft = fillLeft + (usableWidth - latticeW) / 2;
   const latticeBottom = box.top + box.h - 8;
   const latticeTop = latticeBottom - latticeH;
+  const blockLeft = fillLeft + (usableWidth - BLOCK_COLS * PACK_SPACING) / 2;
+  // Plek (slot) in het rooster -> positie. Rijen tellen vanaf de bodem; een onvolle bovenste
+  // rij staat in het midden.
+  const slotPos = (slot, shape) => {
+    const C = shape === 'block' ? BLOCK_COLS : cols, left = shape === 'block' ? blockLeft : latticeLeft;
+    const r = Math.floor(slot / C), c = slot % C, full = Math.floor(N_PARTICLES / C);
+    const inRow = r < full ? C : N_PARTICLES - full * C;
+    return { x: left + ((C - inRow) / 2 + c + 0.5) * PACK_SPACING, y: latticeBottom - (r + 0.5) * PACK_SPACING };
+  };
+  // Begin van het stollen: elke plek in de plaat krijgt het dichtstbijzijnde deeltje;
+  // plekken bij de wanden en de bodem stollen eerst.
+  if (pendingFreeze) {
+    const slots = [];
+    for (let k = 0; k < N_PARTICLES; k++) {
+      const c = k % cols, r = Math.floor(k / cols);
+      slots.push({ k, pos: slotPos(k, 'plate'), order: Math.min(c, cols - 1 - c) + r * 0.7 + Math.random() * 0.6 });
+    }
+    slots.sort((a, b) => a.order - b.order);
+    const vrij = new Set(particles);
+    slots.forEach((sl, rank) => {
+      let best = null, bd = Infinity;
+      vrij.forEach(p => { const d = Math.hypot(p.x - sl.pos.x, p.y - sl.pos.y); if (d < bd) { bd = d; best = p; } });
+      vrij.delete(best); best.slot = sl.k; best.freezeRank = (rank + 0.5) / N_PARTICLES;
+    });
+    solidShape = 'plate'; freezing = true; pendingFreeze = false;
+  }
+  if (pendingMelt) { setMeltOrder(); pendingMelt = false; }
 
   // Vloeistofpoel: de hoogte volgt het aantal deeltjes dat nú vloeibaar is (net
   // als een dalend vloeistofniveau in een bekerglas), i.p.v. een vaste grootte
@@ -561,7 +610,8 @@ function updateParticles(box) {
   const liquidFrac = nLiquid / N_PARTICLES;
   // Hoogte uit het aantal vloeistofdeeltjes: per deeltje ~12 % meer ruimte dan in het rooster,
   // zodat vloeistof bijna even dicht is als de vaste stof.
-  const poolH = nLiquid * PACK_SPACING * PACK_SPACING * 1.12 / latticeW;
+  const isWater = currentKey === 'water';
+  const poolH = nLiquid * PACK_SPACING * PACK_SPACING * (isWater ? 0.93 : 1.12) / latticeW; // water: vloeibaar dichter dan ijs
   const poolTop = nLiquid > 0 ? poolBottom - Math.max(minPoolHeight, Math.min(maxPoolHeight, poolH)) : poolBottom;
 
   // Gas mag alleen bóven de vloeistofspiegel komen zolang er nog een gecondenseerde
@@ -591,9 +641,8 @@ function updateParticles(box) {
       homeX = latticeLeft + (latticeW - rowW) / 2 + (rc + 0.5) * PACK_SPACING;
       homeY = latticeBottom - (rr + 0.5) * PACK_SPACING;
     } else {
-      const col = p.idx % cols, row = Math.floor(p.idx / cols);
-      homeX = latticeLeft + (col + 0.5) * PACK_SPACING;
-      homeY = latticeTop + (row + 0.5) * PACK_SPACING;
+      const hp = slotPos(p.slot, solidShape);
+      homeX = hp.x; homeY = hp.y;
     }
     if (p.x === 0 && p.y === 0) { p.x = homeX; p.y = homeY; }
 
@@ -619,9 +668,9 @@ function updateParticles(box) {
         // Dichte vloeistof: elk deeltje maakt kleine willekeurige stapjes (met een beetje
         // traagheid) en wordt door de buren teruggeduwd (zie onder). Zo blijven ze dicht op
         // elkaar, maar schuiven ze langs elkaar en mengen ze langzaam door de hele poel.
-        const kickL = 0.9 * speedFactor;
-        p.vx = (p.vx + (Math.random() - 0.5) * kickL) * 0.85;
-        p.vy = (p.vy + (Math.random() - 0.5) * kickL) * 0.85;
+        const kickL = 1.9 * speedFactor;
+        p.vx = (p.vx + (Math.random() - 0.5) * kickL) * 0.9;
+        p.vy = (p.vy + (Math.random() - 0.5) * kickL) * 0.9;
         p.x += p.vx; p.y += p.vy;
         // vloeistof blijft echt in de dichte poel — harde wanden, geen uitzwerven
         if (p.x < latticeLeft)          p.x = latticeLeft;
@@ -651,7 +700,7 @@ function updateParticles(box) {
   // Vloeistof: deeltjes raken elkaar bijna (net als in de vaste stof), maar zonder vaste
   // plek. Te dicht bij elkaar? Dan duwen ze elkaar een stukje weg.
   if (!paused) {
-    const D = PACK_SPACING * 0.92;
+    const D = PACK_SPACING * (currentKey === 'water' ? 0.86 : 0.92);
     const liq = particles.filter(p => p._lp === 'liquid'), vast = particles.filter(p => p._lp === 'solid');
     for (let it = 0; it < 2; it++) {
       for (let i = 0; i < liq.length; i++) {
