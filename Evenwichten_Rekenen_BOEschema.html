@@ -129,6 +129,25 @@ select.o-sign.err,select.o-coef.err,.num-input.err,.ans-input.err{border-color:#
 .unit-lbl,.ans-input,.num-input,select.o-sign,select.o-coef,.kc-unit{font-family:inherit}
 .unit-lbl{font-size:.95em;color:#333}
 </style>
+<style id="huisstijl">
+:root{--hs-acc:#1F5FBF;--hs-acc-d:#174a96;--hs-soft:#E8F0FC;--hs-given:#F3F7FD;--hs-ok:#1A7F37;--hs-ok-soft:#E4F4E8;
+--hs-err:#C62828;--hs-err-soft:#FDECEC;--hs-key:#FFF0A0;--hs-muted:#595959;--hs-line:#D5DCE8;--hs-bg:#F6F8FB;--hs-card:#fff;
+--hs-text:#1d2330;--hs-font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+html,body{background:var(--hs-bg)!important;color:var(--hs-text)}
+body{font-family:var(--hs-font)!important}
+.hs-header{background:var(--hs-acc);color:#fff;margin-bottom:18px}
+.hs-header .hs-wrap{max-width:var(--hs-max,1100px);margin:0 auto;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hs-header h1{margin:0!important;padding:0!important;font-size:1.5rem!important;font-weight:650!important;color:#fff!important;text-align:left!important;letter-spacing:.2px;font-family:var(--hs-font)!important}
+.hs-header h1{flex:1 1 auto}
+.hs-header button{flex:0 0 auto;width:auto!important;margin:0!important;box-shadow:none!important;font-weight:500!important;font-family:var(--hs-font)!important;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px!important;border:1.5px solid #fff!important;background:transparent!important;color:#fff!important}
+.hs-header button:hover{background:rgba(255,255,255,.15)}
+body.hs-beamer>*:not(.hs-header):not(script):not(.hs-nozoom){zoom:1.3}
+:root{--hs-max:892px}
+
+:root{--accent:#1F5FBF;--mono:var(--hs-font);--panel:#fff;--border:#D5DCE8;--ok:#1A7F37;--err:#C62828}
+body{font-size:15px}.wrap{max-width:900px}
+table.boe,.num-input,.ans-input{font-variant-numeric:tabular-nums}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -934,6 +953,39 @@ function showFB(id,type,msg){
 }
 
 newQ();
+</script>
+
+
+
+<script id="huisstijl-js">
+(function(){
+  var h=document.querySelector('h1'); if(!h) return;
+  var hd=document.createElement('header'); hd.className='hs-header';
+  var w=document.createElement('div'); w.className='hs-wrap'; hd.appendChild(w);
+  var t=document.createElement('h1'); t.innerHTML=h.innerHTML; w.appendChild(t);
+  var b=document.createElement('button'); b.type='button'; b.textContent='Beamerstand'; b.title='Alles groter, voor op het digibord';
+  b.onclick=function(){document.body.classList.toggle('hs-beamer'); window.dispatchEvent(new Event('resize'));};
+  w.appendChild(b); h.remove();
+  var cs=getComputedStyle(document.body);
+  hd.style.margin='-'+cs.paddingTop+' -'+cs.paddingRight+' 18px -'+cs.paddingLeft;
+  document.body.insertBefore(hd, document.body.firstChild);
+  // zwevende elementen (tooltips) niet mee-zoomen in beamerstand
+  document.querySelectorAll('body *').forEach(function(e){ if(e!==hd && !hd.contains(e) && getComputedStyle(e).position==='fixed'){ e.classList.add('hs-nozoom'); document.body.appendChild(e); } });
+  // komma als decimaalteken in alles wat op het scherm komt
+  var dec=function(s){ return String(s).replace(/(\d)\.(\d)/g,'$1,$2'); };
+  var C=CanvasRenderingContext2D.prototype, ft=C.fillText, st=C.strokeText, mt=C.measureText;
+  C.fillText=function(t,x,y,m){ return m===undefined?ft.call(this,dec(t),x,y):ft.call(this,dec(t),x,y,m); };
+  C.strokeText=function(t,x,y,m){ return m===undefined?st.call(this,dec(t),x,y):st.call(this,dec(t),x,y,m); };
+  C.measureText=function(t){ return mt.call(this,dec(t)); };
+  var SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,INPUT:1};
+  var fix=function(root){ var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null), n;
+    while((n=w.nextNode())){ if(n.parentNode && SKIP[n.parentNode.nodeName]) continue; var v=n.nodeValue, d=dec(v); if(d!==v) n.nodeValue=d; } };
+  fix(document.body);
+  new MutationObserver(function(ms){ ms.forEach(function(m){ if(m.type==='characterData'){ if(!SKIP[m.target.parentNode&&m.target.parentNode.nodeName]){ var d=dec(m.target.nodeValue); if(d!==m.target.nodeValue) m.target.nodeValue=d; } } else m.addedNodes.forEach(function(a){ if(a.nodeType===3){ if(a.parentNode&&!SKIP[a.parentNode.nodeName]){ var d=dec(a.nodeValue); if(d!==a.nodeValue) a.nodeValue=d; } } else if(a.nodeType===1 && !SKIP[a.nodeName]) fix(a); }); }); })
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+  // invoer met komma accepteren
+  var pf=window.parseFloat; window.parseFloat=function(x){ return pf(typeof x==='string'?x.replace(',','.'):x); };
+})();
 </script>
 </body>
 </html>
