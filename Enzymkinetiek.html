@@ -3,200 +3,331 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Virtueel Enzym Lab</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
+<title>Virtueel Enzymlab</title>
 <style>
-  body { font-family: sans-serif; line-height: 1.5; max-width: 860px; margin: auto; padding: 20px; color: #222; }
-  .controls { background: #eef; padding: 15px; border-radius: 8px; margin-bottom: 16px; }
-  .controls label { margin-right: 14px; display: inline-block; margin-bottom: 6px; }
-  .analysis { background: #fee; padding: 15px; border-radius: 8px; margin-top: 10px; }
-  table { border-collapse: collapse; width: 100%; margin-top: 8px; }
-  th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
-  td.del { width: 40px; }
-  td.del button { border: none; background: none; color: #b00; font-size: 18px; cursor: pointer; }
-  #feedback p { margin: 4px 0; }
-  .ok { color: #1a7f37; font-weight: bold; }
-  .nok { color: #b00; }
-  .hint { color: #555; }
-  input[type=number] { width: 90px; }
-  button { padding: 5px 12px; }
-  #status { color: #555; font-size: 0.95em; }
-  #dataTable tbody tr { cursor: pointer; }
-  #dataTable tbody tr.sel { background: #fff3c4; }
+  /* ---------- huisstijl Chemistrytools ---------- */
+  :root {
+    --acc: #1F5FBF;      /* structuur, hoofdknop, kopjes */
+    --acc-d: #174a96;
+    --soft: #E8F0FC;     /* lichte accentvlakken */
+    --given: #F3F7FD;    /* gegeven / invoer */
+    --ok: #1A7F37;       /* goed */
+    --err: #C62828;      /* fout */
+    --key: #FFF0A0;      /* belangrijk / in je schrift */
+    --muted: #595959;    /* bijzaak */
+    --line: #D5DCE8;
+    --bg: #F6F8FB;
+    --card: #FFFFFF;
+    --text: #1d2330;
+    --est: #D9822B;      /* schatting van de leerling */
+    --radius: 10px;
+    --fs: 16px;
+  }
+  body.beamer { --fs: 21px; }
+  * { box-sizing: border-box; }
+  html { font-size: var(--fs); }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.5; }
+  header { background: var(--acc); color: #fff; }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 14px; padding-bottom: 14px; }
+  header h1 { margin: 0; font-size: 1.5rem; font-weight: 650; letter-spacing: .2px; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 16px; }
+  main.wrap { padding-top: 18px; padding-bottom: 40px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 16px; }
+  .card h2 { margin: 0 0 10px; font-size: 1.15rem; color: var(--acc); font-weight: 650; }
+  .card p { margin: .4em 0; }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin: 8px 0; }
+  label { display: inline-block; }
+  label > input, label > select { margin: 0 .45em; vertical-align: middle; }
+  input[type=text], select { font: inherit; padding: 6px 9px; border: 1px solid #b9c4d6; border-radius: 7px; background: var(--given); color: var(--text); }
+  input[type=text]:focus, select:focus { outline: 2px solid var(--acc); outline-offset: 1px; }
+  .w-wide { width: 17em; } .w-num { width: 6.5em; }
+  button { font: inherit; cursor: pointer; border-radius: 7px; padding: 6px 14px; border: 1.5px solid var(--acc); background: #fff; color: var(--acc); }
+  button:hover { background: var(--soft); }
+  button.primary { background: var(--acc); color: #fff; }
+  button.primary:hover { background: var(--acc-d); }
+  header button { border-color: #fff; background: transparent; color: #fff; }
+  header button:hover { background: rgba(255,255,255,.15); }
+  .hint { color: var(--muted); font-size: .92rem; }
+  .ok { color: var(--ok); font-weight: 600; }
+  .nok { color: var(--err); font-weight: 600; }
+  .fb p { margin: 4px 0; }
+  .fb .hint { font-weight: 400; }
+  .val { font-weight: 650; font-variant-numeric: tabular-nums; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .split { grid-template-columns: 1fr; } }
+  .plot { width: 100%; position: relative; }
+  .plot canvas { display: block; width: 100%; touch-action: none; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  th, td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: center; }
+  th { background: var(--soft); color: var(--acc-d); font-weight: 600; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--given); }
+  tbody tr.sel { background: var(--key); }
+  td.del { width: 44px; }
+  td.del button { border: none; background: none; color: var(--err); font-size: 1.2rem; padding: 0 6px; }
+  .formule { display: inline-flex; align-items: center; gap: .4em; font-size: 1.15rem; background: var(--key); padding: 6px 14px; border-radius: 7px; margin: 4px 0 10px; }
+  .frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; }
+  .frac > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 .3em; }
+  .frac > span:last-child { padding: 0 .3em; }
+  .readout { background: var(--given); border: 1px solid var(--line); border-radius: 7px; padding: 8px 12px; margin-top: 10px; font-variant-numeric: tabular-nums; min-height: 2.6em; }
+  svg text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
 </style>
 </head>
 <body>
 
-<h1>Virtueel Enzym Lab</h1>
+<header><div class="wrap">
+  <h1>Virtueel Enzymlab</h1>
+  <button type="button" id="beamerBtn" title="Alles groter, voor op het digibord">Beamerstand</button>
+</div></header>
 
-<div class="controls">
-  <label>Meetreeks [S]<sub>0</sub>: <input type="text" id="sList" value="" placeholder="bijv. 1; 2; 4" style="width:260px"> µM</label>
-  <button type="button" id="seriesBtn">Meet reeks</button>
-  <br>
-  <label>Losse meting [S]<sub>0</sub>: <input type="number" id="s0" value="50" min="0" step="any"> µM</label>
-  <button type="button" id="startBtn">Meet</button>
-  <br>
-  <label>Enzym [E]<sub>t</sub>: <select id="etot" class="setting"><option value="1">1 nM</option><option value="2" selected>2 nM</option></select></label>
-  <br>
-  <label>pH: <select id="ph" class="setting"><option value="5">5</option><option value="7" selected>7</option><option value="9">9</option></select></label>
-  <label>T: <select id="temp" class="setting"><option value="20">20 °C</option><option value="37" selected>37 °C</option><option value="60">60 °C</option></select></label>
-  <label>Remmer: <select id="inhibitor" class="setting"><option value="0">geen</option><option value="1">competitief</option><option value="2">niet-competitief</option></select></label>
-  <br>
-  <button type="button" id="resetBtn" style="float:right">Nieuwe meetreeks</button>
-  <p id="status">Typ alle [S]<sub>0</sub>-waarden achter elkaar (gescheiden door puntkomma's of spaties) en klik op Meet reeks. Met een losse meting kun je later punten toevoegen.</p>
-</div>
+<main class="wrap">
 
-<canvas id="timeGraph" height="110"></canvas>
-<p>V<sub>0</sub> = <b><span id="v0Display">–</span></b> µM/s</p>
+<section class="card">
+  <h2>Meten</h2>
+  <div class="row">
+    <label>Meetreeks [S]<sub>0</sub> <input type="text" id="sList" class="w-wide" placeholder="bijv. 1; 2; 4; 8"> µM</label>
+    <button type="button" id="seriesBtn" class="primary">Meet reeks</button>
+  </div>
+  <div class="row">
+    <label>Losse meting [S]<sub>0</sub> <input type="text" id="s0" class="w-num" value="50"> µM</label>
+    <button type="button" id="startBtn">Meet</button>
+  </div>
+  <div class="row">
+    <label>Enzym [E]<sub>t</sub> <select id="etot" class="setting"><option value="1">1 nM</option><option value="2" selected>2 nM</option></select></label>
+    <label>pH <select id="ph" class="setting"><option value="5">5</option><option value="7" selected>7</option><option value="9">9</option></select></label>
+    <label>T <select id="temp" class="setting"><option value="20">20 °C</option><option value="37" selected>37 °C</option><option value="60">60 °C</option></select></label>
+    <label>Remmer <select id="inhibitor" class="setting"><option value="0">geen</option><option value="1">competitief</option><option value="2">niet-competitief</option></select></label>
+    <button type="button" id="resetBtn" style="margin-left:auto">Nieuwe meetreeks</button>
+  </div>
+  <p id="status" class="hint">Typ alle [S]₀-waarden achter elkaar (gescheiden door puntkomma's of spaties) en klik op Meet reeks. Met een losse meting kun je later punten toevoegen.</p>
+</section>
 
-<h3>Wat gebeurt er met de enzymen?</h3>
-<svg id="schema" width="100%" viewBox="0 0 840 70" style="max-width:820px"></svg>
-<svg id="bezetting" width="100%" viewBox="0 0 840 90" style="max-width:820px"></svg>
-<p id="bezetTekst" class="hint">Doe een meting om te zien hoeveel actieve centra bezet zijn. Klik op een meting in de tabel om die te bekijken.</p>
+<section class="card">
+  <h2>Productvorming in de tijd</h2>
+  <div class="plot"><canvas id="timeGraph"></canvas></div>
+  <p>V<sub>0</sub> = <span class="val" id="v0Display">–</span> µM/s</p>
+</section>
 
-<h3>Metingen</h3>
-<table id="dataTable"><thead><tr><th>[S]<sub>0</sub> (µM)</th><th>V<sub>0</sub> (µM/s)</th><th></th></tr></thead><tbody></tbody></table>
+<section class="card">
+  <h2>Wat gebeurt er met de enzymen?</h2>
+  <svg id="schema" width="100%" viewBox="0 0 840 70" style="max-width:820px"></svg>
+  <svg id="bezetting" width="100%" viewBox="0 0 840 90" style="max-width:820px"></svg>
+  <p id="bezetTekst" class="hint">Doe een meting om te zien hoeveel actieve centra bezet zijn. Klik op een meting in de tabel om die te bekijken.</p>
+</section>
 
-<h3>Curve</h3>
-<canvas id="mmGraph" height="140"></canvas>
+<section class="card">
+  <h2>Metingen</h2>
+  <table id="dataTable"><thead><tr><th>[S]<sub>0</sub> (µM)</th><th>V<sub>0</sub> (µM/s)</th><th></th></tr></thead><tbody></tbody></table>
+</section>
 
-<div class="analysis">
-  <p>$$v = \frac{V_{max} \cdot [S]}{K_m + [S]}$$</p>
-  <label>V<sub>max</sub>: <input type="number" id="vmaxEst" step="any"> µM/s</label>
-  <label>K<sub>m</sub>: <input type="number" id="kmEst" step="any"> µM</label>
-  <button type="button" id="checkBtn">Controleer</button>
-  <div id="feedback"></div>
-</div>
+<section class="card">
+  <h2>Curve</h2>
+  <div class="plot"><canvas id="mmGraph"></canvas></div>
+  <div class="formule">v =
+    <span class="frac"><span>V<sub>max</sub> · [S]</span><span>K<sub>m</sub> + [S]</span></span>
+  </div>
+  <div class="row">
+    <label>V<sub>max</sub> <input type="text" id="vmaxEst" class="w-num"> µM/s</label>
+    <label>K<sub>m</sub> <input type="text" id="kmEst" class="w-num"> µM</label>
+    <button type="button" id="checkBtn" class="primary">Controleer</button>
+  </div>
+  <div id="feedback" class="fb"></div>
+</section>
+
+<section class="card">
+  <h2>Van [S]–t naar v–[S]</h2>
+  <div class="row">
+    <label>Eén reactie met [S]<sub>0</sub> <input type="text" id="linkS0" class="w-num" value="100"> µM</label>
+    <button type="button" id="linkBtn">Toon</button>
+    <span class="hint">Wijs met de muis (of je vinger) een plek aan in een van de twee grafieken.</span>
+  </div>
+  <div class="split">
+    <div class="plot"><canvas id="stGraph"></canvas></div>
+    <div class="plot"><canvas id="vsGraph"></canvas></div>
+  </div>
+  <div class="readout" id="linkReadout">Wijs een punt aan.</div>
+</section>
+
+</main>
 
 <script>
-window.onload = function () {
-  // Model: E + S <-> ES -> E + P, competitieve remmer E + I <-> EI
-  const KON = 50, KOFF = 1350, KCAT0 = 150;   // µM^-1 s^-1, s^-1, s^-1  -> Km = 30 µM, Kd = 27 µM
-  const I_CONC = 10, KI = 5;                  // µM
+(function () {
+  // ================= model =================
+  // E + S <-> ES -> E + P, remmer I (10 µM, Ki = 5 µM)
+  const KON = 50, KOFF = 1350, KCAT0 = 150;   // µM^-1 s^-1, s^-1, s^-1  -> Km = 30 µM
+  const I_CONC = 10, KI = 5;
   const PH_F = { "5": 0.5, "7": 1, "9": 0.5 };
   const T_F  = { "20": 0.5, "37": 1, "60": 0.1 };
-  let data = [], chart1 = null, chart2 = null, lastSettings = currentSettings();
+  const $ = id => document.getElementById(id);
+  let data = [], lastRuns = [], selS = null;
 
-  function currentSettings() {
-    return ["etot", "ph", "temp", "inhibitor"].map(id => document.getElementById(id).value).join("|");
-  }
   function params() {
-    const Et = parseFloat(document.getElementById('etot').value) / 1000;     // µM
-    const kcat = KCAT0 * PH_F[document.getElementById('ph').value] * T_F[document.getElementById('temp').value];
-    const inh = document.getElementById('inhibitor').value;
+    const Et = parseFloat($('etot').value) / 1000;     // µM
+    const kcat = KCAT0 * PH_F[$('ph').value] * T_F[$('temp').value];
+    const inh = $('inhibitor').value;
     const Km = (KOFF + kcat) / KON, f = 1 + I_CONC / KI;
     if (inh === "1") return { Vmax: kcat * Et, Km: Km * f };      // competitief: Km omhoog
     if (inh === "2") return { Vmax: kcat * Et / f, Km: Km };      // niet-competitief: Vmax omlaag
     return { Vmax: kcat * Et, Km: Km };
   }
-  function rate(S, p) { return p.Vmax * S / (p.Km + S); }
-  function noise() { // ~2 % meetruis
-    let u = 0, v = 0; while (u === 0) u = Math.random(); while (v === 0) v = Math.random();
-    return 1 + 0.02 * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-  }
+  const rate = (S, p) => p.Vmax * S / (p.Km + S);
+  function noise() { let u = 0, v = 0; while (u === 0) u = Math.random(); while (v === 0) v = Math.random();
+    return 1 + 0.02 * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  const num = s => parseFloat(String(s).trim().replace(',', '.'));
+  function fmt(x, d) { return x.toFixed(d).replace('.', ','); }
+  function sig(x, n) { if (x === 0) return "0"; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return fmt(x, d); }
 
-  // instellingen gewijzigd -> nieuwe meetreeks
+  // ================= eigen grafiekjes (canvas) =================
+  function niceStep(range, n) { const raw = range / n, p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+    return (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * p; }
+  function decimals(step) { return Math.max(0, -Math.floor(Math.log10(step) + 1e-9)); }
+  class Plot {
+    constructor(canvas, o) { this.c = canvas; this.o = o; this.ctx = canvas.getContext('2d'); }
+    begin(xmax, ymax) {
+      const fs = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      this.fs = fs * 0.82;
+      const w = this.c.parentElement.clientWidth, h = Math.round(w * (this.o.ratio || 0.5));
+      const dpr = window.devicePixelRatio || 1;
+      this.c.width = w * dpr; this.c.height = h * dpr; this.c.style.height = h + 'px';
+      const g = this.ctx; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+      this.W = w; this.H = h;
+      this.m = { l: this.fs * 4.6, r: this.fs * 1.2, t: this.fs * 1.0, b: this.fs * 3.3 };
+      this.xs = niceStep(xmax, w < 420 ? 4 : 6); this.ys = niceStep(ymax, 5);
+      this.xmax = Math.ceil(xmax / this.xs - 1e-9) * this.xs; this.ymax = Math.ceil(ymax / this.ys - 1e-9) * this.ys;
+      this.axes();
+    }
+    px(x) { return this.m.l + (this.W - this.m.l - this.m.r) * x / this.xmax; }
+    py(y) { return this.H - this.m.b - (this.H - this.m.t - this.m.b) * y / this.ymax; }
+    ix(p) { return (p - this.m.l) / (this.W - this.m.l - this.m.r) * this.xmax; }
+    inside(px, py) { return px >= this.m.l - 4 && px <= this.W - this.m.r + 4 && py >= this.m.t - 4 && py <= this.H - this.m.b + 4; }
+    axes() {
+      const g = this.ctx, fs = this.fs, dx = decimals(this.xs), dy = decimals(this.ys);
+      g.font = fs + 'px system-ui, sans-serif'; g.lineWidth = 1;
+      for (let x = 0; x <= this.xmax + 1e-9; x += this.xs) {
+        g.strokeStyle = '#E6EBF2'; g.beginPath(); g.moveTo(this.px(x), this.py(0)); g.lineTo(this.px(x), this.py(this.ymax)); g.stroke();
+        g.fillStyle = '#4a5160'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(fmt(x, dx), this.px(x), this.py(0) + 5);
+      }
+      for (let y = 0; y <= this.ymax + 1e-12; y += this.ys) {
+        g.strokeStyle = '#E6EBF2'; g.beginPath(); g.moveTo(this.px(0), this.py(y)); g.lineTo(this.px(this.xmax), this.py(y)); g.stroke();
+        g.fillStyle = '#4a5160'; g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText(fmt(y, dy), this.px(0) - 6, this.py(y));
+      }
+      g.strokeStyle = '#333'; g.lineWidth = 1.4; g.beginPath();
+      g.moveTo(this.px(0), this.py(this.ymax)); g.lineTo(this.px(0), this.py(0)); g.lineTo(this.px(this.xmax), this.py(0)); g.stroke();
+      g.fillStyle = '#1d2330'; g.font = (fs * 1.05) + 'px system-ui, sans-serif';
+      g.textAlign = 'center'; g.textBaseline = 'bottom'; g.fillText(this.o.xl, (this.px(0) + this.px(this.xmax)) / 2, this.H - 2);
+      g.save(); g.translate(fs * 1.1, (this.py(0) + this.py(this.ymax)) / 2); g.rotate(-Math.PI / 2);
+      g.textBaseline = 'middle'; g.fillText(this.o.yl, 0, 0); g.restore();
+    }
+    clip(fn) { const g = this.ctx; g.save(); g.beginPath();
+      g.rect(this.m.l, this.m.t - 2, this.W - this.m.l - this.m.r, this.H - this.m.t - this.m.b + 2); g.clip(); fn(g); g.restore(); }
+    line(pts, st) { this.clip(g => { g.strokeStyle = st.color; g.lineWidth = st.width || 2.2; g.setLineDash(st.dash || []);
+      g.lineJoin = 'round'; g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(this.px(p.x), this.py(p.y)) : g.moveTo(this.px(p.x), this.py(p.y))); g.stroke(); g.setLineDash([]); }); }
+    dots(pts, st) { const g = this.ctx; pts.forEach(p => { g.beginPath(); g.arc(this.px(p.x), this.py(p.y), st.r || 4.5, 0, 2 * Math.PI);
+      g.fillStyle = st.fill; g.fill(); if (st.stroke) { g.strokeStyle = st.stroke; g.lineWidth = 1.2; g.stroke(); } }); }
+    legend(items) {
+      if (!items.length) return; const g = this.ctx, fs = this.fs * 0.95; g.font = fs + 'px system-ui, sans-serif';
+      const w = Math.max(...items.map(i => g.measureText(i.label).width)) + fs * 3, lh = fs * 1.45;
+      const x = this.W - this.m.r - w - 6, y = this.m.t + 4, cols = items.length > 6 ? 2 : 1, rows = Math.ceil(items.length / cols);
+      g.fillStyle = 'rgba(255,255,255,.9)'; g.strokeStyle = '#D5DCE8'; g.lineWidth = 1;
+      const bx = x - (cols - 1) * w; g.fillRect(bx, y, w * cols, rows * lh + 6); g.strokeRect(bx, y, w * cols, rows * lh + 6);
+      items.forEach((it, k) => { const cx = bx + Math.floor(k / rows) * w + 8, cy = y + 3 + (k % rows) * lh + lh / 2;
+        g.strokeStyle = it.color; g.fillStyle = it.color; g.lineWidth = 2.5; g.setLineDash(it.dash || []);
+        if (it.dot) { g.beginPath(); g.arc(cx + fs * 0.6, cy, 4, 0, 2 * Math.PI); g.fill(); }
+        else { g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + fs * 1.3, cy); g.stroke(); }
+        g.setLineDash([]); g.fillStyle = '#1d2330'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(it.label, cx + fs * 1.8, cy); });
+    }
+  }
+  const COLORS = ['#1F5FBF', '#1A7F37', '#C62828', '#D9822B', '#6A3D9A', '#00838F', '#8C510A', '#C2185B', '#4D4D4D', '#7CB342'];
+  const pT = new Plot($('timeGraph'), { xl: 't (s)', yl: '[P] (µM)', ratio: 0.42 });
+  const pMM = new Plot($('mmGraph'), { xl: '[S]₀ (µM)', yl: 'V₀ (µM/s)', ratio: 0.5 });
+  const pST = new Plot($('stGraph'), { xl: 't (s)', yl: '[S] (µM)', ratio: 0.78 });
+  const pVS = new Plot($('vsGraph'), { xl: '[S] (µM)', yl: 'v (µM/s)', ratio: 0.78 });
+
+  // ================= metingen =================
+  function measure(S0, p) {
+    let S = S0, P = 0; const dt = 0.05, pts = [];
+    for (let i = 0; i <= 1200; i++) {
+      if (i % 40 === 0) pts.push({ x: i * dt, y: P });
+      const v = rate(S, p); S = Math.max(0, S - v * dt); P += v * dt;
+    }
+    const v0 = rate(S0, p) * noise();
+    data.push({ x: S0, y: v0 });
+    return { S0: S0, v0: v0, pts: pts };
+  }
+  function drawTime() {
+    const ymax = lastRuns.length ? Math.max(...lastRuns.map(r => r.pts[r.pts.length - 1].y)) * 1.05 : 10;
+    pT.begin(60, ymax || 1);
+    lastRuns.forEach((r, k) => pT.line(r.pts, { color: COLORS[k % COLORS.length] }));
+    pT.legend(lastRuns.slice(0, 12).map((r, k) => ({ label: '[S]₀ = ' + String(r.S0).replace('.', ',') + ' µM', color: COLORS[k % COLORS.length] })));
+  }
+  function finish(runs) {
+    data.sort((a, b) => a.x - b.x); lastRuns = runs;
+    selS = runs[runs.length - 1].S0; drawBezetting(selS);
+    drawTime(); renderTable(); drawCurve(null); drawLinked();
+    $('v0Display').innerText = runs.map(r => sig(r.v0, 3)).join("  ·  ");
+  }
+  $('seriesBtn').onclick = function () {
+    const vals = $('sList').value.split(/\s*;\s*|\s*,\s+|\s+/).map(num).filter(x => x > 0);
+    if (!vals.length) { setStatus("Vul minstens één [S]₀ groter dan 0 in."); return; }
+    const p = params(); finish(vals.map(S0 => measure(S0, p)));
+    setStatus(vals.length + " metingen toegevoegd. Totaal: " + data.length + ". Met een losse meting kun je nog punten toevoegen.");
+  };
+  $('startBtn').onclick = function () {
+    const S0 = num($('s0').value);
+    if (!(S0 > 0)) { setStatus("Vul een [S]₀ groter dan 0 in."); return; }
+    finish([measure(S0, params())]); setStatus("Meting toegevoegd. Totaal: " + data.length + ".");
+  };
   document.querySelectorAll('.setting').forEach(sel => {
     sel.addEventListener('focus', () => { sel.dataset.prev = sel.value; });
     sel.addEventListener('change', () => {
       if (data.length > 0) {
-        if (confirm("Met andere instellingen hoort een nieuwe meetreeks. De huidige metingen worden gewist. Doorgaan?")) {
-          resetAll();
-        } else { sel.value = sel.dataset.prev; return; }
+        if (confirm("Met andere instellingen hoort een nieuwe meetreeks. De huidige metingen worden gewist. Doorgaan?")) resetAll();
+        else { sel.value = sel.dataset.prev; return; }
       }
-      lastSettings = currentSettings(); drawSchema();
+      sel.dataset.prev = sel.value; drawSchema(); drawLinked();
     });
   });
 
-  function measure(S0, p) {
-    let S = S0, P = 0; const dt = 0.05, pts = [];
-    for (let i = 0; i <= 1200; i++) {
-      if (i % 40 === 0) pts.push(+P.toFixed(4));
-      const v = rate(S, p); S = Math.max(0, S - v * dt); P += v * dt;
-    }
-    const v0 = +(rate(S0, p) * noise()).toFixed(4);
-    data.push({ x: S0, y: v0 });
-    return { S0: S0, v0: v0, pts: pts };
-  }
-  const COLORS = ['#1b7837', '#2166ac', '#b2182b', '#e08214', '#762a83', '#35978f', '#8c510a', '#de77ae', '#4d4d4d', '#7fbc41'];
-  const HAS_CHART = typeof Chart !== 'undefined';
-  function drawTime(runs) {
-    if (!HAS_CHART) return;
-    const labels = []; for (let i = 0; i <= 30; i++) labels.push(String(i * 2));
-    if (chart1) chart1.destroy();
-    chart1 = new Chart(document.getElementById('timeGraph'), {
-      type: 'line',
-      data: { labels: labels, datasets: runs.map((r, k) => ({ label: '[S]₀ = ' + r.S0 + ' µM', data: r.pts, borderColor: COLORS[k % COLORS.length], pointRadius: 0, borderWidth: 2 })) },
-      options: { animation: false, scales: { x: { title: { display: true, text: 't (s)' } }, y: { beginAtZero: true, title: { display: true, text: '[P] (µM)' } } } }
-    });
-  }
-  function finish(runs) {
-    data.sort((a, b) => a.x - b.x);
-    selS = runs[runs.length - 1].S0; drawBezetting(selS);
-    drawTime(runs); renderTable(); drawCurve(null);
-    document.getElementById('v0Display').innerText = runs.map(r => r.v0.toFixed(4)).join("  ·  ");
-  }
-
-  document.getElementById('seriesBtn').onclick = function () {
-    const vals = document.getElementById('sList').value.split(/\s*;\s*|\s*,\s+|\s+/).map(x => parseFloat(x.replace(',', '.'))).filter(x => x > 0);
-    if (!vals.length) { setStatus("Vul minstens één [S]₀ groter dan 0 in."); return; }
-    const p = params(); const runs = vals.map(S0 => measure(S0, p));
-    finish(runs);
-    setStatus(vals.length + " metingen toegevoegd. Totaal: " + data.length + ". Met een losse meting kun je nog punten toevoegen.");
-  };
-
-  document.getElementById('startBtn').onclick = function () {
-    const S0 = parseFloat(String(document.getElementById('s0').value).replace(',', '.'));
-    if (!(S0 > 0)) { setStatus("Vul een [S]₀ groter dan 0 in."); return; }
-    finish([measure(S0, params())]);
-    setStatus("Meting toegevoegd. Totaal: " + data.length + ".");
-  };
-
-  // ---------- deeltjesniveau ----------
+  // ================= deeltjesniveau =================
   const SVGNS = "http://www.w3.org/2000/svg";
   function el(tag, attrs, parent) { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; }
-  function enzym(g, x, y, inhoud, zij) {   // inhoud: null | 'S' | 'I'; zij: remmer op andere plek
-    el('path', { d: `M${x} ${y} h21 v16 h18 v-16 h21 v46 h-60 z`, fill: '#d9d9d9', stroke: '#222', 'stroke-width': 1.6, 'stroke-linejoin': 'round' }, g);
-    if (zij) el('circle', { cx: x + 60, cy: y + 32, r: 8, fill: '#f0a04b', stroke: '#222', 'stroke-width': 1.4 }, g);
-    if (inhoud === 'S') el('rect', { x: x + 21, y: y, width: 18, height: 16, fill: '#7aa6e0', stroke: '#222', 'stroke-width': 1.4 }, g);
-    if (inhoud === 'I') el('polygon', { points: `${x+21},${y+16} ${x+39},${y+16} ${x+30},${y-2}`, fill: '#f0a04b', stroke: '#222', 'stroke-width': 1.4 }, g);
+  const C_E = '#D9DEE6', C_S = '#7FA6E0', C_I = '#F0A04B', C_P = '#9FD49A';
+  function enzym(g, x, y, inhoud, zij) {
+    el('path', { d: `M${x} ${y} h21 v16 h18 v-16 h21 v46 h-60 z`, fill: C_E, stroke: '#222', 'stroke-width': 1.6, 'stroke-linejoin': 'round' }, g);
+    if (zij) el('circle', { cx: x + 60, cy: y + 32, r: 8, fill: C_I, stroke: '#222', 'stroke-width': 1.4 }, g);
+    if (inhoud === 'S') el('rect', { x: x + 21, y: y, width: 18, height: 16, fill: C_S, stroke: '#222', 'stroke-width': 1.4 }, g);
+    if (inhoud === 'I') el('polygon', { points: `${x+21},${y+16} ${x+39},${y+16} ${x+30},${y-2}`, fill: C_I, stroke: '#222', 'stroke-width': 1.4 }, g);
   }
-  function tekst(g, x, y, s, size) { const e = el('text', { x: x, y: y, 'font-size': size || 18, 'font-family': 'sans-serif', 'text-anchor': 'middle' }, g); e.textContent = s; }
+  function tekst(g, x, y, s, size) { const e = el('text', { x: x, y: y, 'font-size': size || 18, 'text-anchor': 'middle', fill: '#1d2330' }, g); e.textContent = s; }
   function drawSchema() {
-    const g = document.getElementById('schema'); g.innerHTML = "";
-    const inhV = document.getElementById('inhibitor').value, inh = inhV !== "0";
-    enzym(g, 10, 14, null); tekst(g, 40, 68, "E", 14);
-    tekst(g, 95, 42, "+");
-    el('rect', { x: 115, y: 22, width: 18, height: 16, fill: '#7aa6e0', stroke: '#222', 'stroke-width': 1.4 }, g); tekst(g, 124, 68, "S", 14);
-    tekst(g, 175, 42, "⇄");
-    enzym(g, 210, 14, 'S'); tekst(g, 240, 68, "ES", 14);
-    tekst(g, 300, 42, "→");
-    enzym(g, 335, 14, null); tekst(g, 365, 68, "E", 14);
-    tekst(g, 420, 42, "+");
-    el('rect', { x: 440, y: 22, width: 8, height: 16, fill: '#9fd49a', stroke: '#222', 'stroke-width': 1.4 }, g);
-    el('rect', { x: 452, y: 22, width: 8, height: 16, fill: '#9fd49a', stroke: '#222', 'stroke-width': 1.4 }, g); tekst(g, 450, 68, "P", 14);
-    if (inh) {
+    const g = $('schema'); g.innerHTML = "";
+    const inhV = $('inhibitor').value;
+    enzym(g, 10, 14, null); tekst(g, 40, 68, "E", 14); tekst(g, 95, 42, "+");
+    el('rect', { x: 115, y: 22, width: 18, height: 16, fill: C_S, stroke: '#222', 'stroke-width': 1.4 }, g); tekst(g, 124, 68, "S", 14);
+    tekst(g, 175, 42, "⇄"); enzym(g, 210, 14, 'S'); tekst(g, 240, 68, "ES", 14);
+    tekst(g, 300, 42, "→"); enzym(g, 335, 14, null); tekst(g, 365, 68, "E", 14); tekst(g, 420, 42, "+");
+    el('rect', { x: 440, y: 22, width: 8, height: 16, fill: C_P, stroke: '#222', 'stroke-width': 1.4 }, g);
+    el('rect', { x: 452, y: 22, width: 8, height: 16, fill: C_P, stroke: '#222', 'stroke-width': 1.4 }, g); tekst(g, 450, 68, "P", 14);
+    if (inhV !== "0") {
       enzym(g, 540, 14, null); tekst(g, 570, 68, "E", 14); tekst(g, 625, 42, "+");
-      if (inhV === "1") el('polygon', { points: "640,38 658,38 649,20", fill: '#f0a04b', stroke: '#222', 'stroke-width': 1.4 }, g);
-      else el('circle', { cx: 649, cy: 30, r: 8, fill: '#f0a04b', stroke: '#222', 'stroke-width': 1.4 }, g);
-      tekst(g, 649, 68, "I", 14);
-      tekst(g, 690, 42, "⇄"); enzym(g, 720, 14, inhV === "1" ? 'I' : null, inhV === "2"); tekst(g, 750, 68, "EI", 14);
+      if (inhV === "1") el('polygon', { points: "640,38 658,38 649,20", fill: C_I, stroke: '#222', 'stroke-width': 1.4 }, g);
+      else el('circle', { cx: 649, cy: 30, r: 8, fill: C_I, stroke: '#222', 'stroke-width': 1.4 }, g);
+      tekst(g, 649, 68, "I", 14); tekst(g, 690, 42, "⇄"); enzym(g, 720, 14, inhV === "1" ? 'I' : null, inhV === "2"); tekst(g, 750, 68, "EI", 14);
     }
   }
-  function verdeling(n, fr) { // grootste-rest-afronding naar n
+  function verdeling(n, fr) {
     const raw = fr.map(f => f * n), fl = raw.map(Math.floor); let rest = n - fl.reduce((a, b) => a + b, 0);
     raw.map((r, i) => [r - fl[i], i]).sort((a, b) => b[0] - a[0]).forEach(([_, i]) => { if (rest > 0) { fl[i]++; rest--; } });
     return fl;
   }
   function drawBezetting(S0) {
-    const g = document.getElementById('bezetting'); g.innerHTML = "";
+    const g = $('bezetting'); g.innerHTML = "";
     if (S0 == null) { for (let k = 0; k < 10; k++) enzym(g, 10 + k * 80, 24, null); return; }
-    const kcat = KCAT0 * PH_F[document.getElementById('ph').value] * T_F[document.getElementById('temp').value];
-    const Km0 = (KOFF + kcat) / KON, inhV = document.getElementById('inhibitor').value;
+    const kcat = KCAT0 * PH_F[$('ph').value] * T_F[$('temp').value];
+    const Km0 = (KOFF + kcat) / KON, inhV = $('inhibitor').value;
     const a = S0 / Km0, b = inhV !== "0" ? I_CONC / KI : 0;
     let vak = [], txt;
-    if (inhV === "2") {      // niet-competitief: remmer bindt op een andere plek, ook aan ES
+    if (inhV === "2") {
       const noem = (1 + a) * (1 + b);
       const [nES, nESI, nEI] = verdeling(10, [a / noem, a * b / noem, b / noem, 1 / noem]);
       for (let k = 0; k < nES; k++) vak.push(['S', false]); for (let k = 0; k < nESI; k++) vak.push(['S', true]);
@@ -209,51 +340,51 @@ window.onload = function () {
       txt = nS + " van de 10 actieve centra bezet door substraat" + (inhV === "1" ? ", " + nI + " door remmer" : "") + ".";
     }
     vak.forEach((v, k) => enzym(g, 10 + k * 80, 24, v[0], v[1]));
-    document.getElementById('bezetTekst').innerText = "Bij [S]₀ = " + S0 + " µM: " + txt;
+    $('bezetTekst').innerText = "Bij [S]₀ = " + sig(S0, 3) + " µM: " + txt;
   }
-  let selS = null;
 
   function renderTable() {
     const tb = document.querySelector('#dataTable tbody'); tb.innerHTML = "";
     data.forEach((d, i) => {
       const r = tb.insertRow(); if (d.x === selS) r.className = "sel";
       r.onclick = (e) => { if (e.target.tagName === 'BUTTON') return; selS = d.x; drawBezetting(d.x); renderTable(); };
-      r.insertCell().innerText = d.x; r.insertCell().innerText = d.y.toFixed(4);
+      r.insertCell().innerText = String(d.x).replace('.', ','); r.insertCell().innerText = sig(d.y, 3);
       const c = r.insertCell(); c.className = "del";
       const b = document.createElement('button'); b.innerText = "×"; b.title = "verwijder meting";
-      b.onclick = () => { data.splice(i, 1); if (d.x === selS) { selS = null; drawBezetting(null); } renderTable(); drawCurve(null); };
+      b.onclick = () => { data.splice(i, 1); if (d.x === selS) { selS = null; drawBezetting(null); } renderTable(); drawCurve(lastEst); drawLinked(); };
       c.appendChild(b);
     });
   }
 
+  let lastEst = null;
   function drawCurve(est) {
-    if (!HAS_CHART) return;
-    if (chart2) chart2.destroy();
-    const sets = [{ label: 'metingen', data: data, showLine: false, pointRadius: 5, backgroundColor: '#1f5fbf' }];
+    lastEst = est;
     const xmax = data.length ? Math.max(...data.map(d => d.x)) : 100;
+    let ymax = data.length ? Math.max(...data.map(d => d.y)) * 1.1 : 0.4;
+    if (est) ymax = Math.max(ymax, est.V * 1.1);
+    pMM.begin(xmax, ymax);
+    const leg = [{ label: 'metingen', color: '#1d2330', dot: true }];
     if (est) {
-      const fit = []; for (let k = 0; k <= 100; k++) { const x = xmax * k / 100; fit.push({ x: x, y: est.V * x / (est.K + x) }); }
-      sets.push({ label: 'jouw schatting', data: fit, showLine: true, pointRadius: 0, borderColor: '#d9822b', borderWidth: 2 });
-      sets.push({ label: 'jouw Vmax', data: [{ x: 0, y: est.V }, { x: xmax, y: est.V }], showLine: true, pointRadius: 0, borderColor: '#d9822b', borderDash: [6, 4], borderWidth: 1 });
-      sets.push({ label: '½ Vmax en Km', data: [{ x: 0, y: est.V / 2 }, { x: est.K, y: est.V / 2 }, { x: est.K, y: 0 }], showLine: true, pointRadius: 0, borderColor: '#999', borderDash: [3, 3], borderWidth: 1 });
+      const fit = []; for (let k = 0; k <= 200; k++) { const x = pMM.xmax * k / 200; fit.push({ x: x, y: est.V * x / (est.K + x) }); }
+      pMM.line([{ x: 0, y: est.V }, { x: pMM.xmax, y: est.V }], { color: '#D9822B', width: 1.3, dash: [7, 5] });
+      pMM.line([{ x: 0, y: est.V / 2 }, { x: est.K, y: est.V / 2 }, { x: est.K, y: 0 }], { color: '#8a8f99', width: 1.3, dash: [3, 4] });
+      pMM.line(fit, { color: '#D9822B', width: 2.4 });
+      leg.push({ label: 'jouw schatting', color: '#D9822B' }, { label: '½ Vmax en Km', color: '#8a8f99', dash: [3, 4] });
     }
-    chart2 = new Chart(document.getElementById('mmGraph'), {
-      type: 'scatter', data: { datasets: sets },
-      options: { animation: false, scales: { x: { beginAtZero: true, title: { display: true, text: '[S]₀ (µM)' } }, y: { beginAtZero: true, title: { display: true, text: 'V₀ (µM/s)' } } } }
-    });
+    pMM.dots(data, { fill: '#1d2330', r: 4.5 });
+    pMM.legend(leg);
   }
 
-  document.getElementById('checkBtn').onclick = function () {
-    const fb = document.getElementById('feedback'); const p = params();
+  $('checkBtn').onclick = function () {
+    const fb = $('feedback'), p = params();
     const uniq = new Set(data.map(d => d.x)).size;
     if (uniq < 8) { fb.innerHTML = '<p class="nok">Meet eerst bij minstens 8 verschillende [S]₀.</p>'; return; }
     const maxS = Math.max(...data.map(d => d.x));
-    if (maxS < 5 * p.Km) { fb.innerHTML = '<p class="nok">Je hebt nog geen metingen waar de curve vlak is. Meet bij hogere [S]₀.</p>'; return; }
-    const V = parseFloat(document.getElementById('vmaxEst').value), K = parseFloat(document.getElementById('kmEst').value);
+    if (maxS < 5 * p.Km) { fb.innerHTML = '<p class="nok">Je hebt nog geen metingen waar de curve vlak is. <span class="hint">Meet bij hogere [S]₀.</span></p>'; return; }
+    const V = num($('vmaxEst').value), K = num($('kmEst').value);
     if (!(V > 0) || !(K > 0)) { fb.innerHTML = '<p class="nok">Vul een waarde in voor V<sub>max</sub> en K<sub>m</sub>.</p>'; return; }
     drawCurve({ V: V, K: K });
-    const vErr = (V - p.Vmax) / p.Vmax, kErr = (K - p.Km) / p.Km, TOL = 0.10;
-    let out = [];
+    const vErr = (V - p.Vmax) / p.Vmax, kErr = (K - p.Km) / p.Km, TOL = 0.10, out = [];
     if (Math.abs(vErr) <= TOL) out.push('<p class="ok">V<sub>max</sub> is goed.</p>');
     else if (vErr < 0 && maxS < 10 * p.Km) out.push('<p class="nok">V<sub>max</sub> is te laag. <span class="hint">Je curve is nog niet helemaal vlak: meet bij hogere [S]₀.</span></p>');
     else if (vErr < 0) out.push('<p class="nok">V<sub>max</sub> is te laag. <span class="hint">V<sub>max</sub> is de hoogte van het plateau.</span></p>');
@@ -265,19 +396,86 @@ window.onload = function () {
     fb.innerHTML = out.join("");
   };
 
+  // ================= gekoppelde grafieken [S]–t en v–[S] =================
+  let run = null, mark = null;   // run: {t:[], S:[], v:[], S0, tEnd, p}; mark: index in run
+  function computeRun() {
+    const p = params(); let S0 = num($('linkS0').value);
+    if (!(S0 > 0)) { S0 = 100; $('linkS0').value = "100"; }
+    const tEnd = (0.99 * S0 + p.Km * Math.log(100)) / p.Vmax * 1.05;   // bijna alles op
+    const N = 1500, dt = tEnd / N, t = [0], S = [S0], v = [rate(S0, p)];
+    let s = S0;
+    for (let i = 1; i <= N; i++) {      // RK4
+      const k1 = -rate(s, p), k2 = -rate(s + dt / 2 * k1, p), k3 = -rate(s + dt / 2 * k2, p), k4 = -rate(s + dt * k3, p);
+      s = Math.max(0, s + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4));
+      t.push(i * dt); S.push(s); v.push(rate(s, p));
+    }
+    run = { t, S, v, S0, tEnd, p };
+  }
+  function drawLinked() {
+    computeRun();
+    const r = run;
+    if (mark != null && mark >= r.t.length) mark = null;
+    // --- [S]-t
+    pST.begin(r.tEnd, r.S0 * 1.05);
+    pST.line(r.t.map((t, i) => ({ x: t, y: r.S[i] })), { color: '#1F5FBF', width: 2.6 });
+    // --- v-[S]
+    const xmaxV = Math.max(r.S0, data.length ? Math.max(...data.map(d => d.x)) : 0);
+    const ymaxV = Math.max(r.p.Vmax, data.length ? Math.max(...data.map(d => d.y)) : 0) * 1.1;
+    pVS.begin(xmaxV, ymaxV);
+    const mm = []; for (let k = 0; k <= 200; k++) { const x = pVS.xmax * k / 200; mm.push({ x: x, y: rate(x, r.p) }); }
+    pVS.line(mm, { color: '#9aa3b2', width: 1.4, dash: [5, 5] });
+    pVS.line(r.S.map((s, i) => ({ x: s, y: r.v[i] })), { color: '#1F5FBF', width: 3 });
+    if (data.length) pVS.dots(data, { fill: '#1d2330', r: 4 });
+    const leg = [{ label: 'deze reactie', color: '#1F5FBF' }, { label: 'Michaelis-Menten', color: '#9aa3b2', dash: [5, 5] }];
+    if (data.length) leg.push({ label: 'jouw metingen', color: '#1d2330', dot: true });
+    pVS.legend(leg);
+    if (mark != null) drawMark(mark);
+    else $('linkReadout').innerHTML = 'Wijs een punt aan in een van de twee grafieken.';
+  }
+  function drawMark(i) {
+    const r = run, t = r.t[i], S = r.S[i], v = r.v[i];
+    // raaklijn in [S]-t: helling -v
+    const span = r.tEnd * 0.22;
+    pST.line([{ x: t - span, y: S + v * span }, { x: t + span, y: S - v * span }], { color: '#C62828', width: 2 });
+    pST.line([{ x: t, y: 0 }, { x: t, y: S }, { x: 0, y: S }], { color: '#595959', width: 1.1, dash: [4, 4] });
+    pST.dots([{ x: t, y: S }], { fill: '#FFF0A0', stroke: '#1d2330', r: 6.5 });
+    // punt in v-[S]
+    pVS.line([{ x: S, y: 0 }, { x: S, y: v }, { x: 0, y: v }], { color: '#595959', width: 1.1, dash: [4, 4] });
+    pVS.dots([{ x: S, y: v }], { fill: '#FFF0A0', stroke: '#1d2330', r: 6.5 });
+    $('linkReadout').innerHTML = 't = <span class="val">' + sig(t, 3) + ' s</span> &nbsp;·&nbsp; [S] = <span class="val">' + sig(S, 3) +
+      ' µM</span> &nbsp;·&nbsp; v = <span class="val">' + sig(v, 3) + ' µM/s</span> &nbsp;·&nbsp; helling raaklijn = <span class="val" style="color:#C62828">−' + sig(v, 3) + ' µM/s</span>';
+  }
+  function nearestT(t) { const r = run; return Math.max(0, Math.min(r.t.length - 1, Math.round(t / r.tEnd * (r.t.length - 1)))); }
+  function nearestS(s) { const r = run; let best = 0, bd = Infinity;
+    for (let i = 0; i < r.S.length; i++) { const d = Math.abs(r.S[i] - s); if (d < bd) { bd = d; best = i; } } return best; }
+  function hook(plot, toIndex) {
+    const handler = e => {
+      const b = plot.c.getBoundingClientRect(), x = e.clientX - b.left, y = e.clientY - b.top;
+      if (!plot.inside(x, y)) return;
+      mark = toIndex(Math.max(0, plot.ix(x))); drawLinked();
+    };
+    plot.c.addEventListener('pointermove', handler);
+    plot.c.addEventListener('pointerdown', handler);
+  }
+  hook(pST, t => nearestT(t));
+  hook(pVS, s => s > run.S0 ? 0 : nearestS(s));
+  $('linkBtn').onclick = () => { mark = null; drawLinked(); };
+  $('linkS0').addEventListener('keydown', e => { if (e.key === 'Enter') { mark = null; drawLinked(); } });
+
+  // ================= overig =================
   function resetAll() {
-    data = []; selS = null; renderTable(); drawCurve(null); drawSchema(); drawBezetting(null);
-    document.getElementById('bezetTekst').innerText = "Doe een meting om te zien hoeveel actieve centra bezet zijn. Klik op een meting in de tabel om die te bekijken.";
-    document.getElementById('feedback').innerHTML = "";
-    document.getElementById('v0Display').innerText = "–";
-    if (chart1) { chart1.destroy(); chart1 = null; }
+    data = []; lastRuns = []; selS = null; lastEst = null; renderTable(); drawCurve(null); drawSchema(); drawBezetting(null); drawTime(); drawLinked();
+    $('bezetTekst').innerText = "Doe een meting om te zien hoeveel actieve centra bezet zijn. Klik op een meting in de tabel om die te bekijken.";
+    $('feedback').innerHTML = ""; $('v0Display').innerText = "–";
     setStatus("Nieuwe meetreeks gestart.");
   }
-  function setStatus(t) { document.getElementById('status').innerText = t; }
-  document.getElementById('resetBtn').onclick = () => { if (!data.length || confirm("Alle metingen wissen?")) resetAll(); };
-  drawCurve(null); drawSchema(); drawBezetting(null);
-  if (!HAS_CHART) setStatus("Let op: de grafieken konden niet laden (geen internet?). Metingen en tabel werken wel.");
-};
+  function setStatus(t) { $('status').innerText = t; }
+  $('resetBtn').onclick = () => { if (!data.length || confirm("Alle metingen wissen?")) resetAll(); };
+  function redrawAll() { drawTime(); drawCurve(lastEst); drawLinked(); }
+  $('beamerBtn').onclick = () => { document.body.classList.toggle('beamer'); redrawAll(); };
+  let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(redrawAll, 120); });
+  drawSchema(); drawBezetting(null); redrawAll();
+})();
 </script>
 </body>
 </html>
