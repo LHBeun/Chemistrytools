@@ -555,11 +555,14 @@ function updateParticles(box) {
   // als een dalend vloeistofniveau in een bekerglas), i.p.v. een vaste grootte
   // met steeds minder deeltjes erin — dat zou geïsoleerde stippen opleveren.
   const poolBottom = box.top + box.h - 4;
-  const poolTopFull = latticeTop - PACK_SPACING * 1.6;
+  const poolTopFull = latticeBottom - latticeH * 1.12; // vloeistof ~10 % minder dicht dan vast
   const maxPoolHeight = poolBottom - poolTopFull;
   const minPoolHeight = PACK_SPACING * 1.3; // dun laagje, ook als er nog maar weinig over is
   const liquidFrac = nLiquid / N_PARTICLES;
-  const poolTop = nLiquid > 0 ? poolBottom - Math.max(minPoolHeight, maxPoolHeight * liquidFrac) : poolBottom;
+  // Hoogte uit het aantal vloeistofdeeltjes: per deeltje ~12 % meer ruimte dan in het rooster,
+  // zodat vloeistof bijna even dicht is als de vaste stof.
+  const poolH = nLiquid * PACK_SPACING * PACK_SPACING * 1.12 / latticeW;
+  const poolTop = nLiquid > 0 ? poolBottom - Math.max(minPoolHeight, Math.min(maxPoolHeight, poolH)) : poolBottom;
 
   // Gas mag alleen bóven de vloeistofspiegel komen zolang er nog een gecondenseerde
   // fase (vast/vloeibaar) aanwezig is — precies zoals stoom boven kokende vloeistof.
@@ -598,9 +601,12 @@ function updateParticles(box) {
 
     if (!paused) {
       if (lp === 'solid') {
-        const jitter = 0.5 * speedFactor;
-        p.x += (homeX - p.x) * 0.25 + (Math.random() - 0.5) * jitter;
-        p.y += (homeY - p.y) * 0.25 + (Math.random() - 0.5) * jitter;
+        // Trillen rond de vaste roosterplek: een veer trekt het deeltje terug, thermische
+        // ruis duwt het weg. Hoe warmer, hoe sterker het trilt (maar het blijft op zijn plek).
+        const kick = 1.1 + 1.6 * heat;
+        p.vx = (p.vx + (homeX - p.x) * 0.22 + (Math.random() - 0.5) * kick) * 0.78;
+        p.vy = (p.vy + (homeY - p.y) * 0.22 + (Math.random() - 0.5) * kick) * 0.78;
+        p.x += p.vx; p.y += p.vy;
       } else if (lp === 'liquid') {
         // Opgeloste stof (bijv. NaCl) beweegt mee tussen de watermoleculen, net als
         // de rest van de oplossing: hij is opgelost, dus niet meer vast.
@@ -610,16 +616,13 @@ function updateParticles(box) {
         // naartoe, met wat lokaal getril erbovenop. Zo migreren ze zichtbaar door de hele
         // poel — net als echte diffusie — in plaats van alleen op hun eigen plek te trillen
         // zoals een vaste stof. Trager en lokaler dan een gas (geen rechte, lange vluchten).
-        p.wanderTimer -= 1;
-        if (p.wanderTimer <= 0) {
-          p.wanderX = latticeLeft + Math.random() * latticeW;
-          p.wanderY = poolTop + Math.random() * Math.max(1, poolBottom - poolTop);
-          p.wanderTimer = 40 + Math.random() * 60; // ~0,7-1,7 s bij 60 fps
-        }
-        const ease = 0.03 * speedFactor;
-        const jitter = 0.5 * speedFactor;
-        p.x += (p.wanderX - p.x) * ease + (Math.random() - 0.5) * jitter;
-        p.y += (p.wanderY - p.y) * ease + (Math.random() - 0.5) * jitter;
+        // Dichte vloeistof: elk deeltje maakt kleine willekeurige stapjes (met een beetje
+        // traagheid) en wordt door de buren teruggeduwd (zie onder). Zo blijven ze dicht op
+        // elkaar, maar schuiven ze langs elkaar en mengen ze langzaam door de hele poel.
+        const kickL = 0.9 * speedFactor;
+        p.vx = (p.vx + (Math.random() - 0.5) * kickL) * 0.85;
+        p.vy = (p.vy + (Math.random() - 0.5) * kickL) * 0.85;
+        p.x += p.vx; p.y += p.vy;
         // vloeistof blijft echt in de dichte poel — harde wanden, geen uitzwerven
         if (p.x < latticeLeft)          p.x = latticeLeft;
         if (p.x > latticeLeft+latticeW) p.x = latticeLeft+latticeW;
@@ -644,6 +647,30 @@ function updateParticles(box) {
     }
     p._lp = lp;
   });
+
+  // Vloeistof: deeltjes raken elkaar bijna (net als in de vaste stof), maar zonder vaste
+  // plek. Te dicht bij elkaar? Dan duwen ze elkaar een stukje weg.
+  if (!paused) {
+    const D = PACK_SPACING * 0.92;
+    const liq = particles.filter(p => p._lp === 'liquid'), vast = particles.filter(p => p._lp === 'solid');
+    for (let it = 0; it < 2; it++) {
+      for (let i = 0; i < liq.length; i++) {
+        const a = liq[i];
+        for (let j = i + 1; j < liq.length; j++) {
+          const b = liq[j], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 0.01;
+          if (d < D) { const f = (D - d) / d * 0.5; a.x -= dx * f; a.y -= dy * f; b.x += dx * f; b.y += dy * f; }
+        }
+        for (const b of vast) {
+          const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 0.01;
+          if (d < D) { const f = (D - d) / d; a.x -= dx * f; a.y -= dy * f; }
+        }
+        if (a.x < latticeLeft) a.x = latticeLeft;
+        if (a.x > latticeLeft + latticeW) a.x = latticeLeft + latticeW;
+        if (a.y < poolTop) a.y = poolTop;
+        if (a.y > poolBottom - 2) a.y = poolBottom - 2;
+      }
+    }
+  }
 
   return { fillTop: poolTop };
 }
@@ -772,15 +799,16 @@ function drawCurve() {
   const px = td => ml + (td / tdMax) * gW;
   const py = temp => mt + gH * (1 - (temp - yMin) / (yMax - yMin));
 
-  ctx.fillStyle = '#475569'; ctx.font = '10px Segoe UI';
+  ctx.fillStyle = '#475569'; ctx.font = '12px system-ui, sans-serif';
   ctx.textAlign = 'right';
-  for (let i = 0; i <= 4; i++) { const val = yMax - (yMax - yMin) * i / 4; const y = mt + gH * i / 4; ctx.fillText(val.toFixed(0) + '°C', ml - 6, y + 3); }
+  for (let i = 0; i <= 4; i++) { const val = yMax - (yMax - yMin) * i / 4; const y = mt + gH * i / 4; ctx.fillText(val.toFixed(0) + ' °C', ml - 6, y + 3); }
   ctx.textAlign = 'center';
   for (let i = 0; i <= 5; i++) {
     const tdVal = tdMax * i / 5;
     const x = ml + gW * i / 5;
     const realT = findNearestByTd(tdVal).t; // eerlijk label: de werkelijke tijd op dit punt
-    ctx.fillText(realT.toFixed(0) + 's', x, mt + gH + 16);
+    const tEind = findNearestByTd(tdMax).t;
+    ctx.fillText(realT.toFixed(tEind < 10 ? 1 : 0) + ' s', x, mt + gH + 16);
   }
 
   if (history.length > 1) {
