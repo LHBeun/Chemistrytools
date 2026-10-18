@@ -2183,6 +2183,21 @@ function tlcBestSpreadFor(compounds, stationary) {
 //    ongeveer de helft van de willekeurige trekkingen, dus dit kost maar een
 //    paar pogingen, ver binnen de 200 die we toestaan).
 const TLC_MIN_SPREAD = 0.20;
+const TLC_MIN_GAP = 0.07; // kleinste afstand tussen twee vlekken, zodat je ze apart ziet
+
+function tlcMinGapAt(compounds, stationary, eluent) {
+  const rfs = compounds.map(c => tlcRfPure(c, stationary, eluent)).sort((a, b) => b - a);
+  let g = 1;
+  for (let i = 1; i < rfs.length; i++) g = Math.min(g, rfs[i - 1] - rfs[i]);
+  return g;
+}
+// Goed te onderscheiden vlekken bij de huidige instellingen én bij het beste
+// eluens op beide fasen.
+function tlcSeparable(compounds) {
+  const st = tlcGetSettings();
+  return tlcMinGapAt(compounds, st.stationary, st.eluentPolarity) >= TLC_MIN_GAP &&
+    ['silica', 'c18'].every(ph => tlcMinGapAt(compounds, ph, tlcBestSpreadFor(compounds, ph).bestEluent) >= TLC_MIN_GAP);
+}
 
 function tlcSelectStructuredMixture() {
   for (let attempt = 0; attempt < 200; attempt++) {
@@ -2196,7 +2211,7 @@ function tlcSelectStructuredMixture() {
 
     const silicaSpread = tlcBestSpreadFor(compounds, 'silica').bestSpread;
     const c18Spread = tlcBestSpreadFor(compounds, 'c18').bestSpread;
-    if (silicaSpread >= TLC_MIN_SPREAD && c18Spread >= TLC_MIN_SPREAD) {
+    if (silicaSpread >= TLC_MIN_SPREAD && c18Spread >= TLC_MIN_SPREAD && (attempt > 150 || tlcSeparable(compounds))) {
       return compounds;
     }
   }
@@ -2207,10 +2222,37 @@ function tlcSelectStructuredMixture() {
 }
 
 function generateTlcMixture() {
-  const compounds = tlcSelectStructuredMixture().map(c =>
-    Object.assign({}, c, { rfNoise: (Math.random() - 0.5) * 0.025 }));
+  const withNoise = c => Object.assign({}, c, { rfNoise: (Math.random() - 0.5) * 0.025 });
+  // compounds = de VERWACHTE stoffen (daarvan zijn er referenties);
+  // sample = wat er echt in het monster zit.
+  const rnd = Math.random();
+  const target = rnd < 0.4 ? 'ok' : rnd < 0.7 ? 'missing' : 'extra';
+  let compounds, scenario = 'ok', sample, missing = null, extra = null;
+  for (let t = 0; t < 40; t++) {
+    compounds = tlcSelectStructuredMixture().map(withNoise);
+    sample = compounds.slice(); scenario = 'ok'; missing = null; extra = null;
+    if (target === 'ok') break;
+    if (target === 'missing' && compounds.length >= 3) {
+      scenario = 'missing';
+      missing = pick(compounds);
+      sample = compounds.filter(c => c !== missing);
+      break;
+    }
+    if (target === 'extra' && compounds.length <= 4) {
+      const used = compounds.map(c => c.polarity);
+      const candidates = TLC_LIBRARY.filter(c => !compounds.some(d => d.name === c.name) && !used.includes(c.polarity)
+        && tlcSeparable(compounds.concat([c])));
+      if (candidates.length) {
+        scenario = 'extra';
+        extra = withNoise(pick(candidates));
+        extra.unexpected = true;
+        sample = compounds.concat([extra]);
+        break;
+      }
+    }
+  }
   const refOrder = compounds.slice().sort(() => Math.random() - 0.5);
-  tlcCurrentData = { compounds, refOrder, refsShown: false };
+  tlcCurrentData = { compounds, refOrder, refsShown: false, scenario, sample, missing, extra };
   const refBtn = document.getElementById('tlc-refs-btn');
   if (refBtn) refBtn.textContent = 'Breng referenties aan';
   tlcAnswersVisible = false;
@@ -2219,7 +2261,7 @@ function generateTlcMixture() {
   renderTlcQuestions();
   document.getElementById('tlc-graph-meta').textContent = '';
   document.getElementById('tlc-mixture-note').textContent =
-    'Mengsel van: ' + compounds.map(c => c.name).join(', ') + '.';
+    'Verwachte stoffen in het monster: ' + compounds.map(c => c.name).join(', ') + '.';
   renderStructuresPanel('tlc-structures-panel', compounds);
 }
 
@@ -2247,10 +2289,13 @@ function renderTlcPlate(svgId, highlightAnswers, withRefs) {
   const plateTop = 50, plateBottom = 380, plateLeft = 40, plateRight = 280;
   const plateHeight = plateBottom - plateTop;
 
-  const spots = tlcCurrentData.compounds.map(c => Object.assign({}, c, { rf: tlcComputeRf(c, settings) }));
-  tlcCurrentData.computedSpots = spots;
+  const all = tlcCurrentData.compounds.concat(tlcCurrentData.extra ? [tlcCurrentData.extra] : []);
+  const spots = all.map(c => Object.assign({}, c, { rf: tlcComputeRf(c, settings) }));
+  const inSample = s => tlcCurrentData.sample.some(c => c.name === s.name);
+  const sampleSpots = spots.filter(inSample);
+  tlcCurrentData.computedSpots = sampleSpots;
   const isVisible = s => settings.detection === 'iodine' || s.uvActive;
-  const visibleSorted = spots.filter(isVisible).sort((a, b) => b.rf - a.rf);
+  const visibleSorted = sampleSpots.filter(isVisible).sort((a, b) => b.rf - a.rf);
   tlcCurrentData.visibleSpots = visibleSorted;
 
   const lanes = [{ type: 'M' }];
@@ -2273,12 +2318,12 @@ function renderTlcPlate(svgId, highlightAnswers, withRefs) {
     const x = laneX(i);
     svgContent += `<circle cx="${x}" cy="${plateBottom}" r="2" fill="#333"/>`;
     if (lane.type === 'M') {
-      spots.forEach(s => { svgContent += ellipse(x, s); });
+      sampleSpots.forEach(s => { svgContent += ellipse(x, s); });
       visibleSorted.forEach((s, k) => {
         const y = plateBottom - s.rf * plateHeight;
         svgContent += `<text x="${x - Math.min(11, laneWidth / 3) - 5}" y="${y + 4}" font-size="11" text-anchor="end" font-family="sans-serif" font-weight="700" fill="#1F5FBF">${k + 1}</text>`;
         if (highlightAnswers && !withRefs) {
-          svgContent += `<text x="${x + Math.min(11, laneWidth / 3) + 4}" y="${y + 3}" font-size="9" font-family="sans-serif" fill="#111" font-weight="600">${s.name}</text>`;
+          svgContent += `<text x="${x + Math.min(11, laneWidth / 3) + 4}" y="${y + 3}" font-size="9" font-family="sans-serif" fill="#111" font-weight="600">${s.name}${s.unexpected ? ' (niet verwacht)' : ''}</text>`;
           svgContent += `<text x="${x + Math.min(11, laneWidth / 3) + 4}" y="${y + 13}" font-size="8.5" font-family="monospace" fill="#555">Rf=${s.rf.toFixed(2).replace('.', ',')}</text>`;
         }
       });
@@ -2293,7 +2338,7 @@ function renderTlcPlate(svgId, highlightAnswers, withRefs) {
     }
   });
 
-  svgContent += `<text x="${(plateLeft+plateRight)/2}" y="${H-12}" font-size="10" text-anchor="middle" font-family="sans-serif" fill="#333">M = mengsel — ${settings.stationary === 'silica' ? 'silica (polair)' : 'C18 (apolair)'} / eluens polariteit ${settings.eluentPolarity}/10</text>`;
+  svgContent += `<text x="${(plateLeft+plateRight)/2}" y="${H-12}" font-size="10" text-anchor="middle" font-family="sans-serif" fill="#333">M = monster — ${settings.stationary === 'silica' ? 'silica (polair)' : 'C18 (apolair)'} / eluens polariteit ${settings.eluentPolarity}/10</text>`;
   svg.innerHTML = svgContent;
 }
 
@@ -2306,16 +2351,24 @@ function toggleTlcRefs() {
 
 function renderTlcOpgave() {
   if (!tlcCurrentData) return;
-  renderTlcPlate('tlc-svg-opgave', false);
+  renderTlcPlate('tlc-svg-opgave', false, true);
   const settings = tlcGetSettings();
   document.getElementById('tlc-opgave-text').textContent =
-    `Onderstaande TLC-plaat is ontwikkeld met een ${settings.stationary === 'silica' ? 'silica (polaire)' : 'C18 (apolaire)'} stationaire fase, een eluens met polariteit ${settings.eluentPolarity}/10, en gedetecteerd met ${settings.detection === 'uv' ? 'een UV-lamp' : 'jodiumdamp'}. Het mengsel bevat: ${tlcCurrentData.compounds.map(c=>c.name).join(', ')}. Bepaal welke vlek (1, 2, …) bij welke stof hoort, en leg uit waarom.`;
+    `Onderstaande TLC-plaat is ontwikkeld met een ${settings.stationary === 'silica' ? 'silica (polaire)' : 'C18 (apolaire)'} stationaire fase, een eluens met polariteit ${settings.eluentPolarity}/10, en gedetecteerd met ${settings.detection === 'uv' ? 'een UV-lamp' : 'jodiumdamp'}. Je verwacht dat het monster (M) deze stoffen bevat: ${tlcCurrentData.compounds.map(c=>c.name).join(', ')}. Van elke verwachte stof is een referentie meegelopen. Welke vlek (1, 2, …) hoort bij welke stof? Bevat het monster precies de verwachte stoffen? Leg je antwoord uit.`;
 
-  const spots = (tlcCurrentData.computedSpots || []).slice().sort((a,b) => b.rf - a.rf);
-  let rows = spots.map(s =>
-    `<tr><td>Rf = ${s.rf.toFixed(2)}</td><td>${s.name} (polariteit ${s.polarity}/10, ${s.uvActive ? 'UV-actief' : 'niet UV-actief'})</td></tr>`
+  const spots = (tlcCurrentData.visibleSpots || []);
+  let rows = spots.map((s, i) =>
+    `<tr><td>vlek ${i + 1}, Rf = ${s.rf.toFixed(2).replace('.', ',')}</td><td>${s.unexpected ? 'geen referentie: onbekende stof (in de simulatie ' + s.name + ')' : s.name} (polariteit ${s.polarity}/10, ${s.uvActive ? 'UV-actief' : 'niet UV-actief'})</td></tr>`
   ).join('');
+  rows += `<tr><td>Conclusie</td><td>${tlcScenarioText()}</td></tr>`;
   document.getElementById('tlc-docent-answer').innerHTML = `<table class="docent-answer-table">${rows}</table>`;
+}
+
+function tlcScenarioText() {
+  const d = tlcCurrentData;
+  if (d.scenario === 'missing') return `${d.missing.name} zit niet in het monster: de referentie van ${d.missing.name} heeft geen vlek op dezelfde hoogte in baan M.`;
+  if (d.scenario === 'extra') return `Het monster bevat een extra, onverwachte stof: één vlek in baan M past bij geen enkele referentie.`;
+  return 'Het monster bevat precies de verwachte stoffen: elke vlek past bij een referentie en elke referentie bij een vlek.';
 }
 
 function toggleTlcAnswers() {
@@ -2339,7 +2392,7 @@ function renderTlcQuestions() {
 
   html += `
     <div class="question-block">
-      <div class="question-text">1. Het mengsel bevat: ${compounds.map(c=>c.name).join(', ')}. Geef de volgorde van Rf-waarden (hoogste naar laagste) zoals je die verwacht op een <strong>silica</strong>-plaat, én zoals je die verwacht op een <strong>C18</strong>-plaat (bij gelijk blijvend eluens).</div>
+      <div class="question-text">1. Je verwacht dat het monster deze stoffen bevat: ${compounds.map(c=>c.name).join(', ')}. Geef de volgorde van Rf-waarden (hoogste naar laagste) zoals je die verwacht op een <strong>silica</strong>-plaat, én zoals je die verwacht op een <strong>C18</strong>-plaat (bij gelijk blijvend eluens).</div>
       <label style="margin-top:6px;">Volgorde op silica (hoogste → laagste Rf)</label>
       <div class="gc-order-row">
         ${tlcSelects("tlc-q1a", compounds)}
@@ -2355,24 +2408,32 @@ function renderTlcQuestions() {
       <div class="feedback" id="tlc-q1-feedback"></div>
     </div>`;
 
+  const nSpots = tlcCurrentData.sample.length;
   html += `
     <div class="question-block">
-      <div class="question-text">2. Zet de detectie op <strong>jodiumdamp</strong>, zodat je alle vlekken ziet. In baan M zijn de vlekken van boven naar beneden genummerd. Welke stof hoort bij welke vlek? Gebruik je voorspelling uit vraag 1 voor de stationaire fase die nu is ingesteld.</div>
+      <div class="question-text">2. Zet de detectie op <strong>jodiumdamp</strong>, zodat je alle vlekken ziet. Tel de vlekken in baan M. Is dat het aantal dat je verwacht? (Liggen er vlekken over elkaar, pas dan eerst de polariteit van het eluens aan.)</div>
+      <select id="tlc-q2count-input">
+        <option value="">— kies —</option>
+        <option value="ok">evenveel vlekken als verwachte stoffen</option>
+        <option value="missing">minder: er ontbreekt een stof</option>
+        <option value="extra">meer: er zit een extra stof in</option>
+      </select>
+      <div class="btn-row">
+        <button class="btn secondary" onclick="checkTlcQ2count()">Check</button>
+        <button class="btn secondary" onclick="showTlcAnswer('q2count')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="tlc-q2count-feedback"></div>
+    </div>
+    <div class="question-block">
+      <div class="question-text">3. Welke stof hoort bij welke vlek? Doe het eerst op basis van polariteit (vraag 1). Klik daarna op <strong>Breng referenties aan</strong> en controleer je antwoord.</div>
       <div class="gc-order-row">
-        ${compounds.map((c, i) => `<select id="tlc-q3-pos${i}"><option value="">vlek ${i + 1}</option>${compounds.map(d => `<option value="${d.name}">${d.name}</option>`).join('')}</select>`).join('')}
+        ${Array.from({ length: nSpots }, (_, i) => `<select id="tlc-q3-pos${i}"><option value="">vlek ${i + 1}</option>${compounds.map(d => `<option value="${d.name}">${d.name}</option>`).join('')}<option value="__onbekend">geen referentie (onbekende stof)</option></select>`).join('')}
       </div>
       <div class="btn-row">
         <button class="btn secondary" onclick="checkTlcQ3()">Check</button>
         <button class="btn secondary" onclick="showTlcAnswer('q3')">Toon antwoord</button>
       </div>
       <div class="feedback" id="tlc-q3-feedback"></div>
-    </div>
-    <div class="question-block">
-      <div class="question-text">3. Klik op <strong>Breng referenties aan</strong>. Naast het mengsel staat nu per zuivere stof een eigen baan. Controleer je toewijzing uit vraag 2: liggen alle vlekken waar je verwachtte?</div>
-      <div class="btn-row">
-        <button class="btn secondary" onclick="showTlcAnswer('q4ref')">Toon antwoord</button>
-      </div>
-      <div class="feedback" id="tlc-q4ref-feedback"></div>
     </div>`;
 
   html += `
@@ -2391,6 +2452,13 @@ function renderTlcQuestions() {
         <button class="btn secondary" onclick="showTlcAnswer('klaar')">Toon antwoord</button>
       </div>
       <div class="feedback" id="tlc-klaar-feedback"></div>
+    </div>
+    <div class="question-block">
+      <div class="question-text"><strong>Klaar?</strong> In een monster zit een vlek die bij geen enkele referentie past. Hoe zou je erachter komen welke stof dat is?</div>
+      <div class="btn-row">
+        <button class="btn secondary" onclick="showTlcAnswer('klaar2')">Toon antwoord</button>
+      </div>
+      <div class="feedback" id="tlc-klaar2-feedback"></div>
     </div>`;
 
   container.innerHTML = html;
@@ -2403,20 +2471,40 @@ function tlcChosen(prefix) {
   return tlcCurrentData.compounds.map((c, i) => document.getElementById(`${prefix}-pos${i}`).value);
 }
 
-function checkTlcQ3() {
-  const fb = document.getElementById('tlc-q3-feedback');
-  const settings = tlcGetSettings();
-  if (settings.detection !== 'iodine') {
-    fb.className = 'feedback incorrect';
-    fb.textContent = 'Zet de detectie eerst op jodiumdamp, zodat je alle vlekken ziet.';
-    return;
-  }
-  const chosen = tlcChosen('tlc-q3');
-  const ok = chosen.every((name, i) => name === tlcCurrentData.visibleSpots[i].name);
+function tlcNeedIodine(fb) {
+  if (tlcGetSettings().detection === 'iodine') return false;
+  fb.className = 'feedback incorrect';
+  fb.textContent = 'Zet de detectie eerst op jodiumdamp, zodat je alle vlekken ziet.';
+  return true;
+}
+
+function checkTlcQ2count() {
+  const fb = document.getElementById('tlc-q2count-feedback');
+  if (tlcNeedIodine(fb)) return;
+  const ok = document.getElementById('tlc-q2count-input').value === tlcCurrentData.scenario;
   fb.className = ok ? 'feedback correct' : 'feedback incorrect';
   fb.textContent = ok
-    ? 'Klopt. Controleer het nu met de referenties (vraag 3).'
-    : 'Nog niet juist. Welke stof heeft de minste aantrekking tot de stationaire fase? Die loopt het verst mee.';
+    ? `Klopt: ${tlcCurrentData.sample.length} vlekken bij ${tlcCurrentData.compounds.length} verwachte stoffen.`
+    : 'Nog niet juist. Tel de vlekken in baan M en vergelijk met het aantal verwachte stoffen.';
+}
+
+function checkTlcQ3() {
+  const fb = document.getElementById('tlc-q3-feedback');
+  if (tlcNeedIodine(fb)) return;
+  const d = tlcCurrentData;
+  const ok = d.visibleSpots.every((s, i) =>
+    document.getElementById(`tlc-q3-pos${i}`).value === (s.unexpected ? '__onbekend' : s.name));
+  if (ok) {
+    fb.className = 'feedback correct';
+    fb.textContent = d.scenario === 'ok'
+      ? 'Klopt. Elke vlek past bij een referentie.'
+      : 'Klopt. Zonder referenties kon je niet zeker weten ' + (d.scenario === 'missing' ? 'welke stof ontbrak' : 'welke vlek de onbekende stof was') + '. Daarom breng je ze aan.';
+  } else {
+    fb.className = 'feedback incorrect';
+    fb.textContent = d.refsShown
+      ? 'Nog niet juist. Vergelijk de hoogte van elke vlek in baan M met de referenties.'
+      : 'Nog niet juist. Breng de referenties aan en vergelijk de hoogte van elke vlek in baan M.';
+  }
 }
 
 function checkTlcQ1() {
@@ -2457,7 +2545,7 @@ function checkTlcQ1() {
 // Zoekt (stappen van 1, het slider-interval) welke eluens-polariteit het grootste
 // relatieve verschil tussen de hoogste en laagste Rf-waarde geeft (beste scheiding).
 function tlcFindBestEluent(stationary) {
-  return tlcBestSpreadFor(tlcCurrentData.compounds, stationary).bestEluent;
+  return tlcBestSpreadFor(tlcCurrentData.sample, stationary).bestEluent;
 }
 
 function checkTlcQ2() {
@@ -2492,21 +2580,32 @@ function showTlcAnswer(which) {
     fb.textContent = `Antwoord — silica (hoogste→laagste Rf): ${silicaOrder.map(c=>c.name).join(' → ')}. C18 (hoogste→laagste Rf): ${c18Order.map(c=>c.name).join(' → ')}. Op silica heeft de meest apolaire stof de hoogste Rf (minste affiniteit met de polaire plaat); op C18 is dat precies omgekeerd.`;
     return;
   }
-  if (which === 'q3' || which === 'q4ref') {
-    const spots = tlcCurrentData.computedSpots.slice().sort((a, b) => b.rf - a.rf);
-    const phase = settings.stationary === 'silica' ? 'silica (polair)' : 'C18 (apolair)';
-    const list = spots.map((s, i) => `vlek ${i + 1} = ${s.name} (polariteit ${s.polarity}/10)`).join(', ');
-    const fb = document.getElementById('tlc-' + which + '-feedback');
+  if (which === 'q2count') {
+    const d = tlcCurrentData;
+    const fb = document.getElementById('tlc-q2count-feedback');
     fb.className = 'feedback info';
-    if (which === 'q3') {
-      fb.textContent = `Antwoord (bij jodiumdamp): ${list}. Op ${phase} loopt de stof die het minst door de plaat wordt aangetrokken het verst mee met het eluens.`;
-    } else {
-      const notUv = spots.filter(s => !s.uvActive).map(s => s.name);
-      fb.textContent = `Antwoord: elke vlek in baan M ligt op dezelfde hoogte als de referentie van dezelfde stof: ${list}. ` +
-        (notUv.length
-          ? `Zet de detectie daarna op UV: dan verdwijnt ${notUv.length === 1 ? 'de vlek van ' + notUv[0] : 'de vlekken van ' + notUv.join(' en ')}. ${notUv.length === 1 ? 'Die stof heeft' : 'Die stoffen hebben'} geen aromatische ring of geconjugeerd systeem en ${notUv.length === 1 ? 'absorbeert' : 'absorberen'} geen UV-licht van 254 nm. Met UV zie je dus niet altijd alle stoffen.`
-          : `Alle stoffen in dit mengsel zijn UV-actief, dus met de UV-lamp zie je ook alle vlekken.`);
-    }
+    fb.textContent = `Antwoord (bij jodiumdamp): ${d.sample.length} vlekken bij ${d.compounds.length} verwachte stoffen, dus ` +
+      (d.scenario === 'ok' ? 'evenveel.' : d.scenario === 'missing' ? 'minder: er ontbreekt een stof. Welke, dat zie je pas met de referenties.' : 'meer: er zit een extra stof in.');
+    return;
+  }
+  if (which === 'q3') {
+    const d = tlcCurrentData;
+    const spots = d.computedSpots.slice().sort((a, b) => b.rf - a.rf);
+    const phase = settings.stationary === 'silica' ? 'silica (polair)' : 'C18 (apolair)';
+    const list = spots.map((s, i) => `vlek ${i + 1} = ${s.unexpected ? 'onbekende stof (geen referentie)' : s.name}`).join(', ');
+    const notUv = spots.filter(s => !s.uvActive).map(s => s.unexpected ? 'de onbekende stof' : s.name);
+    const fb = document.getElementById('tlc-q3-feedback');
+    fb.className = 'feedback info';
+    fb.textContent = `Antwoord (bij jodiumdamp): ${list}. ${tlcScenarioText()} Op ${phase} loopt de stof die het minst door de plaat wordt aangetrokken het verst mee met het eluens. ` +
+      (notUv.length
+        ? `Zet de detectie daarna op UV: dan verdwijnt ${notUv.length === 1 ? 'de vlek van ' + notUv[0] : 'de vlekken van ' + notUv.join(' en ')}. ${notUv.length === 1 ? 'Die stof heeft' : 'Die stoffen hebben'} geen aromatische ring of geconjugeerd systeem en ${notUv.length === 1 ? 'absorbeert' : 'absorberen'} geen UV-licht van 254 nm. Met UV zie je dus niet altijd alle stoffen.`
+        : 'Alle stoffen in dit monster zijn UV-actief, dus met de UV-lamp zie je ook alle vlekken.');
+    return;
+  }
+  if (which === 'klaar2') {
+    const fb = document.getElementById('tlc-klaar2-feedback');
+    fb.className = 'feedback info';
+    fb.textContent = 'Antwoord: schat uit de hoogte van de vlek hoe polair de stof ongeveer is. Breng dan referenties aan van kandidaat-stoffen met zo’n polariteit en ontwikkel opnieuw. Of gebruik een techniek die de stof zelf identificeert, zoals MS of IR.';
     return;
   }
   if (which === 'klaar') {
