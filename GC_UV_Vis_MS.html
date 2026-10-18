@@ -429,6 +429,7 @@
 .gc-frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 3px 1px}
 .gc-frac>span:last-child{padding:1px 3px 0}
 .gc-calc{margin:6px 0;line-height:2.4}
+#vaste-opgave-banner{margin:10px 0 14px;padding:10px 14px;border-left:4px solid #E6B800;background:#FFF8D6;color:#333;border-radius:4px;font-size:.95em}
 </style>
 <style id="huisstijl">
 :root{--hs-acc:#1F5FBF;--hs-acc-d:#174a96;--hs-soft:#E8F0FC;--hs-given:#F3F7FD;--hs-ok:#1A7F37;--hs-ok-soft:#E4F4E8;
@@ -840,7 +841,7 @@ const MS_LIBRARY = [
   {
     name: 'butaan-2-on', altNames: ['butanon'], formula:'C4H8O', M:72, halogen:null,
     fragments: [
-      {gen:1, parentMz:72, lossLabel:'verlies van CH3', lossMass:15, stability:2, note:'geeft het stabiele acylium-ion CH3-C≡O+ (m/z 57)'},
+      {gen:1, parentMz:72, lossLabel:'verlies van CH3', lossMass:15, stability:2, note:'geeft het acylium-ion C2H5-C≡O+ (m/z 57)'},
       {gen:1, parentMz:72, lossLabel:'verlies van C2H5', lossMass:29, stability:1, note:'geeft acylium-ion m/z 43 (CH3CO+), vaak de hoofdpiek'},
       {gen:2, parentMz:43, lossLabel:'verlies van CO (vanuit CH3CO+)', lossMass:28, stability:0, note:'geeft m/z 15 (CH3+)'},
       {gen:2, parentMz:57, lossLabel:'verlies van CO (vanuit C2H5CO+)', lossMass:28, stability:0, note:'geeft m/z 29 (C2H5+)'}
@@ -859,7 +860,7 @@ const MS_LIBRARY = [
     name: 'propaan-1-ol', formula:'C3H8O', M:60, halogen:null,
     fragments: [
       {gen:1, parentMz:60, lossLabel:'verlies van H2O', lossMass:18, stability:0, note:'geeft m/z 42'},
-      {gen:1, parentMz:60, lossLabel:'verlies van CH2OH', lossMass:31, stability:1, note:'geeft het propylkation m/z 29, vaak de hoofdpiek'},
+      {gen:1, parentMz:60, lossLabel:'verlies van C2H5', lossMass:29, stability:2, note:'alfa-splitsing naast de OH-groep geeft CH2OH+ (m/z 31), de hoofdpiek'},
       {gen:2, parentMz:42, lossLabel:'verlies van CH3 (vanuit m/z 42)', lossMass:15, stability:0, note:'geeft m/z 27'}
     ]
   },
@@ -903,6 +904,23 @@ const MS_LIBRARY = [
 /* =========================================================================
    MS MODULE — SPECTRUM GENERATION
 ========================================================================= */
+// Wetenschappelijke notatie zoals in de les: 2,78 × 10⁻⁵
+function fmtSci(x, d) {
+  if (!isFinite(x)) return String(x);
+  if (x === 0) return '0';
+  let e = Math.floor(Math.log10(Math.abs(x)));
+  let m = x / Math.pow(10, e);
+  if (Math.abs(+m.toFixed(d)) >= 10) { m /= 10; e += 1; }
+  const sup = String(e).replace(/[-0-9]/g, ch => '⁻⁰¹²³⁴⁵⁶⁷⁸⁹'['-0123456789'.indexOf(ch)]);
+  return (e === 0 ? m.toFixed(d) : m.toFixed(d) + ' × 10' + sup).replace('.', ',');
+}
+// Invoer van concentraties: accepteert 2,78e-5, 2,78·10^-5, 2,78 x 10-5 en 2,78 × 10⁻⁵
+function parseSci(str) {
+  let t = String(str || '').trim().replace(/\s+/g, '').replace(/,/g, '.');
+  t = t.replace(/[⁻⁰¹²³⁴⁵⁶⁷⁸⁹]/g, ch => '-0123456789'['⁻⁰¹²³⁴⁵⁶⁷⁸⁹'.indexOf(ch)]);
+  t = t.replace(/[×x·*]10\^?/i, 'e');
+  return parseFloat(t);
+}
 function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 function toggleHint(id) { document.getElementById(id).classList.toggle('show'); }
@@ -1173,7 +1191,7 @@ function checkMsFragment(idx, mz) {
 
   if (massOk && fragOk) {
     fb.className = 'feedback correct';
-    fb.textContent = `Goed geredeneerd — dit is ${fragInfo.lossLabel}. ${fragInfo.note}.`;
+    fb.textContent = `Goed geredeneerd — dit is ${fragInfo.lossLabel}: ${fragInfo.note}.`;
   } else {
     fb.className = 'feedback incorrect';
     fb.textContent = `Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
@@ -1217,7 +1235,7 @@ function showMsAnswer(which) {
   const fb = document.getElementById(`ms-frag-${idx}-feedback`);
   const fragInfo = fp.lossInfo;
   fb.className = 'feedback info';
-  fb.textContent = `Antwoord: massaverschil = ${fragInfo.parentMz} − ${fp.mz} = ${fragInfo.parentMz - fp.mz}. Dit is ${fragInfo.lossLabel}. ${fragInfo.note}.`;
+  fb.textContent = `Antwoord: massaverschil = ${fragInfo.parentMz} − ${fp.mz} = ${fragInfo.parentMz - fp.mz}. Dit is ${fragInfo.lossLabel}: ${fragInfo.note}.`;
 }
 
 /* =========================================================================
@@ -2056,12 +2074,12 @@ function showGcAnswer(which) {
     const fb = document.getElementById('gc-q2-feedback');
     fb.className = 'feedback info';
     if (optimalTemp === null) {
-      fb.textContent = `Antwoord: er is geen temperatuur binnen het bereik waarbij alle stoffen voldoende gescheiden zijn — zelfs bij de laagste oventemperatuur (40 °C) liggen twee stoffen al binnen 0,5 min van elkaar. Op deze kolom (bij deze snelheid) is dit mengsel niet goed te scheiden; een andere kolom, een langere kolom, of een aangepaste snelheid zou nodig zijn.`;
+      fb.textContent = `Antwoord: er is geen temperatuur binnen het bereik waarbij alle stoffen voldoende gescheiden zijn — zelfs bij de laagste oventemperatuur (40 °C) liggen twee stoffen al binnen ${GC_MIN_GAP.toFixed(1).replace(".", ",")} min van elkaar. Op deze kolom (bij deze snelheid) is dit mengsel niet goed te scheiden; een andere kolom, een langere kolom, of een aangepaste snelheid zou nodig zijn.`;
     } else {
       const rts = gcCurrentData.compounds.map(c => Object.assign({}, c, {
         rt: gcRetentionTime(c, { temp: optimalTemp, flow, column })
       })).sort((a,b) => a.rt - b.rt);
-      fb.textContent = `Antwoord: bij de huidige snelheid en kolom is ${optimalTemp} °C de hoogste temperatuur waarbij alle opeenvolgende pieken nog minstens 0,5 min uit elkaar liggen. Retentietijden bij die temperatuur: ${rts.map(c => `${c.name} = ${c.rt.toFixed(2)} min`).join(', ')}. Boven deze temperatuur worden alle stoffen vluchtiger en elueren ze sneller en dichter bij elkaar, waardoor de scheiding verloren gaat.`;
+      fb.textContent = `Antwoord: bij de huidige snelheid en kolom is ${optimalTemp} °C de hoogste temperatuur waarbij alle opeenvolgende pieken nog minstens ${GC_MIN_GAP.toFixed(1).replace(".", ",")} min uit elkaar liggen. Retentietijden bij die temperatuur: ${rts.map(c => `${c.name} = ${c.rt.toFixed(2)} min`).join(', ')}. Boven deze temperatuur worden alle stoffen vluchtiger en elueren ze sneller en dichter bij elkaar, waardoor de scheiding verloren gaat.`;
     }
     return;
   }
@@ -2977,7 +2995,7 @@ function renderUvvisCalib(svgId, calibPoints, options) {
     const c = (maxC/4)*i;
     const x = xScale(c);
     svgContent += `<line x1="${x}" y1="${marginT+plotH}" x2="${x}" y2="${marginT+plotH+4}" stroke="#222" stroke-width="1"/>`;
-    svgContent += `<text x="${x}" y="${marginT+plotH+16}" font-size="8.5" text-anchor="middle" font-family="monospace" fill="#333">${c.toExponential(1)}</text>`;
+    svgContent += `<text x="${x}" y="${marginT+plotH+16}" font-size="8.5" text-anchor="middle" font-family="monospace" fill="#333">${fmtSci(c, 1)}</text>`;
   }
   // y-as ticks
   for (let i = 0; i <= 4; i++) {
@@ -3007,7 +3025,7 @@ function renderUvvisCalib(svgId, calibPoints, options) {
     const ssTot = points.reduce((s,p)=>s+(p.absorbance-meanA)**2, 0);
     const ssRes = points.reduce((s,p)=>s+(p.absorbance - slope*p.concentration)**2, 0);
     const rSquared = ssTot > 0 ? 1 - ssRes/ssTot : 1;
-    svgContent += `<text x="${marginL+12}" y="${textY}" font-size="10" font-family="monospace" fill="${color}" font-weight="600">${label}: A = ${slope.toExponential(3)} · c  (R²=${rSquared.toFixed(3)})</text>`;
+    svgContent += `<text x="${marginL+12}" y="${textY}" font-size="10" font-family="monospace" fill="${color}" font-weight="600">${label}: A = ${fmtSci(slope, 3)} · c  (R²=${rSquared.toFixed(3)})</text>`;
     return slope;
   }
 
@@ -3040,25 +3058,25 @@ function renderUvvisOpgave() {
     answerHtml = `<div class="docent-compound-name">${d.compoundA.name}</div>
       <p>λmax = ${d.lambdaMax} nm</p>
       <table class="docent-answer-table">
-        ${d.calibPoints.map(p => `<tr><td>c = ${p.concentration.toExponential(2)} mol/L</td><td>A = ${p.absorbance.toFixed(3)}</td></tr>`).join('')}
-        <tr><td>Monster</td><td>A = ${d.sampleAbsorbance.toFixed(3)} → c ≈ ${d.sampleConcentration.toExponential(2)} mol/L</td></tr>
+        ${d.calibPoints.map(p => `<tr><td>c = ${fmtSci(p.concentration, 2)} mol/L</td><td>A = ${p.absorbance.toFixed(3)}</td></tr>`).join('')}
+        <tr><td>Monster</td><td>A = ${d.sampleAbsorbance.toFixed(3)} → c ≈ ${fmtSci(d.sampleConcentration, 2)} mol/L</td></tr>
       </table>`;
   } else if (d.level === 'gevorderd') {
     text = `Het monster bevat een mengsel van ${d.compoundA.name} en ${d.compoundB.name}. Kies een golflengte waarbij slechts één van de twee stoffen absorbeert, stel daar de ijkreeks op, en bepaal de concentratie van die stof in het monster.`;
     answerHtml = `<div class="docent-compound-name">${d.compoundA.name} + ${d.compoundB.name}</div>
       <p>Schone golflengte voor ${d.compoundA.name}: λ = ${d.lambda1} nm</p>
       <table class="docent-answer-table">
-        ${d.calibPoints.map(p => `<tr><td>c = ${p.concentration.toExponential(2)} mol/L</td><td>A = ${p.absorbance.toFixed(3)}</td></tr>`).join('')}
-        <tr><td>Monster bij λ=${d.lambda1}</td><td>A = ${d.sampleAbsorbance.toFixed(3)} → c(${d.compoundA.name}) ≈ ${d.sampleConcentration.toExponential(2)} mol/L</td></tr>
+        ${d.calibPoints.map(p => `<tr><td>c = ${fmtSci(p.concentration, 2)} mol/L</td><td>A = ${p.absorbance.toFixed(3)}</td></tr>`).join('')}
+        <tr><td>Monster bij λ=${d.lambda1}</td><td>A = ${d.sampleAbsorbance.toFixed(3)} → c(${d.compoundA.name}) ≈ ${fmtSci(d.sampleConcentration, 2)} mol/L</td></tr>
       </table>`;
   } else {
     text = `Het monster bevat een mengsel van ${d.compoundA.name} en ${d.compoundB.name}. Gebruik twee golflengtes: bij λ₁ absorbeert alleen ${d.compoundA.name}, bij λ₂ absorberen beide stoffen. Bepaal beide concentraties.`;
     answerHtml = `<div class="docent-compound-name">${d.compoundA.name} + ${d.compoundB.name}</div>
       <p>λ₁ (schoon voor ${d.compoundA.name}) = ${d.lambda1} nm — λ₂ (λmax van ${d.compoundB.name}) = ${d.lambda2} nm</p>
       <table class="docent-answer-table">
-        <tr><td>Monster bij λ₁</td><td>A = ${d.sampleAbsorbance.toFixed(3)} → c(${d.compoundA.name}) ≈ ${d.sampleConcentration.toExponential(2)} mol/L</td></tr>
+        <tr><td>Monster bij λ₁</td><td>A = ${d.sampleAbsorbance.toFixed(3)} → c(${d.compoundA.name}) ≈ ${fmtSci(d.sampleConcentration, 2)} mol/L</td></tr>
         <tr><td>Monster bij λ₂</td><td>A = ${d.sampleAbsLambda2.toFixed(3)} (bijdrage beide stoffen)</td></tr>
-        <tr><td>Na aftrek bijdrage ${d.compoundA.name}</td><td>c(${d.compoundB.name}) ≈ ${d.sampleConcB.toExponential(2)} mol/L</td></tr>
+        <tr><td>Na aftrek bijdrage ${d.compoundA.name}</td><td>c(${d.compoundB.name}) ≈ ${fmtSci(d.sampleConcB, 2)} mol/L</td></tr>
       </table>`;
   }
 
@@ -3097,7 +3115,7 @@ function renderUvvisQuestions() {
       <div class="btn-row">
         <button class="btn secondary" onclick="showUvvisCalibGraph()">Toon ijkreeks</button>
       </div>
-      <input type="text" id="uvvis-q2-input" placeholder="concentratie (mol/L), bijv. 5.2e-5">
+      <input type="text" id="uvvis-q2-input" placeholder="concentratie (mol/L), bijv. 5,2e-5 of 5,2·10^-5">
       <div class="btn-row">
         <button class="btn secondary" onclick="checkUvvisConcentration('q2', uvvisCurrentData.sampleConcentration)">Check</button>
         <button class="btn secondary" onclick="showUvvisAnswer('concentration')">Toon antwoord</button>
@@ -3224,11 +3242,11 @@ function showUvvisCalibGraphB() {
 }
 
 function checkUvvisConcentration(fieldPrefix, correctValue) {
-  const val = parseFloat(document.getElementById(`uvvis-${fieldPrefix}-input`).value);
+  const val = parseSci(document.getElementById(`uvvis-${fieldPrefix}-input`).value);
   const fb = document.getElementById(`uvvis-${fieldPrefix}-feedback`);
   if (Math.abs(val - correctValue) / correctValue < 0.15) {
     fb.className = 'feedback correct';
-    fb.textContent = `Klopt — de concentratie is ongeveer ${correctValue.toExponential(2)} mol/L.`;
+    fb.textContent = `Klopt — de concentratie is ongeveer ${fmtSci(correctValue, 2)} mol/L.`;
   } else {
     fb.className = 'feedback incorrect';
     fb.textContent = `Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
@@ -3253,7 +3271,7 @@ function showUvvisAnswer(which) {
     const fb = document.getElementById('uvvis-q2-feedback');
     fb.className = 'feedback info';
     const slope = d.calibPoints.reduce((s,p)=>s+p.concentration*p.absorbance,0) / d.calibPoints.reduce((s,p)=>s+p.concentration*p.concentration,0);
-    fb.textContent = `Antwoord: uit de ijkreeks volgt A = ${slope.toExponential(2)} × c (rechte lijn door de oorsprong, Beer-Lambert). Met A = ${d.sampleAbsorbance.toFixed(3)} volgt c ≈ ${d.sampleConcentration.toExponential(2)} mol/L.`;
+    fb.textContent = `Antwoord: uit de ijkreeks volgt A = ${fmtSci(slope, 2)} × c (rechte lijn door de oorsprong, Beer-Lambert). Met A = ${d.sampleAbsorbance.toFixed(3)} volgt c ≈ ${fmtSci(d.sampleConcentration, 2)} mol/L.`;
     return;
   }
   if (which === 'concentrationB') {
@@ -3264,7 +3282,7 @@ function showUvvisAnswer(which) {
     const remaining = d.sampleAbsLambda2 - absAat2;
     const slopeB = d.calibPointsB.reduce((s,p)=>s+p.concentration*p.absorbance,0) / d.calibPointsB.reduce((s,p)=>s+p.concentration*p.concentration,0);
     const recoveredCB = remaining / slopeB;
-    fb.textContent = `Antwoord: uit de ijklijn van ${d.compoundA.name} bij λ₂ (A = ${slopeA_at2.toExponential(2)} × c) volgt de bijdrage van ${d.compoundA.name} bij λ₂: A = ${slopeA_at2.toExponential(2)} × ${d.sampleConcentration.toExponential(2)} ≈ ${absAat2.toFixed(3)}. Resterende absorbantie voor ${d.compoundB.name}: ${d.sampleAbsLambda2.toFixed(3)} − ${absAat2.toFixed(3)} = ${remaining.toFixed(3)}. Met de ijklijn van ${d.compoundB.name} bij λ₂ (A = ${slopeB.toExponential(2)} × c) volgt c(${d.compoundB.name}) ≈ ${recoveredCB.toExponential(2)} mol/L.`;
+    fb.textContent = `Antwoord: uit de ijklijn van ${d.compoundA.name} bij λ₂ (A = ${fmtSci(slopeA_at2, 2)} × c) volgt de bijdrage van ${d.compoundA.name} bij λ₂: A = ${fmtSci(slopeA_at2, 2)} × ${fmtSci(d.sampleConcentration, 2)} ≈ ${absAat2.toFixed(3)}. Resterende absorbantie voor ${d.compoundB.name}: ${d.sampleAbsLambda2.toFixed(3)} − ${absAat2.toFixed(3)} = ${remaining.toFixed(3)}. Met de ijklijn van ${d.compoundB.name} bij λ₂ (A = ${fmtSci(slopeB, 2)} × c) volgt c(${d.compoundB.name}) ≈ ${fmtSci(recoveredCB, 2)} mol/L.`;
     return;
   }
 }
@@ -3274,6 +3292,60 @@ generateMsSpectrum();
 generateGcMixture();
 generateTlcMixture();
 generateUvvisCase();
+
+/* =========================================================================
+   VASTE OPGAVEN VIA LINK
+   ?opgave=ms-1 | gc-1 | tlc-1 | uv-basis-1 | uv-gevorderd-1 | uv-expert-1
+   (het getal mag elk getal zijn). De opgave wordt gegenereerd met een vaste
+   seed, dus iedereen met dezelfde link krijgt precies hetzelfde mengsel.
+   LET OP: wie de generatoren of stoffenbibliotheken aanpast, verandert ook
+   de inhoud van bestaande vaste opgaven (en dus van werkbladen die ernaar
+   verwijzen).
+========================================================================= */
+function seededRandom(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function hashString(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function withSeed(key, fn) {
+  const original = Math.random;
+  Math.random = seededRandom(hashString(key));
+  try { fn(); } finally { Math.random = original; }
+}
+function loadFixedOpgave() {
+  let key = '';
+  try { key = (new URLSearchParams(location.search).get('opgave') || '').trim().toLowerCase(); } catch (e) { return; }
+  const m = key.match(/^(ms|gc|tlc|uv-basis|uv-gevorderd|uv-expert)-(\d+)$/);
+  if (!m) return;
+  const kind = m[1];
+  let label = '';
+  if (kind === 'ms') { setTab('ms'); withSeed(key, generateMsSpectrum); label = 'MS'; }
+  if (kind === 'gc') { setTab('gc'); setChromSubTab('gc'); withSeed(key, generateGcMixture); label = 'GC'; }
+  if (kind === 'tlc') { setTab('gc'); setChromSubTab('tlc'); withSeed(key, generateTlcMixture); label = 'TLC'; }
+  if (kind.startsWith('uv-')) {
+    const level = kind.slice(3);
+    setTab('uvvis');
+    uvvisLevel = level;
+    document.querySelectorAll('#panel-uvvis .subtab-btn').forEach(b => b.classList.toggle('active', b.dataset.subtab === level));
+    withSeed(key, generateUvvisCase);
+    label = 'UV-Vis ' + level;
+  }
+  const banner = document.createElement('div');
+  banner.id = 'vaste-opgave-banner';
+  banner.textContent = `Vaste opgave ${label} ${m[2]}: iedereen met deze link ziet hetzelfde. Met "Nieuw mengsel" of "Nieuw spectrum" krijg je daarna een willekeurige opgave.`;
+  const tabs = document.querySelector('.tab-btn').parentElement;
+  tabs.parentElement.insertBefore(banner, tabs.nextSibling);
+}
+loadFixedOpgave();
 </script>
 
 
