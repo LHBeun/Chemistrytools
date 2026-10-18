@@ -425,6 +425,10 @@
     border-radius: 10px;
     margin-left: 6px;
   }
+.gc-frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;font-size:.95em}
+.gc-frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 3px 1px}
+.gc-frac>span:last-child{padding:1px 3px 0}
+.gc-calc{margin:6px 0;line-height:2.4}
 </style>
 <style id="huisstijl">
 :root{--hs-acc:#1F5FBF;--hs-acc-d:#174a96;--hs-soft:#E8F0FC;--hs-given:#F3F7FD;--hs-ok:#1A7F37;--hs-ok-soft:#E4F4E8;
@@ -1634,24 +1638,27 @@ function generateGcMixture() {
   const isCompound = pick(GC_IS_LIBRARY);
   const isConcentration = randInt(10, 30); // bekende, toegevoegde IS-concentratie, zelfde in calibratie en monster
 
-  // Calibratiemeting: bekende concentratie van de doelstof + dezelfde IS-concentratie,
-  // onder dezelfde GC-condities. Hieruit volgt de responsfactor.
-  const calibTargetConcentration = randInt(10, 40); // bekende concentratie in de calibratiemeting
-  const calibTargetArea = gcComputePeakArea(calibTargetConcentration, targetCompound.sensitivity);
-  const calibIsArea = gcComputePeakArea(isConcentration, isCompound.sensitivity);
-  const responseFactor = (calibTargetArea / calibTargetConcentration) / (calibIsArea / isConcentration);
+  // Elke injectie heeft een eigen (onbekend) injectievolume: die factor werkt op
+  // BEIDE pieken van dezelfde meting. Daarom corrigeert de IS ervoor.
+  const injCal = 0.7 + Math.random() * 0.6;
+  let injSample;
+  do { injSample = 0.6 + Math.random() * 0.9; } while (Math.abs(injSample / injCal - 1) < 0.15);
+  const area = (c, sens, inj) => Math.round(c * sens * 12 * inj * (0.98 + Math.random() * 0.04) * 10) / 10;
 
-  // Monstermeting: dezelfde IS-concentratie toegevoegd, doelstof-concentratie is "onbekend"
-  // (maar in de simulatie wel vastgelegd op targetCompound.concentration, om consistent te zijn).
-  const sampleTargetArea = gcComputePeakArea(targetCompound.concentration, targetCompound.sensitivity);
-  const sampleIsArea = gcComputePeakArea(isConcentration, isCompound.sensitivity);
+  // Calibratiemeting: bekende concentratie doelstof + IS
+  const calibTargetConcentration = randInt(10, 40);
+  const calibTargetArea = area(calibTargetConcentration, targetCompound.sensitivity, injCal);
+  const calibIsArea = area(isConcentration, isCompound.sensitivity, injCal);
+  // Monstermeting: dezelfde IS-concentratie, onbekende concentratie doelstof
+  const sampleTargetArea = area(targetCompound.concentration, targetCompound.sensitivity, injSample);
+  const sampleIsArea = area(isConcentration, isCompound.sensitivity, injSample);
 
   gcCurrentData = {
     compounds,
     safeColumn,
     quant: {
       targetCompound, isCompound, isConcentration,
-      calibTargetConcentration, calibTargetArea, calibIsArea, responseFactor,
+      calibTargetConcentration, calibTargetArea, calibIsArea,
       sampleTargetArea, sampleIsArea
     }
   };
@@ -1832,37 +1839,72 @@ function renderGcQuestions() {
       <div class="question-text" style="color:#2f8a5b; font-weight:600;">Kwantificering met interne standaard
         <span class="hint-toggle" onclick="toggleHint('gc-is-explainer')" style="margin-left:8px;">uitleg interne-standaardmethode</span>
       </div>
-      <div class="hint-box" id="gc-is-explainer">Directe vergelijking van piekoppervlakken zou aannemen dat elke injectie exact even groot is en de detector voor elke stof even gevoelig reageert — in de praktijk varieert het injectievolume net iets per meting, en heeft elke stof een eigen detectorrespons. Door een bekende hoeveelheid interne standaard (IS) toe te voegen aan zowel de calibratiemeting als het monster, en de oppervlakte-verhouding (in plaats van het absolute oppervlak) te gebruiken, vallen die toevallige variaties tussen metingen weg. De IS is altijd een aparte stof die niet van nature in het monster voorkomt.</div>
+      <div class="hint-box" id="gc-is-explainer">Het injectievolume is bij elke meting net iets anders. Daarom voeg je de interne standaard (IS) in dezelfde concentratie toe aan de calibratie én aan het monster. Is het IS-signaal in het monster groter, dan is er meer geïnjecteerd. Met die verhouding corrigeer je het signaal van de doelstof. Zo vergelijk je de twee metingen alsof er precies evenveel was geïnjecteerd. De IS is een aparte stof die niet van nature in het monster voorkomt.</div>
       <div class="question-text" style="margin-top:10px;">We willen de concentratie van <strong>${q.targetCompound.name}</strong> in het monster bepalen. Daarvoor is eerst een <strong>calibratiemeting</strong> gedaan: een bekende concentratie van ${q.targetCompound.name} (${q.calibTargetConcentration} mmol/L) is samen met ${q.isConcentration} mmol/L van de interne standaard ${q.isCompound.name} gemeten, onder dezelfde GC-condities.</div>
       <table class="docent-answer-table" style="margin-bottom:10px;">
-        <tr><td>Piekoppervlak ${q.targetCompound.name}</td><td>${q.calibTargetArea.toFixed(1)}</td></tr>
-        <tr><td>Piekoppervlak ${q.isCompound.name} (IS)</td><td>${q.calibIsArea.toFixed(1)}</td></tr>
+        <tr><td>Piekoppervlak ${q.targetCompound.name}</td><td>${gcNum(q.calibTargetArea, 1)}</td></tr>
+        <tr><td>Piekoppervlak ${q.isCompound.name}</td><td>${gcNum(q.calibIsArea, 1)}</td></tr>
       </table>
     </div>`;
 
-  html += `
-    <div class="question-block">
-      <div class="question-text">3. Bereken de responsfactor RF, gedefinieerd als RF = (A<sub>X</sub>/c<sub>X</sub>) / (A<sub>IS</sub>/c<sub>IS</sub>), uit deze calibratiemeting.</div>
-      <input type="number" id="gc-q4-input" step="0.01" placeholder="RF">
+  const qBlock = (id, check, label, placeholder, step) => `
+      <input type="text" inputmode="decimal" id="gc-${id}-input" placeholder="${placeholder}">
       <div class="btn-row">
-        <button class="btn secondary" onclick="checkGcQ4()">Check</button>
-        <button class="btn secondary" onclick="showGcAnswer('q4')">Toon antwoord</button>
+        <button class="btn secondary" onclick="${check}()">Check</button>
+        <button class="btn secondary" onclick="showGcAnswer('${id.slice(0)}')">Toon antwoord</button>
       </div>
-      <div class="feedback" id="gc-q4-feedback"></div>
-    </div>`;
+      <div class="feedback" id="gc-${id}-feedback"></div>`;
 
   html += `
     <div class="question-block">
-      <div class="question-text">4. Nu wordt ${q.isConcentration} mmol/L van dezelfde interne standaard toegevoegd aan het onbekende monster, en onder dezelfde condities gemeten. Gemeten piekoppervlakken: ${q.targetCompound.name} = ${q.sampleTargetArea.toFixed(1)}, ${q.isCompound.name} (IS) = ${q.sampleIsArea.toFixed(1)}. Bereken de concentratie van ${q.targetCompound.name} in het monster, met behulp van de RF die je in de vorige vraag hebt bepaald.</div>
-      <input type="number" id="gc-q5-input" step="0.1" placeholder="concentratie (mmol/L)">
-      <div class="btn-row">
-        <button class="btn secondary" onclick="checkGcQ5()">Check</button>
-        <button class="btn secondary" onclick="showGcAnswer('q5')">Toon antwoord</button>
-      </div>
-      <div class="feedback" id="gc-q5-feedback"></div>
+      <div class="question-text">Daarna is ${q.isConcentration} mmol/L van dezelfde interne standaard toegevoegd aan het onbekende monster. Dit monster is onder dezelfde condities gemeten.</div>
+      <table class="docent-answer-table" style="margin-bottom:10px;">
+        <tr><td>Piekoppervlak ${q.targetCompound.name}</td><td>${gcNum(q.sampleTargetArea, 1)}</td></tr>
+        <tr><td>Piekoppervlak ${q.isCompound.name}</td><td>${gcNum(q.sampleIsArea, 1)}</td></tr>
+      </table>
+    </div>
+    <div class="question-block">
+      <div class="question-text">3. Bereken hoeveel keer zoveel er bij het monster is geïnjecteerd als bij de calibratie: f = ${gcFrac('A<sub>IS,monster</sub>', 'A<sub>IS,calibratie</sub>')}</div>
+      ${qBlock('q4', 'checkGcQ4', '', 'f', '0.01')}
+    </div>
+    <div class="question-block">
+      <div class="question-text">4a. Bereken de concentratie van ${q.targetCompound.name} in het monster. Corrigeer eerst het piekoppervlak van ${q.targetCompound.name} met f.</div>
+      ${qBlock('q5', 'checkGcQ5', '', 'concentratie (mmol/L)', '0.1')}
+    </div>
+    <div class="question-block">
+      <div class="question-text">4b. Ter vergelijking: welke concentratie zou je vinden als je níet corrigeert voor het injectievolume?</div>
+      ${qBlock('q5b', 'checkGcQ5b', '', 'concentratie (mmol/L)', '0.1')}
+    </div>
+    <div class="question-block">
+      <div class="question-text"><strong>Klaar?</strong> Iemand voegt per ongeluk twee keer zoveel IS toe aan het monster (${2 * q.isConcentration} mmol/L), maar rekent verder precies zoals jij. Welke concentratie van ${q.targetCompound.name} vindt hij?</div>
+      ${qBlock('q5k', 'checkGcQ5k', '', 'concentratie (mmol/L)', '0.1')}
     </div>`;
 
   container.innerHTML = html;
+}
+
+function gcFrac(t, n) {
+  return `<span class="gc-frac"><span>${t}</span><span>${n}</span></span>`;
+}
+function gcNum(x, d) { return x.toFixed(d).replace('.', ','); }
+function gcQuantAnswers(q) {
+  // tussenwaarden afgerond zoals ze in de uitwerking staan, zodat de getallen kloppen
+  const f = Math.round(q.sampleIsArea / q.calibIsArea * 1000) / 1000;
+  const corr = Math.round(q.sampleTargetArea / f * 10) / 10;
+  const c = corr / q.calibTargetArea * q.calibTargetConcentration;
+  const cRaw = q.sampleTargetArea / q.calibTargetArea * q.calibTargetConcentration;
+  return { f, corr, c, cRaw, cKlaar: c / 2 };
+}
+function gcCheckNum(id, correct, tol, okText) {
+  const val = parseFloat(document.getElementById(id + '-input').value.replace(',', '.'));
+  const fb = document.getElementById(id + '-feedback');
+  if (isFinite(val) && Math.abs(val - correct) / correct < tol) {
+    fb.className = 'feedback correct';
+    fb.innerHTML = okText;
+  } else {
+    fb.className = 'feedback incorrect';
+    fb.textContent = `Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
+  }
 }
 
 function checkGcQ2() {
@@ -1967,32 +2009,20 @@ function checkGcQ1() {
 }
 
 function checkGcQ4() {
-  const val = parseFloat(document.getElementById('gc-q4-input').value);
-  const fb = document.getElementById('gc-q4-feedback');
-  const q = gcCurrentData.quant;
-  const correct = q.responseFactor;
-  if (Math.abs(val - correct) / correct < 0.05) {
-    fb.className = 'feedback correct';
-    fb.textContent = `Klopt — RF ≈ ${correct.toFixed(2)}.`;
-  } else {
-    fb.className = 'feedback incorrect';
-    fb.textContent = `Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
-  }
+  const A = gcQuantAnswers(gcCurrentData.quant);
+  gcCheckNum('gc-q4', A.f, 0.03, `Klopt — f ≈ ${gcNum(A.f, 3)}: er is ${A.f >= 1 ? gcNum(A.f, 3) + ' keer zoveel' : 'maar ' + gcNum(A.f, 3) + ' keer zoveel'} geïnjecteerd als bij de calibratie.`);
 }
-
 function checkGcQ5() {
-  const val = parseFloat(document.getElementById('gc-q5-input').value);
-  const fb = document.getElementById('gc-q5-feedback');
-  const q = gcCurrentData.quant;
-  // c_X = (A_X * c_IS) / (A_IS * RF)
-  const correct = (q.sampleTargetArea * q.isConcentration) / (q.sampleIsArea * q.responseFactor);
-  if (Math.abs(val - correct) / correct < 0.08) {
-    fb.className = 'feedback correct';
-    fb.textContent = `Klopt — de concentratie van ${q.targetCompound.name} in het monster is ongeveer ${correct.toFixed(1)} mmol/L.`;
-  } else {
-    fb.className = 'feedback incorrect';
-    fb.textContent = `Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.`;
-  }
+  const q = gcCurrentData.quant, A = gcQuantAnswers(q);
+  gcCheckNum('gc-q5', A.c, 0.05, `Klopt — de concentratie van ${q.targetCompound.name} in het monster is ongeveer ${gcNum(A.c, 1)} mmol/L.`);
+}
+function checkGcQ5b() {
+  const A = gcQuantAnswers(gcCurrentData.quant);
+  gcCheckNum('gc-q5b', A.cRaw, 0.05, `Klopt — zonder correctie vind je ${gcNum(A.cRaw, 1)} mmol/L in plaats van ${gcNum(A.c, 1)} mmol/L. Dat verschil komt alleen door het injectievolume.`);
+}
+function checkGcQ5k() {
+  const A = gcQuantAnswers(gcCurrentData.quant);
+  gcCheckNum('gc-q5k', A.cKlaar, 0.05, `Klopt — ${gcNum(A.cKlaar, 1)} mmol/L: de helft van de echte waarde.`);
 }
 
 function showGcAnswer(which) {
@@ -2034,17 +2064,24 @@ function showGcAnswer(which) {
     }
     return;
   }
-  if (which === 'q4') {
-    const fb = document.getElementById('gc-q4-feedback');
+  if (['q4','q5','q5b','q5k'].includes(which)) {
+    const A = gcQuantAnswers(q);
+    const X = q.targetCompound.name, IS = q.isCompound.name;
+    const fb = document.getElementById('gc-' + which + '-feedback');
     fb.className = 'feedback info';
-    fb.textContent = `Antwoord: RF = (A_X / c_X) / (A_IS / c_IS) = (${q.calibTargetArea.toFixed(1)} / ${q.calibTargetConcentration}) / (${q.calibIsArea.toFixed(1)} / ${q.isConcentration}) ≈ ${q.responseFactor.toFixed(2)}.`;
-    return;
-  }
-  if (which === 'q5') {
-    const correct = (q.sampleTargetArea * q.isConcentration) / (q.sampleIsArea * q.responseFactor);
-    const fb = document.getElementById('gc-q5-feedback');
-    fb.className = 'feedback info';
-    fb.textContent = `Antwoord: c_X = (A_X · c_IS) / (A_IS · RF) = (${q.sampleTargetArea.toFixed(1)} × ${q.isConcentration}) / (${q.sampleIsArea.toFixed(1)} × ${q.responseFactor.toFixed(2)}) ≈ ${correct.toFixed(1)} mmol/L.`;
+    const fLine = `f = ${gcFrac('A<sub>IS,monster</sub>', 'A<sub>IS,calibratie</sub>')} = ${gcFrac(gcNum(q.sampleIsArea, 1), gcNum(q.calibIsArea, 1))} = ${gcNum(A.f, 3)}`;
+    if (which === 'q4') {
+      fb.innerHTML = `<div class="gc-calc">${fLine}</div>Er is bij het monster ${gcNum(A.f, 3)} keer zoveel geïnjecteerd als bij de calibratie. Dat geldt voor alle stoffen in die injectie, dus ook voor ${X}.`;
+    } else if (which === 'q5') {
+      fb.innerHTML = `<div class="gc-calc">${fLine}</div>
+        <div class="gc-calc">A<sub>X,gecorrigeerd</sub> = ${gcFrac('A<sub>X,monster</sub>', 'f')} = ${gcFrac(gcNum(q.sampleTargetArea, 1), gcNum(A.f, 3))} = ${gcNum(A.corr, 1)}</div>
+        <div class="gc-calc">c<sub>X</sub> = ${gcFrac('A<sub>X,gecorrigeerd</sub>', 'A<sub>X,calibratie</sub>')} × c<sub>X,calibratie</sub> = ${gcFrac(gcNum(A.corr, 1), gcNum(q.calibTargetArea, 1))} × ${q.calibTargetConcentration} mmol/L = ${gcNum(A.c, 1)} mmol/L</div>`;
+    } else if (which === 'q5b') {
+      fb.innerHTML = `<div class="gc-calc">c<sub>X</sub> = ${gcFrac('A<sub>X,monster</sub>', 'A<sub>X,calibratie</sub>')} × c<sub>X,calibratie</sub> = ${gcFrac(gcNum(q.sampleTargetArea, 1), gcNum(q.calibTargetArea, 1))} × ${q.calibTargetConcentration} mmol/L = ${gcNum(A.cRaw, 1)} mmol/L</div>Dat wijkt af van ${gcNum(A.c, 1)} mmol/L, omdat er een andere hoeveelheid is geïnjecteerd. Zonder interne standaard zie je dat verschil niet en meet je dus fout.`;
+    } else {
+      fb.innerHTML = `Met twee keer zoveel IS wordt A<sub>IS,monster</sub> twee keer zo groot. Dan wordt ook f twee keer zo groot, terwijl er niet meer is geïnjecteerd.
+        <div class="gc-calc">c<sub>X</sub> = ${gcFrac(gcNum(A.c, 1) + ' mmol/L', '2')} = ${gcNum(A.cKlaar, 1)} mmol/L</div>De methode werkt dus alleen als je in beide metingen precies dezelfde concentratie IS gebruikt.`;
+    }
     return;
   }
 }
