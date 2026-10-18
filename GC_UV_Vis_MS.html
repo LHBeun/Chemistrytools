@@ -463,7 +463,7 @@ body.hs-beamer>*:not(.hs-header):not(.hs-own):not(script):not(.hs-nozoom){zoom:1
 <div class="app-shell">
 
   <div class="app-header">
-    <h1 class="app-title">ANALYSEMETHODEN <span class="dim">// MS · GC/TLC · UV-Vis</span></h1>
+    <h1 class="app-title">ANALYSEMETHODEN <span class="dim">// MS · GC/TLC · UV-Vis · IR</span></h1>
     <div class="mode-toggle">
       <button id="mode-oefen" class="active" onclick="setMode('oefen')">Oefenmodus</button>
       <button id="mode-opgave" onclick="setMode('opgave')">Opgavemodus</button>
@@ -474,6 +474,7 @@ body.hs-beamer>*:not(.hs-header):not(.hs-own):not(script):not(.hs-nozoom){zoom:1
     <button class="tab-btn active" data-tab="ms" onclick="setTab('ms')">Massaspectrometrie</button>
     <button class="tab-btn" data-tab="gc" onclick="setTab('gc')">Chromatografie</button>
     <button class="tab-btn" data-tab="uvvis" onclick="setTab('uvvis')">UV-Vis</button>
+    <button class="tab-btn" data-tab="ir" onclick="setTab('ir')">IR</button>
   </div>
 
   <!-- ============ MS MODULE ============ -->
@@ -758,6 +759,53 @@ body.hs-beamer>*:not(.hs-header):not(.hs-own):not(script):not(.hs-nozoom){zoom:1
 
   </div>
 
+  <!-- ============ IR MODULE ============ -->
+  <div class="module-panel" id="panel-ir">
+
+    <div class="subtabs">
+      <button class="subtab-btn active" data-subtab="stof" onclick="setIrLevel('stof')">A. Welke stof?</button>
+      <button class="subtab-btn" data-subtab="spectrum" onclick="setIrLevel('spectrum')">B. Welk spectrum?</button>
+      <button class="subtab-btn" data-subtab="reactie" onclick="setIrLevel('reactie')">C. Reactie volgen</button>
+    </div>
+
+    <!-- OEFENMODUS -->
+    <div id="ir-oefen-view">
+      <div class="card">
+        <h2 style="color:#2f8a5b">IR-spectrum <span class="hint-toggle" onclick="toggleHint('ir-explainer')" style="margin-left:8px;">uitleg IR</span></h2>
+        <div class="hint-box" id="ir-explainer">Een binding trilt. Infrarood licht met precies de juiste energie wordt door die binding geabsorbeerd: daar zakt de transmissie in. Elke soort binding (O–H, C=O, C–H …) absorbeert in een eigen gebied. Op de x-as staat het golfgetal in cm⁻¹ (golfgetal = 1/λ), van links naar rechts afnemend. Zoek de gebieden op in Binas tabel 39C. Onder 1500 cm⁻¹ ligt het vingerafdrukgebied: daar zitten veel pieken die per stof verschillen. Gebruik daar alleen de sterke C–O-piek.</div>
+        <div id="ir-spectra"></div>
+        <div class="btn-row">
+          <button class="btn" onclick="generateIrCase()">Nieuw spectrum</button>
+          <select class="lesopgave-select" data-kind="ir" onchange="if(this.value) loadLesopgave('ir', this.value)" title="Vaste opgave: iedereen die hetzelfde nummer kiest, krijgt dezelfde opgave"><option value="">Lesopgave…</option><option value="1">Lesopgave 1</option><option value="2">Lesopgave 2</option><option value="3">Lesopgave 3</option><option value="4">Lesopgave 4</option><option value="5">Lesopgave 5</option><option value="6">Lesopgave 6</option><option value="7">Lesopgave 7</option><option value="8">Lesopgave 8</option><option value="9">Lesopgave 9</option><option value="10">Lesopgave 10</option><option value="11">Lesopgave 11</option><option value="12">Lesopgave 12</option><option value="13">Lesopgave 13</option><option value="14">Lesopgave 14</option><option value="15">Lesopgave 15</option><option value="16">Lesopgave 16</option><option value="17">Lesopgave 17</option><option value="18">Lesopgave 18</option><option value="19">Lesopgave 19</option><option value="20">Lesopgave 20</option><option value="21">Lesopgave 21</option><option value="22">Lesopgave 22</option><option value="23">Lesopgave 23</option><option value="24">Lesopgave 24</option><option value="25">Lesopgave 25</option><option value="26">Lesopgave 26</option><option value="27">Lesopgave 27</option><option value="28">Lesopgave 28</option><option value="29">Lesopgave 29</option><option value="30">Lesopgave 30</option></select>
+        </div>
+        <div class="small-note" id="ir-case-note"></div>
+      </div>
+      <div class="card" style="margin-top:18px;">
+        <h2>Redeneer mee</h2>
+        <div id="ir-questions"></div>
+      </div>
+    </div>
+
+    <!-- OPGAVEMODUS -->
+    <div id="ir-opgave-view" style="display:none">
+      <div class="card">
+        <div class="opgave-meta-bar">
+          <span>IR — OPGAVE</span>
+          <button class="btn secondary" onclick="generateIrCase()">Genereer nieuwe opgave</button>
+        </div>
+        <div class="opgave-question-text" id="ir-opgave-text"></div>
+        <div id="ir-spectra-opgave"></div>
+        <div class="opgave-answer-space"></div>
+        <div class="small-note">Opgavemodus toont alleen de spectra en de vraagstelling. Geschikt om direct te schermafbeelden (knip boven de docentensectie hieronder af).</div>
+        <div class="docent-answer-section">
+          <div class="docent-answer-title">▾ Antwoordmodel (alleen voor jou — niet meeknippen in de screenshot)</div>
+          <div id="ir-docent-answer"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
 <script>
@@ -785,6 +833,8 @@ function setMode(mode) {
   document.getElementById('tlc-opgave-view').style.display = mode === 'opgave' ? 'block' : 'none';
   document.getElementById('uvvis-oefen-view').style.display = mode === 'oefen' ? 'block' : 'none';
   document.getElementById('uvvis-opgave-view').style.display = mode === 'opgave' ? 'block' : 'none';
+  document.getElementById('ir-oefen-view').style.display = mode === 'oefen' ? 'block' : 'none';
+  document.getElementById('ir-opgave-view').style.display = mode === 'opgave' ? 'block' : 'none';
   if (msCurrentData) renderMsOpgaveSvg(msCurrentData);
   if (gcCurrentData) renderGcOpgave();
   if (tlcCurrentData) renderTlcOpgave();
@@ -797,6 +847,7 @@ function setTab(tab) {
   document.getElementById('panel-ms').classList.toggle('active', tab === 'ms');
   document.getElementById('panel-gc').classList.toggle('active', tab === 'gc');
   document.getElementById('panel-uvvis').classList.toggle('active', tab === 'uvvis');
+  document.getElementById('panel-ir').classList.toggle('active', tab === 'ir');
 }
 
 function setChromSubTab(subtab) {
@@ -3292,15 +3343,321 @@ function showUvvisAnswer(which) {
 }
 
 
+/* =========================================================================
+   IR MODULE — DATA
+   Gebieden volgens Binas tabel 39C (groepsfrequenties). Pieken zijn
+   gaussvormige absorpties (A = absorbantie); het spectrum toont de
+   transmissie T = 10^(−ΣA) in %, pieken naar beneden.
+========================================================================= */
+const IR_BONDS = {
+  OH_alc:  { label: 'O–H (alcohol)',        range: [3200, 3525], binas: '3525–3200 cm⁻¹, breed, sterk' },
+  OH_acid: { label: 'O–H (carbonzuur)',     range: [2500, 3400], binas: '3400–2500 cm⁻¹, heel breed' },
+  NH:      { label: 'N–H (amine)',          range: [3300, 3500], binas: '~3500 en ~3400 cm⁻¹ (primair amine: twee banden)' },
+  CH_alk:  { label: 'C–H (alkaan)',         range: [2800, 3000], binas: '3000–2800 cm⁻¹' },
+  CH_sp2:  { label: 'C–H (alkeen/aromaat)', range: [3000, 3100], binas: '3100–3000 cm⁻¹' },
+  CH_ald:  { label: 'C–H (aldehyde)',       range: [2700, 2850], binas: '2850–2820 en 2750–2700 cm⁻¹, twee banden' },
+  CN:      { label: 'C≡N',                  range: [2240, 2260], binas: '2260–2240 cm⁻¹, scherp' },
+  CO_dbl:  { label: 'C=O',                  range: [1680, 1760], binas: 'ester ~1745, aldehyde ~1730, keton ~1715, carbonzuur ~1695 cm⁻¹, sterk' },
+  CC_dbl:  { label: 'C=C',                  range: [1450, 1670], binas: 'alkeen 1670–1600, aromaat 1600–1575 en 1500–1450 cm⁻¹' },
+  CH_buig: { label: 'C–H (buig, alkaan)',   range: [1370, 1470], binas: '1470–1370 cm⁻¹' },
+  C_O:     { label: 'C–O',                  range: [1000, 1320], binas: '1320–1000 cm⁻¹, sterk' }
+};
+const IR_BOND_ORDER = ['OH_alc', 'OH_acid', 'NH', 'CH_alk', 'CH_sp2', 'CH_ald', 'CN', 'CO_dbl', 'CC_dbl', 'CH_buig', 'C_O'];
+
+// piek: [centrum (cm⁻¹), halfwaardebreedte (cm⁻¹), absorbantie, binding (of null), sleutelpiek?]
+const irCH = (s = 1) => [[2962, 24, 0.75 * s, 'CH_alk', 1], [2932, 24, 0.55 * s, 'CH_alk', 0], [2875, 22, 0.45 * s, 'CH_alk', 0], [1462, 28, 0.32 * s, 'CH_buig', 0], [1380, 18, 0.25 * s, 'CH_buig', 0]];
+const IR_LIBRARY = [
+  { name: 'ethanol', klasse: 'alcohol', peaks: [[3340, 270, 1.05, 'OH_alc', 1], ...irCH(0.8), [1088, 30, 0.6, null, 0], [1050, 34, 1.15, 'C_O', 1], [880, 26, 0.45, null, 0]] },
+  { name: 'propaan-1-ol', klasse: 'alcohol', peaks: [[3335, 270, 1.05, 'OH_alc', 1], ...irCH(0.95), [1060, 36, 1.1, 'C_O', 1], [970, 24, 0.45, null, 0]] },
+  { name: 'propaan-2-ol', klasse: 'alcohol', peaks: [[3355, 260, 1.0, 'OH_alc', 1], ...irCH(0.95), [1370, 14, 0.35, null, 0], [1130, 34, 1.0, 'C_O', 1], [950, 24, 0.55, null, 0], [818, 22, 0.35, null, 0]] },
+  { name: 'cyclohexanol', klasse: 'alcohol', peaks: [[3345, 270, 1.0, 'OH_alc', 1], [2930, 30, 1.0, 'CH_alk', 1], [2855, 24, 0.75, 'CH_alk', 0], [1450, 26, 0.4, null, 0], [1065, 34, 1.05, 'C_O', 1], [970, 22, 0.5, null, 0], [890, 20, 0.35, null, 0]] },
+  { name: 'propanal', klasse: 'aldehyde', peaks: [...irCH(0.75), [2820, 18, 0.32, 'CH_ald', 1], [2720, 18, 0.3, 'CH_ald', 0], [1730, 30, 1.4, 'CO_dbl', 1], [1120, 30, 0.3, null, 0], [860, 24, 0.3, null, 0]] },
+  { name: 'propanon', klasse: 'keton', peaks: [[3005, 20, 0.2, 'CH_alk', 0], [2970, 22, 0.3, 'CH_alk', 0], [1715, 30, 1.45, 'CO_dbl', 1], [1420, 24, 0.45, 'CH_buig', 0], [1365, 20, 0.7, 'CH_buig', 0], [1220, 30, 0.75, null, 0], [530, 24, 0.4, null, 0]] },
+  { name: 'butanon', klasse: 'keton', peaks: [...irCH(0.7), [1717, 30, 1.45, 'CO_dbl', 1], [1365, 20, 0.6, null, 0], [1172, 30, 0.65, null, 0], [945, 22, 0.35, null, 0]] },
+  { name: 'propaanzuur', klasse: 'carbonzuur', peaks: [[3000, 560, 0.75, 'OH_acid', 1], ...irCH(0.6), [1705, 34, 1.45, 'CO_dbl', 1], [1420, 26, 0.45, null, 0], [1240, 36, 0.8, 'C_O', 1], [935, 60, 0.45, null, 0]] },
+  { name: 'ethaanzuur', klasse: 'carbonzuur', peaks: [[3020, 560, 0.75, 'OH_acid', 1], [2970, 20, 0.2, 'CH_alk', 0], [1710, 34, 1.45, 'CO_dbl', 1], [1410, 26, 0.45, null, 0], [1290, 34, 0.8, 'C_O', 1], [935, 60, 0.45, null, 0]] },
+  { name: 'ethylethanoaat', klasse: 'ester', peaks: [...irCH(0.65), [1743, 30, 1.45, 'CO_dbl', 1], [1240, 40, 1.35, 'C_O', 1], [1047, 30, 0.8, null, 0], [938, 22, 0.3, null, 0]] },
+  { name: 'ethoxyethaan', klasse: 'ether', peaks: [...irCH(1.0), [1120, 40, 1.35, 'C_O', 1], [1350, 18, 0.3, null, 0], [845, 22, 0.35, null, 0]] },
+  { name: 'cyclohexeen', klasse: 'alkeen', peaks: [[3025, 22, 0.45, 'CH_sp2', 1], [2930, 28, 0.9, 'CH_alk', 0], [2860, 24, 0.6, 'CH_alk', 0], [2838, 20, 0.5, 'CH_alk', 0], [1652, 20, 0.3, 'CC_dbl', 1], [1440, 24, 0.45, null, 0], [720, 30, 0.95, null, 0]] },
+  { name: 'hex-1-een', klasse: 'alkeen', peaks: [[3080, 20, 0.4, 'CH_sp2', 1], ...irCH(0.9), [1642, 18, 0.4, 'CC_dbl', 1], [992, 20, 0.7, null, 0], [910, 20, 0.95, null, 0]] },
+  { name: 'hexaan', klasse: 'alkaan', peaks: [...irCH(1.15).map((p, i) => i === 0 ? [p[0], p[1], p[2], p[3], 1] : p), [725, 22, 0.3, null, 0]] },
+  { name: 'tolueen', klasse: 'aromaat', peaks: [[3062, 18, 0.35, 'CH_sp2', 1], [3030, 18, 0.45, 'CH_sp2', 0], [2922, 20, 0.3, 'CH_alk', 0], [1605, 16, 0.35, 'CC_dbl', 0], [1495, 16, 0.65, 'CC_dbl', 1], [1460, 16, 0.35, null, 0], [730, 22, 1.2, null, 0], [695, 20, 1.1, null, 0]] },
+  { name: 'propaan-1-amine', klasse: 'amine', peaks: [[3470, 60, 0.3, 'NH', 1], [3385, 60, 0.32, 'NH', 0], ...irCH(0.85), [1600, 60, 0.3, null, 0], [1075, 30, 0.35, null, 0], [800, 80, 0.55, null, 0]] },
+  { name: 'propaannitril', klasse: 'nitril', peaks: [[2990, 20, 0.35, 'CH_alk', 0], [2950, 20, 0.3, 'CH_alk', 0], [2250, 16, 0.65, 'CN', 1], [1460, 22, 0.4, null, 0], [1425, 18, 0.35, null, 0], [1075, 20, 0.3, null, 0], [785, 22, 0.35, null, 0]] }
+];
+const irByName = n => IR_LIBRARY.find(c => c.name === n);
+
+// Reacties voor niveau C. start/product = [[stof, aandeel], …]
+const IR_REACTIONS = [
+  { label: 'propaan-1-ol → propanal (oxidatie)', start: [['propaan-1-ol', 1]], product: [['propanal', 1]] },
+  { label: 'propanal → propaanzuur (oxidatie)', start: [['propanal', 1]], product: [['propaanzuur', 1]] },
+  { label: 'propaan-1-ol → propaanzuur (volledige oxidatie)', start: [['propaan-1-ol', 1]], product: [['propaanzuur', 1]] },
+  { label: 'propaan-2-ol → propanon (oxidatie)', start: [['propaan-2-ol', 1]], product: [['propanon', 1]] },
+  { label: 'ethaanzuur + ethanol → ethylethanoaat + water (verestering; het water is verwijderd)', start: [['ethaanzuur', 0.5], ['ethanol', 0.5]], product: [['ethylethanoaat', 1]] },
+  { label: 'cyclohexanol → cyclohexeen + water (water afsplitsen; het water is verwijderd)', start: [['cyclohexanol', 1]], product: [['cyclohexeen', 1]] }
+];
+
+let irLevel = 'stof';
+let irCurrentData = null;
+
+/* ---------- spectrum berekenen ---------- */
+function irFingerprint(name) {
+  // kleine, vaste pieken in het vingerafdrukgebied (per stof altijd dezelfde)
+  let h = hashString('fp-' + name);
+  const rnd = () => { h = (Math.imul(h, 1664525) + 1013904223) >>> 0; return h / 4294967296; };
+  const out = [];
+  const n = 4 + Math.floor(rnd() * 3);
+  for (let i = 0; i < n; i++) out.push([620 + rnd() * 820, 12 + rnd() * 16, 0.08 + rnd() * 0.18, null, 0]);
+  return out;
+}
+function irAbsorbance(comp, nu) {
+  let A = 0;
+  comp.peaks.concat(irFingerprint(comp.name)).forEach(([c, w, a]) => {
+    const x = (nu - c) / w;
+    A += a * Math.exp(-4 * Math.LN2 * x * x);
+  });
+  return A;
+}
+// mengsel: absorbanties tellen op (Lambert-Beer), daarna terug naar transmissie
+function irTransmission(mix, nu) {
+  let A = 0.02 + 0.015 * (nu - 500) / 3500; // lichte basislijn
+  mix.forEach(([name, frac]) => { A += frac * irAbsorbance(irByName(name), nu); });
+  return 100 * Math.pow(10, -A);
+}
+function irKeyBonds(name) {
+  const set = [];
+  irByName(name).peaks.forEach(p => { if (p[3] && p[4] && !set.includes(p[3])) set.push(p[3]); });
+  return set;
+}
+function irAllBonds(name) {
+  const set = [];
+  irByName(name).peaks.forEach(p => { if (p[3] && !set.includes(p[3])) set.push(p[3]); });
+  return set;
+}
+function irMarkedPeaks(name) {
+  // sleutelpieken (max 3), gesorteerd van hoog naar laag golfgetal
+  return irByName(name).peaks.filter(p => p[3] && p[4]).sort((a, b) => b[0] - a[0]).slice(0, 3)
+    .map((p, i) => ({ letter: 'PQR'[i], nu: p[0], bond: p[3] }));
+}
+
+/* ---------- tekenen ---------- */
+function irSvg(mix, opts = {}) {
+  const W = 760, H = opts.small ? 230 : 320;
+  const mL = 52, mR = 16, mT = opts.title ? 30 : 16, mB = 42;
+  const pW = W - mL - mR, pH = H - mT - mB;
+  const x = nu => mL + (4000 - nu) / 3500 * pW;
+  const y = T => mT + (1 - T / 100) * pH;
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">`;
+  if (opts.title) s += `<text x="${mL}" y="18" font-size="14" font-weight="700" font-family="sans-serif" fill="#1F5FBF">${opts.title}</text>`;
+  // vingerafdrukgebied
+  s += `<rect x="${x(1500)}" y="${mT}" width="${x(500) - x(1500)}" height="${pH}" fill="#eef2f7"/>`;
+  s += `<text x="${(x(1500) + x(500)) / 2}" y="${mT + pH + 30}" font-size="11" text-anchor="middle" font-family="sans-serif" fill="#7a8696">vingerafdrukgebied</text>`;
+  for (let nu = 4000; nu >= 500; nu -= 500) {
+    s += `<line x1="${x(nu)}" y1="${mT}" x2="${x(nu)}" y2="${mT + pH}" stroke="#e3e7ec" stroke-width="1"/>`;
+    s += `<text x="${x(nu)}" y="${mT + pH + 16}" font-size="11" text-anchor="middle" font-family="sans-serif" fill="#333">${nu}</text>`;
+  }
+  [0, 50, 100].forEach(T => {
+    s += `<text x="${mL - 6}" y="${y(T) + 4}" font-size="11" text-anchor="end" font-family="sans-serif" fill="#333">${T}</text>`;
+  });
+  s += `<rect x="${mL}" y="${mT}" width="${pW}" height="${pH}" fill="none" stroke="#222" stroke-width="1.1"/>`;
+  s += `<text x="${mL + pW / 2}" y="${H - 6}" font-size="12" text-anchor="middle" font-family="sans-serif" fill="#333">golfgetal (cm⁻¹)</text>`;
+  s += `<text x="14" y="${mT + pH / 2}" font-size="12" text-anchor="middle" font-family="sans-serif" fill="#333" transform="rotate(-90 14 ${mT + pH / 2})">transmissie (%)</text>`;
+  const pts = [];
+  for (let nu = 4000; nu >= 500; nu -= 4) pts.push(`${x(nu).toFixed(1)} ${y(irTransmission(mix, nu)).toFixed(1)}`);
+  s += `<path d="M ${pts.join(' L ')}" fill="none" stroke="#c0392b" stroke-width="1.6"/>`;
+  (opts.marks || []).forEach(m => {
+    const T = irTransmission(mix, m.nu);
+    s += `<line x1="${x(m.nu)}" y1="${mT + 4}" x2="${x(m.nu)}" y2="${y(T) - 4}" stroke="#1F5FBF" stroke-width="1" stroke-dasharray="3,3"/>`;
+    s += `<circle cx="${x(m.nu)}" cy="${mT + 12}" r="10" fill="#1F5FBF"/>`;
+    s += `<text x="${x(m.nu)}" y="${mT + 16}" font-size="12" font-weight="700" text-anchor="middle" font-family="sans-serif" fill="#fff">${m.letter}</text>`;
+    if (opts.showNu) s += `<text x="${x(m.nu) + 13}" y="${mT + 16}" font-size="11" font-family="sans-serif" fill="#1F5FBF">${m.nu}</text>`;
+  });
+  return s + '</svg>';
+}
+
+/* ---------- opgave maken ---------- */
+function irPickOthers(target, n) {
+  const k = irByName(target).klasse;
+  const pool = IR_LIBRARY.filter(c => c.klasse !== k);
+  const chosen = [];
+  while (chosen.length < n) {
+    const c = pick(pool);
+    if (!chosen.some(d => d.klasse === c.klasse)) chosen.push(c);
+  }
+  return chosen.map(c => c.name);
+}
+function irShuffle(arr) { return arr.map(v => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map(v => v[1]); }
+
+function setIrLevel(level) {
+  irLevel = level;
+  document.querySelectorAll('#panel-ir .subtab-btn').forEach(b => b.classList.toggle('active', b.dataset.subtab === level));
+  generateIrCase();
+}
+
+function generateIrCase() {
+  if (irLevel === 'stof') {
+    const target = pick(IR_LIBRARY).name;
+    irCurrentData = { level: 'stof', target, candidates: irShuffle([target, ...irPickOthers(target, 3)]), marks: irMarkedPeaks(target), peaksOk: false };
+  } else if (irLevel === 'spectrum') {
+    const target = pick(IR_LIBRARY).name;
+    irCurrentData = { level: 'spectrum', target, options: irShuffle([target, ...irPickOthers(target, 2)]) };
+  } else {
+    const reaction = pick(IR_REACTIONS);
+    const r = Math.random();
+    const scenario = r < 0.4 ? 'volledig' : r < 0.6 ? 'niet' : 'gedeeltelijk';
+    const f = scenario === 'volledig' ? 1 : scenario === 'niet' ? 0 : Math.round((0.35 + Math.random() * 0.3) * 100) / 100;
+    const mix = reaction.start.map(([n, a]) => [n, a * (1 - f)]).concat(reaction.product.map(([n, a]) => [n, a * f])).filter(m => m[1] > 0);
+    irCurrentData = { level: 'reactie', reaction, scenario, f, mix };
+  }
+  renderIr();
+}
+
+/* ---------- weergave + vragen ---------- */
+const irOpts = (prefix, includeBlank = true) => (includeBlank ? `<option value="">${prefix}</option>` : '') +
+  IR_BOND_ORDER.map(k => `<option value="${k}">${IR_BONDS[k].label}</option>`).join('');
+const irBtns = id => `<div class="btn-row"><button class="btn secondary" onclick="checkIr('${id}')">Check</button><button class="btn secondary" onclick="showIrAnswer('${id}')">Toon antwoord</button></div><div class="feedback" id="ir-${id}-feedback"></div>`;
+const irNum = x => String(x).replace('.', ',');
+
+function renderIr() {
+  const d = irCurrentData;
+  const box = document.getElementById('ir-spectra');
+  const qs = document.getElementById('ir-questions');
+  const note = document.getElementById('ir-case-note');
+  let html = '', q = '';
+  if (d.level === 'stof') {
+    html = irSvg([[d.target, 1]], { marks: d.marks });
+    const ls = d.marks.map(m => m.letter); note.textContent = (ls.length === 1 ? 'De gemarkeerde piek ' + ls[0] + ' is de piek' : 'De gemarkeerde pieken ' + ls.slice(0, -1).join(', ') + ' en ' + ls[ls.length - 1] + ' zijn de pieken') + ' die je nodig hebt.';
+    q += `<div class="question-block"><div class="question-text">1. Welke binding hoort bij elke gemarkeerde piek? Gebruik Binas tabel 39C.</div>
+      <div class="gc-order-row">${d.marks.map((m, i) => `<select id="ir-q1-pos${i}">${irOpts('piek ' + m.letter)}</select>`).join('')}</div>${irBtns('q1')}</div>`;
+    q += `<div class="question-block" id="ir-q2-block" style="display:none"><div class="question-text">2. Welke stof hoort bij dit spectrum? Leg in je schrift uit welke pieken de doorslag geven.</div>
+      <select id="ir-q2-input"><option value="">— kies een stof —</option>${d.candidates.map(n => `<option value="${n}">${n}</option>`).join('')}</select>${irBtns('q2')}</div>`;
+    q += `<div class="question-block"><div class="question-text"><strong>Klaar?</strong> Kies een van de andere stoffen uit de lijst. Welke piek zou je dan juist wél of juist níet zien?</div>
+      <div class="btn-row"><button class="btn secondary" onclick="showIrAnswer('klaar')">Toon antwoord</button></div><div class="feedback" id="ir-klaar-feedback"></div></div>`;
+  } else if (d.level === 'spectrum') {
+    html = d.options.map((n, i) => irSvg([[n, 1]], { small: true, title: 'Spectrum ' + 'ABC'[i] })).join('<div style="height:10px"></div>');
+    note.textContent = '';
+    q += `<div class="question-block"><div class="question-text">1. Welk spectrum hoort bij <strong>${d.target}</strong>?</div>
+      <select id="ir-q1-input"><option value="">— kies —</option>${d.options.map((n, i) => `<option value="${i}">Spectrum ${'ABC'[i]}</option>`).join('')}</select>${irBtns('q1')}</div>`;
+    q += `<div class="question-block"><div class="question-text">2. Noem twee karakteristieke pieken van ${d.target}: de binding en het golfgetal dat je in het spectrum afleest.</div>
+      ${[0, 1].map(i => `<div class="gc-order-row"><select id="ir-q2-bond${i}">${irOpts('binding ' + (i + 1))}</select><input type="text" inputmode="numeric" id="ir-q2-nu${i}" placeholder="golfgetal (cm⁻¹)"></div>`).join('')}${irBtns('q2')}</div>`;
+    q += `<div class="question-block"><div class="question-text"><strong>Klaar?</strong> Leg voor één van de twee andere spectra uit welke stofklasse het zou kunnen zijn.</div>
+      <div class="btn-row"><button class="btn secondary" onclick="showIrAnswer('klaar')">Toon antwoord</button></div><div class="feedback" id="ir-klaar-feedback"></div></div>`;
+  } else {
+    html = irSvg(d.reaction.start, { small: true, title: 'Vóór de reactie' }) + '<div style="height:10px"></div>' + irSvg(d.mix, { small: true, title: 'Na de reactie' });
+    note.textContent = 'Reactie: ' + d.reaction.label;
+    q += `<div class="question-block"><div class="question-text">1. Reactie: <strong>${d.reaction.label}</strong>. Is de omzetting gelukt? Vergelijk de spectra vóór en na de reactie.</div>
+      <select id="ir-q1-input"><option value="">— kies —</option><option value="volledig">volledig gelukt</option><option value="niet">niet gelukt</option><option value="gedeeltelijk">gedeeltelijk gelukt (mengsel)</option></select>${irBtns('q1')}</div>`;
+    q += `<div class="question-block"><div class="question-text">2. Kies een binding waarvan de piek je bewijs is (een piek die verdwijnt, verschijnt of blijft).</div>
+      <select id="ir-q2-input">${irOpts('— kies een binding —')}</select>${irBtns('q2')}</div>`;
+    q += `<div class="question-block"><div class="question-text"><strong>Klaar?</strong> Waarom is de C–H-piek rond 2900 cm⁻¹ hier geen goed bewijs?</div>
+      <div class="btn-row"><button class="btn secondary" onclick="showIrAnswer('klaar')">Toon antwoord</button></div><div class="feedback" id="ir-klaar-feedback"></div></div>`;
+  }
+  box.innerHTML = html;
+  qs.innerHTML = q;
+  renderIrOpgave();
+}
+
+function irFb(id, ok, okText, noText) {
+  const fb = document.getElementById(`ir-${id}-feedback`);
+  fb.className = 'feedback ' + (ok ? 'correct' : 'incorrect');
+  fb.textContent = ok ? okText : (noText || 'Nog niet juist. Probeer het opnieuw, of gebruik "Toon antwoord" als je er niet uitkomt.');
+}
+function irDiffBonds(d) {
+  const s = [...new Set(d.reaction.start.flatMap(([n]) => irKeyBonds(n)))];
+  const p = [...new Set(d.reaction.product.flatMap(([n]) => irKeyBonds(n)))];
+  return { gone: s.filter(b => !p.includes(b)), fresh: p.filter(b => !s.includes(b)) };
+}
+
+function checkIr(id) {
+  const d = irCurrentData;
+  if (d.level === 'stof' && id === 'q1') {
+    const ok = d.marks.every((m, i) => document.getElementById(`ir-q1-pos${i}`).value === m.bond);
+    irFb('q1', ok, 'Klopt. Kies nu de stof (vraag 2).', 'Nog niet juist. Lees per piek het golfgetal af en zoek het gebied op in Binas tabel 39C. Let ook op de vorm: breed of smal.');
+    if (ok) document.getElementById('ir-q2-block').style.display = '';
+  } else if (d.level === 'stof' && id === 'q2') {
+    irFb('q2', document.getElementById('ir-q2-input').value === d.target, `Klopt: het is ${d.target}.`);
+  } else if (d.level === 'spectrum' && id === 'q1') {
+    irFb('q1', d.options[+document.getElementById('ir-q1-input').value] === d.target && document.getElementById('ir-q1-input').value !== '', `Klopt: spectrum ${'ABC'[d.options.indexOf(d.target)]}.`);
+  } else if (d.level === 'spectrum' && id === 'q2') {
+    const keys = irAllBonds(d.target);
+    const rows = [0, 1].map(i => ({ b: document.getElementById(`ir-q2-bond${i}`).value, nu: parseFloat(document.getElementById(`ir-q2-nu${i}`).value.replace(',', '.')) }));
+    const peakOk = r => {
+      if (!keys.includes(r.b) || !isFinite(r.nu)) return false;
+      return irByName(d.target).peaks.some(p => p[3] === r.b && Math.abs(p[0] - r.nu) <= Math.max(60, p[1] / 2));
+    };
+    const ok = rows[0].b !== rows[1].b && rows.every(peakOk);
+    irFb('q2', ok, 'Klopt: beide pieken horen bij deze stof en liggen op die plek.', 'Nog niet juist. Kies twee verschillende bindingen die in deze stof voorkomen, en lees het golfgetal af in het juiste spectrum.');
+  } else if (d.level === 'reactie' && id === 'q1') {
+    irFb('q1', document.getElementById('ir-q1-input').value === d.scenario, `Klopt: ${d.scenario === 'volledig' ? 'volledig gelukt' : d.scenario === 'niet' ? 'niet gelukt' : 'gedeeltelijk gelukt'}.`);
+  } else if (d.level === 'reactie' && id === 'q2') {
+    const { gone, fresh } = irDiffBonds(d);
+    const v = document.getElementById('ir-q2-input').value;
+    irFb('q2', gone.includes(v) || fresh.includes(v), 'Klopt: aan deze piek zie je het verschil tussen beginstof en product.', 'Nog niet juist. Kies een binding die maar in één van de twee stoffen voorkomt (beginstof of product).');
+  }
+}
+
+function irPeakList(name) {
+  return irByName(name).peaks.filter(p => p[3] && p[4]).sort((a, b) => b[0] - a[0])
+    .map(p => `${IR_BONDS[p[3]].label} bij ${p[0]} cm⁻¹`).join(', ');
+}
+function irAnswerText(id) {
+  const d = irCurrentData;
+  if (d.level === 'stof') {
+    if (id === 'q1') return 'Antwoord: ' + d.marks.map(m => `piek ${m.letter} (${m.nu} cm⁻¹) = ${IR_BONDS[m.bond].label}; Binas: ${IR_BONDS[m.bond].binas}`).join(' · ');
+    if (id === 'q2') return `Antwoord: ${d.target} (${irByName(d.target).klasse}). Karakteristiek: ${irPeakList(d.target)}.`;
+    return 'Antwoord: ' + d.candidates.filter(n => n !== d.target).map(n => `${n} (${irByName(n).klasse}): ${irPeakList(n)}`).join(' · ');
+  }
+  if (d.level === 'spectrum') {
+    if (id === 'q1') return `Antwoord: spectrum ${'ABC'[d.options.indexOf(d.target)]}. ${d.target} is een ${irByName(d.target).klasse}.`;
+    if (id === 'q2') return `Antwoord (twee van deze): ${irPeakList(d.target)}.`;
+    return 'Antwoord: ' + d.options.map((n, i) => n === d.target ? '' : `spectrum ${'ABC'[i]}: ${irByName(n).klasse} (${n}); ${irPeakList(n)}`).filter(Boolean).join(' · ');
+  }
+  const { gone, fresh } = irDiffBonds(d);
+  const L = arr => arr.map(b => IR_BONDS[b].label).join(' en ') || 'geen';
+  if (id === 'q1' || id === 'q2') {
+    const base = `Pieken die alleen de beginstof heeft: ${L(gone)}. Pieken die alleen het product heeft: ${L(fresh)}. `;
+    if (d.scenario === 'volledig') return 'Antwoord: volledig gelukt. ' + base + 'Na de reactie zijn de pieken van de beginstof weg en zijn de pieken van het product er.';
+    if (d.scenario === 'niet') return 'Antwoord: niet gelukt. ' + base + 'Het spectrum na de reactie is hetzelfde als ervoor: de pieken van het product ontbreken.';
+    return `Antwoord: gedeeltelijk gelukt (ongeveer ${Math.round(d.f * 100)} % omgezet). ` + base + 'Na de reactie zie je de pieken van het product, maar ook nog (kleiner) de pieken van de beginstof.';
+  }
+  return 'Antwoord: C–H-bindingen zitten in de beginstof én in het product. Die piek verandert dus nauwelijks en zegt niets over of de reactie gelukt is.';
+}
+function showIrAnswer(id) {
+  const fb = document.getElementById(`ir-${id}-feedback`);
+  fb.className = 'feedback info';
+  fb.textContent = irAnswerText(id);
+  if (irCurrentData.level === 'stof' && id === 'q1') document.getElementById('ir-q2-block').style.display = '';
+}
+
+function renderIrOpgave() {
+  const d = irCurrentData, box = document.getElementById('ir-spectra-opgave');
+  if (!box) return;
+  const t = document.getElementById('ir-opgave-text'), a = document.getElementById('ir-docent-answer');
+  if (d.level === 'stof') {
+    box.innerHTML = irSvg([[d.target, 1]], { marks: d.marks });
+    t.textContent = `Hieronder staat het IR-spectrum van een van deze stoffen: ${d.candidates.join(', ')}. Geef bij de pieken ${d.marks.map(m => m.letter).join(', ')} de binding die erbij hoort, en leg uit welke stof het is.`;
+    a.innerHTML = `<table class="docent-answer-table">${d.marks.map(m => `<tr><td>piek ${m.letter} (${m.nu} cm⁻¹)</td><td>${IR_BONDS[m.bond].label}</td></tr>`).join('')}<tr><td>Stof</td><td>${d.target}</td></tr></table>`;
+  } else if (d.level === 'spectrum') {
+    box.innerHTML = d.options.map((n, i) => irSvg([[n, 1]], { small: true, title: 'Spectrum ' + 'ABC'[i] })).join('<div style="height:10px"></div>');
+    t.textContent = `Welk spectrum hoort bij ${d.target}? Noem twee karakteristieke pieken (binding en golfgetal).`;
+    a.innerHTML = `<table class="docent-answer-table"><tr><td>Spectrum</td><td>${'ABC'[d.options.indexOf(d.target)]}</td></tr><tr><td>Pieken</td><td>${irPeakList(d.target)}</td></tr></table>`;
+  } else {
+    box.innerHTML = irSvg(d.reaction.start, { small: true, title: 'Vóór de reactie' }) + '<div style="height:10px"></div>' + irSvg(d.mix, { small: true, title: 'Na de reactie' });
+    t.textContent = `Reactie: ${d.reaction.label}. Leg met de spectra uit of de omzetting volledig, niet of gedeeltelijk is gelukt.`;
+    a.innerHTML = `<table class="docent-answer-table"><tr><td>Conclusie</td><td>${irAnswerText('q1').replace('Antwoord: ', '')}</td></tr></table>`;
+  }
+}
+
 generateMsSpectrum();
 generateGcMixture();
 generateTlcMixture();
 generateUvvisCase();
+generateIrCase();
 
 /* =========================================================================
    VASTE LESOPGAVEN
    Keuzelijst "Lesopgave…" naast elke Nieuw-knop (1-30), of via een link:
-   ?opgave=ms-1 | gc-1 | tlc-1 | uv-basis-1 | uv-gevorderd-1 | uv-expert-1.
+   ?opgave=ms-1 | gc-1 | tlc-1 | uv-basis-1 | uv-gevorderd-1 | uv-expert-1 | ir-stof-1 | ir-spectrum-1 | ir-reactie-1.
    De opgave wordt gegenereerd met een vaste seed, dus iedereen die hetzelfde
    nummer kiest krijgt precies hetzelfde mengsel.
    LET OP: wie de generatoren of stoffenbibliotheken aanpast, verandert ook
@@ -3332,6 +3689,7 @@ function loadLesopgave(kind, n) {
   if (kind === 'gc') { setTab('gc'); setChromSubTab('gc'); withSeed('gc-' + n, generateGcMixture); }
   if (kind === 'tlc') { setTab('gc'); setChromSubTab('tlc'); withSeed('tlc-' + n, generateTlcMixture); }
   if (kind === 'uv') { setTab('uvvis'); withSeed('uv-' + uvvisLevel + '-' + n, generateUvvisCase); }
+  if (kind === 'ir') { setTab('ir'); withSeed('ir-' + irLevel + '-' + n, generateIrCase); }
   document.querySelectorAll('.lesopgave-select').forEach(el => { el.value = el.dataset.kind === kind ? String(n) : ''; });
 }
 // Een willekeurige nieuwe opgave of ander UV-niveau: keuzelijst terug op "Lesopgave…"
@@ -3339,18 +3697,22 @@ document.addEventListener('click', e => {
   const btn = e.target.closest('button');
   if (!btn) return;
   const oc = btn.getAttribute('onclick') || '';
-  if (/generate|setUvvisLevel/.test(oc)) document.querySelectorAll('.lesopgave-select').forEach(el => { el.value = ''; });
+  if (/generate|setUvvisLevel|setIrLevel/.test(oc)) document.querySelectorAll('.lesopgave-select').forEach(el => { el.value = ''; });
 }, true);
 // Ook via een link: ?opgave=tlc-5 of ?opgave=uv-gevorderd-1
 (function () {
   let key = '';
   try { key = (new URLSearchParams(location.search).get('opgave') || '').trim().toLowerCase(); } catch (e) { return; }
-  const m = key.match(/^(ms|gc|tlc|uv-basis|uv-gevorderd|uv-expert)-(\d+)$/);
+  const m = key.match(/^(ms|gc|tlc|uv-basis|uv-gevorderd|uv-expert|ir-stof|ir-spectrum|ir-reactie)-(\d+)$/);
   if (!m) return;
   if (m[1].startsWith('uv-')) {
     uvvisLevel = m[1].slice(3);
     document.querySelectorAll('#panel-uvvis .subtab-btn').forEach(b => b.classList.toggle('active', b.dataset.subtab === uvvisLevel));
     loadLesopgave('uv', m[2]);
+  } else if (m[1].startsWith('ir-')) {
+    irLevel = m[1].slice(3);
+    document.querySelectorAll('#panel-ir .subtab-btn').forEach(b => b.classList.toggle('active', b.dataset.subtab === irLevel));
+    loadLesopgave('ir', m[2]);
   } else loadLesopgave(m[1], m[2]);
 })();
 </script>
