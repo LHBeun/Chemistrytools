@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Per stuk: één formule, drie vormen</title>
+<style>
+/* Huisstijl Chemistrytools (overgenomen uit huisstijl.css) */
+:root{--hs-acc:#1F5FBF;--hs-acc-d:#174a96;--hs-soft:#E8F0FC;--hs-given:#F3F7FD;--hs-ok:#1A7F37;--hs-ok-soft:#E4F4E8;
+--hs-err:#C62828;--hs-err-soft:#FDECEC;--hs-key:#FFF0A0;--hs-muted:#595959;--hs-line:#D5DCE8;--hs-bg:#F6F8FB;--hs-card:#fff;
+--hs-text:#1d2330;--hs-font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+/* rolkleuren, gelijk aan werkboekje en formuledia */
+--per:#1F5FBF;--tel:#2A7A4A;--noe:#C85500}
+*{box-sizing:border-box}
+html,body{background:var(--hs-bg);color:var(--hs-text);margin:0}
+body{font-family:var(--hs-font);font-size:17px;line-height:1.45}
+.hs-header{background:var(--hs-acc);color:#fff;margin-bottom:18px}
+.hs-header .hs-wrap{max-width:1150px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hs-header h1{margin:0;font-size:1.5rem;font-weight:650;color:#fff;flex:1 1 auto}
+.hs-header button{flex:0 0 auto;font:inherit;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px;border:1.5px solid #fff;background:transparent;color:#fff}
+.hs-header button:hover{background:rgba(255,255,255,.15)}
+body.hs-beamer main{zoom:1.3}
+main{max-width:1150px;margin:0 auto;padding:0 16px 40px;display:grid;grid-template-columns:minmax(0,1fr) 430px;gap:18px;align-items:start}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+.card{background:var(--hs-card);border:1px solid var(--hs-line);border-radius:12px;padding:16px 18px}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.seg{display:inline-flex;border:1px solid var(--hs-line);border-radius:999px;overflow:hidden;background:#fff}
+.seg button{border:0;background:transparent;color:var(--hs-text);font:inherit;font-size:.95rem;padding:7px 13px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--hs-acc);color:#fff;font-weight:600}
+.lbl{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--hs-muted)}
+h2{margin:0 0 6px;font-size:1.2rem;color:var(--hs-acc)}
+.uitleg{color:var(--hs-muted);margin:0 0 12px;font-size:.95rem}
+.opgave{background:var(--hs-given);border-radius:10px;padding:14px 16px;font-size:1.1rem;margin:10px 0 14px}
+.answer{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.answer input{font:inherit;font-size:1.1rem;padding:8px 10px;border:1.5px solid var(--hs-line);border-radius:8px;width:170px}
+.answer input:focus{outline:3px solid var(--hs-soft);border-color:var(--hs-acc)}
+.unit{font-weight:600}
+.btn{font:inherit;font-size:.95rem;padding:8px 14px;border-radius:8px;border:1.5px solid var(--hs-line);background:#fff;cursor:pointer;color:var(--hs-text)}
+.btn:hover{border-color:var(--hs-acc)}
+.btn.main{background:var(--hs-acc);border-color:var(--hs-acc);color:#fff;font-weight:600}
+.btn.main:hover{background:var(--hs-acc-d)}
+.fb{margin-top:14px;border-radius:10px;padding:12px 14px;display:none}
+.fb.ok{display:block;background:var(--hs-ok-soft);border-left:5px solid var(--hs-ok)}
+.fb.err{display:block;background:var(--hs-err-soft);border-left:5px solid var(--hs-err)}
+.fb.hint{display:block;background:var(--hs-key);border-left:5px solid #d4b106}
+.stappen{margin-top:12px;display:none;background:#fff;border:1px dashed var(--hs-line);border-radius:10px;padding:12px 14px}
+.stappen.show{display:block}
+.stappen p{margin:6px 0}
+.p{color:var(--per);font-weight:600}.t{color:var(--tel);font-weight:600}.n{color:var(--noe);font-weight:600}
+body.nokleur .opgave .p,body.nokleur .opgave .t,body.nokleur .opgave .n{color:inherit;font-weight:600}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 3px;line-height:1.2}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 4px}
+.frac>span:last-child{padding:0 4px}
+.forms{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0}
+.forms .btn{font-size:1.15rem;padding:10px 16px}
+.forms .btn.goed{background:var(--hs-ok-soft);border-color:var(--hs-ok)}
+.forms .btn.fout{background:var(--hs-err-soft);border-color:var(--hs-err)}
+.stats{display:flex;gap:16px;color:var(--hs-muted);font-size:.95rem;margin-top:14px;font-variant-numeric:tabular-nums}
+.stats b{color:var(--hs-text)}
+table{border-collapse:collapse;width:100%;font-size:.84rem;table-layout:fixed}
+th:nth-child(1){width:31%}th:nth-child(2){width:25%}th:nth-child(3){width:25%}th:nth-child(4){width:19%}
+td{overflow-wrap:anywhere}
+th{text-align:left;font-weight:600;border-bottom:1.5px solid var(--hs-text);padding:4px 6px}
+td{padding:4px 6px;border-bottom:1px solid var(--hs-line);vertical-align:top}
+tr.locked td{color:#c3c8d0}
+tr.locked td span{color:#c3c8d0!important}
+.kern{background:var(--hs-soft);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:1.05rem;text-align:center}
+.small{font-size:.85rem;color:var(--hs-muted)}
+label.chk{display:inline-flex;gap:6px;align-items:center;font-size:.92rem;color:var(--hs-muted);cursor:pointer}
+</style>
+</head>
+<body>
+<header class="hs-header"><div class="hs-wrap"><h1>Per stuk: één formule, drie vormen</h1><button id="beamer" type="button">Beamerstand</button></div></header>
+<main>
+<section>
+  <div class="controls">
+    <span class="lbl">Klas</span>
+    <div class="seg" id="klasSeg"><button data-k="3" aria-pressed="true">3 vwo</button><button data-k="4" aria-pressed="false">4 vwo</button></div>
+    <span class="lbl">Deel</span>
+    <div class="seg" id="deelSeg"></div>
+  </div>
+  <div class="card">
+    <h2 id="deelTitel"></h2>
+    <p class="uitleg" id="deelUitleg"></p>
+    <div class="kern" id="kern"></div>
+    <div class="opgave" id="opgave"></div>
+    <div id="invoer"></div>
+    <div class="fb" id="fb"></div>
+    <div class="stappen" id="stappen"></div>
+    <div class="stats"><span>Goed: <b id="sGoed">0</b> / <b id="sTot">0</b></span><span>Reeks: <b id="sReeks">0</b></span>
+      <label class="chk"><input type="checkbox" id="kleurChk" checked> kleuren in de opgave</label></div>
+  </div>
+</section>
+<aside class="card">
+  <div class="lbl" style="margin-bottom:6px">Overzicht: overal dezelfde vorm</div>
+  <table id="tabel"><thead><tr><th class="p">"per"-grootheid</th><th class="t">teller</th><th class="n">noemer</th><th>eenheid</th></tr></thead><tbody></tbody></table>
+  <p class="small">Zoek je de <span class="t">teller</span>? Vermenigvuldig.<br>Zoek je de <span class="p">"per"-grootheid</span> of de <span class="n">noemer</span>? Deel de teller door de ander.</p>
+</aside>
+</main>
+<script>
+"use strict";
+// ---------- hulpfuncties ----------
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const rint=(a,b)=>Math.floor(rnd(a,b+1));
+function roundSig(x,s){if(x===0)return 0;const d=Math.ceil(Math.log10(Math.abs(x)));const f=Math.pow(10,s-d);return Math.round(x*f)/f;}
+function roundDec(x,d){const f=Math.pow(10,d);return Math.round(x*f)/f;}
+const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+function fmt(x,sig=3){
+  if(!isFinite(x))return '?';
+  const ax=Math.abs(x);
+  if(ax>=1e5||(ax>0&&ax<1e-3)){const e=Math.floor(Math.log10(ax));const m=roundSig(x/Math.pow(10,e),sig);
+    return m.toFixed(Math.max(0,sig-1)).replace('.',',')+'·10'+String(e).split('').map(c=>SUP[c]).join('');}
+  const r=roundSig(x,sig);const d=Math.max(0,sig-1-Math.floor(Math.log10(ax||1)));
+  return r.toFixed(Math.min(d,6)).replace('.',',');
+}
+function fmtD(x,dec){return x.toFixed(dec).replace('.',',');}
+function parseNum(s){
+  if(!s)return NaN; s=s.trim().replace(/\s/g,'').replace(',','.');
+  s=s.replace(/[·x×\*]10\^?/i,'e').replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+/g,m=>m.split('').map(c=>({'⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9','⁻':'-'})[c]).join(''));
+  const v=Number(s); return v;
+}
+const frac=(a,b)=>`<span class="frac"><span>${a}</span><span>${b}</span></span>`;
+const P=s=>`<span class="p">${s}</span>`, T=s=>`<span class="t">${s}</span>`, N=s=>`<span class="n">${s}</span>`;
+
+// ---------- formules ----------
+// elke formule: per/tel/noe {naam, sym, eenheid}; gen() geeft {per, noe, ctx} (teller = per·noe);
+// tekst(onbekend, v) geeft opgavetekst; dec: decimalen per rol (of sig)
+let KLAS=3;
+const F={
+ ijsje:{deel:1,rij:['prijs per ijsje','totaalprijs','aantal ijsjes','€/ijsje'],
+  per:{naam:'prijs per ijsje',sym:'prijs per ijsje',u:'€/ijsje',d:2},tel:{naam:'totaalprijs',sym:'totaal',u:'€',d:2},noe:{naam:'aantal ijsjes',sym:'aantal',u:'ijsjes',d:0},
+  gen(){return {per:rint(6,18)*0.25,noe:rint(2,9)}},
+  tekst(o,v){return {per:`${N(v.noe+' ijsjes')} kosten samen ${T('€ '+fmtD(v.tel,2))}. Wat kost één ijsje?`,
+   tel:`Eén ijsje kost ${P('€ '+fmtD(v.per,2))}. Wat kosten ${N(v.noe+' ijsjes')}?`,
+   noe:`Eén ijsje kost ${P('€ '+fmtD(v.per,2))}. Hoeveel ijsjes krijg je voor ${T('€ '+fmtD(v.tel,2))}?`}[o]}},
+ benzine:{deel:1,rij:null,
+  per:{naam:'prijs per liter',sym:'prijs per liter',u:'€/L',d:2},tel:{naam:'totaalprijs',sym:'totaal',u:'€',d:2},noe:{naam:'aantal liter',sym:'liters',u:'L',d:1},
+  gen(){return {per:roundDec(rnd(1.75,2.25),2),noe:roundDec(rnd(15,55),1)}},
+  tekst(o,v){return {per:`${N(fmtD(v.noe,1)+' L')} benzine kost ${T('€ '+fmtD(v.tel,2))}. Bereken de prijs per liter.`,
+   tel:`Benzine kost ${P('€ '+fmtD(v.per,2)+' per liter')}. Wat kost ${N(fmtD(v.noe,1)+' L')}?`,
+   noe:`Benzine kost ${P('€ '+fmtD(v.per,2)+' per liter')}. Hoeveel liter krijg je voor ${T('€ '+fmtD(v.tel,2))}?`}[o]}},
+ uurloon:{deel:1,rij:['uurloon','verdiend bedrag','aantal uur','€/h'],
+  per:{naam:'uurloon',sym:'uurloon',u:'€/h',d:2},tel:{naam:'verdiend bedrag',sym:'bedrag',u:'€',d:2},noe:{naam:'aantal uur',sym:'uren',u:'h',d:1},
+  gen(){return {per:roundDec(rnd(9.5,16),2),noe:rint(5,24)/2}},
+  tekst(o,v){return {per:`Je verdient ${T('€ '+fmtD(v.tel,2))} in ${N(fmtD(v.noe,1)+' uur')}. Bereken je uurloon.`,
+   tel:`Je uurloon is ${P('€ '+fmtD(v.per,2)+' per uur')}. Hoeveel verdien je in ${N(fmtD(v.noe,1)+' uur')}?`,
+   noe:`Je uurloon is ${P('€ '+fmtD(v.per,2)+' per uur')}. Hoeveel uur moet je werken voor ${T('€ '+fmtD(v.tel,2))}?`}[o]}},
+ snelheid:{deel:3,rij:['snelheid <i>v</i>','afstand <i>s</i>','tijd <i>t</i>','km/h of m/s'],
+  per:{naam:'snelheid',sym:'v',u:'km/h',s:3},tel:{naam:'afstand',sym:'s',u:'km',s:3},noe:{naam:'tijd',sym:'t',u:'h',s:2},
+  gen(){const wie=pick([['fietser',12,25],['scooter',25,45],['trein',80,180],['hardloper',8,15]]);return {per:roundSig(rnd(wie[1],wie[2]),3),noe:roundDec(rnd(0.25,2.5),2),wie:wie[0]}},
+  tekst(o,v){return {per:`Een ${v.wie} legt ${T(fmt(v.tel)+' km')} af in ${N(fmt(v.noe,2)+' h')}. Bereken de snelheid.`,
+   tel:`Een ${v.wie} gaat ${P(fmt(v.per)+' km/h')}. Hoeveel km legt hij af in ${N(fmt(v.noe,2)+' h')}?`,
+   noe:`Een ${v.wie} gaat ${P(fmt(v.per)+' km/h')}. Hoelang doet hij over ${T(fmt(v.tel)+' km')}?`}[o]}},
+ druk:{deel:3,rij:['druk <i>p</i>','kracht <i>F</i>','oppervlak <i>A</i>','N/m²'],
+  per:{naam:'druk',sym:'p',u:'N/m²',s:2},tel:{naam:'kracht',sym:'F',u:'N',s:2},noe:{naam:'oppervlak',sym:'A',u:'m²',s:2},
+  gen(){const c=pick([['Je staat op een plank',0.03,0.12,10000,40000],['Een auto staat met vier banden op de weg',0.04,0.09,150000,300000],['Een kist staat op de vloer',0.15,0.6,1500,6000]]);
+   return {noe:roundSig(rnd(c[1],c[2]),2),per:roundSig(rnd(c[3],c[4]),2),wat:c[0]}},
+  tekst(o,v){return {per:`${v.wat}. De kracht is ${T(fmt(v.tel,2)+' N')}, het oppervlak ${N(fmt(v.noe,2)+' m²')}. Bereken de druk.`,
+   tel:`${v.wat}. De druk is ${P(fmt(v.per,2)+' N/m²')}, het oppervlak ${N(fmt(v.noe,2)+' m²')}. Bereken de kracht.`,
+   noe:`${v.wat}. De kracht is ${T(fmt(v.tel,2)+' N')} en de druk ${P(fmt(v.per,2)+' N/m²')}. Bereken het oppervlak.`}[o]}},
+ dichtheid:{deel:4,rij:['dichtheid <i>ρ</i>','massa <i>m</i>','volume <i>V</i>','g/mL'],
+  per:{naam:'dichtheid',sym:'ρ',u:'g/mL',s:3},tel:{naam:'massa',sym:'m',u:'g',s:3},noe:{naam:'volume',sym:'V',u:'mL',s:3},
+  gen(){const st=pick([['ethanol',0.789],['olijfolie',0.916],['ijzer',7.87],['aluminium',2.70],['kwik',13.5],['zeewater',1.03],['glycerol',1.26]]);return {per:st[1],noe:roundSig(rnd(8,240),3),stof:st[0]}},
+  tekst(o,v){return {per:`${N(fmt(v.noe)+' mL')} ${v.stof} weegt ${T(fmt(v.tel)+' g')}. Bereken de dichtheid.`,
+   tel:`De dichtheid van ${v.stof} is ${P(fmt(v.per)+' g/mL')}. Bereken de massa van ${N(fmt(v.noe)+' mL')} ${v.stof}.`,
+   noe:`De dichtheid van ${v.stof} is ${P(fmt(v.per)+' g/mL')}. Bereken het volume van ${T(fmt(v.tel)+' g')} ${v.stof}.`}[o]}},
+ concentratie:{deel:4,rij:['concentratie <i>c</i>','massa opgeloste stof <i>m</i>','volume oplossing <i>V</i>','g/mL (4V: g/L)'],
+  get per(){return KLAS===3?{naam:'concentratie',sym:'c',u:'g/mL',s:2}:{naam:'concentratie',sym:'c',u:'g/L',s:2}},
+  get noe(){return KLAS===3?{naam:'volume oplossing',sym:'V',u:'mL',s:3}:{naam:'volume oplossing',sym:'V',u:'L',s:3}},
+  tel:{naam:'massa opgeloste stof',sym:'m',u:'g',s:2},
+  gen(){const st=pick(['suiker','zout','koffie','citroenzuur']);
+   if(KLAS===3)return {per:roundSig(rnd(0.004,0.09),2),noe:roundSig(rnd(50,900),3),stof:st};
+   return {per:roundSig(rnd(4,90),2),noe:roundSig(rnd(0.05,0.9),3),stof:st}},
+  tekst(o,v){const vu=this.noe.u,cu=this.per.u;return {per:`In ${N(fmt(v.noe)+' '+vu)} oplossing zit ${T(fmt(v.tel,2)+' g')} ${v.stof}. Bereken de concentratie in ${cu}.`,
+   tel:`De concentratie ${v.stof} is ${P(fmt(v.per,2)+' '+cu)}. Hoeveel gram ${v.stof} zit er in ${N(fmt(v.noe)+' '+vu)} oplossing?`,
+   noe:`De concentratie ${v.stof} is ${P(fmt(v.per,2)+' '+cu)}. Hoeveel ${vu} oplossing bevat ${T(fmt(v.tel,2)+' g')} ${v.stof}?`}[o]}},
+ massaperc:{deel:4,rij:['massapercentage','massa stof','massa totaal (× 100%)','%'],pct:true,
+  per:{naam:'massapercentage',sym:'massa%',u:'%',s:2},tel:{naam:'massa stof',sym:'m(stof)',u:'g',s:2},noe:{naam:'massa totaal',sym:'m(totaal)',u:'g',s:3},
+  gen(){const c=pick([['vet','een stuk kaas'],['suiker','een fles frisdrank'],['ijzer','een brok ijzererts'],['zout','een zak chips']]);return {per:rint(3,65),noe:roundSig(rnd(40,900),3),stof:c[0],wat:c[1]}},
+  tekst(o,v){return {per:`${v.wat[0].toUpperCase()+v.wat.slice(1)} van ${N(fmt(v.noe)+' g')} bevat ${T(fmt(v.tel,2)+' g')} ${v.stof}. Bereken het massapercentage ${v.stof}.`,
+   tel:`${v.wat[0].toUpperCase()+v.wat.slice(1)} bevat ${P(v.per+'%')} ${v.stof}. Hoeveel gram ${v.stof} zit er in ${N(fmt(v.noe)+' g')}?`,
+   noe:`${v.wat[0].toUpperCase()+v.wat.slice(1)} bevat ${P(v.per+'%')} ${v.stof}. Hoeveel gram weegt het geheel als er ${T(fmt(v.tel,2)+' g')} ${v.stof} in zit?`}[o]}},
+ molmassa:{deel:4,rij:['molmassa <i>M</i>','massa <i>m</i>','aantal mol <i>n</i>','g/mol'],
+  per:{naam:'molmassa',sym:'M',u:'g/mol',d:2},tel:{naam:'massa',sym:'m',u:'g',d:2},noe:{naam:'aantal mol',sym:'n',u:'mol',d:2},
+  gen(){const st=pick([['water','H₂O',18.02],['koolstofdioxide','CO₂',44.01],['methaan','CH₄',16.04],['zuurstof','O₂',32.00],['glucose','C₆H₁₂O₆',180.16],['ethanol','C₂H₆O',46.07],['ammoniak','NH₃',17.03]]);
+   let n;do{n=roundDec(rnd(0.05,3.5),2)}while(Math.abs(n-Math.round(n))<0.001);return {per:st[2],noe:n,stof:st[0],f:st[1]}},
+  tekst(o,v){return {per:`${N(fmtD(v.noe,2)+' mol')} ${v.stof} weegt ${T(fmtD(v.tel,2)+' g')}. Bereken de molmassa.`,
+   tel:`De molmassa van ${v.stof} (${v.f}) is ${P(fmtD(v.per,2)+' g/mol')}. Hoeveel gram is ${N(fmtD(v.noe,2)+' mol')} ${v.stof}?`,
+   noe:`De molmassa van ${v.stof} (${v.f}) is ${P(fmtD(v.per,2)+' g/mol')}. Hoeveel mol is ${T(fmtD(v.tel,2)+' g')} ${v.stof}?`}[o]}},
+ molariteit:{deel:4,alleen4:true,rij:['★ 4V: molariteit <i>c</i>','aantal mol <i>n</i>','volume <i>V</i>','mol/L'],
+  per:{naam:'molariteit',sym:'c',u:'mol/L',s:3},tel:{naam:'aantal mol',sym:'n',u:'mol',s:3},noe:{naam:'volume',sym:'V',u:'L',s:3},
+  gen(){return {per:roundSig(rnd(0.02,1.5),3),noe:roundSig(rnd(0.05,2),3)}},
+  tekst(o,v){return {per:`In ${N(fmt(v.noe)+' L')} oplossing zit ${T(fmt(v.tel)+' mol')} opgeloste stof. Bereken de molariteit.`,
+   tel:`Een oplossing is ${P(fmt(v.per)+' M')}. Hoeveel mol zit er in ${N(fmt(v.noe)+' L')}?`,
+   noe:`Een oplossing is ${P(fmt(v.per)+' M')}. Welk volume bevat ${T(fmt(v.tel)+' mol')}?`}[o]}},
+ bevolking:{deel:6,rij:['bevolkingsdichtheid','aantal inwoners','oppervlakte','inwoners/km²'],
+  per:{naam:'bevolkingsdichtheid',sym:'dichtheid',u:'inwoners/km²',s:3},tel:{naam:'aantal inwoners',sym:'inwoners',u:'inwoners',s:3},noe:{naam:'oppervlakte',sym:'oppervlakte',u:'km²',s:3},
+  gen(){return {per:roundSig(rnd(150,1300),3),noe:roundSig(rnd(900,5500),3)}},
+  tekst(o,v){const def='<i>Bevolkingsdichtheid = aantal inwoners gedeeld door oppervlakte.</i> ';return def+{per:`Een gebied heeft ${T(fmt(v.tel)+' inwoners')} op ${N(fmt(v.noe)+' km²')}. Bereken de bevolkingsdichtheid.`,
+   tel:`Een gebied van ${N(fmt(v.noe)+' km²')} heeft ${P(fmt(v.per)+' inwoners/km²')}. Hoeveel inwoners zijn er?`,
+   noe:`Een gebied heeft ${T(fmt(v.tel)+' inwoners')} en ${P(fmt(v.per)+' inwoners/km²')}. Hoe groot is het gebied?`}[o]}},
+ vermogen:{deel:6,rij:['vermogen <i>P</i>','energie <i>E</i>','tijd <i>t</i>','J/s = W'],
+  per:{naam:'vermogen',sym:'P',u:'W',s:2},tel:{naam:'energie',sym:'E',u:'J',s:2},noe:{naam:'tijd',sym:'t',u:'s',s:2},
+  gen(){const a=pick([['een waterkoker',1800,2400,60,240],['een föhn',1200,2000,120,600],['een ledlamp',5,12,3600,40000],['een laptop',30,90,1800,9000]]);return {per:roundSig(rnd(a[1],a[2]),2),noe:roundSig(rnd(a[3],a[4]),2),app:a[0]}},
+  tekst(o,v){const def='<i>Vermogen P = E gedeeld door t, in J/s (= watt, W).</i> ';return def+{per:`${v.app[0].toUpperCase()+v.app.slice(1)} gebruikt ${T(fmt(v.tel,2)+' J')} in ${N(fmt(v.noe,2)+' s')}. Bereken het vermogen.`,
+   tel:`${v.app[0].toUpperCase()+v.app.slice(1)} van ${P(fmt(v.per,2)+' W')} staat ${N(fmt(v.noe,2)+' s')} aan. Hoeveel energie gebruikt hij?`,
+   noe:`Hoelang doet ${v.app} van ${P(fmt(v.per,2)+' W')} over ${T(fmt(v.tel,2)+' J')}?`}[o]}},
+ verbruik:{deel:6,rij:['brandstofverbruik','afstand','liter benzine','km/L'],
+  per:{naam:'brandstofverbruik',sym:'verbruik',u:'km/L',s:3},tel:{naam:'afstand',sym:'afstand',u:'km',s:3},noe:{naam:'liter benzine',sym:'liters',u:'L',s:3},
+  gen(){return {per:roundSig(rnd(11,24),3),noe:roundSig(rnd(8,55),3)}},
+  tekst(o,v){const def='<i>Brandstofverbruik = afstand gedeeld door liter benzine, in km/L.</i> ';return def+{per:`Een auto rijdt ${T(fmt(v.tel)+' km')} op ${N(fmt(v.noe)+' L')}. Bereken het brandstofverbruik.`,
+   tel:`Een auto rijdt ${P(fmt(v.per)+' km/L')}. Hoe ver komt hij met ${N(fmt(v.noe)+' L')}?`,
+   noe:`Een auto rijdt ${P(fmt(v.per)+' km/L')}. Hoeveel liter heb je nodig voor ${T(fmt(v.tel)+' km')}?`}[o]}}
+};
+const ROWS=['ijsje','uurloon','snelheid','druk','dichtheid','concentratie','massaperc','molmassa','molariteit','bevolking','vermogen','verbruik'];
+const DELEN=[
+ {nr:1,titel:'Deel 1 · Per stuk',uitleg:'"Per" betekent: voor één. Reken eerst op gevoel, schrijf daarna de eenheden erbij.',formules:['ijsje','benzine','uurloon'],rows:2},
+ {nr:2,titel:'Deel 2 · Welke vorm?',uitleg:'Niet rekenen: kies de vorm van de formule die je nodig hebt.',keuze:true,formules:['ijsje','uurloon','snelheid','druk','dichtheid','concentratie','molmassa'],rows:2},
+ {nr:3,titel:'Deel 3 · Natuurkunde',uitleg:'Snelheid en druk hebben precies dezelfde vorm als het ijsje.',formules:['snelheid','druk'],rows:4},
+ {nr:4,titel:'Deel 4 · Scheikunde',uitleg:'Dichtheid, concentratie, massapercentage en molmassa: weer dezelfde vorm.',formules:['dichtheid','concentratie','massaperc','molmassa','molariteit'],rows:9},
+ {nr:5,titel:'Deel 5 · Alles door elkaar',uitleg:'Er staat niet bij welke formule het is. Zoek hem op in het overzicht.',formules:['ijsje','uurloon','snelheid','druk','dichtheid','concentratie','massaperc','molmassa','molariteit'],rows:9,geenKleur:true},
+ {nr:6,titel:'Deel 6 · Een formule die je nog nooit hebt gezien',uitleg:'Je kent de formule niet, maar je herkent de vorm. Zoek teller en noemer.',formules:['bevolking','vermogen','verbruik'],rows:12,geenKleur:true}
+];
+let deel=DELEN[0], cur=null, pogingen=0, goed=0, tot=0, reeks=0;
+
+function kern(fk){const f=F[fk];
+  return `${P(f.per.sym)} = ${frac(T(f.tel.sym),N(f.noe.sym))}${f.pct?' × 100%':''} &nbsp;&nbsp;&nbsp; ${T(f.tel.sym)} = ${f.pct?frac(P(f.per.sym),'100%'):P(f.per.sym)} × ${N(f.noe.sym)} &nbsp;&nbsp;&nbsp; ${N(f.noe.sym)} = ${f.pct?frac(T(f.tel.sym)+' × 100%',P(f.per.sym)):frac(T(f.tel.sym),P(f.per.sym))}`;}
+
+function waarde(f,rol,x){const r=f[rol];return r.d!==undefined?fmtD(x,r.d):fmt(x,r.s||3);}
+function nieuw(){
+  pogingen=0; fbEl.className='fb'; fbEl.innerHTML=''; stEl.className='stappen'; stEl.innerHTML='';
+  let lijst=deel.formules.filter(k=>!(F[k].alleen4&&KLAS===3));
+  const fk=pick(lijst), f=F[fk];
+  const v=f.gen(); v.tel=f.pct?v.per/100*v.noe:v.per*v.noe;
+  if(f.tel.d!==undefined)v.tel=roundDec(v.tel,f.tel.d); else v.tel=roundSig(v.tel,f.tel.s||3);
+  const o=pick(fk==='ijsje'||fk==='benzine'?['per','tel','noe']:['per','tel','noe']);
+  // antwoord uit de afgeronde gegevens
+  let ans; if(o==='per')ans=f.pct?v.tel/v.noe*100:v.tel/v.noe; else if(o==='tel')ans=f.pct?v.per/100*v.noe:v.per*v.noe; else ans=f.pct?v.tel*100/v.per:v.tel/v.per;
+  cur={fk,f,v,o,ans};
+  document.getElementById('kern').innerHTML=(deel.nr<=4)?kern(fk):'<span class="small">Kijk in het overzicht welke formule je nodig hebt.</span>';
+  document.getElementById('opgave').innerHTML=f.tekst(o,v);
+  const inv=document.getElementById('invoer');
+  if(deel.keuze){
+    const opts=[['per',`${P(f.per.sym)} = ${frac(T(f.tel.sym),N(f.noe.sym))}`],['tel',`${T(f.tel.sym)} = ${P(f.per.sym)} × ${N(f.noe.sym)}`],['noe',`${N(f.noe.sym)} = ${frac(T(f.tel.sym),P(f.per.sym))}`]].sort(()=>Math.random()-.5);
+    inv.innerHTML=`<div class="lbl">Welke vorm gebruik je?</div><div class="forms">${opts.map(([k,h])=>`<button class="btn" data-k="${k}">${h}</button>`).join('')}</div><div style="margin-top:10px"><button class="btn" id="volg">Volgende</button></div>`;
+    inv.querySelectorAll('.forms .btn').forEach(b=>b.onclick=()=>kies(b));
+    document.getElementById('volg').onclick=nieuw;
+    document.getElementById('opgave').innerHTML+=`<div class="small" style="margin-top:6px">Je hoeft niet te rekenen.</div>`;
+  } else {
+    const u=f[o].u;
+    inv.innerHTML=`<div class="answer"><input id="ant" inputmode="decimal" autocomplete="off" placeholder="antwoord"><span class="unit">${u}</span>
+     <button class="btn main" id="chk">Controleer</button><button class="btn" id="hnt">Hint</button><button class="btn" id="uitw">Uitwerking</button><button class="btn" id="volg">Volgende</button></div>
+     <div class="small" style="margin-top:6px">Komma als decimaalteken. Grote of kleine getallen mag je schrijven als 1,6·10^4 of 1,6e4.</div>`;
+    const ant=document.getElementById('ant'); ant.focus();
+    ant.onkeydown=e=>{if(e.key==='Enter')controleer();};
+    document.getElementById('chk').onclick=controleer; document.getElementById('hnt').onclick=hint;
+    document.getElementById('uitw').onclick=()=>toonStappen(); document.getElementById('volg').onclick=nieuw;
+  }
+}
+function vormHtml(f,o){
+  if(o==='per')return `${P(f.per.sym)} = ${frac(T(f.tel.sym),N(f.noe.sym))}${f.pct?' × 100%':''}`;
+  if(o==='tel')return `${T(f.tel.sym)} = ${f.pct?frac(P(f.per.sym),'100%'):P(f.per.sym)} × ${N(f.noe.sym)}`;
+  return `${N(f.noe.sym)} = ${f.pct?frac(T(f.tel.sym)+' × 100%',P(f.per.sym)):frac(T(f.tel.sym),P(f.per.sym))}`;
+}
+const ROLNAAM={per:'de "per"-grootheid',tel:'de teller',noe:'de noemer'};
+function hint(){const {f,o}=cur;
+  fbEl.className='fb hint';
+  fbEl.innerHTML=`Je zoekt ${o==='per'?P(f[o].naam):o==='tel'?T(f[o].naam):N(f[o].naam)}: dat is ${ROLNAAM[o]}. ${o==='tel'?'Vermenigvuldig dus.':'Deel dus de teller door de ander.'}<br>Gebruik: ${vormHtml(f,o)}`;}
+function toonStappen(){const {f,v,o,ans}=cur; const u=r=>' '+f[r].u;
+  const w=r=>waarde(f,r,v[r])+u(r);
+  let calc;
+  if(o==='per')calc=`${P(f.per.sym)} = ${frac(T(w('tel')),N(w('noe')))}${f.pct?' × 100%':''} = <b>${waarde(f,'per',ans)}${u('per')}</b>`;
+  else if(o==='tel')calc=`${T(f.tel.sym)} = ${f.pct?frac(P(w('per')),'100%'):P(w('per'))} × ${N(w('noe'))} = <b>${waarde(f,'tel',ans)}${u('tel')}</b>`;
+  else calc=`${N(f.noe.sym)} = ${frac(T(w('tel'))+(f.pct?' × 100%':''),P(w('per')))} = <b>${waarde(f,'noe',ans)}${u('noe')}</b>`;
+  const check={per:`${f.tel.u} gedeeld door ${f.noe.u} geeft ${f.per.u}`,tel:`${f.per.u} × ${f.noe.u}: ${f.noe.u} valt weg, je houdt ${f.tel.u} over`,noe:`${f.tel.u} gedeeld door ${f.per.u} geeft ${f.noe.u}`}[o];
+  stEl.innerHTML=`<p><b>Stap 1</b> · Je zoekt ${ROLNAAM[o]}: ${vormHtml(f,o)}</p><p><b>Stap 2</b> · ${calc}</p><p class="small"><b>Eenheden-check:</b> ${f.pct?'massa% in %, massa\'s in g.':check}</p>`;
+  stEl.className='stappen show';}
+function controleer(){
+  const x=parseNum(document.getElementById('ant').value);
+  if(isNaN(x)){fbEl.className='fb err';fbEl.textContent='Vul een getal in.';return;}
+  const ok=Math.abs(x-cur.ans)<=0.015*Math.abs(cur.ans)+1e-12;
+  if(pogingen===0){tot++;}
+  if(ok){ if(pogingen===0){goed++;reeks++;} fbEl.className='fb ok'; fbEl.innerHTML=`Goed! ${waarde(cur.f,cur.o,cur.ans)} ${cur.f[cur.o].u}`;}
+  else { reeks=0; pogingen++; if(pogingen===1){hint();fbEl.innerHTML='<b>Nog niet goed.</b> '+fbEl.innerHTML;}
+    else{fbEl.className='fb err';fbEl.innerHTML='Nog niet goed. Bekijk de uitwerking hieronder.';toonStappen();}}
+  upd();
+}
+function kies(b){
+  const ok=b.dataset.k===cur.o; if(!cur.gekozen){tot++; if(ok){goed++;reeks++;}else reeks=0; cur.gekozen=true;}
+  b.classList.add(ok?'goed':'fout');
+  fbEl.className='fb '+(ok?'ok':'err');
+  fbEl.innerHTML=ok?`Goed! Je zoekt ${ROLNAAM[cur.o]}.`:`Niet goed. Je zoekt ${ROLNAAM[cur.o]}: ${vormHtml(cur.f,cur.o)}`;
+  upd();
+}
+function upd(){document.getElementById('sGoed').textContent=goed;document.getElementById('sTot').textContent=tot;document.getElementById('sReeks').textContent=reeks;}
+function tabel(){
+  const tb=document.querySelector('#tabel tbody');
+  tb.innerHTML=ROWS.map((k,i)=>{const r=F[k].rij; const lock=i>=deel.rows||(F[k].alleen4&&KLAS===3);
+    return `<tr class="${lock?'locked':''}"><td><span class="p">${r[0]}</span></td><td><span class="t">${r[1]}</span></td><td><span class="n">${r[2]}</span></td><td>${r[3]}</td></tr>`}).join('');
+}
+function zetDeel(d){deel=d;document.querySelectorAll('#deelSeg button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.d===d.nr)));
+  document.getElementById('deelTitel').textContent=d.titel;document.getElementById('deelUitleg').textContent=d.uitleg;
+  const chk=document.getElementById('kleurChk'); chk.checked=!d.geenKleur; document.body.classList.toggle('nokleur',!chk.checked);
+  tabel(); nieuw();}
+const fbEl=document.getElementById('fb'), stEl=document.getElementById('stappen');
+document.getElementById('deelSeg').innerHTML=DELEN.map(d=>`<button data-d="${d.nr}">${d.nr}</button>`).join('');
+document.querySelectorAll('#deelSeg button').forEach(b=>b.onclick=()=>zetDeel(DELEN[+b.dataset.d-1]));
+document.querySelectorAll('#klasSeg button').forEach(b=>b.onclick=()=>{KLAS=+b.dataset.k;document.querySelectorAll('#klasSeg button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));tabel();nieuw();});
+document.getElementById('kleurChk').onchange=e=>document.body.classList.toggle('nokleur',!e.target.checked);
+document.getElementById('beamer').onclick=()=>document.body.classList.toggle('hs-beamer');
+zetDeel(DELEN[0]);
+</script>
+</body>
+</html>
