@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bomkoolstof</title>
+<style>
+/* Layout: één kolom, tabbladen bovenaan; elk tabblad = leerdoelen → werkruimte (tekst + grafiek). De bomcurve is het terugkerende instrument. */
+/* Huisstijl Chemistrytools */
+:root{--hs-acc:#1F5FBF;--hs-acc-d:#174a96;--hs-soft:#E8F0FC;--hs-ok:#1A7F37;--hs-ok-soft:#E4F4E8;
+--hs-err:#C62828;--hs-err-soft:#FDECEC;--hs-key:#FFF0A0;--hs-muted:#595959;--hs-line:#D5DCE8;--hs-bg:#F6F8FB;--hs-card:#fff;
+--hs-text:#1d2330;--hs-font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --bg:var(--hs-bg); --surface:var(--hs-card); --surface2:var(--hs-soft); --line:var(--hs-line);
+  --fg:var(--hs-text); --muted:var(--hs-muted);
+  --nh:#b4590c; --sh:#0b7285; --mark:#1d2330;
+  --ok:var(--hs-ok); --okbg:var(--hs-ok-soft); --bad:var(--hs-err); --badbg:var(--hs-err-soft);
+  --band:rgba(29,35,48,.06);
+  --f-display:var(--hs-font); --f-body:var(--hs-font);
+  --f-mono:ui-monospace,"SFMono-Regular",Consolas,"Liberation Mono",monospace;
+}
+.hs-header{background:var(--hs-acc);color:#fff;margin-bottom:18px}
+.hs-header .hs-wrap{max-width:1040px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hs-header h1{margin:0;font-size:1.5rem;font-weight:650;color:#fff;flex:1 1 auto;font-family:var(--hs-font)}
+.hs-header h1 .iso{color:#fff;opacity:.8}
+.hs-header button{flex:0 0 auto;font:inherit;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px;border:1.5px solid #fff;background:transparent;color:#fff}
+.hs-header button:hover{background:rgba(255,255,255,.15)}
+body.hs-beamer .wrap{zoom:1.3}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--f-body);font-size:16px;line-height:1.55;margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.toprow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 24px;margin-bottom:14px}
+h1 .iso{font-family:var(--f-mono);font-size:.42em;color:var(--nh);vertical-align:.9em;margin-left:.25em;letter-spacing:.04em}
+.sub{color:var(--muted);margin:6px 0 0;font-size:.95rem}
+nav.tabs{display:flex;flex-wrap:wrap;gap:6px}
+nav.tabs button{font:inherit;font-size:.92rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:8px 13px;border-radius:999px;cursor:pointer}
+nav.tabs button .n{font-family:var(--f-mono);color:var(--muted);margin-right:6px}
+nav.tabs button[aria-selected="true"]{background:var(--hs-acc);color:#fff;border-color:var(--hs-acc)}
+nav.tabs button[aria-selected="true"] .n{color:inherit;opacity:.7}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--nh);outline-offset:2px}
+.goals{background:var(--surface2);border-radius:10px;padding:10px 14px;margin:0 0 16px}
+.goals summary{cursor:pointer;font-weight:600;font-size:.9rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.goals ul{margin:8px 0 2px;padding-left:20px}
+.goals li{margin:2px 0}
+.goals .tag{font-family:var(--f-mono);font-size:.8rem;color:var(--nh);margin-right:6px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:20px;align-items:start}
+@media (max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px}
+.panel h2{font-family:var(--f-display);font-weight:650;font-size:1.45rem;color:var(--hs-acc);line-height:1.15;margin:0 0 10px;text-wrap:balance}
+.panel h3{font-size:1rem;margin:14px 0 6px}
+.panel p{margin:0 0 10px;max-width:65ch}
+.panel ul{margin:0 0 10px;padding-left:20px}
+.panel li{margin:3px 0}
+.kicker{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.key{border-left:3px solid var(--nh);padding:8px 12px;background:var(--surface2);border-radius:0 8px 8px 0;margin:10px 0}
+.chartbox{position:relative}
+.chartbox svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.85rem;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:18px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.tt{display:inline-flex;align-items:center;gap:4px;margin-left:auto;flex-wrap:wrap}
+.tt button{font:inherit;font-size:.8rem;border:1px solid var(--line);background:var(--surface);color:var(--muted);padding:3px 8px;border-radius:999px;cursor:pointer}
+.tt button[aria-pressed="true"]{background:var(--sh);border-color:var(--sh);color:var(--surface)}
+.readout{font-family:var(--f-mono);font-size:.85rem;color:var(--muted);min-height:1.4em;margin-top:4px;font-variant-numeric:tabular-nums}
+.stepper{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;flex-wrap:wrap}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dots button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-family:var(--f-mono);font-size:.78rem;cursor:pointer;padding:0}
+.dots button[aria-current="true"]{background:var(--nh);color:#fff;border-color:var(--nh)}
+.btn{font:inherit;font-size:.92rem;border:1px solid var(--fg);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:8px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--fg);border-color:var(--line)}
+.btn:disabled{opacity:.4;cursor:default}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 4px;margin:10px 0 12px}
+.chip{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:.9rem}
+.arrow{color:var(--muted);font-family:var(--f-mono);padding:0 2px}
+.eq{font-family:var(--f-mono);font-size:1.05rem;background:var(--surface2);border-radius:8px;padding:10px 12px;margin:8px 0 12px;overflow-x:auto;white-space:nowrap}
+.nuc{display:inline-flex;align-items:center;white-space:nowrap}
+.ms{display:inline-flex;flex-direction:column;align-items:flex-end;font-size:.62em;line-height:1.05;margin-right:1px}
+.substeps{display:grid;gap:8px;margin:10px 0}
+.substep{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface)}
+.substep b.lbl{font-family:var(--f-mono);font-weight:500;font-size:.78rem;letter-spacing:.05em;text-transform:uppercase;color:var(--nh);display:block;margin-bottom:2px}
+.sample-pick{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.sample-pick button{font:inherit;font-size:.88rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:6px 11px;border-radius:8px;cursor:pointer}
+.sample-pick button[aria-pressed="true"]{border-color:var(--nh);box-shadow:inset 0 0 0 1px var(--nh)}
+.sample-pick button .st{font-family:var(--f-mono);font-size:.75rem;color:var(--ok);margin-left:6px}
+.q{border-top:1px solid var(--line);padding-top:12px;margin-top:12px}
+.q .qn{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.q .qt{font-weight:600;margin:2px 0 8px}
+.opts{display:grid;gap:6px}
+.opts button{font:inherit;text-align:left;font-size:.93rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:8px 11px;border-radius:8px;cursor:pointer}
+.opts button.right{border-color:var(--ok);background:var(--okbg)}
+.opts button.wrong{border-color:var(--bad);background:var(--badbg)}
+.fb{font-size:.9rem;margin-top:6px;padding:7px 10px;border-radius:8px}
+.fb.ok{background:var(--okbg);color:var(--ok)}
+.fb.no{background:var(--badbg);color:var(--bad)}
+.hint{font-size:.9rem;background:var(--surface2);border-radius:8px;padding:8px 10px;margin-top:6px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.row label{font-size:.9rem;color:var(--muted)}
+input[type="number"]{font:inherit;font-family:var(--f-mono);width:96px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg)}
+input[type="range"]{width:100%;accent-color:var(--nh)}
+.val{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.ctx{background:var(--surface2);border-radius:10px;padding:10px 12px;margin:6px 0 4px}
+.toggles{display:flex;flex-wrap:wrap;gap:8px 18px;margin:4px 0 12px;font-size:.92rem}
+.toggles label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.score{font-family:var(--f-mono);font-size:.85rem;color:var(--muted)}
+.sliders{display:grid;gap:10px;margin:8px 0}
+.sliders .sl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center}
+.sliders .sl label{font-size:.9rem}
+.sliders .sl input{grid-column:1/-1}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+.presets button{font:inherit;font-size:.86rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:6px 10px;border-radius:8px;cursor:pointer}
+.presets button[aria-pressed="true"]{border-color:var(--sh);box-shadow:inset 0 0 0 1px var(--sh)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}
+@media (max-width:480px){.stats{grid-template-columns:minmax(0,1fr)}}
+.stat{background:var(--surface2);border-radius:8px;padding:8px 10px}
+.stat .l{font-size:.78rem;color:var(--muted)}
+.stat .v{font-family:var(--f-mono);font-size:1.05rem;font-variant-numeric:tabular-nums}
+.note{font-size:.85rem;color:var(--muted)}
+footer.src{margin-top:28px;font-size:.85rem;color:var(--muted)}
+footer.src h2{font-family:var(--f-display);font-weight:650;font-size:1.2rem;color:var(--fg);margin:0 0 6px}
+footer.src ol{padding-left:20px;margin:0}
+footer.src li{margin:3px 0;overflow-wrap:anywhere}
+footer.src a{color:var(--sh)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<header class="hs-header"><div class="hs-wrap"><h1>Bomkoolstof <span class="iso">¹⁴C</span></h1><button id="beamer" type="button">Beamerstand</button></div></header>
+<div class="wrap">
+  <div class="toprow">
+    <p class="sub">Dateren met koolstof-14 uit kernwapentests · 6 vwo</p>
+    <nav class="tabs" role="tablist" aria-label="Onderdelen">
+      <button role="tab" id="t-uitleg" aria-selected="true" data-tab="uitleg"><span class="n">1</span>Uitleg</button>
+      <button role="tab" id="t-begeleid" aria-selected="false" data-tab="begeleid"><span class="n">2</span>Begeleid oefenen</button>
+      <button role="tab" id="t-zelf" aria-selected="false" data-tab="zelf"><span class="n">3</span>Zelfstandig</button>
+      <button role="tab" id="t-weefsel" aria-selected="false" data-tab="weefsel"><span class="n">4</span>Weefsels</button>
+    </nav>
+  </div>
+
+  <!-- ============ TAB 1: UITLEG ============ -->
+  <section id="uitleg" role="tabpanel" aria-labelledby="t-uitleg">
+    <details class="goals" open><summary>Leerdoelen</summary>
+      <ul>
+        <li><span class="tag">LD1</span>Je kunt uitleggen hoe ¹⁴C in de atmosfeer ontstaat en via CO₂ en fotosynthese in organismen terechtkomt.</li>
+        <li><span class="tag">LD2</span>Je kunt uitleggen waarom de kernwapentests een piek gaven en waarom het ¹⁴C-gehalte daarna daalt.</li>
+        <li><span class="tag">LD3</span>Je kunt bij een gemeten ¹⁴C-gehalte met de bomcurve een vormingsjaar bepalen, en kiezen tussen twee snijpunten.</li>
+      </ul>
+    </details>
+    <div class="grid">
+      <div class="panel" id="u-text" aria-live="polite"></div>
+      <div class="panel">
+        <div class="chartbox" id="u-chart"></div>
+        <div class="legend" id="u-legend"></div>
+        <div class="readout" id="u-read"></div>
+        <div class="stepper">
+          <button class="btn ghost" id="u-prev">← Vorige</button>
+          <div class="dots" id="u-dots"></div>
+          <button class="btn" id="u-next">Volgende →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 2: BEGELEID ============ -->
+  <section id="begeleid" role="tabpanel" aria-labelledby="t-begeleid" hidden>
+    <details class="goals" open><summary>Leerdoelen</summary>
+      <ul>
+        <li><span class="tag">LD1</span>Je kunt bij een materiaal uitleggen hoe de koolstof erin terechtkwam.</li>
+        <li><span class="tag">LD3</span>Je kunt met de vijf stappen een vormingsjaar bepalen en een bewering toetsen.</li>
+      </ul>
+    </details>
+    <div class="sample-pick" id="g-pick"></div>
+    <div class="grid">
+      <div class="panel" id="g-text"></div>
+      <div class="panel">
+        <div class="chartbox" id="g-chart"></div>
+        <div class="legend" id="g-legend"></div>
+        <div class="readout" id="g-read"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 3: ZELFSTANDIG ============ -->
+  <section id="zelf" role="tabpanel" aria-labelledby="t-zelf" hidden>
+    <details class="goals" open><summary>Leerdoelen</summary>
+      <ul>
+        <li><span class="tag">LD3</span>Je kunt zelfstandig een vormingsjaar bepalen met de bomcurve.</li>
+        <li><span class="tag">LD5</span>Je kunt met extra informatie kiezen tussen twee snijpunten en je keuze onderbouwen.</li>
+      </ul>
+    </details>
+    <div class="toggles">
+      <label><input type="checkbox" id="z-sh"> Uitdaging: ook monsters van het zuidelijk halfrond</label>
+      <label><input type="checkbox" id="z-old"> Uitdaging: ook monsters van vóór de bompiek</label>
+    </div>
+    <div class="grid">
+      <div class="panel" id="z-text"></div>
+      <div class="panel">
+        <div class="chartbox" id="z-chart"></div>
+        <div class="legend" id="z-legend"></div>
+        <div class="readout" id="z-read"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 4: WEEFSELS ============ -->
+  <section id="weefsel" role="tabpanel" aria-labelledby="t-weefsel" hidden>
+    <details class="goals" open><summary>Leerdoelen</summary>
+      <ul>
+        <li><span class="tag">LD4</span>Je kunt uitleggen dat je de ouderdom meet van de koolstofatomen in één specifiek molecuul, en waarom DNA in niet-delende cellen het moment van celvorming vastlegt.</li>
+        <li><span class="tag">LD4</span>Je kunt voorspellen wat je meet in weefsel dat niet, langzaam of snel vernieuwd wordt.</li>
+      </ul>
+    </details>
+    <div class="grid">
+      <div class="panel">
+        <h2>Hoe oud zijn je cellen?</h2>
+        <p>DNA wordt alleen gemaakt als een cel zich deelt. Daarna komt er geen nieuwe koolstof meer in dat DNA. Het ¹⁴C-gehalte van DNA legt dus vast <em>wanneer de cel ontstond</em>.</p>
+        <div class="presets" id="w-presets"></div>
+        <div class="sliders">
+          <div class="sl"><label for="w-born">Geboortejaar</label><span class="val" id="w-born-v"></span><input type="range" id="w-born" min="1930" max="1985" step="1" value="1945"></div>
+          <div class="sl"><label for="w-meas">Jaar van meten (overlijden)</label><span class="val" id="w-meas-v"></span><input type="range" id="w-meas" min="1950" max="2019" step="1" value="2005"></div>
+          <div class="sl"><label for="w-frac">Deel van de cellen dat vernieuwd wordt</label><span class="val" id="w-frac-v"></span><input type="range" id="w-frac" min="0" max="100" step="1" value="0"></div>
+          <div class="sl"><label for="w-rate">Vernieuwing van dat deel per jaar</label><span class="val" id="w-rate-v"></span><input type="range" id="w-rate" min="0" max="60" step="0.25" value="0"></div>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="l">Lucht bij geboorte</div><div class="v" id="w-s1"></div></div>
+          <div class="stat"><div class="l">Gemeten in DNA</div><div class="v" id="w-s2"></div></div>
+          <div class="stat"><div class="l">Past bij het jaar</div><div class="v" id="w-s3"></div></div>
+        </div>
+        <p class="note" id="w-note"></p>
+      </div>
+      <div class="panel">
+        <div class="chartbox" id="w-chart"></div>
+        <div class="legend" id="w-legend"></div>
+        <div class="readout" id="w-read"></div>
+        <p class="note">Model: een deel van de cellen blijft je hele leven bestaan; in het vernieuwende deel wordt elk jaar een vast percentage vervangen door nieuwe cellen met de ¹⁴C-waarde van de lucht van dat jaar. Vereenvoudigd: voedsel wordt als ‘vers’ beschouwd.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="src">
+    <h2>Bronnen</h2>
+    <ol>
+      <li>Curvedata: Hua, Q. e.a. (2022). Atmospheric radiocarbon for the period 1950–2019. <i>Radiocarbon</i> 64(4), 723–745. <a href="https://doi.org/10.1017/RDC.2021.95" target="_blank" rel="noopener">doi:10.1017/RDC.2021.95</a> — jaargemiddelden van zone NH1 (noordelijk halfrond) en SH3 (zuidelijk halfrond), weergegeven als F¹⁴C × 100 %.</li>
+      <li>Kernproeven: UNSCEAR (2000). <i>Sources and effects of ionizing radiation</i>, Annex C, Table 4: aantal bovengrondse kernproeven per jaar (incl. Hiroshima en Nagasaki in 1945). <a href="https://www.unscear.org/unscear/uploads/documents/publications/UNSCEAR_2000_Annex-C-CORR.pdf" target="_blank" rel="noopener">unscear.org</a></li>
+      <li>Schilderij: Hendriks, L. e.a. (2019). Uncovering modern paint forgeries by radiocarbon dating. <i>PNAS</i> 116(27), 13210–13214. <a href="https://doi.org/10.1073/pnas.1901540116" target="_blank" rel="noopener">doi:10.1073/pnas.1901540116</a></li>
+      <li>Methode celdatering: Spalding, K.L. e.a. (2005). Retrospective birth dating of cells in humans. <i>Cell</i> 122(1), 133–143. <a href="https://doi.org/10.1016/j.cell.2005.04.028" target="_blank" rel="noopener">doi:10.1016/j.cell.2005.04.028</a></li>
+      <li>Neocortex: Bhardwaj, R.D. e.a. (2006). Neocortical neurogenesis in humans is restricted to development. <i>PNAS</i> 103(33), 12564–12568. <a href="https://doi.org/10.1073/pnas.0605177103" target="_blank" rel="noopener">doi:10.1073/pnas.0605177103</a></li>
+      <li>Hippocampus: Spalding, K.L. e.a. (2013). Dynamics of hippocampal neurogenesis in adult humans. <i>Cell</i> 153(6), 1219–1227. <a href="https://doi.org/10.1016/j.cell.2013.05.002" target="_blank" rel="noopener">doi:10.1016/j.cell.2013.05.002</a></li>
+      <li>Kanttekening hippocampus: Sorrells, S.F. e.a. (2018). Human hippocampal neurogenesis drops sharply in children to undetectable levels in adults. <i>Nature</i> 555, 377–381. <a href="https://doi.org/10.1038/nature25975" target="_blank" rel="noopener">doi:10.1038/nature25975</a></li>
+      <li>Groenlandse haai: Nielsen, J. e.a. (2016). Eye lens radiocarbon reveals centuries of longevity in the Greenland shark. <i>Science</i> 353(6300), 702–704. <a href="https://doi.org/10.1126/science.aaf1703" target="_blank" rel="noopener">doi:10.1126/science.aaf1703</a></li>
+      <li>Ivoor: Cerling, T.E. e.a. (2016). Radiocarbon dating of seized ivory confirms rapid decline in African elephant populations and provides insight into illegal trade. <i>PNAS</i> 113(47), 13330–13335. <a href="https://doi.org/10.1073/pnas.1614938113" target="_blank" rel="noopener">doi:10.1073/pnas.1614938113</a></li>
+    </ol>
+  </footer>
+</div>
+
+<script>
+"use strict";
+/* ---------- Data: Hua e.a. 2022, jaargemiddelden F14C x 100 (%) ---------- */
+const RAW = {
+  NH:[97.7,97.7,97.8,97.7,97.4,97.4,97.4,97.5,98.2,99.2,101.6,104.4,108.2,113.6,123.4,121.4,122.3,136.2,173.3,184.9,176.6,169.6,164.1,158.4,156.0,154.0,151.5,147.9,144.2,141.7,138.8,135.5,133.7,132.8,130.2,127.1,126.1,124.3,123.2,121.4,120.5,119.2,118.5,117.5,116.8,115.5,114.4,113.9,113.1,112.5,111.9,111.2,110.7,110.4,109.8,109.3,108.6,108.1,107.6,106.9,106.5,106.2,105.8,105.4,105.1,104.7,104.2,103.8,103.0,102.6,102.3,101.9,101.6,101.3,100.9],
+  SH:[98.3,98.3,97.9,97.9,97.7,97.3,97.3,97.3,97.8,98.0,98.1,101.0,105.4,111.3,117.4,120.4,121.3,128.0,148.4,164.8,165.5,163.0,160.5,158.0,155.2,152.6,151.9,148.2,144.3,140.8,138.7,135.8,133.7,132.5,130.3,128.4,126.7,125.1,123.6,122.2,121.1,120.0,118.6,117.8,116.7,115.4,115.0,114.7,113.6,112.8,112.2,111.7,111.3,110.7,110.0,109.6,109.1,108.9,108.3,107.7,107.2,106.7,106.3,106.0,105.8,105.6,104.8,104.3,103.9,103.3,103.1,102.9,102.4,102.1,102.0]
+};
+/* Bovengrondse kernproeven per jaar: UNSCEAR 2000, Annex C, Table 4 ([aantal, kracht in Mt]; alleen het aantal wordt getoond). Jaren zonder proeven weggelaten. */
+const TESTS = {1945:[3,0.057],1946:[2,0.042],1948:[3,0.10],1949:[1,0.022],1951:[18,0.59],1952:[11,11.0],1953:[18,0.71],1954:[16,48.3],1955:[20,2.06],1956:[32,22.9],1957:[46,9.64],1958:[91,56.8],1960:[3,0.072],1961:[59,86.5],1962:[118,170.4],1964:[1,0.02],1965:[1,0.04],1966:[8,1.14],1967:[5,3.18],1968:[6,7.60],1969:[1,3],1970:[9,5.78],1971:[6,1.46],1972:[5,0.13],1973:[6,2.52],1974:[8,1.21],1976:[3,4.12],1977:[1,0.02],1978:[2,0.04],1980:[1,0.6]};
+let showTests = false;
+const Y0 = 1945, Y1 = 2019;
+const PTS = {}; for (const h of ["NH","SH"]) PTS[h] = RAW[h].map((v,i)=>[Y0+i+0.5, v]);
+const HNAME = {NH:"noordelijk halfrond", SH:"zuidelijk halfrond"};
+
+function valAt(h, t){
+  const p = PTS[h];
+  if (t <= p[0][0]) return p[0][1];
+  if (t >= p[p.length-1][0]) return p[p.length-1][1];
+  const i = Math.floor(t - p[0][0]);
+  const [x1,y1] = p[i], [x2,y2] = p[Math.min(i+1,p.length-1)];
+  return y1 + (y2-y1)*(t-x1)/(x2-x1 || 1);
+}
+function intersections(h, v){
+  const p = PTS[h], out = [];
+  for (let i=0;i<p.length-1;i++){
+    const [x1,y1]=p[i],[x2,y2]=p[i+1];
+    if (y1===y2) continue;
+    if ((y1-v)*(y2-v) <= 0){
+      const x = x1 + (v-y1)/(y2-y1)*(x2-x1);
+      if (!out.length || Math.abs(out[out.length-1]-x) > 0.2) out.push(x);
+    }
+  }
+  return out;
+}
+function slope(h,x){ return valAt(h,x+0.5)-valAt(h,x-0.5); }
+function tol(h,x){ return Math.max(1, Math.min(4, 0.9/Math.max(Math.abs(slope(h,x)),0.01))); }
+const nl = (x,d=1)=>Number(x).toLocaleString("nl-NL",{minimumFractionDigits:d,maximumFractionDigits:d});
+const yr = x => String(Math.floor(x)); // datapunt van jaar J staat op J+0,5
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function nuc(A,Z,S){return `<span class="nuc"><span class="ms"><span>${A}</span><span>${Z}</span></span>${S}</span>`;}
+
+/* ---------- Grafiek ---------- */
+const W=720,H=390,M={l:54,r:30,t:22,b:42};
+const XMIN=1945,XMAX=2020,YMIN=90,YMAX=195;
+const sx=x=>M.l+(x-XMIN)/(XMAX-XMIN)*(W-M.l-M.r);
+const sy=y=>H-M.b-(y-YMIN)/(YMAX-YMIN)*(H-M.t-M.b);
+const ix=px=>XMIN+(px-M.l)/(W-M.l-M.r)*(XMAX-XMIN);
+const NS="http://www.w3.org/2000/svg";
+function el(tag,attrs,parent,text){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(text!=null)e.textContent=text;if(parent)parent.appendChild(e);return e;}
+
+/*
+ o = { hems:["NH"], faded:["SH"], upto:2020, events:false,
+       hlines:[{v,label,dash,color}], marks:[{x,h,label}], vlines:[{x,label,color}],
+       readout: element }
+*/
+function drawChart(box, o){
+  box.innerHTML="";
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":"Bomcurve: ¹⁴C-gehalte van de lucht per jaar"},box);
+  const g=el("g",{},svg);
+  // band testpauze + eventlabels
+  if(o.events){
+    el("rect",{x:sx(1958.9),y:M.t,width:sx(1961.7)-sx(1958.9),height:H-M.t-M.b,fill:"var(--band)"},g);
+    const ev=[[1955,"grote bovengrondse tests"],[1958.9,"testpauze"],[1963.6,"verdrag 1963"]];
+    ev.forEach(([x,t],k)=>{
+      el("line",{x1:sx(x),x2:sx(x),y1:M.t,y2:H-M.b,stroke:"var(--muted)","stroke-width":1,"stroke-dasharray":"2 4"},g);
+      el("text",{x:sx(x)+5,y:M.t+12+k*15,fill:"var(--muted)","font-size":12,"font-family":"var(--f-body)"},g,t);
+    });
+  }
+  // grid y
+  for(let y=100;y<=190;y+=10){
+    el("line",{x1:M.l,x2:W-M.r,y1:sy(y),y2:sy(y),stroke:"var(--line)","stroke-width":y===100?1.4:0.7},g);
+    el("text",{x:M.l-8,y:sy(y)+4,"text-anchor":"end",fill:"var(--muted)","font-size":12,"font-family":"var(--f-mono)"},g,y);
+  }
+  for(let x=1950;x<=2020;x+=10){
+    el("line",{x1:sx(x),x2:sx(x),y1:H-M.b,y2:H-M.b+5,stroke:"var(--muted)"},g);
+    el("text",{x:sx(x),y:H-M.b+19,"text-anchor":"middle",fill:"var(--muted)","font-size":12,"font-family":"var(--f-mono)"},g,x);
+  }
+  el("text",{x:M.l,y:H-6,fill:"var(--muted)","font-size":12},g,"jaar");
+  el("text",{x:14,y:M.t+2,fill:"var(--muted)","font-size":12,transform:`rotate(-90 14 ${M.t+2})`,"text-anchor":"end"},g,"¹⁴C in % van natuurlijk niveau");
+  const upto=o.upto??2020;
+  // kernproeven (rechteras)
+  if(showTests){
+    const max = 120;
+    const ty=v=>H-M.b-v/max*(H-M.t-M.b);
+    const bw=sx(1946)-sx(1945);
+    for(const y in TESTS){
+      if(+y>upto)continue;
+      const v=TESTS[y][0];
+      el("rect",{x:sx(+y)+bw*0.12,y:ty(v),width:bw*0.76,height:H-M.b-ty(v),fill:"var(--sh)",opacity:0.28},g);
+    }
+    for(let v=20;v<=max;v+=20)
+      el("text",{x:W-M.r+2,y:ty(v)+4,fill:"var(--sh)","font-size":11,"font-family":"var(--f-mono)"},g,v);
+    el("text",{x:W-M.r-6,y:H-M.b-8,"text-anchor":"end",fill:"var(--sh)","font-size":12},g,"balken: aantal bovengrondse kernproeven per jaar (rechteras)");
+  }
+  // curves
+  const drawCurve=(h,faded)=>{
+    const p=PTS[h].filter(q=>q[0]<=upto);
+    if(p.length<2)return;
+    if(upto<p[p.length-1][0]+1 && upto<2019.5){p.push([upto,valAt(h,upto)]);}
+    el("path",{d:p.map((q,i)=>(i?"L":"M")+sx(q[0]).toFixed(1)+" "+sy(q[1]).toFixed(1)).join(" "),fill:"none",stroke:`var(--${h.toLowerCase()})`,"stroke-width":faded?1.6:2.6,"stroke-linejoin":"round",opacity:faded?0.35:1},g);
+  };
+  (o.faded||[]).forEach(h=>drawCurve(h,true));
+  (o.hems||["NH"]).forEach(h=>drawCurve(h,false));
+  // hlines
+  (o.hlines||[]).forEach(L=>{
+    const c=L.color||"var(--mark)";
+    el("line",{x1:M.l,x2:W-M.r,y1:sy(L.v),y2:sy(L.v),stroke:c,"stroke-width":1.6,"stroke-dasharray":L.dash||"6 4"},g);
+    if(L.label)el("text",{x:W-M.r-4,y:sy(L.v)-6,"text-anchor":"end",fill:c,"font-size":12.5,"font-weight":600},g,L.label);
+  });
+  (o.vlines||[]).forEach(L=>{
+    const c=L.color||"var(--mark)";
+    el("line",{x1:sx(L.x),x2:sx(L.x),y1:M.t,y2:H-M.b,stroke:c,"stroke-width":1.4,"stroke-dasharray":"3 3"},g);
+    if(L.label)el("text",{x:sx(L.x)+4,y:H-M.b-8,fill:c,"font-size":12},g,L.label);
+  });
+  (o.marks||[]).forEach(m=>{
+    const y=valAt(m.h||"NH",m.x);
+    el("line",{x1:sx(m.x),x2:sx(m.x),y1:sy(y),y2:H-M.b,stroke:"var(--mark)","stroke-width":1,"stroke-dasharray":"2 3"},g);
+    el("circle",{cx:sx(m.x),cy:sy(y),r:5.5,fill:"var(--surface)",stroke:"var(--mark)","stroke-width":2},g);
+    if(m.label){
+      const right = sx(m.x) < W-120;
+      el("text",{x:sx(m.x)+(right?9:-9),y:sy(y)+(m.dy||-9),"text-anchor":right?"start":"end",fill:"var(--mark)","font-size":13,"font-weight":600,"font-family":"var(--f-mono)"},g,m.label);
+    }
+  });
+  // hover
+  const hov=el("g",{style:"pointer-events:none",opacity:0},svg);
+  const hl=el("line",{y1:M.t,y2:H-M.b,stroke:"var(--muted)","stroke-width":1},hov);
+  const dots={};(o.hems||["NH"]).forEach(h=>dots[h]=el("circle",{r:4,fill:`var(--${h.toLowerCase()})`},hov));
+  const ov=el("rect",{x:M.l,y:M.t,width:W-M.l-M.r,height:H-M.t-M.b,fill:"transparent"},svg);
+  const move=ev=>{
+    const r=svg.getBoundingClientRect();
+    const px=(ev.clientX-r.left)/r.width*W;
+    let x=Math.round(ix(px)-0.5)+0.5; x=Math.max(Y0+0.5,Math.min(Y1+0.5,Math.min(x,upto)));
+    hov.setAttribute("opacity",1); hl.setAttribute("x1",sx(x)); hl.setAttribute("x2",sx(x));
+    const parts=[`${Math.floor(x)}`];
+    for(const h in dots){const v=valAt(h,x);dots[h].setAttribute("cx",sx(x));dots[h].setAttribute("cy",sy(v));parts.push(`${h==="NH"?"N":"Z"}: ${nl(v)} %`);}
+    const T=TESTS[Math.floor(x)]; if(showTests)parts.push(T?`${T[0]} proeven`:"geen bovengrondse proeven");
+    if(o.readout)o.readout.textContent=parts.join("  ·  ");
+  };
+  ov.addEventListener("pointermove",move);
+  ov.addEventListener("pointerdown",move);
+  ov.addEventListener("pointerleave",()=>{hov.setAttribute("opacity",0);if(o.readout)o.readout.textContent="Beweeg over de grafiek om waarden af te lezen.";});
+  if(o.readout)o.readout.textContent="Beweeg over de grafiek om waarden af te lezen.";
+}
+function testToggle(){
+  return `<span class="tt"><button data-tm="1" aria-pressed="${showTests}">Kernproeven per jaar ${showTests?"verbergen":"tonen"}</button></span>`;
+}
+function bindToggles(){
+  document.querySelectorAll("[data-tm]").forEach(b=>b.onclick=()=>{showTests=!showTests;rerender();});
+}
+function rerender(){const t=tabs.find(b=>b.getAttribute("aria-selected")==="true").dataset.tab; showTab(t);}
+function legend(box,hems,faded){
+  const items=[...(hems||["NH"]),...(faded||[])];
+  box.innerHTML=items.map(h=>`<span><i style="background:var(--${h.toLowerCase()})"></i>Lucht, ${HNAME[h]}</span>`).join("")+testToggle();
+  bindToggles();
+}
+
+/* ---------- Tabbladen ---------- */
+const tabs=[...document.querySelectorAll("nav.tabs button")];
+function showTab(id){
+  tabs.forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===id?"true":"false"));
+  document.querySelectorAll("section[role=tabpanel]").forEach(s=>s.hidden=(s.id!==id));
+  if(id==="uitleg")renderU(); if(id==="begeleid")renderG(); if(id==="zelf")renderZ(); if(id==="weefsel")renderW();
+  try{localStorage.setItem("bomtab",id);}catch(e){}
+}
+tabs.forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+
+/* ================= TAB 1: UITLEG ================= */
+const N14=nuc(14,7,"N"),C14=nuc(14,6,"C"),n1=nuc(1,0,"n"),p1=nuc(1,1,"p");
+const U=[
+ {k:"Herkomst",t:"Waar komt ¹⁴C vandaan?",html:`
+   <ul><li>Kosmische straling maakt hoog in de atmosfeer vrije neutronen.</li>
+   <li>Een neutron reageert met een stikstofkern:</li></ul>
+   <div class="eq">${N14} + ${n1} → ${C14} + ${p1}</div>
+   <ul><li>¹⁴C reageert met zuurstof tot ¹⁴CO₂ en mengt door de hele atmosfeer.</li></ul>
+   <div class="flow"><span class="chip">kosmische straling</span><span class="arrow">→</span><span class="chip">neutron</span><span class="arrow">→</span><span class="chip">¹⁴C</span><span class="arrow">→</span><span class="chip">¹⁴CO₂</span></div>`,
+  chart:{upto:1954.9}},
+ {k:"Opname",t:"Van lucht naar lichaam",html:`
+   <div class="flow"><span class="chip">¹⁴CO₂ in de lucht</span><span class="arrow">→</span><span class="chip">fotosynthese</span><span class="arrow">→</span><span class="chip">glucose, cellulose</span><span class="arrow">→</span><span class="chip">dier</span><span class="arrow">→</span><span class="chip">mens</span></div>
+   <div class="key">Een molecuul dat wordt gemaakt, krijgt de ¹⁴C/¹²C-verhouding van de lucht van dát moment.</div>
+   <ul><li>Daarna komt er in dat molecuul geen nieuwe koolstof meer bij.</li>
+   <li>Planten halen hun koolstof uit CO₂ in de lucht, niet uit de bodem.</li></ul>`,
+  chart:{upto:1954.9}},
+ {k:"Verval",t:"Natuurlijk niveau en verval",html:`
+   <ul><li>Productie en verval zijn in evenwicht: ongeveer 1 op de 10¹² koolstofatomen is ¹⁴C.</li>
+   <li>Halveringstijd ¹⁴C: 5730 jaar (Binas tabel 25).</li>
+   <li>Klassieke datering: na de dood neemt ¹⁴C alleen af door verval.</li>
+   <li>Na 50 jaar is nog 99,4 % over: te weinig verschil om recente monsters te dateren.</li></ul>
+   <p class="note">Op de y-as: het ¹⁴C-gehalte als percentage van het natuurlijke niveau. Vóór 1955 ligt de lucht net onder 100 %, door CO₂ uit fossiele brandstof.</p>`,
+  chart:{upto:1954.9}},
+ {k:"Bompiek",t:"De bompiek",html:`
+   <ul><li>Een kernexplosie levert enorm veel neutronen: zelfde reactie, ${N14} + ${n1} → ${C14} + ${p1}.</li>
+   <li>1955–1963: honderden bovengrondse tests, vooral op het noordelijk halfrond.</li>
+   <li>1958–1961: testpauze, zichtbaar als kleine bult.</li>
+   <li>1963: verdrag tegen tests boven de grond. Piek in 1964: bijna twee keer zoveel ¹⁴C-atomen per koolstofatoom als normaal.</li></ul>
+   <button class="btn ghost" id="u-play">▶ Speel de curve af</button>`,
+  chart:{events:true}, anim:true},
+ {k:"Daling",t:"Waarom daalt het weer?",html:`
+   <ul><li>De oceaan wisselt CO₂ uit met de lucht en neemt zo bomkoolstof op.</li>
+   <li>Planten en bodems leggen bomkoolstof vast.</li>
+   <li>Fossiele CO₂ bevat geen ¹⁴C meer en verdunt de lucht.</li>
+   <li>Verval speelt nauwelijks een rol: 5730 jaar is veel langer dan 60 jaar.</li></ul>
+   <div class="key">Juist doordat het gehalte elk jaar anders is, werkt de curve als een kalender.</div>`,
+  chart:{events:true}},
+ {k:"Voorbeeld",t:"Uitgewerkt voorbeeld: het schilderij",sub:true},
+ {k:"Twee flanken",t:"Twee snijpunten: hoe kies je?",html:`
+   <ul><li>Een waarde boven ongeveer 102 % snijdt de curve (minstens) twee keer: op de stijgende en op de dalende flank.</li>
+   <li>Kies met extra informatie die één van beide uitsluit: aanplantjaar, aankoopbewijs, foto, volgorde van groei.</li>
+   <li>Soms hoef je niet te kiezen: als beide jaren een bewering tegenspreken, ben je al klaar.</li>
+   <li>Let op: rond 121–124 % zorgt de testpauze voor extra snijpunten.</li></ul>`,
+  chart:{events:true,hlines:[{v:122.5,label:"122,5 %: vier snijpunten",dash:"4 4"}]}},
+ {k:"Samenvatting",t:"De vijf stappen",html:`
+   <div class="substeps">
+   <div class="substep"><b class="lbl">1 · Materiaal</b>Welke stof meet je, en hoe kwam de koolstof erin?</div>
+   <div class="substep"><b class="lbl">2 · Moment</b>Wanneer is die koolstof vastgelegd?</div>
+   <div class="substep"><b class="lbl">3 · Meetwaarde</b>Hoeveel ¹⁴C, in % van het natuurlijke niveau?</div>
+   <div class="substep"><b class="lbl">4 · Aflezen</b>Waar snijdt die waarde de curve?</div>
+   <div class="substep"><b class="lbl">5 · Conclusie</b>Welk jaar past, en wat betekent dat voor de vraag?</div></div>`,
+  chart:{}}
+];
+const PAINT=[
+ {l:"1 · Materiaal",t:"Het bindmiddel in de verf: olie uit lijnzaad, van de vlasplant. De vlasplant legde CO₂ uit de lucht vast via fotosynthese."},
+ {l:"2 · Moment",t:"Het groeiseizoen van het lijnzaad. Olie wordt vers geperst en gebruikt, dus dat valt vrijwel samen met het schilderen."},
+ {l:"3 · Meetwaarde",t:"Bindmiddel: 119 % (illustratieve waarde die past bij het gepubliceerde resultaat). Ter vergelijking het doek: 98 %."},
+ {l:"4 · Aflezen",t:"119 % snijdt de curve twee keer: rond 1959 (stijgende flank) en rond 1986 (dalende flank). Het doek ligt op het natuurlijke niveau: van vóór 1955, maar welk jaar precies is niet te zeggen."},
+ {l:"5 · Conclusie",t:"Beide mogelijke jaren liggen ver na 1866: moderne verf op een oud doek, dus een vervalsing. De onderzoekers gaven 1958–1961 of 1983–1989. De vervalser bekende later dat hij het in de jaren ’80 maakte."}
+];
+let uStep=0, uSub=0, uAnim=null;
+function renderU(){
+  const s=U[uStep], txt=document.getElementById("u-text");
+  if(uAnim){cancelAnimationFrame(uAnim);uAnim=null;}
+  let chart=s.chart||{};
+  if(s.sub){
+    txt.innerHTML=`<div class="kicker">Stap ${uStep+1} · ${s.k}</div><h2>${s.t}</h2>
+      <div class="ctx">Een schilderij, gesigneerd ‘Sarah Honn, 5 mei 1866’. Onderzoekers namen één vezel van het doek en een verfschilfer van minder dan 200 µg.</div>
+      <div class="substeps">${PAINT.slice(0,uSub).map(p=>`<div class="substep"><b class="lbl">${p.l}</b>${p.t}</div>`).join("")}</div>
+      ${uSub<PAINT.length?`<button class="btn ghost" id="u-sub">Volgende denkstap (${uSub+1}/5)</button>`:`<p class="note">Bron: Hendriks e.a. (2019), PNAS.</p>`}`;
+    const b=document.getElementById("u-sub"); if(b)b.onclick=()=>{uSub++;renderU();};
+    chart={};
+    if(uSub>=3)chart.hlines=[{v:119,label:"bindmiddel 119 %"},{v:98,label:"doek 98 %",dash:"2 4",color:"var(--muted)"}];
+    if(uSub>=4)chart.marks=intersections("NH",119).map(x=>({x,label:"≈ "+yr(x)}));
+  } else {
+    txt.innerHTML=`<div class="kicker">Stap ${uStep+1} · ${s.k}</div><h2>${s.t}</h2>${s.html}`;
+  }
+  const box=document.getElementById("u-chart"), rd=document.getElementById("u-read");
+  drawChart(box,{...chart,readout:rd});
+  legend(document.getElementById("u-legend"),["NH"]);
+  const pb=document.getElementById("u-play");
+  if(pb)pb.onclick=()=>{
+    const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if(reduce){drawChart(box,{...chart,readout:rd});return;}
+    const t0=performance.now(),dur=5000;
+    const step=now=>{const f=Math.min(1,(now-t0)/dur);drawChart(box,{...chart,upto:1945+f*75,readout:rd});if(f<1)uAnim=requestAnimationFrame(step);else uAnim=null;};
+    uAnim=requestAnimationFrame(step);
+  };
+  document.getElementById("u-dots").innerHTML=U.map((_,i)=>`<button aria-label="Stap ${i+1}" ${i===uStep?'aria-current="true"':""} data-i="${i}">${i+1}</button>`).join("");
+  document.querySelectorAll("#u-dots button").forEach(b=>b.onclick=()=>{uStep=+b.dataset.i;renderU();});
+  document.getElementById("u-prev").disabled=uStep===0;
+  document.getElementById("u-next").disabled=uStep===U.length-1;
+}
+document.getElementById("u-prev").onclick=()=>{if(uStep>0){uStep--;renderU();}};
+document.getElementById("u-next").onclick=()=>{if(uStep<U.length-1){uStep++;renderU();}};
+
+/* ================= TAB 2: BEGELEID ================= */
+const G=[
+ {id:"wijn",name:"Wijn ‘oogst 1990’",hem:"NH",value:115.5,hints:"open",
+  ctx:"Een fles wijn met op het etiket ‘oogst 1990’. Een lab meet het ¹⁴C-gehalte van de ethanol: 115,5 %. Volgens de wijngaard zijn de wijnstokken in 1975 aangeplant.",
+  claim:1990,
+  steps:[
+   {type:"mc",n:"1 · Materiaal",q:"Waar komt de koolstof in de ethanol vandaan?",hint:"Ethanol ontstaat bij gisting uit suiker. Waar komt die suiker vandaan?",
+    o:[{t:"De gist maakt ethanol uit druivensuiker; de wijnstok maakte die suiker via fotosynthese uit CO₂ uit de lucht.",ok:1,f:"Juist: de koolstof komt uit de lucht van het groeiseizoen."},
+       {t:"De wijnstok haalt koolstof uit de bodem en stopt die in de druiven.",f:"Planten halen hun koolstof uit CO₂ in de lucht, niet uit de bodem."},
+       {t:"De koolstof komt uit het water in de wijn.",f:"Water (H₂O) bevat geen koolstof."}]},
+   {type:"mc",n:"2 · Moment",q:"Welk jaar leg je dus vast met deze meting?",hint:"Wanneer werd de suiker in de druif gemaakt?",
+    o:[{t:"Het oogstjaar: in dat groeiseizoen is de suiker gemaakt.",ok:1,f:"Juist."},
+       {t:"Het jaar van bottelen.",f:"Bij het bottelen komt er geen nieuwe koolstof in de ethanol."},
+       {t:"Het jaar van meten.",f:"Na de gisting verandert het ¹⁴C-gehalte vrijwel niet meer (verval is verwaarloosbaar)."}]},
+   {type:"slider",n:"3 · Meetwaarde",q:"Zet de horizontale lijn op de meetwaarde.",hint:"De meetwaarde staat in de beschrijving van het monster."},
+   {type:"years",n:"4 · Aflezen",q:"Lees af waar de lijn de curve snijdt. Rond af op hele jaren.",hint:"Er zijn twee snijpunten: één op de stijgende flank (vóór 1964) en één op de dalende flank (na 1964)."},
+   {type:"mc",n:"5 · Conclusie",q:"Past de meting bij het etiket?",hint:"Kun je één van de twee snijpunten uitsluiten met de informatie over de wijngaard?",
+    o:[{t:"Ja: het snijpunt rond 1958 valt af omdat de wijnstokken pas in 1975 zijn aangeplant. Het andere snijpunt, 1990, past bij het etiket.",ok:1,f:"Juist: de extra informatie sluit de stijgende flank uit."},
+       {t:"Nee: de meting past ook bij 1958, dus het etiket kan niet kloppen.",f:"Een tweede mogelijk jaar maakt het etiket niet fout. Kijk of je dat jaar kunt uitsluiten."},
+       {t:"Dat valt niet te zeggen zonder nog een meting.",f:"De informatie over de wijngaard is genoeg om te kiezen."}]}
+  ]},
+ {id:"shirt",name:"T-shirt ‘vintage 1965’",hem:"NH",value:140,hints:"button",
+  ctx:"Een webwinkel verkoopt een katoenen T-shirt als ‘vintage, gemaakt in 1965’. Een verzamelaar laat een draadje meten: 140 %.",
+  claim:1965,
+  steps:[
+   {type:"mc",n:"1 · Materiaal",q:"Waar komt de koolstof in katoen vandaan?",hint:"Katoen is een plantenvezel. Uit welk polymeer bestaat het?",
+    o:[{t:"Katoen is cellulose; de katoenplant maakte de glucose daarvoor via fotosynthese uit CO₂.",ok:1,f:"Juist."},
+       {t:"Katoen is een polyester, gemaakt uit aardolie.",f:"Dat is polyester. Polyester uit aardolie bevat zelfs 0 % ¹⁴C: de koolstof is miljoenen jaren oud."},
+       {t:"De koolstof komt uit het wasmiddel waarmee het shirt gewassen is.",f:"Wasmiddel bindt niet in de cellulose; de vezel zelf is gemeten."}]},
+   {type:"mc",n:"2 · Moment",q:"Welk moment leg je vast?",hint:"Wanneer werd de cellulose gemaakt: bij het weven of eerder?",
+    o:[{t:"Het groeiseizoen van de katoenplant.",ok:1,f:"Juist. Spinnen en weven volgen meestal kort daarna."},
+       {t:"Het moment van weven.",f:"Bij het weven komt er geen nieuwe koolstof in de vezel."},
+       {t:"De laatste keer dat het shirt gedragen is.",f:"Dragen verandert de koolstof in de vezel niet."}]},
+   {type:"slider",n:"3 · Meetwaarde",q:"Zet de horizontale lijn op de meetwaarde.",hint:"Gebruik de waarde uit de beschrijving."},
+   {type:"years",n:"4 · Aflezen",q:"Lees de twee snijpunten af. Rond af op hele jaren.",hint:"Zoek eerst het snijpunt vóór de piek, dan het snijpunt erna."},
+   {type:"mc",n:"5 · Conclusie",q:"Klopt ‘gemaakt in 1965’?",hint:"Wat was de waarde van de lucht in 1965? Lees die af en vergelijk.",
+    o:[{t:"Nee: beide mogelijke jaren (≈ 1962 en ≈ 1975) spreken 1965 tegen. In 1965 zat er ruim 175 % in de lucht.",ok:1,f:"Juist: hier hoef je niet te kiezen tussen de flanken."},
+       {t:"Ja: 1965 ligt tussen de twee snijpunten.",f:"Jaren tussen de snijpunten hebben juist een hógere waarde dan 140 %."},
+       {t:"Dat kun je pas zeggen als je weet welke flank het is.",f:"Kijk of beide flanken tot dezelfde conclusie leiden."}]}
+  ]},
+ {id:"ivoor",name:"Ivoor ‘van vóór het verbod’",hem:"NH",value:107,hints:"none",
+  ctx:"Een handelaar beweert dat een slagtand afkomstig is van een olifant die in 1975 stierf, ruim vóór het internationale handelsverbod van 1989. Een monster van de binnenkant van de basis van de slagtand geeft 107 %. (Vereenvoudigd: gebruik de curve van het noordelijk halfrond.)",
+  claim:1975,
+  steps:[
+   {type:"mc",n:"1 · Materiaal",q:"Waar komt de koolstof in ivoor vandaan?",
+    o:[{t:"Uit de planten die de olifant at; die legden CO₂ uit de lucht vast.",ok:1,f:"Juist: de olifant bouwt zijn slagtand op uit koolstof uit zijn voedsel."},
+       {t:"Uit kalk in de bodem die de olifant binnenkrijgt.",f:"Het gemeten collageen in ivoor bouwt de olifant op uit koolstof uit plantaardig voedsel."},
+       {t:"Uit de CO₂ die de olifant inademt.",f:"Dieren leggen geen CO₂ vast; dat doen planten."}]},
+   {type:"mc",n:"2 · Moment",q:"De slagtand groeit aan de basis. Wat leg je vast met een monster van de binnenkant van de basis?",
+    o:[{t:"Ongeveer het jaar waarin de olifant stierf: dat is het laatst gevormde ivoor.",ok:1,f:"Juist."},
+       {t:"Het geboortejaar van de olifant.",f:"Het oudste ivoor zit in de punt van de slagtand, niet aan de basis."},
+       {t:"Het jaar waarin de slagtand in beslag werd genomen.",f:"Na de dood groeit de slagtand niet meer; er komt geen nieuwe koolstof bij."}]},
+   {type:"slider",n:"3 · Meetwaarde",q:"Zet de horizontale lijn op de meetwaarde."},
+   {type:"years",n:"4 · Aflezen",q:"Lees de twee snijpunten af. Rond af op hele jaren."},
+   {type:"mc",n:"5 · Conclusie",q:"Wat concludeer je over de bewering ‘gestorven in 1975’?",
+    o:[{t:"Die klopt niet: de olifant stierf rond 1957 of rond 2004. Geen van beide is 1975.",ok:1,f:"Juist. Onderzoek naar in beslag genomen ivoor liet zo zien dat bijna al het ivoor van recent gestroopte olifanten kwam (Cerling e.a., 2016)."},
+       {t:"Die klopt: 107 % ligt dicht bij 100 %, dus het ivoor is oud.",f:"Ook vlak boven 100 % hoort bij een specifiek jaar op de curve. Lees de snijpunten af."},
+       {t:"Die klopt mogelijk: 1975 ligt tussen de twee snijpunten.",f:"In 1975 zat er bijna 139 % in de lucht. Een jaar tussen de snijpunten past niet bij 107 %."}]}
+  ]}
+];
+const gState={cur:0}; G.forEach(s=>{s.done=0;s.slider=100;s.ans={};s.hintShown={};});
+function renderG(){
+  const pick=document.getElementById("g-pick");
+  pick.innerHTML=G.map((s,i)=>`<button aria-pressed="${i===gState.cur}" data-i="${i}">Monster ${i+1}: ${esc(s.name)}${s.done>=s.steps.length?'<span class="st">✓</span>':""}</button>`).join("");
+  pick.querySelectorAll("button").forEach(b=>b.onclick=()=>{gState.cur=+b.dataset.i;renderG();});
+  const s=G[gState.cur], txt=document.getElementById("g-text");
+  const ix_=intersections(s.hem,s.value);
+  const hintNote={open:"Hints staan open.",button:"Hints op aanvraag.",none:"Geen hints: je staat er alleen voor."}[s.hints];
+  let html=`<div class="kicker">Monster ${gState.cur+1} · ${hintNote}</div><h2>${esc(s.name)}</h2><div class="ctx">${s.ctx}</div>`;
+  s.steps.forEach((st,i)=>{
+    if(i>s.done)return;
+    const solved=i<s.done;
+    html+=`<div class="q" data-step="${i}"><div class="qn">${st.n}</div><div class="qt">${st.q}</div>`;
+    if(st.type==="mc"){
+      html+=`<div class="opts">${st.o.map((o,k)=>{
+        const a=s.ans[i]; let cls=""; if(a&&a.k===k)cls=o.ok?"right":"wrong"; if(solved&&o.ok)cls="right";
+        return `<button data-k="${k}" class="${cls}" ${solved?"disabled":""}>${o.t}</button>`;}).join("")}</div>`;
+      const a=s.ans[i]; if(a){const o=st.o[a.k];html+=`<div class="fb ${o.ok?"ok":"no"}">${o.f}</div>`;}
+    } else if(st.type==="slider"){
+      html+=`<div class="row"><input type="range" id="g-sl" min="90" max="195" step="0.5" value="${s.slider}" ${solved?"disabled":""} aria-label="Meetwaarde"><span class="val" id="g-slv">${nl(s.slider)} %</span></div>`;
+      if(solved)html+=`<div class="fb ok">De lijn staat op ${nl(s.value)} %.</div>`;
+    } else if(st.type==="years"){
+      const labels=["stijgende flank","dalende flank"];
+      html+=`<div class="row">${ix_.slice(0,2).map((x,k)=>`<label for="g-y${k}">${labels[k]}</label><input type="number" id="g-y${k}" min="1945" max="2019" step="1" value="${s.ans["y"+k]??""}" ${solved?"disabled":""}>`).join("")}
+        ${solved?"":`<button class="btn" id="g-check">Controleer</button>`}</div>`;
+      if(s.ans.yfb)html+=`<div class="fb ${solved?"ok":"no"}">${s.ans.yfb}</div>`;
+    }
+    if(st.hint && !solved){
+      if(s.hints==="open")html+=`<div class="hint">💡 ${st.hint}</div>`;
+      else if(s.hints==="button")html+=s.hintShown[i]?`<div class="hint">💡 ${st.hint}</div>`:`<button class="btn ghost" data-hint="${i}" style="margin-top:6px">Hint</button>`;
+    }
+    html+=`</div>`;
+  });
+  if(s.done>=s.steps.length){
+    const nxt=G.findIndex(x=>x.done<x.steps.length);
+    html+=`<div class="q"><div class="fb ok">Monster afgerond.</div>${nxt>=0?`<button class="btn" id="g-next" style="margin-top:8px">Naar monster ${nxt+1} →</button>`:`<p style="margin-top:8px">Alle monsters zijn af. Ga verder bij <b>3 · Zelfstandig</b>.</p>`}</div>`;
+  }
+  txt.innerHTML=html;
+  // events
+  txt.querySelectorAll(".q").forEach(q=>{
+    const i=+q.dataset.step; if(isNaN(i))return; const st=s.steps[i];
+    q.querySelectorAll(".opts button").forEach(b=>b.onclick=()=>{
+      const k=+b.dataset.k; s.ans[i]={k}; if(st.o[k].ok&&s.done===i)s.done++; renderG();
+    });
+    const hb=q.querySelector("[data-hint]"); if(hb)hb.onclick=()=>{s.hintShown[i]=1;renderG();};
+  });
+  const sl=document.getElementById("g-sl");
+  if(sl)sl.oninput=()=>{s.slider=+sl.value;document.getElementById("g-slv").textContent=nl(s.slider)+" %";
+    if(Math.abs(s.slider-s.value)<=0.5){s.slider=s.value;s.done=Math.max(s.done,3);renderG();} else drawG();};
+  const ck=document.getElementById("g-check");
+  if(ck)ck.onclick=()=>{
+    const vals=[0,1].map(k=>parseFloat(document.getElementById("g-y"+k).value));
+    vals.forEach((v,k)=>s.ans["y"+k]=isNaN(v)?"":v);
+    const good=vals.map((v,k)=>!isNaN(v)&&Math.abs(v-(ix_[k]-0.5))<=tol(s.hem,ix_[k]));
+    if(good.every(Boolean)){s.done=Math.max(s.done,4);s.ans.yfb=`Juist: ≈ ${yr(ix_[0])} en ≈ ${yr(ix_[1])}.`;}
+    else s.ans.yfb=good.map((g,k)=>g?null:`Kijk nog eens naar de ${k?"dalende":"stijgende"} flank.`).filter(Boolean).join(" ");
+    renderG();
+  };
+  const gn=document.getElementById("g-next"); if(gn)gn.onclick=()=>{gState.cur=G.findIndex(x=>x.done<x.steps.length);renderG();};
+  drawG();
+}
+function drawG(){
+  const s=G[gState.cur], o={hems:[s.hem],readout:document.getElementById("g-read")};
+  if(s.done>=2){o.hlines=[{v:s.slider,label:nl(s.slider)+" %"}];}
+  if(s.done>=4){o.marks=intersections(s.hem,s.value).slice(0,2).map(x=>({x,h:s.hem,label:"≈ "+yr(x)}));}
+  if(s.done>=4 && s.claim)o.vlines=[{x:s.claim+0.5,label:"bewering: "+s.claim,color:"var(--muted)"}];
+  drawChart(document.getElementById("g-chart"),o);
+  legend(document.getElementById("g-legend"),[s.hem]);
+}
+
+/* ================= TAB 3: ZELFSTANDIG ================= */
+const MAT=[
+ {n:"Een jaarring uit een eik",s:"cellulose in het hout",how:"De boom maakte de cellulose via fotosynthese uit CO₂ in het groeiseizoen van die ring."},
+ {n:"Honing uit een oude pot",s:"suikers in de honing",how:"Bijen maakten de honing van nectar; de bloemen maakten die suiker via fotosynthese in dat seizoen."},
+ {n:"Whisky",s:"ethanol",how:"De ethanol komt uit zetmeel van gerst, gemaakt via fotosynthese in het oogstjaar."},
+ {n:"Een katoenen vlag",s:"cellulose in katoen",how:"De katoenplant maakte de cellulose via fotosynthese in het groeiseizoen."},
+ {n:"Lijnolie uit een verfmonster",s:"het bindmiddel (lijnolie)",how:"De vlasplant maakte de olie in het lijnzaad tijdens het groeiseizoen; olie wordt vers gebruikt."},
+ {n:"Een stukje koffiebrander-zak van jute",s:"cellulose in jute",how:"De jute-plant maakte de cellulose via fotosynthese in het groeiseizoen."}
+];
+const PLACES_SH=["Nieuw-Zeeland","Chili","Zuid-Afrika","Australië","Argentinië"];
+const OLD=[
+ {n:"Hout uit een middeleeuwse kerkbalk",lo:600,hi:900},
+ {n:"Linnen van een oude zeilkist",lo:200,hi:450},
+ {n:"Houtskool uit een haardplaats",lo:1500,hi:4000}
+];
+const zS={score:0,tries:0,cur:null};
+const rnd=(a,b)=>a+Math.random()*(b-a), pickOne=a=>a[Math.floor(Math.random()*a.length)];
+function newZ(){
+  const useSH=document.getElementById("z-sh").checked, useOld=document.getElementById("z-old").checked;
+  if(useOld && Math.random()<0.25){
+    const m=pickOne(OLD); const age=Math.round(rnd(m.lo,m.hi)/10)*10;
+    const v=Math.round(100*Math.pow(0.5,age/5730)*10)/10;
+    zS.cur={old:1,m,age,v,stage:0}; return;
+  }
+  const hem=useSH&&Math.random()<0.4?"SH":"NH";
+  let Y,v,ix_;
+  for(let k=0;k<200;k++){
+    Y=Math.floor(rnd(1956,2019))+0.5; v=Math.round((valAt(hem,Y)+rnd(-0.3,0.3))*10)/10;
+    ix_=intersections(hem,v);
+    if(v>119.5&&v<125)continue; if(v>(hem==="NH"?182:163))continue; if(v<103)continue;
+    if(ix_.length===2)break;
+  }
+  const truth=Y<1964.5?0:1; // index flank
+  const a=ix_[0],b=ix_[1];
+  const X=Math.round(a+(b-a)*rnd(0.3,0.7));
+  const clue=truth===1?`Uit andere bronnen is bekend dat het materiaal pas na ${X} is ontstaan.`:`Er is een foto van het voorwerp uit ${X}; het bestond toen dus al.`;
+  zS.cur={old:0,m:pickOne(MAT),hem,place:hem==="SH"?pickOne(PLACES_SH):null,v,ix:ix_,truth,clue,stage:0,ans:{}};
+}
+function renderZ(){
+  if(!zS.cur)newZ();
+  const c=zS.cur, txt=document.getElementById("z-text");
+  let html=`<div class="row" style="justify-content:space-between"><div class="kicker">Zelfstandig</div><div class="score">Goed: ${zS.score} van ${zS.tries}</div></div>`;
+  if(c.old){
+    html+=`<h2>${c.m.n}</h2><div class="ctx">Gemeten: <b class="val">${nl(c.v)} %</b>. Dit monster is ouder dan de bompiek: de bomcurve helpt hier niet.</div>
+     <div class="q"><div class="qn">Uitdaging</div><div class="qt">Bereken hoe oud het monster is. Ga uit van 100 % bij vorming en t½ = 5730 jaar.</div>
+     <div class="hint">Formule: N/N₀ = (½)<sup>t / t½</sup>. Los t op met een logaritme.</div>
+     <div class="row" style="margin-top:8px"><label for="z-age">Leeftijd (jaar)</label><input type="number" id="z-age" value="${c.ans?.age??""}" ${c.stage?"disabled":""}>${c.stage?"":`<button class="btn" id="z-c1">Controleer</button>`}</div>
+     ${c.fb?`<div class="fb ${c.stage?"ok":"no"}">${c.fb}</div>`:""}</div>`;
+  } else {
+    html+=`<h2>${c.m.n}${c.place?` uit ${c.place}`:""}</h2>
+     <div class="ctx">Gemeten in ${c.m.s}: <b class="val">${nl(c.v)} %</b>.<br><span class="note">${c.m.how}</span></div>`;
+    if(c.hem==="SH")html+=`<p class="note">Let op: dit monster komt van het zuidelijk halfrond. Gebruik de juiste curve.</p>`;
+    html+=`<div class="q"><div class="qn">Aflezen</div><div class="qt">Op welke twee jaren snijdt ${nl(c.v)} % de juiste curve?</div>
+      <div class="row"><label for="z-a">stijgende flank</label><input type="number" id="z-a" value="${c.ans.a??""}" ${c.stage?"disabled":""}>
+      <label for="z-b">dalende flank</label><input type="number" id="z-b" value="${c.ans.b??""}" ${c.stage?"disabled":""}>
+      ${c.stage?"":`<button class="btn" id="z-c1">Controleer</button>`}</div>${c.fb1?`<div class="fb ${c.stage?"ok":"no"}">${c.fb1}</div>`:""}</div>`;
+    if(c.stage>=1){
+      html+=`<div class="q"><div class="qn">Kiezen</div><div class="qt">${c.clue} Welk vormingsjaar past?</div>
+      <div class="opts">${[0,1].map(k=>{let cls="";if(c.ans.pick===k)cls=(k===c.truth)?"right":"wrong";if(c.stage>=2&&k===c.truth)cls="right";
+        return `<button data-k="${k}" class="${cls}" ${c.stage>=2?"disabled":""}>≈ ${yr(c.ix[k])} (${k?"dalende":"stijgende"} flank)</button>`;}).join("")}</div>
+      ${c.fb2?`<div class="fb ${c.stage>=2?"ok":"no"}">${c.fb2}</div>`:""}</div>`;
+    }
+  }
+  const done=c.old?c.stage>=1:c.stage>=2;
+  html+=`<div class="row" style="margin-top:14px"><button class="btn ${done?"":"ghost"}" id="z-new">${done?"Nieuw monster →":"Sla over"}</button></div>`;
+  txt.innerHTML=html;
+  const c1=document.getElementById("z-c1");
+  if(c1)c1.onclick=()=>{
+    zS.tries++;
+    if(c.old){
+      const a=parseFloat(document.getElementById("z-age").value); c.ans={age:a};
+      if(!isNaN(a)&&Math.abs(a-c.age)<=Math.max(15,0.05*c.age)){c.stage=1;zS.score++;c.fb=`Juist: ongeveer ${c.age} jaar. t = 5730 · log(N/N₀) / log(½).`;}
+      else c.fb="Nog niet goed. Controleer of je N/N₀ als fractie invult (bijv. 0,93) en de logaritme juist gebruikt.";
+    } else {
+      const a=parseFloat(document.getElementById("z-a").value), b=parseFloat(document.getElementById("z-b").value);
+      c.ans.a=isNaN(a)?"":a; c.ans.b=isNaN(b)?"":b;
+      const okA=!isNaN(a)&&Math.abs(a-(c.ix[0]-0.5))<=tol(c.hem,c.ix[0]), okB=!isNaN(b)&&Math.abs(b-(c.ix[1]-0.5))<=tol(c.hem,c.ix[1]);
+      if(okA&&okB){c.stage=1;zS.score++;c.fb1=`Juist: ≈ ${yr(c.ix[0])} en ≈ ${yr(c.ix[1])}.`;}
+      else {
+        const other=c.hem==="NH"?"SH":"NH", ixo=intersections(other,c.v);
+        const wrongCurve=ixo.length===2&&!isNaN(a)&&!isNaN(b)&&Math.abs(a-(ixo[0]-0.5))<=1&&Math.abs(b-(ixo[1]-0.5))<=1&&!(okA&&okB);
+        c.fb1=wrongCurve?"Je hebt de curve van het andere halfrond gebruikt.":[okA?"":"Stijgende flank klopt nog niet.",okB?"":"Dalende flank klopt nog niet."].join(" ").trim();
+      }
+    }
+    renderZ();
+  };
+  txt.querySelectorAll(".opts button").forEach(b=>b.onclick=()=>{
+    const k=+b.dataset.k; c.ans.pick=k;
+    if(k===c.truth){c.stage=2;c.fb2=c.truth?"Juist: het jaar op de stijgende flank ligt vóór het jaar uit de extra informatie en valt dus af.":"Juist: het jaar op de dalende flank ligt na de foto en valt dus af.";}
+    else c.fb2="Nee: controleer of dit jaar past bij de extra informatie.";
+    renderZ();
+  });
+  document.getElementById("z-new").onclick=()=>{newZ();renderZ();};
+  // chart
+  const useSH=document.getElementById("z-sh").checked;
+  const o={hems:useSH?["NH","SH"]:["NH"],readout:document.getElementById("z-read")};
+  if(!c.old){
+    o.hlines=[{v:c.v,label:nl(c.v)+" %"}];
+    if(c.stage>=1)o.marks=c.ix.map(x=>({x,h:c.hem,label:"≈ "+yr(x)}));
+  }
+  drawChart(document.getElementById("z-chart"),o);
+  legend(document.getElementById("z-legend"),o.hems);
+}
+["z-sh","z-old"].forEach(id=>document.getElementById(id).addEventListener("change",()=>{newZ();renderZ();}));
+
+/* ================= TAB 4: WEEFSELS ================= */
+const PRE=[
+ {n:"Neocortex-neuronen",f:0,r:0,note:"Bhardwaj e.a. (2006): het DNA van neocortex-neuronen past bij het geboortejaar. Er komen na de geboorte geen neuronen meer bij."},
+ {n:"Hippocampus-neuronen",f:33,r:1.75,note:"Spalding e.a. (2013): ongeveer een derde van de hippocampus-neuronen wordt vernieuwd, met 1,75 % per jaar. Sorrells e.a. (2018) vonden met een andere methode juist geen nieuwe neuronen bij volwassenen: dit is nog onderwerp van debat."},
+ {n:"Kern van de ooglens",f:0,r:0,note:"De eiwitten in de kern van de ooglens worden vóór de geboorte gemaakt en nooit vervangen. Zo werd de leeftijd van Groenlandse haaien bepaald (Nielsen e.a., 2016)."},
+ {n:"Snel vernieuwend weefsel (illustratief)",f:100,r:40,note:"Illustratief voorbeeld: weefsel waarin alle cellen steeds vervangen worden. Het DNA past dan bij een recent jaar, niet bij de geboorte."}
+];
+let wPreset=0;
+const W_IDS=["w-born","w-meas","w-frac","w-rate"];
+function wGet(){return Object.fromEntries(W_IDS.map(id=>[id,+document.getElementById(id).value]));}
+function wModel(B,Mj,f,r){
+  const C=t=>valAt("NH",t);
+  const cB=C(B+0.5);
+  let A=cB; const dt=1/12, k=-Math.log(1-Math.min(r,99.9)/100); // continu tempo
+  for(let t=B+0.5;t<Mj+0.5;t+=dt){A+= (C(t)-A)*(1-Math.exp(-k*dt));}
+  return {cB, dna:(1-f/100)*cB+(f/100)*A};
+}
+function renderW(){
+  document.getElementById("w-presets").innerHTML=PRE.map((p,i)=>`<button aria-pressed="${i===wPreset}" data-i="${i}">${p.n}</button>`).join("");
+  document.querySelectorAll("#w-presets button").forEach(b=>b.onclick=()=>{
+    wPreset=+b.dataset.i; const p=PRE[wPreset];
+    document.getElementById("w-frac").value=p.f; document.getElementById("w-rate").value=p.r; renderW();});
+  const v=wGet();
+  const meas=document.getElementById("w-meas");
+  meas.min=v["w-born"]+10; if(+meas.value<+meas.min)meas.value=meas.min;
+  const B=v["w-born"],Mj=+meas.value,f=v["w-frac"],r=v["w-rate"];
+  document.getElementById("w-born-v").textContent=B;
+  document.getElementById("w-meas-v").textContent=Mj;
+  document.getElementById("w-frac-v").textContent=f+" %";
+  document.getElementById("w-rate-v").textContent=nl(r,2)+" % per jaar";
+  const p=PRE[wPreset]; const matches=p.f===f&&Math.abs(p.r-r)<0.01;
+  document.querySelectorAll("#w-presets button").forEach((b,i)=>b.setAttribute("aria-pressed",String(i===wPreset&&matches)));
+  const {cB,dna}=wModel(B,Mj,f,r);
+  document.getElementById("w-s1").textContent=nl(cB)+" %";
+  document.getElementById("w-s2").textContent=nl(dna)+" %";
+  const ix_=dna<102?[]:intersections("NH",dna);
+  let match;
+  if(dna<102) match = B<1955 ? "vóór 1955" : "≈ "+yr(Mj);
+  else if(ix_.length) match = ix_.length>1? "≈ "+ix_.map(yr).join(" of ") : "≈ "+yr(ix_[0]);
+  else match="boven de curve";
+  document.getElementById("w-s3").textContent=match;
+  document.getElementById("w-note").textContent=matches?p.note:"Eigen instelling. Kies een voorbeeld om terug te gaan naar gepubliceerde waarden.";
+  const o={hems:["NH"],readout:document.getElementById("w-read"),
+    vlines:[{x:B+0.5,label:"geboren "+B,color:"var(--sh)"},{x:Mj+0.5,label:"gemeten "+Mj,color:"var(--muted)"}],
+    hlines:[{v:dna,label:"DNA "+nl(dna)+" %",color:"var(--sh)"}]};
+  if(ix_.length)o.marks=ix_.map(x=>({x,label:"≈ "+yr(x),dy:18}));
+  drawChart(document.getElementById("w-chart"),o);
+  document.getElementById("w-legend").innerHTML=`<span><i style="background:var(--nh)"></i>Lucht, noordelijk halfrond</span><span><i style="background:var(--sh)"></i>Model: gemeten in DNA</span>`+testToggle();
+  bindToggles();
+}
+W_IDS.forEach(id=>document.getElementById(id).addEventListener("input",renderW));
+
+/* ---------- Start ---------- */
+let start="uitleg"; try{const s=localStorage.getItem("bomtab"); if(s&&document.getElementById(s))start=s;}catch(e){}
+showTab(start);
+document.getElementById("beamer").onclick=()=>document.body.classList.toggle("hs-beamer");
+</script>
+</body>
+</html>
