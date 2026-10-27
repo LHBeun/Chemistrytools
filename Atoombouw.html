@@ -186,7 +186,10 @@
   .opd-shells{grid-template-columns:repeat(4,1fr)}
   @media (max-width:600px){.opd-shells{grid-template-columns:1fr 1fr}}
   .opd-ok{color:var(--hs-ok);font-weight:600} .opd-bad{color:var(--hs-err)}
-  .feedback .big{font-size:20px}
+  .feedback .big,.task-box .big{font-size:20px; display:inline-flex; align-items:center; vertical-align:middle; font-family:var(--mono); padding:0 2px;}
+  .feedback .prefix,.task-box .prefix{display:inline-flex; flex-direction:column; justify-content:center; align-items:flex-end; line-height:1.05; margin-right:2px; font-size:12px;}
+  .feedback .prefix .super,.task-box .prefix .super{color:var(--accent);} .feedback .prefix .sub,.task-box .prefix .sub{color:var(--accent2);}
+  .feedback .charge,.task-box .charge{align-self:flex-start; font-size:12px; color:var(--warn); margin-left:1px;}
 </style>
 </head>
 <body>
@@ -1260,7 +1263,7 @@ const OPD_GEN = {
       show:'',
       fields:[{k:'sym',label:'Symbool',ans:p.sym,kind:'text'},{k:'A',label:'Massagetal',ans:p.A},{k:'Z',label:'Atoomnummer',ans:p.z},{k:'q',label:'Lading (0 als neutraal)',ans:p.q,kind:'charge'}],
       hint: level==='3V' ? 'Het aantal protonen bepaalt welk element het is. Gebruik je periodiek systeem.' : 'Het aantal protonen bepaalt welk element het is (Binas tabel 99).',
-      explain:`Notatie: ${opdNotation(p.sym,p.A,p.z,p.q)}. Massagetal ${p.z} + ${p.A-p.z} = ${p.A}; lading ${p.z} − ${e} = ${p.q===0?'0':opdChargeStr(p.q)}.`,
+      explain:`Notatie: ${opdNotation(p.sym,p.A,p.z,p.q)}. Massagetal ${p.z} + ${p.A-p.z} = ${p.A}; lading: ${p.z} protonen − ${e} elektronen = ${p.q<0?'−'+(-p.q):p.q}${p.q?`, genoteerd als ${opdChargeStr(p.q)}`:''}.`,
       diagnose(v){ if(v.A===p.A-p.z) return 'Het massagetal telt protonen én neutronen.'; if(v.q===-p.q && p.q) return 'Let op het teken van de lading: meer elektronen dan protonen geeft een negatieve lading.'; return null; } };
   },
   t3(level){
