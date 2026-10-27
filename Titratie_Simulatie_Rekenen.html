@@ -2,276 +2,771 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Titratie Laboratorium</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Molariteit en titreren</title>
 <style>
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-  :root{
-    --bg:#f7f7f5;--surface:#fff;--surface2:#f0f0ec;--border:#d8d8d2;--border2:#c0c0b8;
-    --text:#1a1a18;--text2:#5a5a55;--text3:#8a8a84;
-    --blue:#1a5fa8;--blue-bg:#e8f0fa;--green:#1a7a4a;--green-bg:#e6f4ed;
-    --red:#a83030;--red-bg:#faeaea;--amber:#8a6010;--amber-bg:#fdf4e0;
-    --radius:8px;--radius-lg:12px;
-  }
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;}
-  .page{max-width:720px;margin:0 auto;padding:2rem 1.5rem 4rem;}
-  .header{text-align:center;margin-bottom:2rem;}
-  .header h1{font-size:25px;font-weight:600;margin-bottom:4px;}
-  .header p{font-size:14px;color:var(--text2);}
-  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.25rem;}
-  .phase-badge{display:inline-block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;
-    padding:3px 9px;border-radius:20px;background:var(--blue-bg);color:var(--blue);margin-bottom:0.75rem;}
-  .phase-badge.p2{background:#f0e8fa;color:#6030a8;}
-  h2{font-size:18px;font-weight:600;margin-bottom:0.5rem;}
-  .reaction{font-size:18px;font-weight:600;text-align:center;padding:0.75rem;background:var(--surface2);border-radius:var(--radius);margin:1rem 0;font-family:"Courier New",monospace;}
-  .data{background:var(--blue-bg);border-radius:var(--radius);padding:0.75rem 1rem;margin:1rem 0;font-size:14px;line-height:1.8;}
-  .data b{font-weight:600;}
-  .sim-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:1rem 0;}
-  .sim-row label{font-size:14px;color:var(--text2);}
-  input[type="number"]{padding:7px 10px;font-size:14px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface);color:var(--text);width:90px;}
-  input[type="number"]:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,95,168,0.1);}
-  .btn{padding:8px 16px;font-size:14px;font-weight:600;border:1px solid var(--blue);border-radius:var(--radius);background:var(--blue);color:#fff;cursor:pointer;transition:opacity 0.15s;}
-  .btn:hover{opacity:0.9;}
-  .btn-sec{background:var(--surface2);color:var(--text);border-color:var(--border2);}
-  .beaker-wrap{display:flex;justify-content:center;margin:1.25rem 0;}
-  .beaker{width:160px;height:180px;border:3px solid #333;border-top:none;border-radius:0 0 18px 18px;position:relative;overflow:hidden;background:
-    linear-gradient(to right,rgba(0,0,0,0.04) 1px,transparent 1px) 0 0/100% 100%;}
-  .liquid{position:absolute;bottom:0;left:0;right:0;height:70%;transition:background-color 0.4s ease;}
-  .tick{position:absolute;left:0;width:10px;height:1px;background:#999;}
-  .vol-readout{text-align:center;font-size:13px;color:var(--text3);margin-top:4px;font-family:"Courier New",monospace;}
-  .answer-block{margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);}
-  .answer-block .panel-title{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3);margin-bottom:0.75rem;}
-  .field-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
-  .field-row label{font-size:14px;min-width:130px;}
-  select{padding:6px 10px;font-size:14px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface);color:var(--text);}
-  .coef-row{display:flex;align-items:center;gap:6px;font-size:15px;}
-  .coef-row input{width:50px;text-align:center;}
-  .feedback{font-size:14px;padding:10px 14px;border-radius:var(--radius);margin-top:1rem;display:none;}
-  .feedback.correct{background:var(--green-bg);color:var(--green);border:1px solid #b8e0cb;display:block;}
-  .feedback.wrong{background:var(--red-bg);color:var(--red);border:1px solid #f0c0c0;display:block;}
-  .feedback.hint{background:var(--amber-bg);color:var(--amber);border:1px solid #e8d090;display:block;}
-  .locked-msg{text-align:center;color:var(--text3);font-size:14px;padding:2rem;}
-  .swatch{display:inline-block;width:14px;height:14px;border:1px solid #999;border-radius:3px;vertical-align:middle;margin-right:4px;}
-  .hint-note{font-size:12px;color:var(--text3);margin-top:8px;}
-  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:1rem;}
+:root{
+  --acc:#1F5FBF; --acc-d:#174a96; --soft:#E8F0FC; --ok:#1A7F37; --ok-soft:#E4F4E8;
+  --err:#C62828; --err-soft:#FDECEC; --key:#FFF0A0; --muted:#595959; --line:#D5DCE8; --bg:#F6F8FB;
+  --text:#1d2330; --font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.5}
+.hs-header{background:var(--acc);color:#fff;margin-bottom:18px}
+.hs-header .hs-wrap{max-width:1140px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hs-header h1{margin:0;font-size:1.5rem;font-weight:650;color:#fff}
+.hs-header button{font:inherit;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px;border:1.5px solid #fff;background:transparent;color:#fff}
+.hs-header button:hover{background:rgba(255,255,255,.15)}
+.app{max-width:1140px;margin:0 auto;padding:0 22px 40px}
+body.hs-beamer .app{zoom:1.3}
+.tabs{display:flex;gap:4px;background:#e3e9ef;padding:4px;border-radius:10px;width:fit-content;flex-wrap:wrap;margin-bottom:18px}
+.tab{padding:9px 16px;border:none;border-radius:7px;background:transparent;color:var(--muted);cursor:pointer;font:inherit;font-size:14px;font-weight:600}
+.tab.active{background:#fff;color:var(--acc-d);box-shadow:0 1px 3px rgba(15,35,55,.12)}
+.tab:hover:not(.active){background:#d8e0e8}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:24px;max-width:980px;box-shadow:0 1px 3px rgba(15,35,55,.08)}
+h2{margin:0 0 16px;font-size:20px;padding-left:12px;border-left:4px solid var(--acc)}
+button.btn{padding:8px 16px;border:none;border-radius:7px;background:var(--acc);color:#fff;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+button.btn:hover:not(:disabled){background:var(--acc-d)}
+button.btn:disabled{opacity:.45;cursor:not-allowed}
+button.ghost{background:transparent;border:1.5px solid var(--line);color:var(--text)}
+button.ghost:hover:not(:disabled){background:#eef1f6}
+.top{display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.level{font-weight:650;color:var(--acc);border:1.5px solid var(--acc);border-radius:7px;padding:3px 10px;font-size:13.5px}
+.dots{display:flex;gap:6px;flex-wrap:wrap;flex:1 1 auto}
+.dot{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;border:1px solid var(--line);background:#fff;color:var(--muted)}
+.dot.cur{border:2px solid var(--acc);color:var(--acc);font-weight:700}
+.dot.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.dot.done{background:var(--soft);border-color:var(--acc);color:var(--acc)}
+.score{font-size:13px;color:var(--muted);font-weight:600}
+.instr{border:1px solid var(--acc);border-radius:8px;margin-bottom:14px;overflow:hidden}
+.instr summary{cursor:pointer;background:var(--soft);padding:10px 16px;font-weight:650;color:var(--acc-d);list-style:none}
+.instr summary::-webkit-details-marker{display:none}
+.instr summary::before{content:'▸ ';}
+.instr[open] summary::before{content:'▾ ';}
+.instr .in{padding:12px 16px;font-size:15px}
+.instr .vb{margin-top:10px;padding:10px 14px;background:#F3F7FD;border-radius:8px;line-height:2}
+.instr .vb .vbk{font-weight:650;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.task{background:var(--key);border:1px solid #e0c84a;border-radius:8px;padding:14px 16px;margin-bottom:14px}
+.task .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;font-weight:600}
+.task .desc{font-size:15.5px}
+.eq{text-align:center;font-size:17px;font-weight:500;margin:10px 0 2px}
+.part{border-top:1px solid var(--line);padding-top:12px;margin-top:12px}
+.part:first-of-type{border-top:none;margin-top:0;padding-top:0}
+.part .pq{font-size:15px;margin-bottom:8px}
+.wacht{font-size:14px;color:#7a5a00;background:#FFF8D6;border-radius:6px;padding:6px 10px;margin-bottom:8px}
+.inrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.inrow label{font-size:15px}
+.inrow input{font:inherit;font-size:15px;padding:7px 10px;width:150px;border:1px solid var(--line);border-radius:6px}
+.inrow input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px var(--soft)}
+.inrow input.correct{background:var(--ok-soft);border-color:var(--ok)}
+.inrow input.incorrect{background:var(--err-soft);border-color:var(--err)}
+.mc{display:flex;gap:8px;flex-wrap:wrap}
+.opt{background:#fff;color:var(--text);border:1.5px solid var(--line);font:inherit;font-size:14.5px;padding:8px 14px;border-radius:7px;cursor:pointer;text-align:left}
+.opt:hover:not(:disabled){background:var(--soft);border-color:var(--acc)}
+.opt.goed{background:var(--ok);border-color:var(--ok);color:#fff;opacity:1}
+.opt.fout{background:var(--err-soft);border-color:var(--err);color:var(--err);opacity:1}
+.opt:disabled{cursor:default;opacity:.6}
+.acties{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.hint{margin-top:12px;padding:10px 14px;border-radius:8px;background:var(--soft);font-size:14px}
+.fb{display:none;margin-top:10px;padding:10px 14px;border-radius:8px;font-size:14.5px;border:1px solid}
+.fb.show{display:block}
+.fb.correct{background:var(--ok-soft);border-color:var(--ok)}
+.fb.incorrect{background:var(--err-soft);border-color:var(--err)}
+.fb.info{background:var(--soft);border-color:var(--acc)}
+.uitw{margin-top:14px;padding:12px 16px;border-radius:8px;background:#F3F7FD;border:1px solid var(--line);font-size:15px;line-height:2.1}
+.uitw .kop,.kop{font-weight:650;margin-top:4px}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 3px;line-height:1.25}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 4px}
+.frac>span:last-child{padding:0 4px}
+.note{margin-top:16px;font-size:13px;color:var(--muted)}
+.mono{font-family:Consolas,'Courier New',monospace;background:#eef1f6;border-radius:4px;padding:0 4px}
+.eind{padding:18px;background:var(--soft);border-radius:8px;font-size:15px}
+.again{font-size:13px}
+/* simulatie */
+.sim{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;background:#FAFBFD;border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+.sim .col{display:flex;flex-direction:column;align-items:center;gap:6px}
+.sim .cap{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.sim .knoppen{display:flex;flex-direction:column;gap:6px;min-width:150px}
+.sim .knoppen button{font-size:13.5px}
+.sim .stat{font-size:13px;color:var(--muted);max-width:170px}
+.bars{min-width:220px}
+.bar{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:14px}
+.bar .bl{width:92px;text-align:right}
+.bar .bt{flex:1;height:16px;background:#eef1f6;border-radius:4px;overflow:hidden;min-width:110px}
+.bar .bf{height:100%;border-radius:4px;transition:width .35s}
+#flaskFill{transition:fill .8s}
+/* eigen meting */
+.em-grid{display:grid;grid-template-columns:auto auto;gap:8px 12px;align-items:center;max-width:620px}
+.em-grid input,.em-grid select{font:inherit;font-size:15px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;width:160px}
+.tbl{border-collapse:collapse;margin:10px 0;font-size:14.5px}
+.tbl th,.tbl td{border:1px solid var(--line);padding:5px 10px;text-align:right}
+.tbl th{background:var(--soft)}
+.tbl input{width:90px;font:inherit;font-size:14.5px;padding:3px 6px;border:1px solid var(--line);border-radius:5px}
 </style>
 </head>
 <body>
-<div class="page">
-  <header class="header">
-    <h1>Titratie Laboratorium</h1>
-    <p>Ontdek eerst het reactiesysteem, bepaal dan een onbekende concentratie.</p>
-  </header>
-
-  <!-- FASE 1 -->
-  <div class="panel">
-    <span class="phase-badge">Fase 1 — Stoichiometrie detective</span>
-    <h2>Onderzoek de reactie</h2>
-    <p style="font-size:14px;color:var(--text2);">Voeg verschillende volumes B toe en kijk hoe de kleur verandert. Leid daaruit af welke kleuren de stoffen hebben en wat de reactievergelijking is.</p>
-    <div class="reaction">? A + ? B &rarr; C</div>
-    <div class="data">
-      Volume A: <b>20 mL</b><br>
-      Concentratie A: <b><span id="concA1"></span> M</b><br>
-      Concentratie B: <b><span id="concB1"></span> M</b>
-    </div>
-    <div class="sim-row">
-      <label>Volume B toevoegen (mL):</label>
-      <input type="number" id="volB1" value="0" min="0" step="1">
-      <button class="btn" onclick="simulate(1)">Voeg toe</button>
-    </div>
-    <div class="beaker-wrap">
-      <div class="beaker"><div class="liquid" id="liquid1"></div></div>
-    </div>
-    <div class="vol-readout" id="readout1">Nog niets toegevoegd</div>
-
-    <div class="answer-block">
-      <div class="panel-title">Jouw analyse</div>
-      <div class="field-row"><label>Kleur van A:</label>
-        <select id="gA"><option value="">— kies —</option><option>Rood</option><option>Blauw</option><option>Geel</option><option>Kleurloos</option></select></div>
-      <div class="field-row"><label>Kleur van B:</label>
-        <select id="gB"><option value="">— kies —</option><option>Rood</option><option>Blauw</option><option>Geel</option><option>Kleurloos</option></select></div>
-      <div class="field-row"><label>Kleur van C:</label>
-        <select id="gC"><option value="">— kies —</option><option>Rood</option><option>Blauw</option><option>Geel</option><option>Kleurloos</option></select></div>
-      <div class="field-row"><label>Coëfficiënten:</label>
-        <div class="coef-row"><input type="number" id="ga" min="1" placeholder="a"> A +
-          <input type="number" id="gb" min="1" placeholder="b"> B &rarr; C</div></div>
-      <div class="hint-note">Geef de coëfficiënten in de kleinst mogelijke gehele verhouding.</div>
-      <div class="btn-row">
-        <button class="btn" onclick="checkFase1()">Controleer</button>
-      </div>
-      <div class="feedback" id="fb1"></div>
-    </div>
+<header class="hs-header"><div class="hs-wrap"><h1>Molariteit en titreren</h1><button type="button" onclick="document.body.classList.toggle('hs-beamer')">Beamerstand</button></div></header>
+<div class="app">
+  <div class="tabs">
+    <button class="tab active" id="tb0" onclick="showTab(0)">Opdrachten</button>
+    <button class="tab" id="tb1" onclick="showTab(1)">Eigen meting</button>
   </div>
-
-  <!-- FASE 2 -->
-  <div class="panel" id="fase2panel">
-    <span class="phase-badge p2">Fase 2 — Concentratie analist</span>
-    <div id="fase2locked" class="locked-msg">🔒 Rond eerst Fase 1 correct af.</div>
-    <div id="fase2content" style="display:none;">
-      <h2>Bepaal de onbekende concentratie van A</h2>
-      <p style="font-size:14px;color:var(--text2);">Nu krijg je een nieuw monster A met <b>onbekende</b> concentratie. Titreer met B, bepaal het equivalentiepunt via de kleuromslag, en bereken met de coëfficiënten uit Fase 1 de concentratie van A.</p>
-      <div class="data">
-        Volume A: <b>20 mL</b> (concentratie onbekend)<br>
-        Concentratie B: <b><span id="concB2"></span> M</b><br>
-        <span style="color:var(--text3);font-size:13px;">Het equivalentiepunt ligt bij een geheel aantal mL.</span>
-      </div>
-      <div class="sim-row">
-        <label>Volume B toevoegen (mL):</label>
-        <input type="number" id="volB2" value="0" min="0" step="1">
-        <button class="btn" onclick="simulate(2)">Voeg toe</button>
-      </div>
-      <div class="beaker-wrap">
-        <div class="beaker"><div class="liquid" id="liquid2"></div></div>
-      </div>
-      <div class="vol-readout" id="readout2">Nog niets toegevoegd</div>
-
-      <div class="answer-block">
-        <div class="field-row"><label>Concentratie A (M):</label>
-          <input type="number" id="ansConcA" step="0.01" placeholder="0,00">
-          <button class="btn" onclick="checkFase2()">Controleer</button></div>
-        <div class="hint-note">Geef je antwoord in 2 decimalen (mol/L).</div>
-        <div class="feedback" id="fb2"></div>
-      </div>
-    </div>
+  <div id="tab0" class="card">
+    <h2>Opdrachten</h2>
+    <div class="top"><span class="level">4V</span><div class="dots" id="dots"></div><span class="score" id="score"></span></div>
+    <div id="opd"></div>
+    <p class="note">Een getal mag met een komma of een punt. Machten van 10 typ je als <span class="mono">2,5*10^-3</span> of <span class="mono">2,5e-3</span>. Gebruik voor molaire massa's de atoommassa's uit Binas.</p>
+  </div>
+  <div id="tab1" class="card" style="display:none">
+    <h2>Eigen meting</h2>
+    <div id="em"></div>
   </div>
 </div>
 
 <script>
-"use strict";
+/* ===================================================================
+   HULPFUNCTIES
+   =================================================================== */
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const rand = (a,b) => a + Math.random()*(b-a);
+const fsub = f => f.replace(/(\d+)/g,'<sub>$1</sub>');
+function g(x, sig=3, forceSci=false){
+  if(x===0) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x)));
+  if(forceSci || e>=sig+1 || e>=5 || e<=-3){
+    let m = x/Math.pow(10,e), mm = m.toFixed(sig-1), ee=e;
+    if(Math.abs(parseFloat(mm))>=10){ mm=(m/10).toFixed(sig-1); ee++; }
+    return mm.replace('.',',').replace('-','−') + ' · 10<sup>'+String(ee).replace('-','−')+'</sup>';
+  }
+  return x.toFixed(Math.max(0, sig-1-e)).replace('.',',').replace('-','−');
+}
+const d2 = x => x.toFixed(2).replace('.',',');           // buretstand / volume
+const r3 = x => Number(x.toPrecision(3));
+const frac = (t,n) => '<span class="frac"><span>'+t+'</span><span>'+n+'</span></span>';
+const ML = ' mol L<sup>−1</sup>';
+function leesGetal(s){
+  s = String(s).trim().replace(/[−–]/g,'-').replace(/\s+/g,'').replace(/,/g,'.');
+  s = s.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]/g, ch => ({'⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9','⁻':'-'})[ch]);
+  s = s.replace(/[x×·*]10\^?(-?\d+)/i, 'e$1');
+  if(!/^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s)) return null;
+  return parseFloat(s);
+}
+const dichtbij = (a, b, rel=0.01, abs=0) => Math.abs(a-b) <= Math.max(Math.abs(b)*rel, abs, 1e-12);
+const MASSA = { H:1.008, C:12.01, N:14.01, O:16.00, S:32.06, Cl:35.45, Na:22.99, K:39.10, Mg:24.31, Ca:40.08, Al:26.98, Fe:55.85, Cu:63.55, Zn:65.38, Ag:107.9, Mn:54.94, P:30.97, I:126.9 };
+function molMassa(f){
+  function grp(s){ let tot=0,i=0; while(i<s.length){ let sub;
+    if(s[i]==='('){ let d=1,j=i+1; while(d){ if(s[j]==='(')d++; if(s[j]===')')d--; j++; } sub=grp(s.slice(i+1,j-1)); i=j; }
+    else { const m=s.slice(i).match(/^[A-Z][a-z]?/); sub=MASSA[m[0]]; i+=m[0].length; }
+    const n=s.slice(i).match(/^\d+/); let k=1; if(n){ i+=n[0].length; k=parseInt(n[0],10); } tot+=sub*k; } return tot; }
+  return grp(f);
+}
+const Mstr = f => g(molMassa(f),4)+' g mol<sup>−1</sup>';
 
-const PALETTE=[
-  {n:'Rood',v:[210,45,45]},
-  {n:'Blauw',v:[40,90,200]},
-  {n:'Geel',v:[235,200,30]},
-  {n:'Kleurloos',v:[235,238,235]}  // licht grijs-wit, onderscheidbaar van pure achtergrond
+/* ===================================================================
+   STOFFEN VOOR NIVEAU 1–6
+   =================================================================== */
+const OPLOS = [
+  { naam:'natriumchloride', f:'NaCl' }, { naam:'kaliumnitraat', f:'KNO3' }, { naam:'glucose', f:'C6H12O6' },
+  { naam:'kopersulfaat', f:'CuSO4' }, { naam:'natriumcarbonaat', f:'Na2CO3' }, { naam:'ureum', f:'CH4N2O' },
+  { naam:'magnesiumsulfaat', f:'MgSO4' }, { naam:'kaliumchloride', f:'KCl' }, { naam:'sacharose', f:'C12H22O11' }
 ];
+// zout, kation, anion, aantallen
+const ZOUTEN = [
+  { naam:'calciumchloride', f:'CaCl2', kat:['Ca','2+',1,'calciumionen'], an:['Cl','−',2,'chloride-ionen'] },
+  { naam:'magnesiumchloride', f:'MgCl2', kat:['Mg','2+',1,'magnesiumionen'], an:['Cl','−',2,'chloride-ionen'] },
+  { naam:'aluminiumchloride', f:'AlCl3', kat:['Al','3+',1,'aluminiumionen'], an:['Cl','−',3,'chloride-ionen'] },
+  { naam:'natriumsulfaat', f:'Na2SO4', kat:['Na','+',2,'natriumionen'], an:['SO4','2−',1,'sulfaationen'] },
+  { naam:'kaliumsulfaat', f:'K2SO4', kat:['K','+',2,'kaliumionen'], an:['SO4','2−',1,'sulfaationen'] },
+  { naam:'natriumfosfaat', f:'Na3PO4', kat:['Na','+',3,'natriumionen'], an:['PO4','3−',1,'fosfaationen'] },
+  { naam:'ijzer(III)nitraat', f:'Fe(NO3)3', kat:['Fe','3+',1,'ijzer(III)ionen'], an:['NO3','−',3,'nitraationen'] },
+  { naam:'aluminiumsulfaat', f:'Al2(SO4)3', kat:['Al','3+',2,'aluminiumionen'], an:['SO4','2−',3,'sulfaationen'] }
+];
+const ion = (s,q) => fsub(s)+'<sup>'+q+'</sup>';
+const coef = n => n>1 ? n+' ' : '';
+function oplosVgl(z){ return fsub(z.f)+'(s) → '+coef(z.kat[2])+ion(z.kat[0],z.kat[1])+'(aq) + '+coef(z.an[2])+ion(z.an[0],z.an[1])+'(aq)'; }
 
-function gcd(x,y){return y===0?x:gcd(y,Math.abs(x%y));}
+/* ===================================================================
+   TITRATIECONTEXTEN
+   r = aantal mol onbekende stof per mol titrant
+   =================================================================== */
+const CTX = {
+  chloride: {
+    titel:'Chloride in mineraalwater', analyt:'Cl<sup>−</sup>', analytNaam:'chloride-ionen', titr:'Ag<sup>+</sup>', titrNaam:'zilvernitraatoplossing',
+    vgl:'Ag<sup>+</sup>(aq) + Cl<sup>−</sup>(aq) → AgCl(s)', r:1, Vmon:50.00, cT:0.0100, cR:[1.5e-3,4.4e-3], monsterNaam:'mineraalwater',
+    indicator:'Als indicator is wat kaliumchromaat toegevoegd (geel). Zodra er Ag<sup>+</sup> over is, vormt zich roodbruin zilverchromaat.',
+    kleurVoor:[240,214,70], kleurNa:[196,104,58], troebel:true, titrKleur:[226,232,240],
+    prod:[['AgCl(s)',1,'#bfc5cc']], kleurNaNaam:'roodbruin'
+  },
+  vitc: {
+    titel:'Vitamine C in sinaasappelsap', analyt:'vit. C', analytNaam:'vitamine C', titr:'I<sub>2</sub>', titrNaam:'joodoplossing',
+    vgl:'C<sub>6</sub>H<sub>8</sub>O<sub>6</sub>(aq) + I<sub>2</sub>(aq) → C<sub>6</sub>H<sub>6</sub>O<sub>6</sub>(aq) + 2 H<sup>+</sup>(aq) + 2 I<sup>−</sup>(aq)', r:1, Vmon:20.00, cT:0.00500, cR:[2.0e-3,3.4e-3], monsterNaam:'sap',
+    indicator:'Als indicator is zetmeel toegevoegd. Zetmeel kleurt donkerblauw met jood (I<sub>2</sub>), niet met jodide (I<sup>−</sup>).',
+    kleurVoor:[246,226,170], kleurNa:[40,52,150], titrKleur:[150,92,30],
+    prod:[['I<sup>−</sup>',2,'#9aa5b1']], kleurNaNaam:'blauw'
+  },
+  ijzer: {
+    titel:'IJzer(II) in een oplossing', analyt:'Fe<sup>2+</sup>', analytNaam:'ijzer(II)ionen', titr:'MnO<sub>4</sub><sup>−</sup>', titrNaam:'kaliumpermanganaatoplossing',
+    vgl:'MnO<sub>4</sub><sup>−</sup>(aq) + 5 Fe<sup>2+</sup>(aq) + 8 H<sup>+</sup>(aq) → Mn<sup>2+</sup>(aq) + 5 Fe<sup>3+</sup>(aq) + 4 H<sub>2</sub>O(l)', r:5, Vmon:10.00, cT:0.0100, cR:[0.040,0.105], monsterNaam:'oplossing',
+    indicator:'Er is geen indicator nodig: permanganaat is paars, de andere deeltjes zijn (bijna) kleurloos.',
+    kleurVoor:[222,238,206], kleurNa:[150,40,140], titrKleur:[120,20,110],
+    prod:[['Fe<sup>3+</sup>',5,'#d8b25a'],['Mn<sup>2+</sup>',1,'#e3b7c9']], kleurNaNaam:'paars'
+  },
+  hardheid: {
+    titel:'Calcium in kraanwater', analyt:'Ca<sup>2+</sup>', analytNaam:'calciumionen', titr:'EDTA', titrNaam:'EDTA-oplossing',
+    vgl:'Ca<sup>2+</sup>(aq) + EDTA<sup>4−</sup>(aq) → CaEDTA<sup>2−</sup>(aq)', r:1, Vmon:50.00, cT:0.0100, cR:[1.0e-3,2.7e-3], monsterNaam:'kraanwater',
+    indicator:'Er is een indicator toegevoegd die wijnrood is zolang er nog vrije Ca<sup>2+</sup> is en blauw zodra alle Ca<sup>2+</sup> aan EDTA gebonden is.',
+    kleurVoor:[160,40,80], kleurNa:[50,90,200], geleidelijk:true, titrKleur:[226,232,240],
+    prod:[['CaEDTA<sup>2−</sup>',1,'#b9c4d6']], kleurNaNaam:'blauw'
+  }
+};
+function maakTitratie(key){
+  const c = CTX[key];
+  const conc = Number(rand(c.cR[0], c.cR[1]).toPrecision(3));
+  const nA = conc * c.Vmon / 1000;                  // mol onbekende stof
+  const Veq = nA / (c.r * c.cT) * 1000;            // mL
+  const begin = Math.round(rand(0.25, 2.6)*100)/100;
+  return { key, ctx:c, conc, nA, Veq, begin };
+}
 
-let S1=null, S2=null, colors=null;
+/* ===================================================================
+   SIMULATIE: buret, uitvergrote meniscus, erlenmeyer, deeltjes
+   =================================================================== */
+const rgb = a => 'rgb('+a.map(Math.round).join(',')+')';
+const mix = (a,b,w) => a.map((x,i)=>x*(1-w)+b[i]*w);
+function maakSim(el, T, opts){
+  const c = T.ctx;
+  const sim = { T, v:0, slot:false, luisteraars:[] };
+  const kleur = v => {
+    const ex = v - T.Veq;
+    if(c.geleidelijk){ const w = Math.max(0, Math.min(1, (v-(T.Veq-0.25))/0.27)); return mix(c.kleurVoor, c.kleurNa, w); }
+    if(ex < -1e-9) return c.kleurVoor;
+    return mix(c.kleurVoor, c.kleurNa, Math.min(1, 0.55 + ex/0.4));
+  };
+  let h = '<div class="col"><div class="cap">Buret</div><svg id="buret" width="70" height="330" viewBox="0 0 70 330"></svg></div>'+
+    '<div class="col"><div class="cap">Aflezen (vergroot)</div><svg id="zoom" width="130" height="200" viewBox="0 0 130 200"></svg></div>'+
+    '<div class="col"><div class="cap">Erlenmeyer</div><svg width="170" height="200" viewBox="0 0 170 200">'+
+      '<defs><clipPath id="fl"><path d="M68 18 L102 18 L102 70 L150 182 Q152 190 144 190 L26 190 Q18 190 20 182 L68 70 Z"/></clipPath></defs>'+
+      '<g clip-path="url(#fl)"><rect id="flaskFill" x="0" y="112" width="170" height="90" fill="'+rgb(c.kleurVoor)+'"/>'+
+      (c.troebel?'<rect id="flaskTroebel" x="0" y="112" width="170" height="90" fill="#f4f4f2" opacity="0"/>':'')+
+      '<circle id="drop" cx="85" cy="-10" r="4" fill="'+rgb(c.titrKleur)+'"/></g>'+
+      '<path d="M68 18 L102 18 L102 70 L150 182 Q152 190 144 190 L26 190 Q18 190 20 182 L68 70 Z" fill="none" stroke="#7c8a99" stroke-width="2.5"/>'+
+    '</svg></div>'+
+    '<div class="knoppen"><div class="cap">Kraan</div>'+
+      '<button class="btn" data-dv="1">Scheut (1 mL)</button>'+
+      '<button class="btn" data-dv="0.2">Klein beetje (0,2 mL)</button>'+
+      '<button class="btn" data-dv="0.05">Eén druppel (0,05 mL)</button>'+
+      '<button class="btn ghost" id="simReset">Opnieuw (buret bijvullen)</button>'+
+      '<div class="stat" id="simStat"></div></div>';
+  if(opts.bars) h += '<div class="bars"><div class="cap">Deeltjes in de erlenmeyer (hoeveelheid)</div><div id="barsIn"></div></div>';
+  el.innerHTML = h;
+  const $ = s => el.querySelector(s);
 
-/* ── Generate a clean scenario: nice cA, cB, whole equivalence volume ── */
-function genScenario(forFase2){
-  const ratios=[];
-  for(let a=1;a<=3;a++)for(let b=1;b<=3;b++)if(gcd(a,b)===1)ratios.push([a,b]);
-  for(let t=0;t<3000;t++){
-    const [a,b]=ratios[Math.floor(Math.random()*ratios.length)];
-    const VA=20;
-    const cA=(Math.floor(Math.random()*5)+1)*0.05;   // 0.05..0.25
-    const cB=(Math.floor(Math.random()*8)+1)*0.05;   // 0.05..0.40
-    const VB=cA*VA*(b/a)/cB;
-    if(Math.abs(VB-Math.round(VB))<1e-9 && VB>=5 && VB<=38){
-      return {a,b,VA,cA:+cA.toFixed(2),cB:+cB.toFixed(2),VB:Math.round(VB)};
+  function tekenBuret(){
+    const stand = T.begin + sim.v, y0=14, sc=6;   // 6 px per mL, 0..50 mL
+    let s = '<rect x="26" y="'+y0+'" width="18" height="'+(50*sc)+'" fill="#fff" stroke="#7c8a99" stroke-width="1.5"/>';
+    s += '<rect x="27" y="'+(y0+stand*sc)+'" width="16" height="'+((50-stand)*sc)+'" fill="'+rgb(c.titrKleur)+'" opacity="0.85"/>';
+    for(let m=0;m<=50;m++){ const y=y0+m*sc; s+='<line x1="26" x2="'+(m%5?31:35)+'" y1="'+y+'" y2="'+y+'" stroke="#55606e" stroke-width="'+(m%5?0.6:1)+'"/>'; if(m%10===0) s+='<text x="22" y="'+(y+3)+'" font-size="9" text-anchor="end" fill="#55606e">'+m+'</text>'; }
+    s += '<rect x="31" y="'+(y0+50*sc)+'" width="8" height="10" fill="#7c8a99"/><rect x="24" y="'+(y0+50*sc+3)+'" width="22" height="5" rx="2" fill="'+(sim.slot?'#9aa5b1':'#1F5FBF')+'"/><path d="M33 '+(y0+50*sc+10)+' L37 '+(y0+50*sc+10)+' L35.5 '+(y0+50*sc+15)+' L34.5 '+(y0+50*sc+15)+' Z" fill="#7c8a99"/>';
+    $('#buret').innerHTML = s;
+  }
+  function tekenZoom(){
+    const stand = T.begin + sim.v, sc=60, midY=100;   // 60 px per mL
+    const y = m => midY + (m - stand)*sc;
+    let s = '<rect x="30" y="0" width="70" height="200" fill="#fff"/>';
+    s += '<rect x="30" y="'+(midY+4)+'" width="70" height="'+(200-midY)+'" fill="'+rgb(c.titrKleur)+'" opacity="0.6"/>';
+    s += '<path d="M30 '+(midY-3)+' Q65 '+(midY+10)+' 100 '+(midY-3)+' L100 '+(midY+5)+' L30 '+(midY+5)+' Z" fill="'+rgb(c.titrKleur)+'" opacity="0.6"/>';
+    s += '<path d="M30 '+(midY-3)+' Q65 '+(midY+10)+' 100 '+(midY-3)+'" fill="none" stroke="#3a4552" stroke-width="1.3"/>';
+    const lo = Math.floor((stand-1.8)*10), hi = Math.ceil((stand+1.8)*10);
+    for(let k=lo;k<=hi;k++){ const m=k/10; if(m<0||m>50) continue; const yy=y(m); const groot = k%10===0, half = k%5===0;
+      s += '<line x1="30" x2="'+(groot?70:half?58:48)+'" y1="'+yy+'" y2="'+yy+'" stroke="#2b3440" stroke-width="'+(groot?1.4:0.8)+'"/>';
+      if(groot) s += '<text x="74" y="'+(yy+4)+'" font-size="12" fill="#2b3440">'+Math.round(m)+'</text>'; }
+    s += '<rect x="30" y="0" width="70" height="200" fill="none" stroke="#7c8a99" stroke-width="1.5"/>';
+    $('#zoom').innerHTML = s;
+  }
+  function tekenErlenmeyer(flits){
+    const f = $('#flaskFill');
+    if(flits){ f.style.transition='none'; f.setAttribute('fill', rgb(mix(c.kleurVoor,c.kleurNa,0.75))); void f.getBoundingClientRect(); f.style.transition='fill .9s'; }
+    setTimeout(()=>f.setAttribute('fill', rgb(kleur(sim.v))), flits?60:0);
+    const t = $('#flaskTroebel'); if(t) t.setAttribute('opacity', Math.min(0.7, 0.7*Math.min(sim.v,T.Veq)/T.Veq).toFixed(3));
+  }
+  function tekenBars(){
+    if(!opts.bars) return;
+    const nT = c.cT*sim.v/1000, gereageerd = Math.min(nT, T.nA/c.r);
+    const rij = [[c.analyt, T.nA - gereageerd*c.r, rgb(c.kleurVoor)], [c.titr+' (over)', nT - gereageerd, rgb(c.titrKleur)]]
+      .concat(c.prod.map(([n,k,kl])=>[n, gereageerd*k, kl]));
+    const max = Math.max(T.nA, ...c.prod.map(([,k])=>T.nA/c.r*k));
+    $('#barsIn').innerHTML = rij.map(([n,v,kl])=>'<div class="bar"><span class="bl">'+n+'</span><span class="bt"><span class="bf" style="display:block;width:'+Math.max(0,Math.min(100,100*v/max)).toFixed(1)+'%;background:'+kl+'"></span></span></div>').join('');
+  }
+  function stat(){ $('#simStat').innerHTML = sim.slot ? 'De titratie is afgerond.' : (sim.v>0 ? 'Er loopt titrant in de erlenmeyer.' : 'De buret is gevuld. Lees eerst de beginstand af.'); }
+  function teken(flits){ tekenBuret(); tekenZoom(); tekenErlenmeyer(flits); tekenBars(); stat(); sim.luisteraars.forEach(f=>f()); }
+  function druppel(){ const d=$('#drop'); d.style.transition='none'; d.style.transform='translateY(0px)'; void d.getBoundingClientRect(); d.style.transition='transform .35s ease-in'; d.style.transform='translateY(140px)'; setTimeout(()=>{ d.style.transition='none'; d.style.transform='translateY(0px)'; },380); }
+  el.querySelectorAll('[data-dv]').forEach(b=>b.onclick=()=>{
+    if(sim.slot) return;
+    const dv = parseFloat(b.dataset.dv);
+    if(T.begin + sim.v + dv > 50) return;
+    const voor = sim.v;
+    sim.v = Math.round((sim.v + dv)*100)/100;
+    druppel();
+    const vlak = !c.geleidelijk && sim.v < T.Veq && T.Veq - sim.v < 0.6 && voor < T.Veq;
+    teken(vlak);
+  });
+  $('#simReset').onclick = () => { if(sim.slot) return; sim.v = 0; teken(false); };
+  sim.slotVast = () => { sim.slot = true; el.querySelectorAll('.knoppen button').forEach(b=>b.disabled=true); teken(false); };
+  sim.eindpuntOk = () => sim.v >= T.Veq - 1e-9 && sim.v <= T.Veq + 0.10 + 1e-9;
+  teken(false);
+  return sim;
+}
+
+/* ===================================================================
+   OPDRACHTEN
+   q = { titel, instr:{titel, html}, vraag, eq, sim:{T,bars}, parts:[...], hint, uitw(vals) }
+   part: { vraag, label, unit, juist(vals)|getal, rel, abs, diag(v,vals), wacht(sim), wachtTekst, pre(v,sim),
+           opties:[{html,goed}], uitleg, naGoed(sim) }
+   =================================================================== */
+
+function vbBlok(html){ return '<div class="vb"><div class="vbk">Voorbeeld</div>'+html+'</div>'; }
+
+// Niveau 1: c = n / V (V in L)
+function niv1(){
+  const [s, vbS] = twee(OPLOS);
+  const V = pick([0.250,0.500,1.000,2.000,0.200]), n = r3(rand(0.01,0.4)*V);
+  const Vv = pick([0.500,0.250,1.500]), nv = r3(rand(0.02,0.3)*Vv);
+  return {
+    titel:'Molariteit',
+    instr:{ titel:'Nieuw: molariteit', html:'De <b>molariteit</b> c van een opgeloste stof is het aantal mol van die stof per liter oplossing:<br>'+
+      '<div style="text-align:center;margin:6px 0">c = '+frac('n','V')+' &nbsp; met n in mol, V in L en c in mol L<sup>−1</sup></div>'+
+      'In plaats van mol L<sup>−1</sup> wordt ook wel M geschreven: 0,10 M betekent 0,10 mol per liter.'+
+      vbBlok('In '+g(Vv,3)+' L oplossing zit '+g(nv,3)+' mol '+vbS.naam+'.<br>c = '+frac(g(nv,3)+' mol', g(Vv,3)+' L')+' = '+g(nv/Vv,3)+ML) },
+    vraag:'In '+g(V,3)+' L oplossing zit '+g(n,3)+' mol '+s.naam+'. Bereken de molariteit van '+s.naam+' in deze oplossing.',
+    parts:[{ label:'c =', unit:ML, juist:n/V, diag: v => dichtbij(v, V/n) ? 'Je hebt V gedeeld door n. Welke van de twee komt boven de breukstreep?' : (dichtbij(v,n*V) ? 'Vermenigvuldigen of delen?' : null) }],
+    hint:'Molariteit is het aantal mol per liter.',
+    uitw: () => 'c = '+frac('n','V')+' = '+frac(g(n,3)+' mol', g(V,3)+' L')+' = <b>'+g(n/V,3)+ML+'</b>'
+  };
+}
+function twee(lijst){ const a = pick(lijst); let b; do{ b = pick(lijst); }while(b===a); return [a,b]; }
+
+// Niveau 2: V in mL
+function niv2(){
+  const [s, vbS] = twee(OPLOS);
+  const VmL = pick([150,200,250,300,400,750,50.0,25.0]), n = r3(rand(0.004,0.08)*VmL/100);
+  const vbV = pick([100,500,125]), vbn = r3(rand(0.005,0.05)*vbV/100);
+  return {
+    titel:'Volume in mL',
+    instr:{ titel:'Nieuw: volume omrekenen naar liter', html:'In c = n / V moet het volume in liter staan. Staat het volume in mL, reken het dan eerst om: 1 L = 1000 mL, dus<br>'+
+      '<div style="text-align:center;margin:6px 0">V (L) = '+frac('V (mL)','1000 mL L<sup>−1</sup>')+'</div>'+
+      vbBlok('In '+g(vbV,3)+' mL oplossing zit '+g(vbn,3)+' mol '+vbS.naam+'.<br>V = '+frac(g(vbV,3)+' mL','1000 mL L<sup>−1</sup>')+' = '+g(vbV/1000,3)+' L<br>c = '+frac(g(vbn,3)+' mol', g(vbV/1000,3)+' L')+' = '+g(vbn/(vbV/1000),3)+ML) },
+    vraag:'In '+g(VmL,3)+' mL oplossing zit '+g(n,3)+' mol '+s.naam+'. Bereken de molariteit van '+s.naam+'.',
+    parts:[
+      { vraag:'Reken het volume om naar liter.', label:'V =', unit:'L', juist:VmL/1000, diag: v => dichtbij(v, VmL*1000) ? 'Wordt het getal groter of kleiner als je van mL naar L gaat?' : null },
+      { vraag:'Bereken de molariteit.', label:'c =', unit:ML, juist: vals => n/vals[0], diag: (v,vals) => dichtbij(v, n/VmL) ? 'Gebruik het volume in liter.' : (dichtbij(v, vals[0]/n) ? 'Welke van de twee komt boven de breukstreep?' : null) }
+    ],
+    hint:'1 L = 1000 mL.',
+    uitw: vals => 'V = '+frac(g(VmL,3)+' mL','1000 mL L<sup>−1</sup>')+' = '+g(VmL/1000,3)+' L<br>c = '+frac(g(n,3)+' mol', g(VmL/1000,3)+' L')+' = <b>'+g(n/(VmL/1000),3)+ML+'</b>'
+  };
+}
+
+// Niveau 3: n = c · V
+function niv3(){
+  const [s, vbS] = twee(OPLOS);
+  const VmL = pick([25.0,50.0,100,150,250,20.0]), c = pick([0.100,0.250,0.0500,0.200,0.150,0.0800,0.120]);
+  const vbV = pick([75.0,300,40.0]), vbc = pick([0.300,0.0200,0.500]);
+  return {
+    titel:'Hoeveel mol?',
+    instr:{ titel:'Nieuw: de formule omschrijven', html:'Weet je c en V en wil je n weten, dan schrijf je c = n / V om:<div style="text-align:center;margin:6px 0">n = c · V</div>'+
+      vbBlok('Hoeveel mol '+vbS.naam+' zit er in '+g(vbV,3)+' mL '+g(vbc,3)+' M '+vbS.naam+'-oplossing?<br>V = '+g(vbV/1000,3)+' L<br>n = '+g(vbc,3)+ML+' × '+g(vbV/1000,3)+' L = '+g(vbc*vbV/1000,3)+' mol') },
+    vraag:'Bereken hoeveel mol '+s.naam+' er in '+g(VmL,3)+' mL '+g(c,3)+' M '+s.naam+'-oplossing zit.',
+    parts:[{ label:'n =', unit:'mol', juist:c*VmL/1000, diag: v => dichtbij(v, c*VmL) ? 'Gebruik het volume in liter.' : (dichtbij(v, c/(VmL/1000)) || dichtbij(v,(VmL/1000)/c) ? 'Schrijf c = n / V om naar n = …' : null) }],
+    hint:'Reken eerst het volume om naar liter.',
+    uitw: () => 'V = '+g(VmL/1000,3)+' L<br>n = c · V = '+g(c,3)+ML+' × '+g(VmL/1000,3)+' L = <b>'+g(c*VmL/1000,3)+' mol</b>'
+  };
+}
+
+// Niveau 4: m → n → c
+function niv4(){
+  const [s, vbS] = twee(OPLOS);
+  const M = molMassa(s.f), VmL = pick([100,250,500,200]), m = r3(rand(0.03,0.25)*M*VmL/1000);
+  const vbM = molMassa(vbS.f), vbV = pick([150,1000,50.0]), vbm = r3(rand(0.05,0.2)*vbM*vbV/1000);
+  return {
+    titel:'Een oplossing maken',
+    instr:{ titel:'Nieuw: van massa naar mol', html:'Bij het maken van een oplossing weeg je een aantal gram af. Reken de massa eerst om naar mol met de molaire massa M:'+
+      '<div style="text-align:center;margin:6px 0">n = '+frac('m','M')+' &nbsp; met m in g en M in g mol<sup>−1</sup></div>Daarna bereken je de molariteit zoals je gewend bent.'+
+      vbBlok(g(vbm,3)+' g '+vbS.naam+' ('+fsub(vbS.f)+') wordt opgelost tot '+g(vbV,3)+' mL oplossing.<br>M('+fsub(vbS.f)+') = '+Mstr(vbS.f)+'<br>n = '+frac(g(vbm,3)+' g', Mstr(vbS.f))+' = '+g(vbm/vbM,3)+' mol<br>c = '+frac(g(vbm/vbM,3)+' mol', g(vbV/1000,3)+' L')+' = '+g(vbm/vbM/(vbV/1000),3)+ML) },
+    vraag:'Je lost '+g(m,3)+' g '+s.naam+' ('+fsub(s.f)+') op in water en vult aan tot '+g(VmL,3)+' mL oplossing. Bereken de molariteit van '+s.naam+'.',
+    parts:[
+      { vraag:'Bereken hoeveel mol '+s.naam+' je hebt opgelost.', label:'n =', unit:'mol', juist:m/M, rel:0.015, diag: v => dichtbij(v, m*M) ? 'Delen of vermenigvuldigen met M? Kijk naar de eenheden.' : null },
+      { vraag:'Bereken de molariteit.', label:'c =', unit:ML, juist: vals => vals[0]/(VmL/1000), rel:0.015, diag:(v,vals) => dichtbij(v, vals[0]/VmL) ? 'Gebruik het volume in liter.' : null }
+    ],
+    hint:'Bereken eerst de molaire massa van '+fsub(s.f)+' met de atoommassa\'s uit Binas.',
+    uitw: () => 'M('+fsub(s.f)+') = '+Mstr(s.f)+'<br>n = '+frac(g(m,3)+' g', Mstr(s.f))+' = '+g(m/M,3)+' mol<br>c = '+frac(g(m/M,3)+' mol', g(VmL/1000,3)+' L')+' = <b>'+g(m/M/(VmL/1000),3)+ML+'</b>'
+  };
+}
+
+// Niveau 5: c → n → m (terugrekenen)
+function niv5(){
+  const [s, vbS] = twee(OPLOS);
+  const M = molMassa(s.f), VmL = pick([250,100,500,200]), c = pick([0.100,0.200,0.0500,0.150,0.250]);
+  const vbM = molMassa(vbS.f), vbV = pick([1000,50.0,150]), vbc = pick([0.300,0.0200,0.120]);
+  const n = c*VmL/1000;
+  return {
+    titel:'Terugrekenen',
+    instr:{ titel:'Nieuw: terugrekenen naar gram', html:'Wil je een oplossing maken met een bepaalde molariteit, dan reken je terug. Eerst hoeveel mol je nodig hebt (n = c · V), daarna hoeveel gram dat is:'+
+      '<div style="text-align:center;margin:6px 0">m = n · M</div>'+
+      vbBlok('Hoeveel gram '+vbS.naam+' heb je nodig voor '+g(vbV,3)+' mL '+g(vbc,3)+' M '+vbS.naam+'-oplossing?<br>n = '+g(vbc,3)+ML+' × '+g(vbV/1000,3)+' L = '+g(vbc*vbV/1000,3)+' mol<br>m = '+g(vbc*vbV/1000,3)+' mol × '+Mstr(vbS.f)+' = '+g(vbc*vbV/1000*vbM,3)+' g') },
+    vraag:'Je wilt '+g(VmL,3)+' mL '+g(c,3)+' M '+s.naam+'-oplossing ('+fsub(s.f)+') maken. Bereken hoeveel gram '+s.naam+' je moet afwegen.',
+    parts:[
+      { vraag:'Bereken hoeveel mol '+s.naam+' je nodig hebt.', label:'n =', unit:'mol', juist:n, diag: v => dichtbij(v, c*VmL) ? 'Gebruik het volume in liter.' : null },
+      { vraag:'Bereken hoeveel gram dat is.', label:'m =', unit:'g', juist: vals => vals[0]*M, rel:0.015, diag:(v,vals) => dichtbij(v, vals[0]/M) ? 'Van mol naar gram: delen of vermenigvuldigen met M?' : null }
+    ],
+    hint:'Bereken eerst hoeveel mol er in de oplossing moet zitten.',
+    uitw: () => 'n = c · V = '+g(c,3)+ML+' × '+g(VmL/1000,3)+' L = '+g(n,3)+' mol<br>M('+fsub(s.f)+') = '+Mstr(s.f)+'<br>m = n · M = '+g(n,3)+' mol × '+Mstr(s.f)+' = <b>'+g(n*M,3)+' g</b>'
+  };
+}
+
+// Niveau 6: ionconcentratie
+function niv6(){
+  const vbZ = ZOUTEN[0];
+  const z = pick(ZOUTEN.slice(1));
+  const c = pick([0.100,0.0500,0.200,0.150,0.0250,0.300]);
+  const welk = z.kat[2]>1 && z.an[2]>1 ? pick(['kat','an']) : (z.kat[2]>1 ? 'kat' : 'an');
+  const I = z[welk];
+  const fout1 = fsub(z.f)+'(s) → '+ion(z.kat[0]+(z.kat[2]>1?z.kat[2]:''),z.kat[1])+'(aq) + '+ion(z.an[0]+(z.an[2]>1?'<sub>'+z.an[2]+'</sub>':''),z.an[1])+'(aq)';
+  const fout2 = fsub(z.f)+'(s) → '+ion(z.kat[0],z.kat[1])+'(aq) + '+ion(z.an[0],z.an[1])+'(aq)';
+  return {
+    titel:'Ionen in een zoutoplossing',
+    instr:{ titel:'Nieuw: de concentratie van ionen', html:'Een zout splitst bij het oplossen in ionen. Uit de oplosvergelijking volgt hoeveel mol van elk ion er per mol zout in de oplossing komt. De molariteit van een ion schrijf je met vierkante haken: [Cl<sup>−</sup>] is de molariteit van de chloride-ionen.'+
+      vbBlok('In een 0,100 M '+vbZ.naam+'-oplossing:<br>'+oplosVgl(vbZ)+'<br>Per mol CaCl<sub>2</sub> komt er 1 mol Ca<sup>2+</sup> en 2 mol Cl<sup>−</sup> in de oplossing.<br>[Ca<sup>2+</sup>] = 0,100'+ML+' &nbsp;&nbsp; [Cl<sup>−</sup>] = 2 × 0,100'+ML+' = 0,200'+ML) },
+    vraag:'Je hebt een '+g(c,3)+' M '+z.naam+'-oplossing.',
+    parts:[
+      { vraag:'Welke oplosvergelijking is juist?', opties: [
+          { html:oplosVgl(z), goed:true }, { html:fout1, goed:false }, { html:fout2, goed:false } ].sort(()=>Math.random()-0.5),
+        uitleg:'Een zout splitst in losse ionen. De indexcijfers in de formule geven aan hoeveel ionen van elke soort er per formule-eenheid zijn; die worden coëfficiënten.' },
+      { vraag:'Bereken de molariteit van de '+I[3]+': ['+ion(I[0],I[1])+'].', label:'['+ion(I[0],I[1])+'] =', unit:ML, juist:c*I[2],
+        diag: v => (I[2]>1 && dichtbij(v,c)) ? 'Hoeveel mol '+I[3]+' komt er in de oplossing per mol '+z.naam+'?' : (I[2]>1 && dichtbij(v,c/I[2]) ? 'Delen of vermenigvuldigen?' : null) }
+    ],
+    hint:'Kijk naar de coëfficiënten in de oplosvergelijking.',
+    uitw: () => oplosVgl(z)+'<br>Per mol '+z.naam+' komt er '+I[2]+' mol '+I[3]+' in de oplossing.<br>['+ion(I[0],I[1])+'] = '+(I[2]>1?I[2]+' × ':'')+g(c,3)+ML+' = <b>'+g(c*I[2],3)+ML+'</b>'
+  };
+}
+
+// Niveau 7: wat zit er in de oplossing tijdens een titratie?
+function niv7(){
+  const key = pick(['chloride','ijzer','vitc']), T = maakTitratie(key), c = T.ctx;
+  return {
+    titel:'Wat gebeurt er bij een titratie?',
+    instr:{ titel:'Nieuw: titreren', html:'Bij een <b>titratie</b> bepaal je de concentratie van een stof in een oplossing. Je doet een afgemeten volume van die oplossing in een erlenmeyer. Uit een buret laat je er een oplossing met een bekende concentratie bij lopen: de <b>titrant</b>. Titrant en onbekende stof reageren met elkaar.<br>'+
+      'Het <b>eindpunt</b> van de titratie zie je aan een kleurverandering. In deze opdracht zie je naast de erlenmeyer ook welke deeltjes erin zitten.' },
+    vraag:'<b>'+c.titel+'.</b> In de erlenmeyer zit '+g(c.Vmon,4)+' mL '+c.monsterNaam+' met '+c.analytNaam+'. In de buret zit een '+c.titrNaam+'. De reactie is:<div class="eq">'+c.vgl+'</div>'+c.indicator,
+    sim:{ T, bars:true },
+    parts:[
+      { vraag:'Laat een paar mL titrant in de erlenmeyer lopen en bekijk de deeltjes. Wat gebeurt er met de titrant ('+c.titr+') die je toevoegt?',
+        wacht: sim => sim.v>0 && sim.v < T.Veq, wachtTekst:'Laat eerst wat titrant lopen (maar niet te veel).',
+        opties:[{html:'Die reageert meteen met de '+c.analytNaam, goed:true},{html:'Die blijft als '+c.titr+' in de oplossing', goed:false},{html:'Die reageert met water', goed:false}],
+        uitleg:'Zolang er '+c.analytNaam+' in de erlenmeyer zijn, reageert elke druppel titrant meteen weg. Het staafje van '+c.titr+' blijft daarom leeg.' },
+      { vraag:'Welke stof is in overmaat zolang de kleur nog niet is omgeslagen?',
+        opties:[{html:'de '+c.analytNaam, goed:true},{html:'de titrant ('+c.titr+')', goed:false},{html:'geen van beide', goed:false}],
+        uitleg:'Er is nog '+c.analyt+' over: die is in overmaat. De titrant is steeds helemaal op.' },
+      { vraag:'Titreer verder tot de kleur blijvend omslaat en nog iets verder. Waardoor is de oplossing nu '+c.kleurNaNaam+'?',
+        wacht: sim => sim.v > T.Veq + 0.04, wachtTekst:'Titreer eerst verder tot de kleur blijvend is omgeslagen.',
+        opties:[{html:'Er is titrant over, omdat alle '+c.analytNaam+' op zijn', goed:true},{html:'Er zijn nog '+c.analytNaam+' over', goed:false},{html:'Het reactieproduct heeft deze kleur', goed:false}],
+        uitleg:'Alle '+c.analytNaam+' hebben gereageerd. De titrant die je daarna toevoegt, kan nergens meer mee reageren en blijft over. Daardoor verandert de kleur.' },
+      { vraag:'Wat geldt er precies op het eindpunt?',
+        opties:[{html:'Alle '+c.analytNaam+' hebben net gereageerd', goed:true},{html:'Er is evenveel gram titrant toegevoegd als er '+c.analytNaam+' waren', goed:false},{html:'Alle titrant in de buret is op', goed:false}],
+        uitleg:'Op het eindpunt is de onbekende stof precies op. De hoeveelheid toegevoegde titrant in mol hangt dan via de reactievergelijking samen met de hoeveelheid onbekende stof in mol. Gram zegt daarover niets.' }
+    ],
+    hint:'Kijk naar de staafjes: welk staafje wordt kleiner, welk groter, en welk blijft leeg?',
+    uitw: () => '<div class="kop">Samengevat</div>Vóór het eindpunt: de titrant reageert meteen weg, er is nog '+c.analyt+' over.<br>Op het eindpunt: alle '+c.analyt+' heeft net gereageerd.<br>Na het eindpunt: de titrant blijft over en de kleur slaat om.'
+  };
+}
+
+// Niveau 8: buret aflezen
+function niv8(){
+  const key = pick(['chloride','hardheid','ijzer']), T = maakTitratie(key), c = T.ctx;
+  return {
+    titel:'De buret aflezen',
+    instr:{ titel:'Nieuw: de buret aflezen', html:'Op een buret staat 0,00 mL bovenaan; de getallen lopen naar beneden op. Lees af ter hoogte van de <b>onderkant van de meniscus</b> en schat tussen de streepjes, zodat je op 0,01 mL nauwkeurig afleest.<br>'+
+      'Het eindpunt bereik je bij de eerste druppel waarna de kleur <b>blijvend</b> omslaat. Kleurt een druppel de oplossing maar even, dan ben je dichtbij: ga dan druppel voor druppel verder.<br>'+
+      '<div style="text-align:center;margin:6px 0">toegevoegd volume = eindstand − beginstand</div>'+
+      vbBlok('Beginstand 1,25 mL, eindstand 15,80 mL.<br>Toegevoegd volume = 15,80 mL − 1,25 mL = 14,55 mL') },
+    vraag:'<b>'+c.titel+'.</b> '+c.indicator+' Titreer tot het eindpunt.',
+    sim:{ T, bars:false },
+    parts:[
+      { vraag:'Lees de beginstand af, vóór je gaat titreren.', label:'beginstand =', unit:'mL', juist:T.begin, abs:0.05, rel:0,
+        diag: v => dichtbij(v, 50-T.begin, 0, 0.1) ? 'De getallen op een buret lopen naar beneden op.' : 'Lees af bij de onderkant van de meniscus.' },
+      { vraag:'Titreer tot het eindpunt en lees de eindstand af.', label:'eindstand =', unit:'mL',
+        wacht: sim => sim.v>0, wachtTekst:'Titreer eerst tot het eindpunt.',
+        pre: (v, sim) => sim.v < T.Veq - 1e-9 ? 'De kleur is nog niet blijvend omgeslagen. Titreer verder.' : (sim.v > T.Veq + 0.10 + 1e-9 ? 'Je bent voorbij het eindpunt: het eindpunt is de éérste druppel waarbij de kleur blijvend omslaat. Klik op "Opnieuw" en titreer opnieuw.' : null),
+        juist: (vals, sim) => T.begin + sim.v, abs:0.05, rel:0,
+        diag: () => 'Lees af bij de onderkant van de meniscus.', naGoed: sim => sim.slotVast() },
+      { vraag:'Bereken hoeveel mL titrant je hebt toegevoegd.', label:'V =', unit:'mL', juist: vals => vals[1]-vals[0], abs:0.011, rel:0,
+        diag: (v, vals) => dichtbij(v, vals[1]+vals[0], 0, 0.02) ? 'Optellen of aftrekken?' : (dichtbij(v, vals[1], 0, 0.02) ? 'De buret stond aan het begin niet op 0,00 mL.' : null) }
+    ],
+    hint:'Kijk in het vergrote venster naar de onderkant van de gebogen vloeistoflijn.',
+    uitw: vals => 'Toegevoegd volume = eindstand − beginstand = '+d2(vals[1])+' mL − '+d2(vals[0])+' mL = <b>'+d2(vals[1]-vals[0])+' mL</b>'
+  };
+}
+
+// Niveau 9 en 10: de titratieketen
+function titratieKeten(key, nieuw){
+  const T = maakTitratie(key), c = T.ctx;
+  const vb = nieuw==='keten'
+    ? vbBlok('Bij een calciumbepaling is voor 50,00 mL kraanwater 12,40 mL 0,0100 M EDTA nodig. Ca<sup>2+</sup> en EDTA reageren 1 : 1.<br>'+
+        'n(EDTA) = 0,0100'+ML+' × 0,01240 L = 1,24 · 10<sup>−4</sup> mol<br>n(Ca<sup>2+</sup>) = n(EDTA) = 1,24 · 10<sup>−4</sup> mol<br>'+
+        '[Ca<sup>2+</sup>] = '+frac('1,24 · 10<sup>−4</sup> mol','0,05000 L')+' = 2,48 · 10<sup>−3</sup>'+ML)
+    : vbBlok('Jood reageert met thiosulfaat: I<sub>2</sub> + 2 S<sub>2</sub>O<sub>3</sub><sup>2−</sup> → 2 I<sup>−</sup> + S<sub>4</sub>O<sub>6</sub><sup>2−</sup>. Per mol I<sub>2</sub> reageert 2 mol S<sub>2</sub>O<sub>3</sub><sup>2−</sup>.<br>'+
+        'Voor 20,00 mL thiosulfaatoplossing is 11,30 mL 0,0500 M joodoplossing nodig.<br>n(I<sub>2</sub>) = 0,0500'+ML+' × 0,01130 L = 5,65 · 10<sup>−4</sup> mol<br>'+
+        'n(S<sub>2</sub>O<sub>3</sub><sup>2−</sup>) = 2 × 5,65 · 10<sup>−4</sup> mol = 1,13 · 10<sup>−3</sup> mol<br>[S<sub>2</sub>O<sub>3</sub><sup>2−</sup>] = '+frac('1,13 · 10<sup>−3</sup> mol','0,02000 L')+' = 5,65 · 10<sup>−2</sup>'+ML);
+  const instr = nieuw==='keten'
+    ? { titel:'Nieuw: van titrant naar onbekende stof', html:'Op het eindpunt heeft alle onbekende stof net gereageerd. Uit het toegevoegde volume en de concentratie van de titrant bereken je hoeveel mol titrant er heeft gereageerd. Met de reactievergelijking weet je dan hoeveel mol onbekende stof er was. Bij een verhouding 1 : 1 is dat evenveel mol.<br>Tot slot deel je door het volume van het <b>monster</b> in de erlenmeyer.'+vb }
+    : { titel:'Nieuw: een molverhouding die niet 1 : 1 is', html:'Niet elke titratiereactie verloopt 1 : 1. De coëfficiënten in de reactievergelijking geven aan hoeveel mol onbekende stof er reageert per mol titrant.'+vb };
+  const nT = vals => c.cT * vals[0]/1000;
+  const parts = [
+    { vraag:'Titreer tot het eindpunt en bepaal hoeveel mL titrant je hebt toegevoegd.', label:'V =', unit:'mL',
+      wacht: sim => sim.v>0, wachtTekst:'Lees de beginstand af en titreer tot het eindpunt.',
+      pre: (v, sim) => sim.v < T.Veq - 1e-9 ? 'De kleur is nog niet blijvend omgeslagen. Titreer verder.' : (sim.v > T.Veq + 0.10 + 1e-9 ? 'Je bent voorbij het eindpunt. Klik op "Opnieuw" en titreer opnieuw.' : null),
+      juist: (vals, sim) => sim.v, abs:0.06, rel:0, naGoed: sim => sim.slotVast(),
+      diag: (v, vals, sim) => dichtbij(v, T.begin+sim.v, 0, 0.06) ? 'Dit is de eindstand. Hoeveel mL is er uit de buret gelopen?' : 'Toegevoegd volume = eindstand − beginstand.' },
+    { vraag:'Bereken hoeveel mol '+c.titr+' er is toegevoegd.', label:'n('+c.titr+') =', unit:'mol', juist: vals => nT(vals),
+      diag: (v, vals) => dichtbij(v, c.cT*vals[0]) ? 'Gebruik het volume in liter.' : null },
+    { vraag:'Bereken hoeveel mol '+c.analyt+' er in het monster zat.', label:'n('+c.analyt+') =', unit:'mol', juist: vals => vals[1]*c.r,
+      diag: (v, vals) => c.r>1 && dichtbij(v, vals[1]) ? 'Kijk naar de coëfficiënten: reageert er evenveel mol '+c.analyt+' als mol '+c.titr+'?' : (c.r>1 && dichtbij(v, vals[1]/c.r) ? 'Er reageren méér mol '+c.analyt+' dan mol '+c.titr+'. Delen of vermenigvuldigen?' : null) },
+    { vraag:'Bereken de molariteit van '+c.analyt+' in het monster.', label:'['+c.analyt+'] =', unit:ML, juist: vals => vals[2]/(c.Vmon/1000),
+      diag: (v, vals) => dichtbij(v, vals[2]/(vals[0]/1000)) ? 'Je hebt gedeeld door het volume van de titrant. In welk volume zaten de '+c.analytNaam+'?' :
+        (dichtbij(v, vals[2]/((vals[0]+c.Vmon)/1000)) ? 'De '+c.analytNaam+' zaten oorspronkelijk in het monster van '+g(c.Vmon,4)+' mL.' : (dichtbij(v, vals[2]/c.Vmon) ? 'Gebruik het volume in liter.' : null)) }
+  ];
+  return {
+    titel: nieuw==='keten' ? 'De titratieberekening' : 'Andere molverhouding', instr,
+    vraag:'<b>'+c.titel+'.</b> In de erlenmeyer zit '+g(c.Vmon,4)+' mL '+c.monsterNaam+'. In de buret zit '+g(c.cT,3)+' M '+c.titrNaam+'.<div class="eq">'+c.vgl+'</div>'+c.indicator,
+    sim:{ T, bars:false }, parts,
+    hint: nieuw==='keten' ? 'Werk de keten af: volume titrant → mol titrant → mol onbekende stof → molariteit.' : 'Kijk naar de coëfficiënten voor '+c.titr+' en '+c.analyt+'.',
+    uitw: vals => 'n('+c.titr+') = '+g(c.cT,3)+ML+' × '+g(vals[0]/1000,4)+' L = '+g(nT(vals),3)+' mol<br>'+
+      'n('+c.analyt+') = '+(c.r>1?c.r+' × ':'')+g(nT(vals),3)+' mol = '+g(nT(vals)*c.r,3)+' mol<br>'+
+      '['+c.analyt+'] = '+frac(g(nT(vals)*c.r,3)+' mol', g(c.Vmon/1000,4)+' L')+' = <b>'+g(nT(vals)*c.r/(c.Vmon/1000),3)+ML+'</b>'
+  };
+}
+const niv9 = () => titratieKeten(pick(['chloride','hardheid']), 'keten');
+const niv10 = () => titratieKeten('ijzer', 'verhouding');
+
+// ★ Van mol naar gehalte
+function ster(){
+  if(Math.random()<0.5){
+    const mgPerGlas = Math.round(rand(70,120)), glas = 200, Vmon = 20.00, cT = 0.00500, M = molMassa('C6H8O6');
+    const nMon = mgPerGlas/1000/M * Vmon/glas, V = nMon/cT*1000, b = Math.round(rand(0.4,2.4)*100)/100, e = Math.round((b+V)*100)/100;
+    const Vr = e-b, juist = cT*Vr/1000 * glas/Vmon * M * 1000;
+    return {
+      titel:'★ Vitamine C per glas', ster:true,
+      instr:{ titel:'Nieuw: van mol naar een gehalte', html:'Vaak wil je niet de molariteit weten, maar hoeveel milligram van een stof er in een portie zit. Reken het aantal mol om naar gram (m = n · M) en naar mg (1 g = 1000 mg). Let op: je titreert vaak maar een deel van het geheel.' },
+      vraag:'Een glas sinaasappelsap bevat '+glas+' mL. Je titreert '+g(Vmon,4)+' mL sap met '+g(cT,3)+' M joodoplossing (zetmeel als indicator). De beginstand van de buret is '+d2(b)+' mL, de eindstand '+d2(e)+' mL.<div class="eq">'+CTX.vitc.vgl+'</div>Bereken hoeveel mg vitamine C (C<sub>6</sub>H<sub>8</sub>O<sub>6</sub>) er in een glas sap zit.',
+      parts:[{ label:'m =', unit:'mg', juist, rel:0.015,
+        diag: v => dichtbij(v, juist*Vmon/glas, 0.015) ? 'Dit is de hoeveelheid in '+g(Vmon,4)+' mL sap. Hoeveel zit er in het hele glas?' : (dichtbij(v, juist/1000, 0.015) ? 'Het antwoord moet in mg.' : null) }],
+      hint:'Bereken eerst hoeveel mol vitamine C er in '+g(Vmon,4)+' mL sap zit.',
+      uitw: () => 'V = '+d2(e)+' − '+d2(b)+' = '+d2(Vr)+' mL<br>n(I<sub>2</sub>) = '+g(cT,3)+ML+' × '+g(Vr/1000,4)+' L = '+g(cT*Vr/1000,3)+' mol = n(vitamine C) in '+g(Vmon,4)+' mL<br>'+
+        'In het glas: '+frac(glas+' mL', g(Vmon,4)+' mL')+' × '+g(cT*Vr/1000,3)+' mol = '+g(cT*Vr/1000*glas/Vmon,3)+' mol<br>m = '+g(cT*Vr/1000*glas/Vmon,3)+' mol × '+Mstr('C6H8O6')+' = '+g(juist/1000,3)+' g = <b>'+g(juist,3)+' mg</b>'
+    };
+  }
+  const mgFe = Math.round(rand(55,100)), Vtot = 100.0, Vmon = 25.00, cT = 0.00500, M = 55.85;
+  const nMon = mgFe/1000/M*Vmon/Vtot, V = nMon/5/cT*1000, b = Math.round(rand(0.4,2.4)*100)/100, e = Math.round((b+V)*100)/100;
+  const Vr = e-b, juist = cT*Vr/1000*5*Vtot/Vmon*M*1000;
+  return {
+    titel:'★ IJzer in een ijzerpil', ster:true,
+    instr:{ titel:'Nieuw: van mol naar een gehalte', html:'Vaak wil je niet de molariteit weten, maar hoeveel milligram van een stof er in een portie zit. Reken het aantal mol om naar gram (m = n · M) en naar mg (1 g = 1000 mg). Let op: je titreert vaak maar een deel van het geheel.' },
+    vraag:'Een ijzerpil wordt opgelost; alle ijzer komt als Fe<sup>2+</sup> in oplossing. De oplossing wordt aangevuld tot '+g(Vtot,4)+' mL. Hiervan titreer je '+g(Vmon,4)+' mL met '+g(cT,3)+' M kaliumpermanganaatoplossing. Beginstand '+d2(b)+' mL, eindstand '+d2(e)+' mL.<div class="eq">'+CTX.ijzer.vgl+'</div>Bereken hoeveel mg ijzer één pil bevat.',
+    parts:[{ label:'m =', unit:'mg', juist, rel:0.015,
+      diag: v => dichtbij(v, juist*Vmon/Vtot, 0.015) ? 'Dit is de hoeveelheid in '+g(Vmon,4)+' mL. Hoeveel zat er in de hele oplossing van de pil?' : (dichtbij(v, juist/5, 0.015) || dichtbij(v, juist/25, 0.015) ? 'Kijk nog eens naar de molverhouding MnO<sub>4</sub><sup>−</sup> : Fe<sup>2+</sup>.' : (dichtbij(v, juist/1000, 0.015) ? 'Het antwoord moet in mg.' : null)) }],
+    hint:'Volg de keten: mol MnO<sub>4</sub><sup>−</sup> → mol Fe<sup>2+</sup> in '+g(Vmon,4)+' mL → in de hele pil → mg.',
+    uitw: () => 'V = '+d2(e)+' − '+d2(b)+' = '+d2(Vr)+' mL<br>n(MnO<sub>4</sub><sup>−</sup>) = '+g(cT,3)+ML+' × '+g(Vr/1000,4)+' L = '+g(cT*Vr/1000,3)+' mol<br>n(Fe<sup>2+</sup>) in '+g(Vmon,4)+' mL = 5 × '+g(cT*Vr/1000,3)+' mol = '+g(cT*Vr/1000*5,3)+' mol<br>'+
+      'In de hele pil: '+frac(g(Vtot,4)+' mL', g(Vmon,4)+' mL')+' × '+g(cT*Vr/1000*5,3)+' mol = '+g(cT*Vr/1000*5*Vtot/Vmon,3)+' mol<br>m = '+g(cT*Vr/1000*5*Vtot/Vmon,3)+' mol × 55,85 g mol<sup>−1</sup> = <b>'+g(juist,3)+' mg</b>'
+  };
+}
+
+const NIVEAUS = [niv1, niv2, niv3, niv4, niv5, niv6, niv7, niv8, niv9, niv10, ster];
+
+/* ===================================================================
+   WEERGAVE VAN EEN OPDRACHT
+   =================================================================== */
+function renderVraag(el, q, nr, totaal, cb){
+  const st = { deel:0, tries:0, fout:false, vals:[] };
+  let h = '';
+  if(q.instr) h += '<details class="instr" open><summary>'+q.instr.titel+'</summary><div class="in">'+q.instr.html+'</div></details>';
+  h += '<div class="task"><div class="lbl">Opdracht '+nr+' van '+totaal+' · '+q.titel+'</div><div class="desc">'+q.vraag+'</div></div>';
+  if(q.sim) h += '<div class="sim" id="simbox"></div>';
+  q.parts.forEach((p,i)=>{
+    h += '<div class="part" id="part'+i+'" style="'+(i?'display:none':'')+'">';
+    if(p.vraag) h += '<div class="pq">'+(q.parts.length>1?'<b>'+String.fromCharCode(97+i)+'.</b> ':'')+p.vraag+'</div>';
+    if(p.wacht) h += '<div class="wacht">'+p.wachtTekst+'</div>';
+    if(p.opties) h += '<div class="mc">'+p.opties.map((o,k)=>'<button class="opt" data-k="'+k+'">'+o.html+'</button>').join('')+'</div>';
+    else h += '<div class="inrow"><label>'+p.label+'</label><input type="text" autocomplete="off" spellcheck="false"><span class="unit">'+p.unit+'</span><button class="btn chk">Controleer</button></div>';
+    h += '<div class="fb"></div></div>';
+  });
+  h += '<div class="acties"><button class="btn ghost hintb">Hint</button><button class="btn ghost toonb" style="display:none">Toon antwoord</button>'+
+       '<button class="btn volg" style="display:none">'+(nr===totaal?'Afronden ➜':'Volgende opdracht ➜')+'</button>'+
+       '<button class="btn ghost again">↻ Nog een opgave van dit niveau</button></div>'+
+       '<div class="hint" style="display:none"></div><div class="uitw" style="display:none"></div>';
+  el.innerHTML = h;
+  const $ = s => el.querySelector(s);
+  const sim = q.sim ? maakSim($('#simbox'), q.sim.T, { bars:q.sim.bars }) : null;
+  const pe = () => el.querySelector('#part'+st.deel);
+  const P = () => q.parts[st.deel];
+  const fb = (cls, html) => { const f=pe().querySelector('.fb'); f.className='fb show '+cls; f.innerHTML=html; };
+  const juistVan = p => typeof p.juist === 'function' ? p.juist(st.vals, sim) : p.juist;
+
+  function wachtCheck(){
+    q.parts.forEach((p,i)=>{
+      if(!p.wacht) return;
+      const ok = p.wacht(sim), e = el.querySelector('#part'+i);
+      if(i===st.deel){ e.querySelector('.wacht').style.display = ok ? 'none':''; }
+      e.querySelectorAll('.opt,input,.chk').forEach(x=>{ if(i===st.deel && !x.classList.contains('fout') && !x.dataset.klaar) x.disabled = !ok; });
+    });
+  }
+  if(sim) sim.luisteraars.push(wachtCheck);
+  wachtCheck();
+
+  $('.hintb').onclick = () => { const hh=$('.hint'); hh.style.display='block'; hh.innerHTML='<b>Hint:</b> '+q.hint; };
+  $('.volg').onclick = () => cb('volgende');
+  $('.again').onclick = () => cb('opnieuw');
+
+  function volgendDeel(goed, waarde){
+    if(!goed) st.fout = true;
+    st.vals[st.deel] = waarde;
+    const p = P();
+    pe().querySelectorAll('input,button').forEach(x=>{ x.disabled=true; x.dataset.klaar='1'; });
+    if(p.naGoed && sim) p.naGoed(sim);
+    st.deel++; st.tries=0;
+    $('.toonb').style.display='none';
+    if(st.deel < q.parts.length){
+      pe().style.display=''; wachtCheck();
+      const inp = pe().querySelector('input'); if(inp && !inp.disabled) inp.focus();
+    } else {
+      $('.hintb').style.display='none';
+      const u=$('.uitw'); u.style.display='block'; u.innerHTML='<div class="kop">Uitwerking</div>'+q.uitw(st.vals);
+      cb('klaar', !st.fout);
+      $('.volg').style.display='';
     }
   }
-  return {a:1,b:1,VA:20,cA:0.10,cB:0.10,VB:20};
-}
-
-/* ── Unique colours for A, B, C ── */
-function pickUniqueColors(){
-  const idx=[0,1,2,3];
-  // shuffle
-  for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
-  return {A:PALETTE[idx[0]], B:PALETTE[idx[1]], C:PALETTE[idx[2]]};
-}
-
-function init(){
-  S1=genScenario(false);
-  // Fase 2 uses the SAME stoichiometry (same reaction system) but new cA + cB + equiv volume
-  S2=genScenarioSameRatio(S1.a,S1.b);
-  colors=pickUniqueColors();
-  document.getElementById('concA1').textContent=S1.cA.toFixed(2);
-  document.getElementById('concB1').textContent=S1.cB.toFixed(2);
-  document.getElementById('concB2').textContent=S2.cB.toFixed(2);
-}
-
-function genScenarioSameRatio(a,b){
-  for(let t=0;t<3000;t++){
-    const VA=20;
-    const cA=(Math.floor(Math.random()*5)+1)*0.05;
-    const cB=(Math.floor(Math.random()*8)+1)*0.05;
-    const VB=cA*VA*(b/a)/cB;
-    if(Math.abs(VB-Math.round(VB))<1e-9 && VB>=5 && VB<=38){
-      return {a,b,VA,cA:+cA.toFixed(2),cB:+cB.toFixed(2),VB:Math.round(VB)};
+  function fout(msg){
+    st.tries++;
+    fb('incorrect','<b>Nog niet goed.</b> '+(msg||'Controleer je berekening stap voor stap.'));
+    if(st.tries>=2) $('.toonb').style.display='';
+  }
+  $('.toonb').onclick = () => {
+    const p = P();
+    if(p.opties){
+      pe().querySelectorAll('.opt').forEach((bt,k)=>{ if(p.opties[k].goed) bt.classList.add('goed'); });
+      fb('info','<b>Antwoord:</b> '+p.opties.find(o=>o.goed).html+(p.uitleg?'<br>'+p.uitleg:''));
+      volgendDeel(false);
+    } else {
+      if(p.pre && sim){ const m = p.pre(null, sim); if(m){ fb('info', m); return; } }
+      const j = juistVan(p);
+      const toon = p.unit==='mL' ? d2(j) : g(j,3);
+      fb('info','<b>Antwoord:</b> '+p.label+' '+toon+' '+p.unit);
+      volgendDeel(false, j);
     }
+  };
+  q.parts.forEach((p,i)=>{
+    const e = el.querySelector('#part'+i);
+    if(p.opties){
+      e.querySelectorAll('.opt').forEach(bt=>bt.onclick=()=>{
+        if(st.deel!==i) return;
+        const o = p.opties[+bt.dataset.k];
+        if(o.goed){ bt.classList.add('goed'); fb('correct','<b>Goed!</b> '+(p.uitleg||'')); volgendDeel(st.tries===0); }
+        else { bt.classList.add('fout'); bt.disabled=true; fout(''); }
+      });
+    } else {
+      const inp = e.querySelector('input');
+      const check = () => {
+        if(st.deel!==i) return;
+        if(p.pre && sim){ const m = p.pre(null, sim); if(m){ fb('info', m); return; } }
+        const v = leesGetal(inp.value);
+        if(v===null){ fb('info', inp.value.trim() ? 'Dit getal kan ik niet lezen. Typ bijvoorbeeld <span class="mono">0,0125</span> of <span class="mono">1,25*10^-2</span>.' : 'Typ eerst een antwoord.'); return; }
+        const j = juistVan(p);
+        if(dichtbij(v, j, p.rel===undefined?0.01:p.rel, p.abs||0)){
+          inp.classList.remove('incorrect'); inp.classList.add('correct');
+          fb('correct','<b>Goed!</b>'); volgendDeel(st.tries===0, v);
+        } else { inp.classList.add('incorrect'); fout(p.diag ? p.diag(v, st.vals, sim) : null); }
+      };
+      e.querySelector('.chk').onclick = check;
+      inp.addEventListener('keydown', ev => { if(ev.key==='Enter'){ ev.preventDefault(); check(); } });
+    }
+  });
+  const first = el.querySelector('#part0 input'); if(first && !first.disabled) first.focus();
+}
+
+/* ===================================================================
+   SERIE
+   =================================================================== */
+let serie;
+function nieuweSerie(){ serie = { i:0, items:NIVEAUS.map(f=>f()), status:NIVEAUS.map(()=>'') }; renderSerie(); }
+function renderSerie(){
+  const goed = serie.status.filter(s=>s==='ok').length;
+  document.getElementById('dots').innerHTML = serie.items.map((q,i)=>'<span class="dot '+(i===serie.i&&!serie.einde?'cur ':'')+serie.status[i]+'">'+(q.ster?'★':i+1)+'</span>').join('');
+  document.getElementById('score').textContent = 'Score: '+goed+' / '+serie.items.length;
+  const el = document.getElementById('opd');
+  if(serie.einde){
+    el.innerHTML = '<div class="eind"><p><b>Klaar!</b> Je had '+goed+' van de '+serie.items.length+' opdrachten goed zonder het antwoord te bekijken.</p><button class="btn" onclick="nieuweSerie()">Nieuwe serie ➜</button></div>';
+    return;
   }
-  return {a,b,VA:20,cA:0.10,cB:0.10,VB:20};
+  renderVraag(el, serie.items[serie.i], serie.i+1, serie.items.length, (wat, goedB)=>{
+    if(wat==='klaar'){
+      serie.status[serie.i] = goedB ? 'ok' : 'done';
+      document.querySelectorAll('.dot')[serie.i].className = 'dot cur '+serie.status[serie.i];
+      document.getElementById('score').textContent = 'Score: '+serie.status.filter(s=>s==='ok').length+' / '+serie.items.length;
+    } else if(wat==='opnieuw'){
+      serie.items[serie.i] = NIVEAUS[serie.i]();
+      renderSerie();
+    } else {
+      if(serie.i >= serie.items.length-1) serie.einde = true; else serie.i++;
+      renderSerie(); window.scrollTo({top:0, behavior:'smooth'});
+    }
+  });
 }
 
-/* ── Colour during titration ──
-   Before equiv (v<VB): mixture of leftover A and formed C.
-     fraction reacted = v/VB ; colour = blend(A, C) weighted by remaining A vs formed C.
-   At equiv (v==VB): pure C.
-   After equiv (v>VB): mixture of C and excess B.
-     We weight by amount of excess B relative to C present.
-*/
-function titrationColor(scen, v){
-  const {VB}=scen;
-  if(v<=0) return colors.A.v;
-  if(Math.abs(v-VB)<1e-9) return colors.C.v;
-  if(v<VB){
-    // fraction of A consumed
-    const fracReacted=v/VB;            // 0..1
-    // remaining A proportion vs C proportion (simple linear visual blend)
-    return blend(colors.C.v, colors.A.v, fracReacted);
-  } else {
-    // excess B. Let ratio grow with excess; cap so it approaches B but stays a mix
-    const excess=v-VB;
-    const w=Math.min(0.85, excess/(VB)); // visual weight toward B, capped
-    return blend(colors.C.v, colors.B.v, 1-w);
+/* ===================================================================
+   EIGEN METING
+   =================================================================== */
+const EM_CTX = {
+  chloride:{ ...CTX.chloride, Vmon:50.00 }, vitc:{ ...CTX.vitc }, ijzer:{ ...CTX.ijzer }, hardheid:{ ...CTX.hardheid },
+  anders:{ titel:'Andere titratie', analyt:'X', titr:'T', r:1, Vmon:25.00, cT:0.100 }
+};
+function renderEM(){
+  const el = document.getElementById('em');
+  el.innerHTML = '<p>Vul de gegevens van je eigen titratie in. De tool rekent stap voor stap met je mee.</p>'+
+    '<div class="em-grid">'+
+    '<label>Bepaling</label><select id="emCtx">'+Object.entries(EM_CTX).map(([k,c])=>'<option value="'+k+'">'+c.titel+'</option>').join('')+'</select>'+
+    '<label>Concentratie titrant (mol L<sup>−1</sup>)</label><input id="emCT">'+
+    '<label>Mol onbekende stof per mol titrant</label><input id="emR">'+
+    '<label>Volume monster (mL)</label><input id="emV">'+
+    '</div>'+
+    '<table class="tbl"><tr><th>Meting</th><th>beginstand (mL)</th><th>eindstand (mL)</th><th>volume (mL)</th></tr>'+
+    [1,2,3].map(i=>'<tr><td>'+i+'</td><td><input id="emB'+i+'"></td><td><input id="emE'+i+'"></td><td id="emVol'+i+'"></td></tr>').join('')+'</table>'+
+    '<div class="uitw" id="emUit">Vul de gegevens in.</div>';
+  const zet = () => { const c = EM_CTX[document.getElementById('emCtx').value];
+    document.getElementById('emCT').value = String(c.cT).replace('.',','); document.getElementById('emR').value = c.r; document.getElementById('emV').value = c.Vmon.toFixed(2).replace('.',','); reken(); };
+  document.getElementById('emCtx').onchange = zet;
+  el.querySelectorAll('input').forEach(i=>i.oninput = reken);
+  function reken(){
+    const c = EM_CTX[document.getElementById('emCtx').value];
+    const cT = leesGetal(document.getElementById('emCT').value), r = leesGetal(document.getElementById('emR').value), Vm = leesGetal(document.getElementById('emV').value);
+    const vols = [];
+    [1,2,3].forEach(i=>{ const b = leesGetal(document.getElementById('emB'+i).value), e = leesGetal(document.getElementById('emE'+i).value);
+      const cel = document.getElementById('emVol'+i);
+      if(b!==null && e!==null && e>b){ cel.textContent = d2(e-b); vols.push(e-b); } else cel.textContent = ''; });
+    const u = document.getElementById('emUit');
+    if(!vols.length || cT===null || r===null || Vm===null){ u.innerHTML = 'Vul de gegevens en minstens één meting in.'; return; }
+    const V = vols.reduce((a,b)=>a+b,0)/vols.length, nT = cT*V/1000, nA = nT*r, cA = nA/(Vm/1000);
+    u.innerHTML = '<div class="kop">Uitwerking</div>'+
+      (vols.length>1 ? 'Gemiddeld volume = '+frac(vols.map(d2).join(' + '), vols.length)+' = '+d2(V)+' mL<br>' : 'Volume = '+d2(V)+' mL<br>')+
+      'n('+c.titr+') = '+g(cT,3)+ML+' × '+g(V/1000,4)+' L = '+g(nT,3)+' mol<br>'+
+      'n('+c.analyt+') = '+(r!==1?String(r).replace('.',',')+' × ':'')+g(nT,3)+' mol = '+g(nA,3)+' mol<br>'+
+      '['+c.analyt+'] = '+frac(g(nA,3)+' mol', g(Vm/1000,4)+' L')+' = <b>'+g(cA,3)+ML+'</b>'+
+      (vols.length>1 && Math.max(...vols)-Math.min(...vols) > 0.20 ? '<br><i>Let op: je metingen verschillen meer dan 0,20 mL. Is er één meting met een fout?</i>' : '');
   }
-}
-// blend(c1,c2,r): r weight on c1, (1-r) on c2
-function blend(c1,c2,r){ r=Math.max(0,Math.min(1,r)); return c1.map((c,i)=>Math.round(c*r+c2[i]*(1-r))); }
-
-function simulate(f){
-  const scen=(f===1)?S1:S2;
-  const v=parseFloat(document.getElementById('volB'+f).value)||0;
-  const rgb=titrationColor(scen,v);
-  document.getElementById('liquid'+f).style.backgroundColor=`rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
-  document.getElementById('readout'+f).textContent=`Toegevoegd: ${v} mL B   (totaal volume ${20+v} mL)`;
+  zet();
 }
 
-function checkFase1(){
-  const fb=document.getElementById('fb1');
-  const gA=document.getElementById('gA').value;
-  const gB=document.getElementById('gB').value;
-  const gC=document.getElementById('gC').value;
-  const ga=parseInt(document.getElementById('ga').value);
-  const gb=parseInt(document.getElementById('gb').value);
-  if(!gA||!gB||!gC||!ga||!gb){ fb.className='feedback wrong'; fb.textContent='Vul alle velden in.'; return; }
-  const colorsOk = gA===colors.A.n && gB===colors.B.n && gC===colors.C.n;
-  // coefficients: accept the simplified ratio (already coprime in S1)
-  const coefOk = (ga===S1.a && gb===S1.b);
-  if(colorsOk && coefOk){
-    fb.className='feedback correct';
-    fb.textContent='✓ Correct! Je hebt het systeem ontrafeld. Fase 2 is nu vrijgegeven.';
-    document.getElementById('fase2locked').style.display='none';
-    document.getElementById('fase2content').style.display='block';
-  } else if(!colorsOk && coefOk){
-    fb.className='feedback wrong'; fb.textContent='De coëfficiënten kloppen, maar kijk nog eens naar de kleuren.';
-  } else if(colorsOk && !coefOk){
-    fb.className='feedback wrong'; fb.textContent='De kleuren kloppen. Let op de verhouding: geef de kleinst mogelijke gehele coëfficiënten.';
-  } else {
-    fb.className='feedback wrong'; fb.textContent='Nog niet juist. Experimenteer met meer volumes om de kleuren en het omslagpunt te vinden.';
-  }
+function showTab(n){
+  [0,1].forEach(i=>{ document.getElementById('tab'+i).style.display=i===n?'':'none'; document.getElementById('tb'+i).classList.toggle('active',i===n); });
 }
-
-function checkFase2(){
-  const fb=document.getElementById('fb2');
-  const ans=parseFloat(document.getElementById('ansConcA').value.toString().replace(',','.'));
-  if(isNaN(ans)){ fb.className='feedback wrong'; fb.textContent='Voer een getal in.'; return; }
-  if(Math.abs(ans-S2.cA)<0.005){
-    fb.className='feedback correct';
-    fb.innerHTML=`✓ Correct! De concentratie van A was ${S2.cA.toFixed(2)} M.<br><span style="font-size:13px;">Equivalentiepunt bij ${S2.VB} mL: n(B)=${S2.cB}×${(S2.VB/1000).toFixed(3)} L, via ${S1.a}:${S1.b} terug naar n(A), gedeeld door 0,020 L.</span>`;
-  } else {
-    fb.className='feedback wrong';
-    fb.textContent='Nog niet juist. Bepaal het equivalentiepunt nauwkeurig via de kleuromslag, en gebruik de verhouding uit Fase 1.';
-  }
-}
-
-init();
+nieuweSerie();
+renderEM();
 </script>
 </body>
 </html>
