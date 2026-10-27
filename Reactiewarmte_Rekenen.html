@@ -1,331 +1,680 @@
-
-<h2 class="sr-only">Reactiewarmte en vormingswarmte — oefentool</h2>
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reactiewarmte</title>
 <style>
-.topbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
-.modebtn{padding:7px 13px;border-radius:8px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);cursor:pointer;font-size:12.5px;color:var(--color-text-secondary)}
-.modebtn.active{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info);font-weight:500}
-#filt{font-size:12.5px;height:32px;border-radius:7px}
-.newbtn{margin-left:auto;font-size:12.5px}
-.tag{display:inline-block;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);background:var(--color-background-secondary);border-radius:5px;padding:3px 8px;margin-bottom:10px}
-.eqbox{text-align:center;font-size:18px;font-weight:500;margin:8px 0 18px;letter-spacing:.01em;line-height:1.5}
-.tbl{width:100%;border-collapse:collapse;margin:6px 0 14px;font-size:13px}
-.tbl td{padding:6px 8px;border-bottom:0.5px solid var(--color-border-tertiary)}
-.tbl td.nm{color:var(--color-text-primary)}
-.tbl td.val{text-align:right;font-family:var(--font-mono);color:var(--color-text-secondary);white-space:nowrap}
-.tbl td.unk{text-align:right;font-family:var(--font-mono);color:var(--color-text-warning);font-weight:700;white-space:nowrap}
-.tbl tr.elem td.val{color:var(--color-text-tertiary)}
-.given{background:var(--color-background-warning);border:0.5px solid var(--color-border-warning);border-radius:9px;padding:9px 14px;margin:0 0 10px;font-size:13.5px;text-align:center;color:var(--color-text-warning-foreground,var(--color-text-primary))}
-.given b{font-family:var(--font-mono)}
-.inprow{display:flex;align-items:center;gap:9px;margin:10px 0;flex-wrap:wrap}
-.inprow label{font-size:13px;color:var(--color-text-secondary)}
-.inprow input{font-size:14px;height:34px;width:110px}
-.fb{font-size:13px;margin:6px 0 2px;min-height:20px;font-weight:500}
-.fb.ok{color:var(--color-text-success)}
-.fb.bad{color:var(--color-text-danger)}
-.stepsbtn{font-size:12px;color:var(--color-text-tertiary);background:none;border:none;text-decoration:underline;cursor:pointer;padding:2px 0}
-.steps{font-size:12.5px;font-family:var(--font-mono);background:var(--color-background-secondary);border-radius:9px;padding:11px 14px;white-space:pre-line;margin-top:8px;display:none;line-height:1.6}
+:root{
+  --acc:#1F5FBF; --acc-d:#174a96; --soft:#E8F0FC; --ok:#1A7F37; --ok-soft:#E4F4E8;
+  --err:#C62828; --err-soft:#FDECEC; --key:#FFF0A0; --muted:#595959; --line:#D5DCE8; --bg:#F6F8FB;
+  --text:#1d2330; --font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.5}
+.hs-header{background:var(--acc);color:#fff;margin-bottom:18px}
+.hs-header .hs-wrap{max-width:1140px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hs-header h1{margin:0;font-size:1.5rem;font-weight:650;color:#fff}
+.hs-header button{font:inherit;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px;border:1.5px solid #fff;background:transparent;color:#fff}
+.hs-header button:hover{background:rgba(255,255,255,.15)}
+.app{max-width:1140px;margin:0 auto;padding:0 22px 40px}
+body.hs-beamer .app{zoom:1.3}
+.tabs{display:flex;gap:4px;background:#e3e9ef;padding:4px;border-radius:10px;width:fit-content;flex-wrap:wrap;margin-bottom:18px}
+.tab{padding:9px 16px;border:none;border-radius:7px;background:transparent;color:var(--muted);cursor:pointer;font:inherit;font-size:14px;font-weight:600}
+.tab.active{background:#fff;color:var(--acc-d);box-shadow:0 1px 3px rgba(15,35,55,.12)}
+.tab:hover:not(.active){background:#d8e0e8}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:24px;max-width:860px;box-shadow:0 1px 3px rgba(15,35,55,.08)}
+h2{margin:0 0 16px;font-size:20px;padding-left:12px;border-left:4px solid var(--acc)}
+button.btn{padding:8px 16px;border:none;border-radius:7px;background:var(--acc);color:#fff;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+button.btn:hover:not(:disabled){background:var(--acc-d)}
+button.btn:disabled{opacity:.45;cursor:not-allowed}
+button.ghost{background:transparent;border:1.5px solid var(--line);color:var(--text)}
+button.ghost:hover:not(:disabled){background:#eef1f6}
+.top{display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.level{font-weight:650;color:var(--acc);border:1.5px solid var(--acc);border-radius:7px;padding:3px 10px;font-size:13.5px}
+.dots{display:flex;gap:6px;flex-wrap:wrap;flex:1 1 auto}
+.dot{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;border:1px solid var(--line);background:#fff;color:var(--muted)}
+.dot.cur{border:2px solid var(--acc);color:var(--acc);font-weight:700}
+.dot.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.dot.done{background:var(--soft);border-color:var(--acc);color:var(--acc)}
+.score{font-size:13px;color:var(--muted);font-weight:600}
+.task{background:var(--key);border:1px solid #e0c84a;border-radius:8px;padding:14px 16px;margin-bottom:14px}
+.task .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;font-weight:600}
+.task .desc{font-size:15.5px}
+.eq{text-align:center;font-size:18px;font-weight:500;margin:12px 0 4px}
+.part{border-top:1px solid var(--line);padding-top:12px;margin-top:12px}
+.part:first-of-type{border-top:none;margin-top:0;padding-top:0}
+.part .pq{font-size:15px;margin-bottom:8px}
+.inrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.inrow label{font-size:15px}
+.inrow input{font:inherit;font-size:15px;padding:7px 10px;width:150px;border:1px solid var(--line);border-radius:6px}
+.inrow input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px var(--soft)}
+.inrow input.correct{background:var(--ok-soft);border-color:var(--ok)}
+.inrow input.incorrect{background:var(--err-soft);border-color:var(--err)}
+.inrow .unit{font-size:15px}
+.mc{display:flex;gap:8px;flex-wrap:wrap}
+.opt{background:#fff;color:var(--text);border:1.5px solid var(--line);font:inherit;font-size:14.5px;padding:8px 14px;border-radius:7px;cursor:pointer}
+.opt:hover:not(:disabled){background:var(--soft);border-color:var(--acc)}
+.opt.goed{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.fout{background:var(--err-soft);border-color:var(--err);color:var(--err)}
+.opt:disabled{cursor:default}
+.acties{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.hint{margin-top:12px;padding:10px 14px;border-radius:8px;background:var(--soft);font-size:14px}
+.fb{display:none;margin-top:10px;padding:10px 14px;border-radius:8px;font-size:14.5px;border:1px solid}
+.fb.show{display:block}
+.fb.correct{background:var(--ok-soft);border-color:var(--ok)}
+.fb.incorrect{background:var(--err-soft);border-color:var(--err)}
+.fb.info{background:var(--soft);border-color:var(--acc)}
+.uitw{margin-top:14px;padding:12px 16px;border-radius:8px;background:#F3F7FD;border:1px solid var(--line);font-size:15px;line-height:2}
+.uitw .kop{font-weight:650;margin-top:4px}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 3px;line-height:1.25}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 4px}
+.frac>span:last-child{padding:0 4px}
+.note{margin-top:16px;font-size:13px;color:var(--muted)}
+.mono{font-family:Consolas,'Courier New',monospace;background:#eef1f6;border-radius:4px;padding:0 4px}
+.eind{padding:18px;background:var(--soft);border-radius:8px;font-size:15px}
+.oef-top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.oef-top select{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
+.mode{padding:7px 13px;border-radius:7px;border:1.5px solid var(--line);background:#fff;cursor:pointer;font:inherit;font-size:13.5px;color:var(--muted)}
+.mode.active{background:var(--soft);border-color:var(--acc);color:var(--acc-d);font-weight:600}
+.tbl{border-collapse:collapse;margin:6px 0 12px;font-size:14.5px}
+.tbl td{padding:4px 12px;border-bottom:1px solid #edf0f5}
+.tbl td.v{text-align:right;white-space:nowrap}
 </style>
+</head>
+<body>
+<header class="hs-header"><div class="hs-wrap"><h1>Reactiewarmte</h1><button type="button" onclick="document.body.classList.toggle('hs-beamer')">Beamerstand</button></div></header>
+<div class="app">
+  <div class="tabs">
+    <button class="tab active" id="tb0" onclick="showTab(0)">Opdrachten</button>
+    <button class="tab" id="tb1" onclick="showTab(1)">Oefenen</button>
+  </div>
 
-<div class="topbar">
-  <button id="m0" class="modebtn active" onclick="setMode(0)">ΔH<sub>reactie</sub> berekenen</button>
-  <button id="m1" class="modebtn" onclick="setMode(1)">Ontbrekende vormingswarmte</button>
-  <button id="m2" class="modebtn" onclick="setMode(2)">Warmte per gram/liter</button>
-  <select id="filt" onchange="newProblem()">
-    <option value="alle">Alle reacties</option>
-    <option value="verbranding">Verbranding</option>
-    <option value="vorming">Vorming</option>
-    <option value="ontleding">Ontleding</option>
-    <option value="overig">Overig</option>
-  </select>
-  <button class="newbtn" onclick="newProblem()">↻ Nieuwe opgave</button>
+  <div id="tab0" class="card">
+    <h2>Opdrachten</h2>
+    <div class="top"><span class="level">4V</span><div class="dots" id="dots"></div><span class="score" id="score"></span></div>
+    <div id="opd"></div>
+    <p class="note">Gebruik Binas tabel 57A en 57B (vormingswarmtes) en tabel 7 (molair volume). Een getal mag met een komma of een punt; machten van 10 typ je als <span class="mono">1,25*10^3</span> of <span class="mono">1,25e3</span>.</p>
+  </div>
+
+  <div id="tab1" class="card" style="display:none">
+    <h2>Oefenen</h2>
+    <div class="oef-top">
+      <button class="mode active" id="m0" onclick="setMode(0)">ΔE berekenen</button>
+      <button class="mode" id="m1" onclick="setMode(1)">Onbekende vormingswarmte</button>
+      <button class="mode" id="m2" onclick="setMode(2)">Energie bij een hoeveelheid</button>
+      <select id="filt" onchange="nieuweOef()" title="Filter (niet bij Energie bij een hoeveelheid: die gaat altijd over verbrandingen)">
+        <option value="alle">Alle reacties</option>
+        <option value="verbranding">Verbranding</option>
+        <option value="vorming">Vorming</option>
+        <option value="ontleding">Ontleding</option>
+        <option value="overig">Overig</option>
+      </select>
+      <button class="btn" onclick="nieuweOef()">Nieuwe opgave ↻</button>
+    </div>
+    <div id="oef"></div>
+  </div>
 </div>
-
-<div class="tag" id="typetag">vorming</div>
-<div class="eqbox" id="eqbox"></div>
-
-<div class="given" id="givenbox" style="display:none">
-  Gegeven: ΔH<sub>reactie</sub> = <b id="givendh"></b> kJ
-</div>
-<div class="given" id="given2" style="display:none">
-  Gegeven: <span id="given2text"></span>
-</div>
-
-<table class="tbl" id="tbl"></table>
-
-<div class="inprow" id="answerrow">
-  <label id="anslabel">ΔH<sub>reactie</sub> =</label>
-  <input type="text" id="ansval" placeholder="bijv. -802,3">
-  <span id="ansunit" style="font-size:13px;color:var(--color-text-secondary)">kJ</span>
-  <button onclick="checkAnswer()">Controleer</button>
-</div>
-
-<div class="fb" id="fb"></div>
-<button class="stepsbtn" id="stepsbtn" onclick="toggleSteps()">Bekijk uitwerking</button>
-<div class="steps" id="steps"></div>
 
 <script>
-const compounds={
-H2O_l:{f:'H₂O(l)',v:-285.8,m:18.02},H2O_g:{f:'H₂O(g)',v:-241.8,m:18.02},CO2_g:{f:'CO₂(g)',v:-393.5,m:44.01},CO_g:{f:'CO(g)',v:-110.5,m:28.01},
-CH4_g:{f:'CH₄(g)',v:-74.8,m:16.04},C2H6_g:{f:'C₂H₆(g)',v:-84.7,m:30.07},C2H4_g:{f:'C₂H₄(g)',v:52.4,m:28.05},C2H2_g:{f:'C₂H₂(g)',v:226.7,m:26.04},
-C3H8_g:{f:'C₃H₈(g)',v:-103.8,m:44.10},C4H10_g:{f:'C₄H₁₀(g)',v:-125.6,m:58.12},CH3OH_l:{f:'CH₃OH(l)',v:-238.4,m:32.04},C2H5OH_l:{f:'C₂H₅OH(l)',v:-277.6,m:46.07},
-NH3_g:{f:'NH₃(g)',v:-46.1,m:17.03},NO_g:{f:'NO(g)',v:90.2,m:30.01},NO2_g:{f:'NO₂(g)',v:33.2,m:46.01},N2O4_g:{f:'N₂O₄(g)',v:9.2,m:92.02},
-SO2_g:{f:'SO₂(g)',v:-296.8,m:64.07},SO3_g:{f:'SO₃(g)',v:-395.7,m:80.06},H2S_g:{f:'H₂S(g)',v:-20.6,m:34.08},HCl_g:{f:'HCl(g)',v:-92.3,m:36.46},
-NaCl_s:{f:'NaCl(s)',v:-411.2,m:58.44},CaCO3_s:{f:'CaCO₃(s)',v:-1206.9,m:100.09},CaO_s:{f:'CaO(s)',v:-635.1,m:56.08},CaOH2_s:{f:'Ca(OH)₂(s)',v:-985.2,m:74.09},
-NaOH_s:{f:'NaOH(s)',v:-425.6,m:40.00},Na2CO3_s:{f:'Na₂CO₃(s)',v:-1130.7,m:105.99},Fe2O3_s:{f:'Fe₂O₃(s)',v:-824.2,m:159.69},Al2O3_s:{f:'Al₂O₃(s)',v:-1675.7,m:101.96},
-MgO_s:{f:'MgO(s)',v:-601.6,m:40.30},CuO_s:{f:'CuO(s)',v:-157.3,m:79.55},ZnO_s:{f:'ZnO(s)',v:-350.5,m:81.38},Fe3O4_s:{f:'Fe₃O₄(s)',v:-1118.4,m:231.53},
-TiO2_s:{f:'TiO₂(s)',v:-944.7,m:79.87},P4O10_s:{f:'P₄O₁₀(s)',v:-2984.0,m:283.89},C6H12O6_s:{f:'C₆H₁₂O₆(s)',v:-1273.0,m:180.16},HNO3_l:{f:'HNO₃(l)',v:-174.1,m:63.01},
-H2SO4_l:{f:'H₂SO₄(l)',v:-814.0,m:98.08},N2H4_l:{f:'N₂H₄(l)',v:50.6,m:32.05},C6H6_l:{f:'C₆H₆(l)',v:49.0,m:78.11},KCl_s:{f:'KCl(s)',v:-436.5,m:74.55},
-Na2O_s:{f:'Na₂O(s)',v:-414.2,m:61.98},K2O_s:{f:'K₂O(s)',v:-363.2,m:94.20},CS2_l:{f:'CS₂(l)',v:89.7,m:76.14},MgCO3_s:{f:'MgCO₃(s)',v:-1095.8,m:84.31},
-PCl3_g:{f:'PCl₃(g)',v:-287.0,m:137.33},PCl5_g:{f:'PCl₅(g)',v:-374.9,m:208.24},
-O2_g:{f:'O₂(g)',v:0,el:1,m:32.00},N2_g:{f:'N₂(g)',v:0,el:1,m:28.01},H2_g:{f:'H₂(g)',v:0,el:1,m:2.02},C_s:{f:'C(s, grafiet)',v:0,el:1,m:12.01},
-S_s:{f:'S(s, rhombisch)',v:0,el:1,m:32.07},Cl2_g:{f:'Cl₂(g)',v:0,el:1,m:70.90},Na_s:{f:'Na(s)',v:0,el:1,m:22.99},Ca_s:{f:'Ca(s)',v:0,el:1,m:40.08},
-Fe_s:{f:'Fe(s)',v:0,el:1,m:55.85},Al_s:{f:'Al(s)',v:0,el:1,m:26.98},Mg_s:{f:'Mg(s)',v:0,el:1,m:24.31},Cu_s:{f:'Cu(s)',v:0,el:1,m:63.55},
-Zn_s:{f:'Zn(s)',v:0,el:1,m:65.38},K_s:{f:'K(s)',v:0,el:1,m:39.10},Ti_s:{f:'Ti(s)',v:0,el:1,m:47.87},P4_s:{f:'P₄(s, wit)',v:0,el:1,m:123.90}
+/* ===================================================================
+   DATA — vormingswarmtes uit Binas 57A/57B (in 10^5 J mol^-1, 298 K)
+   =================================================================== */
+const S = {
+  H2O_l:['H2O','l',-2.86,'water'], H2O_g:['H2O','g',-2.42,'waterdamp'], CO2:['CO2','g',-3.935,'koolstofdioxide'], CO:['CO','g',-1.105,'koolstofmonoxide'],
+  CH4:['CH4','g',-0.75,'methaan'], C2H6:['C2H6','g',-0.84,'ethaan'], C2H4:['C2H4','g',0.52,'etheen'], C2H2:['C2H2','g',2.27,'ethyn'],
+  C3H8:['C3H8','g',-1.04,'propaan'], C3H6:['C3H6','g',0.20,'propeen'], C4H10:['C4H10','g',-1.26,'butaan'], C6H6:['C6H6','l',0.49,'benzeen'],
+  CH3OH:['CH3OH','l',-2.39,'methanol'], C2H5OH:['C2H5OH','l',-2.78,'ethanol'], CH2O:['CH2O','g',-1.09,'methanal'], C2H4O:['C2H4O','g',-1.92,'ethanal'],
+  CH3COOH:['CH3COOH','l',-4.84,'ethaanzuur'],
+  NH3:['NH3','g',-0.459,'ammoniak'], NO:['NO','g',0.913,'stikstofmonoxide'], NO2:['NO2','g',0.332,'stikstofdioxide'], N2O4:['N2O4','g',0.111,'distikstoftetraoxide'],
+  N2O:['N2O','g',0.816,'distikstofoxide'], SO2:['SO2','g',-2.97,'zwaveldioxide'], SO3:['SO3','g',-3.96,'zwaveltrioxide'], H2S:['H2S','g',-0.206,'waterstofsulfide'],
+  HCl:['HCl','g',-0.923,'waterstofchloride'], H2O2:['H2O2','l',-1.88,'waterstofperoxide'], H2SO4:['H2SO4','l',-8.14,'zwavelzuur'], CS2:['CS2','l',0.890,'koolstofdisulfide'],
+  NaCl:['NaCl','s',-4.11,'natriumchloride'], KCl:['KCl','s',-4.37,'kaliumchloride'], KClO3:['KClO3','s',-3.98,'kaliumchloraat'],
+  CaCO3:['CaCO3','s',-12.08,'calciumcarbonaat'], CaO:['CaO','s',-6.35,'calciumoxide'], CaOH2:['Ca(OH)2','s',-9.85,'calciumhydroxide'],
+  MgCO3:['MgCO3','s',-10.96,'magnesiumcarbonaat'], MgO:['MgO','s',-6.02,'magnesiumoxide'], BaCO3:['BaCO3','s',-12.13,'bariumcarbonaat'], BaO:['BaO','s',-5.48,'bariumoxide'],
+  NaOH:['NaOH','s',-4.26,'natriumhydroxide'], Na2O:['Na2O','s',-4.14,'natriumoxide'], Na2CO3:['Na2CO3','s',-11.31,'natriumcarbonaat'], K2O:['K2O','s',-3.62,'kaliumoxide'],
+  Fe2O3:['Fe2O3','s',-8.24,'ijzer(III)oxide'], Al2O3:['Al2O3','s',-16.76,'aluminiumoxide'], CuO:['CuO','s',-1.57,'koper(II)oxide'], ZnO:['ZnO','s',-3.51,'zinkoxide'],
+  Ag2O:['Ag2O','s',-0.311,'zilveroxide'], NH4Cl:['NH4Cl','s',-3.14,'ammoniumchloride'], NH4NO3:['NH4NO3','s',-3.66,'ammoniumnitraat'],
+  PCl3:['PCl3','l',-3.20,'fosfortrichloride'], PCl5:['PCl5','s',-4.44,'fosforpentachloride'],
+  // elementen: vormingswarmte 0
+  O2:['O2','g',0,'zuurstof',1], N2:['N2','g',0,'stikstof',1], H2:['H2','g',0,'waterstof',1], C:['C','s',0,'koolstof',1], Ss:['S','s',0,'zwavel',1],
+  Cl2:['Cl2','g',0,'chloor',1], Na:['Na','s',0,'natrium',1], K:['K','s',0,'kalium',1], Mg:['Mg','s',0,'magnesium',1], Ca:['Ca','s',0,'calcium',1],
+  Fe:['Fe','s',0,'ijzer',1], Al:['Al','s',0,'aluminium',1], Cu:['Cu','s',0,'koper',1], Zn:['Zn','s',0,'zink',1], Ag:['Ag','s',0,'zilver',1]
 };
-const VM_BY_T={273:22.4,298:24.5};
-const RX=[
-{t:'verbranding',r:[['CH4_g',1],['O2_g',2]],p:[['CO2_g',1],['H2O_l',2]]},
-{t:'verbranding',r:[['CH4_g',1],['O2_g',2]],p:[['CO2_g',1],['H2O_g',2]]},
-{t:'verbranding',r:[['C2H6_g',2],['O2_g',7]],p:[['CO2_g',4],['H2O_l',6]]},
-{t:'verbranding',r:[['C2H4_g',1],['O2_g',3]],p:[['CO2_g',2],['H2O_l',2]]},
-{t:'verbranding',r:[['C2H2_g',2],['O2_g',5]],p:[['CO2_g',4],['H2O_l',2]]},
-{t:'verbranding',r:[['C3H8_g',1],['O2_g',5]],p:[['CO2_g',3],['H2O_l',4]]},
-{t:'verbranding',r:[['C4H10_g',2],['O2_g',13]],p:[['CO2_g',8],['H2O_l',10]]},
-{t:'verbranding',r:[['CH3OH_l',2],['O2_g',3]],p:[['CO2_g',2],['H2O_l',4]]},
-{t:'verbranding',r:[['C2H5OH_l',1],['O2_g',3]],p:[['CO2_g',2],['H2O_l',3]]},
-{t:'verbranding',r:[['C6H12O6_s',1],['O2_g',6]],p:[['CO2_g',6],['H2O_l',6]]},
-{t:'verbranding',r:[['C6H6_l',2],['O2_g',15]],p:[['CO2_g',12],['H2O_l',6]]},
-{t:'vorming',r:[['N2_g',1],['H2_g',3]],p:[['NH3_g',2]]},
-{t:'vorming',r:[['N2_g',1],['O2_g',1]],p:[['NO_g',2]]},
-{t:'vorming',r:[['N2_g',1],['O2_g',2]],p:[['NO2_g',2]]},
-{t:'overig',r:[['NO_g',2],['O2_g',1]],p:[['NO2_g',2]]},
-{t:'overig',r:[['NO2_g',2]],p:[['N2O4_g',1]]},
-{t:'vorming',r:[['S_s',1],['O2_g',1]],p:[['SO2_g',1]]},
-{t:'overig',r:[['SO2_g',2],['O2_g',1]],p:[['SO3_g',2]]},
-{t:'vorming',r:[['H2_g',1],['S_s',1]],p:[['H2S_g',1]]},
-{t:'vorming',r:[['H2_g',1],['Cl2_g',1]],p:[['HCl_g',2]]},
-{t:'vorming',r:[['Na_s',2],['Cl2_g',1]],p:[['NaCl_s',2]]},
-{t:'ontleding',r:[['CaCO3_s',1]],p:[['CaO_s',1],['CO2_g',1]]},
-{t:'overig',r:[['CaO_s',1],['H2O_l',1]],p:[['CaOH2_s',1]]},
-{t:'overig',r:[['Na2O_s',1],['H2O_l',1]],p:[['NaOH_s',2]]},
-{t:'overig',r:[['Na2O_s',1],['CO2_g',1]],p:[['Na2CO3_s',1]]},
-{t:'vorming',r:[['Fe_s',4],['O2_g',3]],p:[['Fe2O3_s',2]]},
-{t:'vorming',r:[['Al_s',4],['O2_g',3]],p:[['Al2O3_s',2]]},
-{t:'vorming',r:[['Mg_s',2],['O2_g',1]],p:[['MgO_s',2]]},
-{t:'vorming',r:[['Cu_s',2],['O2_g',1]],p:[['CuO_s',2]]},
-{t:'vorming',r:[['Zn_s',2],['O2_g',1]],p:[['ZnO_s',2]]},
-{t:'vorming',r:[['Fe_s',3],['O2_g',2]],p:[['Fe3O4_s',1]]},
-{t:'vorming',r:[['Ti_s',1],['O2_g',1]],p:[['TiO2_s',1]]},
-{t:'vorming',r:[['P4_s',1],['O2_g',5]],p:[['P4O10_s',1]]},
-{t:'vorming',r:[['K_s',4],['O2_g',1]],p:[['K2O_s',2]]},
-{t:'vorming',r:[['K_s',2],['Cl2_g',1]],p:[['KCl_s',2]]},
-{t:'vorming',r:[['P4_s',1],['Cl2_g',6]],p:[['PCl3_g',4]]},
-{t:'overig',r:[['PCl3_g',1],['Cl2_g',1]],p:[['PCl5_g',1]]},
-{t:'vorming',r:[['N2_g',1],['H2_g',2]],p:[['N2H4_l',1]]},
-{t:'overig',r:[['MgO_s',1],['CO2_g',1]],p:[['MgCO3_s',1]]},
-{t:'verbranding',r:[['CS2_l',1],['O2_g',3]],p:[['CO2_g',1],['SO2_g',2]]}
+const st = k => ({ f:S[k][0], toest:S[k][1], v:S[k][2], naam:S[k][3], el:!!S[k][4] });
+
+// [type, beginstoffen, reactieproducten]
+const RX = [
+ ['verbranding',[['CH4',1],['O2',2]],[['CO2',1],['H2O_l',2]]],
+ ['verbranding',[['CH4',1],['O2',2]],[['CO2',1],['H2O_g',2]]],
+ ['verbranding',[['C2H6',2],['O2',7]],[['CO2',4],['H2O_l',6]]],
+ ['verbranding',[['C2H4',1],['O2',3]],[['CO2',2],['H2O_l',2]]],
+ ['verbranding',[['C2H2',2],['O2',5]],[['CO2',4],['H2O_l',2]]],
+ ['verbranding',[['C3H8',1],['O2',5]],[['CO2',3],['H2O_l',4]]],
+ ['verbranding',[['C3H8',1],['O2',5]],[['CO2',3],['H2O_g',4]]],
+ ['verbranding',[['C3H6',2],['O2',9]],[['CO2',6],['H2O_l',6]]],
+ ['verbranding',[['C4H10',2],['O2',13]],[['CO2',8],['H2O_l',10]]],
+ ['verbranding',[['C6H6',2],['O2',15]],[['CO2',12],['H2O_l',6]]],
+ ['verbranding',[['CH3OH',2],['O2',3]],[['CO2',2],['H2O_l',4]]],
+ ['verbranding',[['C2H5OH',1],['O2',3]],[['CO2',2],['H2O_l',3]]],
+ ['verbranding',[['C2H5OH',1],['O2',3]],[['CO2',2],['H2O_g',3]]],
+ ['verbranding',[['C2H4O',2],['O2',5]],[['CO2',4],['H2O_l',4]]],
+ ['verbranding',[['CH3COOH',1],['O2',2]],[['CO2',2],['H2O_l',2]]],
+ ['verbranding',[['CS2',1],['O2',3]],[['CO2',1],['SO2',2]]],
+ ['verbranding',[['H2S',2],['O2',3]],[['SO2',2],['H2O_l',2]]],
+ ['verbranding',[['NH3',4],['O2',3]],[['N2',2],['H2O_l',6]]],
+ ['verbranding',[['CO',2],['O2',1]],[['CO2',2]]],
+ ['verbranding',[['H2',2],['O2',1]],[['H2O_g',2]]],
+ ['vorming',[['H2',2],['O2',1]],[['H2O_l',2]]],
+ ['vorming',[['N2',1],['H2',3]],[['NH3',2]]],
+ ['vorming',[['N2',1],['O2',1]],[['NO',2]]],
+ ['vorming',[['N2',1],['O2',2]],[['NO2',2]]],
+ ['vorming',[['Ss',1],['O2',1]],[['SO2',1]]],
+ ['vorming',[['H2',1],['Cl2',1]],[['HCl',2]]],
+ ['vorming',[['Na',2],['Cl2',1]],[['NaCl',2]]],
+ ['vorming',[['K',2],['Cl2',1]],[['KCl',2]]],
+ ['vorming',[['Fe',4],['O2',3]],[['Fe2O3',2]]],
+ ['vorming',[['Al',4],['O2',3]],[['Al2O3',2]]],
+ ['vorming',[['Mg',2],['O2',1]],[['MgO',2]]],
+ ['vorming',[['Ca',2],['O2',1]],[['CaO',2]]],
+ ['vorming',[['Cu',2],['O2',1]],[['CuO',2]]],
+ ['vorming',[['Zn',2],['O2',1]],[['ZnO',2]]],
+ ['vorming',[['K',4],['O2',1]],[['K2O',2]]],
+ ['ontleding',[['CaCO3',1]],[['CaO',1],['CO2',1]]],
+ ['ontleding',[['MgCO3',1]],[['MgO',1],['CO2',1]]],
+ ['ontleding',[['BaCO3',1]],[['BaO',1],['CO2',1]]],
+ ['ontleding',[['KClO3',2]],[['KCl',2],['O2',3]]],
+ ['ontleding',[['Ag2O',2]],[['Ag',4],['O2',1]]],
+ ['ontleding',[['H2O2',2]],[['H2O_l',2],['O2',1]]],
+ ['ontleding',[['NH4NO3',1]],[['N2O',1],['H2O_l',2]]],
+ ['ontleding',[['H2O_l',2]],[['H2',2],['O2',1]]],
+ ['ontleding',[['NH4Cl',1]],[['NH3',1],['HCl',1]]],
+ ['overig',[['NO',2],['O2',1]],[['NO2',2]]],
+ ['overig',[['NO2',2]],[['N2O4',1]]],
+ ['overig',[['SO2',2],['O2',1]],[['SO3',2]]],
+ ['overig',[['SO3',1],['H2O_l',1]],[['H2SO4',1]]],
+ ['overig',[['CaO',1],['H2O_l',1]],[['CaOH2',1]]],
+ ['overig',[['Na2O',1],['H2O_l',1]],[['NaOH',2]]],
+ ['overig',[['Na2O',1],['CO2',1]],[['Na2CO3',1]]],
+ ['overig',[['MgO',1],['CO2',1]],[['MgCO3',1]]],
+ ['overig',[['PCl3',1],['Cl2',1]],[['PCl5',1]]],
+ ['overig',[['NH3',1],['HCl',1]],[['NH4Cl',1]]],
+ ['overig',[['Fe2O3',1],['CO',3]],[['Fe',2],['CO2',3]]],
+ ['overig',[['CuO',1],['H2',1]],[['Cu',1],['H2O_l',1]]]
+].map(([t,r,p])=>({t,r,p}));
+
+// Stoffen uit Binas 56 (verbrandingswarmte) die niet in 57 staan: vormingswarmte terugrekenen
+const B56 = [
+  { naam:'glucose', f:'C6H12O6', toest:'s', vw:-28.16, r:[['X',1],['O2',6]], p:[['CO2',6],['H2O_l',6]] },
+  { naam:'sacharose', f:'C12H22O11', toest:'s', vw:-56.47, r:[['X',1],['O2',12]], p:[['CO2',12],['H2O_l',11]] },
+  { naam:'glycerol', f:'C3H8O3', toest:'l', vw:-16.61, r:[['X',2],['O2',7]], p:[['CO2',6],['H2O_l',8]] },
+  { naam:'melkzuur', f:'C3H6O3', toest:'s', vw:-13.64, r:[['X',1],['O2',3]], p:[['CO2',3],['H2O_l',3]] },
+  { naam:'citroenzuur', f:'C6H8O7', toest:'s', vw:-19.85, r:[['X',2],['O2',9]], p:[['CO2',12],['H2O_l',8]] },
+  { naam:'propaanzuur', f:'C3H6O2', toest:'l', vw:-15.75, r:[['X',2],['O2',7]], p:[['CO2',6],['H2O_l',6]] }
 ];
 
-let mode=0, cur=null, lastIdx=-1, hiddenSlot=null, curAmount=null;
-const $=id=>document.getElementById(id);
-
-function fmt(n){return(n>=0?'+':'')+n.toFixed(1).replace('.',',')}
-function fmtPlain(n){return n.toFixed(1).replace('.',',')}
-
-function eqTerm(coeff,formula){return(coeff>1?coeff+' ':'')+formula}
-function formatEquation(rx){
-  const r=rx.r.map(([k,c])=>eqTerm(c,compounds[k].f)).join(' + ');
-  const p=rx.p.map(([k,c])=>eqTerm(c,compounds[k].f)).join(' + ');
-  return r+' → '+p;
+const MASSA = { H:1.008, C:12.01, N:14.01, O:16.00, S:32.06, Cl:35.45, Na:22.99, K:39.10, Mg:24.31, Ca:40.08, Al:26.98, Fe:55.85, Cu:63.55, Zn:65.38, Ag:107.9, Ba:137.3, P:30.97 };
+function molMassa(f){
+  function grp(s){
+    let tot=0, i=0;
+    while(i<s.length){
+      let sub, mm;
+      if(s[i]==='('){ let d=1,j=i+1; while(d){ if(s[j]==='(')d++; if(s[j]===')')d--; j++; } sub=grp(s.slice(i+1,j-1)); i=j; }
+      else { const m=s.slice(i).match(/^[A-Z][a-z]?/); sub=MASSA[m[0]]; i+=m[0].length; }
+      const n=s.slice(i).match(/^\d+/); if(n){ i+=n[0].length; mm=parseInt(n[0],10);} else mm=1;
+      tot+=sub*mm;
+    }
+    return tot;
+  }
+  return grp(f);
 }
-function dHrxn(rx){
-  const sp=rx.p.reduce((s,[k,c])=>s+c*compounds[k].v,0);
-  const sr=rx.r.reduce((s,[k,c])=>s+c*compounds[k].v,0);
-  return sp-sr;
+const VM = 24.5; // dm3 mol-1 bij 298 K en p0 (Binas 7: 2,45·10^-2 m3 mol-1)
+
+/* ===================================================================
+   WEERGAVE
+   =================================================================== */
+const fsub = f => f.replace(/(\d+)/g,'<sub>$1</sub>');
+const stofHTML = (f,t) => fsub(f) + (t ? '('+t+')' : '');
+const term = (k,c,ov) => { const s = ov || st(k); return (c>1?c+' ':'') + stofHTML(s.f, s.toest); };
+function eqHTML(rx, X){
+  const s = k => k==='X' ? X : null;
+  return rx.r.map(([k,c])=>term(k,c,s(k))).join(' + ') + ' → ' + rx.p.map(([k,c])=>term(k,c,s(k))).join(' + ');
 }
-function nonElementSlots(rx){
-  const slots=[];
-  rx.r.forEach(([k,c])=>{if(!compounds[k].el)slots.push({side:'r',key:k,coeff:c})});
-  rx.p.forEach(([k,c])=>{if(!compounds[k].el)slots.push({side:'p',key:k,coeff:c})});
-  return slots;
+// getal met komma, n significante cijfers, machten van 10 bij grote/kleine getallen
+function g(x, sig=3, forceSci=false){
+  if(x===0) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x)));
+  if(forceSci || e>=sig || e>=4 || e<=-3){
+    let m = x/Math.pow(10,e); let mm = m.toFixed(sig-1);
+    let ee=e; if(Math.abs(parseFloat(mm))>=10){ mm=(m/10).toFixed(sig-1); ee++; }
+    return mm.replace('.',',').replace('-','−') + ' · 10<sup>'+ee+'</sup>';
+  }
+  const dec = Math.max(0, sig-1-e);
+  return x.toFixed(dec).replace('.',',').replace('-','−');
 }
-function allSlots(rx){
-  const slots=[];
-  rx.r.forEach(([k,c])=>slots.push({side:'r',key:k,coeff:c}));
-  rx.p.forEach(([k,c])=>slots.push({side:'p',key:k,coeff:c}));
-  return slots;
+// vormingswarmte zoals in Binas (met + of −)
+const b = v => v===0 ? '0' : (v>0?'+':'−') + String(Math.abs(v)).replace('.',',');
+const bp = v => v<0 ? '('+b(v)+')' : String(v).replace('.',',');
+const frac = (t,n) => '<span class="frac"><span>'+t+'</span><span>'+n+'</span></span>';
+const E5 = ' · 10<sup>5</sup> J';
+const E5mol = ' · 10<sup>5</sup> J mol<sup>−1</sup>';
+
+/* ===================================================================
+   REKENEN
+   =================================================================== */
+const som = (lijst, X) => lijst.reduce((s,[k,c])=>s + c*(k==='X'?X.v:st(k).v), 0);
+const dE = (rx, X) => som(rx.p,X) - som(rx.r,X);
+const rnd = x => Math.round(x*1e6)/1e6;
+const fuelOf = rx => rx.r.find(([k])=>k!=='O2');
+
+function sumLine(lijst, X){
+  return '[' + lijst.map(([k,c])=>{ const v = k==='X'?X.v:st(k).v; return c+' × '+bp(v); }).join(' + ') + ']';
+}
+function uitwDE(rx, label){
+  const sp=som(rx.p), sr=som(rx.r);
+  return '<div class="kop">'+(label||'ΔE van de reactie')+'</div>'+
+    'ΔE = E<sub>f</sub>(reactieproducten) − E<sub>f</sub>(beginstoffen)<br>'+
+    'ΔE = '+sumLine(rx.p)+' − '+sumLine(rx.r)+E5+'<br>'+
+    'ΔE = '+bp(rnd(sp))+' − '+bp(rnd(sr))+' = <b>'+g(sp-sr,4)+E5+'</b>';
 }
 
-function setMode(m){
-  mode=m;
-  $('m0').classList.toggle('active',m===0);
-  $('m1').classList.toggle('active',m===1);
-  $('m2').classList.toggle('active',m===2);
-  newProblem();
+// Antwoord inlezen: komma/punt, 1,2*10^3, 1,2·10^3, 1,2e3, 10³
+function leesGetal(s){
+  s = String(s).trim().replace(/[−–]/g,'-').replace(/\s+/g,'').replace(/,/g,'.');
+  s = s.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]/g, ch => ({'⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9','⁻':'-'})[ch]);
+  s = s.replace(/[x×·*]10\^?(-?\d+)/i, 'e$1');
+  if(!/^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s)) return null;
+  return parseFloat(s);
+}
+const dichtbij = (a, b, rel=0.01) => Math.abs(a-b) <= Math.max(Math.abs(b)*rel, 1e-9);
+
+// Bekende fouten bij ΔE berekenen
+function diagDE(v, rx, extra){
+  const juist = dE(rx);
+  const k = [];
+  if(extra) extra.forEach(e=>k.push(e));
+  k.push([-juist, 'Je hebt begin en eind omgedraaid. Welke van de twee trek je van de andere af?']);
+  const zonder = som(rx.p.map(([a])=>[a,1])) - som(rx.r.map(([a])=>[a,1]));
+  if(!dichtbij(zonder, juist)) k.push([zonder, 'Let op de coëfficiënten in de vergelijking.']);
+  if(!dichtbij(som(rx.p), juist)) k.push([som(rx.p), 'Je bent de beginstoffen vergeten.']);
+  k.push([som(rx.p)+som(rx.r), 'Optellen of aftrekken? Kijk nog eens naar de formule voor ΔE.']);
+  const wissel = l => l.map(([a,c])=>[a==='H2O_l'?'H2O_g':a==='H2O_g'?'H2O_l':a, c]);
+  const ander = som(wissel(rx.p)) - som(wissel(rx.r));
+  if(!dichtbij(ander, juist)) k.push([ander, 'Kijk goed naar de toestand van het water in de vergelijking.']);
+  k.push([juist*1e5, 'Geef je antwoord in 10<sup>5</sup> J: dan typ je alleen het getal dat vóór · 10<sup>5</sup> staat.']);
+  k.push([juist*100, 'Geef je antwoord in 10<sup>5</sup> J, niet in kJ.']);
+  for(const [w,m] of k) if(!dichtbij(w,juist) && dichtbij(v,w)) return m;
+  return null;
 }
 
-function newProblem(){
-  const filt=$('filt').value;
-  let pool=RX.map((rx,i)=>({rx,i})).filter(o=>filt==='alle'||o.rx.t===filt);
-  if(pool.length===0)pool=RX.map((rx,i)=>({rx,i}));
-  let pick;
-  do{pick=pool[Math.floor(Math.random()*pool.length)];}while(pool.length>1&&pick.i===lastIdx);
-  lastIdx=pick.i;
-  cur=pick.rx;
-  $('typetag').textContent=cur.t;
-  $('eqbox').innerHTML=formatEquation(cur);
-  $('fb').textContent='';$('fb').className='fb';
-  $('steps').style.display='none';$('stepsbtn').textContent='Bekijk uitwerking';
-  $('ansval').value='';
+/* ===================================================================
+   OPDRACHTGENERATOREN
+   Een opdracht: { titel, vraag, eq, parts:[{vraag,label,unit,juist,diag}|{vraag,opties}], hint, uitw }
+   =================================================================== */
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
 
-  if(mode===2){
-    const slots=allSlots(cur);
-    const slot=slots[Math.floor(Math.random()*slots.length)];
-    const isGas=compounds[slot.key].f.includes('(g)');
-    const useVol=isGas&&Math.random()<0.5;
-    const amount=useVol?Math.round((2+Math.random()*48)*10)/10:Math.round((2+Math.random()*58)*10)/10;
-    const T=useVol?(Math.random()<0.5?273:298):null;
-    curAmount={slot,useVol,amount,T};
+function deelDE(rx, label){
+  return { label: label||'ΔE =', unit: E5, juist: dE(rx), diag: v => diagDE(v, rx) };
+}
 
-    $('tbl').style.display='';
-    let rows='';
-    cur.r.forEach(([k,c])=>{rows+=rowHtml(k,c,compounds[k],false)});
-    cur.p.forEach(([k,c])=>{rows+=rowHtml(k,c,compounds[k],false)});
-    $('tbl').innerHTML=rows;
+function deelPerMol(rx){
+  const [fk, fc] = fuelOf(rx), f = st(fk);
+  const heel = dE(rx), juist = heel/fc;
+  return {
+    vraag: 'Bereken ΔE per mol '+f.naam+'.',
+    label: 'ΔE =', unit: E5+' per mol '+f.naam, juist,
+    diag: v => {
+      if(dichtbij(v, heel)) return 'Dit is ΔE van de hele vergelijking. Hoeveel mol '+f.naam+' reageert er in die vergelijking?';
+      if(dichtbij(v, heel*fc)) return 'Delen of vermenigvuldigen? Bij de hele vergelijking hoort meer dan 1 mol '+f.naam+'.';
+      if(dichtbij(v, -juist)) return 'Let op het teken.';
+      return null;
+    }
+  };
+}
+function uitwPerMol(rx){
+  const [fk, fc] = fuelOf(rx), f = st(fk), heel = dE(rx);
+  return '<div class="kop">Per mol '+f.naam+'</div>In de vergelijking reageert '+fc+' mol '+f.naam+'.<br>'+
+    'ΔE per mol '+f.naam+' = '+frac(g(heel,4)+E5, fc+' mol')+' = <b>'+g(heel/fc,4)+E5mol+'</b>';
+}
 
-    $('givenbox').style.display='none';
-    $('given2').style.display='block';
-    const unit=useVol?'liter':'gram';
-    $('given2text').innerHTML=fmtPlain(amount)+' '+unit+' '+compounds[slot.key].f+(useVol?' <span style="font-size:11px;color:var(--color-text-tertiary)">(bij T = '+T+' K en standaarddruk)</span>':'');
-    $('anslabel').innerHTML='ΔH =';
-    $('ansunit').textContent='kJ';
-  }else{
-    $('tbl').style.display='';
-    $('given2').style.display='none';
-    const slots=nonElementSlots(cur);
-    hiddenSlot=mode===1?slots[Math.floor(Math.random()*slots.length)]:null;
-
-    let rows='';
-    cur.r.forEach(([k,c])=>{
-      const hidden=mode===1&&hiddenSlot.side==='r'&&hiddenSlot.key===k&&hiddenSlot.coeff===c;
-      rows+=rowHtml(k,c,compounds[k],hidden);
+const GEN = {
+  vorming(){
+    const rx = pick(RX.filter(x=>x.t==='vorming' && x.p[0][1]>1));
+    return {
+      titel:'Vormingsreactie',
+      vraag:'Bereken de reactiewarmte ΔE van deze reactie.',
+      eq: eqHTML(rx),
+      parts:[deelDE(rx)],
+      hint:'Zoek de vormingswarmtes op in Binas 57A. Welke vormingswarmte hebben elementen?',
+      uitw: uitwDE(rx)
+    };
+  },
+  verbranding(){
+    const rx = pick(RX.filter(x=>x.t==='verbranding' && fuelOf(x)[1]===1 && !x.p.some(([k])=>k==='H2O_g')));
+    return {
+      titel:'Verbranding',
+      vraag:'Bereken de reactiewarmte ΔE van de volledige verbranding van '+st(fuelOf(rx)[0]).naam+'.',
+      eq: eqHTML(rx), parts:[deelDE(rx)],
+      hint:'ΔE = E<sub>f</sub>(reactieproducten) − E<sub>f</sub>(beginstoffen). Vermenigvuldig elke vormingswarmte met de coëfficiënt.',
+      uitw: uitwDE(rx)
+    };
+  },
+  waterdamp(){
+    const rx = pick(RX.filter(x=>x.p.some(([k])=>k==='H2O_g')));
+    const f = st(fuelOf(rx)[0]);
+    return {
+      titel:'Verbranding',
+      vraag:'In een motor verbrandt '+f.naam+'. Het water ontstaat daarbij als gas. Bereken de reactiewarmte ΔE.',
+      eq: eqHTML(rx), parts:[deelDE(rx)],
+      hint:'Binas 57A heeft voor water twee waarden. Welke hoort bij deze reactie?',
+      uitw: uitwDE(rx)
+    };
+  },
+  ontleding(){
+    const rx = pick(RX.filter(x=>x.t==='ontleding'));
+    const exo = dE(rx) < 0;
+    return {
+      titel:'Ontleding',
+      vraag:'Bereken de reactiewarmte ΔE van deze ontledingsreactie.',
+      eq: eqHTML(rx),
+      parts:[deelDE(rx), { vraag:'Is deze reactie exotherm of endotherm?',
+        opties:[{html:'exotherm', goed:exo},{html:'endotherm', goed:!exo}],
+        uitleg: 'ΔE is '+(exo?'negatief: de stoffen verliezen energie, die komt vrij als warmte. De reactie is exotherm.':'positief: de stoffen krijgen energie erbij, die moet je toevoeren. De reactie is endotherm.') }],
+      hint:'Zoek de vormingswarmtes op in Binas 57A. Welke vormingswarmte hebben elementen?',
+      uitw: uitwDE(rx) + '<br>ΔE '+(exo?'&lt; 0, dus exotherm.':'&gt; 0, dus endotherm.')
+    };
+  },
+  permol(){
+    const rx = pick(RX.filter(x=>x.t==='verbranding' && fuelOf(x)[1]>1 && fuelOf(x)[0]!=='H2' && !x.p.some(([k])=>k==='H2O_g')));
+    return {
+      titel:'Verbranding in twee stappen',
+      vraag:'Bekijk de vergelijking van de volledige verbranding van '+st(fuelOf(rx)[0]).naam+'.',
+      eq: eqHTML(rx),
+      parts:[Object.assign(deelDE(rx), { vraag:'Bereken ΔE van de reactie zoals de vergelijking er staat.' }), deelPerMol(rx)],
+      hint:'Reken eerst de hele vergelijking uit, zoals je gewend bent. Kijk daarna naar de coëfficiënt van de brandstof.',
+      uitw: uitwDE(rx, 'Stap 1 · de hele vergelijking') + '<br>' + uitwPerMol(rx)
+    };
+  },
+  hoeveelheid(terug){
+    const rx = pick(RX.filter(x=>x.t==='verbranding' && !['H2','CO'].includes(fuelOf(x)[0]) && !x.p.some(([k])=>k==='H2O_g')));
+    const [fk, fc] = fuelOf(rx), f = st(fk);
+    const perMol = dE(rx)/fc;          // 10^5 J per mol
+    const M = molMassa(f.f);
+    const gas = f.toest==='g' && Math.random()<0.5;
+    const eenh = gas ? 'dm<sup>3</sup>' : 'g';
+    const omreken = gas ? 'V<sub>m</sub> = 24,5 dm<sup>3</sup> mol<sup>−1</sup>' : 'M = '+g(M,4)+' g mol<sup>−1</sup>';
+    const deler = gas ? VM : M;
+    const deelHeel = Object.assign(deelDE(rx), { vraag:'Bereken eerst ΔE van de reactie zoals de vergelijking er staat.' });
+    const parts = fc>1 ? [deelHeel, deelPerMol(rx)] : [Object.assign(deelDE(rx), { vraag:'Bereken eerst ΔE per mol '+f.naam+'.', unit:E5mol })];
+    let uitw = (fc>1 ? uitwDE(rx,'Stap 1 · de hele vergelijking')+'<br>'+uitwPerMol(rx) : uitwDE(rx,'Stap 1 · ΔE per mol '+f.naam).replace('<b>'+g(dE(rx),4)+E5+'</b>','<b>'+g(dE(rx),4)+E5mol+'</b>'));
+    const Epm = Math.abs(perMol)*1e5; // J per mol
+    if(!terug){
+      const hv = gas ? pick([5,10,12.5,20,25,40,50])*1 : pick([10,15,20,25,50,75,100,150,250]);
+      const n = hv/deler, EkJ = n*Epm/1000;
+      parts.push({
+        vraag:'Hoeveel energie komt er vrij bij de volledige verbranding van '+g(hv,3)+' '+eenh+' '+f.naam+(gas?' (298 K, p<sub>0</sub>)':'')+'? Geef je antwoord in kJ.',
+        label:'E =', unit:'kJ', juist:EkJ, abs:true,
+        diag: v => diagHoeveelheid(Math.abs(v), EkJ, { hv, deler, Epm, fc, gas, M })
+      });
+      uitw += '<br><div class="kop">Stap '+(fc>1?3:2)+' · aantal mol '+f.naam+'</div>'+
+        'n = '+frac(g(hv,3)+' '+eenh, (gas?'24,5 dm<sup>3</sup> mol<sup>−1</sup>':g(M,4)+' g mol<sup>−1</sup>'))+' = '+g(n,3)+' mol<br>'+
+        '<div class="kop">Stap '+(fc>1?4:3)+' · energie</div>'+
+        'E = '+g(n,3)+' mol × '+g(Math.abs(perMol),4)+E5mol+' = '+g(n*Epm,3,true)+' J = <b>'+g(EkJ,3)+' kJ</b>';
+      return { titel:'Energie bij een hoeveelheid', vraag:f.naam.charAt(0).toUpperCase()+f.naam.slice(1)+' wordt volledig verbrand. Het water ontstaat als vloeistof.', eq:eqHTML(rx), parts,
+        hint:'Bij welke hoeveelheid '+f.naam+' hoort de ΔE die je hebt berekend? Reken de gegeven hoeveelheid om naar mol ('+omreken+').', uitw };
+    }
+    const EkJ = pick([500,1000,1500,2000,2500,5000]);
+    const n = EkJ*1000/Epm, hv = n*deler;
+    parts.push({
+      vraag:'Hoeveel '+(gas?'dm<sup>3</sup> (298 K, p<sub>0</sub>)':'gram')+' '+f.naam+' moet je verbranden om '+g(EkJ,3,EkJ>=1000)+' kJ energie te krijgen?',
+      label: gas?'V =':'m =', unit: eenh, juist: hv,
+      diag: v => {
+        if(dichtbij(v, EkJ*1000/(Math.abs(dE(rx))*1e5)*deler) && fc>1) return 'Klopt het aantal mol '+f.naam+' waar jouw ΔE bij hoort?';
+        if(dichtbij(v, n)) return 'Dit is het aantal mol. Er wordt gevraagd naar '+(gas?'het volume':'de massa')+'.';
+        if(dichtbij(v, n/deler) || dichtbij(v, Epm/(EkJ*1000)*deler)) return 'Controleer of je moet delen of vermenigvuldigen.';
+        if(dichtbij(v, hv*1000) || dichtbij(v, hv/1000)) return 'Let op de eenheden: kJ en J.';
+        if(gas && dichtbij(v, n*22.4)) return 'Welk molair volume hoort bij 298 K?';
+        return null;
+      }
     });
-    cur.p.forEach(([k,c])=>{
-      const hidden=mode===1&&hiddenSlot.side==='p'&&hiddenSlot.key===k&&hiddenSlot.coeff===c;
-      rows+=rowHtml(k,c,compounds[k],hidden);
-    });
-    $('tbl').innerHTML=rows;
+    uitw += '<br><div class="kop">Stap '+(fc>1?3:2)+' · aantal mol '+f.naam+'</div>'+
+      'n = '+frac(g(EkJ*1000,3,true)+' J', g(Math.abs(perMol),4)+E5mol)+' = '+g(n,3)+' mol<br>'+
+      '<div class="kop">Stap '+(fc>1?4:3)+' · '+(gas?'volume':'massa')+'</div>'+
+      (gas?'V':'m')+' = '+g(n,3)+' mol × '+(gas?'24,5 dm<sup>3</sup> mol<sup>−1</sup>':g(M,4)+' g mol<sup>−1</sup>')+' = <b>'+g(hv,3)+' '+eenh+'</b>';
+    return { titel:'Terugrekenen', vraag:f.naam.charAt(0).toUpperCase()+f.naam.slice(1)+' wordt gebruikt als brandstof. Het water ontstaat als vloeistof.', eq:eqHTML(rx), parts,
+      hint:'Reken uit hoeveel mol '+f.naam+' je nodig hebt. Daarna reken je om met '+omreken+'.', uitw };
+  },
+  vormingswarmte(){
+    const s = pick(B56), X = { f:s.f, toest:s.toest };
+    const c = s.r[0][1];
+    const sp = som(s.p), juist = sp/c - s.vw;
+    X.v = juist;
+    const heel = s.vw*c;
+    const extra = [];
+    return {
+      titel:'Vormingswarmte terugrekenen',
+      vraag:'De vormingswarmte van '+s.naam+' ('+stofHTML(s.f,s.toest)+') staat niet in Binas 57. De verbrandingswarmte van '+s.naam+' is '+b(s.vw)+E5mol+' (per mol '+s.naam+', water als vloeistof).<br>Bereken de vormingswarmte van '+s.naam+'.',
+      eq: eqHTML(s, X),
+      parts:[{ label:'E<sub>f</sub>('+s.naam+') =', unit:E5mol, juist,
+        diag: v => {
+          if(dichtbij(v, -juist)) return 'Let op het teken. Schrijf de formule voor ΔE op en vul in wat je weet.';
+          if(c>1 && dichtbij(v, sp - s.vw)) return 'In de vergelijking reageert '+c+' mol '+s.naam+'. Bij hoeveel mol hoort de gegeven verbrandingswarmte?';
+          if(c>1 && dichtbij(v, sp - heel)) return 'Je hebt de vormingswarmte van '+c+' mol '+s.naam+' berekend. Per mol is gevraagd.';
+          if(dichtbij(v, s.vw)) return 'Dit is de verbrandingswarmte. De vormingswarmte moet je nog uitrekenen.';
+          const zonder = s.p.reduce((t,[k])=>t+st(k).v,0)/c - s.vw;
+          if(dichtbij(v, zonder)) return 'Let op de coëfficiënten in de vergelijking.';
+          const damp = (som(s.p.map(([k,cc])=>[k==='H2O_l'?'H2O_g':k,cc])))/c - s.vw;
+          if(dichtbij(v, damp)) return 'Het water ontstaat als vloeistof.';
+          return null;
+        } }],
+      hint:'Schrijf ΔE = E<sub>f</sub>(reactieproducten) − E<sub>f</sub>(beginstoffen) op en vul alles in wat je weet. Wat is ΔE van de vergelijking zoals die er staat?',
+      uitw: '<div class="kop">ΔE van de vergelijking</div>'+(c>1?'Er reageert '+c+' mol '+s.naam+', dus ΔE = '+c+' × '+bp(s.vw)+' = '+g(heel,4)+E5+'<br>':'ΔE = '+b(s.vw)+E5+'<br>')+
+        '<div class="kop">Invullen</div>'+
+        'ΔE = E<sub>f</sub>(reactieproducten) − E<sub>f</sub>(beginstoffen)<br>'+
+        g(heel,4)+' = '+sumLine(s.p)+' − ['+(c>1?c+' × ':'')+'E<sub>f</sub>('+s.naam+') + '+s.r[1][1]+' × 0]<br>'+
+        g(heel,4)+' = '+g(sp,4)+' − '+(c>1?c+' × ':'')+'E<sub>f</sub>('+s.naam+')<br>'+
+        'E<sub>f</sub>('+s.naam+') = '+(c>1?frac(g(sp,4)+' − '+bp(rnd(heel)), c):g(sp,4)+' − '+bp(rnd(heel)))+' = <b>'+g(juist,3)+E5mol+'</b>'
+    };
+  },
+  ster(){
+    // Drie brandstoffen: welke levert per gram de meeste energie? De beste per mol is níet de beste per gram.
+    const fuels = [
+      ['H2', 2, RX.find(x=>x.t==='vorming'&&x.p[0][0]==='H2O_l')],
+      ...RX.filter(x=>x.t==='verbranding' && !x.p.some(([k])=>k==='H2O_g') && !['CO','H2','H2S','NH3','CS2','CH2O','C2H4O','CH3COOH'].includes(fuelOf(x)[0])).map(x=>[fuelOf(x)[0], fuelOf(x)[1], x])
+    ].map(([k,c,rx])=>{ const pm=Math.abs(dE(rx)/c); return { k, f:st(k), pm, pg: pm/molMassa(st(k).f) }; });
+    let trio;
+    for(let n=0;n<500;n++){
+      trio = shuffle(fuels).slice(0,3);
+      const bestG = trio.reduce((a,x)=>x.pg>a.pg?x:a), bestM = trio.reduce((a,x)=>x.pm>a.pm?x:a);
+      if(bestG!==bestM && trio.every(x=>trio.every(y=>x===y || Math.abs(x.pg-y.pg)/x.pg>0.05))) break;
+    }
+    const best = trio.reduce((a,x)=>x.pg>a.pg?x:a);
+    const regel = x => x.f.naam+': '+frac(g(x.pm,3)+E5mol, g(molMassa(x.f.f),4)+' g mol<sup>−1</sup>')+' = '+g(x.pg*1e5/1000,3)+' kJ g<sup>−1</sup>';
+    return {
+      titel:'★ Brandstoffen vergelijken', ster:true,
+      vraag:'Voor een raket zoekt men een brandstof die per gram zoveel mogelijk energie levert. Bij de verbranding ontstaat water als vloeistof. Welke van deze drie stoffen is dan het beste?',
+      parts:[{ opties: trio.map(x=>({ html: x.f.naam+' ('+stofHTML(x.f.f,x.f.toest)+')', goed: x===best })),
+               uitleg: 'Per gram: '+trio.map(regel).join('; ')+'.' }],
+      hint:'Bereken voor elke stof eerst de energie per mol, en reken die daarna om naar energie per gram.',
+      uitw: '<div class="kop">Energie per gram</div>'+trio.map(regel).join('<br>')+'<br>'+
+        'De meeste energie per gram levert <b>'+best.f.naam+'</b>.'+
+        (trio.reduce((a,x)=>x.pm>a.pm?x:a)!==best ? ' Per mol is '+trio.reduce((a,x)=>x.pm>a.pm?x:a).f.naam+' het beste, maar een mol daarvan is veel zwaarder.' : '')
+    };
+  }
+};
 
-    if(mode===1){
-      $('givenbox').style.display='block';
-      $('givendh').textContent=fmtPlain(dHrxn(cur));
-      $('anslabel').innerHTML='ΔH<sub>f</sub>('+compounds[hiddenSlot.key].f+') =';
-      $('ansunit').textContent='kJ/mol';
-    }else{
-      $('givenbox').style.display='none';
-      $('anslabel').innerHTML='ΔH<sub>reactie</sub> =';
-      $('ansunit').textContent='kJ';
+function diagHoeveelheid(v, juist, o){
+  const n = o.hv/o.deler;
+  if(o.fc>1 && dichtbij(v, n*o.Epm*o.fc/1000)) return 'Klopt het aantal mol brandstof waar jouw ΔE bij hoort?';
+  if(dichtbij(v, o.hv*o.Epm/1000)) return 'Reken de gegeven hoeveelheid eerst om naar mol.';
+  if(dichtbij(v, o.hv*o.deler*o.Epm/1000)) return 'Hoe reken je '+(o.gas?'een volume':'een massa')+' om naar mol: delen of vermenigvuldigen?';
+  if(dichtbij(v, juist*1000)) return 'Let op de eenheid: het antwoord moet in kJ.';
+  if(dichtbij(v, juist/1e5*1000) || dichtbij(v, juist/1e5)) return 'De waarden in Binas 57 staan in 10<sup>5</sup> J mol<sup>−1</sup>.';
+  if(o.gas && dichtbij(v, o.hv/22.4*o.Epm/1000)) return 'Welk molair volume hoort bij 298 K?';
+  return null;
+}
+
+/* ===================================================================
+   WEERGAVE VAN EEN OPDRACHT (gedeeld door opdrachten en oefenen)
+   =================================================================== */
+function renderVraag(el, q, nr, totaal, onKlaar, laatste){
+  q.state = { deel:0, tries:0, fout:false };
+  let h = '<div class="task"><div class="lbl">'+(nr?'Opdracht '+nr+' van '+totaal+' · ':'')+q.titel+'</div><div class="desc">'+q.vraag+'</div>'+(q.eq?'<div class="eq">'+q.eq+'</div>':'')+'</div>';
+  h += '<div class="parts">';
+  q.parts.forEach((p,i)=>{
+    h += '<div class="part" id="part'+i+'" style="'+(i?'display:none':'')+'">';
+    if(q.parts.length>1) h += '<div class="pq"><b>'+String.fromCharCode(97+i)+'.</b> '+(p.vraag||'')+'</div>';
+    else if(p.vraag) h += '<div class="pq">'+p.vraag+'</div>';
+    if(p.opties){
+      h += '<div class="mc">'+p.opties.map((o,k)=>'<button class="opt" data-k="'+k+'">'+o.html+'</button>').join('')+'</div>';
+    } else {
+      h += '<div class="inrow"><label>'+p.label+'</label><input type="text" autocomplete="off" spellcheck="false"><span class="unit">'+p.unit+'</span><button class="btn chk">Controleer</button></div>';
+    }
+    h += '<div class="fb"></div></div>';
+  });
+  h += '</div><div class="acties"><button class="btn ghost hintb">Hint</button><button class="btn ghost toonb" style="display:none">Toon antwoord</button><button class="btn volg" style="display:none">'+(laatste?'Afronden ➜':'Volgende opdracht ➜')+'</button></div>'+
+       '<div class="hint" style="display:none"></div><div class="uitw" style="display:none"></div>';
+  el.innerHTML = h;
+  const $q = s => el.querySelector(s);
+  $q('.hintb').onclick = () => { const hh=$q('.hint'); hh.style.display='block'; hh.innerHTML='<b>Hint:</b> '+q.hint; };
+  $q('.volg').onclick = () => onKlaar(!q.state.fout, true);
+
+  function partEl(){ return el.querySelector('#part'+q.state.deel); }
+  function fb(cls, html){ const f=partEl().querySelector('.fb'); f.className='fb show '+cls; f.innerHTML=html; }
+  function volgendDeel(goed){
+    if(!goed) q.state.fout = true;
+    const pe = partEl();
+    pe.querySelectorAll('input,button').forEach(x=>{ x.disabled=true; });
+    q.state.deel++; q.state.tries=0;
+    $q('.toonb').style.display='none';
+    if(q.state.deel < q.parts.length){
+      const nx = partEl(); nx.style.display='';
+      const inp = nx.querySelector('input'); if(inp) inp.focus();
+    } else {
+      $q('.hintb').style.display='none';
+      const u=$q('.uitw'); u.style.display='block'; u.innerHTML=q.uitw;
+      onKlaar(!q.state.fout, false);
+      const v=$q('.volg'); if(v){ v.style.display=''; v.focus(); }
     }
   }
-}
-
-function rowHtml(key,coeff,c,hidden){
-  const label='ΔH<sub>f</sub>('+c.f+')';
-  const valCell=hidden?'<td class="unk">?</td>':'<td class="val">'+fmtPlain(c.v)+' kJ/mol</td>';
-  return '<tr'+(c.el?' class="elem"':'')+'><td class="nm">'+label+'</td>'+valCell+'</tr>';
-}
-
-function parseAns(s){
-  const v=parseFloat(String(s).replace(',','.').trim());
-  return isNaN(v)?null:v;
-}
-
-function checkAnswer(){
-  const given=parseAns($('ansval').value);
-  if(given===null){$('fb').className='fb bad';$('fb').textContent='Vul een getal in.';return;}
-  let correct;
-  if(mode===0){
-    correct=dHrxn(cur);
-  }else if(mode===1){
-    correct=compounds[hiddenSlot.key].v;
-  }else{
-    const vm=curAmount.useVol?VM_BY_T[curAmount.T]:null;
-    const n=curAmount.useVol?curAmount.amount/vm:curAmount.amount/compounds[curAmount.slot.key].m;
-    correct=(n/curAmount.slot.coeff)*dHrxn(cur);
+  function fout(msg){
+    q.state.tries++;
+    fb('incorrect','<b>Nog niet goed.</b> '+(msg||'Controleer je berekening stap voor stap.'));
+    if(q.state.tries>=2) $q('.toonb').style.display='';
   }
-  const tol=Math.max(0.3,Math.abs(correct)*0.002);
-  const ok=Math.abs(given-correct)<=tol;
-  $('fb').className='fb '+(ok?'ok':'bad');
-  $('fb').textContent=ok?'✓ Goed!':'✗ Nog niet helemaal — probeer het nog eens, of bekijk de uitwerking.';
-}
-
-function buildSteps(){
-  if(mode===0){
-    const pterms=cur.p.map(([k,c])=>c+'×('+fmt(compounds[k].v)+')').join(' + ');
-    const rterms=cur.r.map(([k,c])=>c+'×('+fmt(compounds[k].v)+')').join(' + ');
-    const sp=cur.p.reduce((s,[k,c])=>s+c*compounds[k].v,0);
-    const sr=cur.r.reduce((s,[k,c])=>s+c*compounds[k].v,0);
-    return 'ΔH_reactie = ΣΔHf(producten) − ΣΔHf(reactanten)\n'
-      +'= ['+pterms+'] − ['+rterms+']\n'
-      +'= ('+fmtPlain(sp)+') − ('+fmtPlain(sr)+')\n'
-      +'= '+fmtPlain(sp-sr)+' kJ';
-  }else if(mode===1){
-    const h=hiddenSlot;
-    const knownP=cur.p.filter(([k,c])=>!(h.side==='p'&&h.key===k&&h.coeff===c));
-    const knownR=cur.r.filter(([k,c])=>!(h.side==='r'&&h.key===k&&h.coeff===c));
-    const sumP=knownP.reduce((s,[k,c])=>s+c*compounds[k].v,0);
-    const sumR=knownR.reduce((s,[k,c])=>s+c*compounds[k].v,0);
-    const dh=dHrxn(cur);
-    const n=h.coeff;
-    let txt='ΔH_reactie = ΣΔHf(producten) − ΣΔHf(reactanten)\n';
-    if(h.side==='p'){
-      txt+=fmtPlain(dh)+' = ['+(knownP.length?knownP.map(([k,c])=>c+'×('+fmt(compounds[k].v)+')').join(' + ')+' + ':'')+n+'×ΔHf('+compounds[h.key].f+')] − ('+fmtPlain(sumR)+')\n';
-      txt+='ΔHf('+compounds[h.key].f+') = [ΔH_reactie − '+fmtPlain(sumP)+' + ('+fmtPlain(sumR)+')] / '+n+'\n';
-      txt+='= ['+fmtPlain(dh)+' − '+fmtPlain(sumP)+' + ('+fmtPlain(sumR)+')] / '+n+'\n';
-      txt+='= '+fmtPlain((dh-sumP+sumR)/n)+' kJ/mol';
-    }else{
-      txt+=fmtPlain(dh)+' = ('+fmtPlain(sumP)+') − ['+(knownR.length?knownR.map(([k,c])=>c+'×('+fmt(compounds[k].v)+')').join(' + ')+' + ':'')+n+'×ΔHf('+compounds[h.key].f+')]\n';
-      txt+='ΔHf('+compounds[h.key].f+') = ['+fmtPlain(sumP)+' − ('+fmtPlain(sumR)+') − ΔH_reactie] / '+n+'\n';
-      txt+='= ['+fmtPlain(sumP)+' − ('+fmtPlain(sumR)+') − '+fmtPlain(dh)+'] / '+n+'\n';
-      txt+='= '+fmtPlain((sumP-sumR-dh)/n)+' kJ/mol';
+  $q('.toonb').onclick = () => {
+    const p = q.parts[q.state.deel];
+    if(p.opties){
+      partEl().querySelectorAll('.opt').forEach((bt,k)=>{ if(p.opties[k].goed) bt.classList.add('goed'); });
+      fb('info','<b>Antwoord:</b> '+p.opties.find(o=>o.goed).html+(p.uitleg?'<br>'+p.uitleg:''));
+    } else fb('info','<b>Antwoord:</b> '+p.label+' '+g(p.juist,3)+' '+p.unit);
+    volgendDeel(false);
+  };
+  q.parts.forEach((p,i)=>{
+    const pe = el.querySelector('#part'+i);
+    if(p.opties){
+      pe.querySelectorAll('.opt').forEach(bt=>bt.onclick=()=>{
+        if(q.state.deel!==i) return;
+        const o = p.opties[+bt.dataset.k];
+        if(o.goed){
+          bt.classList.add('goed'); fb('correct','<b>Goed!</b> '+(p.uitleg||''));
+          volgendDeel(q.state.tries===0);
+        } else if(p.opties.length===2){
+          bt.classList.add('fout'); pe.querySelectorAll('.opt').forEach((x,k)=>{ if(p.opties[k].goed) x.classList.add('goed'); });
+          fb('incorrect','<b>Niet goed.</b> '+(p.uitleg||'')); volgendDeel(false);
+        } else { bt.classList.add('fout'); bt.disabled=true; fout(''); }
+      });
+    } else {
+      const inp = pe.querySelector('input');
+      const check = () => {
+        if(q.state.deel!==i) return;
+        const v = leesGetal(inp.value);
+        if(v===null){ fb('info', inp.value.trim()?'Dit getal kan ik niet lezen. Typ bijvoorbeeld <span class="mono">-8,90</span> of <span class="mono">1,25*10^3</span>.':'Typ eerst een antwoord.'); return; }
+        const val = p.abs ? Math.abs(v) : v;
+        if(dichtbij(val, p.abs?Math.abs(p.juist):p.juist)){
+          inp.classList.remove('incorrect'); inp.classList.add('correct');
+          fb('correct','<b>Goed!</b>'); volgendDeel(q.state.tries===0);
+        } else { inp.classList.add('incorrect'); fout(p.diag ? p.diag(v) : null); }
+      };
+      pe.querySelector('.chk').onclick = check;
+      inp.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); check(); } });
     }
-    return txt;
-  }else{
-    const{slot,useVol,amount,T}=curAmount;
-    const unit=useVol?'L':'gram';
-    const vm=useVol?VM_BY_T[T]:null;
-    const conv=useVol?('V_m bij '+T+' K = '+vm.toFixed(1)+' L/mol'):('M = '+compounds[slot.key].m.toFixed(2)+' g/mol');
-    const n=useVol?amount/vm:amount/compounds[slot.key].m;
-    const pterms=cur.p.map(([k,c])=>c+'×('+fmt(compounds[k].v)+')').join(' + ');
-    const rterms=cur.r.map(([k,c])=>c+'×('+fmt(compounds[k].v)+')').join(' + ');
-    const sp=cur.p.reduce((s,[k,c])=>s+c*compounds[k].v,0);
-    const sr=cur.r.reduce((s,[k,c])=>s+c*compounds[k].v,0);
-    const dh=dHrxn(cur);
-    return 'Stap 1 — ΔH_reactie uit vormingswarmtes:\n'
-      +'ΔH_reactie = ΣΔHf(producten) − ΣΔHf(reactanten)\n'
-      +'= ['+pterms+'] − ['+rterms+']\n'
-      +'= ('+fmtPlain(sp)+') − ('+fmtPlain(sr)+')\n'
-      +'= '+fmtPlain(dh)+' kJ\n\n'
-      +'Stap 2 — omrekenen naar mol:\n'
-      +'n('+compounds[slot.key].f+') = '+fmtPlain(amount)+' '+unit+' / ('+conv+') = '+n.toFixed(4)+' mol\n\n'
-      +'Stap 3 — omrekenen naar de gevraagde hoeveelheid:\n'
-      +'ΔH_reactie (bij '+slot.coeff+' mol '+compounds[slot.key].f+') = '+fmtPlain(dh)+' kJ\n'
-      +'ΔH = (n / '+slot.coeff+') × ΔH_reactie = ('+n.toFixed(4)+' / '+slot.coeff+') × '+fmtPlain(dh)+'\n'
-      +'= '+fmtPlain((n/slot.coeff)*dh)+' kJ';
-  }
+  });
+  const first = el.querySelector('#part0 input'); if(first) first.focus();
 }
 
-function toggleSteps(){
-  const el=$('steps');
-  if(el.style.display==='none'){
-    el.textContent=buildSteps();
-    el.style.display='block';
-    $('stepsbtn').textContent='Verberg uitwerking';
-  }else{
-    el.style.display='none';
-    $('stepsbtn').textContent='Bekijk uitwerking';
+/* ===================================================================
+   OPDRACHTENSERIE
+   =================================================================== */
+const ORDER = [()=>GEN.vorming(), ()=>GEN.verbranding(), ()=>GEN.waterdamp(), ()=>GEN.ontleding(), ()=>GEN.permol(),
+               ()=>GEN.hoeveelheid(false), ()=>GEN.hoeveelheid(true), ()=>GEN.vormingswarmte(), ()=>GEN.ster()];
+let serie;
+function nieuweSerie(){ serie = { i:0, items:ORDER.map(f=>f()), status:ORDER.map(()=>'') }; renderSerie(); }
+function renderSerie(){
+  const goed = serie.status.filter(s=>s==='ok').length;
+  document.getElementById('dots').innerHTML = serie.items.map((q,i)=>'<span class="dot '+(i===serie.i&&!serie.einde?'cur ':'')+serie.status[i]+'">'+(q.ster?'★':i+1)+'</span>').join('');
+  document.getElementById('score').textContent = 'Score: '+goed+' / '+serie.items.length;
+  const el = document.getElementById('opd');
+  if(serie.einde){
+    el.innerHTML = '<div class="eind"><p><b>Klaar!</b> Je had '+goed+' van de '+serie.items.length+' opdrachten goed zonder het antwoord te bekijken.</p><button class="btn" onclick="nieuweSerie()">Nieuwe serie ➜</button></div>';
+    return;
   }
+  renderVraag(el, serie.items[serie.i], serie.i+1, serie.items.length, (goed, verder)=>{
+    if(!verder){
+      serie.status[serie.i] = goed?'ok':'done';
+      const d = document.querySelectorAll('.dot')[serie.i]; d.className='dot cur '+serie.status[serie.i];
+      document.getElementById('score').textContent = 'Score: '+serie.status.filter(s=>s==='ok').length+' / '+serie.items.length;
+      return;
+    }
+    if(serie.i>=serie.items.length-1) serie.einde=true; else serie.i++;
+    renderSerie();
+  }, serie.i===serie.items.length-1);
 }
 
-newProblem();
+/* ===================================================================
+   OEFENEN (eindeloos, met filter)
+   =================================================================== */
+let oefMode = 0;
+function setMode(m){ oefMode=m; [0,1,2].forEach(i=>document.getElementById('m'+i).classList.toggle('active',i===m)); nieuweOef(); }
+function nieuweOef(){
+  const filt = document.getElementById('filt').value;
+  let pool = RX.filter(x=>filt==='alle'||x.t===filt);
+  let q;
+  if(oefMode===0){
+    const rx = pick(pool);
+    const fc = rx.t==='verbranding' ? fuelOf(rx)[1] : 1;
+    q = { titel:rx.t, vraag:'Bereken de reactiewarmte ΔE van de reactie zoals de vergelijking er staat.', eq:eqHTML(rx), parts:[deelDE(rx)],
+          hint:'ΔE = E<sub>f</sub>(reactieproducten) − E<sub>f</sub>(beginstoffen). Elementen hebben een vormingswarmte van 0.', uitw:uitwDE(rx) };
+  } else if(oefMode===1){
+    pool = pool.filter(x=>x.r.concat(x.p).some(([k])=>!st(k).el));
+    const rx = pick(pool.length?pool:RX);
+    const slots = rx.r.map(([k,c])=>['r',k,c]).concat(rx.p.map(([k,c])=>['p',k,c])).filter(([,k])=>!st(k).el);
+    const [kant, k, c] = pick(slots), s = st(k), heel = dE(rx);
+    const bekend = l => l.filter(([kk])=>kk!==k);
+    const rows = rx.r.concat(rx.p).map(([kk])=>kk).filter((kk,i,a)=>a.indexOf(kk)===i)
+      .map(kk=>'<tr><td>E<sub>f</sub>('+stofHTML(st(kk).f,st(kk).toest)+')</td><td class="v">'+(kk===k?'<b>?</b>':st(kk).v===0?'0':b(st(kk).v)+E5mol)+'</td></tr>').join('');
+    q = { titel:'onbekende vormingswarmte', vraag:'Van deze reactie is ΔE = '+g(heel,4)+E5+'. Bereken de vormingswarmte van '+s.naam+'.<table class="tbl">'+rows+'</table>',
+          eq:eqHTML(rx),
+          parts:[{ label:'E<sub>f</sub>('+stofHTML(s.f,s.toest)+') =', unit:E5mol, juist:s.v,
+                   diag: v => dichtbij(v,-s.v) ? 'Let op het teken. Vul de formule voor ΔE in en los op.' : (c>1 && dichtbij(v, s.v*c) ? 'Je hebt de waarde voor '+c+' mol berekend. Per mol is gevraagd.' : null) }],
+          hint:'Vul de formule voor ΔE in met alle bekende waarden. De onbekende staat met coëfficiënt '+c+' in de vergelijking.',
+          uitw:'<div class="kop">Invullen</div>ΔE = E<sub>f</sub>(reactieproducten) − E<sub>f</sub>(beginstoffen)<br>'+
+            g(heel,4)+' = '+(kant==='p'?'['+c+' × E<sub>f</sub>('+s.naam+')'+(bekend(rx.p).length?' + '+sumLine(bekend(rx.p)).slice(1,-1):'')+'] − '+sumLine(rx.r):sumLine(rx.p)+' − ['+c+' × E<sub>f</sub>('+s.naam+')'+(bekend(rx.r).length?' + '+sumLine(bekend(rx.r)).slice(1,-1):'')+']')+'<br>'+
+            'E<sub>f</sub>('+s.naam+') = <b>'+b(s.v)+E5mol+'</b>' };
+  } else {
+    q = GEN.hoeveelheid(Math.random()<0.4);
+  }
+  renderVraag(document.getElementById('oef'), q, null, null, ()=>{}, false);
+  const v = document.querySelector('#oef .volg'); if(v) v.remove();
+}
+
+function showTab(n){
+  [0,1].forEach(i=>{ document.getElementById('tab'+i).style.display=i===n?'':'none'; document.getElementById('tb'+i).classList.toggle('active',i===n); });
+}
+
+nieuweSerie();
+nieuweOef();
 </script>
+</body>
+</html>
