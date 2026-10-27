@@ -2,16 +2,18 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<title>Molecuulbouwer — polariteit &amp; partiële ladingen</title>
+<title>Molecuulbouwer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root{
-    --bg:#13151a; --panel:#1c1f26; --panel2:#23262f; --border:#333844;
-    --text:#e8e9ec; --textdim:#9aa0ab; --accent:#5dadec; --accent2:#e8627a;
-    --plus:#5dadec; --minus:#e8627a; --good:#5fd187; --warn:#e8b34d;
+    --bg:#F6F8FB; --panel:#ffffff; --panel2:#F3F7FD; --border:#D5DCE8;
+    --text:#1d2330; --textdim:#595959; --accent:#1F5FBF; --accent2:#C62828;
+    --plus:#1F5FBF; --minus:#C62828; --good:#1A7F37; --warn:#c99a1e;
+    --soft:#E8F0FC; --ok-soft:#E4F4E8; --err-soft:#FDECEC; --key:#FFF0A0;
   }
   *{box-sizing:border-box;}
   html,body{height:100%;margin:0;background:var(--bg);color:var(--text);
-    font-family:'Segoe UI',Tahoma,Arial,sans-serif;overflow:hidden;}
+    font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;overflow:hidden;}
   #app{display:flex;flex-direction:column;height:100%;}
   header{display:flex;align-items:center;gap:16px;padding:10px 18px;
     background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;}
@@ -20,7 +22,7 @@
   .tabs{display:flex;gap:4px;margin-left:auto;}
   .tab-btn{background:var(--panel2);border:1px solid var(--border);color:var(--textdim);
     padding:7px 16px;border-radius:6px;cursor:pointer;font-size:13px;}
-  .tab-btn.active{background:var(--accent);color:#0b1220;border-color:var(--accent);font-weight:600;}
+  .tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;}
   main{flex:1;display:flex;min-height:0;}
   #builderView{flex:1;display:flex;min-height:0;}
   #opdrachtenView{flex:1;display:none;overflow-y:auto;padding:24px 40px;max-width:900px;}
@@ -39,27 +41,27 @@
   .elbtn .en{margin-left:auto;font-size:11px;color:var(--textdim);}
   .elbtn.armed{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);}
   .elbtn.expand{border-left:3px solid var(--warn);}
-  .elbtn:hover{border-color:#555;}
+  .elbtn:hover{border-color:var(--accent);}
   #paletteHint{font-size:11.5px;color:var(--textdim);margin-top:14px;line-height:1.5;
     padding:10px;background:var(--panel2);border-radius:6px;}
 
   /* canvas area */
-  #sceneWrap{flex:1;position:relative;min-width:0;}
+  #sceneWrap{flex:1;position:relative;min-width:0;background:#fff;}
   canvas{display:block;width:100%;height:100%;cursor:grab;}
   canvas:active{cursor:grabbing;}
   #sceneToolbar{position:absolute;top:10px;left:10px;display:flex;gap:8px;flex-wrap:wrap;max-width:70%;}
-  #sceneToolbar button, #sceneToolbar label{background:rgba(28,31,38,.9);border:1px solid var(--border);
+  #sceneToolbar button, #sceneToolbar label{background:rgba(255,255,255,.92);border:1px solid var(--border);
     color:var(--text);padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;
     display:flex;align-items:center;gap:5px;user-select:none;}
-  #sceneToolbar button:hover{border-color:#555;}
-  #formulaBadge{position:absolute;top:10px;right:10px;background:rgba(28,31,38,.92);
+  #sceneToolbar button:hover{border-color:var(--accent);}
+  #formulaBadge{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.95);
     border:1px solid var(--border);border-radius:6px;padding:8px 14px;font-size:18px;font-weight:600;}
-  #conclBadge{position:absolute;bottom:10px;left:10px;right:10px;background:rgba(28,31,38,.95);
+  #conclBadge{position:absolute;bottom:10px;left:10px;right:10px;background:rgba(255,255,255,.97);
     border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:13px;display:none;}
   #conclBadge.polair{border-left:4px solid var(--warn);}
   #conclBadge.apolair{border-left:4px solid var(--good);}
   #limitNote{position:absolute;bottom:10px;right:10px;max-width:230px;font-size:10.5px;
-    color:var(--textdim);background:rgba(28,31,38,.85);border:1px solid var(--border);
+    color:var(--textdim);background:rgba(255,255,255,.9);border:1px solid var(--border);
     border-radius:6px;padding:7px 10px;line-height:1.4;}
 
   /* right panel */
@@ -86,7 +88,7 @@
   #opdrachtenView .sub{color:var(--textdim);font-size:13px;margin-bottom:24px;}
   .opdracht{background:var(--panel);border:1px solid var(--border);border-radius:8px;
     padding:16px 18px;margin-bottom:14px;}
-  .opdracht .num{display:inline-block;background:var(--accent);color:#0b1220;font-weight:700;
+  .opdracht .num{display:inline-block;background:var(--accent);color:#fff;font-weight:700;
     font-size:11px;border-radius:4px;padding:2px 7px;margin-bottom:8px;}
   .opdracht p{margin:6px 0;font-size:13.5px;line-height:1.6;}
   .opdracht .vraag{color:var(--accent);}
@@ -95,32 +97,89 @@
   .gobtn:hover{border-color:var(--accent);}
   .bondbtn{background:var(--panel2);border:1px solid var(--border);color:var(--text);
     padding:6px 0;border-radius:6px;font-size:12.5px;cursor:pointer;flex:1;font-weight:600;}
-  .bondbtn.active{background:var(--accent);color:#0b1220;border-color:var(--accent);}
-  .bondbtn:hover{border-color:#555;}
+  .bondbtn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .bondbtn:hover{border-color:var(--accent);}
   .ansbtn{background:var(--panel2);border:1px solid var(--border);color:var(--text);
     padding:6px 16px;border-radius:6px;font-size:12.5px;cursor:pointer;font-weight:600;}
-  .ansbtn.active{background:var(--accent);color:#0b1220;border-color:var(--accent);}
-  .ansbtn:hover{border-color:#555;}
-  .checkbtn{background:var(--good);border:1px solid var(--good);color:#0b1220;font-weight:700;
+  .ansbtn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .ansbtn:hover{border-color:var(--accent);}
+  .checkbtn{background:var(--good);border:1px solid var(--good);color:#fff;font-weight:700;
     padding:6px 16px;border-radius:6px;font-size:12.5px;cursor:pointer;margin-left:auto;}
   .checkbtn:hover{filter:brightness(1.1);}
   .opd-fb{margin-top:10px;padding:8px 12px;border-radius:6px;font-size:12.5px;line-height:1.5;}
   .opd-fb.good{background:rgba(95,209,135,.12);border-left:3px solid var(--good);}
   .opd-fb.bad{background:rgba(232,98,122,.12);border-left:3px solid var(--accent2);}
   .opd-fb.warn{background:rgba(232,179,77,.12);border-left:3px solid var(--warn);}
+
+  /* Huisstijl */
+  .hs-header{background:#1F5FBF;color:#fff;flex-shrink:0}
+  .hs-header .hs-wrap{padding:10px 22px;display:flex;align-items:center;gap:16px}
+  .hs-header h1{margin:0;font-size:1.4rem;font-weight:650;color:#fff}
+  .hs-header .tabs{display:flex;gap:4px;margin-left:12px;background:rgba(255,255,255,.15);padding:3px;border-radius:9px}
+  .hs-header .tab{padding:7px 14px;border:none;border-radius:7px;background:transparent;color:#fff;cursor:pointer;font:inherit;font-size:14px;font-weight:600}
+  .hs-header .tab.active{background:#fff;color:#174a96}
+  .hs-header #beamer{margin-left:auto;font:inherit;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px;border:1.5px solid #fff;background:transparent;color:#fff}
+  body.hs-beamer #opdPanel, body.hs-beamer #palette{zoom:1.25}
+  /* Opdrachtenmodus */
+  #opdPanel{display:none;width:440px;flex-shrink:0;background:#fff;border-right:1px solid var(--border);overflow-y:auto;padding:18px}
+  body.opd-modus #opdPanel{display:block}
+  body.opd-modus #infoPanel, body.opd-modus #limitNote, body.opd-modus .vrij-only{display:none !important}
+  body.opd-modus .elbtn .en{display:none}
+  #opdPanel h2{margin:0 0 12px;font-size:19px;padding-left:10px;border-left:4px solid var(--accent)}
+  .top{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .level{font-weight:650;color:var(--accent);border:1.5px solid var(--accent);border-radius:7px;padding:2px 8px;font-size:12.5px}
+  .dots{display:flex;gap:5px;flex-wrap:wrap;flex:1 1 auto}
+  .dot{min-width:24px;height:24px;padding:0 4px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;border:1px solid var(--border);background:#fff;color:var(--textdim)}
+  .dot.cur{border:2px solid var(--accent);color:var(--accent);font-weight:700}
+  .dot.ok{background:var(--good);border-color:var(--good);color:#fff}
+  .dot.done{background:var(--soft);border-color:var(--accent);color:var(--accent)}
+  .score{font-size:12.5px;color:var(--textdim);font-weight:600}
+  .instr{border:1px solid var(--accent);border-radius:8px;margin-bottom:12px;overflow:hidden}
+  .instr summary{cursor:pointer;background:var(--soft);padding:9px 14px;font-weight:650;color:#174a96;list-style:none}
+  .instr summary::-webkit-details-marker{display:none}
+  .instr summary::before{content:'▸ '} .instr[open] summary::before{content:'▾ '}
+  .instr .in{padding:10px 14px;font-size:14.5px;line-height:1.55}
+  .vb{margin-top:10px;padding:9px 12px;background:var(--panel2);border-radius:8px;line-height:1.7}
+  .vbk{font-weight:650;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--textdim)}
+  .task{background:var(--key);border:1px solid #e0c84a;border-radius:8px;padding:12px 14px;margin-bottom:12px}
+  .task .lbl{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--textdim);margin-bottom:5px;font-weight:600}
+  .task .desc{font-size:15px;line-height:1.55}
+  .part{border-top:1px solid var(--border);padding-top:10px;margin-top:10px}
+  .part:first-of-type{border-top:none;margin-top:0;padding-top:0}
+  .pq{font-size:14.5px;margin-bottom:7px}
+  .inrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .inrow input{font:inherit;font-size:15px;padding:6px 9px;width:100px;border:1px solid var(--border);border-radius:6px}
+  .mc{display:flex;gap:7px;flex-wrap:wrap}
+  .opt{background:#fff;color:var(--text);border:1.5px solid var(--border);font:inherit;font-size:14px;padding:7px 13px;border-radius:7px;cursor:pointer}
+  .opt:hover:not(:disabled){background:var(--soft);border-color:var(--accent)}
+  .opt.goed{background:var(--good);border-color:var(--good);color:#fff;opacity:1}
+  .opt.fout{background:var(--err-soft);border-color:var(--accent2);color:var(--accent2);opacity:1}
+  .opt:disabled{cursor:default}
+  button.btn{padding:7px 14px;border:none;border-radius:7px;background:var(--accent);color:#fff;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+  button.btn:hover:not(:disabled){background:#174a96}
+  button.btn:disabled{opacity:.45;cursor:not-allowed}
+  button.ghost{background:transparent;border:1.5px solid var(--border);color:var(--text)}
+  .acties{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}
+  .hint{margin-top:10px;padding:9px 12px;border-radius:8px;background:var(--soft);font-size:14px}
+  .fb{display:none;margin-top:8px;padding:8px 12px;border-radius:8px;font-size:14px;border:1px solid}
+  .fb.show{display:block}
+  .fb.correct{background:var(--ok-soft);border-color:var(--good)}
+  .fb.incorrect{background:var(--err-soft);border-color:var(--accent2)}
+  .fb.info{background:var(--soft);border-color:var(--accent)}
+  .uitw{margin-top:12px;padding:10px 14px;border-radius:8px;background:var(--panel2);border:1px solid var(--border);font-size:14.5px;line-height:1.7}
+  .kop{font-weight:650}
+  .eind{padding:16px;background:var(--soft);border-radius:8px;font-size:15px}
+  .mono{font-family:Consolas,'Courier New',monospace;background:#eef1f6;border-radius:4px;padding:0 4px}
 </style>
 </head>
-<body>
+<body class="opd-modus">
 <div id="app">
-  <header>
-    <h1>Molecuulbouwer<span>Polaire binding (ΔEN &gt; 0,4) en dipolen</span></h1>
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="builder">Bouwen</button>
-      <button class="tab-btn" data-tab="opdrachten">Opdrachten</button>
-    </div>
-  </header>
+  <header class="hs-header"><div class="hs-wrap"><h1>Molecuulbouwer</h1>
+    <div class="tabs"><button class="tab active" id="tbOpd">Opdrachten</button><button class="tab" id="tbVrij">Vrij bouwen</button></div>
+    <span style="flex:1"></span><button id="beamer" type="button" onclick="document.body.classList.toggle('hs-beamer')">Beamerstand</button></div></header>
   <main>
     <div id="builderView">
+      <div id="opdPanel"><h2>Opdrachten</h2><div class="top"><span class="level">4V · 5V</span><div class="dots" id="dots"></div><span class="score" id="score"></span></div><div id="opdBody"></div></div>
       <div id="palette">
         <h3>Atomen</h3>
         <div id="elList"></div>
@@ -143,7 +202,7 @@
         <canvas id="scene"></canvas>
         <div id="sceneToolbar">
           <button id="btnReset">⟲ Nieuw molecuul</button>
-          <label title="Eerst zelf voorspellen; δ's, ladingscentra en conclusie verschijnen pas na je voorspelling"><input type="checkbox" id="chkVoorspel" checked> voorspelmodus</label>
+          <label class="vrij-only" title="Eerst zelf voorspellen; δ's, ladingscentra en conclusie verschijnen pas na je voorspelling"><input type="checkbox" id="chkVoorspel" checked> voorspelmodus</label>
           <label><input type="checkbox" id="chkDelta" checked> δ-letters</label>
           <label><input type="checkbox" id="chkLP" checked> vrije paren</label>
           <label><input type="checkbox" id="chkCentr" checked> ladingscentra</label>
@@ -161,7 +220,7 @@
         <div id="legend">
           <div class="lg"><span class="sw" style="border:2px solid var(--plus)"></span> midden van alle δ+ (stip, of ring om een atoom)</div>
           <div class="lg"><span class="sw" style="border:2px solid var(--minus)"></span> midden van alle δ− (stip, of ring om een atoom)</div>
-          <div class="lg"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:rgba(230,225,200,.4);border:1px solid rgba(230,225,200,.7)"></span> vrij elektronenpaar (··)</div>
+          <div class="lg"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:rgba(120,105,40,.15);border:1px solid rgba(120,105,40,.5)"></span> vrij elektronenpaar (··)</div>
           <div class="lg">Grotere δ-letter = groter EN-verschil</div>
           <div class="lg">Klik op een enkele binding = 60° ronddraaien (conformatie)</div>
           <div class="lg">Klik op een dúbbele binding = cis/trans wisselen</div>
@@ -169,7 +228,6 @@
         </div>
       </div>
     </div>
-    <div id="opdrachtenView"></div>
   </main>
 </div>
 <script>
@@ -181,7 +239,7 @@ const ELEMENTS = {
   N:  {name:'Stikstof',  en:3.0, group:5, maxValence:3, color:'#4d6dff', canExpand:false},
   O:  {name:'Zuurstof',  en:3.5, group:6, maxValence:2, color:'#ff4d4d', canExpand:false},
   F:  {name:'Fluor',     en:4.0, group:7, maxValence:1, color:'#7be07b', canExpand:false},
-  Si: {name:'Silicium',  en:1.8, group:4, maxValence:4, color:'#d6c27a', canExpand:false},
+  Si: {name:'Silicium',  en:1.9, group:4, maxValence:4, color:'#d6c27a', canExpand:false},
   P:  {name:'Fosfor',    en:2.2, group:5, maxValence:3, color:'#ff9d3d', canExpand:true},
   S:  {name:'Zwavel',    en:2.6, group:6, maxValence:2, color:'#e8d34d', canExpand:true},
   Cl: {name:'Chloor',    en:3.2, group:7, maxValence:1, color:'#5de05d', canExpand:true},
@@ -222,7 +280,7 @@ let selectedStubId = null;
 let selectedAtomId = null;
 let bondOrderMode = 1;
 let onthuld = false; // voorspelmodus: is de uitkomst voor dit molecuul al getoond?
-const voorspelModus = () => document.getElementById('chkVoorspel').checked;
+const voorspelModus = () => (typeof opdModus!=='undefined' && opdModus) || document.getElementById('chkVoorspel').checked;
 const verborgen = () => voorspelModus() && !onthuld;
 let camYaw = 0.5, camPitch = -0.35, camDist = 7.5;
 
@@ -411,9 +469,9 @@ function render(){
         const pl = project(lpPos);
         const r = nodeScreenRadius(a,pl)*0.6;
         ctx.beginPath(); ctx.ellipse(pl.sx,pl.sy, r*1.3, r*0.85, Math.atan2(pl.sy-pa.sy,pl.sx-pa.sx), 0, Math.PI*2);
-        ctx.fillStyle='rgba(230,225,200,.16)'; ctx.fill();
-        ctx.lineWidth=1*devicePixelRatio; ctx.strokeStyle='rgba(230,225,200,.5)'; ctx.stroke();
-        ctx.font=`700 ${r*0.9}px Georgia, serif`; ctx.fillStyle='rgba(230,225,200,.85)';
+        ctx.fillStyle='rgba(120,105,40,.10)'; ctx.fill();
+        ctx.lineWidth=1*devicePixelRatio; ctx.strokeStyle='rgba(120,105,40,.45)'; ctx.stroke();
+        ctx.font=`700 ${r*0.9}px Georgia, serif`; ctx.fillStyle='rgba(90,75,20,.9)';
         ctx.textAlign='center'; ctx.textBaseline='middle';
         ctx.fillText('··', pl.sx, pl.sy+r*0.05);
       });
@@ -435,7 +493,7 @@ function render(){
     }
     ctx.fillStyle=ELEMENTS[a.symbol].color; ctx.fill();
     ctx.lineWidth = (a.id===selectedAtomId?3:1.5)*devicePixelRatio;
-    ctx.strokeStyle = a.id===selectedAtomId? '#5dadec':'#10131a';
+    ctx.strokeStyle = a.id===selectedAtomId? '#1F5FBF':'#3a4250';
     ctx.stroke();
     ctx.font=`700 ${r*0.85}px Segoe UI`; ctx.fillStyle='#10131a';
     ctx.textAlign='center'; ctx.textBaseline='middle';
@@ -484,7 +542,7 @@ function drawBond(pa,pb,order,dashed){
   const gap = 4.5*devicePixelRatio;
   const offsets = order===1?[0]:order===2?[-gap/2,gap/2]:[-gap,0,gap];
   ctx.lineWidth=2.6*devicePixelRatio;
-  ctx.strokeStyle = dashed? '#454b58' : '#6b7280';
+  ctx.strokeStyle = dashed? '#9aa3b2' : '#55606e';
   if(dashed) ctx.setLineDash([4*devicePixelRatio,4*devicePixelRatio]);
   offsets.forEach(o=>{
     ctx.beginPath();
@@ -719,7 +777,7 @@ function elementCountFormula(){
   const openStubs = atoms.filter(isStub).length;
   return (s||'—') + (openStubs? `  <span style="color:var(--textdim);font-size:12px">(+${openStubs} open binding${openStubs>1?'en':''})</span>`:'');
 }
-function updateFormula(){ document.getElementById('formulaBadge').innerHTML = elementCountFormula(); }
+function updateFormula(){ document.getElementById('formulaBadge').innerHTML = elementCountFormula().replace(/^([^<]*)/, m=>m.replace(/(\d+)/g,'<sub>$1</sub>')); }
 
 function updateInfoPanel(){
   const list=document.getElementById('atomList');
@@ -828,18 +886,19 @@ document.querySelectorAll('.bondbtn').forEach(b=>{
 });
 
 // ===================== TABS =====================
-document.querySelectorAll('.tab-btn').forEach(btn=>{
-  btn.onclick=()=>{
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    const tab=btn.dataset.tab;
-    document.getElementById('builderView').style.display = tab==='builder'?'flex':'none';
-    document.getElementById('opdrachtenView').classList.toggle('active', tab==='opdrachten');
-    if(tab==='builder'){ resizeCanvas(); render(); }
-  };
-});
+let opdModus = true;
+function zetModus(opd){
+  opdModus = opd;
+  document.getElementById('tbOpd').classList.toggle('active', opd);
+  document.getElementById('tbVrij').classList.toggle('active', !opd);
+  document.body.classList.toggle('opd-modus', opd);
+  if(!opd){ document.getElementById('btnReset').click(); }
+  resizeCanvas(); updateAll();
+}
+document.getElementById('tbOpd').onclick = () => { zetModus(true); renderSerie(); };
+document.getElementById('tbVrij').onclick = () => zetModus(false);
 
-// ===================== OPDRACHTEN =====================
+// ===================== OPDRACHTEN: hulpfuncties =====================
 function getCurrentCounts(){
   const counts={}; let openStubs=0;
   atoms.forEach(a=>{ if(isStub(a)) openStubs++; else counts[a.symbol]=(counts[a.symbol]||0)+1; });
@@ -859,151 +918,363 @@ function prettyFormula(counts){
 function currentPolarInfo(){
   const real = atoms.filter(a=>!isStub(a));
   if(real.length<2) return null;
-  const charge=computeCharges();
-  const {plus,minus}=computeCentroids(charge);
+  const {plus,minus}=computeCentroids(computeCharges());
   if(!plus||!minus) return {polar:false, dist:0};
   const dist=Math.hypot(plus.x-minus.x,plus.y-minus.y,plus.z-minus.z);
   return {polar: dist>=0.05, dist};
 }
-
-const OPDRACHTEN = [
-  {titel:'Water (H₂O)', target:{H:2,O:1}, antwoord:true,
-   tekst:'Plaats O in het midden. Kies bindingsorde 1×, klik op O: er verschijnt een open binding. Klik op het uiteinde en kies H. Herhaal voor een tweede H.'},
-  {titel:'Koolstofdioxide (CO₂)', target:{C:1,O:2}, antwoord:false,
-   tekst:'Plaats C in het midden. Kies bindingsorde 2×, klik op C en vul de open binding met O. Doe dat nog een keer.'},
-  {titel:'Ammoniak (NH₃)', target:{N:1,H:3}, antwoord:true,
-   tekst:'Plaats N in het midden, voeg drie enkele bindingen toe en vul ze elk met H. Zet "vrije paren" aan om te zien waarom de vorm piramidaal is.'},
-  {titel:'Methaan (CH₄)', target:{C:1,H:4}, antwoord:false,
-   tekst:'Plaats C in het midden, voeg vier enkele bindingen toe, vul met H.'},
-  {titel:'Chloormethaan (CH₃Cl)', target:{C:1,H:3,Cl:1}, antwoord:true,
-   tekst:'Plaats C, voeg drie enkele bindingen toe met H en één met Cl.'},
-  {titel:'Tetrachloormethaan (CCl₄)', target:{C:1,Cl:4}, antwoord:false,
-   tekst:'Plaats C in het midden, voeg vier enkele bindingen toe en vul ze allemaal met Cl.'},
-  {titel:'Chloroform (CHCl₃)', target:{C:1,H:1,Cl:3}, antwoord:true,
-   tekst:'Plaats C, voeg drie enkele bindingen toe met Cl en één met H. Vergelijk met CCl₄ (opdracht 6): wat is er anders?'},
-  {titel:'Blauwzuur (HCN)', target:{H:1,C:1,N:1}, antwoord:true,
-   tekst:'Plaats C in het midden. Voeg met bindingsorde 1× een binding toe en vul met H. Voeg daarna met 3× een binding toe en vul met N.'},
-  {titel:'Waterstoffluoride (HF)', target:{H:1,F:1}, antwoord:true,
-   tekst:'Plaats H in het midden, voeg een enkele binding toe en vul met F.'},
-  {titel:'C₂H₂Cl₂ — vorm A (cis) ★', target:{C:2,H:2,Cl:2}, antwoord:true, svg:'cis',
-   tekst:'Plaats C in het midden, kies bindingsorde 2×, klik op C en vul met C. Zet de bindingsorde terug op 1×. Geef elke C een binding met H en een binding met Cl. Klik op de dubbele binding om te wisselen tussen vorm A en vorm B. Zorg dat je vorm A hebt: beide Cl-atomen aan dezelfde kant (zie plaatje). Draai het molecuul rond om dat te controleren.'},
-  {titel:'C₂H₂Cl₂ — vorm B (trans) ★', target:{C:2,H:2,Cl:2}, antwoord:false, svg:'trans',
-   tekst:'Zelfde atomen als vorm A. Klik op de dubbele binding om naar vorm B te wisselen: de Cl-atomen aan tegenovergestelde kanten (zie plaatje). Is het antwoord hetzelfde als bij vorm A? Leg uit.'}
-];
-// Verdieping (5V/6V): uitgebreid octet — niet nodig voor 4V
-const VERDIEPING = [
-  {titel:'Fosforpentachloride (PCl₅) — uitgebreid octet', target:{P:1,Cl:5}, antwoord:false,
-   tekst:'Plaats P in het midden en voeg vijf enkele bindingen toe, elk gevuld met Cl. Dit lukt alleen omdat P (periode 3) een uitgebreid octet kan vormen: normaal maakt P maar 3 bindingen (met 1 vrij paar, zoals in PCl₃), maar hier gebruikt P al zijn 5 valentie-elektronen in bindingen en blijft er geen vrij paar over.'},
-  {titel:'Zwavelhexafluoride (SF₆) — uitgebreid octet', target:{S:1,F:6}, antwoord:false,
-   tekst:'Plaats S in het midden en voeg zes enkele bindingen toe, elk gevuld met F. Ook dit is een uitgebreid octet: S maakt normaal maar 2 bindingen (zoals in H₂S), maar kan als periode-3-element tot 6 bindingen vormen.'},
-  {titel:'Chloortrifluoride (ClF₃) — uitgebreid octet', target:{Cl:1,F:3}, antwoord:true,
-   tekst:'Plaats Cl in het midden en voeg drie enkele bindingen toe, elk gevuld met F. Ook dit is een uitgebreid octet (Cl maakt normaal maar 1 binding). Zet "vrije paren" aan: de twee vrije paren op Cl maken de vorm sterk asymmetrisch (T-vorm) — heel anders dan de symmetrische PCl₅ en SF₆ hierboven, met een ander effect op de polariteit.'}
-];
-
-let opdrachtAnswers = {};
-function selectAnswer(i, val){
-  opdrachtAnswers[i] = val;
-  document.querySelectorAll(`.ans-${i}`).forEach(b=>{
-    b.classList.toggle('active', b.dataset.val===String(val));
-  });
+const SVG_ISOMEER = { cis: `<svg width="150" height="90" viewBox="0 0 150 90" style="display:block;margin:6px 0"><g font-family="system-ui,Arial" font-size="16" font-weight="700" fill="#1d2330" text-anchor="middle">
+    <line x1="58" y1="45" x2="92" y2="45" stroke="#55606e" stroke-width="2"/><line x1="58" y1="51" x2="92" y2="51" stroke="#55606e" stroke-width="2"/>
+    <line x1="46" y1="40" x2="26" y2="18" stroke="#55606e" stroke-width="2"/><line x1="104" y1="40" x2="124" y2="18" stroke="#55606e" stroke-width="2"/>
+    <line x1="46" y1="56" x2="26" y2="76" stroke="#55606e" stroke-width="2"/><line x1="104" y1="56" x2="124" y2="76" stroke="#55606e" stroke-width="2"/>
+    <text x="50" y="54">C</text><text x="100" y="54">C</text>
+    <text x="18" y="16" fill="#1A7F37">Cl</text><text x="132" y="16" fill="#1A7F37">Cl</text>
+    <text x="20" y="88">H</text><text x="130" y="88">H</text></g></svg>` };
+const sub = f => f.replace(/(\d+)/g,'<sub>$1</sub>');
+const komma = x => x.toFixed(1).replace('.',',');
+const pick = a => a[Math.floor(Math.random()*a.length)];
+function echteAtomen(){ return atoms.filter(a=>!isStub(a)); }
+function buurSymbolen(a){ return a.bonds.map(b=>findNode(b.id)).filter(n=>n && !isStub(n)).map(n=>n.symbol); }
+function leegBouwer(){ atoms=[]; selectedAtomId=null; selectedStubId=null; armedElement=null; refreshPaletteUI(); updateAll(); }
+function dipoolNu(){ const i = currentPolarInfo(); return i ? i.polar : false; }
+function leesGetal(s){
+  s = String(s).trim().replace(/[−–]/g,'-').replace(/,/g,'.');
+  return /^[+-]?(\d+\.?\d*|\.\d+)$/.test(s) ? parseFloat(s) : null;
 }
-const ALLE_OPDRACHTEN = [...OPDRACHTEN, ...VERDIEPING];
-const SVG_ISOMEER = {
-  cis: `<svg width="150" height="90" viewBox="0 0 150 90" style="display:block;margin:6px 0"><g font-family="Segoe UI,Arial" font-size="16" font-weight="700" fill="#e8e9ec" text-anchor="middle">
-    <line x1="58" y1="45" x2="92" y2="45" stroke="#9aa0ab" stroke-width="2"/><line x1="58" y1="51" x2="92" y2="51" stroke="#9aa0ab" stroke-width="2"/>
-    <line x1="46" y1="40" x2="26" y2="18" stroke="#9aa0ab" stroke-width="2"/><line x1="104" y1="40" x2="124" y2="18" stroke="#9aa0ab" stroke-width="2"/>
-    <line x1="46" y1="56" x2="26" y2="76" stroke="#9aa0ab" stroke-width="2"/><line x1="104" y1="56" x2="124" y2="76" stroke="#9aa0ab" stroke-width="2"/>
-    <text x="50" y="54">C</text><text x="100" y="54">C</text>
-    <text x="18" y="16" fill="#5de05d">Cl</text><text x="132" y="16" fill="#5de05d">Cl</text>
-    <text x="20" y="88">H</text><text x="130" y="88">H</text></g></svg>`,
-  trans: `<svg width="150" height="90" viewBox="0 0 150 90" style="display:block;margin:6px 0"><g font-family="Segoe UI,Arial" font-size="16" font-weight="700" fill="#e8e9ec" text-anchor="middle">
-    <line x1="58" y1="45" x2="92" y2="45" stroke="#9aa0ab" stroke-width="2"/><line x1="58" y1="51" x2="92" y2="51" stroke="#9aa0ab" stroke-width="2"/>
-    <line x1="46" y1="40" x2="26" y2="18" stroke="#9aa0ab" stroke-width="2"/><line x1="104" y1="40" x2="124" y2="18" stroke="#9aa0ab" stroke-width="2"/>
-    <line x1="46" y1="56" x2="26" y2="76" stroke="#9aa0ab" stroke-width="2"/><line x1="104" y1="56" x2="124" y2="76" stroke="#9aa0ab" stroke-width="2"/>
-    <text x="50" y="54">C</text><text x="100" y="54">C</text>
-    <text x="18" y="16" fill="#5de05d">Cl</text><text x="130" y="16">H</text>
-    <text x="20" y="88">H</text><text x="132" y="88" fill="#5de05d">Cl</text></g></svg>`
-};
-function checkOpdracht(i){
-  const o = ALLE_OPDRACHTEN[i];
-  const fb = document.getElementById(`fb-${i}`);
-  const chosen = opdrachtAnswers[i];
-  fb.style.display='block';
-  if(chosen===undefined){
-    fb.className='opd-fb warn'; fb.textContent = '⚠ Kies eerst Ja of Nee.'; return;
-  }
+const vb = html => '<div class="vb"><div class="vbk">Voorbeeld</div>'+html+'</div>';
+const EN = s => komma(ELEMENTS[s].en);
+
+// Bouwcontrole: juiste atomen, geen open bindingen, eventueel extra structuurcontrole
+function bouwCheck(target, extra){
   const {counts, openStubs} = getCurrentCounts();
-  if(openStubs>0){
-    fb.className='opd-fb warn';
-    fb.textContent = `⚠ Er staan nog ${openStubs} open binding(en). Maak het molecuul eerst af.`; return;
-  }
-  if(!countsEqual(counts, o.target)){
-    fb.className='opd-fb warn';
-    fb.textContent = `⚠ Dit is nog niet het goede molecuul. Je hebt nu ${prettyFormula(counts)||'niets'} gebouwd in de Bouwen-tab.`; return;
-  }
-  const info = currentPolarInfo();
-  const actual = info ? info.polar : false;
-  if(actual !== o.antwoord){
-    // juiste atomen, maar verkeerde vorm (bijv. vorm B gebouwd bij de opdracht over vorm A)
-    fb.className='opd-fb warn';
-    fb.textContent = '⚠ De atomen kloppen, maar de vorm nog niet. Vergelijk je molecuul met de beschrijving (en het plaatje) en draai het rond.';
+  if(echteAtomen().length===0) return 'Bouw eerst het molecuul in het venster rechts.';
+  if(openStubs>0) return 'Er staan nog '+openStubs+' open binding'+(openStubs>1?'en':'')+'. Maak het molecuul eerst af.';
+  if(!countsEqual(counts, target)) return 'Dit is nog niet het goede molecuul: je hebt nu '+sub(prettyFormula(counts))+' gebouwd.';
+  if(extra){ const m = extra(); if(m) return m; }
+  return null;
+}
+const dipoolUitleg = () => {
+  const {plus,minus} = computeCentroids(computeCharges());
+  if(!plus||!minus) return 'Er zijn geen polaire bindingen, dus het molecuul is geen dipool.';
+  return dipoolNu() ? 'Het midden van de δ+ en het midden van de δ− vallen niet samen: het molecuul is een dipool.'
+                    : 'De bindingen zijn polair, maar het midden van de δ+ en het midden van de δ− vallen samen: het molecuul is geen dipool.';
+};
+function deelBouw(naam, f, target, extra){
+  return { soort:'bouw', vraag:'Bouw '+naam+' ('+sub(f)+') in het venster rechts.', target, extra };
+}
+function deelDipool(){
+  return { soort:'mc', vraag:'Is dit molecuul een dipool?', dynamisch:true,
+    opties:[{html:'Ja, een dipool', val:true},{html:'Nee, geen dipool', val:false}], toon:true };
+}
+
+// ===================== NIVEAUS =====================
+const BINDINGEN = [['C','H'],['O','H'],['C','Cl'],['N','H'],['C','O'],['S','H'],['P','H'],['C','S'],['C','N'],['C','Br'],['N','Cl'],['H','Br'],['C','F'],['Si','H'],['S','Cl'],['P','Cl'],['H','Cl'],['B','F']];
+const dENabs = (a,b) => Math.abs(dEN(a,b));
+
+function niv1(){
+  let [a,b] = pick(BINDINGEN); let v;
+  do { v = pick(BINDINGEN); } while(v[0]===a && v[1]===b);
+  const d = dENabs(a,b), dv = dENabs(v[0],v[1]);
+  return {
+    titel:'Polaire binding',
+    instr:{ titel:'Nieuw: polaire binding', html:'Elk atoom trekt aan de gemeenschappelijke elektronenparen van een atoombinding. Hoe hard, zie je aan de <b>elektronegativiteit</b> (EN, Binas tabel 40A).<br>'+
+      'Is het verschil in EN (ΔEN) groter dan 0,4, dan noemen we de binding <b>polair</b>. Is ΔEN 0,4 of kleiner, dan is de binding niet polair.'+
+      vb('Binding '+v[0]+'–'+v[1]+': EN('+v[0]+') = '+EN(v[0])+', EN('+v[1]+') = '+EN(v[1])+'<br>ΔEN = '+komma(Math.max(ELEMENTS[v[0]].en,ELEMENTS[v[1]].en))+' − '+komma(Math.min(ELEMENTS[v[0]].en,ELEMENTS[v[1]].en))+' = '+komma(dv)+(dv>POLAIR_GRENS?' &gt; 0,4, dus polair':' ≤ 0,4, dus niet polair')) },
+    vraag:'Bekijk de binding <b>'+a+'–'+b+'</b>.',
+    parts:[
+      { soort:'num', vraag:'Bereken ΔEN.', label:'ΔEN =', juist:d,
+        diag: x => Math.abs(x+d)<0.01 ? 'Neem het verschil als positief getal: de grootste EN min de kleinste.' : 'Zoek de EN-waarden op in Binas tabel 40A.' },
+      { soort:'mc', vraag:'Is deze binding polair?', opties:[{html:'Ja, polair',goed:d>POLAIR_GRENS},{html:'Nee, niet polair',goed:d<=POLAIR_GRENS}],
+        uitleg:'ΔEN = '+komma(d)+(d>POLAIR_GRENS?' is groter dan 0,4.':' is niet groter dan 0,4.') }
+    ],
+    hint:'EN-waarden staan in Binas tabel 40A, in de laatste kolom.',
+    uitw:()=> 'ΔEN = '+komma(d)+' → '+(d>POLAIR_GRENS?'polair':'niet polair')
+  };
+}
+
+function niv2(){
+  const pool = BINDINGEN.filter(([a,b])=>dENabs(a,b)>POLAIR_GRENS);
+  const b1 = pick(pool); let b2; do{ b2 = pick(pool); }while(b2===b1);
+  const vbB = pool.find(x=>x!==b1&&x!==b2);
+  const neg = ([a,b]) => ELEMENTS[a].en > ELEMENTS[b].en ? a : b;
+  const pos = ([a,b]) => neg([a,b])===a ? b : a;
+  const deel = bb => ({ soort:'mc', vraag:'Welk atoom krijgt in de binding <b>'+bb[0]+'–'+bb[1]+'</b> de δ−?',
+    opties:[{html:bb[0],goed:neg(bb)===bb[0]},{html:bb[1],goed:neg(bb)===bb[1]}],
+    uitleg: neg(bb)+' heeft de hoogste EN ('+EN(neg(bb))+' tegen '+EN(pos(bb))+'): de elektronen zitten iets meer bij '+neg(bb)+'.' });
+  return {
+    titel:'δ+ en δ−',
+    instr:{ titel:'Nieuw: partiële ladingen', html:'In een polaire binding zitten de gemeenschappelijke elektronen iets meer bij het atoom met de <b>hoogste EN</b>. Dat atoom krijgt een kleine negatieve lading: <b>δ−</b> (spreek uit: delta min). Het andere atoom krijgt <b>δ+</b>.'+
+      vb('Binding '+vbB[0]+'–'+vbB[1]+': '+neg(vbB)+' heeft de hoogste EN ('+EN(neg(vbB))+'), dus '+neg(vbB)+' krijgt δ− en '+pos(vbB)+' krijgt δ+.') },
+    vraag:'Bepaal bij twee polaire bindingen welk atoom de δ− krijgt.',
+    parts:[deel(b1), deel(b2)],
+    hint:'Kijk welk atoom de hoogste EN heeft.',
+    uitw:()=> b1[0]+'–'+b1[1]+': δ− op '+neg(b1)+'<br>'+b2[0]+'–'+b2[1]+': δ− op '+neg(b2)
+  };
+}
+
+function bouwNiveau(cfg){
+  return {
+    titel: cfg.titel, instr: cfg.instr,
+    vraag: cfg.vraag,
+    parts: cfg.parts,
+    hint: cfg.hint, ster: cfg.ster, label: cfg.label,
+    uitw: () => cfg.uitw ? cfg.uitw() : dipoolUitleg(),
+    bouwer:true
+  };
+}
+
+function niv3(){
+  const m = pick([['waterstofchloride','HCl',{H:1,Cl:1}],['waterstofbromide','HBr',{H:1,Br:1}],['waterstoffluoride','HF',{H:1,F:1}]]);
+  return bouwNiveau({ titel:'Eén polaire binding',
+    instr:{ titel:'Nieuw: dipoolmolecuul', html:'Een molecuul met een δ+-kant en een δ−-kant heet een <b>dipool</b>. Heeft een molecuul maar één binding en is die polair, dan is het molecuul altijd een dipool.<br>'+
+      'Zo bouw je het molecuul: klik een element en klik in het lege veld. Klik op het atoom: er komt een open binding. Klik op het open uiteinde en kies het volgende element.'+
+      vb('Cl–F: ΔEN = 4,0 − 3,2 = 0,8, polair. F krijgt δ−, Cl δ+: het molecuul ClF is een dipool.') },
+    vraag:'Bekijk het molecuul '+m[0]+'.',
+    parts:[deelBouw(m[0], m[1], m[2]), deelDipool()],
+    hint:'Is de enige binding in dit molecuul polair?' });
+}
+
+function niv4(){
+  const m = pick([
+    { naam:'koolstofdioxide', f:'CO2', t:{C:1,O:2}, bouw:'C in het midden, met twee dubbele bindingen naar O' },
+    { naam:'boortrifluoride', f:'BF3', t:{B:1,F:3}, bouw:'B in het midden, met drie enkele bindingen naar F' }
+  ]);
+  return bouwNiveau({ titel:'Ladingscentra',
+    instr:{ titel:'Nieuw: het midden van de ladingen', html:'Heeft een molecuul meer polaire bindingen, dan kijk je naar het geheel. Bepaal het midden van alle δ+ en het midden van alle δ−.<br>'+
+      '• Vallen die twee middens samen, dan heft alles elkaar op: <b>geen dipool</b>, ook al zijn de bindingen polair.<br>• Liggen ze uit elkaar, dan is het molecuul een <b>dipool</b>.'+
+      vb('Tetrafluormethaan CF<sub>4</sub>: vier polaire C–F-bindingen (ΔEN = 1,5) in de vorm van een tetraëder. Het midden van de δ− (de vier F-atomen) ligt precies op C, waar ook de δ+ zit: geen dipool.') },
+    vraag:'Bekijk het molecuul '+m.naam+' ('+m.bouw+').',
+    parts:[deelBouw(m.naam, m.f, m.t),
+      { soort:'mc', vraag:'Zijn de bindingen in dit molecuul polair?', opties:[{html:'Ja',goed:true},{html:'Nee',goed:false}], uitleg:'ΔEN is groter dan 0,4.' },
+      deelDipool()],
+    hint:'Draai het molecuul rond. Waar ligt het midden van de δ−-atomen?' });
+}
+
+function niv5(){
+  const m = pick([
+    { naam:'water', f:'H2O', t:{H:2,O:1}, c:'O', lp:2 },
+    { naam:'ammoniak', f:'NH3', t:{N:1,H:3}, c:'N', lp:1 }
+  ]);
+  return bouwNiveau({ titel:'Vrije elektronenparen',
+    instr:{ titel:'Nieuw: vrije elektronenparen bepalen de vorm', html:'Vrije elektronenparen op het centrale atoom duwen de bindingen weg. Een molecuul met vrije paren op het centrale atoom is daardoor vaak <b>niet</b> symmetrisch: het is gebogen of piramidaal.<br>Zet in het venster "vrije paren" aan om ze te zien.'+
+      vb('Koolstofdioxide CO<sub>2</sub>: C heeft geen vrije paren, het molecuul is lineair. De ladingscentra vallen samen: geen dipool.') },
+    vraag:'Bekijk het molecuul '+m.naam+'.',
+    parts:[deelBouw(m.naam, m.f, m.t),
+      { soort:'num', vraag:'Hoeveel vrije elektronenparen heeft het '+m.c+'-atoom?', label:'aantal =', juist:m.lp, diag:()=> 'Tel de valentie-elektronen van '+m.c+' en trek de elektronen af die in bindingen zitten.' },
+      deelDipool()],
+    hint:'Waardoor is het molecuul niet lineair (of plat)?' });
+}
+
+function niv6(){
+  const opties = [
+    { naam:'chloormethaan', f:'CH3Cl', t:{C:1,H:3,Cl:1} }, { naam:'dichloormethaan', f:'CH2Cl2', t:{C:1,H:2,Cl:2} },
+    { naam:'trichloormethaan', f:'CHCl3', t:{C:1,H:1,Cl:3} }, { naam:'tetrachloormethaan', f:'CCl4', t:{C:1,Cl:4} },
+    { naam:'fluormethaan', f:'CH3F', t:{C:1,H:3,F:1} }
+  ];
+  const m = pick(opties);
+  return bouwNiveau({ titel:'Tetraëder',
+    instr:{ titel:'Nieuw: vier buren rond één atoom', html:'Een C-atoom met vier enkele bindingen heeft de vorm van een <b>tetraëder</b>. Die vorm is alleen helemaal symmetrisch als de vier buren hetzelfde zijn. Let op: de C–H-binding is niet polair (ΔEN = 0,4).'+
+      vb('Methaan CH<sub>4</sub>: vier gelijke buren én geen polaire bindingen: geen dipool.') },
+    vraag:'Bekijk het molecuul '+m.naam+'.',
+    parts:[deelBouw(m.naam, m.f, m.t), deelDipool()],
+    hint:'Zijn de vier buren van C gelijk? Zo nee, waar ligt dan het midden van de δ−?' });
+}
+
+function niv7(){
+  return bouwNiveau({ titel:'Scheve vorm, geen polaire bindingen',
+    instr:{ titel:'Nieuw: eerst de bindingen, dan de vorm', html:'Een molecuul kan alleen een dipool zijn als het polaire bindingen heeft. Zijn er geen polaire bindingen, dan is het molecuul nooit een dipool, ook niet als de vorm scheef is.'+
+      vb('Silaan SiH<sub>4</sub>: ΔEN(Si–H) = 2,1 − 1,9 = 0,2, niet polair. Geen polaire bindingen, dus geen dipool.') },
+    vraag:'Bekijk het molecuul fosfine (PH<sub>3</sub>). Het heeft dezelfde vorm als ammoniak.',
+    parts:[deelBouw('fosfine','PH3',{P:1,H:3}),
+      { soort:'mc', vraag:'Zijn de P–H-bindingen polair?', opties:[{html:'Ja',goed:false},{html:'Nee',goed:true}], uitleg:'ΔEN = 2,2 − 2,1 = 0,1: niet polair.' },
+      deelDipool()],
+    hint:'Bereken eerst ΔEN van de P–H-binding.' });
+}
+
+function niv8(){
+  const m = pick([
+    { naam:'methanol', f:'CH3OH', t:{C:1,H:4,O:1}, s:'H<sub>3</sub>C–O–H' },
+    { naam:'methoxymethaan (dimethylether)', f:'C2H6O', t:{C:2,H:6,O:1}, s:'H<sub>3</sub>C–O–CH<sub>3</sub>' },
+    { naam:'methaanamine', f:'CH5N', t:{C:1,H:5,N:1}, s:'H<sub>3</sub>C–NH<sub>2</sub>' },
+    { naam:'methanal', f:'CH2O', t:{C:1,H:2,O:1}, s:'H<sub>2</sub>C=O' }
+  ]);
+  return bouwNiveau({ titel:'Grotere moleculen',
+    instr:{ titel:'Nieuw: het hele molecuul bekijken', html:'Bij grotere moleculen werk je dezelfde stappen af: welke bindingen zijn polair, waar zitten de δ+ en δ−, en vallen de middens samen? Kijk ook naar de vrije paren op elk atoom met meer dan één buur.'+
+      vb('Ethaan H<sub>3</sub>C–CH<sub>3</sub>: alleen C–C en C–H, geen enkele polaire binding. Geen dipool.') },
+    vraag:'Bekijk het molecuul '+m.naam+': '+m.s+'.',
+    parts:[deelBouw(m.naam, m.f, m.t), deelDipool()],
+    hint:'Welke bindingen zijn polair? Bekijk de vorm rond het O- of N-atoom.' });
+}
+
+function niv9(){
+  const m = pick([
+    { naam:'methanol', f:'CH3OH', t:{C:1,H:4,O:1}, goed:true, s:'H<sub>3</sub>C–O–H' },
+    { naam:'ammoniak', f:'NH3', t:{N:1,H:3}, goed:true },
+    { naam:'ethanol', f:'C2H5OH', t:{C:2,H:6,O:1}, goed:true, s:'H<sub>3</sub>C–CH<sub>2</sub>–O–H',
+      extra:()=>{ const o = echteAtomen().find(a=>a.symbol==='O'); return o && buurSymbolen(o).includes('H') ? null : 'Dit zijn de juiste atomen, maar het O-atoom moet aan een H vastzitten (ethanol, geen ether).'; } },
+    { naam:'dichloormethaan', f:'CH2Cl2', t:{C:1,H:2,Cl:2}, goed:false },
+    { naam:'trichloormethaan', f:'CHCl3', t:{C:1,H:1,Cl:3}, goed:false },
+    { naam:'tetrachloormethaan', f:'CCl4', t:{C:1,Cl:4}, goed:false },
+    { naam:'methaan', f:'CH4', t:{C:1,H:4}, goed:false }
+  ]);
+  return bouwNiveau({ titel:'Dipool en oplosbaarheid',
+    instr:{ titel:'Nieuw: lost het goed op in water?', html:'Watermoleculen zijn aan elkaar gebonden door <b>waterstofbruggen</b>. Een stof lost goed op in water als zijn moleculen zelf waterstofbruggen met water kunnen vormen: ze hebben een O–H- of N–H-groep. Zo\'n stof heet <b>hydrofiel</b>.<br>'+
+      'Let op: een dipool alleen is niet genoeg. Een dipoolmolecuul zonder O–H- of N–H-groep kan geen waterstofbruggen vormen en lost slecht op in water.'+
+      vb('Broommethaan CH<sub>3</sub>Br is een dipool (C–Br is polair, de buren van C zijn niet gelijk), maar heeft geen O–H- of N–H-groep: het lost slecht op in water.') },
+    vraag:'Bekijk '+m.naam+(m.s?': '+m.s:'')+'.',
+    parts:[deelBouw(m.naam, m.f, m.t, m.extra), deelDipool(),
+      { soort:'mc', vraag:'Lost deze stof goed op in water?', opties:[{html:'Ja, goed',goed:m.goed},{html:'Nee, slecht',goed:!m.goed}],
+        uitleg: m.goed ? 'De moleculen hebben een '+(m.f==='NH3'?'N–H':'O–H')+'-groep en kunnen waterstofbruggen vormen met water.'
+                       : 'De moleculen hebben geen O–H- of N–H-groep en kunnen dus geen waterstofbruggen vormen met water.' }],
+    hint:'Kan dit molecuul waterstofbruggen vormen met water?' });
+}
+
+function ster(){
+  const isCis = () => { const cs = echteAtomen().filter(a=>a.symbol==='C'); return cs.length===2 && cs.every(c=>buurSymbolen(c).filter(s=>s==='Cl').length===1); };
+  const extraA = () => !isCis() ? 'De atomen kloppen, maar elk C-atoom moet één H en één Cl hebben.' : (!dipoolNu() ? 'Dit is vorm B: de Cl-atomen zitten aan tegenovergestelde kanten. Klik op de dubbele binding om te wisselen.' : null);
+  const extraB = () => !isCis() ? 'Elk C-atoom moet één H en één Cl hebben.' : (dipoolNu() ? 'Dit is nog vorm A. Klik op de dubbele binding om naar vorm B te wisselen.' : null);
+  return bouwNiveau({ titel:'★ Isomeren', ster:true,
+    instr:{ titel:'Nieuw: dezelfde atomen, een andere vorm', html:'Om een dubbele binding kan een molecuul niet vrij draaien. Daardoor kunnen er twee vormen van een molecuul bestaan met dezelfde atomen: de groepen aan dezelfde kant (vorm A) of aan tegenovergestelde kanten (vorm B).<br>Klik in het venster op een dubbele binding om te wisselen tussen de twee vormen.' },
+    vraag:'Bekijk 1,2-dichlooretheen (C<sub>2</sub>H<sub>2</sub>Cl<sub>2</sub>): elk C-atoom heeft één H en één Cl, en de twee C-atomen zijn verbonden met een dubbele binding.'+SVG_ISOMEER.cis+'<span style="font-size:13px;color:#595959">Vorm A: de Cl-atomen aan dezelfde kant.</span>',
+    parts:[ Object.assign(deelBouw('vorm A','C2H2Cl2',{C:2,H:2,Cl:2}, extraA), {}), deelDipool(),
+      { soort:'bouw', vraag:'Klik op de dubbele binding, zodat je vorm B krijgt.', target:{C:2,H:2,Cl:2}, extra:extraB }, deelDipool() ],
+    hint:'Waar ligt het midden van de δ− bij vorm A, en waar bij vorm B?',
+    uitw:()=>'Vorm A: beide Cl-atomen aan dezelfde kant, het midden van de δ− ligt niet op het midden van de δ+: dipool.<br>Vorm B: de Cl-atomen aan tegenovergestelde kanten, de middens vallen samen: geen dipool.' });
+}
+
+function verdieping(){
+  const m = pick([
+    { naam:'fosforpentachloride', f:'PCl5', t:{P:1,Cl:5}, c:'P', lp:0 },
+    { naam:'zwavelhexafluoride', f:'SF6', t:{S:1,F:6}, c:'S', lp:0 },
+    { naam:'chloortrifluoride', f:'ClF3', t:{Cl:1,F:3}, c:'Cl', lp:2 }
+  ]);
+  return bouwNiveau({ titel:'5V · Uitgebreid octet', ster:true, label:'5V',
+    instr:{ titel:'Verdieping 5V: uitgebreid octet', html:'Atomen uit periode 3 en hoger (P, S, Cl, Br) kunnen meer bindingen vormen dan de octetregel toestaat: een <b>uitgebreid octet</b>. Het maximale aantal bindingen is dan het aantal valentie-elektronen. In de bouwer hebben deze elementen een gele rand.'+
+      vb('Fosfortrichloride PCl<sub>3</sub> volgt de octetregel: drie bindingen en één vrij paar op P. In PCl<sub>5</sub> gebruikt P alle vijf valentie-elektronen voor bindingen.') },
+    vraag:'Bekijk het molecuul '+m.naam+'.',
+    parts:[deelBouw(m.naam, m.f, m.t),
+      { soort:'num', vraag:'Hoeveel vrije elektronenparen heeft het '+m.c+'-atoom?', label:'aantal =', juist:m.lp, diag:()=>'Valentie-elektronen van '+m.c+' min de elektronen in bindingen, gedeeld door 2.' },
+      deelDipool()],
+    hint:'Kijk of de vrije paren de vorm asymmetrisch maken.' });
+}
+
+const NIVEAUS = [niv1, niv2, niv3, niv4, niv5, niv6, niv7, niv8, niv9, ster, verdieping];
+
+// ===================== WEERGAVE =====================
+let serie;
+function nieuweSerie(){ serie = { i:0, items:NIVEAUS.map(f=>f()), status:NIVEAUS.map(()=>'') }; renderSerie(); }
+function renderSerie(){
+  const goed = serie.status.filter(s=>s==='ok').length;
+  document.getElementById('dots').innerHTML = serie.items.map((q,i)=>'<span class="dot '+(i===serie.i&&!serie.einde?'cur ':'')+serie.status[i]+'">'+(q.label||(q.ster?'★':i+1))+'</span>').join('');
+  document.getElementById('score').textContent = 'Score: '+goed+' / '+serie.items.length;
+  const el = document.getElementById('opdBody');
+  leegBouwer();
+  if(serie.einde){
+    el.innerHTML = '<div class="eind"><p><b>Klaar!</b> Je had '+goed+' van de '+serie.items.length+' opdrachten goed zonder het antwoord te bekijken.</p><button class="btn" onclick="nieuweSerie()">Nieuwe serie ➜</button></div>';
     return;
   }
-  if(chosen === o.antwoord){
-    fb.className='opd-fb good';
-    const {plus,minus}=computeCentroids(computeCharges());
-    const uitleg = o.antwoord ? 'een dipool: het gemiddelde δ+ en het gemiddelde δ− liggen uit elkaar'
-      : (!plus||!minus) ? 'geen dipool: er zijn geen polaire bindingen'
-      : 'geen dipool: de bindingen zijn wel polair, maar het gemiddelde δ+ en δ− vallen samen';
-    fb.textContent = `✓ Klopt! Dit molecuul is ${uitleg}.`;
-  } else {
-    fb.className='opd-fb bad';
-    fb.textContent = '✗ Nog niet goed. Bepaal per binding of hij polair is (ΔEN > 0,4) en kijk dan naar de vorm: vallen het gemiddelde δ+ en het gemiddelde δ− samen? Probeer het opnieuw.';
-  }
+  renderVraag(el, serie.items[serie.i]);
 }
-function opdrachtKaart(o, i, label){
-  const div=document.createElement('div'); div.className='opdracht';
-  div.innerHTML=`<span class="num">${label}</span><p><b>${o.titel}</b></p>
-    ${o.svg?SVG_ISOMEER[o.svg]:''}
-    <p>${o.tekst}</p>
-    <p class="vraag">Is dit molecuul een dipool?</p>
-    <div style="display:flex;gap:6px;margin-top:6px;">
-      <button class="ansbtn ans-${i}" data-val="true">Ja</button>
-      <button class="ansbtn ans-${i}" data-val="false">Nee</button>
-      <button class="gobtn" style="margin-top:0">Ga naar Bouwen-tab</button>
-      <button class="checkbtn">Check</button>
-    </div>
-    <div class="opd-fb" id="fb-${i}" style="display:none"></div>`;
-  div.querySelectorAll(`.ans-${i}`).forEach(b=>{ b.onclick = ()=>selectAnswer(i, b.dataset.val==='true'); });
-  div.querySelector('.gobtn').onclick=()=>document.querySelector('.tab-btn[data-tab="builder"]').click();
-  div.querySelector('.checkbtn').onclick=()=>checkOpdracht(i);
-  return div;
-}
-function buildOpdrachten(){
-  const wrap=document.getElementById('opdrachtenView');
-  wrap.innerHTML=`<h2>Opdrachten</h2><p class="sub">Voorspel eerst op papier: welke bindingen zijn polair (ΔEN &gt; 0,4, Binas), en is het molecuul een dipool? Bouw het daarna in de Bouwen-tab, kies Ja of Nee en klik op Check.</p>`;
-  OPDRACHTEN.forEach((o,i)=>wrap.appendChild(opdrachtKaart(o,i,`Opdracht ${i+1}`)));
 
-  const det=document.createElement('details');
-  det.style.marginTop='24px';
-  det.innerHTML=`<summary style="cursor:pointer;color:var(--textdim);font-size:14px;margin-bottom:12px">Verdieping (5V/6V): uitgebreid octet en vrije draaibaarheid</summary>`;
-  VERDIEPING.forEach((o,k)=>{ const i=OPDRACHTEN.length+k; det.appendChild(opdrachtKaart(o,i,`Verdieping ${k+1}`)); });
-  const dd = document.createElement('div');
-  dd.className='opdracht';
-  dd.innerHTML = `<span class="num">Denkopdracht</span>
-    <p><b>Ethaan-1,2-diol (HO–CH₂–CH₂–OH): vrije rotatie</b></p>
-    <p>Bouw C–C met aan elke C een O–H en twee H's. Klik daarna op de C–C-binding (een enkele binding): die draait in stappen van 60°, net als de vrije rotatie die in werkelijkheid steeds optreedt.</p>
-    <p class="vraag">Bij elke stand verandert de afstand tussen het gemiddelde δ+ en δ−. Heeft dit molecuul op een willekeurig moment een netto dipool? En waarom is "gemiddeld over alle standen is de polariteit nul" een te makkelijke uitspraak?</p>
-    <button class="gobtn">Ga naar Bouwen-tab</button>`;
-  dd.querySelector('.gobtn').onclick=()=>document.querySelector('.tab-btn[data-tab="builder"]').click();
-  det.appendChild(dd);
-  wrap.appendChild(det);
+function renderVraag(el, q){
+  const st = { deel:0, tries:0, fout:false };
+  const laatste = serie.i===serie.items.length-1;
+  let h = '';
+  if(q.instr) h += '<details class="instr" open><summary>'+q.instr.titel+'</summary><div class="in">'+q.instr.html+'</div></details>';
+  h += '<div class="task"><div class="lbl">Opdracht '+(serie.i+1)+' van '+serie.items.length+' · '+q.titel+'</div><div class="desc">'+q.vraag+'</div></div>';
+  q.parts.forEach((p,i)=>{
+    h += '<div class="part" id="part'+i+'" style="'+(i?'display:none':'')+'"><div class="pq">'+(q.parts.length>1?'<b>'+String.fromCharCode(97+i)+'.</b> ':'')+p.vraag+'</div>';
+    if(p.soort==='mc') h += '<div class="mc">'+p.opties.map((o,k)=>'<button class="opt" data-k="'+k+'">'+o.html+'</button>').join('')+'</div>';
+    else if(p.soort==='num') h += '<div class="inrow"><label>'+p.label+'</label><input type="text" autocomplete="off"><button class="btn chk">Controleer</button></div>';
+    else h += '<div class="inrow"><button class="btn chk">Controleer mijn molecuul</button></div>';
+    h += '<div class="fb"></div></div>';
+  });
+  h += '<div class="acties"><button class="btn ghost hintb">Hint</button><button class="btn ghost toonb" style="display:none">Toon antwoord</button>'+
+       '<button class="btn volg" style="display:none">'+(laatste?'Afronden ➜':'Volgende opdracht ➜')+'</button>'+
+       '<button class="btn ghost again">↻ Nog een opgave van dit niveau</button></div>'+
+       '<div class="hint" style="display:none"></div><div class="uitw" style="display:none"></div>';
+  el.innerHTML = h;
+  el.scrollTop = 0;
+  const $ = s => el.querySelector(s);
+  const pe = () => el.querySelector('#part'+st.deel);
+  const P = () => q.parts[st.deel];
+  const fb = (cls, html) => { const f=pe().querySelector('.fb'); f.className='fb show '+cls; f.innerHTML=html; };
+  $('.hintb').onclick = () => { const hh=$('.hint'); hh.style.display='block'; hh.innerHTML='<b>Hint:</b> '+q.hint; };
+  $('.again').onclick = () => { serie.items[serie.i] = NIVEAUS[serie.i](); serie.status[serie.i]=''; renderSerie(); };
+  $('.volg').onclick = () => { if(serie.i>=serie.items.length-1) serie.einde=true; else serie.i++; renderSerie(); };
+
+  function volgend(goed){
+    if(!goed) st.fout = true;
+    const p = P();
+    pe().querySelectorAll('input,button').forEach(x=>x.disabled=true);
+    if(p.toon){ onthuld = true; laatsteVoorspelling = null; updateInfoPanel(); render(); }
+    st.deel++; st.tries = 0;
+    $('.toonb').style.display = 'none';
+    if(st.deel < q.parts.length){ pe().style.display=''; const inp=pe().querySelector('input'); if(inp) inp.focus(); }
+    else {
+      $('.hintb').style.display='none';
+      const u=$('.uitw'); u.style.display='block'; u.innerHTML='<div class="kop">Uitleg</div>'+q.uitw();
+      serie.status[serie.i] = st.fout ? 'done' : 'ok';
+      document.querySelectorAll('.dot')[serie.i].className = 'dot cur '+serie.status[serie.i];
+      document.getElementById('score').textContent = 'Score: '+serie.status.filter(s=>s==='ok').length+' / '+serie.items.length;
+      $('.volg').style.display='';
+    }
+  }
+  function fout(msg){
+    st.tries++;
+    fb('incorrect','<b>Nog niet goed.</b> '+(msg||''));
+    if(st.tries>=2) $('.toonb').style.display='';
+  }
+  const goedOptie = p => p.dynamisch ? p.opties.findIndex(o=>o.val===dipoolNu()) : p.opties.findIndex(o=>o.goed);
+  $('.toonb').onclick = () => {
+    const p = P();
+    if(p.soort==='mc'){
+      const k = goedOptie(p);
+      pe().querySelectorAll('.opt')[k].classList.add('goed');
+      fb('info','<b>Antwoord:</b> '+p.opties[k].html+'. '+(p.dynamisch?dipoolUitleg():(p.uitleg||'')));
+    } else if(p.soort==='num'){
+      fb('info','<b>Antwoord:</b> '+p.label+' '+(Number.isInteger(p.juist)?p.juist:komma(p.juist)));
+    } else return;
+    volgend(false);
+  };
+  q.parts.forEach((p,i)=>{
+    const e = el.querySelector('#part'+i);
+    if(p.soort==='mc'){
+      e.querySelectorAll('.opt').forEach(bt=>bt.onclick=()=>{
+        if(st.deel!==i) return;
+        const k = +bt.dataset.k, goedK = goedOptie(p);
+        if(k===goedK){ bt.classList.add('goed'); fb('correct','<b>Goed!</b> '+(p.dynamisch?dipoolUitleg():(p.uitleg||''))); volgend(st.tries===0); }
+        else if(p.opties.length===2){
+          bt.classList.add('fout'); e.querySelectorAll('.opt')[goedK].classList.add('goed');
+          fb('incorrect','<b>Niet goed.</b> '+(p.dynamisch?dipoolUitleg():(p.uitleg||''))); volgend(false);
+        } else { bt.classList.add('fout'); bt.disabled=true; fout(''); }
+      });
+    } else if(p.soort==='num'){
+      const inp = e.querySelector('input');
+      const check = () => {
+        if(st.deel!==i) return;
+        const v = leesGetal(inp.value);
+        if(v===null){ fb('info','Typ een getal, bijvoorbeeld <span class="mono">0,9</span>.'); return; }
+        if(Math.abs(v-p.juist)<0.001){ fb('correct','<b>Goed!</b>'); volgend(st.tries===0); }
+        else fout(p.diag ? p.diag(v) : '');
+      };
+      e.querySelector('.chk').onclick = check;
+      inp.addEventListener('keydown', ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); check(); } });
+    } else {
+      e.querySelector('.chk').onclick = () => {
+        if(st.deel!==i) return;
+        const m = bouwCheck(p.target, p.extra);
+        if(m){ fb('info', m); return; }
+        fb('correct','<b>Goed gebouwd!</b>'); volgend(true);
+      };
+    }
+  });
 }
 
 // ===================== INIT =====================
 buildPalette();
-buildOpdrachten();
 resizeCanvas();
+nieuweSerie();
 updateAll();
 render();
 
