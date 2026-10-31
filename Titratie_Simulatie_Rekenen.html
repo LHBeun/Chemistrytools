@@ -163,27 +163,13 @@ function molMassa(f){
 const Mstr = f => g(molMassa(f),4)+' g mol<sup>−1</sup>';
 
 /* ===================================================================
-   STOFFEN VOOR NIVEAU 1–6
+   STOFFEN VOOR NIVEAU 1–5
    =================================================================== */
 const OPLOS = [
   { naam:'natriumchloride', f:'NaCl' }, { naam:'kaliumnitraat', f:'KNO3' }, { naam:'glucose', f:'C6H12O6' },
   { naam:'kopersulfaat', f:'CuSO4' }, { naam:'natriumcarbonaat', f:'Na2CO3' }, { naam:'ureum', f:'CH4N2O' },
   { naam:'magnesiumsulfaat', f:'MgSO4' }, { naam:'kaliumchloride', f:'KCl' }, { naam:'sacharose', f:'C12H22O11' }
 ];
-// zout, kation, anion, aantallen
-const ZOUTEN = [
-  { naam:'calciumchloride', f:'CaCl2', kat:['Ca','2+',1,'calciumionen'], an:['Cl','−',2,'chloride-ionen'] },
-  { naam:'magnesiumchloride', f:'MgCl2', kat:['Mg','2+',1,'magnesiumionen'], an:['Cl','−',2,'chloride-ionen'] },
-  { naam:'aluminiumchloride', f:'AlCl3', kat:['Al','3+',1,'aluminiumionen'], an:['Cl','−',3,'chloride-ionen'] },
-  { naam:'natriumsulfaat', f:'Na2SO4', kat:['Na','+',2,'natriumionen'], an:['SO4','2−',1,'sulfaationen'] },
-  { naam:'kaliumsulfaat', f:'K2SO4', kat:['K','+',2,'kaliumionen'], an:['SO4','2−',1,'sulfaationen'] },
-  { naam:'natriumfosfaat', f:'Na3PO4', kat:['Na','+',3,'natriumionen'], an:['PO4','3−',1,'fosfaationen'] },
-  { naam:'ijzer(III)nitraat', f:'Fe(NO3)3', kat:['Fe','3+',1,'ijzer(III)ionen'], an:['NO3','−',3,'nitraationen'] },
-  { naam:'aluminiumsulfaat', f:'Al2(SO4)3', kat:['Al','3+',2,'aluminiumionen'], an:['SO4','2−',3,'sulfaationen'] }
-];
-const ion = (s,q) => fsub(s)+'<sup>'+q+'</sup>';
-const coef = n => n>1 ? n+' ' : '';
-function oplosVgl(z){ return fsub(z.f)+'(s) → '+coef(z.kat[2])+ion(z.kat[0],z.kat[1])+'(aq) + '+coef(z.an[2])+ion(z.an[0],z.an[1])+'(aq)'; }
 
 /* ===================================================================
    TITRATIECONTEXTEN
@@ -422,33 +408,7 @@ function niv5(){
   };
 }
 
-// Niveau 6: ionconcentratie
-function niv6(){
-  const vbZ = ZOUTEN[0];
-  const z = pick(ZOUTEN.slice(1));
-  const c = pick([0.100,0.0500,0.200,0.150,0.0250,0.300]);
-  const welk = z.kat[2]>1 && z.an[2]>1 ? pick(['kat','an']) : (z.kat[2]>1 ? 'kat' : 'an');
-  const I = z[welk];
-  const fout1 = fsub(z.f)+'(s) → '+ion(z.kat[0]+(z.kat[2]>1?z.kat[2]:''),z.kat[1])+'(aq) + '+ion(z.an[0]+(z.an[2]>1?'<sub>'+z.an[2]+'</sub>':''),z.an[1])+'(aq)';
-  const fout2 = fsub(z.f)+'(s) → '+ion(z.kat[0],z.kat[1])+'(aq) + '+ion(z.an[0],z.an[1])+'(aq)';
-  return {
-    titel:'Ionen in een zoutoplossing',
-    instr:{ titel:'Nieuw: de concentratie van ionen', html:'Een zout splitst bij het oplossen in ionen. Uit de oplosvergelijking volgt hoeveel mol van elk ion er per mol zout in de oplossing komt. De molariteit van een ion schrijf je met vierkante haken: [Cl<sup>−</sup>] is de molariteit van de chloride-ionen.'+
-      vbBlok('In een 0,100 M '+vbZ.naam+'-oplossing:<br>'+oplosVgl(vbZ)+'<br>Per mol CaCl<sub>2</sub> komt er 1 mol Ca<sup>2+</sup> en 2 mol Cl<sup>−</sup> in de oplossing.<br>[Ca<sup>2+</sup>] = 0,100'+ML+' &nbsp;&nbsp; [Cl<sup>−</sup>] = 2 × 0,100'+ML+' = 0,200'+ML) },
-    vraag:'Je hebt een '+g(c,3)+' M '+z.naam+'-oplossing.',
-    parts:[
-      { vraag:'Welke oplosvergelijking is juist?', opties: [
-          { html:oplosVgl(z), goed:true }, { html:fout1, goed:false }, { html:fout2, goed:false } ].sort(()=>Math.random()-0.5),
-        uitleg:'Een zout splitst in losse ionen. De indexcijfers in de formule geven aan hoeveel ionen van elke soort er per formule-eenheid zijn; die worden coëfficiënten.' },
-      { vraag:'Bereken de molariteit van de '+I[3]+': ['+ion(I[0],I[1])+'].', label:'['+ion(I[0],I[1])+'] =', unit:ML, juist:c*I[2],
-        diag: v => (I[2]>1 && dichtbij(v,c)) ? 'Hoeveel mol '+I[3]+' komt er in de oplossing per mol '+z.naam+'?' : (I[2]>1 && dichtbij(v,c/I[2]) ? 'Delen of vermenigvuldigen?' : null) }
-    ],
-    hint:'Kijk naar de coëfficiënten in de oplosvergelijking.',
-    uitw: () => oplosVgl(z)+'<br>Per mol '+z.naam+' komt er '+I[2]+' mol '+I[3]+' in de oplossing.<br>['+ion(I[0],I[1])+'] = '+(I[2]>1?I[2]+' × ':'')+g(c,3)+ML+' = <b>'+g(c*I[2],3)+ML+'</b>'
-  };
-}
-
-// Niveau 7: wat zit er in de oplossing tijdens een titratie?
+// Niveau 6: wat zit er in de oplossing tijdens een titratie?
 function niv7(){
   const key = pick(['chloride','ijzer','vitc']), T = maakTitratie(key), c = T.ctx;
   return {
@@ -478,7 +438,7 @@ function niv7(){
   };
 }
 
-// Niveau 8: buret aflezen
+// Niveau 7: buret aflezen
 function niv8(){
   const key = pick(['chloride','hardheid','ijzer']), T = maakTitratie(key), c = T.ctx;
   return {
@@ -505,7 +465,7 @@ function niv8(){
   };
 }
 
-// Niveau 9 en 10: de titratieketen
+// Niveau 8 en 9: de titratieketen
 function titratieKeten(key, nieuw){
   const T = maakTitratie(key), c = T.ctx;
   const vb = nieuw==='keten'
@@ -578,7 +538,7 @@ function ster(){
   };
 }
 
-const NIVEAUS = [niv1, niv2, niv3, niv4, niv5, niv6, niv7, niv8, niv9, niv10, ster];
+const NIVEAUS = [niv1, niv2, niv3, niv4, niv5, niv7, niv8, niv9, niv10, ster];
 
 /* ===================================================================
    WEERGAVE VAN EEN OPDRACHT
