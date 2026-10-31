@@ -344,42 +344,104 @@ const AA_FULL={Ala:'Alanine',Arg:'Arginine',Asn:'Asparagine',Asp:'Asparaginezuur
 // ch: charge sign (0=neutral, +1=basic, -1=acidic), pKa of side chain
 const AA_CH={Arg:{ch:1,pKa:12.5},His:{ch:1,pKa:6.0},Lys:{ch:1,pKa:10.5},Asp:{ch:-1,pKa:3.9},Glu:{ch:-1,pKa:4.1}};
 
-// ── SVG STRUCTURES ────────────────────────────────────────────────────────────
-// Each returns SVG content (100x130 viewBox)
-// Backbone: H2N on top-left, Cα in center, COOH on bottom-left, R group on right
-function bbSVG(side){
-  // backbone atoms
-  const b=`<text x="8" y="44" font-size="9" fill="#185FA5" font-weight="600">H₂N</text>
-<line x1="30" y1="40" x2="44" y2="55" stroke="#333" stroke-width="1.2"/>
-<text x="40" y="70" font-size="9" fill="#333">Cα</text>
-<line x1="48" y1="72" x2="36" y2="90" stroke="#333" stroke-width="1.2"/>
-<text x="10" y="104" font-size="9" fill="#a32d2d">COOH</text>
-<line x1="50" y1="62" x2="68" y2="62" stroke="#333" stroke-width="1.2"/>`;
-  return b+side;
-}
-
-const AA_SVG={
-Gly: bbSVG(`<text x="70" y="66" font-size="9" fill="#555">H</text>`),
-Ala: bbSVG(`<text x="70" y="66" font-size="9" fill="#555">CH₃</text>`),
-Val: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH</text><line x1="84" y1="58" x2="84" y2="50" stroke="#555" stroke-width="1"/><text x="86" y="49" font-size="8" fill="#555">CH₃</text><line x1="84" y1="58" x2="92" y2="66" stroke="#555" stroke-width="1"/><text x="86" y="76" font-size="8" fill="#555">CH₃</text>`),
-Leu: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH₂</text><line x1="84" y1="58" x2="84" y2="48" stroke="#555" stroke-width="1"/><text x="72" y="48" font-size="8" fill="#555">CH</text><line x1="80" y1="44" x2="74" y2="36" stroke="#555" stroke-width="1"/><text x="62" y="35" font-size="7" fill="#555">CH₃</text><line x1="80" y1="44" x2="88" y2="36" stroke="#555" stroke-width="1"/><text x="86" y="35" font-size="7" fill="#555">CH₃</text>`),
-Ile: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH</text><line x1="84" y1="58" x2="92" y2="50" stroke="#555" stroke-width="1"/><text x="90" y="49" font-size="7" fill="#555">CH₃</text><line x1="84" y1="58" x2="84" y2="68" stroke="#555" stroke-width="1"/><text x="72" y="78" font-size="8" fill="#555">CH₂</text><line x1="84" y1="74" x2="84" y2="84" stroke="#555" stroke-width="1"/><text x="72" y="93" font-size="7" fill="#555">CH₃</text>`),
-Pro: `<text x="8" y="44" font-size="9" fill="#185FA5" font-weight="600">HN</text><line x1="24" y1="40" x2="40" y2="55" stroke="#333" stroke-width="1.2"/><text x="38" y="70" font-size="9" fill="#333">Cα</text><line x1="45" y1="72" x2="36" y2="88" stroke="#333" stroke-width="1.2"/><text x="10" y="101" font-size="9" fill="#a32d2d">COOH</text><ellipse cx="60" cy="52" rx="18" ry="14" fill="none" stroke="#555" stroke-width="1.2"/><line x1="42" y1="62" x2="44" y2="52" stroke="#333" stroke-width="1.2"/><line x1="22" y1="40" x2="42" y2="46" stroke="#555" stroke-width="1.2"/>`,
-Phe: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH₂</text><line x1="84" y1="57" x2="84" y2="47" stroke="#555" stroke-width="1"/><polygon points="84,36 76,44 76,54 84,58 92,54 92,44" fill="none" stroke="#555" stroke-width="1.1"/><line x1="76" y1="49" x2="92" y2="49" stroke="#555" stroke-width="0.7" stroke-dasharray="2,1"/>`),
-Trp: bbSVG(`<text x="68" y="60" font-size="9" fill="#555">CH₂</text><line x1="82" y1="57" x2="82" y2="48" stroke="#555" stroke-width="1"/><polygon points="82,37 74,43 74,55 80,58 86,55 88,43" fill="none" stroke="#555" stroke-width="1.1"/><line x1="82" y1="43" x2="95" y2="36" stroke="#555" stroke-width="1"/><line x1="95" y1="36" x2="100" y2="44" stroke="#555" stroke-width="1"/><line x1="100" y1="44" x2="94" y2="54" stroke="#555" stroke-width="1"/><line x1="88" y1="51" x2="94" y2="54" stroke="#555" stroke-width="1"/><text x="87" y="30" font-size="7" fill="#185FA5">NH</text>`),
-Met: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH₂</text><line x1="84" y1="57" x2="84" y2="47" stroke="#555" stroke-width="1"/><text x="72" y="46" font-size="8" fill="#555">CH₂</text><line x1="84" y1="42" x2="84" y2="32" stroke="#555" stroke-width="1"/><text x="75" y="31" font-size="8" fill="#d97706">S</text><line x1="86" y1="28" x2="94" y2="24" stroke="#555" stroke-width="1"/><text x="90" y="23" font-size="7" fill="#555">CH₃</text>`),
-Ser: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH₂</text><line x1="84" y1="57" x2="84" y2="47" stroke="#555" stroke-width="1"/><text x="74" y="46" font-size="9" fill="#2d6a10" font-weight="600">OH</text>`),
-Thr: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH</text><line x1="84" y1="57" x2="84" y2="47" stroke="#555" stroke-width="1"/><text x="74" y="46" font-size="9" fill="#2d6a10" font-weight="600">OH</text><line x1="84" y1="57" x2="95" y2="65" stroke="#555" stroke-width="1"/><text x="90" y="74" font-size="8" fill="#555">CH₃</text>`),
-Cys: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH₂</text><line x1="84" y1="57" x2="84" y2="47" stroke="#555" stroke-width="1"/><text x="74" y="46" font-size="9" fill="#d97706" font-weight="600">SH</text>`),
-Tyr: bbSVG(`<text x="68" y="60" font-size="9" fill="#555">CH₂</text><line x1="82" y1="57" x2="82" y2="47" stroke="#555" stroke-width="1"/><polygon points="82,36 74,42 74,52 82,56 90,52 90,42" fill="none" stroke="#555" stroke-width="1.1"/><line x1="74" y1="47" x2="90" y2="47" stroke="#555" stroke-width="0.7" stroke-dasharray="2,1"/><line x1="90" y1="47" x2="98" y2="43" stroke="#555" stroke-width="1"/><text x="96" y="41" font-size="8" fill="#2d6a10" font-weight="600">OH</text>`),
-Asn: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH₂</text><line x1="84" y1="57" x2="84" y2="47" stroke="#555" stroke-width="1"/><text x="72" y="44" font-size="8" fill="#555">C</text><line x1="78" y1="40" x2="78" y2="32" stroke="#555" stroke-width="1"/><text x="74" y="31" font-size="7" fill="#a32d2d">=O</text><line x1="80" y1="40" x2="90" y2="36" stroke="#555" stroke-width="1"/><text x="86" y="34" font-size="8" fill="#185FA5">NH₂</text>`),
-Gln: bbSVG(`<text x="68" y="60" font-size="9" fill="#555">CH₂</text><line x1="82" y1="57" x2="82" y2="47" stroke="#555" stroke-width="1"/><text x="70" y="46" font-size="8" fill="#555">CH₂</text><line x1="82" y1="42" x2="82" y2="32" stroke="#555" stroke-width="1"/><text x="70" y="30" font-size="7" fill="#555">C</text><line x1="76" y1="26" x2="74" y2="18" stroke="#555" stroke-width="1"/><text x="68" y="17" font-size="7" fill="#a32d2d">=O</text><line x1="76" y1="26" x2="86" y2="22" stroke="#555" stroke-width="1"/><text x="83" y="21" font-size="7" fill="#185FA5">NH₂</text>`),
-Asp: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH₂</text><line x1="84" y1="57" x2="84" y2="47" stroke="#555" stroke-width="1"/><text x="72" y="44" font-size="8" fill="#555">C</text><line x1="78" y1="40" x2="78" y2="31" stroke="#555" stroke-width="1.3"/><text x="72" y="30" font-size="7" fill="#a32d2d">=O</text><line x1="80" y1="40" x2="91" y2="36" stroke="#555" stroke-width="1"/><text x="84" y="34" font-size="8" fill="#a32d2d" font-weight="600">OH</text>`),
-Glu: bbSVG(`<text x="68" y="60" font-size="9" fill="#555">CH₂</text><line x1="82" y1="57" x2="82" y2="47" stroke="#555" stroke-width="1"/><text x="70" y="46" font-size="8" fill="#555">CH₂</text><line x1="82" y1="42" x2="82" y2="32" stroke="#555" stroke-width="1"/><text x="70" y="30" font-size="7" fill="#555">C</text><line x1="76" y1="26" x2="74" y2="17" stroke="#555" stroke-width="1.3"/><text x="66" y="16" font-size="7" fill="#a32d2d">=O</text><line x1="76" y1="26" x2="87" y2="22" stroke="#555" stroke-width="1"/><text x="82" y="21" font-size="8" fill="#a32d2d" font-weight="600">OH</text>`),
-Lys: bbSVG(`<text x="70" y="60" font-size="9" fill="#555">CH₂</text><line x1="82" y1="57" x2="82" y2="48" stroke="#555" stroke-width="1"/><text x="70" y="47" font-size="8" fill="#555">CH₂</text><line x1="82" y1="43" x2="82" y2="34" stroke="#555" stroke-width="1"/><text x="70" y="33" font-size="7" fill="#555">CH₂</text><line x1="82" y1="29" x2="82" y2="20" stroke="#555" stroke-width="1"/><text x="70" y="19" font-size="7" fill="#555">CH₂</text><line x1="82" y1="15" x2="82" y2="8" stroke="#555" stroke-width="1"/><text x="70" y="8" font-size="8" fill="#185FA5" font-weight="600">NH₂</text>`),
-Arg: bbSVG(`<text x="68" y="60" font-size="9" fill="#555">CH₂</text><line x1="80" y1="57" x2="80" y2="48" stroke="#555" stroke-width="1"/><text x="68" y="47" font-size="8" fill="#555">CH₂</text><line x1="80" y1="43" x2="80" y2="34" stroke="#555" stroke-width="1"/><text x="68" y="33" font-size="7" fill="#555">CH₂</text><line x1="80" y1="29" x2="80" y2="21" stroke="#555" stroke-width="1"/><text x="68" y="20" font-size="8" fill="#185FA5">NH</text><line x1="80" y1="17" x2="88" y2="11" stroke="#555" stroke-width="1"/><text x="72" y="10" font-size="7" fill="#555">C</text><line x1="79" y1="7" x2="75" y2="0" stroke="#555" stroke-width="1.3"/><text x="60" y="1" font-size="7" fill="#185FA5">=NH</text><line x1="82" y1="8" x2="93" y2="4" stroke="#555" stroke-width="1"/><text x="89" y="3" font-size="7" fill="#185FA5">NH₂</text>`),
-His: bbSVG(`<text x="68" y="60" font-size="9" fill="#555">CH₂</text><line x1="82" y1="57" x2="82" y2="47" stroke="#555" stroke-width="1"/><polygon points="82,36 75,42 78,52 86,52 89,42" fill="none" stroke="#555" stroke-width="1.1"/><text x="65" y="42" font-size="7" fill="#185FA5">N</text><text x="87" y="52" font-size="7" fill="#185FA5">NH</text>`)
+// ── SVG STRUCTUREN ────────────────────────────────────────────────────────────
+// Structuurformules zoals in Binas tabel 67H1: de hoofdketen H₂N–CH–COOH horizontaal,
+// de zijketen recht naar beneden vanaf het centrale C-atoom. Elke zijketen is een lijst
+// knooppunten van boven naar onder; een knooppunt kan een zijtak naar rechts hebben
+// (CH₃, =O, =NH) of eindigen in een ring.
+const AA_ZIJ={
+Gly:[{t:'H'}],
+Ala:[{t:'CH₃'}],
+Val:[{t:'CH',r:'CH₃'},{t:'CH₃'}],
+Leu:[{t:'CH₂'},{t:'CH',r:'CH₃'},{t:'CH₃'}],
+Ile:[{t:'CH',r:'CH₃'},{t:'CH₂'},{t:'CH₃'}],
+Ser:[{t:'CH₂'},{t:'OH'}],
+Thr:[{t:'CH',r:'CH₃'},{t:'OH'}],
+Cys:[{t:'CH₂'},{t:'SH'}],
+Met:[{t:'CH₂'},{t:'CH₂'},{t:'S'},{t:'CH₃'}],
+Asp:[{t:'CH₂'},{t:'C',dbl:'O'},{t:'OH'}],
+Glu:[{t:'CH₂'},{t:'CH₂'},{t:'C',dbl:'O'},{t:'OH'}],
+Asn:[{t:'CH₂'},{t:'C',dbl:'O'},{t:'NH₂'}],
+Gln:[{t:'CH₂'},{t:'CH₂'},{t:'C',dbl:'O'},{t:'NH₂'}],
+Lys:[{t:'CH₂'},{t:'CH₂'},{t:'CH₂'},{t:'CH₂'},{t:'NH₂'}],
+Arg:[{t:'CH₂'},{t:'CH₂'},{t:'CH₂'},{t:'NH'},{t:'C',dbl:'NH'},{t:'NH₂'}],
+Phe:[{t:'CH₂'},{ring:'benzeen'}],
+Tyr:[{t:'CH₂'},{ring:'benzeen',para:'OH'}],
+His:[{t:'CH₂'},{ring:'imidazool'}],
+Trp:[{t:'CH₂'},{ring:'indool'}]
 };
+function aaSVG(a, breedte){
+  const FS=14, CW=9.4, DY=34, KLEUR='#1a1a18', ZK='#174a96';
+  let o='', minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9;
+  const vak=(x1,y1,x2,y2)=>{minX=Math.min(minX,x1,x2);maxX=Math.max(maxX,x1,x2);minY=Math.min(minY,y1,y2);maxY=Math.max(maxY,y1,y2);};
+  const L=(x1,y1,x2,y2,k)=>{o+=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${k||KLEUR}" stroke-width="1.5"/>`; vak(x1,y1,x2,y2);};
+  const T=(x,y,s,anchor,k)=>{ anchor=anchor||'middle'; const w=s.length*CW; o+=`<text x="${x.toFixed(1)}" y="${(y+5).toFixed(1)}" text-anchor="${anchor}" font-size="${FS}" fill="${k||KLEUR}">${s}</text>`;
+    const x0 = anchor==='middle'?x-w/2:anchor==='end'?x-w:x; vak(x0,y-9,x0+w,y+9); return w; };
+  const cx=0, y0=0;
+  if(a==='Pro'){
+    // N en Cα zitten samen in een vijfring (regelmatige vijfhoek met N–Cα als bovenkant)
+    const sz=46, xN=cx-sz;
+    T(xN,y0,'HN'); T(cx,y0,'C'); L(cx+8,y0,cx+22,y0); T(cx+24,y0,'COOH','start');
+    L(cx,y0-9,cx,y0-22); T(cx,y0-30,'H');
+    const V=[[xN,y0],[cx,y0],[xN+sz*1.309,y0+sz*0.951],[xN+sz/2,y0+sz*1.539],[xN-sz*0.309,y0+sz*0.951]];
+    const kort=[13,8,13,13,13];
+    for(let i=0;i<5;i++){ const A=V[i],B=V[(i+1)%5],dx=B[0]-A[0],dy=B[1]-A[1],d=Math.hypot(dx,dy);
+      L(A[0]+dx/d*kort[i],A[1]+dy/d*kort[i],B[0]-dx/d*kort[(i+1)%5],B[1]-dy/d*kort[(i+1)%5], i===0?KLEUR:ZK); }
+    [2,3,4].forEach(i=>T(V[i][0],V[i][1],'CH₂','middle',ZK));
+  } else {
+    T(cx-22,y0,'H₂N','end'); L(cx-20,y0,cx-8,y0);
+    T(cx,y0,'C'); L(cx+8,y0,cx+22,y0); T(cx+24,y0,'COOH','start');
+    L(cx,y0-9,cx,y0-22); T(cx,y0-30,'H');
+    let y=y0;
+    for(const n of (AA_ZIJ[a]||[])){
+      if(n.ring){
+        const top=y+9, r=19;
+        L(cx,top,cx,top+12,ZK);
+        if(n.ring==='benzeen'){
+          const c=[cx,top+12+r]; const P=[-90,-30,30,90,150,210].map(g=>[c[0]+r*Math.cos(g*Math.PI/180), c[1]+r*Math.sin(g*Math.PI/180)]);
+          for(let i=0;i<6;i++) L(P[i][0],P[i][1],P[(i+1)%6][0],P[(i+1)%6][1],ZK);
+          o+=`<circle cx="${c[0]}" cy="${c[1].toFixed(1)}" r="${(r*0.58).toFixed(1)}" fill="none" stroke="${ZK}" stroke-width="1.3"/>`;
+          if(n.para){ L(P[3][0],P[3][1],P[3][0],P[3][1]+12,ZK); T(P[3][0],P[3][1]+21,n.para,'middle',ZK); }
+        } else if(n.ring==='imidazool'){
+          const R=17, c=[cx,top+12+R]; const P=[-90,-18,54,126,198].map(g=>[c[0]+R*Math.cos(g*Math.PI/180), c[1]+R*Math.sin(g*Math.PI/180)]);
+          // ringatomen: 0 C (aan CH₂), 1 CH, 2 NH, 3 CH, 4 N
+          const lab={2:'NH',4:'N'};
+          for(let i=0;i<5;i++){
+            const A=P[i], B=P[(i+1)%5], kA=lab[i]?8:0, kB=lab[(i+1)%5]?8:0;
+            const dx=B[0]-A[0], dy=B[1]-A[1], d=Math.hypot(dx,dy);
+            L(A[0]+dx/d*kA, A[1]+dy/d*kA, B[0]-dx/d*kB, B[1]-dy/d*kB, ZK);
+          }
+          // dubbele bindingen binnen in de ring: C(0)=C(1) en C(3)=N(4)
+          [[0,1],[3,4]].forEach(([i,j])=>{ const A=P[i],B=P[j]; const mx=(A[0]+B[0])/2-c[0], my=(A[1]+B[1])/2-c[1], m=Math.hypot(mx,my); const ox=-mx/m*4, oy=-my/m*4;
+            const s=lab[j]?0.22:0.15, e=lab[j]?0.68:0.85; L(A[0]+(B[0]-A[0])*s+ox, A[1]+(B[1]-A[1])*s+oy, A[0]+(B[0]-A[0])*e+ox, A[1]+(B[1]-A[1])*e+oy, ZK); });
+          T(P[2][0]+2,P[2][1],'NH','start',ZK); T(P[4][0]-2,P[4][1],'N','end',ZK);
+        } else if(n.ring==='indool'){
+          const R=17, c=[cx,top+12+R]; const P=[-90,-18,54,126,198].map(g=>[c[0]+R*Math.cos(g*Math.PI/180), c[1]+R*Math.sin(g*Math.PI/180)]);
+          // vijfring: 0 C3 (aan CH₂), 1 C2, 2 NH, 3 C7a, 4 C3a; benzeenring gedeeld over C3a–C7a
+          for(let i=0;i<5;i++){ const A=P[i],B=P[(i+1)%5]; const kA=i===2?8:0, kB=(i+1)%5===2?8:0; const dx=B[0]-A[0],dy=B[1]-A[1],d=Math.hypot(dx,dy); L(A[0]+dx/d*kA,A[1]+dy/d*kA,B[0]-dx/d*kB,B[1]-dy/d*kB,ZK); }
+          { const A=P[0],B=P[1]; const mx=(A[0]+B[0])/2-c[0], my=(A[1]+B[1])/2-c[1], m=Math.hypot(mx,my); L(A[0]+(B[0]-A[0])*.15-mx/m*4, A[1]+(B[1]-A[1])*.15-my/m*4, A[0]+(B[0]-A[0])*.85-mx/m*4, A[1]+(B[1]-A[1])*.85-my/m*4, ZK); }
+          T(P[2][0]+2,P[2][1]+4,'NH','start',ZK);
+          const A=P[4], B=P[3], ex=B[0]-A[0], ey=B[1]-A[1], el=Math.hypot(ex,ey);
+          let nx=-ey/el, ny=ex/el; const mid=[(A[0]+B[0])/2,(A[1]+B[1])/2];
+          if((mid[0]+nx-c[0])*nx+(mid[1]+ny-c[1])*ny > 0 && Math.hypot(mid[0]+nx*5-c[0],mid[1]+ny*5-c[1]) < Math.hypot(mid[0]-c[0],mid[1]-c[1])) { nx=-nx; ny=-ny; }
+          if(Math.hypot(mid[0]+nx*5-c[0],mid[1]+ny*5-c[1]) < Math.hypot(mid[0]-c[0],mid[1]-c[1])){ nx=-nx; ny=-ny; }
+          const h=el*Math.sqrt(3)/2, hc=[mid[0]+nx*h, mid[1]+ny*h];
+          const H6=[0,1,2,3,4,5].map(k=>{ const g=Math.atan2(A[1]-hc[1],A[0]-hc[0])+k*Math.PI/3; return [hc[0]+el*Math.cos(g), hc[1]+el*Math.sin(g)]; });
+          for(let i=0;i<6;i++) L(H6[i][0],H6[i][1],H6[(i+1)%6][0],H6[(i+1)%6][1],ZK);
+          o+=`<circle cx="${hc[0].toFixed(1)}" cy="${hc[1].toFixed(1)}" r="${(el*0.58).toFixed(1)}" fill="none" stroke="${ZK}" stroke-width="1.3"/>`;
+        }
+        break;
+      }
+      L(cx,y+9,cx,y+DY-9,ZK); y+=DY;
+      const w=T(cx,y,n.t,'middle',ZK);
+      if(n.r){ L(cx+w/2+2,y,cx+w/2+14,y,ZK); T(cx+w/2+16,y,n.r,'start',ZK); }
+      if(n.dbl){ L(cx+w/2+2,y-3,cx+w/2+14,y-3,ZK); L(cx+w/2+2,y+3,cx+w/2+14,y+3,ZK); T(cx+w/2+16,y,n.dbl,'start',ZK); }
+    }
+  }
+  const pad=6, vbx=minX-pad, vby=minY-pad, vbw=maxX-minX+2*pad, vbh=maxY-minY+2*pad;
+  const b = breedte || vbw;
+  return `<svg viewBox="${vbx.toFixed(1)} ${vby.toFixed(1)} ${vbw.toFixed(1)} ${vbh.toFixed(1)}" width="${b}" height="${(b*vbh/vbw).toFixed(0)}" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI',system-ui,Arial,sans-serif">${o}</svg>`;
+}
 
 // ── PROTEIN DATA ─────────────────────────────────────────────────────────────
 // ch: ALL ionizable residues in the full protein with counts [aa, n]
@@ -512,7 +574,7 @@ function renderTrans(){
 
   // Peptide structures for bouw-tab
   const structGrid=AA_LIST.map(a=>`<div class="aa-struct-card${pepSlots.includes(a)&&!pepSlots.every(s=>s===a)?' used':''}" onclick="addPep('${a}')" id="asc-${a}">
-    <svg viewBox="0 0 100 130" width="80" height="104" xmlns="http://www.w3.org/2000/svg">${AA_SVG[a]||''}</svg>
+    ${aaSVG(a,92)}
     <div class="aa-struct-name">${a}</div><div class="aa-struct-full">${AA_FULL[a]||''}</div>
   </div>`).join('');
 
@@ -612,7 +674,7 @@ function updPepSlots(){
     const el=document.getElementById('ps-'+i); if(!el) return;
     if(pepSlots[i]){
       const aa=pepSlots[i];
-      el.innerHTML=`<svg viewBox="0 0 100 130" width="64" height="83" xmlns="http://www.w3.org/2000/svg">${AA_SVG[aa]||''}</svg><div class="pep-slot-name">${aa}</div>`;
+      el.innerHTML=`${aaSVG(aa,78)}<div class="pep-slot-name">${aa}</div>`;
       el.classList.add('filled'); el.classList.remove('ok','wrong');
     } else {
       el.innerHTML='<div class="pep-slot-placeholder">Klik een<br>structuur</div>';
@@ -949,7 +1011,7 @@ const rnd = n=>Math.floor(Math.random()*n), pick = a=>a[rnd(a.length)];
 const shuffle = a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;};
 const vbBlok = h=>'<div class="vb"><div class="vbk">Voorbeeld</div>'+h+'</div>';
 const SENSE = Object.keys(CT).filter(c=>CT[c]!=='Stop'), STOPS=['UAA','UAG','UGA'];
-const aaSvg = (a,w=110) => `<svg viewBox="0 0 110 130" width="${w}" height="${w*130/110}" xmlns="http://www.w3.org/2000/svg">${AA_SVG[a]||''}</svg>`;
+const aaSvg = (a,w=150) => aaSVG(a,w);
 // aminozuur-invoer: drielettercode, éénlettercode of naam
 function leesAA(s){
   s=String(s).trim(); if(!s) return null;
