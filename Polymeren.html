@@ -107,6 +107,21 @@ body.hs-beamer .page{zoom:1.3}
 .pq{font-size:15px;margin-bottom:8px}
 .mc{display:flex;gap:8px;flex-wrap:wrap}
 .mc.groot{flex-direction:column}
+.tegels{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}
+.tegel{background:#fff;border:1.5px solid var(--bd);border-radius:7px;padding:6px 11px;font-family:'Courier New',monospace;font-size:15px;font-weight:700;cursor:pointer;color:var(--tx)}
+.tegel:hover:not(:disabled){border-color:var(--bl);background:var(--blb)}
+.tegel:disabled{opacity:.45;cursor:default}
+.tekenvak{background:#fff;border:1.5px dashed var(--bd);border-radius:8px;padding:8px 12px;margin:8px 0;min-height:70px;overflow-x:auto}
+.tekenvak .leeg{color:var(--tx3);font-size:13.5px;padding:14px 4px}
+.strip{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin:6px 0}
+.strip .sk{font-family:'Courier New',monospace;font-weight:700;font-size:14.5px;padding:5px 8px;border:1.5px solid var(--bd);border-radius:6px;background:#fff;cursor:pointer}
+.strip .sk.sel{background:var(--blb);border-color:var(--bl);color:var(--bl)}
+.strip .sk.goedsel{background:var(--gnb);border-color:var(--gn)}
+.strip .bd{min-width:22px;height:30px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;border-radius:5px;font-weight:700;color:var(--tx3)}
+.strip .bd:hover{background:var(--sf2)}
+.strip .bd.knip{background:var(--rdb);color:var(--rd)}
+.strip.vast .sk,.strip.vast .bd{cursor:default}
+.tekenknoppen{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
 .opt{background:#fff;color:var(--tx);border:1.5px solid var(--bd);font:inherit;font-size:14.5px;padding:8px 14px;border-radius:7px;cursor:pointer;text-align:left}
 .opt svg{display:block;max-width:100%;height:auto}
 .opt:hover:not(:disabled){background:var(--blb);border-color:var(--bl)}
@@ -571,6 +586,146 @@ const naamNorm = s => String(s).toLowerCase().replace(/\s/g,'').replace(/[–—
 const pastNaam = (inp, m) => [m.naam, ...(m.aliassen||[])].some(a => naamNorm(a)===naamNorm(inp));
 const vbBlok = h => '<div class="vb"><div class="vbk">Voorbeeld</div>'+h+'</div>';
 const ander = (lijst, niet) => { let x; do{ x = pick(lijst); }while(niet.includes(x)); return x; };
+
+/* ===================== KETENSTUKKEN TEKENEN (tegels) ===================== */
+// Een tegel is één token zoals tekenKeten die gebruikt: één ketenatoom met zijn zijgroepen.
+function tokKey(t){
+  if(t.dbl) return '=';
+  if(t.ring) return 'ring:'+t.ring;
+  return t.a+'|'+(t.o||'')+'|'+(t.h?'h':'')+'|'+(t.up||'')+'|'+JSON.stringify(t.dn||[]);
+}
+function tokLabel(t){
+  if(t.dbl) return '= (C=C)';
+  if(t.ring) return 'C₆H₄';
+  if(t.o===true) return 'C(=O)';
+  if(t.h) return 'NH';
+  let s = t.a;
+  if(t.up) s += '('+t.up+')';
+  if(t.dn && t.dn.length) s += '('+t.dn.map(d=>typeof d==='string'?d:(d.a+(d.o?'O':''))).join('')+')';
+  return s;
+}
+const OH_T = {a:'OH'}, NH2_T = {a:'NH₂'}, DBL_T = {dbl:true};
+function splitMonomeren(unit){ const i = unit.findIndex(t=>t.a==='C' && t.o===true); return [unit.slice(0,i), unit.slice(i)]; }
+// Past een getekende tokenreeks bij een stuk uit een (oneindige) keten van deze monomeren?
+// mons: herhalende reeks monomeren (elk een tokenlijst); aantal: hoeveel monomeereenheden het stuk moet hebben.
+function pastKetenstuk(S, mons, aantal){
+  const keys = S.map(tokKey), rev = keys.slice().reverse();
+  const stroom = []; for(let r=0;r<aantal+4;r++) mons.forEach(m=>stroom.push(...m.map(tokKey)));
+  const lengtes = new Set(); for(let b=0;b<mons.length;b++){ let L=0; for(let j=0;j<aantal;j++) L += mons[(b+j)%mons.length].length; lengtes.add(L); }
+  const periode = mons.reduce((t,m)=>t+m.length,0);
+  for(const L of lengtes){
+    if(keys.length!==L) continue;
+    for(let st=0; st<periode; st++){
+      const w = stroom.slice(st, st+L);
+      if(w.join('#')===keys.join('#') || w.join('#')===rev.join('#')) return true;
+    }
+  }
+  return false;
+}
+function verwachteLengtes(mons, aantal){ const l=new Set(); for(let b=0;b<mons.length;b++){ let L=0; for(let j=0;j<aantal;j++) L+=mons[(b+j)%mons.length].length; l.add(L);} return [...l]; }
+// Feedback bij een getekend ketenstuk
+function tekenDiag(S, cfg){
+  if(!S.length) return 'Klik op de tegels om het ketenstuk op te bouwen.';
+  if(!cfg.dieen && S.some(t=>t.dbl)) return 'In je ketenstuk staat nog een C=C. Wat gebeurt er bij additie met de dubbele binding?';
+  if(S.some(t=>t===OH_T||t===NH2_T)) return 'Een OH- of NH₂-groep zit alleen aan het uiteinde van een monomeer. In de keten is die groep omgezet in een ester- of amidebinding.';
+  if(cfg.exact){
+    const k=S.map(tokKey).join('#'), e=cfg.exact.map(tokKey).join('#'), r=cfg.exact.map(tokKey).reverse().join('#');
+    if(k===e||k===r) return null;
+    if(S.length!==cfg.exact.length) return 'Je ketenstuk heeft nu '+S.length+' tegels; dit stuk moet er '+cfg.exact.length+' hebben. Hoeveel tegels heeft één monomeereenheid?';
+    return 'De volgorde van de monomeren of de zijgroepen kloppen nog niet. Vergelijk elke eenheid met het monomeer en met de gevraagde volgorde.';
+  }
+  if(pastKetenstuk(S, cfg.mons, cfg.aantal)) return null;
+  const L = verwachteLengtes(cfg.mons, cfg.aantal);
+  if(!L.includes(S.length)) return 'Je ketenstuk heeft nu '+S.length+' tegel'+(S.length>1?'s':'')+'. Voor '+cfg.aantal+' monomeereenheden zijn dat er '+L.join(' of ')+'.';
+  return 'Het aantal tegels klopt, maar de volgorde of de zijgroepen nog niet. Vergelijk elke monomeereenheid met het monomeer.';
+}
+function tegelSet(goed, extra){
+  const uniek = []; const seen = new Set();
+  [...goed, ...extra].forEach(t=>{ const k=tokKey(t); if(!seen.has(k)){ seen.add(k); uniek.push(t); } });
+  return uniek.sort(()=>Math.random()-0.5);
+}
+function stripHTML(tokens, modus){
+  // modus 'kies': tegels aanklikbaar; 'breek': bindingen ertussen aanklikbaar
+  let h = '<div class="strip">';
+  tokens.forEach((t,i)=>{
+    if(i>0) h += modus==='breek' ? '<span class="bd" data-b="'+(i-1)+'">–</span>' : '<span class="bd">–</span>';
+    h += '<span class="sk" data-i="'+i+'">'+tokLabel(t)+'</span>';
+  });
+  return h+'</div>';
+}
+
+function opdTekenAdditie(){
+  const m = pick(ADDITIE.filter(x=>x.naam!=='chlooretheen'));
+  const andere = ander(ADDITIE,[m, ADDITIE[2]]);
+  const extra = [DBL_T, ...andere.unit, {a:m.unit[1].a==='CH'?'CH₂':'CH', dn: m.unit[1].dn}];
+  return {
+    titel:'Van monomeer naar polymeer',
+    instr:{ titel:'Nieuw: het polymeer tekenen', html:'Teken de monomeren naast elkaar met de C=C-binding in de lengterichting. Maak van elke C=C een C–C en verbind de monomeren. De zijgroepen blijven aan dezelfde C-atomen zitten. Een stuk uit het midden van een keten teken je met een golflijntje aan beide kanten.<br>Bouw het ketenstuk door op de tegels te klikken: elke tegel is één C-atoom van de keten met zijn zijgroepen.'+
+      vbBlok('Polychlooretheen uit CH₂=CH−Cl, drie monomeereenheden:'+tekenKeten(herhaal(ADDITIE[2].unit,3))) },
+    vraag:'Teken een stuk uit het additiepolymeer van <b>'+m.naam+'</b> ('+m.mono+') met <b>3 monomeereenheden</b>.',
+    parts:[{ soort:'teken', tegels: tegelSet(m.unit, extra), cfg:{mons:[m.unit], aantal:3}, antwoord: herhaal(m.unit,3) }],
+    hint:'Hoeveel C-atomen in de keten komen uit één monomeer, en waar zit de zijgroep?',
+    uitw:()=> 'Het juiste ketenstuk:'+tekenKeten(herhaal(m.unit,3))+'Elke C=C is een C–C geworden; per monomeereenheid zit de zijgroep op dezelfde plek als in het monomeer.'
+  };
+}
+function opdKiesEenheid(){
+  const m = pick(ADDITIE.filter(x=>x.naam!=='chlooretheen'));
+  const tokens = herhaal(m.unit,3);
+  return {
+    titel:'Van polymeer naar monomeer',
+    instr:{ titel:'Nieuw: het monomeer terugvinden', html:'Zoek in het ketenstuk de eenheid die steeds terugkomt. Bij een additiepolymeer zijn dat twee C-atomen in de keten. Maak van de C–C-binding tussen die twee C-atomen weer een C=C: dat is het monomeer.'+
+      vbBlok(tekenKeten(herhaal(ADDITIE[2].unit,3))+'De terugkerende eenheid is −CH₂−CHCl−. Het monomeer is CH₂=CH−Cl: <b>chlooretheen</b>.') },
+    vraag:'Hieronder zie je een stuk uit een additiepolymeer.<div class="ketenbox">'+tekenKeten(tokens)+'</div>',
+    parts:[
+      { soort:'kies', vraag:'Klik in de rij hieronder op de eerste en de laatste tegel van één herhalende eenheid.', tokens, unit:m.unit },
+      { soort:'naam', vraag:'Geef de systematische naam van het monomeer.', label:'monomeer:', check: inp => pastNaam(inp,m), diag: inp => naamDiag(inp,m,m.triv), antwoord: m.naam }],
+    hint:'Hoeveel C-atomen van de keten komen uit één monomeer?',
+    uitw:()=> 'Herhalende eenheid: −'+m.unit.map(tokLabel).join('−')+'−. Monomeer: '+m.mono+' → <b>'+m.naam+'</b>. Het polymeer heet '+m.triv+'.'
+  };
+}
+function opdTekenCondens2(){
+  const s = pick(CONDENS_2.filter(x=>x.triv!=='PET (frisdrankflessen)'));
+  const [A,B] = splitMonomeren(s.unit);
+  const andere = ander(CONDENS_2,[s]);
+  const extra = [OH_T, s.soort==='polyamide'?NH2_T:OH_T, ...splitMonomeren(andere.unit)[1].filter(t=>!(t.a==='C'&&t.o===true)), s.soort==='polyamide'?{a:'O'}:NH];
+  const startA = Math.random()<0.5;
+  return {
+    titel:'Polyester of polyamide tekenen',
+    instr:{ titel:'Nieuw: een condensatiepolymeer tekenen', html:'Zet de monomeren om en om naast elkaar. Laat steeds een COOH-groep reageren met een OH- of NH₂-groep van het volgende monomeer: daarbij splitst water af en ontstaat een ester- of amidebinding. In de keten zie je dus −O−C(=O)− of −NH−C(=O)−, en geen OH-, NH₂- of COOH-groepen meer.'+
+      vbBlok('PET uit HO−CH₂−CH₂−OH en HOOC−C₆H₄−COOH, drie monomeereenheden:'+tekenKeten([...splitMonomeren(CONDENS_2[1].unit)[0], ...splitMonomeren(CONDENS_2[1].unit)[1], ...splitMonomeren(CONDENS_2[1].unit)[0]])) },
+    vraag:'Teken een stuk uit de '+s.soort+' van <b>'+s.namen[0]+'</b> ('+s.monos[0]+') en <b>'+s.namen[1]+'</b> ('+s.monos[1].replace(/ \(.*\)/,'')+') met <b>3 monomeereenheden</b>.',
+    parts:[{ soort:'teken', tegels: tegelSet([...A,...B], extra), cfg:{mons:[A,B], aantal:3}, antwoord: startA?[...A,...B,...A]:[...B,...A,...B] }],
+    hint:'Welke groepen reageren met elkaar, en wat blijft daarvan over in de keten?',
+    uitw:()=> 'Bijvoorbeeld:'+tekenKeten([...A,...B,...A])+'Tussen de monomeren zitten '+(s.soort==='polyester'?'esterbindingen −O−C(=O)−':'amidebindingen −NH−C(=O)−')+'.'
+  };
+}
+function opdTekenCondens1(){
+  const m = pick(CONDENS_1);
+  const extra = [OH_T, NH2_T, m.soort==='polyamide'?{a:'O'}:NH, {a:'(CH₂)₂'}];
+  return {
+    titel:'Eén monomeer tekenen',
+    instr:{ titel:'Nieuw: een keten uit één soort monomeer', html:'Een monomeer met aan het ene uiteinde een OH- of NH₂-groep en aan het andere uiteinde een COOH-groep kan met zichzelf een keten vormen. Zet de monomeren in dezelfde richting achter elkaar en laat steeds de COOH-groep van het ene monomeer reageren met de OH- of NH₂-groep van het volgende.'+
+      vbBlok('Uit 3-hydroxypropaanzuur HO−CH₂−CH₂−COOH, drie monomeereenheden:'+tekenKeten(herhaal([{a:'O'},{a:'CH₂'},{a:'CH₂'},CO],3))) },
+    vraag:'Teken een stuk uit het polymeer van <b>'+m.naam+'</b> ('+m.mono.replace(/ \(.*\)/,'')+') met <b>3 monomeereenheden</b>.',
+    parts:[{ soort:'teken', tegels: tegelSet(m.unit, extra), cfg:{mons:[m.unit], aantal:3}, antwoord: herhaal(m.unit,3) }],
+    hint:'Staan alle monomeren in dezelfde richting? Wat blijft er over van de OH- of NH₂-groep en de COOH-groep?',
+    uitw:()=> 'Het juiste ketenstuk:'+tekenKeten(herhaal(m.unit,3))+'Het polymeer is '+m.triv+'.'
+  };
+}
+function opdTekenCopol(){
+  let A, B; do { A = pick(ADDITIE); B = pick(ADDITIE); } while(A===B || (A.naam==='etheen'&&B.naam==='propeen') || (A.naam==='propeen'&&B.naam==='etheen'));
+  const volgorde = pick(['ABAB','ABAB','AABA','ABBA','ABAA','BAAB']);
+  const exact = volgorde.split('').map(c=>c==='A'?A.unit:B.unit).flat();
+  return {
+    titel:'★ Copolymeer tekenen', ster:true,
+    instr:{ titel:'Nieuw: een copolymeer tekenen', html:'Een <b>copolymeer</b> ontstaat uit twee verschillende monomeren. Bij additie gaat ook nu elke C=C open. De volgorde van de monomeren in de keten kan om en om zijn, maar ook willekeurig. Teken de eenheden precies in de gevraagde volgorde.'+
+      vbBlok('Etheen (A) en propeen (B) in de volgorde A–B–A–B:'+tekenKeten([...ADDITIE[0].unit,...ADDITIE[1].unit,...ADDITIE[0].unit,...ADDITIE[1].unit])) },
+    vraag:'Een copolymeer bestaat uit <b>'+A.naam+'</b> (A, '+A.mono.replace(/ \(.*\)/,'')+') en <b>'+B.naam+'</b> (B, '+B.mono.replace(/ \(.*\)/,'')+'). Teken een stuk met <b>4 monomeereenheden</b> in de volgorde <b>'+volgorde.split('').join('–')+'</b>.',
+    parts:[{ soort:'teken', tegels: tegelSet([...A.unit,...B.unit],[DBL_T]), cfg:{exact}, antwoord: exact }],
+    hint:'Teken eerst één eenheid van A en één van B. Zet ze daarna in de gevraagde volgorde.',
+    uitw:()=> 'Het juiste ketenstuk ('+volgorde.split('').join('–')+'):'+tekenKeten(exact)
+  };
+}
 function leesNum(s){ s = String(s).trim().replace(/\s/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.'); return /^-?\d+(\.\d+)?$/.test(s) ? parseFloat(s) : null; }
 
 // typische naamfouten bij een monomeernaam
@@ -668,9 +823,10 @@ function opd5(){
     titel:'Twee monomeren',
     instr:{ titel:'Nieuw: knippen en de groepen terugzetten', html:'Knip het polymeer door bij elke ester- of amidebinding, tussen de C=O en de O of N. Zet daarna de groepen terug: de C=O krijgt weer een OH (COOH-groep), de O krijgt een H (OH-groep) en de N krijgt een H (NH₂-groep).'+
       vbBlok('Uit een stuk PET −O−CH₂−CH₂−O−C(=O)−C₆H₄−C(=O)− knip je HO−CH₂−CH₂−OH (ethaan-1,2-diol) en HOOC−C₆H₄−COOH (benzeen-1,4-dicarbonzuur).') },
-    vraag:'Hieronder zie je een stuk uit een '+s.soort+'.<div class="ketenbox">'+tekenKeten(herhaal(s.unit,2))+'</div>Geef de systematische namen van de twee monomeren.',
+    vraag:'Hieronder zie je een stuk uit een '+s.soort+'.<div class="ketenbox">'+tekenKeten(herhaal(s.unit,2))+'</div>',
     parts:[
-      { soort:'naam', vraag:'Het monomeer met twee COOH-groepen:', label:'naam:', check: inp=>pastNaam(inp,mz), diag: inp => /zuur/.test(naamNorm(inp)) && !/di/.test(naamNorm(inp)) ? 'Hoeveel COOH-groepen heeft dit monomeer? Dat zie je terug in de naam.' : naamDiag(inp,mz), antwoord: mz.naam },
+      { soort:'breek', vraag:'Klik in de rij hieronder op alle bindingen die je doorknipt.', tokens: herhaal(s.unit,2) },
+      { soort:'naam', vraag:'Geef de systematische naam van het monomeer met twee COOH-groepen:', label:'naam:', check: inp=>pastNaam(inp,mz), diag: inp => /zuur/.test(naamNorm(inp)) && !/di/.test(naamNorm(inp)) ? 'Hoeveel COOH-groepen heeft dit monomeer? Dat zie je terug in de naam.' : naamDiag(inp,mz), antwoord: mz.naam },
       { soort:'naam', vraag:'Het andere monomeer:', label:'naam:', check: inp=>pastNaam(inp,ma), diag: inp => /ol$/.test(naamNorm(inp))&&!/diol/.test(naamNorm(inp)) || /amine$/.test(naamNorm(inp))&&!/diamine/.test(naamNorm(inp)) ? 'Hoeveel '+(s.soort==='polyester'?'OH':'NH₂')+'-groepen heeft dit monomeer? Geef ook de plaatsnummers.' : naamDiag(inp,ma), antwoord: ma.naam }
     ],
     hint:'Elk monomeer heeft twee reactieve groepen: aan elk uiteinde één.',
@@ -845,7 +1001,7 @@ function opdSter(){
   };
 }
 
-const NIVEAUS = [opd1,opd2,opd3,opd4,opd5,opd6,opd7,opd8,opd9,opd10,opd11,opd12,opd13,opdSter];
+const NIVEAUS = [opd1,opdTekenAdditie,opdKiesEenheid,opd4,opdTekenCondens2,opd5,opdTekenCondens1,opd6,opd7,opd8,opd9,opd10,opd11,opd12,opd13,opdTekenCopol,opdSter];
 let serie;
 function nieuweSerie(){ serie = { i:0, items:NIVEAUS.map(f=>f()), status:NIVEAUS.map(()=>'') }; renderSerie(); }
 function renderSerie(){
@@ -864,6 +1020,11 @@ function renderVraag(el, q){
   q.parts.forEach((p,i)=>{
     h += '<div class="part" id="part'+i+'" style="'+(i?'display:none':'')+'">'+(p.vraag?'<div class="pq">'+(q.parts.length>1?'<b>'+String.fromCharCode(97+i)+'.</b> ':'')+p.vraag+'</div>':'');
     if(p.soort==='mc') h += '<div class="mc'+(p.groot?' groot':'')+'">'+p.opties.map((o,k)=>'<button class="opt" data-k="'+k+'">'+o.html+'</button>').join('')+'</div>';
+    else if(p.soort==='teken') h += '<div class="tegels">'+p.tegels.map((t,k)=>'<button class="tegel" data-k="'+k+'">'+tokLabel(t)+'</button>').join('')+'</div>'+
+         '<div class="tekenvak"><div class="leeg">Klik op de tegels om je ketenstuk op te bouwen.</div></div>'+
+         '<div class="tekenknoppen"><button class="btn btn-sec terug">⌫ Laatste tegel weg</button><button class="btn btn-sec wis">Wis alles</button><button class="btn chk">Controleer</button></div>';
+    else if(p.soort==='kies') h += stripHTML(p.tokens,'kies')+'<div class="tekenknoppen"><button class="btn chk">Controleer</button></div>';
+    else if(p.soort==='breek') h += stripHTML(p.tokens,'breek')+'<div class="tekenknoppen"><button class="btn chk">Controleer</button></div>';
     else h += '<div class="answer-row"><label>'+p.label+'</label><input type="text" autocomplete="off" spellcheck="false" style="width:'+(p.soort==='naam'?'300px':'150px')+'">'+(p.unit?'<span class="unit">'+p.unit+'</span>':'')+'<button class="btn chk">Controleer</button></div>';
     h += '<div class="fbx"></div></div>';
   });
@@ -897,11 +1058,64 @@ function renderVraag(el, q){
     if(p.soort==='mc'){ const k=p.opties.findIndex(o=>o.goed); pe().querySelectorAll('.opt')[k].classList.add('goed'); fb('hint','<b>Antwoord:</b> zie de groene keuze. '+(p.uitleg||'')); }
     else if(p.soort==='naam') fb('hint','<b>Antwoord:</b> '+p.antwoord);
     else if(p.soort==='ratio') fb('hint','<b>Antwoord:</b> '+p.p+' : '+p.q);
+    else if(p.soort==='teken'){ p.zet(p.antwoord); fb('hint','<b>Antwoord:</b> zie het ketenstuk hierboven.'); }
+    else if(p.soort==='kies'){ p.toon(); fb('hint','<b>Antwoord:</b> de groene tegels vormen één herhalende eenheid.'); }
+    else if(p.soort==='breek'){ p.toon(); fb('hint','<b>Antwoord:</b> knip tussen elke C=O en de O of N ernaast.'); }
     else fb('hint','<b>Antwoord:</b> '+p.label+' '+heel(p.juist)+' '+(p.unit||''));
     volgend(false);
   };
   q.parts.forEach((p,i)=>{
     const e = el.querySelector('#part'+i);
+    if(p.soort==='teken'){
+      let S = [];
+      const vak = e.querySelector('.tekenvak');
+      p.zet = T => { S = T.slice(); vak.innerHTML = S.length ? tekenKeten(S) : '<div class="leeg">Klik op de tegels om je ketenstuk op te bouwen.</div>'; };
+      e.querySelectorAll('.tegel').forEach(bt=>bt.onclick=()=>{ if(st.deel!==i) return; if(S.length>=40) return; p.zet([...S, p.tegels[+bt.dataset.k]]); });
+      e.querySelector('.terug').onclick = () => { if(st.deel===i) p.zet(S.slice(0,-1)); };
+      e.querySelector('.wis').onclick = () => { if(st.deel===i) p.zet([]); };
+      e.querySelector('.chk').onclick = () => {
+        if(st.deel!==i) return;
+        const m = tekenDiag(S, p.cfg);
+        if(!S.length){ fb('hint', m); return; }
+        if(m===null){ fb('correct','<b>Goed getekend!</b>'); e.querySelectorAll('.tegel').forEach(x=>x.disabled=true); volgend(st.tries===0); }
+        else fout(m);
+      };
+      return;
+    }
+    if(p.soort==='kies'){
+      let sel = [];
+      const sks = [...e.querySelectorAll('.sk')];
+      const teken = () => { const [a,b] = sel.length===2 ? [Math.min(...sel),Math.max(...sel)] : [sel[0],sel[0]]; sks.forEach((x,k)=>x.classList.toggle('sel', sel.length>0 && k>=a && k<=b)); };
+      sks.forEach((x,k)=>x.onclick=()=>{ if(st.deel!==i) return; sel = sel.length>=2 ? [k] : [...sel,k]; teken(); });
+      p.toon = () => { sks.forEach((x,k)=>x.classList.toggle('goedsel', k<p.unit.length)); };
+      e.querySelector('.chk').onclick = () => {
+        if(st.deel!==i) return;
+        if(sel.length<2){ fb('hint','Klik op de eerste én de laatste tegel van de herhalende eenheid.'); return; }
+        const a=Math.min(...sel), b=Math.max(...sel), w=p.tokens.slice(a,b+1);
+        const U=p.unit.map(tokKey), n=U.length;
+        const rot = [...Array(n).keys()].map(r=>U.slice(r).concat(U.slice(0,r)).join('#'));
+        if(w.length===n && rot.includes(w.map(tokKey).join('#'))){ fb('correct','<b>Goed!</b> Dit stuk komt steeds terug: −'+w.map(tokLabel).join('−')+'−.'); volgend(st.tries===0); }
+        else if(w.length>n && w.length%n===0) fout('Dit stuk herhaalt zich wel, maar het bestaat uit meer dan één eenheid. Wat is het kleinste stuk dat steeds terugkomt?');
+        else fout('Dit stuk komt niet steeds precies zo terug in de keten. Hoeveel C-atomen van de keten komen uit één monomeer?');
+      };
+      return;
+    }
+    if(p.soort==='breek'){
+      const goed = new Set(); p.tokens.forEach((t,k)=>{ if(k===p.tokens.length-1) return; const u=p.tokens[k+1]; const isCO=x=>x.a==='C'&&x.o===true, isON=x=>x.a==='O'&&!x.o || (x.a==='N'&&x.h); if((isCO(t)&&isON(u))||(isON(t)&&isCO(u))) goed.add(k); });
+      const gekozen = new Set();
+      const bds = [...e.querySelectorAll('.bd[data-b]')];
+      bds.forEach(x=>x.onclick=()=>{ if(st.deel!==i) return; const k=+x.dataset.b; gekozen.has(k)?gekozen.delete(k):gekozen.add(k); x.classList.toggle('knip', gekozen.has(k)); x.textContent = gekozen.has(k)?'✂':'–'; });
+      p.toon = () => { bds.forEach(x=>{ const k=+x.dataset.b; x.classList.toggle('knip', goed.has(k)); x.textContent = goed.has(k)?'✂':'–'; }); };
+      e.querySelector('.chk').onclick = () => {
+        if(st.deel!==i) return;
+        if(!gekozen.size){ fb('hint','Klik op de streepjes tussen de tegels om een binding door te knippen.'); return; }
+        const fout1 = [...gekozen].some(k=>!goed.has(k)), mist = [...goed].some(k=>!gekozen.has(k));
+        if(!fout1 && !mist){ fb('correct','<b>Goed!</b> Je knipt alle '+(p.tokens.some(t=>t.h)?'amide':'ester')+'bindingen door, tussen de C=O en de '+(p.tokens.some(t=>t.h)?'N':'O')+'.'); volgend(st.tries===0); }
+        else if(fout1) fout('Je knipt ook een binding door die geen ester- of amidebinding is. Bij hydrolyse breekt alleen de binding tussen de C=O en de O of N ernaast.');
+        else fout('Je hebt nog niet alle ester- of amidebindingen gevonden. Kijk bij elke C=O.');
+      };
+      return;
+    }
     if(p.soort==='mc'){
       e.querySelectorAll('.opt').forEach(bt=>bt.onclick=()=>{
         if(st.deel!==i) return;
