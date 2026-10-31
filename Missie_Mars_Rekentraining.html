@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Missie Mars — Rekentraining</title>
+<style>
+:root{
+  --bg:#0c0f14; --paneel:#151a22; --paneel2:#1b212b; --rand:#2a313d; --rand2:#3a4352;
+  --tekst:#ece6df; --muted:#9aa1ad; --mars:#E8875A; --marsdonker:#B5532A; --amber:#ffb020;
+  --goed:#3fcf7f; --goeddim:#123a26; --fout:#ff6b6b; --foutdim:#3d1616;
+  --kA:#FDECA6; --kB:#B9DFA6; --kC:#94BAE2; --kD:#C29466;
+  --mono:"Consolas","SFMono-Regular","Menlo","DejaVu Sans Mono","Courier New",monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+html{background:var(--bg)}
+body{background:radial-gradient(ellipse at 50% 0%,#1d1716 0%,var(--bg) 60%) fixed;color:var(--tekst);font-family:var(--sans);font-size:17px;line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding:22px 18px 60px}
+header{display:flex;align-items:center;gap:18px;border:1px solid var(--rand);border-radius:12px;padding:14px 20px;background:linear-gradient(#171b22,#11141a);margin-bottom:18px}
+header .logo{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f2a06b,#b5532a 60%,#5e2412);box-shadow:0 0 18px rgba(232,135,90,.45);flex:none}
+header h1{margin:0;font-family:var(--mono);font-size:22px;letter-spacing:4px;font-weight:700}
+header .sub{font-family:var(--mono);font-size:12px;letter-spacing:2.5px;color:var(--muted)}
+header .score{margin-left:auto;text-align:right;font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--muted)}
+header .score b{display:block;font-size:22px;color:var(--mars);letter-spacing:1px}
+
+.niveaus{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:12px}
+.niv{background:var(--paneel);border:1px solid var(--rand);border-radius:10px;padding:10px 12px;cursor:pointer;color:var(--tekst);text-align:left;font-family:var(--sans);transition:border-color .15s,background .15s}
+.niv:hover{border-color:var(--rand2)}
+.niv.actief{border-color:var(--mars);background:#211915;box-shadow:inset 0 0 0 1px var(--mars)}
+.niv .nr{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--mars)}
+.niv .ttl{font-weight:650;font-size:15px;line-height:1.25;margin:2px 0 4px}
+.niv .les{font-size:12.5px;color:var(--muted)}
+.niv .pt{font-family:var(--mono);font-size:12px;color:var(--goed);min-height:16px}
+
+.leerdoel{background:var(--paneel);border:1px solid var(--rand);border-left:4px solid var(--mars);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:15.5px}
+.leerdoel b{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--mars);display:block}
+.opties{display:flex;flex-wrap:wrap;gap:8px 22px;margin-bottom:14px;font-size:15px;color:var(--muted)}
+.opties label{display:flex;align-items:center;gap:7px;cursor:pointer}
+.opties input{accent-color:var(--mars);width:17px;height:17px}
+
+.kaart{background:var(--paneel);border:1px solid var(--rand2);border-radius:14px;padding:22px 26px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.ctx{font-style:italic;color:#d9cfc5;margin:0 0 12px}
+.ctx::before{content:"LOGBOEK  ";font-style:normal;font-family:var(--mono);font-size:11px;letter-spacing:2.5px;color:var(--mars)}
+.vgl{font-size:21px;margin:6px 0 16px;padding:10px 14px;background:#0f1319;border:1px solid var(--rand);border-radius:10px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.vgl .lbl{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--muted);margin-right:4px}
+.vgl+.vgl{margin-top:-8px}
+.chip{display:inline-block;color:#1c1c1c;border-radius:4px;padding:0 5px;font-weight:600;line-height:1.35}
+.kA{background:var(--kA)} .kB{background:var(--kB)} .kC{background:var(--kC)} .kD{background:var(--kD)} .kE{background:#d9c3e8}
+.coef{font-weight:700;margin-right:3px}
+.pijl{color:var(--muted)}
+.vraag{font-size:17.5px;margin:0 0 14px}
+.velden{display:flex;flex-direction:column;gap:12px;margin:8px 0 18px}
+.veld{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.veld .vl{min-width:290px;flex:0 1 auto}
+.veld input[type=text]{width:130px;padding:7px 10px;font-size:18px;font-family:var(--mono);background:#0b0e13;color:var(--tekst);border:1px solid var(--rand2);border-radius:8px;text-align:right}
+.veld input[type=text]:focus,.veld select:focus{outline:2px solid var(--mars);outline-offset:1px}
+.veld select{padding:7px 10px;font-size:17px;background:#0b0e13;color:var(--tekst);border:1px solid var(--rand2);border-radius:8px}
+.veld .eh{font-family:var(--mono);color:var(--muted);min-width:44px}
+.veld .st{font-size:15px;min-height:22px}
+.veld.goed input,.veld.goed select{border-color:var(--goed);background:var(--goeddim)}
+.veld.fout input,.veld.fout select{border-color:var(--fout);background:var(--foutdim)}
+.st .ok{color:var(--goed);font-weight:650}
+.st .nok{color:var(--fout);font-weight:650}
+.st .tip{color:#f3c27b}
+
+.knoppen{display:flex;flex-wrap:wrap;gap:10px}
+button.k{font-family:var(--sans);font-size:16px;font-weight:600;padding:9px 18px;border-radius:9px;border:1px solid var(--rand2);background:var(--paneel2);color:var(--tekst);cursor:pointer}
+button.k:hover{border-color:var(--mars)}
+button.k.prim{background:var(--marsdonker);border-color:var(--mars);color:#fff}
+button.k.prim:hover{background:#c7633a}
+button.k:disabled{opacity:.45;cursor:default}
+.melding{margin-top:14px;font-size:16px;min-height:24px}
+
+.atoom{margin:0 0 14px;display:none}
+.atoom.zichtbaar{display:block}
+.atoom table{border-collapse:collapse;font-family:var(--mono);font-size:15px}
+.atoom td,.atoom th{border:1px solid var(--rand2);padding:4px 12px;text-align:center}
+.atoom th{background:#0f1319;color:var(--muted);font-weight:500;font-size:12px;letter-spacing:1.5px}
+.atoomknop{font-size:14px;padding:5px 12px;margin-bottom:10px}
+
+.uitw{display:none;margin-top:18px;border-top:1px dashed var(--rand2);padding-top:16px}
+.uitw.zichtbaar{display:block}
+.uitw h3{margin:0 0 10px;font-family:var(--mono);font-size:13px;letter-spacing:3px;color:var(--mars);font-weight:600}
+.stap{margin:0 0 10px;padding-left:16px;position:relative}
+.stap::before{content:"›";position:absolute;left:0;color:var(--mars);font-weight:700}
+.stap .kop{font-weight:650}
+.m{white-space:nowrap}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;font-size:.95em}
+.frac>span{padding:0 3px;line-height:1.25}
+.frac>span:first-child{border-bottom:1.5px solid currentColor}
+.keten{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0 14px}
+.keten .box{color:#1c1c1c;border-radius:8px;padding:6px 10px;font-size:14px;line-height:1.25;text-align:center;min-width:112px}
+.keten .box b{display:block;font-size:16px}
+.keten .pl{color:var(--muted);font-size:12.5px;text-align:center;line-height:1.2}
+.keten .pl::after{content:"→";display:block;font-size:20px;color:var(--mars)}
+.proef{display:grid;grid-template-columns:auto auto;gap:8px 30px;margin:6px 0 14px;max-width:560px}
+.proef .box{color:#1c1c1c;border-radius:8px;padding:6px 10px;font-size:14px;text-align:center}
+.noot{font-size:14px;color:var(--muted);font-style:italic}
+footer{margin-top:22px;font-size:13px;color:var(--muted);text-align:center}
+@media (max-width:860px){.niveaus{grid-template-columns:repeat(3,1fr)}.veld .vl{min-width:0;width:100%}}
+@media (max-width:520px){.niveaus{grid-template-columns:repeat(2,1fr)}header .score{display:none}.kaart{padding:16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"></div>
+    <div>
+      <h1>MISSIE MARS · REKENTRAINING</h1>
+      <div class="sub">3 VWO · LES 4 T/M 9 · OVERLEVEN OP MARS</div>
+    </div>
+    <div class="score">GOED OPGELOST<b id="totaalScore">0</b></div>
+  </header>
+
+  <div class="niveaus" id="niveaus"></div>
+  <div class="leerdoel" id="leerdoel"></div>
+  <div class="opties" id="opties"></div>
+
+  <div class="kaart" id="kaart">
+    <p class="ctx" id="ctx"></p>
+    <div id="vgl"></div>
+    <div id="atoomWrap"></div>
+    <p class="vraag" id="vraag"></p>
+    <div class="velden" id="velden"></div>
+    <div class="knoppen">
+      <button class="k prim" id="btnCheck">Controleer</button>
+      <button class="k" id="btnUitw" disabled>Toon uitwerking</button>
+      <button class="k" id="btnNieuw">Nieuwe opgave</button>
+    </div>
+    <div class="melding" id="melding"></div>
+    <div class="uitw" id="uitw"></div>
+  </div>
+  <footer>Rond mol en gram af op 2 decimalen, net als in je boekje. Een klein verschil door tussendoor afronden wordt goed gerekend.</footer>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   DATA
+   ============================================================ */
+const ATOOM = { H:1.008, C:12.01, N:14.01, O:16.00, Fe:55.85 };
+const NAAM = {
+  H2:'waterstof', O2:'zuurstof', N2:'stikstof', H2O:'water', N2H4:'hydrazine', CH4:'methaan',
+  CO2:'koolstofdioxide', C6H12O6:'glucose', C:'koolstof', Fe:'ijzer', Fe2O3:'ijzeroxide',
+  N2O4:'distikstoftetraoxide', NH3:'ammoniak', C3H8:'propaan'
+};
+// Reacties uit het Mars-boekje
+const R = {
+  hyd:  { r:[[1,'N2H4']],            p:[[1,'N2'],[2,'H2']],      ctx:'Mark Watney ontleedt hydrazine om waterstof te maken.' },
+  water:{ r:[[2,'H2'],[1,'O2']],     p:[[2,'H2O']],              ctx:'Mark Watney maakt water uit waterstof en zuurstof.' },
+  meth: { r:[[1,'CH4'],[2,'O2']],    p:[[1,'CO2'],[2,'H2O']],    ctx:'In de raketmotor verbrandt methaan met zuurstof.' },
+  saba: { r:[[1,'CO2'],[4,'H2']],    p:[[1,'CH4'],[2,'H2O']],    ctx:'Voor de terugkeerraket maakt Mark Watney methaan met de Sabatier-reactie.' },
+  foto: { r:[[6,'CO2'],[6,'H2O']],   p:[[1,'C6H12O6'],[6,'O2']], ctx:'De aardappelplanten van Mark Watney doen aan fotosynthese.' },
+  adem: { r:[[1,'C6H12O6'],[6,'O2']],p:[[6,'CO2'],[6,'H2O']],    ctx:'Mark Watney eet zijn aardappels. In zijn lichaam reageert de glucose met zuurstof.' },
+  oxy:  { r:[[1,'CO2']],             p:[[1,'C'],[1,'O2']],       ctx:'De oxygenator maakt zuurstof uit het koolstofdioxide in het kamp.' },
+  kool: { r:[[1,'C'],[1,'O2']],      p:[[1,'CO2']],              ctx:'Mark Watney laat koolstof reageren met zuurstof.' },
+  roest:{ r:[[4,'Fe'],[3,'O2']],     p:[[2,'Fe2O3']],            ctx:'Op Mars roest een stuk ijzer van de lander.' }
+};
+const TWEE_BEGINSTOFFEN = ['water','meth','saba','foto','adem','kool','roest'];
+const MOLMASSA_POOL = ['H2','O2','N2','H2O','N2H4','CH4','CO2','C6H12O6','Fe2O3','N2O4','NH3','C3H8'];
+
+const NIVEAUS = [
+  { nr:1, ttl:'Molverhouding', les:'les 4 en 5',
+    doel:'Je kunt uit een kloppende reactievergelijking afleiden hoeveel mol van een stof reageert of ontstaat, vergeleken met een andere stof (bijvoorbeeld half zoveel mol O<sub>2</sub> als mol H<sub>2</sub>).' },
+  { nr:2, ttl:'Wat raakt het eerst op?', les:'les 6',
+    doel:'Je kunt met porties bepalen welke beginstof in ondermaat is, hoeveel mol product ontstaat en hoeveel mol van de overmaat overblijft.' },
+  { nr:3, ttl:'Hoe zwaar is een mol?', les:'les 7',
+    doel:'Je kunt de molmassa van een stof berekenen en een aantal mol omrekenen naar gram, en andersom.' },
+  { nr:4, ttl:'Wegen op Mars: gram → gram', les:'les 8 deel 1',
+    doel:'Je kunt uit een massa beginstof via mol berekenen hoeveel mol en hoeveel gram van een andere stof erbij hoort.' },
+  { nr:5, ttl:'Hoeveel beginstof nodig?', les:'les 8 deel 2',
+    doel:'Je kunt met een proef in gram en de schaalfactor berekenen hoeveel gram beginstof nodig is voor een gewenste massa product.' },
+  { nr:6, ttl:'Niets gaat verloren', les:'les 9',
+    doel:'Je kunt met massa\'s bepalen welke stof opraakt, hoeveel gram product ontstaat en wat overblijft, en dit controleren met de wet van behoud van massa.' }
+];
+
+/* ============================================================
+   HULPFUNCTIES
+   ============================================================ */
+const r2 = x => Math.round((x + Math.sign(x)*1e-9) * 100) / 100;
+const ri = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+const kies = arr => arr[Math.floor(Math.random()*arr.length)];
+const nl = (x,d=2) => x.toFixed(d).replace('.', ',');
+const nlKort = x => { // geen overbodige nullen, max 2 decimalen
+  const s = (Math.round(x*100)/100).toString().replace('.', ',');
+  return s;
+};
+const un = (v,e) => `<span class="m">${v}&nbsp;${e}</span>`;
+const frac = (a,b) => `<span class="frac"><span>${a}</span><span>${b}</span></span>`;
+const fhtml = f => f.replace(/(\d+)/g,'<sub>$1</sub>');
+const ggd = (a,b) => b ? ggd(b, a % b) : a;
+
+function samenstelling(f){
+  const out = {}; const re = /([A-Z][a-z]?)(\d*)/g; let m;
+  while ((m = re.exec(f))) out[m[1]] = (out[m[1]]||0) + (m[2] ? +m[2] : 1);
+  return out;
+}
+function M(f){ // molmassa afgerond op 2 decimalen, zoals in het boekje
+  const s = samenstelling(f); let t = 0;
+  for (const el in s) t += ATOOM[el]*s[el];
+  return r2(t);
+}
+function Mexact(f){ const s = samenstelling(f); let t = 0; for (const el in s) t += ATOOM[el]*s[el]; return t; }
+function elementen(lijst){ const set = new Set(); lijst.forEach(f => Object.keys(samenstelling(f)).forEach(e => set.add(e))); return [...set]; }
+
+// kleuren: beginstoffen kA,kB; producten kC,kD
+let KLEUR = {};
+function zetKleuren(reacties){
+  KLEUR = {};
+  const vrij = ['kA','kB','kC','kD','kE'];
+  reacties.forEach(rc => {
+    rc.r.forEach(([,f],i) => { if (!KLEUR[f]) KLEUR[f] = vrij.find(k => !Object.values(KLEUR).includes(k) && (k==='kA'||k==='kB'||k==='kE')) || 'kE'; });
+    rc.p.forEach(([,f],i) => { if (!KLEUR[f]) KLEUR[f] = vrij.find(k => !Object.values(KLEUR).includes(k) && (k==='kC'||k==='kD'||k==='kE')) || 'kE'; });
+  });
+}
+const chip = f => `<span class="chip ${KLEUR[f]||'kE'}">${fhtml(f)}</span>`;
+function vglHTML(rc, label){
+  const kant = arr => arr.map(([c,f]) => `<span>${c>1?`<span class="coef">${c}</span>`:''}${chip(f)}</span>`).join(' <span class="pijl">+</span> ');
+  return `<div class="vgl">${label?`<span class="lbl">${label}</span>`:''}${kant(rc.r)} <span class="pijl">⟶</span> ${kant(rc.p)}</div>`;
+}
+function coef(rc, f){ for (const [c,x] of rc.r.concat(rc.p)) if (x===f) return c; return null; }
+function isBeginstof(rc,f){ return rc.r.some(([,x]) => x===f); }
+const naamF = f => `${NAAM[f]} (${fhtml(f)})`;
+
+// "twee keer zoveel mol X als mol Y"
+const GETALWOORD = {2:'twee',3:'drie',4:'vier',5:'vijf',6:'zes'};
+function verhoudingTekst(cB, cA, fB, fA){
+  const g = ggd(cB, cA), a = cB/g, b = cA/g;
+  let kern;
+  if (a===b) kern = '<b>evenveel mol</b>';
+  else if (b===1) kern = `<b>${GETALWOORD[a]||a} keer zoveel mol</b>`;
+  else if (a===1 && b===2) kern = '<b>half zoveel mol</b>';
+  else kern = `<b>${frac(a,b)} keer zoveel mol</b>`;
+  return `${kern} ${chip(fB)} als mol ${chip(fA)}`;
+}
+function factorHTML(cB, cA){ // wat staat er vóór × n
+  const g = ggd(cB,cA), a = cB/g, b = cA/g;
+  if (a===b) return '';
+  if (b===1) return `${a} × `;
+  return `${frac(a,b)} × `;
+}
+function molmassaRegel(f){
+  const s = samenstelling(f); const delen = [];
+  for (const el in s) delen.push(`${s[el]>1? s[el]+' × ':''}${un(nl(ATOOM[el], el==='H'?3:2),'g/mol')}`);
+  const ex = Mexact(f);
+  const exStr = (Math.round(ex*1000)/1000).toString().replace('.',',');
+  const afgerond = Math.abs(ex - M(f)) > 1e-9 ? `${un(exStr,'g/mol')}, afgerond <b>${un(nl(M(f)),'g/mol')}</b>` : `<b>${un(nl(M(f)),'g/mol')}</b>`;
+  if (delen.length===1 && Object.values(s)[0]===1) return `M(${chip(f)}) = <b>${un(nl(M(f)),'g/mol')}</b> (de atoommassa van het element)`;
+  return `M(${chip(f)}) = ${delen.join(' + ')} = ${afgerond}`;
+}
+// waarde voor in een opgave: getal met vaste decimalen
+function gegeven(x,d){ return { v:x, s:nl(x,d) }; }
+// getal zoals in het boekje: onder 100 g met 1 decimaal, daarboven heel
+function mooiGetal(x){ x = Math.max(x, 2.5); return x < 100 ? Math.round(x*10)/10 : Math.round(x); }
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let niveau = 1;
+let opties = { terug:false, uitdaging:false };
+let vraag = null;
+let gecontroleerd = false, opgelost = false;
+const score = {1:0,2:0,3:0,4:0,5:0,6:0};
+let atoomZichtbaar = false;
+
+/* ============================================================
+   GENERATOREN
+   Elke generator geeft: { reacties, ctx, vraag, velden:[...], uitw:[html], elementen }
+   veld: { id, label, type:'num'|'keuze', eh, waarden:[...], opties, fouten:[{w,msg}] }
+   ============================================================ */
+
+// ---------- NIVEAU 1: molverhouding ----------
+function genN1(){
+  if (opties.uitdaging) return genN1Keten();
+  const terug = opties.terug && Math.random() < 0.5;
+  if (terug) return genN1Terug();
+  // vooruit: gegeven een beginstof, gevraagd een andere stof
+  let rc, A, B, cA, cB;
+  for (let t=0;t<60;t++){
+    const id = kies(Object.keys(R)); rc = R[id];
+    A = kies(rc.r)[1];
+    const kandidaten = rc.r.concat(rc.p).map(x=>x[1]).filter(f => f!==A);
+    B = kies(kandidaten);
+    cA = coef(rc,A); cB = coef(rc,B);
+    if (cA !== cB || Math.random() < 0.2) { vraag_id = id; break; }
+  }
+  const g = ggd(cB,cA), den = cA/g, num = cB/g;
+  let k; do { k = ri(8, 140); } while (k*den === 100);
+  const nA = r2(k*den/100), nB = r2(nA*num/den);
+  zetKleuren([rc]);
+  const ontstaat = !isBeginstof(rc,B);
+  return {
+    reacties:[rc], ctx: rc.ctx,
+    vraag: `Er reageert ${un(nl(nA),'mol')} ${naamF(A)}. Bereken het aantal mol ${chip(B)}, n(${chip(B)}), dat ${ontstaat?'er ontstaat':'ermee reageert'}.`,
+    velden:[{ id:'n', label:`n(${chip(B)})`, type:'num', eh:'mol', waarden:[nB],
+      fouten:[{w:r2(nA*den/num), msg:'Je hebt de verhouding omgedraaid. Kijk goed welke stof je hebt en welke gevraagd wordt.'},
+              {w:nA, msg:`Je antwoord is gelijk aan n(${fhtml(A)}). Gebruik de molverhouding uit de reactievergelijking.`}] }],
+    uitw:[
+      `De molverhouding ${chip(A)} : ${chip(B)} is ${cA} : ${cB}. Er ${ontstaat?'ontstaat':'reageert'} ${verhoudingTekst(cB,cA,B,A)}.`,
+      cA===cB ? `n(${chip(B)}) = n(${chip(A)}) = <b>${un(nl(nB),'mol')}</b>` : `n(${chip(B)}) = ${factorHTML(cB,cA)}${un(nl(nA),'mol')} = <b>${un(nl(nB),'mol')}</b>`
+    ],
+    elementen:[]
+  };
+}
+let vraag_id = null;
+function genN1Terug(){
+  // gewenste hoeveelheid product, gevraagd beginstof (proef + schaalfactor)
+  let rc, P, A, cA, cP;
+  for (let t=0;t<60;t++){
+    rc = R[kies(Object.keys(R))];
+    P = kies(rc.p)[1]; A = kies(rc.r)[1];
+    cA = coef(rc,A); cP = coef(rc,P);
+    if (cA !== cP) break;
+  }
+  let k; do { k = ri(12, 160); } while (k === 100);
+  const sf = k/100, nP = r2(cP*sf), nA = r2(sf*cA);
+  zetKleuren([rc]);
+  return {
+    reacties:[rc], ctx: rc.ctx,
+    vraag: `Mark Watney wil ${un(nl(nP),'mol')} ${naamF(P)} maken. Bereken het aantal mol ${chip(A)}, n(${chip(A)}), dat hij daarvoor nodig heeft.`,
+    velden:[{ id:'n', label:`n(${chip(A)})`, type:'num', eh:'mol', waarden:[nA],
+      fouten:[{w:r2(nP*cP/cA), msg:'Je hebt de verhouding omgedraaid. Doe eerst een proef met de getallen uit de reactievergelijking.'}] }],
+    uitw:[
+      `<span class="kop">Proef:</span> ${un(cA,'mol')} ${chip(A)} ⟶ ${un(cP,'mol')} ${chip(P)}`,
+      `<span class="kop">Schaalfactor</span> = ${frac(un(nl(nP),'mol'), un(cP,'mol'))} = ${nl(sf)}. ${sf<1?'De schaalfactor is kleiner dan 1: je maakt minder dan in de proef.':'De schaalfactor is groter dan 1: je maakt meer dan in de proef.'}`,
+      `n(${chip(A)}) = ${nl(sf)} × ${un(cA,'mol')} = <b>${un(nl(nA),'mol')}</b>`,
+      `<span class="kop">Check:</span> ${un(nl(nA),'mol')} ${chip(A)} geeft ${factorHTML(cP,cA)}${un(nl(nA),'mol')} = ${un(nl(nP),'mol')} ${chip(P)}. Dat klopt.`
+    ],
+    elementen:[]
+  };
+}
+function genN1Keten(){
+  // twee reacties na elkaar: N2H4 -> H2 -> H2O of CH4
+  const doel = kies(['H2O','CH4']);
+  const rc1 = R.hyd, rc2 = doel==='H2O' ? R.water : R.saba;
+  zetKleuren([rc1, rc2]);
+  KLEUR = { N2H4:'kA', N2:'kD', H2:'kE', O2:'kB', CO2:'kB', H2O: doel==='H2O'?'kC':'kD', CH4:'kC' };
+  const terug = opties.terug && Math.random() < 0.5;
+  const c2H = coef(rc2,'H2'), c2D = coef(rc2,doel); // H2 -> doel
+  if (!terug){
+    let k; do { k = ri(10, 90); } while (k===50);
+    const nHyd = r2(k/100*(c2H/ggd(c2H,c2D)) );           // zorgt voor exacte uitkomsten
+    const nH2 = r2(2*nHyd), nD = r2(nH2*c2D/c2H);
+    return {
+      reacties:[rc1, rc2], ctx:'Mark Watney ontleedt hydrazine en gebruikt alle waterstof meteen in een tweede reactie.',
+      vraag:`Hij ontleedt ${un(nl(nHyd),'mol')} hydrazine. Bereken het aantal mol ${chip('H2')} dat ontstaat (a) en het aantal mol ${chip(doel)} dat hij daarmee maakt (b).`,
+      velden:[
+        { id:'a', label:`a. n(${chip('H2')})`, type:'num', eh:'mol', waarden:[nH2], fouten:[{w:r2(nHyd/2), msg:'Omgedraaid: uit 1 mol hydrazine ontstaat 2 mol waterstof.'}] },
+        { id:'b', label:`b. n(${chip(doel)})`, type:'num', eh:'mol', waarden:[nD], fouten:[{w:r2(nHyd*c2D/c2H), msg:`Reken met n(H<sub>2</sub>) verder in de tweede reactie, niet met n(hydrazine).`}] }
+      ],
+      uitw:[
+        `<span class="kop">Reactie 1:</span> er ontstaat ${verhoudingTekst(2,1,'H2','N2H4')}: n(${chip('H2')}) = 2 × ${un(nl(nHyd),'mol')} = <b>${un(nl(nH2),'mol')}</b>`,
+        `<span class="kop">Reactie 2:</span> ${chip('H2')} is de tussenstof. Er ontstaat ${verhoudingTekst(c2D,c2H,doel,'H2')}: n(${chip(doel)}) = ${factorHTML(c2D,c2H)}${un(nl(nH2),'mol')} = <b>${un(nl(nD),'mol')}</b>`
+      ], elementen:[]
+    };
+  }
+  // terug: gewenste n doel, gevraagd n N2H4 via proef
+  const proefHyd = doel==='H2O' ? 1 : 2;
+  const proefH2 = 2*proefHyd, proefD = r2(proefH2*c2D/c2H);
+  let k; do { k = ri(15, 180); } while (k===100);
+  const sf = k/100, nD = r2(proefD*sf), nHyd = r2(sf*proefHyd);
+  return {
+    reacties:[rc1, rc2], ctx:'Mark Watney ontleedt hydrazine en gebruikt alle waterstof meteen in een tweede reactie.',
+    vraag:`Hij wil ${un(nl(nD),'mol')} ${naamF(doel)} maken. Bereken het aantal mol hydrazine, n(${chip('N2H4')}), dat hij moet ontleden.`,
+    velden:[{ id:'n', label:`n(${chip('N2H4')})`, type:'num', eh:'mol', waarden:[nHyd], fouten:[] }],
+    uitw:[
+      `<span class="kop">Proef:</span> ${un(proefHyd,'mol')} ${chip('N2H4')} ⟶ ${un(proefH2,'mol')} ${chip('H2')} ⟶ ${un(nl(proefD),'mol')} ${chip(doel)}${proefHyd===2?' <span class="noot">(2 mol gekozen, dan blijven de getallen heel)</span>':''}`,
+      `<span class="kop">Schaalfactor</span> = ${frac(un(nl(nD),'mol'), un(nl(proefD),'mol'))} = ${nl(sf)}`,
+      `n(${chip('N2H4')}) = ${nl(sf)} × ${un(proefHyd,'mol')} = <b>${un(nl(nHyd),'mol')}</b>`
+    ], elementen:[]
+  };
+}
+
+// ---------- NIVEAU 2: ondermaat/overmaat in mol ----------
+function genN2(){
+  const id = kies(TWEE_BEGINSTOFFEN), rc = R[id];
+  zetKleuren([rc]);
+  const [[cA,A],[cB,B]] = rc.r;
+  const pLim = ri(10, 90)/100;
+  let pOv = r2(pLim * (1.2 + Math.random()*1.3));
+  if (Math.abs(pOv - pLim) < 0.05) pOv = r2(pLim + 0.1);
+  const limA = Math.random() < 0.5;
+  const pA = limA ? pLim : pOv, pB = limA ? pOv : pLim;
+  const nA = r2(pA*cA), nB = r2(pB*cB);
+  const lim = limA ? A : B, ov = limA ? B : A, cLim = limA ? cA : cB, cOv = limA ? cB : cA, nOv = limA ? nB : nA;
+  const [cP,P] = kies(rc.p);
+  const nP = r2(pLim*cP), gebruikt = r2(pLim*cOv), over = r2(nOv - gebruikt);
+  const pOvExact = limA ? pB : pA;
+  return {
+    reacties:[rc], ctx: rc.ctx,
+    vraag:`Er is ${un(nl(nA),'mol')} ${naamF(A)} en ${un(nl(nB),'mol')} ${naamF(B)}. Welke stof raakt op? Bereken hoeveel mol ${chip(P)} er ontstaat en hoeveel mol er overblijft van de stof in overmaat.`,
+    velden:[
+      { id:'lim', label:'Deze stof raakt op (ondermaat):', type:'keuze', opties:[['',''],[A,NAAM[A]+' ('+A+')'],[B,NAAM[B]+' ('+B+')']], waarden:[lim],
+        foutKeuze:`Vergelijk niet de aantallen mol, maar het aantal porties: mol die je hebt gedeeld door mol volgens de reactievergelijking.` },
+      { id:'p', label:`n(${chip(P)}) dat ontstaat`, type:'num', eh:'mol', waarden:[nP],
+        fouten:[{w:r2(pOvExact*cP), msg:'Je rekent verder met de porties van de overmaat. Reken verder met de stof die het eerst opraakt.'}] },
+      { id:'o', label:`n over van de overmaat`, type:'num', eh:'mol', waarden:[over],
+        fouten:[{w:gebruikt, msg:'Dit is de hoeveelheid die reageert. Hoeveel blijft er dan over?'}] }
+    ],
+    uitw:[
+      `porties ${chip(A)} = ${frac(un(nl(nA),'mol'), un(cA,'mol'))} = ${nl(pA)} &nbsp;&nbsp; en &nbsp;&nbsp; porties ${chip(B)} = ${frac(un(nl(nB),'mol'), un(cB,'mol'))} = ${nl(pB)}`,
+      `Minste porties: ${chip(lim)} (${nl(pLim)}). ${chip(lim)} is de <b>ondermaat</b> en raakt op. ${chip(ov)} is in <b>overmaat</b>.`,
+      `Reken verder met ${nl(pLim)} porties: n(${chip(P)}) = ${nl(pLim)} × ${un(cP,'mol')} = <b>${un(nl(nP),'mol')}</b>`,
+      `${chip(ov)} gebruikt: ${nl(pLim)} × ${un(cOv,'mol')} = ${un(nl(gebruikt),'mol')}, dus er blijft ${un(nl(nOv),'mol')} − ${un(nl(gebruikt),'mol')} = <b>${un(nl(over),'mol')}</b> ${chip(ov)} over.`
+    ], elementen:[]
+  };
+}
+
+// ---------- NIVEAU 3: molmassa en mol <-> gram ----------
+function genN3(){
+  const f = kies(MOLMASSA_POOL);
+  KLEUR = {}; KLEUR[f] = 'kA';
+  const Mf = M(f), soort = kies(['M','n2m','m2n']);
+  const fouten = [];
+  const s = samenstelling(f);
+  let zonderAantallen = 0; for (const el in s) zonderAantallen += ATOOM[el];
+  if (Object.values(s).some(x=>x>1)) fouten.push({w:r2(zonderAantallen), msg:'Tel álle atomen in het molecuul mee: let op de kleine cijfers.'});
+  const veldM = { id:'M', label:`M(${chip(f)})`, type:'num', eh:'g/mol', waarden:[Mf], fouten };
+  const ctxs = {
+    H2:'Mark Watney vangt waterstof op in een tank.', O2:'De oxygenator vult de zuurstoftank.', N2:'Bij het ontleden van hydrazine ontstaat stikstof.',
+    H2O:'Mark Watney houdt zijn watervoorraad bij.', N2H4:'In de lander staat nog een tank hydrazine.', CH4:'De brandstof voor de terugkeerraket is methaan.',
+    CO2:'De Marslucht bestaat vooral uit koolstofdioxide.', C6H12O6:'In de aardappels zit glucose.', Fe2O3:'Mars is rood door ijzeroxide.',
+    N2O4:'De raketmotor gebruikt ook distikstoftetraoxide.', NH3:'In de mest voor de aardappelplanten zit ammoniak.', C3H8:'In de rover zit een kleine propaanbrander.'
+  };
+  const regelM = molmassaRegel(f);
+  if (soort === 'M'){
+    return { reacties:[], ctx: ctxs[f], vraag:`Bereken de molmassa van ${naamF(f)}.`, velden:[veldM], uitw:[regelM], elementen:elementen([f]) };
+  }
+  if (soort === 'n2m'){
+    let n; do { n = ri(5, 300)/100; } while (Math.abs(n-1)<1e-9);
+    const m = r2(n*Mf);
+    return { reacties:[], ctx: ctxs[f],
+      vraag:`Mark Watney heeft ${un(nl(n),'mol')} ${naamF(f)}. Bereken eerst de molmassa en daarna de massa in gram.`,
+      velden:[veldM, { id:'m', label:`m(${chip(f)})`, type:'num', eh:'g', waarden:[m, r2(n*Mexact(f))],
+        fouten:[{w:r2(n/Mf), msg:'Van mol naar gram vermenigvuldig je met de molmassa: m = n × M.'}] }],
+      uitw:[regelM, `Van mol naar gram: m = n × M = ${un(nl(n),'mol')} × ${un(nl(Mf),'g/mol')} = <b>${un(nl(m),'g')}</b>`],
+      elementen:elementen([f]) };
+  }
+  // m2n
+  const mg = kies([ri(10,99)+ri(0,9)/10, ri(100,500)]);
+  const mStr = mg < 100 ? nl(mg,1) : String(mg);
+  const n = r2(mg/Mf);
+  return { reacties:[], ctx: ctxs[f],
+    vraag:`Mark Watney weegt ${un(mStr,'g')} ${naamF(f)} af. Bereken eerst de molmassa en daarna het aantal mol.`,
+    velden:[veldM, { id:'n', label:`n(${chip(f)})`, type:'num', eh:'mol', waarden:[n, r2(mg/Mexact(f))],
+      fouten:[{w:r2(mg*Mf), msg:'Van gram naar mol deel je door de molmassa: n = m / M.'}] }],
+    uitw:[regelM, `Van gram naar mol: n = ${frac(un(mStr,'g'), un(nl(Mf),'g/mol'))} = <b>${un(nl(n),'mol')}</b>`],
+    elementen:elementen([f]) };
+}
+
+// ---------- NIVEAU 4: gram -> mol -> mol -> gram ----------
+function genN4(){
+  let rc, A, B, cA, cB;
+  for (let t=0;t<60;t++){
+    rc = R[kies(Object.keys(R))];
+    A = kies(rc.r)[1];
+    const kand = Math.random() < 0.75 ? rc.p.map(x=>x[1]) : rc.r.map(x=>x[1]).filter(f=>f!==A);
+    if (!kand.length) continue;
+    B = kies(kand); cA = coef(rc,A); cB = coef(rc,B);
+    if (cA !== cB || Math.random() < 0.25) break;
+  }
+  zetKleuren([rc]);
+  const MA = M(A), MB = M(B);
+  const mg = Math.random() < 0.5 ? ri(150, 990)/10 : ri(100, 450);
+  const mStr = mg < 100 ? nl(mg,1) : String(mg);
+  const nA = r2(mg/MA), nB = r2(nA*cB/cA), mB = r2(nB*MB);
+  const nBex = mg/Mexact(A)*cB/cA, mBex = nBex*Mexact(B);
+  const ontstaat = !isBeginstof(rc,B);
+  return {
+    reacties:[rc], ctx: rc.ctx,
+    vraag:`Er reageert ${un(mStr,'g')} ${naamF(A)}. Bereken hoeveel mol ${chip(B)} ${ontstaat?'er ontstaat':'ermee reageert'} (a) en hoeveel gram dat is (b).`,
+    velden:[
+      { id:'a', label:`a. n(${chip(B)})`, type:'num', eh:'mol', waarden:[nB, r2(nBex)],
+        fouten:[{w:nA, msg:`Dit is n(${fhtml(A)}). Gebruik daarna nog de molverhouding.`},{w:r2(nA*cA/cB), msg:'Je hebt de molverhouding omgedraaid.'}] },
+      { id:'b', label:`b. m(${chip(B)})`, type:'num', eh:'g', waarden:[mB, r2(mBex)],
+        fouten:[{w:r2(mg*cB/cA), msg:'De getallen in de reactievergelijking gelden voor mol, niet voor gram. Reken eerst naar mol.'},{w:mg, msg:'De massa blijft niet zomaar gelijk: reken via mol.'}] }
+    ],
+    keten:{A,B},
+    uitw:[
+      'KETEN',
+      molmassaRegel(A), molmassaRegel(B),
+      `<span class="kop">1. Eerst tot mol:</span> n(${chip(A)}) = ${frac(un(mStr,'g'), un(nl(MA),'g/mol'))} = ${un(nl(nA),'mol')}`,
+      `<span class="kop">2. Molverhouding:</span> ${chip(A)} : ${chip(B)} = ${cA} : ${cB}. Er ${ontstaat?'ontstaat':'reageert'} ${verhoudingTekst(cB,cA,B,A)}: n(${chip(B)}) = ${factorHTML(cB,cA)}${un(nl(nA),'mol')} = <b>${un(nl(nB),'mol')}</b>`,
+      `<span class="kop">3. Dan naar gram:</span> m(${chip(B)}) = ${un(nl(nB),'mol')} × ${un(nl(MB),'g/mol')} = <b>${un(nl(mB),'g')}</b>`
+    ],
+    elementen:elementen([A,B])
+  };
+}
+
+// ---------- NIVEAU 5: proef in gram + schaalfactor ----------
+function genN5(){
+  if (opties.uitdaging) return genN5Keten();
+  const id = kies(['water','meth','saba','foto','oxy','kool','roest','hyd','adem']), rc = R[id];
+  zetKleuren([rc]);
+  const [cP,P] = rc.p[0];
+  const gevraagd = rc.r.map(x=>x[1]);
+  const mPp = r2(cP*M(P));
+  const want = mooiGetal(mPp*(0.3 + Math.random()*3.2));
+  const wStr = want < 100 ? nl(want,1) : String(want);
+  const sf = r2(want/mPp);
+  const regelsProef = [`${un(cP,'mol')} ${chip(P)}: m = ${un(cP,'mol')} × ${un(nl(M(P)),'g/mol')} = ${un(nl(mPp),'g')}`];
+  const velden = [], schaal = [];
+  gevraagd.forEach((A,i) => {
+    const cA = coef(rc,A), mAp = r2(cA*M(A)), mA = r2(sf*mAp);
+    const ex = want/(cP*Mexact(P))*cA*Mexact(A);
+    regelsProef.unshift(`${un(cA,'mol')} ${chip(A)}: m = ${un(cA,'mol')} × ${un(nl(M(A)),'g/mol')} = ${un(nl(mAp),'g')}`);
+    velden.push({ id:'m'+i, label:`m(${chip(A)}) nodig`, type:'num', eh:'g', waarden:[mA, r2(ex)],
+      fouten:[{w:r2(want*cA/cP), msg:'De coëfficiënten zijn geen verhouding in gram. Doe een proef in gram.'},{w:r2(mAp/sf), msg:'Schaalfactor = wat je wilt maken gedeeld door wat de proef maakt.'}] });
+    schaal.push(`m(${chip(A)}) = ${nl(sf)} × ${un(nl(mAp),'g')} = <b>${un(nl(mA),'g')}</b>`);
+  });
+  return {
+    reacties:[rc], ctx: rc.ctx,
+    vraag:`Mark Watney wil ${un(wStr,'g')} ${naamF(P)} maken. Bereken hoeveel gram ${gevraagd.map(chip).join(' en hoeveel gram ')} hij nodig heeft.`,
+    velden,
+    uitw:[
+      `<span class="kop">1. Proef:</span> neem de mol uit de reactievergelijking en reken om naar gram.<br>${regelsProef.join('<br>')}`,
+      `<span class="kop">2. Schaalfactor</span> = ${frac('wat je wilt maken','wat de proef maakt')} = ${frac(un(wStr,'g'), un(nl(mPp),'g'))} = ${nl(sf)}`,
+      `<span class="kop">3. Schalen:</span> ${schaal.join(' &nbsp;&nbsp; ')}`,
+      `<span class="kop">4. Check:</span> de schaalfactor is ${sf>1?'groter':'kleiner'} dan 1, dus je hebt ${sf>1?'meer':'minder'} beginstof nodig dan in de proef. Dat klopt, want ${un(wStr,'g')} is ${sf>1?'meer':'minder'} dan ${un(nl(mPp),'g')}.`
+    ],
+    elementen:elementen(gevraagd.concat([P]))
+  };
+}
+function genN5Keten(){
+  const doel = kies(['H2O','CH4']);
+  const rc1 = R.hyd, rc2 = doel==='H2O' ? R.water : R.saba;
+  KLEUR = { N2H4:'kA', N2:'kD', H2:'kE', O2:'kB', CO2:'kB', H2O: doel==='H2O'?'kC':'kD', CH4:'kC' };
+  const proefHyd = doel==='H2O' ? 1 : 2, nD = doel==='H2O' ? 2 : 1;
+  const mHydP = r2(proefHyd*M('N2H4')), mDP = r2(nD*M(doel));
+  const want = mooiGetal(mDP*(0.3 + Math.random()*3.2));
+  const wStr = want < 100 ? nl(want,1) : String(want);
+  const sf = r2(want/mDP), mHyd = r2(sf*mHydP);
+  const ex = want/(nD*Mexact(doel))*proefHyd*Mexact('N2H4');
+  return {
+    reacties:[rc1, rc2], ctx:'Mark Watney ontleedt hydrazine en gebruikt alle waterstof meteen in een tweede reactie.',
+    vraag:`Hij wil ${un(wStr,'g')} ${naamF(doel)} maken. Bereken hoeveel gram hydrazine hij moet ontleden.`,
+    velden:[{ id:'m', label:`m(${chip('N2H4')}) nodig`, type:'num', eh:'g', waarden:[mHyd, r2(ex)], fouten:[] }],
+    uitw:[
+      `<span class="kop">1. Proef:</span> ${un(proefHyd,'mol')} ${chip('N2H4')} ⟶ ${un(2*proefHyd,'mol')} ${chip('H2')} ⟶ ${un(nD,'mol')} ${chip(doel)}${proefHyd===2?' <span class="noot">(2 mol gekozen, dan blijven de getallen heel)</span>':''}<br>
+       ${un(proefHyd,'mol')} ${chip('N2H4')} = ${un(proefHyd,'mol')} × ${un(nl(M('N2H4')),'g/mol')} = ${un(nl(mHydP),'g')} &nbsp;&nbsp; ${un(nD,'mol')} ${chip(doel)} = ${un(nD,'mol')} × ${un(nl(M(doel)),'g/mol')} = ${un(nl(mDP),'g')}`,
+      `<span class="kop">2. Schaalfactor</span> = ${frac(un(wStr,'g'), un(nl(mDP),'g'))} = ${nl(sf)}`,
+      `<span class="kop">3. Schalen:</span> m(${chip('N2H4')}) = ${nl(sf)} × ${un(nl(mHydP),'g')} = <b>${un(nl(mHyd),'g')}</b>`
+    ],
+    elementen:elementen(['N2H4', doel])
+  };
+}
+
+// ---------- NIVEAU 6: overmaat met massa's + behoud van massa ----------
+function genN6(){
+  const id = kies(['water','meth','saba','kool','roest','adem']), rc = R[id];
+  zetKleuren([rc]);
+  const [[cA,A],[cB,B]] = rc.r;
+  let mA, mB, nA, nB, pA, pB;
+  for (let t=0;t<100;t++){
+    const limA = Math.random() < 0.5;
+    const cL = limA ? cA : cB, fL = limA ? A : B;
+    const pLim = (ri(80, 1200)/10) / (cL*M(fL)), f = 1.25 + Math.random()*1.25;
+    const pa = limA ? pLim : pLim*f, pb = limA ? pLim*f : pLim;
+    mA = Math.round(pa*cA*M(A)*10)/10; mB = Math.round(pb*cB*M(B)*10)/10;
+    if (mA < 2 || mB < 2) continue;
+    nA = r2(mA/M(A)); nB = r2(mB/M(B)); pA = r2(nA/cA); pB = r2(nB/cB);
+    if (Math.abs(pA-pB)/Math.min(pA,pB) > 0.15) break;
+  }
+  const limA = pA < pB, lim = limA?A:B, ov = limA?B:A, pL = limA?pA:pB, cOv = limA?cB:cA;
+  const mOv = limA?mB:mA;
+  const nGebr = r2(pL*cOv), mGebr = r2(nGebr*M(ov)), over = r2(mOv - mGebr);
+  const prod = rc.p.map(([c,P]) => { const n = r2(pL*c), m = r2(n*M(P)); return {P,c,n,m}; });
+  const voor = r2(mA+mB), na = r2(over + prod.reduce((s,x)=>s+x.m,0));
+  const sA = nl(mA,1), sB = nl(mB,1);
+  const velden = [
+    { id:'lim', label:'Deze stof raakt op (ondermaat):', type:'keuze', opties:[['',''],[A,NAAM[A]+' ('+A+')'],[B,NAAM[B]+' ('+B+')']], waarden:[lim],
+      foutKeuze:'Meer gram betekent niet meer porties. Reken eerst naar mol en vergelijk dan de porties.' }
+  ];
+  prod.forEach((x,i) => velden.push({ id:'p'+i, label:`m(${chip(x.P)}) dat ontstaat`, type:'num', eh:'g', waarden:[x.m], tolRel:0.015 }));
+  velden.push({ id:'o', label:`m over van de overmaat`, type:'num', eh:'g', waarden:[over], tolAbs:0.1, tolRel:0.02,
+    fouten:[{w:mGebr, msg:'Dit is de massa die reageert. Hoeveel blijft er over?'}] });
+  velden.push({ id:'t', label:'Controle: totale massa ná de reactie', type:'num', eh:'g', waarden:[na, voor], tolRel:0.005,
+    fouten:[] });
+  return {
+    reacties:[rc], ctx: rc.ctx,
+    vraag:`Er is ${un(sA,'g')} ${naamF(A)} en ${un(sB,'g')} ${naamF(B)}. Welke stof raakt op? Bereken hoeveel gram product ontstaat en hoeveel gram er van de overmaat overblijft. Controleer met de wet van behoud van massa.`,
+    velden,
+    uitw:[
+      molmassaRegel(A) + '<br>' + molmassaRegel(B) + '<br>' + prod.map(x=>molmassaRegel(x.P)).join('<br>'),
+      `<span class="kop">1. Naar mol:</span> n(${chip(A)}) = ${frac(un(sA,'g'), un(nl(M(A)),'g/mol'))} = ${un(nl(nA),'mol')} &nbsp;&nbsp; n(${chip(B)}) = ${frac(un(sB,'g'), un(nl(M(B)),'g/mol'))} = ${un(nl(nB),'mol')}`,
+      `<span class="kop">2. Porties:</span> ${chip(A)}: ${frac(un(nl(nA),'mol'), un(cA,'mol'))} = ${nl(pA)} &nbsp;&nbsp; ${chip(B)}: ${frac(un(nl(nB),'mol'), un(cB,'mol'))} = ${nl(pB)}. Minste porties: ${chip(lim)} is de <b>ondermaat</b>.`,
+      `<span class="kop">3. Reken verder met ${nl(pL)} porties:</span><br>` + prod.map(x => `${chip(x.P)}: ${nl(pL)} × ${un(x.c,'mol')} = ${un(nl(x.n),'mol')}, dus ${un(nl(x.n),'mol')} × ${un(nl(M(x.P)),'g/mol')} = <b>${un(nl(x.m),'g')}</b>`).join('<br>'),
+      `<span class="kop">4. Overmaat:</span> ${chip(ov)} gebruikt: ${nl(pL)} × ${un(cOv,'mol')} = ${un(nl(nGebr),'mol')}, dus ${un(nl(nGebr),'mol')} × ${un(nl(M(ov)),'g/mol')} = ${un(nl(mGebr),'g')}. Er blijft ${un(nl(mOv,1),'g')} − ${un(nl(mGebr),'g')} = <b>${un(nl(over),'g')}</b> ${chip(ov)} over.`,
+      `<span class="kop">5. Controle:</span> vóór: ${un(sA,'g')} + ${un(sB,'g')} = ${un(nl(voor),'g')}. Na: ${un(nl(over),'g')} + ${prod.map(x=>un(nl(x.m),'g')).join(' + ')} = <b>${un(nl(na),'g')}</b>. ${Math.abs(voor-na)<0.005?'Dat klopt.':'Het kleine verschil komt door tussendoor afronden.'}`
+    ],
+    elementen:elementen([A,B].concat(prod.map(x=>x.P)))
+  };
+}
+
+const GEN = {1:genN1, 2:genN2, 3:genN3, 4:genN4, 5:genN5, 6:genN6};
+
+/* ============================================================
+   WEERGAVE
+   ============================================================ */
+const $ = id => document.getElementById(id);
+
+function tekenNiveaus(){
+  $('niveaus').innerHTML = NIVEAUS.map(n => `
+    <button class="niv ${n.nr===niveau?'actief':''}" data-n="${n.nr}">
+      <div class="nr">NIVEAU ${n.nr}</div>
+      <div class="ttl">${n.ttl}</div>
+      <div class="les">${n.les}</div>
+      <div class="pt">${score[n.nr] ? '✓ '+score[n.nr]+' goed' : ''}</div>
+    </button>`).join('');
+  document.querySelectorAll('.niv').forEach(b => b.onclick = () => { niveau = +b.dataset.n; tekenNiveaus(); tekenOpties(); nieuweVraag(); });
+  const nv = NIVEAUS[niveau-1];
+  $('leerdoel').innerHTML = `<b>LEERDOEL NIVEAU ${nv.nr}</b>${nv.doel}`;
+  $('totaalScore').textContent = Object.values(score).reduce((a,b)=>a+b,0);
+}
+function tekenOpties(){
+  let h = '';
+  if (niveau === 1) h += `<label><input type="checkbox" id="optTerug" ${opties.terug?'checked':''}> Ook terugrekenen (proef en schaalfactor, les 5)</label>`;
+  if (niveau === 1 || niveau === 5) h += `<label><input type="checkbox" id="optUitd" ${opties.uitdaging?'checked':''}> ★ Uitdaging: twee reacties na elkaar</label>`;
+  $('opties').innerHTML = h;
+  if ($('optTerug')) $('optTerug').onchange = e => { opties.terug = e.target.checked; nieuweVraag(); };
+  if ($('optUitd')) $('optUitd').onchange = e => { opties.uitdaging = e.target.checked; nieuweVraag(); };
+}
+function tekenAtoom(){
+  const w = $('atoomWrap');
+  if (!vraag.elementen || !vraag.elementen.length){ w.innerHTML = ''; return; }
+  const els = vraag.elementen.slice().sort((a,b)=>ATOOM[a]-ATOOM[b]);
+  w.innerHTML = `<button class="k atoomknop" id="btnAtoom">${atoomZichtbaar?'Verberg':'Toon'} relatieve atoommassa's</button>
+    <div class="atoom ${atoomZichtbaar?'zichtbaar':''}"><table><tr><th>ELEMENT</th>${els.map(e=>`<td><b>${e}</b></td>`).join('')}</tr>
+    <tr><th>ATOOMMASSA (u)</th>${els.map(e=>`<td>${nl(ATOOM[e], e==='H'?3:2)}</td>`).join('')}</tr></table></div>`;
+  $('btnAtoom').onclick = () => { atoomZichtbaar = !atoomZichtbaar; tekenAtoom(); };
+}
+function ketenHTML(A,B){
+  const box = (f,regel1,regel2) => `<div class="box ${KLEUR[f]}"><b>${regel1}</b>${regel2}</div>`;
+  return `<div class="keten">
+    ${box(A,'m '+fhtml(A),'(gram)')}<div class="pl">1. ${frac('m','M')}</div>
+    ${box(A,'n '+fhtml(A),'(mol)')}<div class="pl">2. mol-<br>verhouding</div>
+    ${box(B,'n '+fhtml(B),'(mol)')}<div class="pl">3. n × M</div>
+    ${box(B,'m '+fhtml(B),'(gram)')}</div>`;
+}
+function nieuweVraag(){
+  vraag = GEN[niveau]();
+  gecontroleerd = false; opgelost = false;
+  $('ctx').textContent = vraag.ctx || '';
+  $('ctx').style.display = vraag.ctx ? '' : 'none';
+  $('vgl').innerHTML = vraag.reacties.map((rc,i) => vglHTML(rc, vraag.reacties.length>1 ? 'REACTIE '+(i+1) : '')).join('');
+  $('vraag').innerHTML = vraag.vraag;
+  tekenAtoom();
+  $('velden').innerHTML = vraag.velden.map(v => {
+    const invoer = v.type === 'keuze'
+      ? `<select id="in_${v.id}">${v.opties.map(([w,t])=>`<option value="${w}">${t||'kies…'}</option>`).join('')}</select>`
+      : `<input type="text" inputmode="decimal" id="in_${v.id}" autocomplete="off"><span class="eh">${v.eh}</span>`;
+    return `<div class="veld" id="veld_${v.id}"><span class="vl">${v.label}</span>${invoer}<span class="st" id="st_${v.id}"></span></div>`;
+  }).join('');
+  $('velden').querySelectorAll('input').forEach(inp => inp.addEventListener('keydown', e => { if (e.key==='Enter') controleer(); }));
+  $('melding').innerHTML = '';
+  $('uitw').classList.remove('zichtbaar'); $('uitw').innerHTML = '';
+  $('btnUitw').disabled = true;
+  $('btnCheck').disabled = false;
+  const eerste = $('velden').querySelector('input,select'); if (eerste) eerste.focus({preventScroll:true});
+}
+function leesGetal(s){
+  if (s == null) return NaN;
+  s = String(s).trim().replace(/\s/g,'').replace(',', '.');
+  if (!/^[-+]?\d*\.?\d+(e[-+]?\d+)?$/i.test(s)) return NaN;
+  return parseFloat(s);
+}
+function dichtbij(x, w, v){
+  const tolAbs = v.tolAbs ?? 0.015, tolRel = v.tolRel ?? 0.01;
+  return Math.abs(x - w) <= Math.max(tolAbs, tolRel*Math.abs(w));
+}
+function controleer(){
+  if (!vraag) return;
+  gecontroleerd = true;
+  let alles = true, leeg = false;
+  vraag.velden.forEach(v => {
+    const el = $('in_'+v.id), st = $('st_'+v.id), box = $('veld_'+v.id);
+    box.classList.remove('goed','fout');
+    if (v.type === 'keuze'){
+      if (!el.value){ st.innerHTML = ''; leeg = true; alles = false; return; }
+      if (v.waarden.includes(el.value)){ box.classList.add('goed'); st.innerHTML = '<span class="ok">✓</span>'; }
+      else { box.classList.add('fout'); st.innerHTML = `<span class="nok">✗</span> <span class="tip">${v.foutKeuze||''}</span>`; alles = false; }
+      return;
+    }
+    const x = leesGetal(el.value);
+    if (el.value.trim()===''){ st.innerHTML = ''; leeg = true; alles = false; return; }
+    if (isNaN(x)){ box.classList.add('fout'); st.innerHTML = '<span class="nok">✗</span> <span class="tip">Vul alleen een getal in (de eenheid staat er al).</span>'; alles = false; return; }
+    if (v.waarden.some(w => dichtbij(x,w,v))){
+      box.classList.add('goed');
+      const ref = v.waarden[0];
+      const afronding = Math.abs(x - ref) > 0.005 && Math.abs(x - r2(x)) < 1e-9 ? ' <span class="noot">(klein verschil door afronden, prima)</span>' : '';
+      const decimalen = (el.value.split(/[.,]/)[1]||'').length;
+      const tipDec = decimalen > 2 ? ' <span class="noot">Rond af op 2 decimalen.</span>' : '';
+      st.innerHTML = '<span class="ok">✓</span>' + afronding + tipDec;
+    } else {
+      alles = false; box.classList.add('fout');
+      const f = (v.fouten||[]).find(f => dichtbij(x, f.w, {tolAbs:0.015, tolRel:0.01}));
+      st.innerHTML = `<span class="nok">✗</span>` + (f ? ` <span class="tip">${f.msg}</span>` : '');
+    }
+  });
+  $('btnUitw').disabled = false;
+  if (alles){
+    if (!opgelost){ score[niveau]++; opgelost = true; tekenNiveaus(); }
+    $('melding').innerHTML = `<span class="ok" style="color:var(--goed);font-weight:650">${kies(['Missie geslaagd!','Klopt, Mark Watney overleeft weer een sol.','Helemaal goed!','Goed gerekend, NASA is onder de indruk.'])}</span> Klik op <b>Nieuwe opgave</b> voor de volgende.`;
+    $('btnNieuw').focus();
+  } else if (leeg){
+    $('melding').innerHTML = '<span style="color:var(--muted)">Vul alle vakjes in.</span>';
+  } else {
+    $('melding').innerHTML = '<span style="color:var(--muted)">Nog niet alles klopt. Pas aan en controleer opnieuw, of bekijk de uitwerking.</span>';
+  }
+}
+function toonUitwerking(){
+  const delen = vraag.uitw.map(r => r === 'KETEN' && vraag.keten ? ketenHTML(vraag.keten.A, vraag.keten.B) : `<div class="stap">${r}</div>`);
+  $('uitw').innerHTML = `<h3>UITWERKING</h3>${delen.join('')}`;
+  $('uitw').classList.add('zichtbaar');
+}
+
+$('btnCheck').onclick = controleer;
+$('btnNieuw').onclick = nieuweVraag;
+$('btnUitw').onclick = toonUitwerking;
+tekenNiveaus(); tekenOpties(); nieuweVraag();
+</script>
+</body>
+</html>
