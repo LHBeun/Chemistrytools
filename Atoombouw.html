@@ -143,6 +143,17 @@
   .btn.ghost:hover:not(:disabled){border-color:var(--accent-dim); color:var(--text);}
   .btn:disabled{opacity:.4; cursor:not-allowed;}
 
+  .opd-instr{border:1px solid var(--accent-dim);border-radius:8px;margin-bottom:12px;overflow:hidden;background:#fff}
+  .opd-instr summary{cursor:pointer;padding:9px 14px;font-weight:650;list-style:none;background:rgba(31,95,191,0.07);color:#174a96}
+  .opd-instr summary::-webkit-details-marker{display:none}
+  .opd-instr summary::before{content:'▸ '} .opd-instr[open] summary::before{content:'▾ '}
+  .opd-instr .in{padding:10px 14px;font-size:14px;line-height:1.6}
+  .opd-vb{margin-top:8px;padding:8px 12px;background:rgba(31,95,191,0.05);border-radius:7px;line-height:1.7}
+  .opd-vb .k{font-size:11px;letter-spacing:.05em;text-transform:uppercase;opacity:.7;font-weight:650}
+  .opd-vb .big{font-size:22px;display:inline-flex;align-items:center;vertical-align:middle;padding:0 4px}
+  .opd-vb .prefix{display:inline-flex;flex-direction:column;justify-content:center;align-items:flex-end;line-height:1.05;margin-right:3px}
+  .opd-vb .super{font-size:12px;color:var(--accent)} .opd-vb .sub{font-size:12px;color:var(--accent2)}
+  .opd-vb .charge{align-self:flex-start;font-size:12px;color:var(--warn);margin-left:1px}
   .task-box{
     background:rgba(226,129,79,0.08); border:1px solid var(--accent-dim); border-radius:8px;
     padding:14px 16px; margin-bottom:16px;
@@ -1214,6 +1225,43 @@ const OPD_ORDER = ['t1','t2','t1','t2','t3','t4','t5','t6a','t6b','t7'];
 
 let opd = { level:null, list:[], idx:0, firstTry:0, results:[] };
 
+// Uitleg met voorbeeld per opdrachtsoort. Het voorbeeld gebruikt steeds een deeltje dat
+// in de opgave zelf niet voorkomt (zie 'niet': de opgave wordt dan opnieuw gegenereerd).
+const opdVb = h => `<div class="opd-vb"><div class="k">Voorbeeld</div>${h}</div>`;
+const OPD_UITLEG = {
+  t1:{ titel:'Nieuw: de atoomnotatie lezen', niet:t=>/^17 protonen/.test(t.explain),
+    html:()=>'In de notatie staat linksonder het <b>atoomnummer</b>: het aantal protonen. Linksboven staat het <b>massagetal</b>: protonen en neutronen samen. Rechtsboven staat de lading. Bij een negatieve lading zijn er meer elektronen dan protonen, bij een positieve lading minder.'+
+      opdVb(opdNotation('Cl',37,17,-1)+'<br>17 protonen · 37 − 17 = 20 neutronen · lading 1−, dus 17 + 1 = 18 elektronen') },
+  t2:{ titel:'Nieuw: de notatie opschrijven', niet:t=>/uit 12 protonen/.test(t.prompt),
+    html:l=>'Het aantal protonen bepaalt welk element het is: dat is het atoomnummer'+(l==='3V'?' (zoek het op in je periodiek systeem)':' (Binas tabel 99)')+'. Het massagetal is protonen + neutronen. De lading is protonen − elektronen.'+
+      opdVb('12 protonen, 12 neutronen en 10 elektronen: atoomnummer 12 is magnesium. Massagetal 12 + 12 = 24, lading 12 − 10 = 2+.<br>'+opdNotation('Mg',24,12,2)) },
+  t3:{ titel:'Nieuw: isotopen', niet:t=>/atoomnummer \(6\)/.test(t.explain),
+    html:()=>'<b>Isotopen</b> zijn atomen van hetzelfde element (hetzelfde atoomnummer) met een verschillend aantal neutronen, en dus een verschillend massagetal.'+
+      opdVb(opdNotation('C',12,6,0)+' en '+opdNotation('C',13,6,0)+' zijn isotopen: allebei 6 protonen, maar 6 en 7 neutronen.') },
+  t4:{ titel:'Nieuw: elektronen in schillen', niet:t=>/atoomnummer 16\)/.test(t.prompt),
+    html:()=>'Elektronen zitten in schillen rond de kern. Vul de schillen van binnen naar buiten: de K-schil maximaal 2, de L-schil maximaal 8, de M-schil (tot calcium) maximaal 8. Bij een ion tel je eerst hoeveel elektronen er zijn.'+
+      opdVb('Zwavel (atoomnummer 16): 16 elektronen → 2, 8, 6.<br>Het ion S²⁻ heeft 18 elektronen → 2, 8, 8.') },
+  t5:{ titel:'Nieuw: welk ion vormt een element?', niet:t=>/atoomnummer 13\)/.test(t.prompt),
+    html:()=>'Een atoom staat elektronen af of neemt elektronen op tot de buitenste schil vol is, wat het snelst lukt. Elektronen afstaan geeft een <b>positief</b> ion, elektronen opnemen een <b>negatief</b> ion.'+
+      opdVb('Aluminium (13): 2, 8, 3. Drie elektronen afstaan gaat sneller dan vijf opnemen: Al³⁺.') },
+  t6a:{ titel:'Nieuw: de molmassa van een element', niet:t=>/molmassa van chloor/.test(t.prompt),
+    html:l=>'Van de meeste elementen bestaan meer isotopen. De atoommassa is het <b>gewogen gemiddelde</b>: elke isotoopmassa telt mee naar hoe vaak die isotoop voorkomt. 1 mol atomen weegt evenveel gram als de atoommassa in u: dat is de <b>molmassa</b> in g/mol.'+(l==='3V'?'':' De gegevens staan in Binas tabel 25.')+
+      opdVb('Chloor: 75,78 % Cl-35 (34,969 u) en 24,22 % Cl-37 (36,966 u).<br>34,969 u × 0,7578 + 36,966 u × 0,2422 = 35,45 u, dus de molmassa is 35,45 g/mol.') },
+  t6b:{ titel:'Nieuw: de molmassa van een molecuul', niet:()=>false,
+    html:l=>'Tel de atoommassa\'s van alle atomen in het molecuul bij elkaar op. Let op de indices: die geven aan hoeveel atomen van elk soort er zijn.'+(l==='3V'?'':' De atoommassa\'s staan in Binas tabel 99.')+
+      opdVb('Ethaan C₂H₆: 2 × 12,01 + 6 × 1,008 = 30,07 g/mol.') },
+  t7:{ titel:'Nieuw: alfa- en bètaverval', niet:t=>/Ra/.test(t.show||'') && /226/.test(t.show||''),
+    html:l=> l==='3V'
+      ? 'Een radioactieve isotoop vervalt. Na één <b>halveringstijd</b> is de helft over, na twee halveringstijden een kwart, enzovoort.'+opdVb('Jodium-131 heeft een halveringstijd van 8 dagen. Na 24 dagen zijn er 3 halveringstijden voorbij: 100 % → 50 % → 25 % → 12,5 %.')
+      : 'Bij <b>α-verval</b> zendt de kern een heliumkern uit (2 protonen en 2 neutronen): het atoomnummer daalt met 2 en het massagetal met 4. Bij <b>β⁻-verval</b> wordt een neutron een proton en wordt een elektron uitgezonden: het atoomnummer stijgt met 1, het massagetal blijft gelijk.'+
+        opdVb(opdNotation('Ra',226,88,0)+' → '+opdNotation('Rn',222,86,0)+' + α') }
+};
+function opdMaak(type, level){
+  const u = OPD_UITLEG[type]; let t;
+  for(let k=0;k<40;k++){ t = OPD_GEN[type](level); if(!u || !u.niet(t)) break; }
+  t.tries=0; t.done=false; t.hint_used=false; t.shown=false; return t;
+}
+
 const opdRand = a => a[Math.floor(Math.random()*a.length)];
 const opdNl = (x,d) => x.toFixed(d).replace('.',',');
 const opdPct = x => String(+x.toFixed(2)).replace('.',',');
@@ -1358,8 +1406,7 @@ const OPD_GEN = {
 };
 
 function opdStart(level){
-  opd = { level, list: OPD_ORDER.map(t=>OPD_GEN[t](level)), idx:0, firstTry:0, results:[] };
-  opd.list.forEach(t=>{ t.tries=0; t.done=false; t.hint_used=false; t.shown=false; });
+  opd = { level, list: OPD_ORDER.map(t=>opdMaak(t, level)), idx:0, firstTry:0, results:[] };
   renderOpdrachten(el('stage-content'));
 }
 
@@ -1391,6 +1438,7 @@ function renderOpdrachten(content){
     inputs=`<div class="answer-grid ${t.shells?'opd-shells':''}">${t.fields.map(f=>`<div class="answer-field"><label for="opd-${f.k}">${f.label}</label><input id="opd-${f.k}" autocomplete="off" ${f.kind==='text'?'':'inputmode="decimal"'}></div>`).join('')}</div>`;
   }
   panel.innerHTML=`<div class="opd-top"><span class="opd-level">${opd.level}</span><div class="opd-dots">${dots}</div></div>
+    ${OPD_UITLEG[t.type] ? `<details class="opd-instr" ${opd.list.findIndex(x=>x.type===t.type)===opd.idx?'open':''}><summary>${OPD_UITLEG[t.type].titel}</summary><div class="in">${OPD_UITLEG[t.type].html(opd.level)}</div></details>` : ''}
     <div class="task-box"><div class="lbl">Opdracht ${opd.idx+1} · ${OPD_TYPE_LABEL[t.type]}</div><div class="desc">${t.prompt}</div></div>
     ${t.show}${inputs}
     <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -1398,6 +1446,7 @@ function renderOpdrachten(content){
       <button class="btn ghost" id="opd-hint">Hint</button>
       <button class="btn ghost" id="opd-show" ${t.tries>=2?'':'hidden'}>Toon antwoord</button>
       <button class="btn" id="opd-next" hidden>Volgende →</button>
+      <button class="btn ghost" id="opd-again">↻ Nog een opgave van dit type</button>
     </div>
     <div class="feedback" id="opd-fb"></div>`;
   const fb=el('opd-fb');
@@ -1406,6 +1455,7 @@ function renderOpdrachten(content){
   el('opd-hint').onclick=()=>{ t.hint_used=true; say('info','💡 '+t.hint); };
   el('opd-show').onclick=()=>{ t.shown=true; say('info','Antwoord: '+t.explain); finish(); };
   el('opd-next').onclick=()=>{ if(t.tries===1&&!t.hint_used&&!t.shown) opd.firstTry++; opd.idx++; renderOpdrachten(content); };
+  el('opd-again').onclick=()=>{ opd.list[opd.idx] = opdMaak(t.type, opd.level); renderOpdrachten(content); };
   const afterWrong=(msg)=>{ say('incorrect',(msg||'Nog niet goed.')+(t.tries>=2?' Je kunt ook het antwoord laten zien.':'')); if(t.tries>=2) el('opd-show').hidden=false; };
   if(t.mc){
     panel.querySelectorAll('.opd-mc button').forEach(b=>b.onclick=()=>{
