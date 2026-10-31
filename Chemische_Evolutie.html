@@ -43,6 +43,13 @@
   .bound-field input.correct{border-color:var(--good); background:#f2f7f1;}
   .explain{display:none;margin-top:6px;padding:8px 10px;background:#f2f7f1;border-left:3px solid var(--good);font-size:.8rem;color:#264422;font-family:Arial,sans-serif;}
   .explain.show{display:block;}
+  .bound-field input.wrong{border-color:#b3412e;background:#fbf1ef;}
+  .hint{display:none;margin-top:4px;font-size:.76rem;color:#8a2f20;font-family:Arial,sans-serif;}
+  .hint.show{display:block;}
+  .leerdoelen{margin:8px 0 0;font-family:Arial,sans-serif;font-size:.82rem;color:#333;}
+  .leerdoelen summary{cursor:pointer;color:var(--accent2);font-weight:bold;}
+  .leerdoelen ul{margin:6px 0 2px;padding-left:20px;line-height:1.5;}
+  @media (max-width:760px){main{grid-template-columns:1fr;}.stage-visual{border-right:none;border-bottom:1px solid var(--line);}}
 
   .feedback-box{display:none;margin-top:6px;padding:13px 15px;border:2px solid var(--good);background:#f2f7f1;font-family:Arial,sans-serif;font-size:.87rem;color:#264422;}
   .feedback-box.show{display:block;}
@@ -58,7 +65,17 @@
 <body>
 <header>
   <h1>Chemische Evolutie — Van Molecuul tot Brein</h1>
-  <p id="stage-label">Stage 1 van 8</p>
+  <p id="stage-label">Fase 1 van 8</p>
+  <details class="leerdoelen">
+    <summary>Leerdoelen</summary>
+    <ul>
+      <li>Je berekent met de Arrhenius-vergelijking bij welke temperatuur een reactie een gegeven snelheidsconstante haalt.</li>
+      <li>Je beslist met Q en K of een reactie netto naar rechts of naar links verloopt, en berekent daarmee een grensconcentratie.</li>
+      <li>Je berekent met Henderson-Hasselbalch de pH waarbij een gegeven fractie van een zuur gedeprotoneerd is, en met K<sub>s</sub> of een snelheidsconstante een pH-bovengrens via [OH⁻].</li>
+      <li>Je rekent met fotonenergie (E = hc/λ), de Nernst-vergelijking, Van 't Hoff en bindingsevenwichten (K<sub>d</sub>).</li>
+      <li>Je legt uit waarom een proces zowel een ondergrens als een bovengrens heeft: snel genoeg verlopen tegenover stabiel blijven.</li>
+    </ul>
+  </details>
 </header>
 <div class="progress" id="progress"></div>
 <main id="main-area"></main>
@@ -91,10 +108,10 @@ const stages = [
     {id:"T", label:"Temperatuur", unit:"K", low:286, high:340,
      story:"De energie voor deze eerste stap moet uit warmte komen — maar te weinig warmt niets op, en te veel breekt alles weer af voordat het kan ontstaan.",
      lowExplain:"Bij deze temperatuur ligt de snelheidsconstante van de vormingsreactie precies op de ondergrens k = 5,0×10⁻⁵ s⁻¹ — eronder verloopt de vorming van HCN en aldehyden te traag om ooit iets op te bouwen.",
-     highExplain:"Boven deze temperatuur wordt de ontledingsreactie van de net gevormde moleculen sneller dan de vorming zelf — alles wat ontstaat, valt meteen weer uiteen."},
+     highExplain:"Bij deze temperatuur haalt de ontledingsreactie de grens k = 5,0×10⁻⁵ s⁻¹ — erboven vallen de net gevormde moleculen te snel weer uiteen om zich op te hopen."},
     {id:"CH4", label:"CH₄-fractie in gasmengsel", unit:"%", low:30, high:55,
      story:"Het gasmengsel moet ook de juiste samenstelling hebben: genoeg methaan om de reactie op gang te houden, maar niet zoveel dat er straks geen ruimte meer over is voor water en andere bouwstenen.",
-     lowExplain:"Bij dit percentage ligt het reactiequotiënt Q precies op de evenwichtsconstante K꜀ — eronder verloopt de vorming van HCN te langzaam om verder te komen.",
+     lowExplain:"Bij dit percentage is het reactiequotiënt Q precies gelijk aan K꜀. Bij minder CH₄ wordt Q groter dan K꜀: dan verloopt de reactie netto naar links en ontstaat er geen HCN meer bij.",
      highExplain:"Boven dit percentage is er simpelweg geen ruimte meer in het gasmengsel over voor de waterdamp die de volgende stap nodig heeft."},
     {id:"lam", label:"Golflengte van de straling", unit:"nm", low:134, high:290,
      story:"En dan is er nog het licht zelf: te weinig energie per foton breekt geen enkele binding, te veel energie breekt zelfs de bindingen die je juist wilt behouden.",
@@ -118,9 +135,10 @@ const stages = [
     {title:"Concentratie — reactiequotiënt Q vs. K꜀", formula:"Q = [dipeptide][H₂O] / [monomeer]²",
      symbols:"[X] = concentratie (mol/L) · Q = reactiequotiënt · K꜀ = evenwichtsconstante",
      given:["K꜀ = 8,0×10⁻³, achtergrond [dipeptide] = 0,01 mol/L, [H₂O] = 0,5 mol/L (eis: Q ≤ K꜀)",
+            "Dit speelt zich af in een opdrogende getijdenpoel: er is zo weinig vrij water dat je met een effectieve [H₂O] van 0,5 mol/L rekent",
             "Bovengrens: oplosbaarheidsgrens van het monomeer S = 1,6 mol/L"]},
     {title:"Temperatuur — Arrhenius (2×)", formula:"k = A·e^(−Eₐ/RT)  →  T = Eₐ/(R·ln(A/k))",
-     symbols:"zie stage 1 voor alle symbolen",
+     symbols:"zie fase 1 voor alle symbolen",
      given:["Dehydratatie: Eₐ = 90 kJ/mol, A = 1,0×10¹⁰ s⁻¹, k_min = 1,0×10⁻⁴ s⁻¹",
             "Thermische ontleding peptidebinding: Eₐ = 115 kJ/mol, A = 5,0×10¹² s⁻¹, k_max = 1,0×10⁻⁴ s⁻¹"]}
   ],
@@ -128,15 +146,15 @@ const stages = [
     {id:"pH", label:"pH", unit:"", low:8.65, high:10.5,
      story:"De pH bepaalt of de aminogroep klaarstaat om aan te vallen, of dat de pas gevormde binding er juist weer af wordt gebroken.",
      lowExplain:"Bij deze pH is minstens 10% van de aminogroepen gedeprotoneerd tot het nucleofiele -NH₂ — eronder is er te weinig reactieve vorm beschikbaar.",
-     highExplain:"Boven deze pH stijgt de hydroxideconcentratie zo hoog dat basisch-gekatalyseerde hydrolyse de peptidebinding sneller afbreekt dan ze gevormd wordt."},
+     highExplain:"Bij deze pH haalt de basische hydrolyse van de peptidebinding de grens k = 3,16×10⁻² s⁻¹ — erboven is [OH⁻] zo groot dat de binding te snel weer wordt afgebroken."},
     {id:"C", label:"Concentratie monomeer", unit:"mol/L", low:0.79, high:1.6,
      story:"Hoe meer monomeren dicht bij elkaar zitten, hoe vaker ze botsen en hoe groter de kans op reactie — maar los er te veel op, en ze slaan juist neer voordat ze kunnen reageren.",
-     lowExplain:"Bij deze concentratie duwt het reactiequotiënt Q de condensatiereactie net over de evenwichtsconstante K꜀ heen — eronder verloopt de vorming te langzaam.",
+     lowExplain:"Bij deze concentratie is het reactiequotiënt Q precies gelijk aan K꜀. Bij een lagere monomeerconcentratie wordt Q groter dan K꜀: dan verloopt de reactie netto naar links en valt het dipeptide weer uiteen in monomeren.",
      highExplain:"Boven deze concentratie overschrijd je de oplosbaarheidsgrens en klonteren de monomeren samen tot een inactief neerslag."},
     {id:"T", label:"Temperatuur", unit:"K", low:336, high:360,
      story:"En net als bij de allereerste stap is er ook hier een venster tussen te koud — te trage dehydratatie — en te heet, waarbij de binding zelf weer thermisch afbreekt.",
      lowExplain:"Bij deze temperatuur bereikt de dehydratatiereactie precies de minimale snelheidsconstante om binnen redelijke tijd tot condensatie te komen.",
-     highExplain:"Boven deze temperatuur ontleedt de peptidebinding zelf alweer door de warmte, sneller dan hij gevormd wordt."}
+     highExplain:"Bij deze temperatuur haalt de thermische ontleding van de peptidebinding de grens k = 1,0×10⁻⁴ s⁻¹ — erboven breekt de net gevormde binding te snel weer af."}
   ],
   success:"Bij deze pH is de aminogroep net voldoende nucleofiel zonder dat de peptidebinding alweer hydrolyseert, de concentratie duwt Q onder K꜀ zonder de oplosbaarheidsgrens te overschrijden, en de temperatuur zit tussen de dehydratatiedrempel en de thermische ontledingsgrens. Aminozuren koppelen aaneen tot korte peptiden.",
   svg:(p)=>`<svg viewBox="0 0 320 190"><rect width="320" height="190" fill="#fff"/>
@@ -222,22 +240,23 @@ const stages = [
   intro:"Zelfreplicatie alleen is niet genoeg — er is ook een energiebron nodig om alle andere processen aan te drijven. In de eerste protocellen ontstaat daarom een primitief soort stofwisseling: een spontane overdracht van elektronen van een donor naar een acceptor.",
   databoek:[
     {title:"Q — gegeven ondergrens + Nernst-bovengrens", formula:"E = E° − (RT/nF)·ln(Q)",
-     symbols:"E° = standaardpotentiaalverschil · n = aantal elektronen · F = 96485 C/mol · R = 8,314 J/(mol·K)",
-     given:["Ondergrens (gegeven): onder Q = 0,05 is er onvoldoende donor beschikbaar",
+     symbols:"E° = E°(acceptor) − E°(donor) · n = aantal elektronen · F = 96485 C/mol · R = 8,314 J/(mol·K)",
+     given:["Q = [geoxideerde donor]·[gereduceerde acceptor] / ([donor]·[acceptor]) — dus producten gedeeld door beginstoffen",
+            "Ondergrens (gegeven): onder Q = 0,05 is er te weinig product om de volgende stap in de kringloop te voeden",
             "E°(acceptor) = +0,40 V, E°(donor) = −0,30 V, n = 2, T = 298 K (referentie), benodigd E ≥ 0,68 V → bovengrens"]},
     {title:"pH — Henderson-Hasselbalch + Ksp", formula:"pH = pK_z + log([A⁻]/[HA])  ·  K_sp = [acceptor][OH⁻]²",
      symbols:"K_sp = oplosbaarheidsproduct",
      given:["Ondergrens: pK_z(donor) = 5,0, benodigde fractie actieve vorm ≥ 60%",
             "Bovengrens: K_sp(acceptor-hydroxide) = 1,0×10⁻¹⁴, [acceptor] = 0,05 mol/L"]},
-    {title:"Temperatuur — Arrhenius (2×)", formula:"k = A·e^(−Eₐ/RT) → T = Eₐ/(R·ln(A/k))", symbols:"zie stage 1",
+    {title:"Temperatuur — Arrhenius (2×)", formula:"k = A·e^(−Eₐ/RT) → T = Eₐ/(R·ln(A/k))", symbols:"zie fase 1",
      given:["Elektronoverdracht: Eₐ = 75 kJ/mol, A = 2,0×10⁹ s⁻¹, k_min = 1,0×10⁻⁴ s⁻¹",
             "Denaturatie katalytisch oppervlak: Eₐ = 100 kJ/mol, A = 5,0×10¹² s⁻¹, k_max = 1,0×10⁻⁴ s⁻¹"]}
   ],
   vars:[
-    {id:"Q", label:"Concentratieverhouding donor/acceptor (Q)", unit:"", low:0.05, high:4.75,
-     story:"Hoeveel donor er beschikbaar is ten opzichte van de acceptor bepaalt, via de Nernst-vergelijking, of de elektronenoverdracht energetisch de moeite waard blijft.",
-     lowExplain:"Onder deze waarde is er simpelweg te weinig donor beschikbaar om de reactie draaiende te houden.",
-     highExplain:"Boven deze waarde daalt de celspanning E volgens de Nernst-vergelijking onder de benodigde 0,68 V — de overdracht wordt te traag om nuttig te zijn."},
+    {id:"Q", label:"Reactiequotiënt Q (producten/beginstoffen)", unit:"", low:0.05, high:4.75,
+     story:"Hoe ver de overdracht al is opgeschoten — de verhouding tussen producten en beginstoffen — bepaalt via de Nernst-vergelijking of de elektronenoverdracht nog genoeg spanning levert.",
+     lowExplain:"Deze ondergrens is gegeven: bij een kleinere Q is er nog te weinig product gevormd om de volgende stap in de kringloop te voeden.",
+     highExplain:"Bij deze waarde is de spanning E volgens de Nernst-vergelijking precies 0,68 V. Hoopt er nog meer product op (grotere Q), dan daalt E verder en levert de overdracht te weinig energie."},
     {id:"pH", label:"pH", unit:"", low:5.18, high:7.65,
      story:"Ook hier moeten donor en acceptor in hun actieve, opgeloste vorm blijven — niet geprotoneerd tot inactiviteit, en niet neergeslagen als onoplosbaar hydroxide.",
      lowExplain:"Bij deze pH is minstens 60% van de donor in de actieve vorm aanwezig.",
@@ -293,9 +312,9 @@ const stages = [
      given:["K_d = 2×10⁻⁷ mol/L · detectie: θ ≥ 0,5 (ondergrens) · verzadiging: θ ≤ 0,75 (bovengrens)"]},
     {title:"Afstand — diffusie (gebruik je eigen bovengrens voor [L]!)", formula:"C(d) = [L]·e^(−d/λ)   —   eis: C(d) ≥ K_d  ⇒  d ≤ λ·ln([L]/K_d)",
      symbols:"C(d) = concentratie op afstand d · λ = diffusielengteschaal",
-     given:["λ = 20 · gebruik voor deze berekening je zojuist gevonden bovengrens voor [L] (6×10⁻⁷ mol/L)",
-            "Ondergrens (gegeven, ter voorkoming van autocriene overbelasting): d ≥ 2"]},
-    {title:"Temperatuur — Arrhenius (2×)", formula:"k = A·e^(−Eₐ/RT) → T = Eₐ/(R·ln(A/k))", symbols:"zie stage 1",
+     given:["λ = 20 µm · gebruik voor deze berekening je zojuist gevonden bovengrens voor [L] (6×10⁻⁷ mol/L)",
+            "Ondergrens (gegeven, ter voorkoming van autocriene overbelasting): d ≥ 2 µm"]},
+    {title:"Temperatuur — Arrhenius (2×)", formula:"k = A·e^(−Eₐ/RT) → T = Eₐ/(R·ln(A/k))", symbols:"zie fase 1",
      given:["Diffusiesnelheid: Eₐ = 85 kJ/mol, A = 1,0×10¹¹ s⁻¹, k_min = 1,0×10⁻⁴ s⁻¹",
             "Denaturatie receptor: Eₐ = 110 kJ/mol, A = 3,0×10¹³ s⁻¹, k_max = 1,0×10⁻⁴ s⁻¹"]}
   ],
@@ -304,7 +323,7 @@ const stages = [
      story:"De bezettingsfractie van de receptor bepaalt of het signaal wordt opgemerkt — te weinig signaalmolecuul, en er gebeurt niets; te veel, en de receptor kan niet meer onderscheiden.",
      lowExplain:"Bij deze concentratie is de bezettingsfractie θ van de receptor precies 0,5 — eronder wordt het signaal niet betrouwbaar opgemerkt.",
      highExplain:"Boven deze concentratie stijgt θ boven 0,75 en raakt de receptor verzadigd — hij reageert niet langer op veranderingen."},
-    {id:"d", label:"Afstand tot bron", unit:"", low:2, high:21.97,
+    {id:"d", label:"Afstand tot bron", unit:"µm", low:2, high:21.97,
      story:"En hoe ver het signaal nog waarneembaar is, hangt af van hoeveel er precies wordt uitgescheiden — gebruik je zonet berekende bovengrens voor de concentratie als vertrekpunt.",
      lowExplain:"Deze ondergrens is gegeven: te dichtbij ontstaat het risico op autocriene overbelasting van de eigen cel.",
      highExplain:"Bij deze afstand, uitgaande van de maximale toegestane signaalconcentratie, is de verdunning door diffusie precies zo groot dat de concentratie nog net op K_d ligt — verder weg wordt het signaal niet meer opgemerkt."},
@@ -330,7 +349,7 @@ const stages = [
      given:["[Na⁺]buiten = 145, [Na⁺]binnen = 15 mmol/L · [K⁺]buiten = 5, [K⁺]binnen = 140 mmol/L",
             "T = 310 K (referentie), R = 8,314 J/(mol·K), F = 96485 C/mol",
             "Drempelvenster voor een actiepotentiaal: −60 mV ≤ V_m ≤ −50 mV"]},
-    {title:"Temperatuur — Arrhenius (2×)", formula:"k = A·e^(−Eₐ/RT) → T = Eₐ/(R·ln(A/k))", symbols:"zie stage 1",
+    {title:"Temperatuur — Arrhenius (2×)", formula:"k = A·e^(−Eₐ/RT) → T = Eₐ/(R·ln(A/k))", symbols:"zie fase 1",
      given:["Kanaalkinetiek: Eₐ = 95 kJ/mol, A = 8,0×10¹² s⁻¹, k_min = 1,0×10⁻⁴ s⁻¹",
             "Denaturatie kanaaleiwitten: Eₐ = 105 kJ/mol, A = 1,0×10¹³ s⁻¹, k_max = 1,0×10⁻⁴ s⁻¹"]}
   ],
@@ -371,7 +390,7 @@ function withinTol(val, target){
 function renderStage(){
   if(current >= stages.length){ renderEpilogue(); return; }
   const s = stages[current];
-  document.getElementById('stage-label').textContent = `Stage ${current+1} van ${stages.length} — ${s.name}`;
+  document.getElementById('stage-label').textContent = `Fase ${current+1} van ${stages.length} — ${s.name}`;
   const progressFrac = solved[current] ? 1 : 0;
 
   const html = `
@@ -382,7 +401,7 @@ function renderStage(){
     </div>
     <div class="controls">
       <div class="databoek">
-        <h3>Databoek — Stage ${current+1}</h3>
+        <h3>Databoek — fase ${current+1}</h3>
         ${s.databoek.map(b=>`
           <div class="fblock">
             <b>${b.title}</b>
@@ -398,12 +417,14 @@ function renderStage(){
           <div class="story">${v.story}</div>
           <div class="bound-row">
             <div class="bound-field">
-              <label>Ondergrens (${v.unit})</label>
+              <label>Ondergrens${v.unit?` (${v.unit})`:''}</label>
               <input type="number" step="any" id="lo-${v.id}">
+              <div class="hint" id="hint-lo-${v.id}"></div>
             </div>
             <div class="bound-field">
-              <label>Bovengrens (${v.unit})</label>
+              <label>Bovengrens${v.unit?` (${v.unit})`:''}</label>
               <input type="number" step="any" id="hi-${v.id}">
+              <div class="hint" id="hint-hi-${v.id}"></div>
             </div>
           </div>
           <div class="explain" id="exp-lo-${v.id}">${v.lowExplain}</div>
@@ -414,7 +435,7 @@ function renderStage(){
         <h4>Reactie geslaagd</h4>
         <p id="feedback-text"></p>
       </div>
-      <button class="next-btn" id="next-btn">Volgende stage →</button>
+      <button class="next-btn" id="next-btn">Volgende fase →</button>
     </div>
   `;
   document.getElementById('main-area').innerHTML = html;
@@ -423,7 +444,24 @@ function renderStage(){
     const loInput = document.getElementById(`lo-${v.id}`);
     const hiInput = document.getElementById(`hi-${v.id}`);
     [loInput, hiInput].forEach((input, idx)=>{
+      const hintEl = document.getElementById(idx===0?`hint-lo-${v.id}`:`hint-hi-${v.id}`);
+      input.addEventListener('change', ()=>{
+        const val = parseFloat(input.value);
+        const target = idx===0 ? v.low : v.high;
+        const other = idx===0 ? v.high : v.low;
+        const fout = input.value!=='' && !withinTol(val, target);
+        input.classList.toggle('wrong', fout);
+        let tekst = '';
+        if(fout){
+          if(withinTol(val, other)) tekst = 'Dit is de andere grens.';
+          else if(withinTol(val, target*1000) || withinTol(val, target/1000)) tekst = 'Bijna: let op de eenheid (factor 1000).';
+          else tekst = 'Nog niet goed — controleer je berekening.';
+        }
+        hintEl.textContent = tekst;
+        hintEl.classList.toggle('show', fout);
+      });
       input.addEventListener('input', ()=>{
+        if(withinTol(parseFloat(input.value), idx===0 ? v.low : v.high)){ input.classList.remove('wrong'); hintEl.classList.remove('show'); }
         const target = idx===0 ? v.low : v.high;
         const ok = withinTol(parseFloat(input.value), target);
         input.classList.toggle('correct', ok);
@@ -473,7 +511,7 @@ function checkStage(){
 function renderEpilogue(){
   document.getElementById('stage-label').textContent = `Epiloog`;
   document.getElementById('main-area').innerHTML = `
-    <div class="epilogue" style="grid-column:1/3;">
+    <div class="epilogue" style="grid-column:1/-1;">
       <h2>Van netwerk naar intelligentie... naar AI?</h2>
       <p>De cellen die ooit alleen chemische signalen uitwisselden, vormen nu netwerken die patronen herkennen, herinneren en voorspellen. Ergens tussen de miljarden gekoppelde reacties ontstaat iets dat we "denken" noemen.</p>
       <p>En de machines die jij bouwt om dit soort processen te simuleren — zijn die ook een vorm van chemische evolutie, alleen dan in silicium in plaats van koolstof?</p>
