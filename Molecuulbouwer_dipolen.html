@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<title>Molecuulbouwer</title>
+<title>Molecuulbouwer — Lewis, vorm en dipolen</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root{
@@ -169,6 +169,17 @@
   .uitw{margin-top:12px;padding:10px 14px;border-radius:8px;background:var(--panel2);border:1px solid var(--border);font-size:14.5px;line-height:1.7}
   .kop{font-weight:650}
   .eind{padding:16px;background:var(--soft);border-radius:8px;font-size:15px}
+  .leerlijn{display:flex;gap:6px;margin:0 0 12px}
+  .llbtn{flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font:inherit;font-size:13px;font-weight:600;color:var(--textdim);text-align:left;line-height:1.3}
+  .llbtn small{display:block;font-weight:500;font-size:11.5px}
+  .llbtn.active{border-color:var(--accent);background:var(--soft);color:#174a96}
+  #lewisTools{display:none;gap:6px;flex-wrap:wrap}
+  body.lewis #lewisTools{display:flex}
+  body.lewis .geen-lewis{display:none !important}
+  #lewisTools button.tool{background:rgba(255,255,255,.95);border:1.5px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12.5px;cursor:pointer;font-weight:600;color:var(--text)}
+  #lewisTools button.tool.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  #btnView{display:none}
+  body.lewis #btnView.vrij{display:flex}
   .mono{font-family:Consolas,'Courier New',monospace;background:#eef1f6;border-radius:4px;padding:0 4px}
 </style>
 </head>
@@ -179,7 +190,7 @@
     <span style="flex:1"></span><button id="beamer" type="button" onclick="document.body.classList.toggle('hs-beamer')">Beamerstand</button></div></header>
   <main>
     <div id="builderView">
-      <div id="opdPanel"><h2>Opdrachten</h2><div class="top"><span class="level">4V · 5V</span><div class="dots" id="dots"></div><span class="score" id="score"></span></div><div id="opdBody"></div></div>
+      <div id="opdPanel"><h2>Opdrachten</h2><div class="leerlijn"><button class="llbtn" data-ll="dipool">4V · Polariteit en dipolen<small>ΔEN, δ+ en δ−, dipool, oplosbaarheid</small></button><button class="llbtn" data-ll="lewis">5V · Lewis en VSEPR<small>Lewisstructuur, formele lading, vorm, mesomerie</small></button></div><div class="top"><span class="level" id="llLabel">4V</span><div class="dots" id="dots"></div><span class="score" id="score"></span></div><div id="opdBody"></div></div>
       <div id="palette">
         <h3>Atomen</h3>
         <div id="elList"></div>
@@ -202,14 +213,23 @@
         <canvas id="scene"></canvas>
         <div id="sceneToolbar">
           <button id="btnReset">⟲ Nieuw molecuul</button>
-          <label class="vrij-only" title="Eerst zelf voorspellen; δ's, ladingscentra en conclusie verschijnen pas na je voorspelling"><input type="checkbox" id="chkVoorspel" checked> voorspelmodus</label>
-          <label><input type="checkbox" id="chkDelta" checked> δ-letters</label>
+          <label class="vrij-only geen-lewis" title="Eerst zelf voorspellen; δ's, ladingscentra en conclusie verschijnen pas na je voorspelling"><input type="checkbox" id="chkVoorspel" checked> voorspelmodus</label>
+          <label class="vrij-only" title="Teken een Lewisstructuur: zelf vrije paren en formele ladingen plaatsen"><input type="checkbox" id="chkLewis"> Lewis-tekening</label>
+          <button id="btnView" class="vrij" title="Wissel tussen de platte Lewistekening en de 3D-vorm">⇄ 3D-vorm</button>
+          <label class="geen-lewis"><input type="checkbox" id="chkDelta" checked> δ-letters</label>
           <label><input type="checkbox" id="chkLP" checked> vrije paren</label>
-          <label><input type="checkbox" id="chkCentr" checked> ladingscentra</label>
+          <label class="geen-lewis"><input type="checkbox" id="chkCentr" checked> ladingscentra</label>
+          <div id="lewisTools">
+            <button class="tool active" data-tool="bond" title="Klik op een atoom: er komt een binding bij">— binding</button>
+            <button class="tool" data-tool="lp+" title="Klik op een atoom: één vrij elektronenpaar erbij">+ vrij paar</button>
+            <button class="tool" data-tool="lp-" title="Klik op een atoom: één vrij elektronenpaar eraf">− vrij paar</button>
+            <button class="tool" data-tool="fc+" title="Klik op een atoom: formele lading +1">+ lading</button>
+            <button class="tool" data-tool="fc-" title="Klik op een atoom: formele lading −1">− lading</button>
+          </div>
         </div>
         <div id="formulaBadge">—</div>
         <div id="conclBadge"></div>
-        <div id="limitNote">Geïdealiseerde VSEPR-hoeken (vrije paren maken hoeken in werkelijkheid iets kleiner, bv. H2O 104,5° i.p.v. 109,5°). Vrije elektronenparen worden automatisch berekend via de octetregel op basis van bindingsorde. Sleep om te draaien, scroll om te zoomen.</div>
+        <div id="limitNote" class="geen-lewis">Geïdealiseerde VSEPR-hoeken (vrije paren maken hoeken in werkelijkheid iets kleiner, bv. H2O 104,5° i.p.v. 109,5°). Vrije elektronenparen worden automatisch berekend via de octetregel op basis van bindingsorde. Sleep om te draaien, scroll om te zoomen.</div>
       </div>
       <div id="infoPanel">
         <h3>Atomen &amp; ladingen</h3>
@@ -283,6 +303,11 @@ let onthuld = false; // voorspelmodus: is de uitkomst voor dit molecuul al getoo
 const voorspelModus = () => (typeof opdModus!=='undefined' && opdModus) || document.getElementById('chkVoorspel').checked;
 const verborgen = () => voorspelModus() && !onthuld;
 let camYaw = 0.5, camPitch = -0.35, camDist = 7.5;
+// Lewis-modus: de leerling plaatst zelf vrije paren (node.lp) en formele ladingen (node.fc).
+// view2d: platte Lewistekening; anders de 3D-vorm. De 3D-layout (pos3) wordt altijd berekend,
+// zodat dipool en ladingscentra ook in de Lewistekening op de echte vorm gebaseerd zijn.
+let lewisModus = false, view2d = false, lewisTool = 'bond', view3dVrij = true;
+let lewisCenter = {x:0, y:0};
 
 const canvas = document.getElementById('scene');
 const ctx = canvas.getContext('2d');
@@ -344,13 +369,62 @@ function rotateAtoB(p, a, b){
 function layoutMolecule(){
   if(atoms.length===0) return;
   const root = atoms[0];
-  root.pos = {x:0,y:0,z:0};
+  root.pos3 = {x:0,y:0,z:0};
   recurseLayout(root.id, null, null);
+  if(lewisModus) layout2D();
+  atoms.forEach(a=>{
+    if(view2d && a.pos2){ a.pos = {x:a.pos2.x, y:a.pos2.y, z:0}; a.lonePairDirs = a.lpDirs2 || []; }
+    else { a.pos = a.pos3; a.lonePairDirs = a.lpDirs3 || []; }
+  });
+}
+// Platte Lewistekening: buren gelijk verdeeld rond elk atoom, vrije paren in de grootste open ruimtes.
+function layout2D(){
+  const L = 1.5, root = atoms[0];
+  root.pos2 = {x:0, y:0};
+  (function plaats(node, parentId, terugHoek){
+    const kinderen = node.bonds.filter(b=>b.id!==parentId);
+    const k = kinderen.length;
+    let hoeken = [];
+    if(parentId===null){
+      const start = k%2===0 ? 0 : 90;
+      for(let j=0;j<k;j++) hoeken.push(start + j*360/k);
+    } else {
+      for(let j=1;j<=k;j++) hoeken.push(terugHoek + j*360/(k+1));
+    }
+    kinderen.forEach((b,j)=>{
+      const c = findNode(b.id), h = hoeken[j]*Math.PI/180;
+      c.pos2 = {x: node.pos2.x + L*Math.cos(h), y: node.pos2.y + L*Math.sin(h)};
+      plaats(c, node.id, hoeken[j] + 180);
+    });
+    // vrije paren in de grootste gaten tussen alle bindingsrichtingen
+    const bezet = hoeken.slice(); if(parentId!==null) bezet.push(terugHoek);
+    const lp = isStub(node) ? 0 : (node.lp||0);
+    node.lpDirs2 = [];
+    const vrij = bezet.map(x=>((x%360)+360)%360);
+    for(let i=0;i<lp;i++){
+      let h;
+      if(vrij.length===0) h = 90;
+      else {
+        const srt = vrij.slice().sort((a,b)=>a-b);
+        let best = -1, bestGat = -1;
+        for(let q=0;q<srt.length;q++){
+          const a = srt[q], b = q+1<srt.length ? srt[q+1] : srt[0]+360;
+          if(b-a > bestGat){ bestGat = b-a; best = a + (b-a)/2; }
+        }
+        h = best;
+      }
+      vrij.push(((h%360)+360)%360);
+      node.lpDirs2.push([Math.cos(h*Math.PI/180), Math.sin(h*Math.PI/180), 0]);
+    }
+  })(root, null, 0);
+  let minx=Infinity,maxx=-Infinity,miny=Infinity,maxy=-Infinity;
+  atoms.forEach(a=>{ if(!a.pos2) return; minx=Math.min(minx,a.pos2.x); maxx=Math.max(maxx,a.pos2.x); miny=Math.min(miny,a.pos2.y); maxy=Math.max(maxy,a.pos2.y); });
+  lewisCenter = {x:(minx+maxx)/2, y:(miny+maxy)/2};
 }
 function recurseLayout(nodeId, parentId, backDirWorld){
   const node = findNode(nodeId);
   if(isStub(node)) return;
-  const lp = lonePairsFor(node.symbol, bondOrderSum(node));
+  const lp = lewisModus ? (node.lp||0) : lonePairsFor(node.symbol, bondOrderSum(node));
   const domains = node.bonds.length + lp;
   const template = domainVectors(Math.max(domains,1));
   let rotated, childSlotStart;
@@ -366,13 +440,13 @@ function recurseLayout(nodeId, parentId, backDirWorld){
   children.forEach((b,i)=>{
     const dir = norm(rotated[childSlotStart+i] || rotated[rotated.length-1]);
     const child = findNode(b.id);
-    child.pos = { x: node.pos.x+dir[0]*BOND_LEN, y: node.pos.y+dir[1]*BOND_LEN, z: node.pos.z+dir[2]*BOND_LEN };
+    child.pos3 = { x: node.pos3.x+dir[0]*BOND_LEN, y: node.pos3.y+dir[1]*BOND_LEN, z: node.pos3.z+dir[2]*BOND_LEN };
     recurseLayout(b.id, node.id, [-dir[0],-dir[1],-dir[2]]);
   });
-  node.lonePairDirs = [];
+  node.lpDirs3 = [];
   for(let k=0;k<lp;k++){
     const idx = childSlotStart + children.length + k;
-    if(rotated[idx]) node.lonePairDirs.push(norm(rotated[idx]));
+    if(rotated[idx]) node.lpDirs3.push(norm(rotated[idx]));
   }
 }
 
@@ -401,8 +475,9 @@ function computeCentroids(charge){
   atoms.forEach(a=>{
     if(isStub(a)) return;
     const c=charge[a.id];
-    if(c>0.01){ pS[0]+=a.pos.x*c; pS[1]+=a.pos.y*c; pS[2]+=a.pos.z*c; pW+=c; }
-    else if(c<-0.01){ mS[0]+=a.pos.x*(-c); mS[1]+=a.pos.y*(-c); mS[2]+=a.pos.z*(-c); mW+=(-c); }
+    const q = a.pos3 || a.pos;
+    if(c>0.01){ pS[0]+=q.x*c; pS[1]+=q.y*c; pS[2]+=q.z*c; pW+=c; }
+    else if(c<-0.01){ mS[0]+=q.x*(-c); mS[1]+=q.y*(-c); mS[2]+=q.z*(-c); mW+=(-c); }
   });
   return {
     plus: pW>0?{x:pS[0]/pW,y:pS[1]/pW,z:pS[2]/pW}:null,
@@ -412,6 +487,10 @@ function computeCentroids(charge){
 
 // ===================== RENDER =====================
 function project(p){
+  if(view2d){
+    const w=canvas.width,h=canvas.height, sc=Math.min(w,h)*0.085;
+    return {sx:w/2+(p.x-lewisCenter.x)*sc, sy:h/2-(p.y-lewisCenter.y)*sc, depth:0, f:0.8};
+  }
   const yaw=camYaw, pitch=camPitch;
   let x=p.x,y=p.y,z=p.z;
   let x1=x*Math.cos(yaw)+z*Math.sin(yaw), z1=-x*Math.sin(yaw)+z*Math.cos(yaw);
@@ -429,9 +508,11 @@ function getCss(v){ return getComputedStyle(document.documentElement).getPropert
 function render(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   if(atoms.length===0) return;
+  if(view2d){ renderLewis(); return; }
   const charge = computeCharges();
-  const showDelta = document.getElementById('chkDelta').checked && !verborgen();
-  const showCentr = document.getElementById('chkCentr').checked && !verborgen();
+  const lewisOk = !lewisModus || onthuld;
+  const showDelta = document.getElementById('chkDelta').checked && !verborgen() && lewisOk;
+  const showCentr = document.getElementById('chkCentr').checked && !verborgen() && lewisOk;
   const projected = {}; atoms.forEach(a=>projected[a.id]=project(a.pos));
 
   const seen=new Set();
@@ -498,6 +579,7 @@ function render(){
     ctx.font=`700 ${r*0.85}px Segoe UI`; ctx.fillStyle='#10131a';
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(a.symbol, p.sx, p.sy+r*0.02);
+    if(lewisModus && a.fc) tekenFL(a.fc, p.sx+r*0.85, p.sy-r*0.85, r*0.42);
     if(showDelta){
       const c=charge[a.id];
       if(Math.abs(c)>0.02){
@@ -535,6 +617,58 @@ function render(){
     }
   }
 
+}
+function flTekst(fc){ return (Math.abs(fc)>1?Math.abs(fc):'')+(fc>0?'+':'−'); }
+function tekenFL(fc, x, y, r){
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fillStyle='#fff'; ctx.fill();
+  ctx.lineWidth=1.5*devicePixelRatio; ctx.strokeStyle = fc>0?getCss('--plus'):getCss('--minus'); ctx.stroke();
+  ctx.fillStyle = fc>0?getCss('--plus'):getCss('--minus');
+  ctx.font=`700 ${r*1.25}px Segoe UI`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(flTekst(fc), x, y+r*0.05);
+}
+// Platte Lewistekening: atoomsymbolen, streepjes voor bindingen, stipjes voor vrije paren.
+function renderLewis(){
+  const sc = Math.min(canvas.width,canvas.height)*0.085, dpr=devicePixelRatio;
+  const P = {}; atoms.forEach(a=>P[a.id]=project(a.pos));
+  const rAt = sc*0.30, rStub = sc*0.22;
+  const seen=new Set();
+  atoms.forEach(a=>{
+    a.bonds.forEach(b=>{
+      const key=[a.id,b.id].sort().join('-'); if(seen.has(key)) return; seen.add(key);
+      const nb=findNode(b.id), pa=P[a.id], pb=P[nb.id];
+      const dx=pb.sx-pa.sx, dy=pb.sy-pa.sy, len=Math.hypot(dx,dy)||1, ux=dx/len, uy=dy/len;
+      const ra = isStub(a)?rStub:rAt, rb = isStub(nb)?rStub:rAt;
+      const ax=pa.sx+ux*ra, ay=pa.sy+uy*ra, bx=pb.sx-ux*rb, by=pb.sy-uy*rb;
+      const px=-uy, py=ux, gap=6*dpr;
+      const offs = b.order===1?[0]:b.order===2?[-gap/2,gap/2]:[-gap,0,gap];
+      ctx.lineWidth=2.4*dpr; ctx.strokeStyle='#2b3240';
+      const dashed = isStub(a)||isStub(nb);
+      if(dashed) ctx.setLineDash([4*dpr,4*dpr]);
+      offs.forEach(o=>{ ctx.beginPath(); ctx.moveTo(ax+px*o,ay+py*o); ctx.lineTo(bx+px*o,by+py*o); ctx.stroke(); });
+      if(dashed) ctx.setLineDash([]);
+    });
+  });
+  atoms.forEach(a=>{
+    const p=P[a.id];
+    if(isStub(a)){
+      ctx.beginPath(); ctx.arc(p.sx,p.sy,rStub,0,Math.PI*2);
+      ctx.setLineDash([3*dpr,3*dpr]); ctx.fillStyle='rgba(120,126,140,.15)'; ctx.fill();
+      ctx.lineWidth=2*dpr; ctx.strokeStyle = a.id===selectedStubId ? getCss('--accent') : '#787e8c'; ctx.stroke(); ctx.setLineDash([]);
+      ctx.font=`700 ${rStub*1.1}px Segoe UI`; ctx.fillStyle='#9aa0ab'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('+', p.sx, p.sy); return;
+    }
+    if(a.id===selectedAtomId){ ctx.beginPath(); ctx.arc(p.sx,p.sy,rAt*1.05,0,Math.PI*2); ctx.fillStyle=getCss('--soft'); ctx.fill(); }
+    ctx.font=`700 ${sc*0.46}px Segoe UI`; ctx.fillStyle='#10131a'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(a.symbol, p.sx, p.sy+sc*0.02);
+    if(document.getElementById('chkLP').checked || lewisModus){
+      (a.lonePairDirs||[]).forEach(d=>{
+        const cx=p.sx+d[0]*sc*0.47, cy=p.sy-d[1]*sc*0.47, qx=-d[1], qy=-d[0];
+        [-1,1].forEach(t=>{ ctx.beginPath(); ctx.arc(cx+qx*t*sc*0.09, cy+qy*t*sc*0.09, 3*dpr, 0, Math.PI*2); ctx.fillStyle='#10131a'; ctx.fill(); });
+      });
+    }
+    if(a.fc) tekenFL(a.fc, p.sx+sc*0.36, p.sy-sc*0.36, sc*0.15);
+  });
 }
 function drawBond(pa,pb,order,dashed){
   const dx=pb.sx-pa.sx, dy=pb.sy-pa.sy, len=Math.hypot(dx,dy)||1;
@@ -650,7 +784,7 @@ window.addEventListener('mousemove',e=>{
   if(dragging){
     const dx=e.clientX-lastX, dy=e.clientY-lastY;
     if(Math.abs(dx)>3||Math.abs(dy)>3) dragMoved=true;
-    if(dragMoved){
+    if(dragMoved && !view2d){
       camYaw+=dx*0.008; camPitch=Math.max(-1.4,Math.min(1.4,camPitch+dy*0.008));
       lastX=e.clientX; lastY=e.clientY; render();
     }
@@ -666,7 +800,7 @@ window.addEventListener('mousemove',e=>{
   const mx=(e.clientX-rect.left)*devicePixelRatio, my=(e.clientY-rect.top)*devicePixelRatio;
   const atomHit = hitTest(mx,my);
   let next=null;
-  if(!atomHit){
+  if(!atomHit && !lewisModus){
     const bondHit = hitTestBondFull(mx,my);
     if(bondHit && bondHit.order!==3) next=bondHit;
   }
@@ -697,7 +831,7 @@ function handleClick(e){
 
   if(!hit){
     if(armedElement && atoms.length===0){ addRootAtom(armedElement); return; }
-    const bondHit = hitTestBondFull(mx,my);
+    const bondHit = lewisModus ? null : hitTestBondFull(mx,my);
     if(bondHit && bondHit.order!==3){
       toggleTwist(bondHit.childId, bondHit.parentId);
       return;
@@ -709,6 +843,15 @@ function handleClick(e){
     if(armedElement){ fillStub(hit.id, armedElement); selectedStubId=null; armedElement=null; refreshPaletteUI(); }
     else { selectedStubId = (selectedStubId===hit.id)? null : hit.id; render(); }
     return;
+  }
+  // Lewis-gereedschap: vrije paren en formele ladingen
+  if(lewisModus && lewisTool!=='bond'){
+    armedElement=null; selectedStubId=null; refreshPaletteUI();
+    if(lewisTool==='lp+'){ if(hit.symbol==='H'){ flashWarning('Een H-atoom heeft nooit vrije elektronenparen.'); return; } hit.lp = Math.min(4,(hit.lp||0)+1); }
+    if(lewisTool==='lp-') hit.lp = Math.max(0,(hit.lp||0)-1);
+    if(lewisTool==='fc+') hit.fc = Math.min(3,(hit.fc||0)+1);
+    if(lewisTool==='fc-') hit.fc = Math.max(-3,(hit.fc||0)-1);
+    layoutMolecule(); updateAll(); return;
   }
   // klik op een echt (gevuld) atoom -> altijd nieuwe binding(stub) toevoegen
   armedElement=null; selectedStubId=null; refreshPaletteUI();
@@ -731,7 +874,7 @@ function toggleTwist(childId, parentId){
 }
 
 function addRootAtom(symbol){
-  const atom={id:nextId++, symbol, bonds:[], pos:{x:0,y:0,z:0}};
+  const atom={id:nextId++, symbol, bonds:[], pos:{x:0,y:0,z:0}, lp:0, fc:0};
   atoms.push(atom);
   armedElement=null; refreshPaletteUI();
   layoutMolecule(); updateAll();
@@ -755,7 +898,7 @@ function addStub(parentAtom, order){
 function fillStub(stubId, symbol){
   const stub=findNode(stubId);
   if(!stub || !isStub(stub)) return;
-  stub.symbol=symbol;
+  stub.symbol=symbol; stub.lp=0; stub.fc=0;
   layoutMolecule(); updateAll();
 }
 function flashWarning(msg){
@@ -771,13 +914,24 @@ function updateAll(){ onthuld=false; laatsteVoorspelling=null; updateInfoPanel()
 function elementCountFormula(){
   const counts={};
   atoms.forEach(a=>{ if(!isStub(a)) counts[a.symbol]=(counts[a.symbol]||0)+1; });
-  const order=['C','Si','N','P','O','S','B','H','Br','Cl','F'];
+  const order=['C','Si','B','N','P','S','H','O','Br','Cl','F'];
   let s=''; order.forEach(sym=>{ if(counts[sym]) s+=sym+(counts[sym]>1?counts[sym]:''); });
   Object.keys(counts).forEach(sym=>{ if(!order.includes(sym)) s+=sym+(counts[sym]>1?counts[sym]:''); });
   const openStubs = atoms.filter(isStub).length;
   return (s||'—') + (openStubs? `  <span style="color:var(--textdim);font-size:12px">(+${openStubs} open binding${openStubs>1?'en':''})</span>`:'');
 }
-function updateFormula(){ document.getElementById('formulaBadge').innerHTML = elementCountFormula().replace(/^([^<]*)/, m=>m.replace(/(\d+)/g,'<sub>$1</sub>')); }
+function totaleFL(){ return echteAtomen().reduce((s,a)=>s+(a.fc||0),0); }
+function updateFormula(){
+  const vol = elementCountFormula(), i = vol.indexOf('  <span');
+  let formule = i>=0 ? vol.slice(0,i) : vol, rest = i>=0 ? vol.slice(i) : '';
+  // in een Lewisopdracht met de juiste atomen: de formule schrijven zoals in de opgave
+  const q = (typeof serie!=='undefined' && serie && !serie.einde && opdModus) ? serie.items[serie.i] : null;
+  const doel = q && q.lewis ? (q.parts.find(pp=>pp.doelen)||{}).doelen : null;
+  if(doel && countsEqual(getCurrentCounts().counts, doel[0].counts)) formule = doel[0].f;
+  let h = formule.replace(/(\d+)/g,'<sub>$1</sub>');
+  if(lewisModus){ const q2 = totaleFL(); if(q2) h += '<sup>'+flTekst(q2)+'</sup>'; }
+  document.getElementById('formulaBadge').innerHTML = h + rest;
+}
 
 function updateInfoPanel(){
   const list=document.getElementById('atomList');
@@ -824,6 +978,16 @@ function removeAtomCascade(id){
 function updateChargePanel(){
   const div=document.getElementById('chargeConcl'), badge=document.getElementById('conclBadge');
   const real = atoms.filter(a=>!isStub(a));
+  if(lewisModus && !opdModus){
+    badge.style.display='none';
+    if(!real.length){ div.innerHTML='<p class="empty-msg">—</p>'; return; }
+    const tot = real.reduce((s,a)=>s+ELEMENTS[a.symbol].group,0) - totaleFL();
+    const getekend = real.reduce((s,a)=>s+2*(a.lp||0)+bondOrderSum(a),0);
+    div.innerHTML = '<p>Valentie-elektronen bij deze lading: <b>'+tot+'</b>, getekend: <b>'+getekend+'</b>.</p>'+
+      real.map(a=>{ const e=2*(a.lp||0)+2*bondOrderSum(a), fl=ELEMENTS[a.symbol].group-2*(a.lp||0)-bondOrderSum(a);
+        return '<div class="atomRow"><span class="dot" style="background:'+ELEMENTS[a.symbol].color+'"></span><span class="lbl">'+a.symbol+': '+e+' elektronen</span><span class="chg '+(fl>0?'plus':fl<0?'minus':'zero')+'">FL '+(fl?flTekst(fl):'0')+'</span></div>'; }).join('');
+    return;
+  }
   if(real.length<2){
     div.innerHTML='<p class="empty-msg">Bouw een molecuul met minstens 2 atomen.</p>';
     badge.style.display='none'; return;
@@ -881,6 +1045,26 @@ document.getElementById('btnReset').onclick=()=>{
   refreshPaletteUI(); updateAll();
 };
 ['chkDelta','chkCentr','chkLP'].forEach(id=>document.getElementById(id).addEventListener('change',render));
+// ===================== LEWIS-MODUS =====================
+function zetView(twee){ view2d = twee; document.getElementById('btnView').textContent = twee ? '⇄ 3D-vorm' : '⇄ Lewistekening'; layoutMolecule(); render(); }
+function zetLewis(aan){
+  lewisModus = aan;
+  document.body.classList.toggle('lewis', aan);
+  if(!aan){ view2d=false; }
+  else {
+    // bestaande atomen krijgen de vrije paren en formele ladingen die bij de octetregel horen
+    echteAtomen().forEach(a=>{ if(a.lp===undefined || a.lp===null || !a._lewisInit){ a.lp = lonePairsFor(a.symbol,bondOrderSum(a)); a.fc = ELEMENTS[a.symbol].group-2*a.lp-bondOrderSum(a); if(a.symbol==='H'){a.lp=0;a.fc=0;} a._lewisInit=true; } });
+    view2d = true;
+  }
+  zetTool('bond');
+  document.getElementById('chkLewis').checked = aan;
+  document.getElementById('btnView').textContent = view2d ? '⇄ 3D-vorm' : '⇄ Lewistekening';
+  layoutMolecule(); updateAll();
+}
+function zetTool(t){ lewisTool = t; document.querySelectorAll('#lewisTools .tool').forEach(b=>b.classList.toggle('active', b.dataset.tool===t)); }
+document.querySelectorAll('#lewisTools .tool').forEach(b=>b.onclick=()=>zetTool(b.dataset.tool));
+document.getElementById('chkLewis').addEventListener('change', e=>zetLewis(e.target.checked));
+document.getElementById('btnView').onclick = () => zetView(!view2d);
 document.querySelectorAll('.bondbtn').forEach(b=>{
   b.onclick=()=>setBondOrderMode(parseInt(b.dataset.order));
 });
@@ -892,7 +1076,7 @@ function zetModus(opd){
   document.getElementById('tbOpd').classList.toggle('active', opd);
   document.getElementById('tbVrij').classList.toggle('active', !opd);
   document.body.classList.toggle('opd-modus', opd);
-  if(!opd){ document.getElementById('btnReset').click(); }
+  if(!opd){ zetLewis(false); document.getElementById('btnReset').click(); }
   resizeCanvas(); updateAll();
 }
 document.getElementById('tbOpd').onclick = () => { zetModus(true); renderSerie(); };
@@ -910,7 +1094,7 @@ function countsEqual(a,b){
   return true;
 }
 function prettyFormula(counts){
-  const order=['C','Si','N','P','O','S','B','H','Br','Cl','F'];
+  const order=['C','Si','B','N','P','S','H','O','Br','Cl','F'];
   let s=''; order.forEach(sym=>{ if(counts[sym]) s+=sym+(counts[sym]>1?counts[sym]:''); });
   Object.keys(counts).forEach(sym=>{ if(!order.includes(sym)) s+=sym+(counts[sym]>1?counts[sym]:''); });
   return s||'—';
@@ -1158,16 +1342,248 @@ function verdieping(){
     hint:'Kijk of de vrije paren de vorm asymmetrisch maken.' });
 }
 
-const NIVEAUS = [niv1, niv2, niv3, niv4, niv5, niv6, niv7, niv8, niv9, ster, verdieping];
+const NIVEAUS = [niv1, niv2, niv3, niv4, niv5, niv6, niv7, niv8, niv9, ster];
+
+// ===================== LEERLIJN 5V: LEWIS EN VSEPR =====================
+// Een doelstructuur: atomen [symbool, vrije paren], bindingen [i, j, orde]. Atoom 0 is het centrale atoom.
+// Formele ladingen volgen uit: valentie-elektronen − 2 × vrije paren − bindingen.
+function D(naam, f, lading, atomen, bindingen, extra){
+  const d = Object.assign({ naam, f, lading, atomen, bindingen }, extra||{});
+  const som = atomen.map(()=>0);
+  bindingen.forEach(([i,j,o])=>{ som[i]+=o; som[j]+=o; });
+  d.fl = atomen.map(([s,lp],i)=> ELEMENTS[s].group - 2*lp - som[i]);
+  d.buren = atomen.map(()=>0); bindingen.forEach(([i,j])=>{ d.buren[i]++; d.buren[j]++; });
+  d.valentie = atomen.reduce((t,[s])=>t+ELEMENTS[s].group,0) - lading;
+  d.counts = {}; atomen.forEach(([s])=>d.counts[s]=(d.counts[s]||0)+1);
+  return d;
+}
+const H = ['H',0];
+const L = {
+  h2o:  D('water','H2O',0,[['O',2],H,H],[[0,1,1],[0,2,1]]),
+  nh3:  D('ammoniak','NH3',0,[['N',1],H,H,H],[[0,1,1],[0,2,1],[0,3,1]]),
+  ch4:  D('methaan','CH4',0,[['C',0],H,H,H,H],[[0,1,1],[0,2,1],[0,3,1],[0,4,1]]),
+  ch2o: D('methanal','CH2O',0,[['C',0],H,H,['O',2]],[[0,1,1],[0,2,1],[0,3,2]]),
+  co2:  D('koolstofdioxide','CO2',0,[['C',0],['O',2],['O',2]],[[0,1,2],[0,2,2]]),
+  hcn:  D('waterstofcyanide','HCN',0,[['C',0],H,['N',1]],[[0,1,1],[0,2,3]]),
+  ph3:  D('fosfine','PH3',0,[['P',1],H,H,H],[[0,1,1],[0,2,1],[0,3,1]]),
+  h2s:  D('waterstofsulfide','H2S',0,[['S',2],H,H],[[0,1,1],[0,2,1]]),
+  ccl4: D('tetrachloormethaan','CCl4',0,[['C',0],['Cl',3],['Cl',3],['Cl',3],['Cl',3]],[[0,1,1],[0,2,1],[0,3,1],[0,4,1]]),
+  chcl3:D('trichloormethaan','CHCl3',0,[['C',0],H,['Cl',3],['Cl',3],['Cl',3]],[[0,1,1],[0,2,1],[0,3,1],[0,4,1]]),
+  of2:  D('zuurstofdifluoride','OF2',0,[['O',2],['F',3],['F',3]],[[0,1,1],[0,2,1]]),
+  n2:   D('stikstof','N2',0,[['N',1],['N',1]],[[0,1,3]]),
+  c2h4: D('etheen','C2H4',0,[['C',0],['C',0],H,H,H,H],[[0,1,2],[0,2,1],[0,3,1],[1,4,1],[1,5,1]]),
+  c2h2: D('ethyn','C2H2',0,[['C',0],['C',0],H,H],[[0,1,3],[0,2,1],[1,3,1]]),
+  ch3oh:D('methanol','CH4O',0,[['C',0],H,H,H,['O',2],H],[[0,1,1],[0,2,1],[0,3,1],[0,4,1],[4,5,1]],{s:'H<sub>3</sub>C–O–H'}),
+  nh4:  D('ammoniumion','NH4',1,[['N',0],H,H,H,H],[[0,1,1],[0,2,1],[0,3,1],[0,4,1]]),
+  h3o:  D('oxoniumion','H3O',1,[['O',1],H,H,H],[[0,1,1],[0,2,1],[0,3,1]]),
+  oh:   D('hydroxide-ion','OH',-1,[['O',3],H],[[0,1,1]]),
+  nh2:  D('amide-ion','NH2',-1,[['N',2],H,H],[[0,1,1],[0,2,1]]),
+  cn:   D('cyanide-ion','CN',-1,[['C',1],['N',1]],[[0,1,3]]),
+  co3:  D('carbonaation','CO3',-2,[['C',0],['O',2],['O',3],['O',3]],[[0,1,2],[0,2,1],[0,3,1]],{grens:3,band:'C–O'}),
+  no3:  D('nitraation','NO3',-1,[['N',0],['O',2],['O',3],['O',3]],[[0,1,2],[0,2,1],[0,3,1]],{grens:3,band:'N–O'}),
+  o3:   D('ozon','O3',0,[['O',1],['O',2],['O',3]],[[0,1,2],[0,2,1]],{grens:2,band:'O–O'}),
+  no2:  D('nitrietion','NO2',-1,[['N',1],['O',2],['O',3]],[[0,1,2],[0,2,1]],{grens:2,band:'N–O'}),
+  sf6:  D('zwavelhexafluoride','SF6',0,[['S',0],['F',3],['F',3],['F',3],['F',3],['F',3],['F',3]],[[0,1,1],[0,2,1],[0,3,1],[0,4,1],[0,5,1],[0,6,1]]),
+  pcl5: D('fosforpentachloride','PCl5',0,[['P',0],['Cl',3],['Cl',3],['Cl',3],['Cl',3],['Cl',3]],[[0,1,1],[0,2,1],[0,3,1],[0,4,1],[0,5,1]]),
+  sf4:  D('zwaveltetrafluoride','SF4',0,[['S',1],['F',3],['F',3],['F',3],['F',3]],[[0,1,1],[0,2,1],[0,3,1],[0,4,1]]),
+  clf3: D('chloortrifluoride','ClF3',0,[['Cl',2],['F',3],['F',3],['F',3]],[[0,1,1],[0,2,1],[0,3,1]]),
+  so2a: D('zwaveldioxide','SO2',0,[['S',1],['O',2],['O',3]],[[0,1,2],[0,2,1]]),
+  so2b: D('zwaveldioxide','SO2',0,[['S',1],['O',2],['O',2]],[[0,1,2],[0,2,2]]),
+  so3a: D('zwaveltrioxide','SO3',0,[['S',0],['O',2],['O',3],['O',3]],[[0,1,2],[0,2,1],[0,3,1]]),
+  so3b: D('zwaveltrioxide','SO3',0,[['S',0],['O',2],['O',2],['O',2]],[[0,1,2],[0,2,2],[0,3,2]]),
+  so4a: D('sulfaation','SO4',-2,[['S',0],['O',3],['O',3],['O',3],['O',3]],[[0,1,1],[0,2,1],[0,3,1],[0,4,1]]),
+  so4b: D('sulfaation','SO4',-2,[['S',0],['O',2],['O',2],['O',3],['O',3]],[[0,1,2],[0,2,2],[0,3,1],[0,4,1]])
+};
+const fNaam = d => d.naam+' ('+sub(d.f)+(d.lading?'<sup>'+flTekst(d.lading)+'</sup>':'')+')';
+
+// --- VSEPR ---
+const OMRINGING = {2:'lineair', 3:'plat vlak (driehoek)', 4:'tetraëder', 5:'trigonale bipiramide', 6:'octaëder'};
+const VORM = {'2-0':'lineair','3-0':'plat vlak (driehoek)','2-1':'gebogen','4-0':'tetraëder','3-1':'piramide','2-2':'gebogen',
+  '5-0':'trigonale bipiramide','4-1':'wipvorm','3-2':'T-vorm','2-3':'lineair','6-0':'octaëder','5-1':'vierkante piramide','4-2':'vierkant vlak'};
+function vsepr(d){ const b = d.buren[0], lp = d.atomen[0][1]; return { groepen:b+lp, omringing:OMRINGING[b+lp], vorm:VORM[b+'-'+lp], b, lp }; }
+function mcOpties(goed, kandidaten, n){
+  const rest = [...new Set(kandidaten.filter(x=>x!==goed))].sort(()=>Math.random()-0.5).slice(0,n-1);
+  return [goed,...rest].sort(()=>Math.random()-0.5).map(x=>({html:x, goed:x===goed}));
+}
+function deelOmringing(d){
+  const v = vsepr(d);
+  return { soort:'mc', vraag:'Wat is de omringing van het '+d.atomen[0][0]+'-atoom?', opties: mcOpties(v.omringing, Object.values(OMRINGING), 4),
+    uitleg: d.atomen[0][0]+' heeft '+v.b+' gebonden atom'+(v.b>1?'en':'')+' en '+v.lp+' vrij'+(v.lp===1?' paar':'e paren')+': '+v.groepen+' elektronengroepen, dus omringing '+v.omringing+'.' };
+}
+function deelVorm(d, toon3d){
+  const v = vsepr(d);
+  const zelfde = Object.entries(VORM).filter(([k])=>k.split('-').reduce((a,b)=>+a+ +b,0)===v.groepen).map(([,x])=>x);
+  const opties = mcOpties(v.vorm, zelfde.concat([v.omringing,'lineair','gebogen','piramide','tetraëder','plat vlak (driehoek)']), 4);
+  return { soort:'mc', vraag:'Wat is de vorm van het deeltje rond het '+d.atomen[0][0]+'-atoom?', opties, toon3d,
+    uitleg: v.lp ? 'De vrije paren tellen mee voor de omringing, maar je ziet ze niet in de vorm: vorm '+v.vorm+'.' : 'Er zijn geen vrije paren: de vorm is gelijk aan de omringing ('+v.vorm+').' };
+}
+function deelLewis(d, extra){
+  return Object.assign({ soort:'lewis', vraag:'Teken de Lewisstructuur van '+fNaam(d)+(d.s?': '+d.s:'')+' in het venster rechts.', doelen:[d], toon3d:true }, extra||{});
+}
+function deelValentie(d){
+  return { soort:'num', vraag:'Hoeveel valentie-elektronen heeft '+fNaam(d)+' samen?', label:'aantal =', juist:d.valentie,
+    diag: v => d.lading && v===d.valentie+d.lading ? 'Let op de lading: '+(d.lading<0?'een negatief ion heeft extra elektronen':'een positief ion heeft elektronen afgestaan')+'.' : 'Tel per atoom de valentie-elektronen (het groepsnummer, of het laatste cijfer daarvan) en tel alles op.' };
+}
+
+// --- Lewiscontrole ---
+function canon(nodes, adj){
+  // canonieke string van een boom, voor het vergelijken van structuren zonder op volgorde te letten
+  const lab = i => nodes[i];
+  function rooted(i, p){ return lab(i)+'('+adj[i].filter(([j])=>j!==p).map(([j,o])=>o+rooted(j,i)).sort().join(',')+')'; }
+  let best=null; nodes.forEach((_,i)=>{ const c=rooted(i,-1); if(best===null||c<best) best=c; });
+  return best;
+}
+function canonDoel(d){
+  const nodes = d.atomen.map(([s,lp],i)=>s+'|'+lp+'|'+d.fl[i]);
+  const adj = d.atomen.map(()=>[]); d.bindingen.forEach(([i,j,o])=>{ adj[i].push([j,o]); adj[j].push([i,o]); });
+  return canon(nodes, adj);
+}
+function canonNu(){
+  const real = echteAtomen(), idx = {}; real.forEach((a,i)=>idx[a.id]=i);
+  const nodes = real.map(a=>a.symbol+'|'+(a.lp||0)+'|'+(a.fc||0));
+  const adj = real.map(a=>a.bonds.filter(b=>idx[b.id]!==undefined).map(b=>[idx[b.id], b.order]));
+  return canon(nodes, adj);
+}
+function lewisCheck(p){
+  const d = p.doelen[0];
+  const {counts, openStubs} = getCurrentCounts();
+  if(echteAtomen().length===0) return 'Teken eerst de structuur in het venster rechts.';
+  if(openStubs>0) return 'Er staan nog '+openStubs+' open binding'+(openStubs>1?'en':'')+'. Kies een atoom voor elk open uiteinde, of verwijder het met de rechtermuisknop.';
+  if(!countsEqual(counts, d.counts)) return 'Dit zijn nog niet de goede atomen: je hebt nu '+sub(prettyFormula(counts))+' getekend.';
+  const real = echteAtomen();
+  const fout = real.find(a=>a.symbol==='H' && (bondOrderSum(a)!==1 || (a.lp||0)>0));
+  if(fout) return 'Een H-atoom heeft precies één enkele binding en geen vrije paren.';
+  const getekend = real.reduce((t,a)=>t+2*(a.lp||0)+bondOrderSum(a),0);
+  if(getekend!==d.valentie) return 'Je tekening bevat '+getekend+' valentie-elektronen, maar '+fNaam(d)+' heeft er '+d.valentie+'. Tel de elektronen in bindingen (2 per streepje) en in vrije paren.';
+  for(const a of real){
+    if(a.symbol==='H') continue;
+    const e = 2*(a.lp||0)+2*bondOrderSum(a), el = ELEMENTS[a.symbol];
+    if(e<8) return 'Een '+a.symbol+'-atoom heeft nu '+e+' elektronen om zich heen; dat moeten er 8 zijn.';
+    if(e>8 && !el.canExpand) return 'Een '+a.symbol+'-atoom heeft nu '+e+' elektronen om zich heen. Een atoom uit periode 2 kan nooit meer dan 8 elektronen om zich heen hebben.';
+    if(e>8 && p.octet) return 'Een '+a.symbol+'-atoom heeft nu '+e+' elektronen om zich heen. Volgens de octetregel mogen dat er hier maar 8 zijn.';
+  }
+  const flFout = real.find(a=> (a.fc||0) !== ELEMENTS[a.symbol].group-2*(a.lp||0)-bondOrderSum(a));
+  if(flFout) return 'De formele lading klopt nog niet bij minstens één '+flFout.symbol+'-atoom. Formele lading = valentie-elektronen − elektronen in vrije paren − aantal bindingen.';
+  const c = canonNu();
+  if(p.doelen.some(x=>canonDoel(x)===c)) return null;
+  if(p.minFL && real.some(a=>a.fc)) return 'Je structuur klopt volgens de octetregel, maar er staan nog formele ladingen. Kan het centrale atoom meer bindingen vormen?';
+  return 'Elk atoom heeft genoeg elektronen, maar dit is niet de bedoelde structuur. Kijk welk atoom in het midden hoort en waar de dubbele bindingen zitten.';
+}
+// Laadt een doelstructuur in de bouwer (voor "Toon antwoord")
+function laadDoel(d){
+  atoms = []; selectedAtomId=null; selectedStubId=null; armedElement=null;
+  const ids = d.atomen.map(([s,lp],i)=>{ const a={id:nextId++, symbol:s, bonds:[], pos:{x:0,y:0,z:0}, lp, fc:d.fl[i], _lewisInit:true}; atoms.push(a); return a.id; });
+  d.bindingen.forEach(([i,j,o])=>{ findNode(ids[i]).bonds.push({id:ids[j],order:o,twist:0}); findNode(ids[j]).bonds.push({id:ids[i],order:o,twist:0}); });
+  layoutMolecule(); updateAll();
+}
+
+function lewis1(){
+  const d = L[pick(['h2o','nh3','ch4','ch2o','co2','hcn','ph3','h2s','ccl4','n2','c2h4','c2h2','ch3oh'])];
+  return { lewis:true, titel:'Lewisstructuur',
+    instr:{ titel:'Nieuw: een Lewisstructuur tekenen', html:'In een <b>Lewisstructuur</b> teken je alle valentie-elektronen: een binding is een streepje (2 elektronen), een vrij elektronenpaar zijn twee stipjes. Zo pak je het aan:<br>'+
+      '1. Tel de valentie-elektronen van alle atomen bij elkaar op.<br>2. Verbind de atomen met enkele bindingen.<br>3. Verdeel de overige elektronen als vrije paren, zodat elk atoom 8 elektronen om zich heen heeft (H: 2).<br>4. Kom je elektronen tekort, maak dan van een vrij paar een extra binding.<br>'+
+      'Tekenen: klik op een atoom voor een binding (kies boven het palet enkel, dubbel of drievoudig). Kies <b>+ vrij paar</b> en klik op een atoom om een vrij paar toe te voegen.'+
+      vb('Waterstofperoxide H<sub>2</sub>O<sub>2</sub>: 2 × 1 + 2 × 6 = 14 valentie-elektronen. H–O–O–H gebruikt 3 bindingen = 6 elektronen. De overige 8 zijn 4 vrije paren: 2 op elk O-atoom. Elk O heeft nu 2 bindingen en 2 vrije paren = 8 elektronen.') },
+    vraag:'Bekijk '+fNaam(d)+(d.s?': '+d.s:'')+'.',
+    parts:[deelValentie(d), deelLewis(d)],
+    hint:'Heeft elk atoom (behalve H) 8 elektronen om zich heen? Klopt het totaal aantal elektronen?',
+    uitw:()=> 'Valentie-elektronen: '+d.valentie+'. In je tekening heeft elk atoom (behalve H) 8 elektronen om zich heen. In het venster zie je nu ook de ruimtelijke vorm.' };
+}
+function lewis2(){
+  const d = L[pick(['h2o','nh3','ch4','ch2o','co2','hcn','ph3','h2s','ccl4','of2'])];
+  return { lewis:true, titel:'Omringing en vorm',
+    instr:{ titel:'Nieuw: omringing en vorm', html:'Elektronenparen stoten elkaar af en gaan zo ver mogelijk uit elkaar. Tel rond het centrale atoom de <b>elektronengroepen</b>: elk gebonden atoom is één groep (ook bij een dubbele of drievoudige binding) en elk vrij paar is één groep.<br>'+
+      '2 groepen: lineair · 3: plat vlak (driehoek) · 4: tetraëder · 5: trigonale bipiramide · 6: octaëder.<br>'+
+      'De <b>omringing</b> gaat over alle groepen. De <b>vorm</b> gaat alleen over de plek van de atomen: vrije paren zie je niet terug in de vorm.'+
+      vb('Fosfortrichloride PCl<sub>3</sub>: P heeft 3 gebonden atomen en 1 vrij paar, samen 4 groepen: omringing tetraëder. Haal je het vrije paar weg, dan blijft een piramide over: vorm piramide.') },
+    vraag:'Bekijk '+fNaam(d)+'.',
+    parts:[deelLewis(d,{toon3d:false}), deelOmringing(d), deelVorm(d,true)],
+    hint:'Tel de gebonden atomen en de vrije paren op het centrale atoom.',
+    uitw:()=> { const v=vsepr(d); return v.b+' gebonden atomen + '+v.lp+' vrije paren = '+v.groepen+' groepen: omringing '+v.omringing+', vorm '+v.vorm+'. Draai het molecuul in het venster rond.'; } };
+}
+function lewis3(){
+  const d = L[pick(['nh4','h3o','oh','nh2','cn'])];
+  return { lewis:true, titel:'Formele lading',
+    instr:{ titel:'Nieuw: formele lading', html:'Soms heeft een atoom in een Lewisstructuur meer of minder elektronen dan het zelf meebrengt. Dat geef je aan met een <b>formele lading</b>:'+
+      '<div style="text-align:center;margin:6px 0">formele lading = valentie-elektronen − elektronen in vrije paren − aantal bindingen</div>(een dubbele binding telt als 2 bindingen). '+
+      'Bij een negatief ion tel je de extra elektronen mee, bij een positief ion trek je ze af. Alle formele ladingen samen zijn de lading van het deeltje. Een formele lading zet je met <b>+ lading</b> of <b>− lading</b>.'+
+      vb('Koolstofmonoxide CO: 4 + 6 = 10 valentie-elektronen. C≡O, met op C en op O elk één vrij paar. C: 4 − 2 − 3 = −1. O: 6 − 2 − 3 = +1. Samen 0, want CO is een molecuul.') },
+    vraag:'Bekijk '+fNaam(d)+'.',
+    parts:[deelValentie(d), deelLewis(d)],
+    hint:'Bereken voor elk atoom (behalve H) de formele lading. Tellen ze op tot de lading van het ion?',
+    uitw:()=> 'Formele ladingen: '+d.atomen.map(([s],i)=>d.fl[i]?s+' '+flTekst(d.fl[i]):null).filter(Boolean).join(', ')+'. Samen '+flTekst(d.lading)+', de lading van het ion.' };
+}
+function lewis4(){
+  const d = L[pick(['co3','no3','o3','no2'])];
+  return { lewis:true, titel:'Mesomerie',
+    instr:{ titel:'Nieuw: mesomerie', html:'Soms kun je een deeltje op meer manieren goed tekenen, die alleen verschillen in de plaats van de elektronen. De atomen blijven op dezelfde plek. Die tekeningen heten <b>grensstructuren</b>; je zet er een ↔ tussen.<br>'+
+      'Het echte deeltje is geen van de grensstructuren, maar een tussenvorm: de elektronen zijn verdeeld over alle grensstructuren. Dit heet <b>mesomerie</b>.'+
+      vb('Methanoaation HCOO<sup>−</sup>: H–C(=O)–O<sup>−</sup> ↔ H–C(–O<sup>−</sup>)=O. Er zijn 2 grensstructuren. In het echte ion zijn beide C–O-bindingen even lang.') },
+    vraag:'Bekijk '+fNaam(d)+'.',
+    parts:[deelLewis(d,{vraag:'Teken één grensstructuur van '+fNaam(d)+' in het venster rechts.'}),
+      { soort:'num', vraag:'Hoeveel grensstructuren heeft '+fNaam(d)+'?', label:'aantal =', juist:d.grens, diag:()=> 'Op hoeveel gelijkwaardige plekken kan de dubbele binding staan?' },
+      { soort:'mc', vraag:'Wat geldt voor de '+d.band+'-bindingen in het echte deeltje?', opties:[
+          {html:'Ze zijn allemaal even lang, tussen een enkele en een dubbele binding in', goed:true},
+          {html:'Eén binding is korter dan de andere', goed:false},
+          {html:'Ze wisselen steeds tussen enkel en dubbel', goed:false}].sort(()=>Math.random()-0.5),
+        uitleg:'Het echte deeltje is een tussenvorm van alle grensstructuren. Alle '+d.band+'-bindingen zijn gelijk; het wisselt niet heen en weer.' }],
+    hint:'Waar kan de dubbele binding nog meer staan, zonder dat er atomen verschuiven?',
+    uitw:()=> d.grens+' gelijkwaardige grensstructuren: de dubbele binding kan bij elk van de '+d.grens+' buitenste atomen staan.' };
+}
+function lewis5(){
+  const kies = pick(['sf6','pcl5','sf4','clf3','so2','so3','so4']);
+  const instr = { titel:'Nieuw: meer dan 8 elektronen', html:'Atomen uit periode 3 en hoger (P, S, Cl, Br) kunnen meer dan 8 elektronen om zich heen hebben: een <b>uitgebreid octet</b>. Atomen uit periode 2 (C, N, O, F) kunnen dat nooit. In het palet hebben deze elementen een gele rand.<br>'+
+    'Bij zwavel kun je zo formele ladingen wegwerken: geef S extra bindingen in plaats van formele ladingen.'+
+    vb('Zwaveltetrachloride SCl<sub>4</sub>: 6 + 4 × 7 = 34 valentie-elektronen. S heeft 4 bindingen en 1 vrij paar: 10 elektronen om zich heen. Met 5 elektronengroepen is de omringing een trigonale bipiramide; zonder het vrije paar blijft de wipvorm over.') };
+  const waarom = 'S staat in periode 3. In de derde schil is ruimte voor meer dan 8 elektronen, dus S kan meer bindingen vormen dan de octetregel toelaat. O staat in periode 2: daar passen maximaal 8 elektronen.';
+  if(['so2','so3','so4'].includes(kies)){
+    const a = L[kies+'a'], b = L[kies+'b'];
+    return { lewis:true, titel:'Uitgebreid octet', label:'5',
+      instr, vraag:'Bekijk '+fNaam(a)+'.',
+      parts:[deelLewis(a,{vraag:'Teken de Lewisstructuur van '+fNaam(a)+' volgens de octetregel, met formele ladingen.', octet:true}),
+             deelLewis(b,{vraag:'Teken nu de structuur met zo weinig mogelijk formele ladingen. S mag meer dan 8 elektronen om zich heen hebben.', minFL:true})],
+      hint:'Welke formele ladingen verdwijnen als S een extra binding vormt?',
+      uitw:()=> 'Volgens de octetregel heeft S formele lading '+flTekst(a.fl[0])+'. Met extra S=O-bindingen verdwijnt die. '+waarom };
+  }
+  const d = L[kies];
+  return { lewis:true, titel:'Uitgebreid octet', instr, vraag:'Bekijk '+fNaam(d)+'.',
+    parts:[deelLewis(d,{toon3d:false}), deelOmringing(d), deelVorm(d,true)],
+    hint:'Tel de gebonden atomen en de vrije paren op het centrale atoom. Hoeveel elektronen heeft het centrale atoom om zich heen?',
+    uitw:()=> { const v=vsepr(d); return d.atomen[0][0]+' heeft '+(2*v.lp+2*d.buren[0])+' elektronen om zich heen (uitgebreid octet). '+v.groepen+' groepen: omringing '+v.omringing+', vorm '+v.vorm+'.'; } };
+}
+function lewis6(){
+  const d = L[pick(['h2o','nh3','co2','ch2o','chcl3','hcn','ph3','of2','ccl4'])];
+  return { lewis:true, ster:true, titel:'★ Van Lewis naar dipool',
+    instr:{ titel:'Nieuw: alles samen', html:'Uit de Lewisstructuur volgt de vorm, en uit de vorm en de polaire bindingen volgt of een molecuul een dipool is. Werk de stappen na elkaar af:<br>Lewisstructuur → elektronengroepen → vorm → welke bindingen zijn polair (ΔEN &gt; 0,4)? → vallen het midden van de δ+ en het midden van de δ− samen?'+
+      vb('Koolstofdisulfide CS<sub>2</sub>: S=C=S, C heeft 2 groepen: lineair. ΔEN(C–S) = 2,6 − 2,5 = 0,1: niet polair. Geen polaire bindingen, dus geen dipool.') },
+    vraag:'Bekijk '+fNaam(d)+'.',
+    parts:[deelLewis(d,{toon3d:false}), deelVorm(d,true), deelDipool()],
+    hint:'Welke bindingen zijn polair? Vallen in deze vorm de middens van δ+ en δ− samen?',
+    uitw:()=> dipoolUitleg() };
+}
+const NIVEAUS_LEWIS = [lewis1, lewis2, lewis3, lewis4, lewis5, lewis6];
+
 
 // ===================== WEERGAVE =====================
 let serie;
-function nieuweSerie(){ serie = { i:0, items:NIVEAUS.map(f=>f()), status:NIVEAUS.map(()=>'') }; renderSerie(); }
+let leerlijn = 'dipool';
+try { const ll = new URLSearchParams(location.search).get('leerlijn'); if(ll==='lewis') leerlijn='lewis'; } catch(e){}
+function NIVEAUS_NU(){ return leerlijn==='lewis' ? NIVEAUS_LEWIS : NIVEAUS; }
+function zetLeerlijn(ll){ leerlijn = ll; nieuweSerie(); }
+document.querySelectorAll('.llbtn').forEach(b=>b.onclick=()=>zetLeerlijn(b.dataset.ll));
+function nieuweSerie(){
+  document.querySelectorAll('.llbtn').forEach(b=>b.classList.toggle('active', b.dataset.ll===leerlijn));
+  document.getElementById('llLabel').textContent = leerlijn==='lewis' ? '5V' : '4V';
+  const N = NIVEAUS_NU();
+  serie = { i:0, items:N.map(f=>f()), status:N.map(()=>'') }; renderSerie();
+}
 function renderSerie(){
   const goed = serie.status.filter(s=>s==='ok').length;
   document.getElementById('dots').innerHTML = serie.items.map((q,i)=>'<span class="dot '+(i===serie.i&&!serie.einde?'cur ':'')+serie.status[i]+'">'+(q.label||(q.ster?'★':i+1))+'</span>').join('');
   document.getElementById('score').textContent = 'Score: '+goed+' / '+serie.items.length;
   const el = document.getElementById('opdBody');
+  const q0 = serie.einde ? null : serie.items[serie.i];
+  zetLewis(!!(q0 && q0.lewis));
   leegBouwer();
   if(serie.einde){
     el.innerHTML = '<div class="eind"><p><b>Klaar!</b> Je had '+goed+' van de '+serie.items.length+' opdrachten goed zonder het antwoord te bekijken.</p><button class="btn" onclick="nieuweSerie()">Nieuwe serie ➜</button></div>';
@@ -1186,6 +1602,7 @@ function renderVraag(el, q){
     h += '<div class="part" id="part'+i+'" style="'+(i?'display:none':'')+'"><div class="pq">'+(q.parts.length>1?'<b>'+String.fromCharCode(97+i)+'.</b> ':'')+p.vraag+'</div>';
     if(p.soort==='mc') h += '<div class="mc">'+p.opties.map((o,k)=>'<button class="opt" data-k="'+k+'">'+o.html+'</button>').join('')+'</div>';
     else if(p.soort==='num') h += '<div class="inrow"><label>'+p.label+'</label><input type="text" autocomplete="off"><button class="btn chk">Controleer</button></div>';
+    else if(p.soort==='lewis') h += '<div class="inrow"><button class="btn chk">Controleer mijn Lewisstructuur</button></div>';
     else h += '<div class="inrow"><button class="btn chk">Controleer mijn molecuul</button></div>';
     h += '<div class="fb"></div></div>';
   });
@@ -1200,7 +1617,7 @@ function renderVraag(el, q){
   const P = () => q.parts[st.deel];
   const fb = (cls, html) => { const f=pe().querySelector('.fb'); f.className='fb show '+cls; f.innerHTML=html; };
   $('.hintb').onclick = () => { const hh=$('.hint'); hh.style.display='block'; hh.innerHTML='<b>Hint:</b> '+q.hint; };
-  $('.again').onclick = () => { serie.items[serie.i] = NIVEAUS[serie.i](); serie.status[serie.i]=''; renderSerie(); };
+  $('.again').onclick = () => { serie.items[serie.i] = NIVEAUS_NU()[serie.i](); serie.status[serie.i]=''; renderSerie(); };
   $('.volg').onclick = () => { if(serie.i>=serie.items.length-1) serie.einde=true; else serie.i++; renderSerie(); };
 
   function volgend(goed){
@@ -1208,7 +1625,9 @@ function renderVraag(el, q){
     const p = P();
     pe().querySelectorAll('input,button').forEach(x=>x.disabled=true);
     if(p.toon){ onthuld = true; laatsteVoorspelling = null; updateInfoPanel(); render(); }
+    if(lewisModus && p.toon3d) zetView(false);
     st.deel++; st.tries = 0;
+    if(lewisModus && q.parts[st.deel] && q.parts[st.deel].soort==='lewis') zetView(true);
     $('.toonb').style.display = 'none';
     if(st.deel < q.parts.length){ pe().style.display=''; const inp=pe().querySelector('input'); if(inp) inp.focus(); }
     else {
@@ -1234,6 +1653,9 @@ function renderVraag(el, q){
       fb('info','<b>Antwoord:</b> '+p.opties[k].html+'. '+(p.dynamisch?dipoolUitleg():(p.uitleg||'')));
     } else if(p.soort==='num'){
       fb('info','<b>Antwoord:</b> '+p.label+' '+(Number.isInteger(p.juist)?p.juist:komma(p.juist)));
+    } else if(p.soort==='lewis'){
+      laadDoel(p.doelen[0]);
+      fb('info','<b>Zo hoort de Lewisstructuur eruit te zien.</b> '+(p.noot||''));
     } else return;
     volgend(false);
   };
@@ -1260,6 +1682,13 @@ function renderVraag(el, q){
       };
       e.querySelector('.chk').onclick = check;
       inp.addEventListener('keydown', ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); check(); } });
+    } else if(p.soort==='lewis'){
+      e.querySelector('.chk').onclick = () => {
+        if(st.deel!==i) return;
+        const m = lewisCheck(p);
+        if(m){ fout(m); return; }
+        fb('correct','<b>Goed getekend!</b> '+(p.noot||'')); volgend(st.tries===0);
+      };
     } else {
       e.querySelector('.chk').onclick = () => {
         if(st.deel!==i) return;
