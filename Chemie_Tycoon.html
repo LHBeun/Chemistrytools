@@ -587,8 +587,34 @@ function scaledMaterialsBioEthanol(unlocked) {
   return scaledMaterialsGeneric(BIOETHANOL_BASE_MATERIALS, BIOETHANOL_RESEARCH_MATERIAL, unlocked, 'thermotolerantGist', 'catalystResearch');
 }
 function materialTotalCost(m) { return m.vesselCost + m.catalystCost; }
-function pressureFromVolume(volumeM3, process) { return process.volumeConstant / volumeM3; }
-function volumeFromPressure(pressureBar, process) { return process.volumeConstant / pressureBar; }
+// pV = nRT bij vaste hoeveelheid deeltjes: p hangt af van volume EN temperatuur.
+// volumeConstant = p·V (bar·m³) bij de referentietemperatuur P_REF_T.
+const P_REF_T = 723;
+function pressureFromVolume(volumeM3, process, T_K = P_REF_T) { return process.volumeConstant * (T_K / P_REF_T) / volumeM3; }
+function volumeFromPressure(pressureBar, process, T_K = P_REF_T) { return process.volumeConstant * (T_K / P_REF_T) / pressureBar; }
+
+// Evenwichtstoestand in concentraties (mol/L) voor de oorzaak-gevolgketen in het reactorpaneel.
+function equilibriumState(T_K, volumeM3, process) {
+  const p = pressureFromVolume(volumeM3, process, T_K);
+  const Kp = computeKpGeneric(T_K, process.Tref, process.KpRef, process.dH);
+  const FA = process.feedA / process.feedB, FB = 1;
+  const xi = solveConversionGeneric(Kp, p, FA, FB, process.nA, process.nB, process.nC);
+  const dn = process.nA + process.nB - process.nC;
+  const total = FA + FB - dn * xi;
+  const cTot = p * 1e5 / (CHEM_R * T_K) / 1000; // mol/L
+  const c = { a: (FA - process.nA * xi) / total * cTot, b: (FB - process.nB * xi) / total * cTot, c: process.nC * xi / total * cTot };
+  const Kc = Kp * Math.pow(0.08314 * T_K, dn);
+  return { p, c, Kc, conversion: xi / (FA / process.nA) };
+}
+function supN(n) { return n === 1 ? '' : ({ 2: '²', 3: '³', 4: '⁴' })[n] || ('^' + n); }
+function fmtSci(v) {
+  if (v === 0 || !isFinite(v)) return String(v);
+  const e = Math.floor(Math.log10(Math.abs(v)));
+  if (e >= -2 && e <= 3) return v.toLocaleString('nl-NL', { maximumSignificantDigits: 3 });
+  const m = v / Math.pow(10, e);
+  const sup = String(e).replace('-', '⁻').replace(/[0-9]/g, d => '⁰¹²³⁴⁵⁶⁷⁸⁹'[d]);
+  return m.toLocaleString('nl-NL', { maximumFractionDigits: 2 }) + '×10' + sup;
+}
 function allMaterialsFor(process) {
   if (process.id === 'contactProcess') return [...CONTACT_BASE_MATERIALS, CONTACT_RESEARCH_MATERIAL];
   if (process.id === 'bioEthanol') return [...BIOETHANOL_BASE_MATERIALS, BIOETHANOL_RESEARCH_MATERIAL];
@@ -1331,14 +1357,14 @@ function NodeCard({ node, onHeaderDown, onPortDown, onRemove, selected, shaking,
         {node.type === 'feed' && (
           <div>
             doorvoer: <span style={{ color: 'var(--amber)' }}>{Math.round((node.config.throughputMultiplier || 1) * 100)}%</span><br />
-            {sp.a}: {Math.round(process.feedA * (node.config.throughputMultiplier || 1))} · {sp.b}: {Math.round(process.feedB * (node.config.throughputMultiplier || 1))} mol/s
+            {sp.a}: {Math.round(process.feedA * (node.config.throughputMultiplier || 1))} · {sp.b}: {Math.round(process.feedB * (node.config.throughputMultiplier || 1))} mol per tijdstap
           </div>
         )}
         {node.type === 'product' && <div>Verzamelt {sp.c}</div>}
         {node.type === 'reactor' && (
           <div>
             {node.config.tempC}°C · {process.volumeRange
-              ? <>{(node.config.volumeM3 != null ? node.config.volumeM3 : (process.volumeConstant / node.config.pressureBar)).toFixed(1)} m³ ({node.config.pressureBar.toFixed(1)} bar)</>
+              ? <>{(node.config.volumeM3 != null ? node.config.volumeM3 : volumeFromPressure(node.config.pressureBar, process, node.config.tempC + 273)).toFixed(1)} m³ ({node.config.pressureBar.toFixed(1)} bar)</>
               : <>{node.config.pressureBar}{process.secondDialUnit != null ? process.secondDialUnit : ' bar'}</>}<br />
             {(allMaterials.find(m => m.id === node.config.materialId) || allMaterials[0]).label.split(' + ')[1] || allMaterials[0].label}<br />
             katalysator: <span style={{ color: catalystHealth < 25 ? 'var(--red)' : catalystHealth < 60 ? 'var(--amber)' : 'var(--text-dim)' }}>{catalystHealth.toFixed(0)}%</span>
@@ -1440,8 +1466,8 @@ function FeedConfig({ node, onChange, process }) {
       <Slider label="Doorvoersnelheid" value={Math.round(mult * 100)} min={GAME.throughputMin * 100} max={GAME.throughputMax * 100} step={5} unit="%"
               onChange={(v) => onChange(node.id, { throughputMultiplier: v / 100 })} />
       <div className="rounded-md border px-3 py-2 text-xs font-mono-data" style={{ borderColor: 'var(--border)', background: 'var(--panel-2)', color: 'var(--text-dim)' }}>
-        <div>{sp.a}: <span style={{ color: 'var(--cyan)' }}>{Math.round(process.feedA * mult).toLocaleString('nl-NL')}</span> mol/s</div>
-        <div>{sp.b}: <span style={{ color: 'var(--cyan)' }}>{Math.round(process.feedB * mult).toLocaleString('nl-NL')}</span> mol/s</div>
+        <div>{sp.a}: <span style={{ color: 'var(--cyan)' }}>{Math.round(process.feedA * mult).toLocaleString('nl-NL')}</span> mol per tijdstap</div>
+        <div>{sp.b}: <span style={{ color: 'var(--cyan)' }}>{Math.round(process.feedB * mult).toLocaleString('nl-NL')}</span> mol per tijdstap</div>
       </div>
 
       {process.feedstockOptions && (
@@ -1473,6 +1499,51 @@ function FeedConfig({ node, onChange, process }) {
   );
 }
 
+// Oorzaak-gevolgketen bij een volumeverandering: V → concentraties → Q vs K → richting → nieuw evenwicht → (bijgevolg) druk.
+function EquilibriumChain({ process, T_K, volume, lastChange }) {
+  const sp = process.speciesLabels;
+  const st = equilibriumState(T_K, volume, process);
+  const qExpr = `[${sp.c}]${supN(process.nC)} / ([${sp.a}]${supN(process.nA)} · [${sp.b}]${supN(process.nB)})`;
+  const box = { borderColor: 'var(--border)', background: 'var(--panel-2)', color: 'var(--text-dim)' };
+  const nl1 = v => v.toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const fmtC = v => v.toLocaleString('nl-NL', { minimumSignificantDigits: 3, maximumSignificantDigits: 3 });
+  let chain = null;
+  if (lastChange && Math.abs(lastChange.Vold - lastChange.Vnew) > 1e-9 && Math.abs(lastChange.T_K - T_K) < 0.5 && Math.abs(lastChange.Vnew - volume) < 1e-9) {
+    const before = equilibriumState(T_K, lastChange.Vold, process);
+    const f = lastChange.Vold / lastChange.Vnew;            // factor waarmee alle concentraties direct veranderen
+    const dnGas = process.nC - process.nA - process.nB;     // verschil in aantal gasdeeltjes (rechts − links)
+    const qRatio = Math.pow(f, dnGas);                      // Q direct na de volumeverandering, als veelvoud van K
+    const smaller = lastChange.Vnew < lastChange.Vold;
+    const qLess = qRatio < 1;
+    chain = (
+      <div className="flex flex-col gap-0.5">
+        <div>1. Volume {smaller ? 'verkleind' : 'vergroot'}: {before && nl1(lastChange.Vold)} m³ → {nl1(lastChange.Vnew)} m³</div>
+        <div>2. Direct daarna: alle concentraties × {f.toLocaleString('nl-NL', { maximumFractionDigits: 2 })} ({smaller ? 'hoger' : 'lager'})</div>
+        <div>3. Q = {qExpr} wordt {qRatio.toLocaleString('nl-NL', { maximumSignificantDigits: 3 })} × K → <span style={{ color: 'var(--amber)' }}>Q {qLess ? '<' : '>'} K</span></div>
+        <div>4. De reactie verloopt netto naar <b style={{ color: 'var(--cyan)' }}>{qLess ? 'rechts' : 'links'}</b>: er ontstaat {qLess ? 'meer' : 'minder'} {sp.c}</div>
+        <div>5. Nieuw evenwicht: conversie {nl1(before.conversion * 100)}% → <span style={{ color: 'var(--green)' }}>{nl1(st.conversion * 100)}%</span></div>
+        <div className="mt-1" style={{ opacity: 0.85 }}>Bijgevolg: de druk gaat van {nl1(before.p)} naar {nl1(st.p)} bar — van belang voor de sterkte van het vat en de compressie-energie.</div>
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-md border px-3 py-2 -mt-3 text-xs font-mono-data flex flex-col gap-1" style={box}>
+      <div className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--text)' }}>Evenwicht bij {Math.round(T_K - 273)} °C en {nl1(volume)} m³</div>
+      <div>[{sp.a}] = {fmtC(st.c.a)} · [{sp.b}] = {fmtC(st.c.b)} · [{sp.c}] = {fmtC(st.c.c)} mol/L</div>
+      <div>K = {qExpr} = {fmtSci(st.Kc)} {process.dH < 0 ? '(exotherm: bij hogere T wordt K kleiner)' : '(endotherm: bij hogere T wordt K groter)'}</div>
+      {chain ? (
+        <div className="mt-1 pt-1 border-t" style={{ borderColor: 'var(--border)' }}>
+          <div className="text-[10px] uppercase tracking-wide mb-0.5" style={{ color: 'var(--text)' }}>Wat er gebeurde bij je laatste volumeverandering</div>
+          {chain}
+        </div>
+      ) : (
+        <div className="mt-1" style={{ opacity: 0.85 }}>Verander het volume om de keten te zien: volume → concentraties → Q vergeleken met K → richting → nieuw evenwicht.</div>
+      )}
+      <div className="mt-1" style={{ opacity: 0.85 }}>Druk (gevolg, pV = nRT): <span style={{ color: 'var(--amber)' }}>{nl1(st.p)} bar</span></div>
+    </div>
+  );
+}
+
 function ReactorConfig({ node, onChange, onReplaceCatalyst, onPerformMaintenance, onReplaceVessel, context }) {
   const throughputMultiplier = (context && context.throughputMultiplier) || 1.0;
   const unlocked = (context && context.unlocked) || {};
@@ -1497,19 +1568,18 @@ function ReactorConfig({ node, onChange, onReplaceCatalyst, onPerformMaintenance
   const feedstockId = context.feedstockId;
   const isPoisonRisk = material.poisonedByFeedstock && material.poisonedByFeedstock === feedstockId;
   const usesVolume = !!process.volumeRange;
-  const currentVolume = node.config.volumeM3 != null ? node.config.volumeM3 : (usesVolume ? volumeFromPressure(node.config.pressureBar, process) : null);
+  const currentVolume = node.config.volumeM3 != null ? node.config.volumeM3 : (usesVolume ? volumeFromPressure(node.config.pressureBar, process, node.config.tempC + 273) : null);
+  const lastChange = context.lastVolumeChange && context.lastVolumeChange.nodeId === node.id ? context.lastVolumeChange : null;
 
   return (
     <>
       <Slider label="Temperatuur" value={node.config.tempC} min={process.tempRange[0]} max={process.tempRange[1]} step={5} unit="°C"
-              onChange={(v) => onChange(node.id, { tempC: v })} />
+              onChange={(v) => onChange(node.id, usesVolume ? { tempC: v, pressureBar: pressureFromVolume(currentVolume, process, v + 273) } : { tempC: v })} />
       {usesVolume ? (
         <>
           <Slider label="Reactorvolume" value={currentVolume} min={process.volumeRange[0]} max={process.volumeRange[1]} step={process.volumeStep} unit=" m³"
-                  onChange={(v) => onChange(node.id, { volumeM3: v, pressureBar: pressureFromVolume(v, process) })} />
-          <div className="rounded-md border px-3 py-1.5 -mt-3 text-xs font-mono-data" style={{ borderColor: 'var(--border)', background: 'var(--panel-2)', color: 'var(--text-dim)' }}>
-            Komt overeen met: <span style={{ color: 'var(--amber)' }}>{node.config.pressureBar.toFixed(1)} bar</span> (bij gelijke hoeveelheid deeltjes: kleiner volume → hogere druk)
-          </div>
+                  onChange={(v) => { if (context.onVolumeChange) context.onVolumeChange(node.id, currentVolume, v, node.config.tempC + 273); onChange(node.id, { volumeM3: v, pressureBar: pressureFromVolume(v, process, node.config.tempC + 273) }); }} />
+          <EquilibriumChain process={process} T_K={node.config.tempC + 273} volume={currentVolume} lastChange={lastChange} />
         </>
       ) : (
         <Slider label={process.secondDialLabel || 'Druk'} value={node.config.pressureBar} min={process.pressureRange[0]} max={process.pressureRange[1]} step={process.pressureStep} unit={process.secondDialUnit != null ? process.secondDialUnit : ' bar'}
@@ -1620,7 +1690,7 @@ function ReactorConfig({ node, onChange, onReplaceCatalyst, onPerformMaintenance
       <div className="rounded-md border px-3 py-2 text-xs font-mono-data flex flex-col gap-1"
            style={{ borderColor: 'var(--border)', background: 'var(--panel-2)', color: 'var(--text-dim)' }}>
         <div className="text-[10px] uppercase tracking-wide mb-0.5" style={{ color: 'var(--text)' }}>Live berekening (bij {Math.round(throughputMultiplier * 100)}% doorvoer)</div>
-        <div>{process.kineticsType === 'fermentation' ? 'Haalbaar maximum (gistgezondheid × pH)' : 'Evenwichtsconversie (Kp, Le Chatelier)'}: <span style={{ color: 'var(--cyan)' }}>{(xEq * 100).toFixed(1)}%</span></div>
+        <div>{process.kineticsType === 'fermentation' ? 'Haalbaar maximum (gistgezondheid × pH)' : 'Evenwichtsconversie'}: <span style={{ color: 'var(--cyan)' }}>{(xEq * 100).toFixed(1)}%</span></div>
         <div>Kinetiekfactor (Arrhenius, incl. doorvoer): <span style={{ color: 'var(--amber)' }}>{(kFactor * 100).toFixed(1)}%</span></div>
         <div>Netto omzet: <span style={{ color: 'var(--green)' }}>{(xNet * 100).toFixed(1)}%</span></div>
       </div>
@@ -2466,7 +2536,7 @@ function InfoModal({ onClose, process }) {
           <p>Klik op een <b>Reactor</b> om temperatuur{process.kineticsType !== 'fermentation' ? ', reactorvolume' : ', pH'} en katalysator
              in te stellen: hoge temperatuur versnelt de reactie maar verlaagt de evenwichtsopbrengst.
              {process.kineticsType !== 'fermentation'
-               ? ' Je regelt niet de druk rechtstreeks, maar het volume van de reactor — een kleiner volume geeft (bij gelijke hoeveelheid deeltjes) automatisch een hogere druk, en die verhoogt doorgaans de opbrengst.'
+               ? ' Je verkleint of vergroot het volume van de reactor. Bij een kleiner volume worden alle concentraties groter en verandert Q: vergelijk Q met K om te zien naar welke kant de reactie netto verloopt — het reactorpaneel laat die keten stap voor stap zien. De druk stijgt daarbij ook (en ook bij een hogere temperatuur, pV = nRT): dat bepaalt hoe sterk je vat moet zijn en hoeveel compressie-energie het kost.'
                : ''}
              {' '}Je begint met twee materiaaltiers — {tier2Label} en verdere
              upgrades ontgrendel je via R&D. Klik op <b>Voeding</b> voor de doorvoersnelheid — meer
@@ -2983,7 +3053,7 @@ function App() {
       const midPressure = Math.round(((process.pressureRange[0] + process.pressureRange[1]) / 2) / process.pressureStep) * process.pressureStep;
       if (process.volumeRange) {
         const midVolume = Math.round(((process.volumeRange[0] + process.volumeRange[1]) / 2) / process.volumeStep) * process.volumeStep;
-        config = { tempC: midTemp, volumeM3: midVolume, pressureBar: pressureFromVolume(midVolume, process), materialId: mats[0].id };
+        config = { tempC: midTemp, volumeM3: midVolume, pressureBar: pressureFromVolume(midVolume, process, midTemp + 273), materialId: mats[0].id };
       } else {
         config = { tempC: midTemp, pressureBar: midPressure, materialId: mats[0].id };
       }
@@ -3336,7 +3406,13 @@ function App() {
     const nextNode = idx >= 0 ? nodes.find(n => n.id === chain[idx + 1]) : null;
     if (nextNode && nextNode.type === 'reactor') connectedReactor = nextNode;
   }
-  const configContext = { throughputMultiplier, energySource, connectedReactor, market, unlocked, process, feedstockId, gmoBanActive, gmoBanAnnounced, gmoBanAnnouncedYear };
+  const [lastVolumeChange, setLastVolumeChange] = useState(null);
+  // Onthoud het startvolume van een schuifbeweging, zodat de keten "van → naar" de hele beweging laat zien.
+  const onVolumeChange = (nodeId, Vold, Vnew, T_K) => setLastVolumeChange(prev => {
+    const continuing = prev && prev.nodeId === nodeId && Math.abs(prev.T_K - T_K) < 0.5 && Date.now() - prev.t < 1500;
+    return { nodeId, Vold: continuing ? prev.Vold : Vold, Vnew, T_K, t: Date.now() };
+  });
+  const configContext = { throughputMultiplier, energySource, connectedReactor, market, unlocked, process, feedstockId, gmoBanActive, gmoBanAnnounced, gmoBanAnnouncedYear, lastVolumeChange, onVolumeChange };
   const isShutdown = shutdownTicksRemaining > 0;
 
   if (!gameStarted) {
@@ -3836,11 +3912,53 @@ function scaledMaterialsBioEthanol(unlocked) {
 function materialTotalCost(m) {
   return m.vesselCost + m.catalystCost;
 }
-function pressureFromVolume(volumeM3, process) {
-  return process.volumeConstant / volumeM3;
+const P_REF_T = 723;
+function pressureFromVolume(volumeM3, process, T_K = P_REF_T) {
+  return process.volumeConstant * (T_K / P_REF_T) / volumeM3;
 }
-function volumeFromPressure(pressureBar, process) {
-  return process.volumeConstant / pressureBar;
+function volumeFromPressure(pressureBar, process, T_K = P_REF_T) {
+  return process.volumeConstant * (T_K / P_REF_T) / pressureBar;
+}
+function equilibriumState(T_K, volumeM3, process) {
+  const p = pressureFromVolume(volumeM3, process, T_K);
+  const Kp = computeKpGeneric(T_K, process.Tref, process.KpRef, process.dH);
+  const FA = process.feedA / process.feedB,
+    FB = 1;
+  const xi = solveConversionGeneric(Kp, p, FA, FB, process.nA, process.nB, process.nC);
+  const dn = process.nA + process.nB - process.nC;
+  const total = FA + FB - dn * xi;
+  const cTot = p * 1e5 / (CHEM_R * T_K) / 1000;
+  const c = {
+    a: (FA - process.nA * xi) / total * cTot,
+    b: (FB - process.nB * xi) / total * cTot,
+    c: process.nC * xi / total * cTot
+  };
+  const Kc = Kp * Math.pow(0.08314 * T_K, dn);
+  return {
+    p,
+    c,
+    Kc,
+    conversion: xi / (FA / process.nA)
+  };
+}
+function supN(n) {
+  return n === 1 ? '' : {
+    2: '²',
+    3: '³',
+    4: '⁴'
+  }[n] || '^' + n;
+}
+function fmtSci(v) {
+  if (v === 0 || !isFinite(v)) return String(v);
+  const e = Math.floor(Math.log10(Math.abs(v)));
+  if (e >= -2 && e <= 3) return v.toLocaleString('nl-NL', {
+    maximumSignificantDigits: 3
+  });
+  const m = v / Math.pow(10, e);
+  const sup = String(e).replace('-', '⁻').replace(/[0-9]/g, d => '⁰¹²³⁴⁵⁶⁷⁸⁹'[d]);
+  return m.toLocaleString('nl-NL', {
+    maximumFractionDigits: 2
+  }) + '×10' + sup;
 }
 function allMaterialsFor(process) {
   if (process.id === 'contactProcess') return [...CONTACT_BASE_MATERIALS, CONTACT_RESEARCH_MATERIAL];
@@ -4942,7 +5060,7 @@ function NodeCard({
     style: {
       color: 'var(--amber)'
     }
-  }, Math.round((node.config.throughputMultiplier || 1) * 100), "%"), React.createElement("br", null), sp.a, ": ", Math.round(process.feedA * (node.config.throughputMultiplier || 1)), " · ", sp.b, ": ", Math.round(process.feedB * (node.config.throughputMultiplier || 1)), " mol per tijdstap"), node.type === 'product' && React.createElement("div", null, "Verzamelt ", sp.c), node.type === 'reactor' && React.createElement("div", null, node.config.tempC, "°C · ", process.volumeRange ? React.createElement(React.Fragment, null, (node.config.volumeM3 != null ? node.config.volumeM3 : process.volumeConstant / node.config.pressureBar).toFixed(1), " m³ (", node.config.pressureBar.toFixed(1), " bar)") : React.createElement(React.Fragment, null, node.config.pressureBar, process.secondDialUnit != null ? process.secondDialUnit : ' bar'), React.createElement("br", null), (allMaterials.find(m => m.id === node.config.materialId) || allMaterials[0]).label.split(' + ')[1] || allMaterials[0].label, React.createElement("br", null), "katalysator: ", React.createElement("span", {
+  }, Math.round((node.config.throughputMultiplier || 1) * 100), "%"), React.createElement("br", null), sp.a, ": ", Math.round(process.feedA * (node.config.throughputMultiplier || 1)), " · ", sp.b, ": ", Math.round(process.feedB * (node.config.throughputMultiplier || 1)), " mol per tijdstap"), node.type === 'product' && React.createElement("div", null, "Verzamelt ", sp.c), node.type === 'reactor' && React.createElement("div", null, node.config.tempC, "°C · ", process.volumeRange ? React.createElement(React.Fragment, null, (node.config.volumeM3 != null ? node.config.volumeM3 : volumeFromPressure(node.config.pressureBar, process, node.config.tempC + 273)).toFixed(1), " m³ (", node.config.pressureBar.toFixed(1), " bar)") : React.createElement(React.Fragment, null, node.config.pressureBar, process.secondDialUnit != null ? process.secondDialUnit : ' bar'), React.createElement("br", null), (allMaterials.find(m => m.id === node.config.materialId) || allMaterials[0]).label.split(' + ')[1] || allMaterials[0].label, React.createElement("br", null), "katalysator: ", React.createElement("span", {
     style: {
       color: catalystHealth < 25 ? 'var(--red)' : catalystHealth < 60 ? 'var(--amber)' : 'var(--text-dim)'
     }
@@ -5160,6 +5278,95 @@ function FeedConfig({
     }
   }, "Meer doorvoer = meer gas per tijdseenheid door dezelfde apparatuur = kortere verblijftijd per molecuul. Dat verlaagt de kinetiekfactor van elke Reactor (bij gelijke temperatuur) en de effectieve terugwinning van elke warmtewisselaar — je moet dan compenseren met een hogere temperatuur, wat weer energie en katalysatorlevensduur kost."));
 }
+function EquilibriumChain({
+  process,
+  T_K,
+  volume,
+  lastChange
+}) {
+  const sp = process.speciesLabels;
+  const st = equilibriumState(T_K, volume, process);
+  const qExpr = `[${sp.c}]${supN(process.nC)} / ([${sp.a}]${supN(process.nA)} · [${sp.b}]${supN(process.nB)})`;
+  const box = {
+    borderColor: 'var(--border)',
+    background: 'var(--panel-2)',
+    color: 'var(--text-dim)'
+  };
+  const nl1 = v => v.toLocaleString('nl-NL', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1
+  });
+  const fmtC = v => v.toLocaleString('nl-NL', {
+    minimumSignificantDigits: 3,
+    maximumSignificantDigits: 3
+  });
+  let chain = null;
+  if (lastChange && Math.abs(lastChange.Vold - lastChange.Vnew) > 1e-9 && Math.abs(lastChange.T_K - T_K) < 0.5 && Math.abs(lastChange.Vnew - volume) < 1e-9) {
+    const before = equilibriumState(T_K, lastChange.Vold, process);
+    const f = lastChange.Vold / lastChange.Vnew;
+    const dnGas = process.nC - process.nA - process.nB;
+    const qRatio = Math.pow(f, dnGas);
+    const smaller = lastChange.Vnew < lastChange.Vold;
+    const qLess = qRatio < 1;
+    chain = React.createElement("div", {
+      className: "flex flex-col gap-0.5"
+    }, React.createElement("div", null, "1. Volume ", smaller ? 'verkleind' : 'vergroot', ": ", before && nl1(lastChange.Vold), " m³ → ", nl1(lastChange.Vnew), " m³"), React.createElement("div", null, "2. Direct daarna: alle concentraties × ", f.toLocaleString('nl-NL', {
+      maximumFractionDigits: 2
+    }), " (", smaller ? 'hoger' : 'lager', ")"), React.createElement("div", null, "3. Q = ", qExpr, " wordt ", qRatio.toLocaleString('nl-NL', {
+      maximumSignificantDigits: 3
+    }), " × K → ", React.createElement("span", {
+      style: {
+        color: 'var(--amber)'
+      }
+    }, "Q ", qLess ? '<' : '>', " K")), React.createElement("div", null, "4. De reactie verloopt netto naar ", React.createElement("b", {
+      style: {
+        color: 'var(--cyan)'
+      }
+    }, qLess ? 'rechts' : 'links'), ": er ontstaat ", qLess ? 'meer' : 'minder', " ", sp.c), React.createElement("div", null, "5. Nieuw evenwicht: conversie ", nl1(before.conversion * 100), "% → ", React.createElement("span", {
+      style: {
+        color: 'var(--green)'
+      }
+    }, nl1(st.conversion * 100), "%")), React.createElement("div", {
+      className: "mt-1",
+      style: {
+        opacity: 0.85
+      }
+    }, "Bijgevolg: de druk gaat van ", nl1(before.p), " naar ", nl1(st.p), " bar — van belang voor de sterkte van het vat en de compressie-energie."));
+  }
+  return React.createElement("div", {
+    className: "rounded-md border px-3 py-2 -mt-3 text-xs font-mono-data flex flex-col gap-1",
+    style: box
+  }, React.createElement("div", {
+    className: "text-[10px] uppercase tracking-wide",
+    style: {
+      color: 'var(--text)'
+    }
+  }, "Evenwicht bij ", Math.round(T_K - 273), " °C en ", nl1(volume), " m³"), React.createElement("div", null, "[", sp.a, "] = ", fmtC(st.c.a), " · [", sp.b, "] = ", fmtC(st.c.b), " · [", sp.c, "] = ", fmtC(st.c.c), " mol/L"), React.createElement("div", null, "K = ", qExpr, " = ", fmtSci(st.Kc), " ", process.dH < 0 ? '(exotherm: bij hogere T wordt K kleiner)' : '(endotherm: bij hogere T wordt K groter)'), chain ? React.createElement("div", {
+    className: "mt-1 pt-1 border-t",
+    style: {
+      borderColor: 'var(--border)'
+    }
+  }, React.createElement("div", {
+    className: "text-[10px] uppercase tracking-wide mb-0.5",
+    style: {
+      color: 'var(--text)'
+    }
+  }, "Wat er gebeurde bij je laatste volumeverandering"), chain) : React.createElement("div", {
+    className: "mt-1",
+    style: {
+      opacity: 0.85
+    }
+  }, "Verander het volume om de keten te zien: volume → concentraties → Q vergeleken met K → richting → nieuw evenwicht."), React.createElement("div", {
+    className: "mt-1",
+    style: {
+      opacity: 0.85
+    }
+  }, "Druk (gevolg, pV = nRT): ", React.createElement("span", {
+    style: {
+      color: 'var(--amber)'
+    }
+  }, nl1(st.p), " bar")));
+}
 function ReactorConfig({
   node,
   onChange,
@@ -5191,7 +5398,8 @@ function ReactorConfig({
   const feedstockId = context.feedstockId;
   const isPoisonRisk = material.poisonedByFeedstock && material.poisonedByFeedstock === feedstockId;
   const usesVolume = !!process.volumeRange;
-  const currentVolume = node.config.volumeM3 != null ? node.config.volumeM3 : usesVolume ? volumeFromPressure(node.config.pressureBar, process) : null;
+  const currentVolume = node.config.volumeM3 != null ? node.config.volumeM3 : usesVolume ? volumeFromPressure(node.config.pressureBar, process, node.config.tempC + 273) : null;
+  const lastChange = context.lastVolumeChange && context.lastVolumeChange.nodeId === node.id ? context.lastVolumeChange : null;
   return React.createElement(React.Fragment, null, React.createElement(Slider, {
     label: "Temperatuur",
     value: node.config.tempC,
@@ -5199,7 +5407,10 @@ function ReactorConfig({
     max: process.tempRange[1],
     step: 5,
     unit: "°C",
-    onChange: v => onChange(node.id, {
+    onChange: v => onChange(node.id, usesVolume ? {
+      tempC: v,
+      pressureBar: pressureFromVolume(currentVolume, process, v + 273)
+    } : {
       tempC: v
     })
   }), usesVolume ? React.createElement(React.Fragment, null, React.createElement(Slider, {
@@ -5209,22 +5420,19 @@ function ReactorConfig({
     max: process.volumeRange[1],
     step: process.volumeStep,
     unit: " m³",
-    onChange: v => onChange(node.id, {
-      volumeM3: v,
-      pressureBar: pressureFromVolume(v, process)
-    })
-  }), React.createElement("div", {
-    className: "rounded-md border px-3 py-1.5 -mt-3 text-xs font-mono-data",
-    style: {
-      borderColor: 'var(--border)',
-      background: 'var(--panel-2)',
-      color: 'var(--text-dim)'
+    onChange: v => {
+      if (context.onVolumeChange) context.onVolumeChange(node.id, currentVolume, v, node.config.tempC + 273);
+      onChange(node.id, {
+        volumeM3: v,
+        pressureBar: pressureFromVolume(v, process, node.config.tempC + 273)
+      });
     }
-  }, "Komt overeen met: ", React.createElement("span", {
-    style: {
-      color: 'var(--amber)'
-    }
-  }, node.config.pressureBar.toFixed(1), " bar"), " (bij gelijke hoeveelheid deeltjes: kleiner volume → hogere druk)")) : React.createElement(Slider, {
+  }), React.createElement(EquilibriumChain, {
+    process: process,
+    T_K: node.config.tempC + 273,
+    volume: currentVolume,
+    lastChange: lastChange
+  })) : React.createElement(Slider, {
     label: process.secondDialLabel || 'Druk',
     value: node.config.pressureBar,
     min: process.pressureRange[0],
@@ -5407,7 +5615,7 @@ function ReactorConfig({
     style: {
       color: 'var(--text)'
     }
-  }, "Live berekening (bij ", Math.round(throughputMultiplier * 100), "% doorvoer)"), React.createElement("div", null, process.kineticsType === 'fermentation' ? 'Haalbaar maximum (gistgezondheid × pH)' : 'Evenwichtsconversie (Kp, Le Chatelier)', ": ", React.createElement("span", {
+  }, "Live berekening (bij ", Math.round(throughputMultiplier * 100), "% doorvoer)"), React.createElement("div", null, process.kineticsType === 'fermentation' ? 'Haalbaar maximum (gistgezondheid × pH)' : 'Evenwichtsconversie', ": ", React.createElement("span", {
     style: {
       color: 'var(--cyan)'
     }
@@ -7283,7 +7491,7 @@ function InfoModal({
     style: {
       color: 'var(--cyan)'
     }
-  }, "blauwe ingang"), " van de volgende. Alles (ook Voeding en Product) is vrij te verslepen en klikt vast op het raster."), React.createElement("p", null, "Klik op een ", React.createElement("b", null, "Reactor"), " om temperatuur", process.kineticsType !== 'fermentation' ? ', reactorvolume' : ', pH', " en katalysator in te stellen: hoge temperatuur versnelt de reactie maar verlaagt de evenwichtsopbrengst.", process.kineticsType !== 'fermentation' ? ' Je regelt niet de druk rechtstreeks, maar het volume van de reactor — een kleiner volume geeft (bij gelijke hoeveelheid deeltjes) automatisch een hogere druk, en die verhoogt doorgaans de opbrengst.' : '', ' ', "Je begint met twee materiaaltiers — ", tier2Label, " en verdere upgrades ontgrendel je via R&D. Klik op ", React.createElement("b", null, "Voeding"), " voor de doorvoersnelheid — meer doorvoer betekent minder verblijftijd per molecuul, dus een lagere kinetiekfactor bij gelijke temperatuur. Er is altijd een optimale temperatuur, die verschuift met de doorvoer én met je katalysator — een betere katalysator verdraagt hogere doorvoer beter. Let op: een lager reactorrendement betekent een meer verdunde stroom (meer onomgezet gas per eenheid product), en dat maakt de ", process.separatorAction === 'absorberen' ? 'absorptiekolom' : 'separator', " verderop navenant duurder — die moet dan immers meer gas verwerken voor dezelfde hoeveelheid product.", process.feedstockOptions ? ' Bij Voeding kies je ook de grondstofroute: goedkoper materiaal kan een katalysator vergiftigen — check dus welke combinatie samengaat.' : ''), React.createElement("p", null, "Een ", process.separatorLabel, " heeft een tweede, ", React.createElement("b", null, "gestreepte"), " uitgang voor onomgezet ", sp.a, "/", sp.b, " — sleep die naar de gestreepte ingang van een Reactor voor een echte retourlus. De instelling bepaalt ook de verkoopprijs: onder ~80% nauwelijks verkoopbaar, boven ~95% een meerprijs. Let op: teruggevoerd gas moet opnieuw verwarmd en samengeperst worden — dat kost energie, apart zichtbaar als ", React.createElement("b", null, "\"Energie — recirculatie\""), "in het financiënpaneel en de CO₂-uitsplitsing. Bij hogere doorvoer moet er relatief meer gas rondgepompt worden om hetzelfde eindresultaat te halen, dus die kosten lopen mee op."), React.createElement("p", null, "Eén spelseizoen duurt 90 seconden en telt als één \"jaar\". Aan het eind pauzeert het spel automatisch voor een jaarrapport: kapitaal, resultaat per kostenpost, milieu-impact, onderhoudsstaat — én de marktprijzen (energie, CO₂-rechten, ", sp.c, ") bewegen dan, deels gezamenlijk en deels onafhankelijk."), React.createElement("p", null, "Bij de start kies je een ", React.createElement("b", null, "fabriekstype"), ", geef je je fabriek een naam, en kies je een", React.createElement("b", null, " kapitaalstructuur"), " (eigen vermogen en/of lening, 6% rente per jaar op het openstaande bedrag — aflossen kan altijd via het financiënpaneel onderin) en een ", React.createElement("b", null, "marktvolatiliteit"), "."), React.createElement("p", null, "Onderin, in het financiënpaneel, kies je een R&D-project en een jaarlijks budget — de voortgang (in R&D-punten) loopt daarna vanzelf op zolang het spel draait. De hoogste katalysatortier is pas te onderzoeken nadat je de tussenliggende tier al hebt ontgrendeld — een gerichte volgorde, geen vrije keuze."), React.createElement("p", null, "Katalysatorgezondheid werkt 1-op-1: bij 90% gezondheid draait de reactor op 90% van de kinetiekfactor die je bij een verse katalysator zou halen — geen onevenredig grote terugval."), React.createElement("p", null, "Klik op ", React.createElement("b", null, "CO₂-uitstoot"), " bovenin voor de CO₂-rechtenmarkt én je CO₂-intensiteit (ton CO₂ per ton ", sp.c, "). Onder een drempel krijg je een ", React.createElement("b", null, "groen certificaat"), " voor het volgende jaar (meerprijs); de ", React.createElement("b", null, "wetgeving"), " stelt een eigen, losstaand maximum aan die intensiteit — overschrijd je dat aan het eind van het jaar, dan volgt een heffing, ook als je genoeg CO₂-rechten had. Die wettelijke grens wordt jaarlijks met een oplopende kans verder aangescherpt (begint rond 1 op de 3, wordt met elk jaar waarschijnlijker) — en elke aanscherping laat ook de marktprijs van CO₂-rechten flink springen. Over meerdere jaren kan die prijs vertienvoudigen: wacht te lang met investeren in schonere opties (ruthenium, zonnepanelen, CO₂-afvang), dan wordt uitstoot vanzelf onbetaalbaar."), React.createElement("p", null, "Rechten inkopen kan één keer per jaar en moet elk jaar opnieuw — een overschot vervalt, het scherm opent automatisch bij een nieuw jaar. Grotere aankopen ineens zijn onevenredig duurder per ton. Kom je toch tekort, dan kun je altijd bijkopen tegen een fors noodtarief (4× de normale prijs). Het hele eerste jaar geldt deze verplichting nog niet — een opstartregeling voor nieuwe industrie, zodat je eerst kunt observeren hoeveel je proces uitstoot voordat het menens wordt."), React.createElement("p", null, "Bij de start kies je een ", React.createElement("b", null, "scenario"), " (of \"vrij spelen\" met eigen keuzes) en een", React.createElement("b", null, " speelduur"), " (vast aantal jaren, met een resultatenkaart aan het eind, of eindeloos). Gaat je kas onder nul, dan is het bedrijf ", React.createElement("b", null, "failliet"), " — plan je investeringen dus met beleid. Via ", React.createElement("b", null, "💾 Opslaan"), " bovenin bewaar je je spelstand als bestand, te laden vanaf het opstartscherm."))));
+  }, "blauwe ingang"), " van de volgende. Alles (ook Voeding en Product) is vrij te verslepen en klikt vast op het raster."), React.createElement("p", null, "Klik op een ", React.createElement("b", null, "Reactor"), " om temperatuur", process.kineticsType !== 'fermentation' ? ', reactorvolume' : ', pH', " en katalysator in te stellen: hoge temperatuur versnelt de reactie maar verlaagt de evenwichtsopbrengst.", process.kineticsType !== 'fermentation' ? ' Je verkleint of vergroot het volume van de reactor. Bij een kleiner volume worden alle concentraties groter en verandert Q: vergelijk Q met K om te zien naar welke kant de reactie netto verloopt — het reactorpaneel laat die keten stap voor stap zien. De druk stijgt daarbij ook (en ook bij een hogere temperatuur, pV = nRT): dat bepaalt hoe sterk je vat moet zijn en hoeveel compressie-energie het kost.' : '', ' ', "Je begint met twee materiaaltiers — ", tier2Label, " en verdere upgrades ontgrendel je via R&D. Klik op ", React.createElement("b", null, "Voeding"), " voor de doorvoersnelheid — meer doorvoer betekent minder verblijftijd per molecuul, dus een lagere kinetiekfactor bij gelijke temperatuur. Er is altijd een optimale temperatuur, die verschuift met de doorvoer én met je katalysator — een betere katalysator verdraagt hogere doorvoer beter. Let op: een lager reactorrendement betekent een meer verdunde stroom (meer onomgezet gas per eenheid product), en dat maakt de ", process.separatorAction === 'absorberen' ? 'absorptiekolom' : 'separator', " verderop navenant duurder — die moet dan immers meer gas verwerken voor dezelfde hoeveelheid product.", process.feedstockOptions ? ' Bij Voeding kies je ook de grondstofroute: goedkoper materiaal kan een katalysator vergiftigen — check dus welke combinatie samengaat.' : ''), React.createElement("p", null, "Een ", process.separatorLabel, " heeft een tweede, ", React.createElement("b", null, "gestreepte"), " uitgang voor onomgezet ", sp.a, "/", sp.b, " — sleep die naar de gestreepte ingang van een Reactor voor een echte retourlus. De instelling bepaalt ook de verkoopprijs: onder ~80% nauwelijks verkoopbaar, boven ~95% een meerprijs. Let op: teruggevoerd gas moet opnieuw verwarmd en samengeperst worden — dat kost energie, apart zichtbaar als ", React.createElement("b", null, "\"Energie — recirculatie\""), "in het financiënpaneel en de CO₂-uitsplitsing. Bij hogere doorvoer moet er relatief meer gas rondgepompt worden om hetzelfde eindresultaat te halen, dus die kosten lopen mee op."), React.createElement("p", null, "Eén spelseizoen duurt 90 seconden en telt als één \"jaar\". Aan het eind pauzeert het spel automatisch voor een jaarrapport: kapitaal, resultaat per kostenpost, milieu-impact, onderhoudsstaat — én de marktprijzen (energie, CO₂-rechten, ", sp.c, ") bewegen dan, deels gezamenlijk en deels onafhankelijk."), React.createElement("p", null, "Bij de start kies je een ", React.createElement("b", null, "fabriekstype"), ", geef je je fabriek een naam, en kies je een", React.createElement("b", null, " kapitaalstructuur"), " (eigen vermogen en/of lening, 6% rente per jaar op het openstaande bedrag — aflossen kan altijd via het financiënpaneel onderin) en een ", React.createElement("b", null, "marktvolatiliteit"), "."), React.createElement("p", null, "Onderin, in het financiënpaneel, kies je een R&D-project en een jaarlijks budget — de voortgang (in R&D-punten) loopt daarna vanzelf op zolang het spel draait. De hoogste katalysatortier is pas te onderzoeken nadat je de tussenliggende tier al hebt ontgrendeld — een gerichte volgorde, geen vrije keuze."), React.createElement("p", null, "Katalysatorgezondheid werkt 1-op-1: bij 90% gezondheid draait de reactor op 90% van de kinetiekfactor die je bij een verse katalysator zou halen — geen onevenredig grote terugval."), React.createElement("p", null, "Klik op ", React.createElement("b", null, "CO₂-uitstoot"), " bovenin voor de CO₂-rechtenmarkt én je CO₂-intensiteit (ton CO₂ per ton ", sp.c, "). Onder een drempel krijg je een ", React.createElement("b", null, "groen certificaat"), " voor het volgende jaar (meerprijs); de ", React.createElement("b", null, "wetgeving"), " stelt een eigen, losstaand maximum aan die intensiteit — overschrijd je dat aan het eind van het jaar, dan volgt een heffing, ook als je genoeg CO₂-rechten had. Die wettelijke grens wordt jaarlijks met een oplopende kans verder aangescherpt (begint rond 1 op de 3, wordt met elk jaar waarschijnlijker) — en elke aanscherping laat ook de marktprijs van CO₂-rechten flink springen. Over meerdere jaren kan die prijs vertienvoudigen: wacht te lang met investeren in schonere opties (ruthenium, zonnepanelen, CO₂-afvang), dan wordt uitstoot vanzelf onbetaalbaar."), React.createElement("p", null, "Rechten inkopen kan één keer per jaar en moet elk jaar opnieuw — een overschot vervalt, het scherm opent automatisch bij een nieuw jaar. Grotere aankopen ineens zijn onevenredig duurder per ton. Kom je toch tekort, dan kun je altijd bijkopen tegen een fors noodtarief (4× de normale prijs). Het hele eerste jaar geldt deze verplichting nog niet — een opstartregeling voor nieuwe industrie, zodat je eerst kunt observeren hoeveel je proces uitstoot voordat het menens wordt."), React.createElement("p", null, "Bij de start kies je een ", React.createElement("b", null, "scenario"), " (of \"vrij spelen\" met eigen keuzes) en een", React.createElement("b", null, " speelduur"), " (vast aantal jaren, met een resultatenkaart aan het eind, of eindeloos). Gaat je kas onder nul, dan is het bedrijf ", React.createElement("b", null, "failliet"), " — plan je investeringen dus met beleid. Via ", React.createElement("b", null, "💾 Opslaan"), " bovenin bewaar je je spelstand als bestand, te laden vanaf het opstartscherm."))));
 }
 function makeInitialNodes() {
   return [{
@@ -7865,7 +8073,7 @@ function App() {
         config = {
           tempC: midTemp,
           volumeM3: midVolume,
-          pressureBar: pressureFromVolume(midVolume, process),
+          pressureBar: pressureFromVolume(midVolume, process, midTemp + 273),
           materialId: mats[0].id
         };
       } else {
@@ -8387,6 +8595,17 @@ function App() {
     const nextNode = idx >= 0 ? nodes.find(n => n.id === chain[idx + 1]) : null;
     if (nextNode && nextNode.type === 'reactor') connectedReactor = nextNode;
   }
+  const [lastVolumeChange, setLastVolumeChange] = useState(null);
+  const onVolumeChange = (nodeId, Vold, Vnew, T_K) => setLastVolumeChange(prev => {
+    const continuing = prev && prev.nodeId === nodeId && Math.abs(prev.T_K - T_K) < 0.5 && Date.now() - prev.t < 1500;
+    return {
+      nodeId,
+      Vold: continuing ? prev.Vold : Vold,
+      Vnew,
+      T_K,
+      t: Date.now()
+    };
+  });
   const configContext = {
     throughputMultiplier,
     energySource,
@@ -8397,7 +8616,9 @@ function App() {
     feedstockId,
     gmoBanActive,
     gmoBanAnnounced,
-    gmoBanAnnouncedYear
+    gmoBanAnnouncedYear,
+    lastVolumeChange,
+    onVolumeChange
   };
   const isShutdown = shutdownTicksRemaining > 0;
   if (!gameStarted) {
