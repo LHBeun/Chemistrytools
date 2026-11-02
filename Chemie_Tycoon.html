@@ -801,9 +801,18 @@ const SCENARIOS = {
   },
 };
 
-function evolveMarket(market, volatilityKey) {
+// Startcode: met dezelfde code krijgt elke groep dezelfde markt- en beleidsontwikkeling.
+// Per jaar en per 'stroom' een eigen generator, zodat spelkeuzes de reeks niet verschuiven.
+function hashString(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function seededRandom(code, year, stream) {
+  if (!code) return Math.random;
+  let a = hashString(code.trim().toUpperCase() + '|' + year + '|' + stream);
+  return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+
+function evolveMarket(market, volatilityKey, rand = Math.random) {
   const vol = VOLATILITY[volatilityKey] || VOLATILITY.gematigd;
-  const rnd = () => (Math.random() * 2 - 1); // -1..1
+  const rnd = () => (rand() * 2 - 1); // -1..1
   const shock = rnd() * vol; // gedeelde macro-schok (energie/grondstoffenmarkt)
 
   const grijsChange   = shock * 1.0 + rnd() * vol * 0.3;
@@ -2062,7 +2071,7 @@ function Header({ running, onToggleRunning, onReset, energySource, onEnergyChang
 
 /* ---------- Opstartscherm ---------- */
 
-function SetupScreen({ processKey, setProcessKey, factoryName, setFactoryName, capitalKey, setCapitalKey, volatilityKey, setVolatilityKey, scenarioKey, applyScenario, gameDurationYears, setGameDurationYears, onStart, onLab, fileInputRef, onImportFile }) {
+function SetupScreen({ processKey, setProcessKey, factoryName, setFactoryName, startCode, setStartCode, capitalKey, setCapitalKey, volatilityKey, setVolatilityKey, scenarioKey, applyScenario, gameDurationYears, setGameDurationYears, onStart, onLab, fileInputRef, onImportFile }) {
   const capitalOptions = [
     { key: 'eigen', label: 'Alleen eigen kapitaal', desc: `${fmtEuro(GAME.startingCapital)} eigen vermogen, geen schuld.` },
     { key: 'helfhelf', label: '50 / 50', desc: `${fmtEuro(GAME.startingCapital/2)} eigen + ${fmtEuro(GAME.startingCapital/2)} lening (6%/jaar rente).` },
@@ -2100,6 +2109,15 @@ function SetupScreen({ processKey, setProcessKey, factoryName, setFactoryName, c
                  placeholder="Bijv. Rijnmond Chemie B.V."
                  className="w-full text-sm rounded-md border px-3 py-2"
                  style={{ background: 'var(--panel-2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+        </div>
+
+        <div className="mb-5">
+          <div className="text-xs uppercase tracking-wide mb-2" style={{ color: 'var(--text)' }}>Startcode (optioneel)</div>
+          <input value={startCode} onChange={(e) => setStartCode(e.target.value)}
+                 placeholder="Bijv. SLOT — dezelfde code geeft iedereen dezelfde markt"
+                 className="w-full text-sm rounded-md border px-3 py-2 font-mono-data"
+                 style={{ background: 'var(--panel-2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+          <div className="text-[11px] mt-1" style={{ color: 'var(--text-dim)' }}>Met een startcode verlopen marktprijzen en wetgeving voor iedereen hetzelfde — handig om klassikaal te vergelijken. Leeg = willekeurig.</div>
         </div>
 
         <div className="mb-5">
@@ -2826,6 +2844,7 @@ function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [processKey, setProcessKey] = useState('haberBosch');
   const [factoryName, setFactoryName] = useState('');
+  const [startCode, setStartCode] = useState('');
   const [capitalKey, setCapitalKey] = useState('helfhelf');
   const [volatilityKey, setVolatilityKey] = useState('gematigd');
   const [scenarioKey, setScenarioKey] = useState('vrij');
@@ -3135,7 +3154,7 @@ function App() {
         const co2PriceBeforeTightening = marketRef.current.co2RightsBasePrice;
         let capTightened = false;
         const effectiveTightenChance = Math.min(GAME.legislativeCapTightenChanceMax, legislativeCapTightenChanceRef.current + (currentYear - 1) * GAME.legislativeCapTightenGrowthPerYear);
-        if (Math.random() < effectiveTightenChance) {
+        if (seededRandom(startCode, currentYear, 'wet')() < effectiveTightenChance) {
           legislativeCapRef.current = legislativeCapRef.current * GAME.legislativeCapTightenFactor;
           setLegislativeCap(legislativeCapRef.current);
           // Wetgeving verstrakt niet alleen het maximum, maar maakt CO₂-rechten in datzelfde
@@ -3150,7 +3169,7 @@ function App() {
         if (proc.organicBonus) {
           if (!gmoBanAnnouncedRef.current) {
             const announceChance = Math.min(0.6, proc.gmoBanBaseChance + Math.max(0, currentYear - 3) * proc.gmoBanGrowthPerYear);
-            if (currentYear >= 3 && Math.random() < announceChance) {
+            if (currentYear >= 3 && seededRandom(startCode, currentYear, 'gmo')() < announceChance) {
               gmoBanAnnouncedRef.current = true;
               gmoBanAnnouncedYearRef.current = currentYear;
               setGmoBanAnnounced(true);
@@ -3179,7 +3198,7 @@ function App() {
         }
         const projectCompleted = yr.projectCompletedThisYear || null;
 
-        const evolved = evolveMarket(marketRef.current, volatilityKey);
+        const evolved = evolveMarket(marketRef.current, volatilityKey, seededRandom(startCode, currentYear, 'markt'));
         // Zorg dat het gerapporteerde percentage de VOLLEDIGE beweging toont (incl. een eventuele
         // verstrakkingssprong), niet alleen de kleinere stap die evolveMarket zelf toevoegde.
         evolved.changes = { ...evolved.changes, co2Change: (evolved.co2RightsBasePrice / co2PriceBeforeTightening) - 1 };
@@ -3237,7 +3256,7 @@ function App() {
       }
     }, GAME.tickMs);
     return () => clearInterval(interval);
-  }, [running, gameStarted, pushToast, volatilityKey, currentYear, currentMonth, co2Total, totalNh3Kg, hasGreenCertificate, greenCertificateYears, unlocked]);
+  }, [running, gameStarted, startCode, pushToast, volatilityKey, currentYear, currentMonth, co2Total, totalNh3Kg, hasGreenCertificate, greenCertificateYears, unlocked]);
 
   /* ---------- node handlers ---------- */
 
@@ -3533,7 +3552,7 @@ function App() {
   const exportSave = () => {
     const save = {
       version: 2,
-      processKey, factoryName,
+      processKey, factoryName, startCode,
       scenarioKey, capitalKey, volatilityKey, gameDurationYears,
       nodes, edges, winst, loanBalance, market, currentYear, currentMonth, unlocked,
       activeProjectId, projectProgress, rdYearlyCommitment,
@@ -3564,6 +3583,7 @@ function App() {
         setRunning(false);
         setProcessKey(save.processKey || 'haberBosch');
         setFactoryName(save.factoryName || '');
+        setStartCode(save.startCode || '');
         setScenarioKey(save.scenarioKey || 'vrij');
         setCapitalKey(save.capitalKey || 'helfhelf');
         setVolatilityKey(save.volatilityKey || 'gematigd');
@@ -3633,6 +3653,7 @@ function App() {
       <SetupScreen
         processKey={processKey} setProcessKey={setProcessKey}
         factoryName={factoryName} setFactoryName={setFactoryName}
+        startCode={startCode} setStartCode={setStartCode}
         capitalKey={capitalKey} setCapitalKey={setCapitalKey}
         volatilityKey={volatilityKey} setVolatilityKey={setVolatilityKey}
         scenarioKey={scenarioKey} applyScenario={applyScenario}
@@ -4466,9 +4487,28 @@ const SCENARIOS = {
     legislativeCapTightenChance: 0.5
   }
 };
-function evolveMarket(market, volatilityKey) {
+function hashString(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+function seededRandom(code, year, stream) {
+  if (!code) return Math.random;
+  let a = hashString(code.trim().toUpperCase() + '|' + year + '|' + stream);
+  return function () {
+    a |= 0;
+    a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function evolveMarket(market, volatilityKey, rand = Math.random) {
   const vol = VOLATILITY[volatilityKey] || VOLATILITY.gematigd;
-  const rnd = () => Math.random() * 2 - 1;
+  const rnd = () => rand() * 2 - 1;
   const shock = rnd() * vol;
   const grijsChange = shock * 1.0 + rnd() * vol * 0.3;
   const groenChange = shock * 0.4 + rnd() * vol * 0.6;
@@ -6637,6 +6677,8 @@ function SetupScreen({
   setProcessKey,
   factoryName,
   setFactoryName,
+  startCode,
+  setStartCode,
   capitalKey,
   setCapitalKey,
   volatilityKey,
@@ -6745,6 +6787,28 @@ function SetupScreen({
       color: 'var(--text)'
     }
   })), React.createElement("div", {
+    className: "mb-5"
+  }, React.createElement("div", {
+    className: "text-xs uppercase tracking-wide mb-2",
+    style: {
+      color: 'var(--text)'
+    }
+  }, "Startcode (optioneel)"), React.createElement("input", {
+    value: startCode,
+    onChange: e => setStartCode(e.target.value),
+    placeholder: "Bijv. SLOT — dezelfde code geeft iedereen dezelfde markt",
+    className: "w-full text-sm rounded-md border px-3 py-2 font-mono-data",
+    style: {
+      background: 'var(--panel-2)',
+      borderColor: 'var(--border)',
+      color: 'var(--text)'
+    }
+  }), React.createElement("div", {
+    className: "text-[11px] mt-1",
+    style: {
+      color: 'var(--text-dim)'
+    }
+  }, "Met een startcode verlopen marktprijzen en wetgeving voor iedereen hetzelfde — handig om klassikaal te vergelijken. Leeg = willekeurig.")), React.createElement("div", {
     className: "mb-5"
   }, React.createElement("div", {
     className: "text-xs uppercase tracking-wide mb-2",
@@ -8235,6 +8299,7 @@ function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [processKey, setProcessKey] = useState('haberBosch');
   const [factoryName, setFactoryName] = useState('');
+  const [startCode, setStartCode] = useState('');
   const [capitalKey, setCapitalKey] = useState('helfhelf');
   const [volatilityKey, setVolatilityKey] = useState('gematigd');
   const [scenarioKey, setScenarioKey] = useState('vrij');
@@ -8591,7 +8656,7 @@ function App() {
         const co2PriceBeforeTightening = marketRef.current.co2RightsBasePrice;
         let capTightened = false;
         const effectiveTightenChance = Math.min(GAME.legislativeCapTightenChanceMax, legislativeCapTightenChanceRef.current + (currentYear - 1) * GAME.legislativeCapTightenGrowthPerYear);
-        if (Math.random() < effectiveTightenChance) {
+        if (seededRandom(startCode, currentYear, 'wet')() < effectiveTightenChance) {
           legislativeCapRef.current = legislativeCapRef.current * GAME.legislativeCapTightenFactor;
           setLegislativeCap(legislativeCapRef.current);
           marketRef.current = {
@@ -8604,7 +8669,7 @@ function App() {
         if (proc.organicBonus) {
           if (!gmoBanAnnouncedRef.current) {
             const announceChance = Math.min(0.6, proc.gmoBanBaseChance + Math.max(0, currentYear - 3) * proc.gmoBanGrowthPerYear);
-            if (currentYear >= 3 && Math.random() < announceChance) {
+            if (currentYear >= 3 && seededRandom(startCode, currentYear, 'gmo')() < announceChance) {
               gmoBanAnnouncedRef.current = true;
               gmoBanAnnouncedYearRef.current = currentYear;
               setGmoBanAnnounced(true);
@@ -8641,7 +8706,7 @@ function App() {
           }
         }
         const projectCompleted = yr.projectCompletedThisYear || null;
-        const evolved = evolveMarket(marketRef.current, volatilityKey);
+        const evolved = evolveMarket(marketRef.current, volatilityKey, seededRandom(startCode, currentYear, 'markt'));
         evolved.changes = {
           ...evolved.changes,
           co2Change: evolved.co2RightsBasePrice / co2PriceBeforeTightening - 1
@@ -8721,7 +8786,7 @@ function App() {
       }
     }, GAME.tickMs);
     return () => clearInterval(interval);
-  }, [running, gameStarted, pushToast, volatilityKey, currentYear, currentMonth, co2Total, totalNh3Kg, hasGreenCertificate, greenCertificateYears, unlocked]);
+  }, [running, gameStarted, startCode, pushToast, volatilityKey, currentYear, currentMonth, co2Total, totalNh3Kg, hasGreenCertificate, greenCertificateYears, unlocked]);
   const addNode = type => {
     const idNum = ++idCounter.current;
     const id = type + '_' + idNum;
@@ -9156,6 +9221,7 @@ function App() {
       version: 2,
       processKey,
       factoryName,
+      startCode,
       scenarioKey,
       capitalKey,
       volatilityKey,
@@ -9209,6 +9275,7 @@ function App() {
         setRunning(false);
         setProcessKey(save.processKey || 'haberBosch');
         setFactoryName(save.factoryName || '');
+        setStartCode(save.startCode || '');
         setScenarioKey(save.scenarioKey || 'vrij');
         setCapitalKey(save.capitalKey || 'helfhelf');
         setVolatilityKey(save.volatilityKey || 'gematigd');
@@ -9312,6 +9379,8 @@ function App() {
       setProcessKey: setProcessKey,
       factoryName: factoryName,
       setFactoryName: setFactoryName,
+      startCode: startCode,
+      setStartCode: setStartCode,
       capitalKey: capitalKey,
       setCapitalKey: setCapitalKey,
       volatilityKey: volatilityKey,
