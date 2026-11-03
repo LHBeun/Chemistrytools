@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>De deuren van Wonderland</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="gedeeld.css">
+<style>
+  body { overflow: auto; }
+  .pagina { position: relative; z-index: 1; min-height: 100vh; padding: 22px 32px 40px; max-width: 1280px; margin: 0 auto; }
+
+  header { display: flex; align-items: center; gap: 24px; margin-bottom: 22px; }
+  .logo { font-family: var(--titel); color: var(--goud2); font-size: 1.5rem; letter-spacing: .04em; white-space: nowrap; }
+  .logo span { color: var(--roos2); }
+  .route { flex: 1; display: flex; align-items: center; }
+  .route i { flex: 1; height: 2px; background: repeating-linear-gradient(90deg, rgba(247,220,149,.35) 0 4px, transparent 4px 10px); }
+  .route b {
+    width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; flex: none;
+    font: 600 .9rem var(--titel); color: var(--gedempt); border: 1.5px solid rgba(226,182,90,.35); background: var(--inkt);
+  }
+  .route b.huidig { color: var(--nacht); background: var(--goud2); border-color: var(--goud2); box-shadow: 0 0 16px var(--goud); }
+
+  /* Wachten */
+  #wacht { display: none; place-items: center; min-height: 75vh; }
+  #wacht.zicht { display: grid; }
+  .wachtkaart { width: min(760px, 100%); padding: 48px 56px; text-align: center; }
+  .wachtkaart .plaatje { height: 300px; margin: 0 auto 26px; max-width: 420px; }
+  .wachtkaart h2 { font-family: var(--titel); font-weight: 400; font-size: 2.1rem; margin: 0 0 10px; }
+  .wachtkaart p { font-family: var(--verhaal); font-size: 1.35rem; margin: 0; opacity: .85; }
+  .slotje { display: inline-block; animation: wiebel 3s ease-in-out infinite; }
+  @keyframes wiebel { 0%,100% { transform: rotate(0) } 10% { transform: rotate(-8deg) } 20% { transform: rotate(8deg) } 30% { transform: rotate(0) } }
+
+  /* Deur */
+  #werk { display: none; }
+  #werk.zicht { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 34px; align-items: start; }
+  .zijkant { position: sticky; top: 20px; }
+  .zijkant .eyebrow { font-family: var(--titel); color: var(--goud); letter-spacing: .3em; font-size: .9rem; text-transform: uppercase; }
+  .zijkant h1 { font-family: var(--titel); font-weight: 400; color: var(--goud2); font-size: 2.2rem; line-height: 1.05; margin: 6px 0 14px; }
+  .zijkant p { font-family: var(--verhaal); font-size: 1.15rem; line-height: 1.45; color: var(--tekst); opacity: .9; margin: 0 0 18px; }
+  #minideur { width: 100%; height: auto; display: block; }
+
+  .vragen { display: grid; gap: 16px; }
+  .vraag { padding: 24px 28px 22px 86px; transition: transform .3s; }
+  .vraag .nummer {
+    position: absolute; left: 22px; top: 22px; width: 46px; height: 46px; border-radius: 50%;
+    display: grid; place-items: center; font: 1.5rem var(--titel); color: var(--perkament);
+    background: var(--roos); box-shadow: 0 0 0 3px rgba(243,230,198,.8), 0 0 0 4.5px rgba(110,75,25,.4);
+  }
+  .vraag p { margin: 0; font-size: 1.3rem; line-height: 1.4; }
+  .vraag .formule { display: inline-block; font-size: 1.45rem; margin: 8px 0 4px; padding: 4px 14px; border-radius: 6px; background: rgba(110,75,25,.1); }
+  .vraag .wat { font-weight: 700; margin-top: 8px; }
+  .invoer { display: flex; align-items: center; gap: 14px; margin-top: 14px; }
+  .invoer input {
+    width: 120px; font: 700 1.6rem var(--mono); text-align: center; padding: 8px 10px;
+    border-radius: 8px; border: 2px solid rgba(110,75,25,.45); background: rgba(255,255,255,.65); color: var(--bruin);
+    outline: none; transition: border-color .2s, background .2s, box-shadow .2s;
+  }
+  .invoer input:focus { border-color: var(--goud-donker); box-shadow: 0 0 0 4px rgba(226,182,90,.35); }
+  .vraag.goed input { border-color: var(--groen); background: #e3f6ea; }
+  .vraag.fout input { border-color: var(--roos); background: #fbe3e7; }
+  .status { font-family: var(--titel); font-size: 1.1rem; }
+  .vraag.goed .status { color: #24764f; }
+  .vraag.fout .status { color: #a3263b; }
+  .hint {
+    display: none; margin-top: 12px; padding: 10px 14px; border-left: 4px solid var(--roos);
+    background: rgba(200,55,79,.08); font-family: var(--verhaal); font-size: 1.12rem; font-style: italic; border-radius: 0 6px 6px 0;
+  }
+  .vraag.fout .hint { display: block; }
+  .vraag.schud { animation: schud .4s; }
+  @keyframes schud { 20%,60% { transform: translateX(-6px) } 40%,80% { transform: translateX(6px) } }
+
+  .actie { display: flex; align-items: center; gap: 18px; margin-top: 6px; }
+  .actie .tip { color: var(--gedempt); font-size: 1.1rem; }
+
+  /* Geslaagd */
+  #gelukt { display: none; margin-top: 8px; }
+  #gelukt.zicht { display: block; animation: verschijn .8s; }
+  @keyframes verschijn { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+  .banier { text-align: center; padding: 26px; }
+  .banier h2 { font-family: var(--titel); font-weight: 400; font-size: 2.4rem; color: var(--goud2); margin: 0; text-shadow: 0 0 25px rgba(247,220,149,.5); }
+  .banier p { font-family: var(--verhaal); font-size: 1.3rem; margin: 6px 0 0; color: var(--tekst); }
+  .geheim .nummer { background: linear-gradient(180deg, var(--goud2), var(--goud)) !important; color: var(--nacht) !important; }
+  .geheim { background:
+    radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.35), transparent 60%),
+    linear-gradient(160deg, #f7e7b5, #e7c87a) !important; }
+  .goudensleutel { text-align: center; font-family: var(--titel); color: var(--goud2); font-size: 1.8rem; margin-top: 18px; display: none; }
+  .goudensleutel.zicht { display: block; animation: verschijn .8s; }
+  .goudensleutel svg { width: 80px; height: 80px; display: block; margin: 0 auto 6px; filter: drop-shadow(0 0 14px var(--goud)); }
+
+  .vonk { position: fixed; z-index: 50; pointer-events: none; font-size: 22px; animation: vonk 1.6s ease-out forwards; }
+  @keyframes vonk { to { transform: translate(var(--dx), var(--dy)) rotate(540deg); opacity: 0; } }
+
+  .demolabel { position: fixed; top: 10px; right: 14px; z-index: 50; font-family: var(--titel); color: var(--goud); letter-spacing: .2em; font-size: .8rem; opacity: .7; }
+  .fouttekst { position: relative; z-index: 2; text-align: center; padding: 30vh 20px; font-size: 1.4rem; }
+  .fouttekst a { color: var(--goud2); }
+
+  @media (max-width: 900px) {
+    #werk.zicht { grid-template-columns: 1fr; }
+    .zijkant { position: static; }
+    #minideur { max-width: 260px; margin: 0 auto; }
+    .route { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="hemel"></div>
+<div class="sterren" id="sterren"></div>
+
+<div class="pagina">
+  <header>
+    <div class="logo">De deuren van <span>Wonderland</span></div>
+    <div class="route" id="route"></div>
+  </header>
+
+  <section id="wacht">
+    <div class="wachtkaart perkament">
+      <div class="plaatje"><img class="plaat" id="wachtPlaat" alt=""></div>
+      <h2><span class="slotje">🔒</span> Het slot zit nog dicht</h2>
+      <p id="wachtTekst">Luister eerst naar het verhaal. Kijk naar het bord.</p>
+    </div>
+  </section>
+
+  <section id="werk">
+    <aside class="zijkant">
+      <div class="eyebrow" id="werkEyebrow"></div>
+      <h1 id="werkTitel"></h1>
+      <p id="werkIntro"></p>
+      <svg id="minideur" viewBox="0 0 300 380"></svg>
+    </aside>
+    <div>
+      <div class="vragen" id="vragen"></div>
+      <div class="actie" id="actie">
+        <button class="knop" id="controleer" disabled>Controleer de code</button>
+        <span class="tip" id="tip">Vul eerst alle vier de getallen in.</span>
+      </div>
+      <div id="gelukt">
+        <div class="banier"><h2>✦ Je bent erdoor! ✦</h2><p>Het deurtje zwaait open. Maar wacht… er hangt nog een gordijn.</p></div>
+        <div class="vragen" id="geheimVraag"></div>
+        <div class="actie" id="geheimActie" style="margin-top:16px"><button class="knop" id="controleerGeheim" disabled>Probeer de gouden sleutel</button></div>
+        <div class="goudensleutel" id="goudensleutel"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="data.js"></script>
+<script type="module">
+const W = window.WONDERLAND;
+const $ = id => document.getElementById(id);
+const les = nr => W.lessen.find(l => l.nr === nr);
+
+(function decor() {
+  const s = $("sterren");
+  for (let i = 0; i < 70; i++) {
+    const e = document.createElement("i");
+    e.style.left = Math.random() * 100 + "%"; e.style.top = Math.random() * 100 + "%";
+    e.style.animationDelay = (Math.random() * 4) + "s"; s.appendChild(e);
+  }
+  if (WL_DEMO) { const d = document.createElement("div"); d.className = "demolabel"; d.textContent = "DEMO-MODUS"; document.body.appendChild(d); }
+})();
+
+const SLEUTEL = `<svg viewBox="0 0 64 64"><circle cx="18" cy="32" r="12" fill="none" stroke="#f7dc95" stroke-width="5"/><path d="M30 32 H58 M50 32 V42 M42 32 V40" stroke="#f7dc95" stroke-width="5" stroke-linecap="round"/></svg>`;
+
+function tekenRoute(huidig) {
+  $("route").innerHTML = W.lessen.map((l, i) => `${i ? "<i></i>" : ""}<b class="${l.nr === huidig ? "huidig" : ""}" title="${l.plek}">${l.nr}</b>`).join("");
+}
+
+function tekenMiniDeur(cijfers, open) {
+  const hoek = open ? -72 : 0;
+  $("minideur").innerHTML = `
+  <defs>
+    <linearGradient id="h" x1="0" x2="1"><stop offset="0" stop-color="#4a2e17"/><stop offset=".5" stop-color="#7a4b25"/><stop offset="1" stop-color="#4a2e17"/></linearGradient>
+    <linearGradient id="k" x1="0" x2="1"><stop offset="0" stop-color="#9a7428"/><stop offset=".5" stop-color="#f7dc95"/><stop offset="1" stop-color="#9a7428"/></linearGradient>
+    <radialGradient id="t" cx="50%" cy="65%"><stop offset="0" stop-color="#ffe9a8"/><stop offset=".55" stop-color="#7fd3a5"/><stop offset="1" stop-color="#1d5a44"/></radialGradient>
+  </defs>
+  <path d="M40 370 V150 A110 110 0 0 1 260 150 V370 Z" fill="url(#k)"/>
+  <path d="M55 370 V152 A95 95 0 0 1 245 152 V370 Z" fill="${open ? "url(#t)" : "#120c06"}"/>
+  ${open ? `<g fill="#c8374f"><circle cx="110" cy="300" r="10"/><circle cx="190" cy="285" r="12"/><circle cx="150" cy="320" r="9"/></g>
+            <path d="M80 370 Q150 300 220 370" fill="#2f7a55"/>` : ""}
+  <g style="transform-origin:55px 260px; transform: perspective(600px) rotateY(${hoek}deg); transition: transform 1.4s cubic-bezier(.2,.8,.2,1)">
+    <path d="M55 370 V152 A95 95 0 0 1 245 152 V370 Z" fill="url(#h)" stroke="#2b1a0c" stroke-width="2"/>
+    <rect x="80" y="250" width="140" height="44" rx="8" fill="#1a1208" stroke="url(#k)" stroke-width="3"/>
+    ${[0,1,2,3].map(i => {
+      const c = cijfers[i];
+      const kleur = c?.status === "goed" ? "#bff0d3" : c?.status === "fout" ? "#f6c5ce" : "#f3e6c6";
+      return `<rect x="${88 + i * 32}" y="257" width="28" height="30" rx="4" fill="${kleur}"/>
+      <text x="${102 + i * 32}" y="279" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="700" font-size="${(c?.waarde || "").length > 1 ? 14 : 18}" fill="#3b2a17">${c?.waarde || "·"}</text>`;
+    }).join("")}
+    <circle cx="225" cy="320" r="7" fill="#f7dc95"/>
+  </g>`;
+}
+
+function vonken() {
+  const tekens = ["✦", "♥", "♦", "✧", "♠", "♣"];
+  for (let i = 0; i < 26; i++) {
+    const e = document.createElement("span");
+    e.className = "vonk"; e.textContent = tekens[i % tekens.length];
+    e.style.left = (innerWidth / 2) + "px"; e.style.top = (innerHeight / 2) + "px";
+    e.style.color = i % 2 ? "#f7dc95" : "#ff6b81";
+    e.style.setProperty("--dx", (Math.random() * 900 - 450) + "px");
+    e.style.setProperty("--dy", (Math.random() * 700 - 400) + "px");
+    document.body.appendChild(e); setTimeout(() => e.remove(), 1700);
+  }
+}
+
+/* ── Vraagkaarten ── */
+function vraagKaart(v, label, id, klasse = "") {
+  return `<div class="vraag perkament ${klasse}" id="kaart-${id}">
+    <div class="nummer">${label}</div>
+    <p>${v.tekst}</p>
+    ${v.formule ? `<div class="formule">${v.formule}</div>` : ""}
+    <p class="wat">${v.vraag}</p>
+    <div class="invoer"><input id="in-${id}" inputmode="numeric" autocomplete="off" maxlength="3"><span class="status" id="st-${id}"></span></div>
+    <div class="hint" id="hint-${id}"></div>
+  </div>`;
+}
+
+let store, staat = null, actieveSessie = null, mijnPoging = {}, huidigeLes = null, gelukt = false;
+
+function invullen() {
+  const l = les(huidigeLes);
+  $("werkEyebrow").textContent = `Les ${l.nr}`;
+  $("werkTitel").textContent = l.plek;
+  $("werkIntro").textContent = l.deur.intro;
+  $("vragen").innerHTML = l.deur.vragen.map((v, i) => vraagKaart(v, i + 1, i)).join("");
+  $("geheimVraag").innerHTML = vraagKaart(l.deur.geheim, "★", "g", "geheim");
+  l.deur.vragen.forEach((_, i) => {
+    $("in-" + i).addEventListener("input", e => {
+      e.target.value = e.target.value.replace(/[^0-9]/g, "");
+      $("kaart-" + i).classList.remove("goed", "fout");
+      $("st-" + i).textContent = "";
+      klaarVoorControle();
+    });
+    $("in-" + i).addEventListener("keydown", e => { if (e.key === "Enter" && !$("controleer").disabled) controleer(); });
+  });
+  $("in-g").addEventListener("input", e => {
+    e.target.value = e.target.value.replace(/[^0-9]/g, "");
+    $("kaart-g").classList.remove("goed", "fout"); $("st-g").textContent = "";
+    $("controleerGeheim").disabled = !e.target.value;
+  });
+  $("in-g").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.value) controleerGeheim(); });
+  gelukt = false;
+  $("gelukt").classList.remove("zicht"); $("goudensleutel").classList.remove("zicht");
+  $("actie").style.display = "";
+  klaarVoorControle();
+}
+
+function cijferStatus() {
+  const l = les(huidigeLes);
+  return l.deur.vragen.map((_, i) => {
+    const k = $("kaart-" + i);
+    return { waarde: $("in-" + i).value, status: k.classList.contains("goed") ? "goed" : k.classList.contains("fout") ? "fout" : "" };
+  });
+}
+
+function klaarVoorControle() {
+  const l = les(huidigeLes);
+  const allemaal = l.deur.vragen.every((_, i) => $("in-" + i).value !== "");
+  $("controleer").disabled = !allemaal || gelukt;
+  $("tip").textContent = allemaal ? "Druk op controleer — je ziet per getal of het klopt." : "Vul eerst alle vier de getallen in.";
+  tekenMiniDeur(cijferStatus(), gelukt);
+}
+
+async function controleer() {
+  const l = les(huidigeLes);
+  let allesGoed = true;
+  const fouten = {};
+  for (let i = 0; i < l.deur.vragen.length; i++) {
+    const v = l.deur.vragen[i], waarde = String(parseInt($("in-" + i).value, 10));
+    const goed = (await wlHash(l.nr, i, waarde)) === v.hash;
+    const k = $("kaart-" + i);
+    k.classList.toggle("goed", goed); k.classList.toggle("fout", !goed);
+    $("st-" + i).textContent = goed ? "✓ klopt" : "✗ klopt niet";
+    if (!goed) {
+      allesGoed = false; fouten[i] = waarde;
+      $("hint-" + i).textContent = v.hints?.[waarde] || v.hint;
+      k.classList.remove("schud"); void k.offsetWidth; k.classList.add("schud");
+    }
+  }
+  tekenMiniDeur(cijferStatus(), false);
+  // Vastleggen (anoniem, per laptop)
+  const p = `pogingen/${actieveSessie}/${store.uid}`;
+  const updates = { in: true, n: (mijnPoging.n || 0) + 1 };
+  Object.entries(fouten).forEach(([i, w]) => { updates[`f/${i}/${w}`] = ((mijnPoging.f?.[i]?.[w]) || 0) + 1; });
+  if (allesGoed) updates.open = true;
+  try { await store.werkBij(p, updates); } catch (e) { console.warn(e); }
+  if (allesGoed) geslaagd();
+}
+
+function geslaagd() {
+  gelukt = true;
+  $("controleer").disabled = true;
+  $("actie").style.display = "none";
+  les(huidigeLes).deur.vragen.forEach((_, i) => { $("in-" + i).disabled = true; });
+  tekenMiniDeur(cijferStatus(), true);
+  vonken();
+  $("gelukt").classList.add("zicht");
+  setTimeout(() => $("gelukt").scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+}
+
+async function controleerGeheim() {
+  const l = les(huidigeLes), v = l.deur.geheim, waarde = String(parseInt($("in-g").value, 10));
+  const goed = (await wlHash(l.nr, "g", waarde)) === v.hash;
+  const k = $("kaart-g");
+  k.classList.toggle("goed", goed); k.classList.toggle("fout", !goed);
+  $("st-g").textContent = goed ? "✓ klopt" : "✗ klopt niet";
+  $("hint-g").textContent = v.hint;
+  const p = `pogingen/${actieveSessie}/${store.uid}`;
+  const updates = {};
+  if (goed) updates.geheim = true; else updates[`f/g/${waarde}`] = ((mijnPoging.f?.g?.[waarde]) || 0) + 1;
+  try { await store.werkBij(p, updates); } catch (e) { console.warn(e); }
+  if (goed) {
+    $("in-g").disabled = true; $("geheimActie").style.display = "none";
+    $("goudensleutel").innerHTML = `${SLEUTEL}De gouden sleutel is van jou!`;
+    $("goudensleutel").classList.add("zicht"); vonken();
+  } else { k.classList.remove("schud"); void k.offsetWidth; k.classList.add("schud"); }
+}
+$("controleer").onclick = controleer;
+$("controleerGeheim").onclick = controleerGeheim;
+
+/* ── Staat volgen ── */
+function render() {
+  const fase = staat?.fase || "kaart";
+  const l = les(staat?.les || 1);
+  tekenRoute(l.nr);
+  const deurOpen = fase === "deur" && l.deur && staat.sessie;
+  if (!deurOpen) {
+    $("werk").classList.remove("zicht"); $("wacht").classList.add("zicht");
+    $("wachtPlaat").src = l.plaat;
+    $("wachtTekst").textContent = fase === "na" ? "De deur is open! Kijk naar het bord: het verhaal gaat verder." :
+      "Luister eerst naar het verhaal. Kijk naar het bord.";
+    return;
+  }
+  $("wacht").classList.remove("zicht"); $("werk").classList.add("zicht");
+  if (staat.sessie !== actieveSessie) {
+    actieveSessie = staat.sessie; huidigeLes = l.nr; mijnPoging = {};
+    invullen();
+    store.werkBij(`pogingen/${actieveSessie}/${store.uid}`, { in: true }).catch(e => console.warn(e));
+    store.luister(`pogingen/${actieveSessie}/${store.uid}`, v => { mijnPoging = v || {}; });
+  }
+}
+
+(async () => {
+  try {
+    store = await wlStore("leerling");
+    await store.login();
+  } catch (e) {
+    console.error(e);
+    document.querySelector(".pagina").innerHTML = `<div class="fouttekst">Geen verbinding met Wonderland. Vraag je docent om hulp.</div>`;
+    return;
+  }
+  store.luister("staat", v => { staat = v || { les: 1, fase: "kaart" }; render(); });
+})();
+</script>
+</body>
+</html>
