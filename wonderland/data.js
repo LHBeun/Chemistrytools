@@ -26,6 +26,7 @@ window.WONDERLAND = {
           {
             tekst: "Op flesje 1 staat dit molecuul, getekend zónder H-atomen:",
             formule: "C–C≡C–C",
+            structuur: { atomen: ["C", "C", "C", "C"], bindingen: [1, 3, 1] },
             vraag: "Hoeveel H-atomen heeft dit molecuul?",
             hash: "5eeffe55908e444a21f8659689b039fcb1a0fecdea0732dbc5d37fa93ca72053",
             hints: {
@@ -99,6 +100,24 @@ window.WONDERLAND = {
     { nr: 8, plek: "De taartjes van de Koningin", leerdoel: "Esters", plaat: PLAAT(1) },
     { nr: 9, plek: "De rechtszaak", leerdoel: "Alles samen", plaat: PLAAT(38) }
   ]
+};
+
+// Tekent een rechte keten als nette structuurformule (SVG).
+// atomen: ["C","C",...], bindingen: [1|2|3, ...] tussen opeenvolgende atomen.
+window.wlKetenSVG = function ({ atomen, bindingen }, kleur = "#3b2a17") {
+  const dx = 96, gat = 20, h = 64, y = h / 2, x0 = 30;
+  const breedte = x0 * 2 + dx * (atomen.length - 1);
+  let lijnen = "";
+  bindingen.forEach((orde, i) => {
+    const xa = x0 + dx * i + gat, xb = x0 + dx * (i + 1) - gat;
+    const offs = orde === 1 ? [0] : orde === 2 ? [-4, 4] : [-6.5, 0, 6.5];
+    offs.forEach(o => { lijnen += `<line x1="${xa}" y1="${y + o}" x2="${xb}" y2="${y + o}"/>`; });
+  });
+  const letters = atomen.map((a, i) => `<text x="${x0 + dx * i}" y="${y}">${a}</text>`).join("");
+  return `<svg class="structuur" viewBox="0 0 ${breedte} ${h}" width="${breedte}" height="${h}" role="img" aria-label="${atomen.join("")}">
+    <g stroke="${kleur}" stroke-width="2.6" stroke-linecap="round">${lijnen}</g>
+    <g fill="${kleur}" font-family="Arial, Helvetica, sans-serif" font-size="30" text-anchor="middle" dominant-baseline="central">${letters}</g>
+  </svg>`;
 };
 
 // Hash-helper (gedeeld)
