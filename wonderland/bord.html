@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>De deuren van Wonderland — Bord</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="gedeeld.css">
+<style>
+  .scherm { position: fixed; inset: 0; z-index: 1; display: none; }
+  .scherm.actief { display: block; animation: verschijn .8s ease; }
+  @keyframes verschijn { from { opacity: 0 } to { opacity: 1 } }
+
+  /* ── KAART ─────────────────────────────── */
+  #kaart svg { width: 100%; height: 100%; display: block; }
+  .station { cursor: pointer; }
+  .station .ring { transition: transform .3s; transform-box: fill-box; transform-origin: center; }
+  .station:hover .ring { transform: scale(1.06); }
+  .station.dicht { cursor: default; }
+  .station.dicht .icoon, .station.dicht text { opacity: .4; }
+  .station.dicht .rand { stroke-opacity: .45; }
+  .station.dicht:hover .ring { transform: none; }
+  .station.huidig .gloed { animation: puls 2.4s ease-in-out infinite; }
+  @keyframes puls { 0%,100% { opacity: .35; r: 70 } 50% { opacity: .85; r: 84 } }
+  .stlabel { font-family: var(--titel); fill: var(--perkament); font-size: 21px; letter-spacing: .5px;
+    paint-order: stroke; stroke: #0e0f2a; stroke-width: 7px; stroke-linejoin: round; }
+  .stnr { font-family: var(--titel); fill: var(--goud2); font-size: 15px; letter-spacing: 3px;
+    paint-order: stroke; stroke: #0e0f2a; stroke-width: 6px; stroke-linejoin: round; }
+  .titelkaart { font-family: var(--titel); }
+
+  /* ── SCENE / NA ────────────────────────── */
+  .verhaal {
+    position: absolute; inset: 5vh 5vw; display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 4vw; align-items: center;
+  }
+  .lijst { height: 82vh; padding: 3.2vh; }
+  .lijst .binnen { position: relative; width: 100%; height: 100%; overflow: hidden; }
+  .verhaaltekst { align-self: center; }
+  .eyebrow {
+    font-family: var(--titel); color: var(--goud); letter-spacing: .35em; font-size: 1.1vw;
+    text-transform: uppercase; margin-bottom: 1.2vh;
+  }
+  .verhaaltekst h1 {
+    font-family: var(--titel); font-weight: 400; font-size: 4.2vw; line-height: 1.05;
+    margin: 0 0 4vh; color: var(--goud2);
+    text-shadow: 0 0 30px rgba(247, 220, 149, .35);
+  }
+  .typ {
+    font-family: var(--verhaal); font-size: 2.35vw; line-height: 1.45; color: var(--tekst);
+    min-height: 34vh;
+  }
+  .typ .cursor { display: inline-block; width: .5ch; color: var(--goud); animation: knipper 1s steps(1) infinite; }
+  @keyframes knipper { 50% { opacity: 0 } }
+  .bolletjes { display: flex; gap: 10px; margin-top: 3vh; align-items: center; }
+  .bolletjes i { width: 10px; height: 10px; border-radius: 50%; background: rgba(226, 182, 90, .25); }
+  .bolletjes i.aan { background: var(--goud); box-shadow: 0 0 10px var(--goud); }
+  .verder { margin-left: auto; font-family: var(--titel); color: var(--gedempt); letter-spacing: .15em; font-size: 1vw; }
+  .vervolgknop { margin-top: 3vh; display: none; }
+  .vervolgknop.zicht { display: inline-block; animation: verschijn .6s; }
+
+  /* ── DEUR ──────────────────────────────── */
+  #deur .opzet {
+    position: absolute; inset: 4vh 5vw; display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4vw; align-items: center;
+  }
+  #deursvg { width: 100%; height: 88vh; display: block; }
+  .deurinfo h1 { font-family: var(--titel); font-weight: 400; font-size: 3.6vw; margin: 0 0 2vh; color: var(--goud2); }
+  .deurinfo p { font-family: var(--verhaal); font-size: 1.8vw; line-height: 1.4; margin: 0 0 4vh; color: var(--tekst); }
+  .teller { display: flex; align-items: baseline; gap: 1.2vw; }
+  .teller .groot {
+    font-family: var(--titel); font-size: 10vw; line-height: .9; color: var(--goud2);
+    text-shadow: 0 0 40px rgba(247, 220, 149, .45);
+  }
+  .teller .van { font-family: var(--titel); font-size: 3vw; color: var(--gedempt); }
+  .tellerlabel { font-family: var(--titel); letter-spacing: .25em; text-transform: uppercase; color: var(--gedempt); font-size: 1.2vw; margin-top: 1vh; }
+  .sleutels { margin-top: 4vh; display: flex; align-items: center; gap: 1vw; font-family: var(--titel); font-size: 1.6vw; color: var(--goud); }
+  .sleutels svg { width: 3vw; height: 3vw; }
+  .lampje { transition: fill .6s, filter .6s; }
+  .lampje.aan { fill: #ffe9a8; filter: url(#lampgloed); }
+
+  /* ── BEDIENING ─────────────────────────── */
+  #bediening {
+    position: fixed; z-index: 20; left: 50%; bottom: 18px; transform: translateX(-50%);
+    display: flex; gap: 10px; padding: 10px 14px; border-radius: 999px;
+    background: rgba(12, 13, 36, .82); border: 1px solid rgba(226, 182, 90, .3);
+    backdrop-filter: blur(8px); transition: opacity .4s; opacity: 0;
+  }
+  body.muis #bediening { opacity: 1; }
+  #bediening .knop { font-size: .9rem; padding: .45em 1.1em; }
+
+  /* ── OVERZICHT (docent) ─────────────────── */
+  #overzicht {
+    position: fixed; z-index: 30; inset: 0; display: none; place-items: center;
+    background: rgba(6, 6, 20, .78); backdrop-filter: blur(6px);
+  }
+  #overzicht.open { display: grid; }
+  #overzicht .perkament { width: min(1000px, 92vw); max-height: 88vh; overflow: auto; padding: 44px 50px; }
+  #overzicht h2 { font-family: var(--titel); font-weight: 400; margin: 0 0 6px; font-size: 2rem; }
+  #overzicht .sub { font-size: 1.1rem; margin-bottom: 22px; opacity: .8; }
+  .ovrij { display: grid; grid-template-columns: 40px 1fr 140px 1.2fr; gap: 14px; align-items: center;
+    padding: 12px 0; border-top: 1px solid rgba(110, 75, 25, .25); font-size: 1.15rem; }
+  .ovrij .nr { font-family: var(--titel); font-size: 1.5rem; color: var(--roos); }
+  .balk { height: 12px; border-radius: 6px; background: rgba(110, 75, 25, .15); overflow: hidden; }
+  .balk i { display: block; height: 100%; background: var(--roos); }
+  .chip { display: inline-block; font-family: var(--mono); font-size: .95rem; padding: 2px 9px; margin: 2px 4px 2px 0;
+    border-radius: 999px; background: rgba(200, 55, 79, .12); color: #7c1f2e; }
+  .ovknoppen { display: flex; gap: 12px; justify-content: flex-end; margin-top: 26px; }
+  .ovknoppen .knop.stil { color: var(--bruin); border-color: rgba(110, 75, 25, .5); }
+
+  /* ── LOGIN ─────────────────────────────── */
+  #login { position: fixed; inset: 0; z-index: 40; display: none; place-items: center; background: rgba(6, 6, 20, .9); }
+  #login.open { display: grid; }
+  #login .perkament { padding: 50px 60px; text-align: center; width: min(460px, 90vw); }
+  #login h2 { font-family: var(--titel); font-weight: 400; font-size: 2rem; margin: 0 0 18px; }
+  #login input { font: 1.2rem var(--body); width: 100%; padding: 10px 14px; border-radius: 6px;
+    border: 1px solid rgba(110, 75, 25, .5); background: rgba(255, 255, 255, .5); margin-bottom: 14px; }
+  #loginfout { color: var(--roos); min-height: 1.3em; margin-bottom: 8px; }
+  .demolabel { position: fixed; top: 12px; right: 16px; z-index: 50; font-family: var(--titel);
+    color: var(--goud); letter-spacing: .2em; font-size: .85rem; opacity: .7; }
+</style>
+</head>
+<body>
+<div class="hemel"></div>
+<div class="sterren" id="sterren"></div>
+<div class="zwevend" id="zwevend"></div>
+
+<!-- KAART -->
+<section class="scherm" id="kaart"><svg id="kaartsvg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet"></svg></section>
+
+<!-- SCENE -->
+<section class="scherm" id="scene">
+  <div class="verhaal">
+    <div class="lijst perkament"><div class="binnen"><img class="plaat" id="scenePlaat" alt=""></div></div>
+    <div class="verhaaltekst">
+      <div class="eyebrow" id="sceneEyebrow"></div>
+      <h1 id="sceneTitel"></h1>
+      <div class="typ" id="sceneTyp"></div>
+      <div class="bolletjes" id="sceneBol"><span class="verder">spatie ▸</span></div>
+      <button class="knop vervolgknop" id="naarDeur">🗝 Naar de deur</button>
+    </div>
+  </div>
+</section>
+
+<!-- DEUR -->
+<section class="scherm" id="deur">
+  <div class="opzet">
+    <svg id="deursvg" viewBox="0 0 600 800" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="deurinfo">
+      <div class="eyebrow" id="deurEyebrow"></div>
+      <h1>De deur is open voor codes</h1>
+      <p id="deurIntro"></p>
+      <div class="teller"><span class="groot" id="telOpen">0</span><span class="van" id="telTotaal">/ 0</span></div>
+      <div class="tellerlabel">laptops door de deur</div>
+      <div class="sleutels" id="sleutels"></div>
+    </div>
+  </div>
+</section>
+
+<!-- NA DE DEUR -->
+<section class="scherm" id="na">
+  <div class="verhaal">
+    <div class="lijst perkament"><div class="binnen"><img class="plaat" id="naPlaat" alt=""></div></div>
+    <div class="verhaaltekst">
+      <div class="eyebrow" id="naEyebrow"></div>
+      <h1>De deur is open</h1>
+      <div class="typ" id="naTyp"></div>
+      <div class="bolletjes" id="naBol"><span class="verder">spatie ▸</span></div>
+      <button class="knop vervolgknop" id="naarKaart">✦ Terug naar de kaart</button>
+    </div>
+  </div>
+</section>
+
+<!-- BEDIENING -->
+<div id="bediening">
+  <button class="knop stil" id="bKaart">Kaart</button>
+  <button class="knop stil" id="bScene">Scène</button>
+  <button class="knop" id="bDeur">🗝 Deur openen</button>
+  <button class="knop" id="bVolgende">Volgende scène ▸</button>
+  <button class="knop stil" id="bOverzicht">Docentoverzicht</button>
+  <button class="knop stil" id="bVol">⛶</button>
+</div>
+
+<!-- OVERZICHT -->
+<div id="overzicht"><div class="perkament">
+  <h2>Docentoverzicht</h2>
+  <div class="sub" id="ovSub"></div>
+  <div id="ovRijen"></div>
+  <div class="ovknoppen">
+    <button class="knop stil" id="ovReset">Pogingen wissen (nieuwe ronde)</button>
+    <button class="knop" id="ovSluit">Sluiten</button>
+  </div>
+</div></div>
+
+<!-- LOGIN -->
+<div id="login"><div class="perkament">
+  <h2>Docent</h2>
+  <input type="password" id="ww" placeholder="Wachtwoord (zoals Brain Chemistry)" autocomplete="current-password">
+  <div id="loginfout"></div>
+  <button class="knop" id="loginKnop">Binnengaan</button>
+</div></div>
+
+<script src="data.js"></script>
+<script type="module">
+const W = window.WONDERLAND;
+const $ = id => document.getElementById(id);
+const les = nr => W.lessen.find(l => l.nr === nr);
+const heeftInhoud = l => !!(l && l.scene && l.deur);
+
+/* ── Decor ── */
+(function decor() {
+  const s = $("sterren");
+  for (let i = 0; i < 110; i++) {
+    const e = document.createElement("i");
+    e.style.left = Math.random() * 100 + "%"; e.style.top = Math.random() * 100 + "%";
+    e.style.animationDelay = (Math.random() * 4) + "s";
+    if (Math.random() < .15) { e.style.width = e.style.height = "3px"; }
+    s.appendChild(e);
+  }
+  const z = $("zwevend"), tekens = ["♠", "♥", "♦", "♣", "♥", "♠"];
+  for (let i = 0; i < 14; i++) {
+    const e = document.createElement("span");
+    e.textContent = tekens[i % tekens.length];
+    e.style.left = (Math.random() * 100) + "%";
+    e.style.fontSize = (24 + Math.random() * 60) + "px";
+    e.style.animationDuration = (30 + Math.random() * 40) + "s";
+    e.style.animationDelay = (-Math.random() * 60) + "s";
+    z.appendChild(e);
+  }
+  if (WL_DEMO) { const d = document.createElement("div"); d.className = "demolabel"; d.textContent = "DEMO-MODUS"; document.body.appendChild(d); }
+})();
+
+/* ── Iconen per station (getekend in een vak van 100×100, midden 50,50) ── */
+const ICOON = {
+  1: `<path d="M30 82 V40 a20 20 0 0 1 40 0 V82 Z" fill="#6b4423" stroke="#f7dc95" stroke-width="3"/>
+      <path d="M37 82 V42 a13 13 0 0 1 26 0 V82" fill="none" stroke="#3b2a17" stroke-width="2"/>
+      <circle cx="61" cy="62" r="3.5" fill="#f7dc95"/><rect x="24" y="82" width="52" height="5" rx="2" fill="#f7dc95"/>`,
+  2: `<circle cx="50" cy="56" r="25" fill="#f3e6c6" stroke="#f7dc95" stroke-width="4"/>
+      <rect x="45" y="22" width="10" height="9" rx="2" fill="#f7dc95"/><circle cx="50" cy="20" r="5" fill="none" stroke="#f7dc95" stroke-width="3"/>
+      <path d="M50 56 V40 M50 56 L62 62" stroke="#3b2a17" stroke-width="3.5" stroke-linecap="round"/>
+      ${[0,1,2,3,4,5,6,7,8,9,10,11].map(i=>{const a=i*Math.PI/6;return `<circle cx="${50+20*Math.sin(a)}" cy="${56-20*Math.cos(a)}" r="1.6" fill="#3b2a17"/>`}).join("")}`,
+  3: `<path d="M18 52 Q20 22 50 20 Q80 22 82 52 Z" fill="#c8374f" stroke="#f7dc95" stroke-width="3"/>
+      <circle cx="36" cy="38" r="5" fill="#f3e6c6"/><circle cx="58" cy="32" r="4" fill="#f3e6c6"/><circle cx="68" cy="45" r="4.5" fill="#f3e6c6"/>
+      <path d="M40 52 Q38 72 36 84 H64 Q62 72 60 52 Z" fill="#f3e6c6" stroke="#f7dc95" stroke-width="3"/>`,
+  4: `<path d="M20 46 Q50 86 80 46 Q50 66 20 46 Z" fill="#f3e6c6" stroke="#f7dc95" stroke-width="3"/>
+      <path d="M30 51 V58 M40 56 V64 M50 58 V66 M60 56 V64 M70 51 V58" stroke="#3b2a17" stroke-width="2"/>
+      <ellipse cx="34" cy="30" rx="7" ry="9" fill="#8be3b6"/><ellipse cx="66" cy="30" rx="7" ry="9" fill="#8be3b6"/>
+      <ellipse cx="34" cy="30" rx="2" ry="7" fill="#0c0d24"/><ellipse cx="66" cy="30" rx="2" ry="7" fill="#0c0d24"/>`,
+  5: `<path d="M50 60 V88" stroke="#3fae7c" stroke-width="4"/><path d="M50 74 Q66 64 72 72 Q62 82 50 74 Z" fill="#3fae7c"/>
+      <circle cx="50" cy="42" r="22" fill="#c8374f" stroke="#f7dc95" stroke-width="3"/>
+      <path d="M50 42 m-10 0 a10 10 0 1 1 10 10 a6 6 0 1 1 -6 -6 a3 3 0 1 1 3 3" fill="none" stroke="#7c1f2e" stroke-width="3"/>`,
+  6: `<path d="M24 44 H70 V58 Q70 78 47 78 Q24 78 24 58 Z" fill="#f3e6c6" stroke="#f7dc95" stroke-width="3"/>
+      <path d="M70 50 Q84 50 82 60 Q80 68 69 66" fill="none" stroke="#f7dc95" stroke-width="4"/>
+      <ellipse cx="47" cy="84" rx="32" ry="5" fill="#f7dc95"/>
+      <path d="M38 36 Q32 28 38 20 M50 36 Q44 28 50 18 M62 36 Q56 28 62 20" fill="none" stroke="#a9a3c4" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M40 56 h14" stroke="#c8374f" stroke-width="3"/>`,
+  7: `<path d="M38 30 Q50 14 62 30 Z" fill="#f7dc95"/><path d="M32 32 H68 L72 80 Q50 90 28 80 Z" fill="#6f7ab8" stroke="#f7dc95" stroke-width="3"/>
+      <circle cx="44" cy="24" r="1.8" fill="#3b2a17"/><circle cx="50" cy="20" r="1.8" fill="#3b2a17"/><circle cx="56" cy="24" r="1.8" fill="#3b2a17"/>
+      <path d="M38 50 H62" stroke="#f3e6c6" stroke-width="3"/>`,
+  8: `<ellipse cx="50" cy="66" rx="34" ry="14" fill="#b07a3a" stroke="#f7dc95" stroke-width="3"/>
+      <path d="M16 62 Q50 48 84 62" fill="#d39a54"/>
+      <path d="M50 66 C30 50 36 34 50 44 C64 34 70 50 50 66 Z" fill="#c8374f" stroke="#f7dc95" stroke-width="2.5"/>`,
+  9: `<path d="M22 70 L26 34 L40 52 L50 26 L60 52 L74 34 L78 70 Z" fill="#e2b65a" stroke="#f7dc95" stroke-width="3"/>
+      <rect x="20" y="70" width="60" height="10" rx="3" fill="#c8374f" stroke="#f7dc95" stroke-width="2"/>
+      <circle cx="26" cy="32" r="4" fill="#f3e6c6"/><circle cx="50" cy="24" r="4" fill="#f3e6c6"/><circle cx="74" cy="32" r="4" fill="#f3e6c6"/>`
+};
+
+const POS = [[190,690],[400,575],[300,345],[560,265],[815,330],[760,610],[1035,715],[1270,540],[1430,300]];
+
+function catmull(pts) {
+  let d = `M${pts[0][0]},${pts[0][1]}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += ` C${c1[0]},${c1[1]} ${c2[0]},${c2[1]} ${p2[0]},${p2[1]}`;
+  }
+  return d;
+}
+
+function sleutelSVG(kleur = "#f7dc95") {
+  return `<svg viewBox="0 0 64 64"><circle cx="18" cy="32" r="12" fill="none" stroke="${kleur}" stroke-width="5"/>
+    <path d="M30 32 H58 M50 32 V42 M42 32 V40" stroke="${kleur}" stroke-width="5" stroke-linecap="round"/></svg>`;
+}
+
+function tekenKaart(staat) {
+  const voltooid = staat?.voltooid || {};
+  const huidig = staat?.les || 1;
+  let laatste = 0; for (let i = 1; i <= 9; i++) { if (voltooid[i]) laatste = i; else break; }
+  const svg = $("kaartsvg");
+  const pad = catmull(POS);
+  const deelPad = laatste > 0 ? catmull(POS.slice(0, Math.min(laatste + 1, 9))) : "";
+  svg.innerHTML = `
+  <defs>
+    <radialGradient id="medaille" cx="40%" cy="35%"><stop offset="0" stop-color="#2d3070"/><stop offset="1" stop-color="#121434"/></radialGradient>
+    <radialGradient id="gloedG"><stop offset="0" stop-color="#f7dc95" stop-opacity=".9"/><stop offset="1" stop-color="#f7dc95" stop-opacity="0"/></radialGradient>
+    <linearGradient id="goudlijn" x1="0" x2="1"><stop offset="0" stop-color="#9a7428"/><stop offset=".5" stop-color="#f7dc95"/><stop offset="1" stop-color="#9a7428"/></linearGradient>
+    <filter id="zacht"><feGaussianBlur stdDeviation="6"/></filter>
+    <pattern id="schaak" width="80" height="80" patternUnits="userSpaceOnUse">
+      <rect width="40" height="40" fill="rgba(247,220,149,.05)"/><rect x="40" y="40" width="40" height="40" fill="rgba(247,220,149,.05)"/>
+    </pattern>
+    <linearGradient id="vloerfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="1"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient>
+    <mask id="vloermask"><rect x="0" y="600" width="1600" height="300" fill="url(#vloerfade)" transform="rotate(180 800 750)"/></mask>
+  </defs>
+  <g mask="url(#vloermask)" transform="translate(0 0)">
+    <rect x="-200" y="600" width="2000" height="300" fill="url(#schaak)" transform="skewX(-12)"/>
+  </g>
+
+  <!-- titelcartouche -->
+  <g class="titelkaart" transform="translate(800 70)">
+    <path d="M-330 -42 H330 Q350 -42 350 -22 V22 Q350 42 330 42 H-330 Q-350 42 -350 22 V-22 Q-350 -42 -330 -42 Z" fill="rgba(12,13,36,.55)" stroke="url(#goudlijn)" stroke-width="2"/>
+    <text x="0" y="-6" text-anchor="middle" fill="#f7dc95" font-size="40" font-family="IM Fell English SC, Georgia, serif" letter-spacing="2">De deuren van Wonderland</text>
+    <text x="0" y="26" text-anchor="middle" fill="#a9a3c4" font-size="17" letter-spacing="6" font-family="IM Fell English SC, Georgia, serif">KOOLSTOFCHEMIE · 4 VWO</text>
+    <text x="-310" y="12" fill="#c8374f" font-size="30">♥</text><text x="292" y="12" fill="#c8374f" font-size="30">♦</text>
+  </g>
+
+  <!-- konijnenhol linksonder -->
+  <g transform="translate(120 838)">
+    <ellipse cx="0" cy="0" rx="62" ry="18" fill="#05050f" stroke="#6b4423" stroke-width="3"/>
+    <ellipse cx="0" cy="3" rx="44" ry="10" fill="#000"/>
+    <text x="0" y="44" text-anchor="middle" fill="#a9a3c4" font-size="15" letter-spacing="3" font-family="IM Fell English SC, Georgia, serif">HET KONIJNENHOL</text>
+  </g>
+  <path d="M120 822 Q150 760 ${POS[0][0]} ${POS[0][1]}" fill="none" stroke="rgba(247,220,149,.35)" stroke-width="4" stroke-dasharray="2 14" stroke-linecap="round"/>
+
+  <!-- pad -->
+  <path d="${pad}" fill="none" stroke="rgba(247,220,149,.28)" stroke-width="5" stroke-dasharray="2 16" stroke-linecap="round"/>
+  ${deelPad ? `<path d="${deelPad}" fill="none" stroke="#f7dc95" stroke-width="6" filter="url(#zacht)" opacity=".7"/>
+  <path d="${deelPad}" fill="none" stroke="url(#goudlijn)" stroke-width="5" stroke-linecap="round"/>` : ""}
+
+  ${W.lessen.map((l, i) => {
+    const [x, y] = POS[i];
+    const open = heeftInhoud(l);
+    const klaar = !!voltooid[l.nr];
+    const isHuidig = l.nr === huidig;
+    const klasse = ["station", open ? "" : "dicht", isHuidig ? "huidig" : ""].join(" ");
+    const labelY = (i === 3 || i === 8) ? -80 : 102;
+    return `<g class="${klasse}" data-nr="${l.nr}" transform="translate(${x} ${y})">
+      ${isHuidig ? `<circle class="gloed" r="74" fill="url(#gloedG)"/>` : ""}
+      <g class="ring">
+        <circle r="56" fill="#121434"/>
+        <circle class="rand" r="56" fill="url(#medaille)" stroke="${klaar ? "#f7dc95" : "#9a7428"}" stroke-width="${klaar ? 5 : 3}"/>
+        <circle r="49" fill="none" stroke="rgba(247,220,149,.35)" stroke-width="1.5" stroke-dasharray="3 5"/>
+        <g class="icoon" transform="translate(-36 -38) scale(.72)">${ICOON[l.nr]}</g>
+      </g>
+      ${klaar ? `<g transform="translate(30 -58)"><circle r="20" fill="#0c0d24" stroke="#f7dc95" stroke-width="2"/>
+        <g transform="translate(-14 -14) scale(.44)">${sleutelSVG().replace(/<\/?svg[^>]*>/g, "")}</g></g>` : ""}
+      ${!open ? `<g transform="translate(34 32)"><rect x="-10" y="-4" width="20" height="16" rx="3" fill="#a9a3c4"/><path d="M-6 -4 V-9 a6 6 0 0 1 12 0 V-4" fill="none" stroke="#a9a3c4" stroke-width="3"/></g>` : ""}
+      <text class="stnr" y="${labelY - 22}" text-anchor="middle">LES ${l.nr}</text>
+      <text class="stlabel" y="${labelY}" text-anchor="middle">${l.plek}</text>
+    </g>`;
+  }).join("")}
+  `;
+  svg.querySelectorAll(".station").forEach(g => {
+    g.addEventListener("click", () => {
+      const nr = +g.dataset.nr;
+      if (!heeftInhoud(les(nr))) return;
+      zetStaat({ les: nr, fase: "scene" });
+    });
+  });
+}
+
+/* ── Typemachine met paginering ── */
+function maakVerteller(typId, bolId, knopId) {
+  let paginas = [], idx = 0, timer = null, bezig = false, klaarCb = null;
+  const el = $(typId), bol = $(bolId), knop = $(knopId);
+  function bolletjes() {
+    bol.querySelectorAll("i").forEach(i => i.remove());
+    paginas.forEach((_, i) => { const e = document.createElement("i"); if (i <= idx) e.className = "aan"; bol.insertBefore(e, bol.lastElementChild); });
+    bol.querySelector(".verder").style.visibility = idx < paginas.length - 1 ? "visible" : "hidden";
+  }
+  function typ() {
+    clearInterval(timer); bezig = true;
+    const tekst = paginas[idx]; let n = 0;
+    el.innerHTML = `<span></span><span class="cursor">▍</span>`;
+    const span = el.firstChild;
+    timer = setInterval(() => {
+      n += 1; span.textContent = tekst.slice(0, n);
+      if (n >= tekst.length) { clearInterval(timer); bezig = false; if (idx === paginas.length - 1) knop.classList.add("zicht"); }
+    }, 30);
+    bolletjes();
+  }
+  return {
+    start(p) { paginas = p; idx = 0; knop.classList.remove("zicht"); typ(); },
+    verder() {
+      if (!paginas.length) return;
+      if (bezig) { clearInterval(timer); bezig = false; el.firstChild.textContent = paginas[idx]; if (idx === paginas.length - 1) knop.classList.add("zicht"); return; }
+      if (idx < paginas.length - 1) { idx++; typ(); }
+    }
+  };
+}
+const sceneVerteller = maakVerteller("sceneTyp", "sceneBol", "naarDeur");
+const naVerteller = maakVerteller("naTyp", "naBol", "naarKaart");
+
+/* ── Deur (beamer) ── */
+function tekenDeur(open, totaal) {
+  const n = Math.max(totaal, 1);
+  const lampjes = [];
+  for (let i = 0; i < n; i++) {
+    const t = n === 1 ? .5 : i / (n - 1);
+    const a = Math.PI * (1 - t);
+    const x = 300 + 250 * Math.cos(a), y = 330 - 250 * Math.sin(a);
+    lampjes.push(`<g transform="translate(${x} ${y})"><circle r="15" fill="#0c0d24" stroke="#9a7428" stroke-width="2"/>
+      <circle class="lampje ${i < open ? "aan" : ""}" r="9" fill="#2a2a48"/></g>`);
+  }
+  $("deursvg").innerHTML = `
+  <defs>
+    <linearGradient id="hout" x1="0" x2="1"><stop offset="0" stop-color="#4a2e17"/><stop offset=".5" stop-color="#7a4b25"/><stop offset="1" stop-color="#4a2e17"/></linearGradient>
+    <linearGradient id="kozijn" x1="0" x2="1"><stop offset="0" stop-color="#9a7428"/><stop offset=".5" stop-color="#f7dc95"/><stop offset="1" stop-color="#9a7428"/></linearGradient>
+    <radialGradient id="tuinlicht" cx="50%" cy="60%"><stop offset="0" stop-color="#ffe9a8" stop-opacity=".9"/><stop offset="1" stop-color="#3fae7c" stop-opacity="0"/></radialGradient>
+    <filter id="lampgloed" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <ellipse cx="300" cy="770" rx="260" ry="22" fill="rgba(0,0,0,.5)"/>
+  <ellipse cx="300" cy="520" rx="${120 + 120 * (open / n)}" ry="${180 + 140 * (open / n)}" fill="url(#tuinlicht)" opacity="${.25 + .6 * (open / n)}"/>
+  <path d="M110 770 V330 A190 190 0 0 1 490 330 V770 Z" fill="url(#kozijn)"/>
+  <path d="M135 770 V335 A165 165 0 0 1 465 335 V770 Z" fill="url(#hout)" stroke="#2b1a0c" stroke-width="3"/>
+  ${[175, 230, 285, 340, 395, 425].map(x => `<path d="M${x} 770 V${x < 300 ? 300 - (300 - x) * 0.1 + 40 : 340}" stroke="rgba(30,15,5,.35)" stroke-width="2"/>`).join("")}
+  <rect x="175" y="420" width="250" height="140" rx="8" fill="none" stroke="rgba(247,220,149,.35)" stroke-width="3"/>
+  <rect x="175" y="590" width="250" height="140" rx="8" fill="none" stroke="rgba(247,220,149,.35)" stroke-width="3"/>
+  <!-- slot met 4 schijven -->
+  <g transform="translate(300 488)">
+    <rect x="-112" y="-36" width="224" height="72" rx="14" fill="#1a1208" stroke="url(#kozijn)" stroke-width="4"/>
+    ${[0, 1, 2, 3].map(i => `<g transform="translate(${-78 + i * 52} 0)"><rect x="-20" y="-24" width="40" height="48" rx="6" fill="#f3e6c6"/>
+      <text y="13" text-anchor="middle" font-family="IM Fell English SC, Georgia" font-size="34" fill="#3b2a17">?</text></g>`).join("")}
+  </g>
+  <g transform="translate(300 650)"><circle r="18" fill="#1a1208" stroke="url(#kozijn)" stroke-width="3"/><path d="M-5 -2 a5 5 0 1 1 10 0 L4 12 H-4 Z" fill="#f7dc95"/></g>
+  ${lampjes.join("")}
+  `;
+  $("telOpen").textContent = open;
+  $("telTotaal").textContent = "/ " + totaal;
+}
+
+/* ── Status en schermen ── */
+let store, staat = null, pogingen = {}, huidigeSessie = null, vorigeFase = null, vorigeLes = null;
+function toon(id) { document.querySelectorAll(".scherm").forEach(s => s.classList.toggle("actief", s.id === id)); }
+
+async function zetStaat(obj) { await store.werkBij("staat", obj); }
+
+function render() {
+  const fase = staat?.fase || "kaart";
+  const l = les(staat?.les || 1);
+  const veranderd = fase !== vorigeFase || l.nr !== vorigeLes;
+  vorigeFase = fase; vorigeLes = l.nr;
+
+  $("bDeur").style.display = (fase === "scene") ? "" : "none";
+  $("bVolgende").style.display = (fase === "deur") ? "" : "none";
+  $("bScene").style.display = (fase === "kaart" || fase === "na") && heeftInhoud(l) ? "" : "none";
+
+  if (fase === "kaart") { tekenKaart(staat); if (veranderd) toon("kaart"); return; }
+  if (fase === "scene") {
+    if (veranderd) {
+      $("scenePlaat").src = l.plaat; $("sceneEyebrow").textContent = `Les ${l.nr}`;
+      $("sceneTitel").textContent = l.plek; toon("scene"); sceneVerteller.start(l.scene);
+    }
+    return;
+  }
+  if (fase === "deur") {
+    $("deurEyebrow").textContent = `Les ${l.nr} · ${l.plek}`;
+    $("deurIntro").textContent = l.deur.intro;
+    if (veranderd) toon("deur");
+    tekenTeller();
+    return;
+  }
+  if (fase === "na") {
+    if (veranderd) {
+      $("naPlaat").src = l.na.plaat; $("naEyebrow").textContent = `Les ${l.nr} · ${l.plek}`;
+      toon("na"); naVerteller.start(l.na.tekst);
+    }
+  }
+}
+
+function tekenTeller() {
+  const lijst = Object.values(pogingen || {});
+  const totaal = lijst.length, open = lijst.filter(p => p.open).length, geheim = lijst.filter(p => p.geheim).length;
+  tekenDeur(open, totaal);
+  $("sleutels").innerHTML = geheim ? `${sleutelSVG()}<span>${geheim} gouden ${geheim === 1 ? "sleutel" : "sleutels"}</span>` : "";
+  if ($("overzicht").classList.contains("open")) tekenOverzicht();
+}
+
+function tekenOverzicht() {
+  const l = les(staat?.les || 1);
+  const lijst = Object.values(pogingen || {});
+  $("ovSub").textContent = `Les ${l.nr} · ${l.plek} — ${lijst.length} laptops, ${lijst.filter(p => p.open).length} door de deur, ${lijst.filter(p => p.geheim).length} gouden sleutels`;
+  if (!heeftInhoud(l)) { $("ovRijen").innerHTML = ""; return; }
+  const vragen = [...l.deur.vragen, { ...l.deur.geheim, isGeheim: true }];
+  const max = Math.max(1, lijst.length);
+  $("ovRijen").innerHTML = vragen.map((v, i) => {
+    const sleutel = v.isGeheim ? "g" : String(i);
+    const telling = {}; let leerlingenFout = 0, totaalFout = 0;
+    lijst.forEach(p => {
+      const f = p.f?.[sleutel]; if (!f) return;
+      leerlingenFout++;
+      Object.entries(f).forEach(([w, n]) => { telling[w] = (telling[w] || 0) + n; totaalFout += n; });
+    });
+    const top = Object.entries(telling).sort((a, b) => b[1] - a[1]).slice(0, 4);
+    return `<div class="ovrij"><div class="nr">${v.isGeheim ? "★" : i + 1}</div>
+      <div><b>${v.formule ? `<span class="formule">${v.formule}</span> — ` : ""}</b>${v.vraag}</div>
+      <div><div class="balk"><i style="width:${100 * leerlingenFout / max}%"></i></div>
+        <small>${leerlingenFout} laptop${leerlingenFout === 1 ? "" : "s"} fout · ${totaalFout}×</small></div>
+      <div>${top.length ? top.map(([w, n]) => `<span class="chip">${w} · ${n}×</span>`).join("") : "<small>nog geen fouten</small>"}</div></div>`;
+  }).join("");
+}
+
+function luisterPogingen() {
+  const s = staat?.sessie;
+  if (!s || s === huidigeSessie) return;
+  huidigeSessie = s;
+  store.luister("pogingen/" + s, v => { if (huidigeSessie === s) { pogingen = v || {}; if (staat?.fase === "deur") tekenTeller(); else if ($("overzicht").classList.contains("open")) tekenOverzicht(); } });
+}
+
+/* ── Knoppen ── */
+async function openDeur() {
+  const nr = staat?.les || 1;
+  const sessie = staat?.sessies?.[nr] || `l${nr}-${Date.now().toString(36)}`;
+  await zetStaat({ fase: "deur", sessie, ["sessies/" + nr]: sessie });
+}
+async function volgende() {
+  const nr = staat?.les || 1;
+  await zetStaat({ fase: "na", ["voltooid/" + nr]: true });
+}
+$("naarDeur").onclick = openDeur;
+$("bDeur").onclick = openDeur;
+$("bVolgende").onclick = volgende;
+$("naarKaart").onclick = () => zetStaat({ fase: "kaart" });
+$("bKaart").onclick = () => zetStaat({ fase: "kaart" });
+$("bScene").onclick = () => zetStaat({ fase: "scene" });
+$("bOverzicht").onclick = () => { $("overzicht").classList.add("open"); tekenOverzicht(); };
+$("ovSluit").onclick = () => $("overzicht").classList.remove("open");
+$("ovReset").onclick = async () => {
+  if (!confirm("Alle pogingen van deze deur wissen en een nieuwe ronde starten?")) return;
+  const nr = staat?.les || 1, sessie = `l${nr}-${Date.now().toString(36)}`;
+  await zetStaat({ sessie, ["sessies/" + nr]: sessie, ["voltooid/" + nr]: null });
+};
+$("bVol").onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+
+let muisTimer;
+addEventListener("mousemove", () => { document.body.classList.add("muis"); clearTimeout(muisTimer); muisTimer = setTimeout(() => document.body.classList.remove("muis"), 2500); });
+addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  if (e.code === "Space" || e.code === "ArrowRight") {
+    e.preventDefault();
+    if (staat?.fase === "scene") sceneVerteller.verder();
+    if (staat?.fase === "na") naVerteller.verder();
+  }
+  if (e.key === "o" || e.key === "O") $("bOverzicht").click();
+  if (e.key === "Escape") $("overzicht").classList.remove("open");
+  if (e.key === "f" || e.key === "F") $("bVol").click();
+});
+document.addEventListener("click", e => {
+  if (e.target.closest("#bediening, button, #overzicht, .station")) return;
+  if (staat?.fase === "scene") sceneVerteller.verder();
+  if (staat?.fase === "na") naVerteller.verder();
+});
+
+/* ── Start ── */
+async function start() {
+  store.luister("staat", v => {
+    staat = v || { les: 1, fase: "kaart" };
+    luisterPogingen();
+    render();
+  });
+}
+
+(async () => {
+  try {
+    store = await wlStore("docent");
+  } catch (e) {
+    document.body.insertAdjacentHTML("beforeend", `<div style="position:fixed;inset:0;display:grid;place-items:center;z-index:99;font-size:1.4rem">Kan geen verbinding maken met Firebase. Probeer <a style="color:#f7dc95" href="?demo">de demo-modus</a>.</div>`);
+    return;
+  }
+  if (store.demo) { start(); return; }
+  let gestart = false;
+  store.wachtOpDocent(ok => {
+    $("login").classList.toggle("open", !ok);
+    if (ok && !gestart) { gestart = true; start(); }
+  });
+  const inloggen = async () => {
+    try { await store.login($("ww").value); }
+    catch (e) { $("loginfout").textContent = "Onjuist wachtwoord"; $("ww").value = ""; $("ww").focus(); }
+  };
+  $("loginKnop").onclick = inloggen;
+  $("ww").addEventListener("keydown", e => { if (e.key === "Enter") inloggen(); });
+})();
+</script>
+</body>
+</html>
