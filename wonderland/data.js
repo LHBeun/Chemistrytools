@@ -91,7 +91,85 @@ window.WONDERLAND = {
         ]
       }
     },
-    { nr: 2, plek: "Het huis van het Witte Konijn", leerdoel: "Systematische namen, vertakkingen, plaatsnummers (-een/-yn)", plaat: PLAAT(11) },
+    {
+      nr: 2,
+      plek: "Het huis van het Witte Konijn",
+      leerdoel: "Alkanen met vertakkingen systematisch benoemen; plaatsnummer van de dubbele of drievoudige binding (-een/-yn)",
+      plaat: PLAAT(2),
+      scene: [
+        "Alice rent achter het Konijn aan, naar een klein huisje met een glanzend koperen bordje op de deur: W. RABBIT.",
+        "Binnen staan planken vol potjes en flesjes, elk met een etiket in het haastige handschrift van het Konijn. Want het Konijn heeft altijd haast. En wie haast heeft, schrijft slordig.",
+        "“Mary Ann!” had hij haar nageroepen. Alice weet nu: een verkeerde naam is gevaarlijk. Wie een verkeerde naam krijgt, wordt voor iemand anders aangezien.",
+        "Op de deur naar boven hangt een slot met vier schijven. De code? Die zit in de verbeterde etiketten."
+      ],
+      deur: {
+        intro: "Het Konijn heeft zijn etiketten slordig geschreven. Teken in je schrift de structuren en verbeter de namen. Elk antwoord is één getal van de code.",
+        vragen: [
+          {
+            tekst: "Op een potje staat:",
+            formule: "2-ethylpropaan",
+            vraag: "Teken de structuur. Hoeveel C-atomen telt de langste keten?",
+            hash: "7aac0748cdb8a3842feae69d76a4564ad23ee5bba5ca7990c7f2fb91fbbdb7c3",
+            hints: {
+              "3": "Volg de keten ook eens de zijtak in.",
+              "5": "Tel nog eens: de langste keten mag maar één keer door elk C-atoom lopen."
+            },
+            hint: "De langste keten hoeft niet recht getekend te zijn. Probeer alle routes van uiteinde naar uiteinde."
+          },
+          {
+            tekst: "Op een flesje staat:",
+            formule: "4-methylhexaan",
+            vraag: "Teken de structuur en geef de juiste naam. Welk plaatsnummer staat in de juiste naam?",
+            hash: "ac25b7a931c361344d5d9cddc9554be01cf0daba2a2e923d05739c3ef0c47473",
+            hints: {
+              "4": "Je mag de keten ook vanaf de andere kant nummeren.",
+              "2": "Tel de C-atomen nog eens vanaf het dichtstbijzijnde uiteinde tot de zijtak."
+            },
+            hint: "Nummer de keten zo dat het plaatsnummer van de zijtak zo laag mogelijk is."
+          },
+          {
+            tekst: "Dit molecuul is getekend zonder H-atomen:",
+            formule: "C–C–C–C=C–C",
+            structuur: { atomen: ["C", "C", "C", "C", "C", "C"], bindingen: [1, 1, 1, 2, 1] },
+            vraag: "Geef de naam. Welk plaatsnummer staat in de naam?",
+            hash: "e57613d1bb15172b21476695927e2f162341bb9de4542a5f23a720dfd6898d98",
+            hints: {
+              "4": "Begin met nummeren aan de kant die het dichtst bij de dubbele binding zit.",
+              "5": "Het plaatsnummer is het nummer van het eerste C-atoom van de dubbele binding."
+            },
+            hint: "Het plaatsnummer geeft aan bij welk C-atoom de dubbele binding begint. Zo laag mogelijk!"
+          },
+          {
+            tekst: "Op het laatste etiket staat:",
+            formule: "3-methylbut-1-yn",
+            vraag: "Teken de structuur. Hoeveel H-atomen heeft het molecuul?",
+            hash: "fb7a64956a1dd2503c5546c08521d229cc96f8155920256b48a0bcf0c28e77a7",
+            hints: {
+              "10": "Een drievoudige binding kost meer H-atomen dan een enkele. Vul elk C-atoom aan tot 4 bindingen.",
+              "12": "Dit is geen alkaan: er zit een drievoudige binding in.",
+              "7": "Vergeet de H-atomen aan de methylgroep niet."
+            },
+            hint: "Teken eerst de hoofdketen van 4 C-atomen met de drievoudige binding, zet dan de methylgroep erop en vul aan met H."
+          }
+        ],
+        geheim: {
+          tekst: "Op een stoffig potje achter op de plank staat:",
+          formule: "2-propylpentaan",
+          vraag: "Het Konijn heeft hier twee fouten tegelijk gemaakt. Wat is de juiste naam? Vul het plaatsnummer in.",
+          hash: "3f94edfe9db89c5159fc1401800e960d953118c1d92f3274bd1dd3f09a4c0e07",
+          hint: "Zoek eerst de langste keten (die loopt door de zijtak!). Nummer daarna zo dat het plaatsnummer zo laag mogelijk is."
+        }
+      },
+      na: {
+        plaat: PLAAT(11),
+        tekst: [
+          "Boven vindt Alice een flesje zonder etiket. Ze drinkt — en groeit, en groeit, tot haar arm uit het raam steekt en haar voet de schoorsteen in.",
+          "Pas als ze een koekje eet, krimpt ze weer. Zo klein dat ze tussen de grassprieten het bos in vlucht.",
+          "Daar, op een paddenstoel, zit een grote blauwe Rups. Hij neemt de waterpijp uit zijn mond en vraagt langzaam:",
+          "“Who… are… YOU?”"
+        ]
+      }
+    },
     { nr: 3, plek: "De Rups", leerdoel: "Isomerie", plaat: PLAAT(15) },
     { nr: 4, plek: "De Cheshire Kat", leerdoel: "Ringen en benzeen; C-atomen op de hoekpunten", plaat: PLAAT(24) },
     { nr: 5, plek: "De tuinmannen van de Koningin", leerdoel: "Halogeensubstituenten, hydroxylgroep, ethers", plaat: PLAAT(28) },
