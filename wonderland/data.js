@@ -504,7 +504,87 @@ window.WONDERLAND = {
         ]
       }
     },
-    { nr: 7, plek: "De keuken van de Hertogin", leerdoel: "Carbonzuur en amine", plaat: PLAAT(21) },
+    {
+      nr: 7,
+      plek: "De keuken van de Hertogin",
+      leerdoel: "De carboxylgroep (–COOH) en de aminogroep (–NH₂) herkennen; carbonzuren (alkaanzuur) en amines (alkaanamine) benoemen met de juiste plaatsnummers en tekenen vanuit een naam",
+      plaat: PLAAT(21),
+      scene: [
+        "Een lakei met een vissenkop overhandigt een enorme brief aan een lakei met een kikkerkop: “Voor de Hertogin. Een uitnodiging van de Koningin — voor een partijtje croquet.”",
+        "Alice glipt naar binnen. De keuken staat vol rook. Een kokkin roert in een ketel soep en strooit er peper in, en azijn, en nog meer peper. Iedereen niest — behalve de kokkin. En behalve een kat die grijnst bij de haard.",
+        "“Er zit veel te veel peper in die soep!” proest Alice.",
+        "“Alles heeft een moraal,” zegt de Hertogin, “als je het maar kunt vinden.” En ze gooit een pan naar de kokkin."
+      ],
+      deur: {
+        intro: "In de keuken van de Hertogin ruikt alles naar azijn en vis. Teken in je schrift de structuren en geef de namen. Elk antwoord is één getal van de code.",
+        vragen: [
+          {
+            tekst: "In de soep zit ook:",
+            formule: "pentaanzuur",
+            vraag: "Teken de structuur. Hoeveel H-atomen heeft het molecuul?",
+            hash: "344f4f84e4398695c5b9c29b5008bc892d068a2eb4964be710588be75e782268",
+            hints: {
+              "11": "De COOH-groep heeft maar één H.",
+              "12": "Het C-atoom van de COOH-groep heeft geen H: het heeft al een =O en een –OH.",
+              "9": "Vergeet de H van de –OH in de COOH-groep niet."
+            },
+            hint: "Het C-atoom van de COOH-groep telt mee in de stamnaam: pentaanzuur heeft 5 C-atomen in totaal."
+          },
+          {
+            tekst: "De kokkin heeft dit op een pot geschreven (zonder H-atomen aan de C-atomen):",
+            structuur: { atomen: ["C", "C", "C", "C"], bindingen: [1, 1, 1], takken: [{ bij: 1, n: 1, r: -1 }, { bij: 3, n: 1, r: -1, label: "O", orde: 2 }, { bij: 3, n: 1, r: 1, label: "OH" }] },
+            formule: "",
+            vraag: "Geef de naam. Welk plaatsnummer staat in de naam?",
+            hash: "b48559ff040508c77c9b338e62d244046d8a56b32ee988202f93c0af90df4823",
+            hints: {
+              "2": "Het C-atoom van de COOH-groep is altijd nummer 1. Begin daar met tellen.",
+              "1": "Tel nog eens vanaf het C-atoom van de COOH-groep: dat is nummer 1."
+            },
+            hint: "Het C-atoom van de COOH-groep is altijd C-atoom 1."
+          },
+          {
+            tekst: "De Kikker-Lakei snuift aan dit molecuul (zonder H-atomen aan de C-atomen):",
+            structuur: { atomen: ["C", "C", "C", "C", "C"], bindingen: [1, 1, 1, 1], takken: [{ bij: 3, n: 1, r: -1, label: "NH₂" }] },
+            formule: "",
+            vraag: "Geef de naam. Welk plaatsnummer staat in de naam?",
+            hash: "a45b58e6a219343fc32a9338f2851549a07c0774926a3bfa3614f638d6bfd722",
+            hints: {
+              "4": "Nummer vanaf de kant die het dichtst bij de NH₂ zit.",
+              "3": "Tel nog eens vanaf het dichtstbijzijnde uiteinde."
+            },
+            hint: "De NH₂-groep krijgt een zo laag mogelijk plaatsnummer."
+          },
+          {
+            tekst: "De Vis-Lakei ruikt naar:",
+            formule: "2-methylpropaan-2-amine",
+            vraag: "Teken de structuur. Hoeveel H-atomen heeft het molecuul?",
+            hash: "9e615a30966681d0d4600118c3c36681758bb04b1ac019d0d3f26ae42d195105",
+            hints: {
+              "9": "Vergeet de twee H-atomen aan de N niet.",
+              "12": "Het C-atoom met de NH₂ en de methylgroep heeft geen H meer.",
+              "10": "Tel per atoom: drie CH₃-groepen, één C zonder H, en een NH₂."
+            },
+            hint: "Teken een keten van 3 C-atomen, zet een methylgroep én de NH₂ op het middelste C-atoom, en vul aan met H."
+          }
+        ],
+        geheim: {
+          tekst: "In de soep drijft een molecuul met beide groepen tegelijk — een aminozuur:",
+          formule: "2-aminopropaanzuur",
+          vraag: "Teken de structuur. Hoeveel H-atomen heeft het molecuul?",
+          hash: "32a234aab01fe764230191d99825dc787f81d08dad9d14941c97cf5e36b9d4c9",
+          hint: "Begin bij de COOH-groep (C-atoom 1). Zet de NH₂ op C-atoom 2 en tel daarna per atoom de H-atomen."
+        }
+      },
+      na: {
+        plaat: PLAAT(22),
+        tekst: [
+          "De Hertogin gooit Alice de baby toe: “Hier, pas jij er maar even op. Ik moet naar het croquet van de Koningin!”",
+          "Buiten begint de baby te knorren. En te knorren. Als Alice kijkt, is het geen baby meer — maar een biggetje. Ze zet het in het bos, en het draaft tevreden weg.",
+          "Dan waait er een heerlijke geur aan. Aardbeien. Peren. Ananas.",
+          "Het komt uit de keuken van het paleis. Daar bakt de Koningin van Harten haar taartjes."
+        ]
+      }
+    },
     { nr: 8, plek: "De taartjes van de Koningin", leerdoel: "Esters", plaat: PLAAT(1) },
     { nr: 9, plek: "De rechtszaak", leerdoel: "Alles samen", plaat: PLAAT(38) }
   ]
