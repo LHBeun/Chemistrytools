@@ -257,7 +257,92 @@ window.WONDERLAND = {
         ]
       }
     },
-    { nr: 4, plek: "De Cheshire Kat", leerdoel: "Ringen en benzeen; C-atomen op de hoekpunten", plaat: PLAAT(24) },
+    {
+      nr: 4,
+      plek: "De Cheshire Kat",
+      leerdoel: "Ringstructuren en benzeen (beide notaties) herkennen en benoemen; hoekpuntnotatie lezen: wél H waar geen substituent zit, één H minder waar wel een substituent zit",
+      plaat: PLAAT(23),
+      scene: [
+        "Op een tak zit een kat, met een grijns van oor tot oor.",
+        "“Wilt u me alstublieft zeggen welke kant ik op moet?” vraagt Alice. “Dat hangt er nogal van af waar je naartoe wilt,” zegt de Kat.",
+        "En dan begint hij te verdwijnen. Eerst het puntje van zijn staart, dan zijn poten, dan zijn lijf. Tot alleen de grijns nog in de lucht hangt.",
+        "“In mijn wereld,” zegt de grijns, “tekenen we niet wat iedereen allang weet. Maar dat betekent niet dat het er niet is.”"
+      ],
+      deur: {
+        intro: "De Kat tekent alleen lijnen: op elk hoekpunt zit een C-atoom, en de H-atomen moet je er zelf bij denken. Werk in je schrift. Elk antwoord is één getal van de code.",
+        vragen: [
+          {
+            tekst: "De grijns tekent:",
+            skelet: { soort: "ring", n: 6, takken: [{ bij: 0, lengte: 1 }, { bij: 2, lengte: 1 }] },
+            formule: "",
+            vraag: "Hoeveel H-atomen heeft dit molecuul?",
+            hash: "c8cc008f1dda2e312184b35bfeebab172e600598483665d4c92a96a8a70db4cb",
+            hints: {
+              "18": "Op de C-atomen waar een methylgroep aan vastzit, zit één H minder.",
+              "12": "Vergeet de H-atomen aan de methylgroepen niet.",
+              "10": "Vergeet de H-atomen aan de methylgroepen niet."
+            },
+            hint: "Ga elk hoekpunt langs: hoeveel bindingen heeft dit C-atoom al? Vul aan tot 4 met H."
+          },
+          {
+            tekst: "Daarna tekent de grijns een benzeenring:",
+            skelet: { soort: "ring", n: 6, cirkel: true, takken: [{ bij: 0, lengte: 2 }] },
+            formule: "",
+            vraag: "Hoeveel H-atomen zitten er direct aan de ring?",
+            hash: "2ff3122f4d1ceb7952471454efba0d119b406793f263ab5a3cf9b920ef8fb2ba",
+            hints: {
+              "6": "Op het C-atoom met de ethylgroep zit geen H.",
+              "10": "Alleen de H-atomen aan de ring tellen, niet die aan de ethylgroep.",
+              "11": "Alleen de H-atomen aan de ring tellen, niet die aan de ethylgroep."
+            },
+            hint: "Elk C-atoom in benzeen heeft één H — behalve waar een substituent zit."
+          },
+          {
+            tekst: "Dan dezelfde ring, maar nu met afwisselende dubbele bindingen:",
+            skelet: { soort: "ring", n: 6, dubbel: [0, 2, 4], takken: [{ bij: 0, lengte: 1 }, { bij: 4, lengte: 1 }] },
+            formule: "",
+            vraag: "Geef de naam van deze stof. Welk plaatsnummer staat er naast de 1?",
+            hash: "5b4dd4b228dd747b672be3903e0d2ba08d5f78b142d8576b24510778d4550739",
+            hints: {
+              "5": "Je mag rond de ring ook de andere kant op nummeren.",
+              "4": "Tel de stappen rond de ring van de ene methylgroep naar de andere.",
+              "2": "Tel de stappen rond de ring van de ene methylgroep naar de andere."
+            },
+            hint: "Geef de eerste methylgroep nummer 1 en nummer rond de ring zó dat het tweede plaatsnummer zo laag mogelijk is."
+          },
+          {
+            tekst: "Tot slot een vijfring:",
+            skelet: { soort: "ring", n: 5, takken: [{ bij: 0, lengte: 1 }] },
+            formule: "",
+            vraag: "Hoeveel H-atomen zitten er aan het ring-C-atoom waar de methylgroep aan vastzit?",
+            hash: "353d411258b16e6355ca87b6268f6b395fab2936b88ba58bdd9341c1f4cf6063",
+            hints: {
+              "2": "Dit C-atoom heeft al drie bindingen naar andere C-atomen: twee in de ring en één naar de methylgroep.",
+              "3": "Dat is het aantal H aan de methylgroep zelf. De vraag gaat over het ring-C-atoom.",
+              "0": "Tel nog eens: hoeveel bindingen heeft dit C-atoom al? En hoeveel moeten het er zijn?"
+            },
+            hint: "Tel de bindingen van dat ene C-atoom en vul aan tot 4."
+          }
+        ],
+        geheim: {
+          tekst: "De grijns laat nog iets achter: twee benzeenringen die één zijde delen.",
+          skelet: { soort: "naftaleen" },
+          formule: "",
+          vraag: "Hoeveel H-atomen heeft dit molecuul?",
+          hash: "8f31ebed187014652f51f8851656a2cce38c8ed268f00fed70504a0f1351fd4f",
+          hint: "Kijk goed naar de twee C-atomen die beide ringen delen: hoeveel bindingen naar C hebben die al?"
+        }
+      },
+      na: {
+        plaat: PLAAT(24),
+        tekst: [
+          "“Een kat zonder grijns heb ik wel vaker gezien,” denkt Alice. “Maar een grijns zonder kat…”",
+          "De grijns wijst haar de weg naar een poortje in een hoge muur. Daarachter: een tuin vol rozenstruiken.",
+          "Bij een struik met witte rozen staan drie tuinmannen — plat als speelkaarten.",
+          "En ze schilderen de witte rozen razendsnel rood."
+        ]
+      }
+    },
     { nr: 5, plek: "De tuinmannen van de Koningin", leerdoel: "Halogeensubstituenten, hydroxylgroep, ethers", plaat: PLAAT(28) },
     { nr: 6, plek: "Het theekransje", leerdoel: "Aldehyde en keton", plaat: PLAAT(25) },
     { nr: 7, plek: "De keuken van de Hertogin", leerdoel: "Carbonzuur en amine", plaat: PLAAT(21) },
@@ -295,6 +380,55 @@ window.wlKetenSVG = function ({ atomen, bindingen, takken = [] }, kleur = "#3b2a
     <g stroke="${kleur}" stroke-width="2.6" stroke-linecap="round">${lijnen}</g>
     <g fill="${kleur}" font-family="Arial, Helvetica, sans-serif" font-size="30" text-anchor="middle" dominant-baseline="central">${letters}</g>
   </svg>`;
+};
+
+// Hoekpuntnotatie (skeletformule) voor ringen: alleen lijnen, C-atomen op de hoekpunten.
+// spec: { soort: "ring", n, dubbel: [randindex,...], cirkel: bool, takken: [{ bij, lengte }] }
+//    of { soort: "naftaleen" }
+window.wlSkeletSVG = function (spec, kleur = "#3b2a17") {
+  const R = 46, L = 46;
+  let pts = [], bonds = [], centra = [], cirkels = [];
+  const ring = (cx, cy, n) => Array.from({ length: n }, (_, i) => {
+    const a = (-90 + i * 360 / n) * Math.PI / 180; return [cx + R * Math.cos(a), cy + R * Math.sin(a)];
+  });
+  if (spec.soort === "naftaleen") {
+    const a = ring(0, 0, 6), dx = R * Math.sqrt(3), b = ring(dx, 0, 6);
+    pts = [...a, b[0], b[1], b[2], b[3]]; // 0..5 ring 1; 6..9 = w0..w3
+    centra = [[0, 0], [dx, 0]];
+    bonds = [[0,1,1,0],[1,2,2,0],[2,3,1,0],[3,4,2,0],[4,5,1,0],[5,0,2,0],
+             [1,6,1,1],[6,7,2,1],[7,8,1,1],[8,9,2,1],[9,2,1,1]];
+  } else {
+    const n = spec.n; pts = ring(0, 0, n); centra = [[0, 0]];
+    for (let i = 0; i < n; i++) bonds.push([i, (i + 1) % n, (spec.dubbel || []).includes(i) ? 2 : 1, 0]);
+    if (spec.cirkel) cirkels.push([0, 0, R * 0.58]);
+    (spec.takken || []).forEach(t => {
+      const [x, y] = pts[t.bij], len = Math.hypot(x, y), ux = x / len, uy = y / len;
+      let vorige = t.bij, px = x, py = y;
+      for (let k = 0; k < t.lengte; k++) {
+        const hoek = k === 0 ? 0 : (k % 2 ? 1 : -1) * Math.PI / 3;
+        const dxk = ux * Math.cos(hoek) - uy * Math.sin(hoek), dyk = ux * Math.sin(hoek) + uy * Math.cos(hoek);
+        px += L * dxk; py += L * dyk; pts.push([px, py]);
+        bonds.push([vorige, pts.length - 1, 1, -1]); vorige = pts.length - 1;
+      }
+    });
+  }
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]), m = 14;
+  const x0 = Math.min(...xs) - m, y0 = Math.min(...ys) - m;
+  const w = Math.max(...xs) - x0 + m, h = Math.max(...ys) - y0 + m;
+  let lijnen = "";
+  bonds.forEach(([i, j, orde, c]) => {
+    const [x1, y1] = pts[i], [x2, y2] = pts[j];
+    lijnen += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+    if (orde === 2 && c >= 0) {
+      const [cx, cy] = centra[c], mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+      const d = Math.hypot(cx - mx, cy - my), ox = (cx - mx) / d * 7, oy = (cy - my) / d * 7, f = 0.17;
+      const ax = x1 + (x2 - x1) * f + ox, ay = y1 + (y2 - y1) * f + oy, bx = x2 - (x2 - x1) * f + ox, by = y2 - (y2 - y1) * f + oy;
+      lijnen += `<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}"/>`;
+    }
+  });
+  cirkels.forEach(([cx, cy, r]) => { lijnen += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none"/>`; });
+  return `<svg class="structuur" viewBox="${x0} ${y0} ${w} ${h}" width="${w * 1.05}" height="${h * 1.05}" role="img" aria-label="structuurformule">
+    <g stroke="${kleur}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${lijnen}</g></svg>`;
 };
 
 // Hash-helper (gedeeld)
