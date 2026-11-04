@@ -108,6 +108,29 @@
   .ovknoppen { display: flex; gap: 12px; justify-content: flex-end; margin-top: 26px; }
   .ovknoppen .knop.stil { color: var(--bruin); border-color: rgba(110, 75, 25, .5); }
 
+  /* ── AVATARS OP DE KAART ───────────────── */
+  .avpil { font-family: var(--body); font-weight: 700; font-size: 15px; fill: #0c0d24; }
+  .avpil-bg { fill: #f3e6c6; stroke: #9a7428; stroke-width: 1.5; }
+  .avpil-bg.goud { fill: #f7dc95; stroke: #f7dc95; }
+
+  /* ── AVONTUUR-OVERZICHT ────────────────── */
+  .tabs { display: flex; gap: 8px; margin: 4px 0 18px; }
+  .tabs button { font: 600 1.05rem var(--body); padding: 6px 16px; border-radius: 999px; cursor: pointer; border: 1.5px solid rgba(110,75,25,.4); background: transparent; color: var(--bruin); }
+  .tabs button.aan { background: var(--bruin); color: var(--perkament); }
+  .avbalk { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+  .avbalk input[type=number] { width: 70px; font: 1.05rem var(--body); padding: 5px 8px; border-radius: 6px; border: 1px solid rgba(110,75,25,.5); background: rgba(255,255,255,.5); }
+  .avbalk .knop { font-size: .85rem; padding: .4em 1em; }
+  .avbalk .knop.stil, .avrij .knop.stil { color: var(--bruin); border-color: rgba(110,75,25,.5); }
+  table.avtabel { width: 100%; border-collapse: collapse; font-size: 1.05rem; }
+  .avtabel th { text-align: left; font-family: var(--titel); font-weight: 400; padding: 6px 8px; border-bottom: 2px solid rgba(110,75,25,.35); }
+  .avtabel td { padding: 6px 8px; border-bottom: 1px solid rgba(110,75,25,.2); vertical-align: middle; }
+  .avtabel input { font: 1rem var(--body); width: 140px; padding: 3px 6px; border-radius: 5px; border: 1px solid rgba(110,75,25,.4); background: rgba(255,255,255,.5); }
+  .avtabel .mono { font-family: var(--mono); font-size: .95rem; }
+  .avtabel .x { cursor: pointer; color: var(--roos); margin-left: 6px; }
+  .klein { font-size: .9rem; opacity: .75; }
+  .avkop { font-family: var(--titel); font-size: 1.4rem; margin: 26px 0 8px; }
+  #printvak { display: none; }
+
   /* ── LOGIN ─────────────────────────────── */
   #login { position: fixed; inset: 0; z-index: 40; display: none; place-items: center; background: rgba(6, 6, 20, .9); }
   #login.open { display: grid; }
@@ -148,10 +171,10 @@
     <svg id="deursvg" viewBox="0 0 600 800" preserveAspectRatio="xMidYMid meet"></svg>
     <div class="deurinfo">
       <div class="eyebrow" id="deurEyebrow"></div>
-      <h1>De deur is open voor codes</h1>
+      <h1 id="deurKop">De deur is open voor codes</h1>
       <p id="deurIntro"></p>
       <div class="teller"><span class="groot" id="telOpen">0</span><span class="van" id="telTotaal">/ 0</span></div>
-      <div class="tellerlabel">laptops door de deur</div>
+      <div class="tellerlabel" id="deurlabel">laptops door de deur</div>
       <div class="sleutels" id="sleutels"></div>
     </div>
   </div>
@@ -184,10 +207,14 @@
 <!-- OVERZICHT -->
 <div id="overzicht"><div class="perkament">
   <h2>Docentoverzicht</h2>
-  <div class="sub" id="ovSub"></div>
-  <div id="ovRijen"></div>
+  <div class="tabs"><button id="tabAv" class="aan">Avontuur</button><button id="tabDeur">Klassikale deur</button></div>
+  <div id="ovAvontuur"></div>
+  <div id="ovDeur" style="display:none">
+    <div class="sub" id="ovSub"></div>
+    <div id="ovRijen"></div>
+  </div>
   <div class="ovknoppen">
-    <button class="knop stil" id="ovReset">Pogingen wissen (nieuwe ronde)</button>
+    <button class="knop stil" id="ovReset" style="display:none">Pogingen wissen (nieuwe ronde)</button>
     <button class="knop" id="ovSluit">Sluiten</button>
   </div>
 </div></div>
@@ -201,8 +228,9 @@
 </div></div>
 
 <script src="data.js"></script>
+<script src="avontuur-data.js"></script>
 <script type="module">
-const W = window.WONDERLAND;
+const W = window.WONDERLAND, A = window.WL_AVONTUUR || {};
 const $ = id => document.getElementById(id);
 const les = nr => W.lessen.find(l => l.nr === nr);
 const heeftInhoud = l => !!(l && l.scene && l.deur);
@@ -349,6 +377,7 @@ function tekenKaart(staat) {
       <text class="stlabel" y="${labelY}" text-anchor="middle">${l.plek}</text>
     </g>`;
   }).join("")}
+  ${avatarLaag()}
   `;
   svg.querySelectorAll(".station").forEach(g => {
     g.addEventListener("click", () => {
@@ -430,6 +459,7 @@ function tekenDeur(open, totaal) {
 }
 
 /* ── Status en schermen ── */
+let spelers = {};
 let store, staat = null, pogingen = {}, huidigeSessie = null, vorigeFase = null, vorigeLes = null;
 function toon(id) { document.querySelectorAll(".scherm").forEach(s => s.classList.toggle("actief", s.id === id)); }
 
@@ -455,7 +485,8 @@ function render() {
   }
   if (fase === "deur") {
     $("deurEyebrow").textContent = `Les ${l.nr} · ${l.plek}`;
-    $("deurIntro").textContent = l.deur.intro;
+    $("deurKop").textContent = A[l.nr] ? "Het avontuur is begonnen" : "De deur is open voor codes";
+  $("deurIntro").textContent = A[l.nr] ? "Pak je laptop en ga naar je avontuur. Log in met je geheime code." : l.deur.intro;
     if (veranderd) toon("deur");
     tekenTeller();
     return;
@@ -469,10 +500,21 @@ function render() {
 }
 
 function tekenTeller() {
-  const lijst = Object.values(pogingen || {});
-  const totaal = lijst.length, open = lijst.filter(p => p.open).length, geheim = lijst.filter(p => p.geheim).length;
+  const nr = staat?.les || 1;
+  let totaal, open, geheim, stenen = 0;
+  if (A[nr]) {
+    const lijst = Object.values(spelers || {}).filter(s => s.avatar);
+    totaal = lijst.length; open = lijst.filter(s => s.h?.[nr]?.klaar).length;
+    geheim = lijst.filter(s => s.h?.[nr]?.sleutel).length; stenen = lijst.filter(s => s.h?.[nr]?.edelsteen).length;
+    $("deurlabel").textContent = "avatars door de deur";
+  } else {
+    const lijst = Object.values(pogingen || {});
+    totaal = lijst.length; open = lijst.filter(p => p.open).length; geheim = lijst.filter(p => p.geheim).length;
+    $("deurlabel").textContent = "laptops door de deur";
+  }
   tekenDeur(open, totaal);
-  $("sleutels").innerHTML = geheim ? `${sleutelSVG()}<span>${geheim} gouden ${geheim === 1 ? "sleutel" : "sleutels"}</span>` : "";
+  $("sleutels").innerHTML = (geheim ? `${sleutelSVG()}<span>${geheim} gouden ${geheim === 1 ? "sleutel" : "sleutels"}</span>` : "") +
+    (stenen ? `<span style="margin-left:2vw;color:#8be3b6">◆ ${stenen} ${stenen === 1 ? "edelsteen" : "edelstenen"}</span>` : "");
   if ($("overzicht").classList.contains("open")) tekenOverzicht();
 }
 
@@ -507,11 +549,182 @@ function luisterPogingen() {
   store.luister("pogingen/" + s, v => { if (huidigeSessie === s) { pogingen = v || {}; if (staat?.fase === "deur") tekenTeller(); else if ($("overzicht").classList.contains("open")) tekenOverzicht(); } });
 }
 
+/* ── Avontuur: avatars op de kaart ── */
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const toonCode = k => k.replace(/(\d+)$/, "-$1");
+const naamKey = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
+function doorDeur(s) { let m = 0; Object.keys(A).forEach(nr => { if (s.h?.[nr]?.klaar) m = Math.max(m, +nr); }); return m; }
+const meetCanvas = document.createElement("canvas").getContext("2d");
+function pilTekst(s) {
+  const stenen = Object.values(s.h || {}).filter(h => h.edelsteen).length;
+  const sleutels = Object.values(s.h || {}).filter(h => h.sleutel).length;
+  return { tekst: `${s.avatar}${stenen ? " ◆" + (stenen > 1 ? stenen : "") : ""}${sleutels ? " 🗝" + (sleutels > 1 ? sleutels : "") : ""}`, sleutels };
+}
+function pilBreedte(s) {
+  meetCanvas.font = '700 15px "Cormorant Garamond", Georgia, serif';
+  return Math.ceil(meetCanvas.measureText(pilTekst(s).tekst).width + 26);
+}
+function pil(x, y, s) {
+  const { tekst, sleutels } = pilTekst(s), w = pilBreedte(s);
+  return `<g><rect class="avpil-bg ${sleutels ? "goud" : ""}" x="${x}" y="${y - 11}" width="${w}" height="22" rx="11"/>
+    <text class="avpil" x="${x + 13}" y="${y + 5}">${esc(tekst)}</text></g>`;
+}
+function avatarLaag() {
+  const lijst = Object.values(spelers || {}).filter(s => s.avatar);
+  if (!lijst.length || !Object.keys(A).length) return "";
+  const groepen = {};
+  lijst.forEach(s => { const k = doorDeur(s); (groepen[k] = groepen[k] || []).push(s); });
+  let uit = "";
+  Object.entries(groepen).forEach(([k, g]) => {
+    g.sort((a, b) => a.avatar.localeCompare(b.avatar));
+    let x0, xmax, y, dy;
+    if (+k === 0) { x0 = 930; xmax = 1590; y = 880; dy = -25; }                  // nog bij het konijnenhol: onderaan rechts
+    else if (+k === 1) { x0 = 230; xmax = 900; y = 820; dy = 25; }                // door deur 1: onder de gang met deuren
+    else {
+      const [px, py] = POS[+k - 1], labelBoven = (+k === 4 || +k === 9);
+      x0 = px - 150; xmax = px + 260; y = labelBoven ? py + 80 : py + 130; dy = 25;
+    }
+    if (+k === 0) uit += `<text class="stnr" x="${x0 + 4}" y="${y - 22}">NOG ONDERWEG</text>`;
+    let x = x0;
+    g.forEach(s => {
+      const w = pilBreedte(s);
+      if (x + w > xmax && x > x0) { x = x0; y += dy; }
+      uit += pil(x, y, s); x += w + 6;
+    });
+  });
+  return `<g class="avatars">${uit}</g>`;
+}
+
+/* ── Avontuur: docentoverzicht ── */
+const ECHT = "wl-echte-namen";
+const echteNamen = () => { try { return JSON.parse(localStorage.getItem(ECHT)) || {}; } catch (e) { return {}; } };
+const zetEchteNaam = (c, n) => { const m = echteNamen(); if (n) m[c] = n; else delete m[c]; try { localStorage.setItem(ECHT, JSON.stringify(m)); } catch (e) {} };
+const WOORDEN = ["KAT", "HOED", "ROOS", "THEE", "KLOK", "TAART", "RUPS", "KROON", "FLES", "DEUR", "HART", "SCHAAK", "WAAIER", "GRIJNS", "LEPEL", "SPEEL"];
+const LABELS = { h: "Stap", p: "Parallel", o: "Omweg", k: "Schatkist" };
+function opgaveLabel(id) {
+  if (id === "g") return "Gouden slot";
+  if (id[0] === "o") return `Omweg ${id.slice(1)} (makkelijk)`;
+  return `${LABELS[id[0]] || id} ${id.slice(1)}`;
+}
+function statusCel(h, av) {
+  if (!h) return `<span class="klein">—</span>`;
+  const o = h.o || {};
+  const omwegen = Object.values(o).filter(x => x.om).length;
+  const vast = Object.entries(o).filter(([, x]) => x.vast).map(([id]) => opgaveLabel(id));
+  const badges = `${h.edelsteen ? " ◆" : ""}${h.sleutel ? " 🗝" : ""}`;
+  const hoofd = h.klaar ? "✓ door de deur" : !h.stap && h.fase === "intro" ? "begonnen" :
+    `stap ${Math.min((h.stap || 0) + 1, av.hoofdpad.length)}/${av.hoofdpad.length}${["voorbeeld", "makkelijk", "parallel"].includes(h.fase) ? ` · in omweg ${h.om}` : ""}`;
+  return `<b>${hoofd}</b>${badges}<br><span class="klein">${omwegen} ${omwegen === 1 ? "omweg" : "omwegen"}${vast.length ? ` · vast bij ${vast.join(", ")}` : ""}</span>`;
+}
+function tijd(t) { if (!t) return "—"; const d = new Date(t); return d.toLocaleDateString("nl-NL", { day: "numeric", month: "short" }) + " " + d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" }); }
+
+function tekenAvOverzicht() {
+  if (document.activeElement?.dataset?.echt) return; // niet storen tijdens typen
+  const echt = echteNamen();
+  const lessen = Object.keys(A).map(Number).sort((a, b) => a - b);
+  const codes = Object.keys(spelers || {}).sort((a, b) => (echt[a] || "~" + a).localeCompare(echt[b] || "~" + b));
+  const nr = A[staat?.les] ? staat.les : lessen[0];
+  let html = `<div class="avbalk">
+      <input type="number" id="avAantal" min="1" max="40" value="${codes.length ? 1 : 12}">
+      <button class="knop" id="avMaak">Codes aanmaken</button>
+      <button class="knop stil" id="avPrint">Codes printen</button>
+      <button class="knop stil" id="avExport">Namen bewaren (bestand)</button>
+      <button class="knop stil" id="avImport">Namen laden</button>
+      <input type="file" id="avBestand" accept=".json,application/json" style="display:none">
+    </div>
+    <div class="klein" style="margin-bottom:12px">Echte namen staan alleen in deze browser (niet in Firebase). Bewaar ze met “Namen bewaren” als je op een andere computer wilt kijken.</div>`;
+  if (!codes.length) { html += `<p>Nog geen codes. Maak er eerst een paar aan.</p>`; $("ovAvontuur").innerHTML = html; koppelAvKnoppen(); return; }
+  html += `<table class="avtabel"><tr><th>Code</th><th>Echte naam</th><th>Avatar</th>${lessen.map(l => `<th>Les ${l}</th>`).join("")}<th>Laatst</th><th></th></tr>`;
+  html += codes.map(c => {
+    const s = spelers[c] || {};
+    const laatst = Math.max(0, ...Object.values(s.h || {}).map(h => h.t || 0));
+    return `<tr><td class="mono">${toonCode(c)}</td>
+      <td><input data-echt="${c}" value="${esc(echt[c] || "")}" placeholder="naam"></td>
+      <td>${s.avatar ? `${esc(s.avatar)}<span class="x" data-reset="${c}" title="Avatarnaam wissen">✕</span>` : `<span class="klein">nog niet gekozen</span>`}</td>
+      ${lessen.map(l => `<td>${statusCel(s.h?.[l], A[l])}</td>`).join("")}
+      <td class="klein">${laatst ? tijd(laatst) : "—"}</td>
+      <td><span class="x" data-wis="${c}" title="Voortgang van les ${nr} wissen">↺</span></td></tr>`;
+  }).join("");
+  html += `</table>`;
+
+  // Per opgave: waar lopen ze vast?
+  const av = A[nr], lijst = codes.map(c => spelers[c]?.h?.[nr]).filter(Boolean);
+  const ids = [...av.hoofdpad.map(o => o.id), ...av.hoofdpad.map(o => o.id.replace("h", "p")), ...Object.keys(av.omwegen).map(k => "o" + k),
+    ...[...(les(nr).deur?.vragen || []), ...(av.kluis.extra || [])].map((_, i) => "k" + (i + 1)), "g"];
+  html += `<div class="avkop">Les ${nr} · waar lopen ze vast?</div>
+    <table class="avtabel"><tr><th>Opgave</th><th>Leerlingen met fout</th><th>Omwegen hierdoor</th><th>Vastgelopen</th><th>Meest gegeven foute antwoorden</th></tr>`;
+  html += ids.map(id => {
+    let fout = 0, om = 0, vast = 0; const telling = {};
+    lijst.forEach(h => {
+      const o = h.o?.[id]; if (!o) return;
+      if (o.f) fout++; if (o.om) om++; if (o.vast) vast++;
+      Object.entries(o.w || {}).forEach(([w, n]) => { telling[w] = (telling[w] || 0) + n; });
+    });
+    if (!fout && !om && !vast && id[0] !== "h") return "";
+    const top = Object.entries(telling).sort((a, b) => b[1] - a[1]).slice(0, 4);
+    return `<tr><td>${opgaveLabel(id)}</td><td>${fout}</td><td>${id[0] === "h" ? om : ""}</td><td>${id[0] === "p" ? vast : ""}</td>
+      <td>${top.map(([w, n]) => `<span class="chip">${esc(w)} · ${n}×</span>`).join("") || `<span class="klein">—</span>`}</td></tr>`;
+  }).join("");
+  html += `</table>`;
+  $("ovAvontuur").innerHTML = html;
+  koppelAvKnoppen(nr);
+}
+
+function koppelAvKnoppen(nr) {
+  $("avMaak").onclick = async () => {
+    const n = Math.max(1, Math.min(40, +$("avAantal").value || 12));
+    const nieuw = {};
+    while (Object.keys(nieuw).length < n) {
+      const c = WOORDEN[Math.floor(Math.random() * WOORDEN.length)] + String(Math.floor(1000 + Math.random() * 9000));
+      if (!spelers[c] && !nieuw[c]) nieuw[c] = { aangemaakt: Date.now() };
+    }
+    await store.werkBij("avontuur/spelers", nieuw);
+  };
+  $("avPrint").onclick = () => {
+    const url = new URL("avontuur.html", location.href); if (WL_DEMO) url.search = "?demo";
+    const echt = echteNamen();
+    const kaartjes = Object.keys(spelers).sort().map(c => `<div class="k"><div class="t">De deuren van Wonderland</div>
+      <div class="n">${esc(echt[c] || "")}</div><div class="c">${toonCode(c)}</div>
+      <div class="u">Ga naar <b>${esc(url.href)}</b> en log in met deze code.<br>Bewaar hem goed en laat hem aan niemand zien.</div></div>`).join("");
+    const w = window.open("", "_blank");
+    w.document.write(`<!doctype html><meta charset="utf-8"><title>Codes Wonderland</title><style>
+      body{font-family:Georgia,serif;margin:12mm} .r{display:grid;grid-template-columns:1fr 1fr;gap:6mm}
+      .k{border:1.5px dashed #777;padding:6mm;break-inside:avoid} .t{letter-spacing:.2em;font-size:10pt;color:#9a7428;text-transform:uppercase}
+      .n{font-size:11pt;color:#555;min-height:1.2em;margin-top:2mm} .c{font:700 26pt monospace;margin:3mm 0} .u{font-size:9.5pt;color:#333;word-break:break-all}
+      </style><div class="r">${kaartjes}</div><script>print()<\/script>`);
+    w.document.close();
+  };
+  $("avExport").onclick = () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(echteNamen(), null, 2)], { type: "application/json" }));
+    a.download = "wonderland-namen.json"; a.click();
+  };
+  $("avImport").onclick = () => $("avBestand").click();
+  $("avBestand").onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try { const m = JSON.parse(await f.text()); Object.entries(m).forEach(([c, n]) => zetEchteNaam(c, n)); tekenAvOverzicht(); }
+    catch (err) { alert("Dat bestand kon ik niet lezen."); }
+  };
+  document.querySelectorAll("[data-echt]").forEach(i => i.onchange = () => zetEchteNaam(i.dataset.echt, i.value.trim()));
+  document.querySelectorAll("[data-reset]").forEach(x => x.onclick = async () => {
+    const c = x.dataset.reset, s = spelers[c];
+    if (!confirm(`Avatarnaam “${s.avatar}” wissen? De leerling moet dan een nieuwe naam kiezen.`)) return;
+    await store.zet(`avontuur/namen/${naamKey(s.avatar)}`, null);
+    await store.zet(`avontuur/spelers/${c}/avatar`, null);
+  });
+  document.querySelectorAll("[data-wis]").forEach(x => x.onclick = async () => {
+    const c = x.dataset.wis;
+    if (!confirm(`Voortgang van ${toonCode(c)} bij les ${nr} wissen?`)) return;
+    await store.zet(`avontuur/spelers/${c}/h/${nr}`, null);
+  });
+}
+
 /* ── Knoppen ── */
 async function openDeur() {
   const nr = staat?.les || 1;
   const sessie = staat?.sessies?.[nr] || `l${nr}-${Date.now().toString(36)}`;
   await zetStaat({ fase: "deur", sessie, ["sessies/" + nr]: sessie });
+  if (A[nr]) await store.werkBij("avontuur/open", { [nr]: true });
 }
 async function volgende() {
   const nr = staat?.les || 1;
@@ -523,7 +736,14 @@ $("bVolgende").onclick = volgende;
 $("naarKaart").onclick = () => zetStaat({ fase: "kaart" });
 $("bKaart").onclick = () => zetStaat({ fase: "kaart" });
 $("bScene").onclick = () => zetStaat({ fase: "scene" });
-$("bOverzicht").onclick = () => { $("overzicht").classList.add("open"); tekenOverzicht(); };
+$("bOverzicht").onclick = () => { $("overzicht").classList.add("open"); tekenOverzicht(); tekenAvOverzicht(); };
+$("tabAv").onclick = () => kiesTab("av");
+$("tabDeur").onclick = () => kiesTab("deur");
+function kiesTab(t) {
+  $("tabAv").classList.toggle("aan", t === "av"); $("tabDeur").classList.toggle("aan", t === "deur");
+  $("ovAvontuur").style.display = t === "av" ? "" : "none"; $("ovDeur").style.display = t === "deur" ? "" : "none";
+  $("ovReset").style.display = t === "deur" ? "" : "none";
+}
 $("ovSluit").onclick = () => $("overzicht").classList.remove("open");
 $("ovReset").onclick = async () => {
   if (!confirm("Alle pogingen van deze deur wissen en een nieuwe ronde starten?")) return;
@@ -553,6 +773,12 @@ document.addEventListener("click", e => {
 
 /* ── Start ── */
 async function start() {
+  store.luister("avontuur/spelers", v => {
+    spelers = v || {};
+    if ((staat?.fase || "kaart") === "kaart") tekenKaart(staat);
+    if (staat?.fase === "deur") tekenTeller();
+    if ($("overzicht").classList.contains("open")) tekenAvOverzicht();
+  });
   store.luister("staat", v => {
     staat = v || { les: 1, fase: "kaart" };
     luisterPogingen();
