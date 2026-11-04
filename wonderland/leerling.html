@@ -57,6 +57,18 @@
   .structuurrooster { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 12px 0 6px; }
   .structuurkaartje { position: relative; display: grid; place-items: center; min-height: 150px; padding: 26px 12px 12px; border-radius: 8px;
     background: rgba(255,255,255,.45); border: 1px solid rgba(110,75,25,.25); }
+  .hl { opacity: 0; transition: opacity .45s ease, transform .45s ease; }
+  .hl.aan { opacity: 1; }
+  .anim-uitleg { display: none; margin-top: 12px; padding: 10px 14px; border-left: 4px solid var(--groen);
+    background: rgba(63,174,124,.10); font-family: var(--verhaal); font-size: 1.12rem; border-radius: 0 6px 6px 0; color: #1f5a40; }
+  .anim-uitleg.zicht { display: block; animation: verschijn .6s; }
+  .structuurkaartje.licht { box-shadow: 0 0 0 3px var(--goud), 0 0 18px rgba(226,182,90,.6); }
+  .structuurkaartje .gelijk { position: absolute; right: 10px; top: 8px; font: 1.2rem var(--titel); color: #24764f; animation: verschijn .6s; }
+  .schuifnaam { margin-top: 6px; text-align: center; font: 600 1.1rem var(--mono); color: var(--roos); }
+  .animvak { display: block; width: fit-content; margin: 12px 0 4px; }
+  .animvak text { transition: fill .6s; }
+  .animvak text.verf { fill: #c8374f; }
+  .animvak text.geverfd { fill: #c8374f; font-weight: 700; }
   .structuurkaartje b { position: absolute; top: 8px; left: 12px; font: 1.3rem var(--titel); color: var(--roos); }
   .structuurkaartje svg { display: block; max-width: 100%; height: auto; }
   .vraag .wat { font-weight: 700; margin-top: 8px; }
@@ -221,13 +233,75 @@ function vraagKaart(v, label, id, klasse = "") {
   return `<div class="vraag perkament ${klasse}" id="kaart-${id}">
     <div class="nummer">${label}</div>
     <p>${v.tekst}</p>
-    ${v.structuren ? `<div class="structuurrooster">${v.structuren.map(s => `<div class="structuurkaartje"><b>${s.label}</b>${klein(wlKetenSVG(s.structuur))}</div>`).join("")}</div>`
+    ${v.structuren ? `<div class="structuurrooster">${v.structuren.map(s => `<div class="structuurkaartje" data-label="${s.label}"><b>${s.label}</b>${klein(wlKetenSVG(s.structuur))}</div>`).join("")}</div>`
       : v.skelet ? `<div class="structuurvak skeletvak">${wlSkeletSVG(v.skelet)}</div>${v.formule ? `<div class="formule">${v.formule}</div>` : ""}`
       : v.structuur ? `<div class="structuurvak">${klein(wlKetenSVG(v.structuur), 0.85)}</div>` : v.formule ? `<div class="formule">${v.formule}</div>` : ""}
     <p class="wat">${v.vraag}</p>
     <div class="invoer"><input id="in-${id}" inputmode="numeric" autocomplete="off" maxlength="3"><span class="status" id="st-${id}"></span></div>
     <div class="hint" id="hint-${id}"></div>
+    <div class="anim-uitleg" id="anim-${id}"></div>
   </div>`;
+}
+
+/* ── Animaties als feedback ná een goed antwoord (de chemie in beeld, geen versiering) ── */
+const wacht = ms => new Promise(r => setTimeout(r, ms));
+async function speelAnimatie(id, v) {
+  const kaart = $("kaart-" + id), a = v.animatie;
+  if (!a || kaart.dataset.geanimeerd) return;
+  kaart.dataset.geanimeerd = "1";
+  const uitleg = $("anim-" + id);
+  const toonUitleg = tekst => { uitleg.textContent = tekst; uitleg.classList.add("zicht"); };
+
+  if (a.type === "toonH") {
+    const labels = [...kaart.querySelectorAll(".hl")];
+    for (const t of labels) { t.classList.add("aan"); await wacht(160); }
+    toonUitleg(a.uitleg);
+  }
+  if (a.type === "draai") {
+    const van = kaart.querySelector(`.structuurkaartje[data-label="${a.van}"]`);
+    const naar = kaart.querySelector(`.structuurkaartje[data-label="${a.naar}"]`);
+    const svg = van.querySelector("svg");
+    van.classList.add("licht"); naar.classList.add("licht");
+    await wacht(400);
+    svg.style.transition = "transform 1.6s cubic-bezier(.4,0,.2,1)";
+    svg.style.transform = "rotate(180deg)";
+    // letters rechtop houden: elke letter draait zelf terug
+    svg.querySelectorAll("text").forEach(t => {
+      t.style.transformBox = "fill-box"; t.style.transformOrigin = "center";
+      t.style.transition = "transform 1.6s cubic-bezier(.4,0,.2,1)"; t.style.transform = "rotate(-180deg)";
+    });
+    await wacht(1700);
+    van.insertAdjacentHTML("beforeend", `<span class="gelijk">= ${a.naar}</span>`);
+    toonUitleg(a.uitleg);
+  }
+  if (a.type === "schuif") {
+    const svg = kaart.querySelector(".structuurvak svg");
+    const tak = [...svg.querySelectorAll(".tak-" + a.tak)];
+    const naam = document.createElement("div"); naam.className = "schuifnaam"; naam.textContent = a.namen[0];
+    kaart.querySelector(".structuurvak").appendChild(naam);
+    tak.forEach(el => { el.style.transition = "transform 1.3s cubic-bezier(.4,0,.2,1)"; });
+    for (let ronde = 0; ronde < 2; ronde++) {
+      await wacht(1200);
+      tak.forEach(el => { el.style.transform = `translateX(${96 * a.stap}px)`; });
+      await wacht(1300); naam.textContent = a.namen[1];
+      await wacht(1500);
+      tak.forEach(el => { el.style.transform = "translateX(0)"; });
+      await wacht(1300); naam.textContent = a.namen[0];
+    }
+    toonUitleg(a.uitleg);
+  }
+  if (a.type === "schilder") {
+    const vak = document.createElement("div"); vak.className = "structuurvak animvak";
+    vak.innerHTML = klein(wlVolledigSVG(a.n), 0.8);
+    kaart.querySelector(".invoer").before(vak);
+    await wacht(700);
+    for (const kant of ["boven", "onder"]) {
+      const h = vak.querySelector(`.h-${a.bij}-${kant}`);
+      h.classList.add("verf"); await wacht(700);
+      h.textContent = a.label; h.classList.add("geverfd"); await wacht(400);
+    }
+    toonUitleg(a.uitleg);
+  }
 }
 
 let store, staat = null, actieveSessie = null, mijnPoging = {}, huidigeLes = null, gelukt = false;
@@ -278,7 +352,7 @@ function klaarVoorControle() {
 
 async function controleer() {
   const l = les(huidigeLes);
-  let allesGoed = true;
+  let allesGoed = true, animatieGestart = false;
   const fouten = {};
   for (let i = 0; i < l.deur.vragen.length; i++) {
     const v = l.deur.vragen[i], waarde = String(parseInt($("in-" + i).value, 10));
@@ -286,6 +360,7 @@ async function controleer() {
     const k = $("kaart-" + i);
     k.classList.toggle("goed", goed); k.classList.toggle("fout", !goed);
     $("st-" + i).textContent = goed ? "✓ klopt" : "✗ klopt niet";
+    if (goed && v.animatie && !k.dataset.geanimeerd) { animatieGestart = true; speelAnimatie(i, v); }
     if (!goed) {
       allesGoed = false; fouten[i] = waarde;
       $("hint-" + i).textContent = v.hints?.[waarde] || v.hint;
@@ -299,10 +374,10 @@ async function controleer() {
   Object.entries(fouten).forEach(([i, w]) => { updates[`f/${i}/${w}`] = ((mijnPoging.f?.[i]?.[w]) || 0) + 1; });
   if (allesGoed) updates.open = true;
   try { await store.werkBij(p, updates); } catch (e) { console.warn(e); }
-  if (allesGoed) geslaagd();
+  if (allesGoed) geslaagd(animatieGestart);
 }
 
-function geslaagd() {
+function geslaagd(laatAnimatieZien = false) {
   gelukt = true;
   $("controleer").disabled = true;
   $("actie").style.display = "none";
@@ -310,7 +385,7 @@ function geslaagd() {
   tekenMiniDeur(cijferStatus(), true);
   vonken();
   $("gelukt").classList.add("zicht");
-  setTimeout(() => $("gelukt").scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+  setTimeout(() => $("gelukt").scrollIntoView({ behavior: "smooth", block: "start" }), laatAnimatieZien ? 6500 : 300);
 }
 
 async function controleerGeheim() {

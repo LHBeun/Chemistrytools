@@ -207,6 +207,7 @@ window.WONDERLAND = {
               { label: "F", structuur: { atomen: ["C", "C", "C", "C"], bindingen: [1, 1, 1], takken: [{ bij: 1, n: 1, r: -1 }, { bij: 1, n: 1, r: 1 }] } }
             ],
             vraag: "Hoeveel verschillende stoffen zijn het?",
+            animatie: { type: "draai", van: "B", naar: "A", uitleg: "Draai B 180° om… en hij past precies op A. Dezelfde stof, alleen anders neergelegd: 2-methylpentaan." },
             hash: "8758f5e6b02bb4d26648ff37db5bc1d740731b424f3999bccff5a41b5daa15cb",
             hints: {
               "5": "Kijk bij E goed naar de langste keten.",
@@ -274,6 +275,7 @@ window.WONDERLAND = {
           {
             tekst: "De grijns tekent:",
             skelet: { soort: "ring", n: 6, takken: [{ bij: 0, lengte: 1 }, { bij: 2, lengte: 1 }] },
+            animatie: { type: "toonH", uitleg: "De kat komt terug: op elk hoekpunt zit een C-atoom, aangevuld met H tot 4 bindingen. Waar een methylgroep vastzit, zit één H minder." },
             formule: "",
             vraag: "Hoeveel H-atomen heeft dit molecuul?",
             hash: "c8cc008f1dda2e312184b35bfeebab172e600598483665d4c92a96a8a70db4cb",
@@ -287,6 +289,7 @@ window.WONDERLAND = {
           {
             tekst: "Daarna tekent de grijns een benzeenring:",
             skelet: { soort: "ring", n: 6, cirkel: true, takken: [{ bij: 0, lengte: 2 }] },
+            animatie: { type: "toonH", uitleg: "Elk C-atoom van de benzeenring heeft één H — behalve het C-atoom met de ethylgroep." },
             formule: "",
             vraag: "Hoeveel H-atomen zitten er direct aan de ring?",
             hash: "2ff3122f4d1ceb7952471454efba0d119b406793f263ab5a3cf9b920ef8fb2ba",
@@ -300,6 +303,7 @@ window.WONDERLAND = {
           {
             tekst: "Dan dezelfde ring, maar nu met afwisselende dubbele bindingen:",
             skelet: { soort: "ring", n: 6, dubbel: [0, 2, 4], takken: [{ bij: 0, lengte: 1 }, { bij: 4, lengte: 1 }] },
+            animatie: { type: "toonH", uitleg: "1,3-dimethylbenzeen: op de twee ring-C-atomen met een methylgroep zit geen H." },
             formule: "",
             vraag: "Geef de naam van deze stof. Welk plaatsnummer staat er naast de 1?",
             hash: "5b4dd4b228dd747b672be3903e0d2ba08d5f78b142d8576b24510778d4550739",
@@ -313,6 +317,7 @@ window.WONDERLAND = {
           {
             tekst: "Tot slot een vijfring:",
             skelet: { soort: "ring", n: 5, takken: [{ bij: 0, lengte: 1 }] },
+            animatie: { type: "toonH", uitleg: "Het ring-C-atoom met de methylgroep heeft nog maar plek voor één H." },
             formule: "",
             vraag: "Hoeveel H-atomen zitten er aan het ring-C-atoom waar de methylgroep aan vastzit?",
             hash: "353d411258b16e6355ca87b6268f6b395fab2936b88ba58bdd9341c1f4cf6063",
@@ -361,6 +366,7 @@ window.WONDERLAND = {
             tekst: "Tuinman Twee schildert in pentaan twee H-atomen over met Br — allebei aan het vierde C-atoom van links.",
             formule: "",
             vraag: "Geef de naam. Welk plaatsnummer staat er (twee keer) in de naam?",
+            animatie: { type: "schilder", n: 5, bij: 3, label: "Br", uitleg: "Twee H-atomen overgeschilderd met Br. Genummerd vanaf rechts zitten ze aan C-atoom 2: 2,2-dibroompentaan." },
             hash: "d796632d96c5d21f56ff76234d3e2c0771db7a42157978d2910bbceb7b3f7701",
             hints: {
               "4": "Je mag de keten ook vanaf de andere kant nummeren.",
@@ -452,6 +458,7 @@ window.WONDERLAND = {
           {
             tekst: "De Maartse Haas heeft dit molecuul getekend (zonder H-atomen):",
             structuur: { atomen: ["C", "C", "C", "C", "C"], bindingen: [1, 1, 1, 1], takken: [{ bij: 3, n: 1, r: -1, label: "O", orde: 2 }] },
+            animatie: { type: "schuif", tak: 0, stap: 1, namen: ["pentaan-2-on — keton", "pentanal — aldehyde"], uitleg: "Eén plaats opschuiven, net als aan de theetafel: C=O in de keten is een keton, C=O aan het uiteinde een aldehyde." },
             formule: "",
             vraag: "Geef de naam. Welk plaatsnummer staat in de naam?",
             hash: "94ff6deba1cc448f08824249c31426e6d9445c42cbeb7044fbd26c39489da74c",
@@ -693,6 +700,7 @@ window.WONDERLAND = {
           {
             tekst: "Bewijsstuk B — een tekening in hoekpuntnotatie:",
             skelet: { soort: "ring", n: 6, takken: [{ bij: 0, lengte: 1, hoek: -35 }, { bij: 0, lengte: 1, hoek: 35 }] },
+            animatie: { type: "toonH", uitleg: "Het C-atoom met twee methylgroepen heeft al vier bindingen naar C: er past geen enkele H meer bij." },
             formule: "",
             vraag: "Hoeveel H-atomen zitten er aan het ring-C-atoom met de twee methylgroepen?",
             hash: "8c0c77b52d74a58bbf5b2b7bf89d5543ebc0ba04981fbba962fdc609fe3ec552",
@@ -767,13 +775,13 @@ window.wlKetenSVG = function ({ atomen, bindingen, takken = [] }, kleur = "#3b2a
     offs.forEach(o => { lijnen += `<line x1="${xa}" y1="${y + o}" x2="${xb}" y2="${y + o}"/>`; });
   });
   atomen.forEach((a, i) => { letters += `<text x="${x0 + dx * i}" y="${y}">${a}</text>`; });
-  takken.forEach(t => {
+  takken.forEach((t, ti) => {
     const x = x0 + dx * t.bij;
     for (let k = 1; k <= t.n; k++) {
       const ya = y + t.r * (dy * (k - 1) + gat), yb = y + t.r * (dy * k - gat);
       const offs = (k === 1 && t.orde === 2) ? [-4, 4] : [0];
-      offs.forEach(o => { lijnen += `<line x1="${x + o}" y1="${ya}" x2="${x + o}" y2="${yb}"/>`; });
-      letters += `<text x="${x}" y="${y + t.r * dy * k}">${k === t.n && t.label ? t.label : "C"}</text>`;
+      offs.forEach(o => { lijnen += `<line class="tak-${ti}" x1="${x + o}" y1="${ya}" x2="${x + o}" y2="${yb}"/>`; });
+      letters += `<text class="tak-${ti}" x="${x}" y="${y + t.r * dy * k}">${k === t.n && t.label ? t.label : "C"}</text>`;
     }
   });
   return `<svg class="structuur" viewBox="0 0 ${breedte} ${h}" width="${breedte}" height="${h}" role="img" aria-label="structuurformule">
@@ -813,7 +821,29 @@ window.wlSkeletSVG = function (spec, kleur = "#3b2a17") {
       }
     });
   }
-  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]), m = 14;
+  // Aantal H per hoekpunt (voor de animatie "de kat komt terug")
+  const buren = pts.map(() => []), som = pts.map(() => 0);
+  bonds.forEach(([i, j, orde]) => { buren[i].push(j); buren[j].push(i); som[i] += orde; som[j] += orde; });
+  if (cirkels.length) for (let i = 0; i < spec.n; i++) som[i] += 1;
+  let hlabels = "";
+  pts.forEach(([x, y], i) => {
+    const nH = 4 - som[i];
+    if (nH <= 0) return;
+    // plaats de H in de grootste open ruimte tussen de bindingen
+    const hoeken = buren[i].map(j => Math.atan2(pts[j][1] - y, pts[j][0] - x)).sort((a, b) => a - b);
+    // bij gelijke openingen: liever naar buiten (weg van het midden van de ring)
+    const uit = Math.atan2(y, x);
+    let beste = 0, score = -1e9;
+    hoeken.forEach((a, k) => {
+      const volgende = k === hoeken.length - 1 ? hoeken[0] + 2 * Math.PI : hoeken[k + 1];
+      const gat = volgende - a, mid = a + gat / 2, sc = gat + 0.4 * Math.cos(mid - uit);
+      if (sc > score) { score = sc; beste = mid; }
+    });
+    const afstand = buren[i].length === 1 ? 24 : 21;
+    const hx = x + Math.cos(beste) * afstand, hy = y + Math.sin(beste) * afstand;
+    hlabels += `<text class="hl" x="${hx}" y="${hy}">H${nH > 1 ? ["", "", "₂", "₃", "₄"][nH] : ""}</text>`;
+  });
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]), m = 30;
   const x0 = Math.min(...xs) - m, y0 = Math.min(...ys) - m;
   const w = Math.max(...xs) - x0 + m, h = Math.max(...ys) - y0 + m;
   let lijnen = "";
@@ -829,7 +859,30 @@ window.wlSkeletSVG = function (spec, kleur = "#3b2a17") {
   });
   cirkels.forEach(([cx, cy, r]) => { lijnen += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none"/>`; });
   return `<svg class="structuur" viewBox="${x0} ${y0} ${w} ${h}" width="${w * 1.05}" height="${h * 1.05}" role="img" aria-label="structuurformule">
-    <g stroke="${kleur}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${lijnen}</g></svg>`;
+    <g stroke="${kleur}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${lijnen}</g>
+    <g fill="#c8374f" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" dominant-baseline="central">${hlabels}</g></svg>`;
+};
+
+// Volledige structuurformule (alle H getekend) van een onvertakt alkaan met n C-atomen.
+// H-atomen hebben class "h-<i>-boven" / "h-<i>-onder" (en "h-eind-l"/"h-eind-r") voor animaties.
+window.wlVolledigSVG = function (n, kleur = "#3b2a17") {
+  const dx = 70, dy = 52, gat = 15, x0 = 70, y = 70;
+  const breedte = x0 * 2 + dx * (n - 1), h = y * 2;
+  let lijnen = "", letters = "";
+  for (let i = 0; i < n; i++) {
+    const x = x0 + dx * i;
+    letters += `<text x="${x}" y="${y}">C</text>`;
+    if (i < n - 1) lijnen += `<line x1="${x + gat}" y1="${y}" x2="${x + dx - gat}" y2="${y}"/>`;
+    lijnen += `<line x1="${x}" y1="${y - gat}" x2="${x}" y2="${y - dy + gat}"/><line x1="${x}" y1="${y + gat}" x2="${x}" y2="${y + dy - gat}"/>`;
+    letters += `<text class="h-${i}-boven" x="${x}" y="${y - dy}">H</text><text class="h-${i}-onder" x="${x}" y="${y + dy}">H</text>`;
+  }
+  const xe = x0 + dx * (n - 1);
+  lijnen += `<line x1="${x0 - gat}" y1="${y}" x2="${x0 - dx + gat + 10}" y2="${y}"/><line x1="${xe + gat}" y1="${y}" x2="${xe + dx - gat - 10}" y2="${y}"/>`;
+  letters += `<text class="h-eind-l" x="${x0 - dx + 10}" y="${y}">H</text><text class="h-eind-r" x="${xe + dx - 10}" y="${y}">H</text>`;
+  return `<svg class="structuur" viewBox="0 0 ${breedte} ${h}" width="${breedte}" height="${h}" role="img" aria-label="structuurformule">
+    <g stroke="${kleur}" stroke-width="2.2" stroke-linecap="round">${lijnen}</g>
+    <g fill="${kleur}" font-family="Arial, Helvetica, sans-serif" font-size="24" text-anchor="middle" dominant-baseline="central">${letters}</g>
+  </svg>`;
 };
 
 // Hash-helper (gedeeld)
