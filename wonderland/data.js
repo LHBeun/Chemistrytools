@@ -424,7 +424,86 @@ window.WONDERLAND = {
         ]
       }
     },
-    { nr: 6, plek: "Het theekransje", leerdoel: "Aldehyde en keton", plaat: PLAAT(25) },
+    {
+      nr: 6,
+      plek: "Het theekransje",
+      leerdoel: "De carbonylgroep herkennen; aldehyde (C=O aan het uiteinde) en keton (C=O midden in de keten) onderscheiden, benoemen en tekenen",
+      plaat: PLAAT(25),
+      scene: [
+        "Onder een boom staat een lange tafel, gedekt voor heel veel mensen. Maar er zitten er maar drie, dicht op elkaar: de Hoedenmaker, de Maartse Haas en een slapende Hazelmuis.",
+        "“Geen plaats! Geen plaats!” roepen ze als ze Alice zien. “Er is plaats genoeg,” zegt Alice, en ze gaat zitten.",
+        "“Het is altijd zes uur,” legt de Hoedenmaker uit. “Altijd theetijd. We hebben nooit tijd om af te wassen. Dus schuiven we gewoon steeds één plaats op.”",
+        "Dan buigt hij zich naar haar toe. “Waarom lijkt een raaf op een schrijfbureau?”"
+      ],
+      deur: {
+        intro: "De Hoedenmaker stelt raadsels. Teken in je schrift de structuren en geef de namen. Elk antwoord is één getal van de code.",
+        vragen: [
+          {
+            tekst: "Het raadsel van de Hoedenmaker: “Waarom lijkt propanal op propanon?”",
+            formule: "propanal · propanon",
+            vraag: "Teken ze allebei. Hoeveel H-atomen heeft elk molecuul?",
+            hash: "4f77f488088f0fc727bd7c1a019bcdb62192432ded2a28d3692788bd46280868",
+            hints: {
+              "8": "De C=O telt als twee bindingen. Dat C-atoom heeft dus minder plek voor H.",
+              "7": "Tel per C-atoom en vergeet niet dat de C=O twee bindingen kost."
+            },
+            hint: "Teken de keten van 3 C-atomen, zet de =O op de juiste plek en vul elk C-atoom aan tot 4 bindingen."
+          },
+          {
+            tekst: "De Maartse Haas heeft dit molecuul getekend (zonder H-atomen):",
+            structuur: { atomen: ["C", "C", "C", "C", "C"], bindingen: [1, 1, 1, 1], takken: [{ bij: 3, n: 1, r: -1, label: "O", orde: 2 }] },
+            formule: "",
+            vraag: "Geef de naam. Welk plaatsnummer staat in de naam?",
+            hash: "94ff6deba1cc448f08824249c31426e6d9445c42cbeb7044fbd26c39489da74c",
+            hints: {
+              "4": "Nummer vanaf de kant die het dichtst bij de C=O zit.",
+              "3": "Tel nog eens vanaf het dichtstbijzijnde uiteinde."
+            },
+            hint: "De C=O krijgt een zo laag mogelijk plaatsnummer."
+          },
+          {
+            tekst: "De Hazelmuis mompelt in zijn slaap:",
+            formule: "keton · onvertakte keten van 5 C-atomen",
+            vraag: "Hoeveel van zulke ketonen bestaan er?",
+            hash: "9eab7be73666d743a4e4e77806471f3581da02fd617b02d403181cdfea80eb83",
+            hints: {
+              "3": "Pentaan-4-on is pentaan-2-on, vanaf de andere kant genummerd.",
+              "4": "Een C=O aan het uiteinde is geen keton meer.",
+              "5": "Een C=O aan het uiteinde is geen keton meer."
+            },
+            hint: "Schuif de C=O stap voor stap door de keten en geef elke stof een naam."
+          },
+          {
+            tekst: "Op de theepot staat:",
+            formule: "3-methylbutanal",
+            vraag: "Teken de structuur. Hoeveel H-atomen heeft het molecuul?",
+            hash: "fab6cb460c288c1a439332109d34f685ce75c10bb172766c903a25f03a9b1c6d",
+            hints: {
+              "12": "Het C-atoom van de CHO-groep heeft maar één H.",
+              "11": "Tel per C-atoom: het C-atoom met de methylgroep heeft één H.",
+              "9": "Vergeet de H aan het C-atoom van de CHO-groep niet."
+            },
+            hint: "Teken de keten van 4 C-atomen met de CHO-groep als C-atoom 1, zet de methylgroep op C-atoom 3 en vul aan met H."
+          }
+        ],
+        geheim: {
+          tekst: "Onder het tafelkleed ligt nog een briefje:",
+          formule: "C₅H₁₀O — aldehyden én ketonen, ook vertakt",
+          vraag: "Hoeveel aldehyden en ketonen samen bestaan er met deze formule?",
+          hash: "dc14b8ad20c9f5a233242ed8e8fd85f7a31ff05b643e3fd66863ec35801e50f3",
+          hint: "Werk systematisch: eerst alle aldehyden (ketens van 5, 4 + methyl, 3 + twee methyl), daarna alle ketonen. Benoem ze om dubbelen te vinden."
+        }
+      },
+      na: {
+        plaat: PLAAT(27),
+        tekst: [
+          "“Ik geef het op,” zegt Alice. “Wat ís het antwoord?” — “Ik heb geen idee,” zegt de Hoedenmaker.",
+          "Alice staat boos op en loopt weg. Als ze omkijkt, zijn de Hoedenmaker en de Haas de Hazelmuis in de theepot aan het proppen.",
+          "Even verderop ziet ze een boom met een deurtje erin. Erachter: een huis waar een vreemde, scherpe geur uit komt. Peper. En azijn.",
+          "Voor de deur staat een lakei — met een vissenkop."
+        ]
+      }
+    },
     { nr: 7, plek: "De keuken van de Hertogin", leerdoel: "Carbonzuur en amine", plaat: PLAAT(21) },
     { nr: 8, plek: "De taartjes van de Koningin", leerdoel: "Esters", plaat: PLAAT(1) },
     { nr: 9, plek: "De rechtszaak", leerdoel: "Alles samen", plaat: PLAAT(38) }
@@ -433,7 +512,7 @@ window.WONDERLAND = {
 
 // Tekent een structuurformule zonder H-atomen als SVG.
 // atomen: ["C","C",...] (hoofdketen), bindingen: [1|2|3,...] tussen opeenvolgende atomen,
-// takken (optioneel): [{ bij: index, n: aantal atomen in de zijtak, r: -1 (omhoog) of 1 (omlaag), label: bv. "OH" voor het laatste atoom }]
+// takken (optioneel): [{ bij: index, n: aantal atomen in de zijtak, r: -1 (omhoog) of 1 (omlaag), label: bv. "OH" of "O" voor het laatste atoom, orde: 2 voor een dubbele binding naar de zijtak }]
 window.wlKetenSVG = function ({ atomen, bindingen, takken = [] }, kleur = "#3b2a17") {
   const dx = 96, dy = 74, gat = 20, x0 = 30, marge = 32;
   const boven = Math.max(0, ...takken.filter(t => t.r < 0).map(t => t.n));
@@ -452,7 +531,8 @@ window.wlKetenSVG = function ({ atomen, bindingen, takken = [] }, kleur = "#3b2a
     const x = x0 + dx * t.bij;
     for (let k = 1; k <= t.n; k++) {
       const ya = y + t.r * (dy * (k - 1) + gat), yb = y + t.r * (dy * k - gat);
-      lijnen += `<line x1="${x}" y1="${ya}" x2="${x}" y2="${yb}"/>`;
+      const offs = (k === 1 && t.orde === 2) ? [-4, 4] : [0];
+      offs.forEach(o => { lijnen += `<line x1="${x + o}" y1="${ya}" x2="${x + o}" y2="${yb}"/>`; });
       letters += `<text x="${x}" y="${y + t.r * dy * k}">${k === t.n && t.label ? t.label : "C"}</text>`;
     }
   });
