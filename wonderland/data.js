@@ -585,7 +585,85 @@ window.WONDERLAND = {
         ]
       }
     },
-    { nr: 8, plek: "De taartjes van de Koningin", leerdoel: "Esters", plaat: PLAAT(1) },
+    {
+      nr: 8,
+      plek: "De taartjes van de Koningin",
+      leerdoel: "De estergroep herkennen; aangeven uit welk alkaanzuur en alkanol een ester ontstaat (en terug); esters benoemen (alkylalkanoaat, één woord); de vorming van een ester en water weergeven",
+      plaat: PLAAT(1),
+      scene: [
+        "In de paleiskeuken staat de Koningin van Harten zelf aan het fornuis. Op lange tafels koelen taartjes af: aardbei, peer, ananas, banaan.",
+        "“Mijn geheim,” fluistert de kokkin tegen Alice, “is dat er geen fruit in zit. Helemaal niets. Alleen een paar druppels uit deze flesjes.”",
+        "Op de flesjes staan vreemde namen. Ethylbutanoaat. Pentylethanoaat. En ze ruiken precies naar fruit.",
+        "Achter Alice glipt iemand de keuken uit: de Boer van Harten — met iets onder zijn mantel."
+      ],
+      deur: {
+        intro: "Elk taartje heeft zijn eigen geur-ester. Teken in je schrift de structuren: van zuur en alkanol naar ester, en weer terug. Elk antwoord is één getal van de code.",
+        vragen: [
+          {
+            tekst: "De aardbeientaart: de ester uit",
+            formule: "propaan-1-ol + butaanzuur",
+            vraag: "Geef de naam van de ester. Hoeveel C-atomen heeft de ester?",
+            hash: "4610aab8245bf84a986addd88c27289f0fc1221d4476b8609d7db547d439b92b",
+            hints: {
+              "8": "Bij de estervorming verdwijnt er geen C-atoom — en er komt er ook geen bij.",
+              "6": "Bij de estervorming verdwijnt er geen C-atoom. Tel de C-atomen van het zuur en het alkanol bij elkaar op."
+            },
+            hint: "Tel de C-atomen van het zuur en van het alkanol. Water bevat geen C."
+          },
+          {
+            tekst: "Op een flesje staat deze ester (zonder H-atomen aan de C-atomen):",
+            structuur: { atomen: ["C", "C", "C", "O", "C", "C", "C", "C"], bindingen: [1, 1, 1, 1, 1, 1, 1], takken: [{ bij: 2, n: 1, r: -1, label: "O", orde: 2 }] },
+            formule: "",
+            vraag: "Uit welk alkanol is deze ester gemaakt? Hoeveel C-atomen heeft dat alkanol?",
+            hash: "07a9f1a4d00dcd8610eac608c62c7822f059ef596591c6f8148dd01d6fb3a55d",
+            hints: {
+              "3": "De kant met de C=O hoort bij het zuur, niet bij het alkanol.",
+              "7": "Knip de ester tussen de C=O-kant en de –O–alkyl-kant. Tel alleen de alkanol-kant."
+            },
+            hint: "Knip tussen de C=O en de O in de keten. De kant met de C=O hoort bij het zuur."
+          },
+          {
+            tekst: "De perentaart: de ester uit",
+            formule: "ethanol + pentaanzuur",
+            vraag: "Hoeveel H-atomen heeft de ester?",
+            hash: "e562f71b3d9b38f8590a3ae2fb53ff9942ccb31d0bac40ca4ac2d3a43550eaf3",
+            hints: {
+              "16": "Bij de estervorming wordt water afgesplitst. Welke H-atomen verdwijnen daarbij?",
+              "15": "Er wordt een heel watermolecuul afgesplitst: twee H-atomen.",
+              "12": "Tel nog eens: alleen de H-atomen van het watermolecuul verdwijnen."
+            },
+            hint: "Tel de H-atomen van het zuur en het alkanol bij elkaar op, en haal de H-atomen van het afgesplitste water eraf."
+          },
+          {
+            tekst: "De bananentaart ruikt naar:",
+            formule: "pentylethanoaat",
+            vraag: "Hoeveel C-atomen komen uit het zuur?",
+            hash: "ba26ccb4e877a0b8fe52c5711f73fa66ec0f5c32bdf9fd284e872be28bc479a0",
+            hints: {
+              "5": "Het pentyl-deel komt uit het alkanol. Het -anoaat-deel komt uit het zuur.",
+              "7": "Niet de hele ester: alleen het deel dat uit het zuur komt."
+            },
+            hint: "De naam van een ester: eerst het alkyl (uit het alkanol), dan het alkanoaat (uit het zuur)."
+          }
+        ],
+        geheim: {
+          tekst: "Op het laatste flesje staat alleen een molecuulformule:",
+          formule: "C₄H₈O₂ — esters",
+          vraag: "Hoeveel verschillende esters bestaan er met deze formule?",
+          hash: "44218ef73b06239946f2ebb3f7d18dbe1a6fcee90270b11fcc0e8005cb83961c",
+          hint: "Verdeel de 4 C-atomen op alle mogelijke manieren over het zuur-deel en het alkanol-deel. Vergeet niet dat het alkanol ook vertakt kan zijn."
+        }
+      },
+      na: {
+        plaat: PLAAT(37),
+        tekst: [
+          "Een trompet schalt door het paleis. Het Witte Konijn, in een heraut-mantel, rolt een perkament uit en leest voor:",
+          "“De Koningin van Harten, zij bakte taartjes fijn, op een mooie zomerdag. Maar de Boer van Harten stal ze — en nam ze mee, zo schijnt.”",
+          "“De rechtszaak begint!” roept iemand.",
+          "En iedereen rent naar de grote zaal."
+        ]
+      }
+    },
     { nr: 9, plek: "De rechtszaak", leerdoel: "Alles samen", plaat: PLAAT(38) }
   ]
 };
