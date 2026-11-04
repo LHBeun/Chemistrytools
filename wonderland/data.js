@@ -170,7 +170,93 @@ window.WONDERLAND = {
         ]
       }
     },
-    { nr: 3, plek: "De Rups", leerdoel: "Isomerie", plaat: PLAAT(15) },
+    {
+      nr: 3,
+      plek: "De Rups",
+      leerdoel: "Isomeren herkennen (zelfde molecuulformule, andere structuur); alle isomeren bij een molecuulformule tekenen; herkennen wanneer twee getekende structuurformules dezelfde stof zijn",
+      plaat: PLAAT(15),
+      scene: [
+        "Alice is nu zo klein als een duim. Ze kijkt over de rand van een paddenstoel — recht in de ogen van een grote blauwe Rups.",
+        "“Who… are… YOU?” vraagt de Rups.",
+        "“Ik… ik weet het eigenlijk niet meer, meneer,” zegt Alice. “Ik ben vandaag al zo vaak veranderd. Ik ben nog steeds van dezelfde dingen gemaakt, maar ik ben niet meer dezelfde.”",
+        "De Rups blaast een kringetje rook. “Dezelfde dingen… en toch een ander? Laat zien dat je begrijpt wat dat betekent. Dan vertel ik je het geheim van de paddenstoel.”"
+      ],
+      deur: {
+        intro: "De Rups stelt je vier vragen. Teken in je schrift systematisch en controleer met de naam: dezelfde naam is dezelfde stof. Elk antwoord is één getal van de code.",
+        vragen: [
+          {
+            tekst: "“Ik ben C₅H₁₂,” zegt de Rups. “Teken wie ik allemaal kan zijn.”",
+            formule: "C₅H₁₂",
+            vraag: "Hoeveel isomeren zijn er?",
+            hash: "90f9e3b405c1cf3334eec3e61ce64f8a0060e93f5f73a19547a57d33030b0cf2",
+            hints: {
+              "4": "Sommigen zijn dezelfde, alleen anders gaan zitten. Geef ze allemaal een naam.",
+              "5": "Sommigen zijn dezelfde, alleen anders gaan zitten. Geef ze allemaal een naam.",
+              "2": "Kun je twee zijtakken aan hetzelfde C-atoom hangen?"
+            },
+            hint: "Begin met de langste keten. Maak de keten dan steeds één C-atoom korter en zet de rest als zijtak."
+          },
+          {
+            tekst: "Op de paddenstoel liggen zes getekende structuurformules (zonder H-atomen):",
+            structuren: [
+              { label: "A", structuur: { atomen: ["C", "C", "C", "C", "C"], bindingen: [1, 1, 1, 1], takken: [{ bij: 1, n: 1, r: -1 }] } },
+              { label: "B", structuur: { atomen: ["C", "C", "C", "C", "C"], bindingen: [1, 1, 1, 1], takken: [{ bij: 3, n: 1, r: 1 }] } },
+              { label: "C", structuur: { atomen: ["C", "C", "C", "C", "C"], bindingen: [1, 1, 1, 1], takken: [{ bij: 2, n: 1, r: -1 }] } },
+              { label: "D", structuur: { atomen: ["C", "C", "C", "C"], bindingen: [1, 1, 1], takken: [{ bij: 1, n: 1, r: -1 }, { bij: 2, n: 1, r: 1 }] } },
+              { label: "E", structuur: { atomen: ["C", "C", "C", "C"], bindingen: [1, 1, 1], takken: [{ bij: 1, n: 2, r: 1 }] } },
+              { label: "F", structuur: { atomen: ["C", "C", "C", "C"], bindingen: [1, 1, 1], takken: [{ bij: 1, n: 1, r: -1 }, { bij: 1, n: 1, r: 1 }] } }
+            ],
+            vraag: "Hoeveel verschillende stoffen zijn het?",
+            hash: "8758f5e6b02bb4d26648ff37db5bc1d740731b424f3999bccff5a41b5daa15cb",
+            hints: {
+              "5": "Kijk bij E goed naar de langste keten.",
+              "6": "Benoem elke structuurformule. Dezelfde naam = dezelfde stof."
+            },
+            hint: "Benoem elke structuurformule. Dezelfde naam = dezelfde stof."
+          },
+          {
+            tekst: "De Rups wil alleen onvertakte ketens zien:",
+            formule: "C₆H₁₂ — onvertakt, alkeen",
+            vraag: "Hoeveel onvertakte alkenen met deze formule bestaan er?",
+            hash: "daa1aa0cf70231abc4a99188718f85d0a5d3fe396c989f31faffb986dde20d4a",
+            hints: {
+              "4": "Hex-4-een is hex-2-een, vanaf de andere kant genummerd.",
+              "5": "Hex-4-een is hex-2-een, vanaf de andere kant genummerd.",
+              "2": "De dubbele binding kan op meer plekken zitten dan je denkt. Probeer ook het midden van de keten."
+            },
+            hint: "Schuif de dubbele binding stap voor stap door de keten en geef elke stof een naam."
+          },
+          {
+            tekst: "“Raad eens,” zegt de Rups:",
+            formule: "alkaan · 7 C-atomen · langste keten 5 · precies twee methylgroepen",
+            vraag: "Hoeveel alkanen passen bij deze beschrijving?",
+            hash: "fa980436bb85e1d93f2184afa1f6b91fd06f30bf4c7fddbdffa076a62805da3d",
+            hints: {
+              "3": "Twee methylgroepen mogen ook aan hetzelfde C-atoom.",
+              "5": "Controleer met de naam: 3,4-dimethylpentaan heet eigenlijk anders.",
+              "6": "Controleer met de naam: sommige combinaties zijn dezelfde stof, vanaf de andere kant genummerd."
+            },
+            hint: "Teken de keten van 5 C-atomen en probeer systematisch alle plekken voor twee methylgroepen. Benoem ze om dubbelen te vinden."
+          }
+        ],
+        geheim: {
+          tekst: "De Rups blaast een laatste kringetje:",
+          formule: "C₅H₁₀ — alkenen, óók vertakt, géén ringen",
+          vraag: "Hoeveel van zulke alkenen bestaan er?",
+          hash: "fabd2a58b2440747029102a866c831a361cb73760444deffc0b672f3677917b4",
+          hint: "Combineer alles: onvertakte ketens met de dubbele binding op verschillende plekken, én ketens van 4 met een methylgroep. Benoem elke stof."
+        }
+      },
+      na: {
+        plaat: PLAAT(23),
+        tekst: [
+          "“Hm,” zegt de Rups tevreden. “Eén kant van de paddenstoel maakt je groter. De andere kant kleiner. Dezelfde paddenstoel — een ander effect.”",
+          "Hij kruipt weg in het gras. Alice breekt van beide kanten een stukje af en loopt verder het bos in.",
+          "Dan ziet ze iets vreemds in een boom. Eerst alleen een grijns.",
+          "Daarna, heel langzaam, de rest van een kat."
+        ]
+      }
+    },
     { nr: 4, plek: "De Cheshire Kat", leerdoel: "Ringen en benzeen; C-atomen op de hoekpunten", plaat: PLAAT(24) },
     { nr: 5, plek: "De tuinmannen van de Koningin", leerdoel: "Halogeensubstituenten, hydroxylgroep, ethers", plaat: PLAAT(28) },
     { nr: 6, plek: "Het theekransje", leerdoel: "Aldehyde en keton", plaat: PLAAT(25) },
@@ -180,19 +266,32 @@ window.WONDERLAND = {
   ]
 };
 
-// Tekent een rechte keten als nette structuurformule (SVG).
-// atomen: ["C","C",...], bindingen: [1|2|3, ...] tussen opeenvolgende atomen.
-window.wlKetenSVG = function ({ atomen, bindingen }, kleur = "#3b2a17") {
-  const dx = 96, gat = 20, h = 64, y = h / 2, x0 = 30;
+// Tekent een structuurformule zonder H-atomen als SVG.
+// atomen: ["C","C",...] (hoofdketen), bindingen: [1|2|3,...] tussen opeenvolgende atomen,
+// takken (optioneel): [{ bij: index, n: aantal C in de zijtak, r: -1 (omhoog) of 1 (omlaag) }]
+window.wlKetenSVG = function ({ atomen, bindingen, takken = [] }, kleur = "#3b2a17") {
+  const dx = 96, dy = 74, gat = 20, x0 = 30, marge = 32;
+  const boven = Math.max(0, ...takken.filter(t => t.r < 0).map(t => t.n));
+  const onder = Math.max(0, ...takken.filter(t => t.r > 0).map(t => t.n));
+  const y = marge + boven * dy;
+  const h = y + onder * dy + marge;
   const breedte = x0 * 2 + dx * (atomen.length - 1);
-  let lijnen = "";
+  let lijnen = "", letters = "";
   bindingen.forEach((orde, i) => {
     const xa = x0 + dx * i + gat, xb = x0 + dx * (i + 1) - gat;
     const offs = orde === 1 ? [0] : orde === 2 ? [-4, 4] : [-6.5, 0, 6.5];
     offs.forEach(o => { lijnen += `<line x1="${xa}" y1="${y + o}" x2="${xb}" y2="${y + o}"/>`; });
   });
-  const letters = atomen.map((a, i) => `<text x="${x0 + dx * i}" y="${y}">${a}</text>`).join("");
-  return `<svg class="structuur" viewBox="0 0 ${breedte} ${h}" width="${breedte}" height="${h}" role="img" aria-label="${atomen.join("")}">
+  atomen.forEach((a, i) => { letters += `<text x="${x0 + dx * i}" y="${y}">${a}</text>`; });
+  takken.forEach(t => {
+    const x = x0 + dx * t.bij;
+    for (let k = 1; k <= t.n; k++) {
+      const ya = y + t.r * (dy * (k - 1) + gat), yb = y + t.r * (dy * k - gat);
+      lijnen += `<line x1="${x}" y1="${ya}" x2="${x}" y2="${yb}"/>`;
+      letters += `<text x="${x}" y="${y + t.r * dy * k}">C</text>`;
+    }
+  });
+  return `<svg class="structuur" viewBox="0 0 ${breedte} ${h}" width="${breedte}" height="${h}" role="img" aria-label="structuurformule">
     <g stroke="${kleur}" stroke-width="2.6" stroke-linecap="round">${lijnen}</g>
     <g fill="${kleur}" font-family="Arial, Helvetica, sans-serif" font-size="30" text-anchor="middle" dominant-baseline="central">${letters}</g>
   </svg>`;
