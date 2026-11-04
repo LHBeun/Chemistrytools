@@ -343,7 +343,87 @@ window.WONDERLAND = {
         ]
       }
     },
-    { nr: 5, plek: "De tuinmannen van de Koningin", leerdoel: "Halogeensubstituenten, hydroxylgroep, ethers", plaat: PLAAT(28) },
+    {
+      nr: 5,
+      plek: "De tuinmannen van de Koningin",
+      leerdoel: "Alkanen met halogeensubstituenten en alkanolen benoemen met de juiste plaatsnummers; ethers herkennen, benoemen (alkoxyalkaan) en tekenen",
+      plaat: PLAAT(28),
+      scene: [
+        "Drie tuinmannen, plat als speelkaarten, staan met verfpotten bij een rozenstruik.",
+        "“Waarom schilderen jullie die rozen rood?” vraagt Alice. “Nou, ziet u, juffrouw,” fluistert Twee, “dit had een róde rozenstruik moeten zijn. En wij hebben per ongeluk een witte geplant. Als de Koningin dat ontdekt…”",
+        "Ze schilderen roos voor roos over. De struik blijft dezelfde struik — alleen hier en daar is iets vervangen.",
+        "En toch is het ineens een heel andere struik."
+      ],
+      deur: {
+        intro: "De tuinmannen schilderen H-atomen over. Teken in je schrift de structuren en geef de namen. Elk antwoord is één getal van de code.",
+        vragen: [
+          {
+            tekst: "Tuinman Twee schildert in pentaan twee H-atomen over met Br — allebei aan het vierde C-atoom van links.",
+            formule: "",
+            vraag: "Geef de naam. Welk plaatsnummer staat er (twee keer) in de naam?",
+            hash: "d796632d96c5d21f56ff76234d3e2c0771db7a42157978d2910bbceb7b3f7701",
+            hints: {
+              "4": "Je mag de keten ook vanaf de andere kant nummeren.",
+              "1": "Beide broomatomen zitten aan hetzelfde C-atoom. Tel nog eens vanaf het dichtstbijzijnde uiteinde.",
+              "3": "Tel nog eens vanaf het dichtstbijzijnde uiteinde."
+            },
+            hint: "Nummer de keten zo dat de plaatsnummers zo laag mogelijk zijn."
+          },
+          {
+            tekst: "Tuinman Vijf heeft dit molecuul getekend (zonder H-atomen aan de C-atomen):",
+            structuur: { atomen: ["C", "C", "C", "C", "C", "C"], bindingen: [1, 1, 1, 1, 1], takken: [{ bij: 3, n: 1, r: -1, label: "OH" }] },
+            formule: "",
+            vraag: "Geef de naam. Welk plaatsnummer staat in de naam?",
+            hash: "88cda31b176460e282df5d452a9626f4c1e91a50bc6a1adc8db71b18963ba942",
+            hints: {
+              "4": "Nummer vanaf de kant die het dichtst bij de OH-groep zit.",
+              "2": "Tel nog eens: aan welk C-atoom zit de OH, gerekend vanaf het dichtstbijzijnde uiteinde?"
+            },
+            hint: "De OH-groep krijgt een zo laag mogelijk plaatsnummer."
+          },
+          {
+            tekst: "Tuinman Zeven heeft een potje met formule:",
+            formule: "C₃H₈O",
+            vraag: "Hoeveel isomeren met deze formule bestaan er?",
+            hash: "1313910d5244d166de8caeaf982500c48daadad08aee0143cfb144216579c184",
+            hints: {
+              "2": "Vergeet de ethers niet: de O kan ook tussen twee C-atomen zitten.",
+              "4": "Controleer met de naam of je dubbelen hebt.",
+              "5": "Controleer met de naam of je dubbelen hebt."
+            },
+            hint: "Teken eerst alle alkanolen (waar kan de OH zitten?), daarna alle ethers (waar kan de O in de keten zitten?)."
+          },
+          {
+            tekst: "Op een rozenpot staat:",
+            formule: "2-broom-2-methylbutaan",
+            vraag: "Teken de structuur. Hoeveel H-atomen heeft het molecuul?",
+            hash: "e3ad9455203210246d727de523129192568b0e33b2ea90724fa2b6bc26ddf5c2",
+            hints: {
+              "12": "Het Br-atoom neemt de plaats in van een H.",
+              "9": "Vergeet de H-atomen aan de methylgroep niet.",
+              "10": "Tel per C-atoom: het C-atoom met de Br én de methylgroep heeft geen H meer."
+            },
+            hint: "Teken de keten van 4 C-atomen, zet de methylgroep en de Br op het tweede C-atoom en vul elk C-atoom aan tot 4 bindingen."
+          }
+        ],
+        geheim: {
+          tekst: "Achter de rozenstruik staat nog één potje:",
+          formule: "C₄H₁₀O",
+          vraag: "Hoeveel isomeren met deze formule bestaan er? Tel alkanolen én ethers.",
+          hash: "d6f643d5a57eac97511c4253d15dfa55561deec8a6f71a58e3d02d9ebe4d1a35",
+          hint: "Werk systematisch: eerst alle ketens van 4 en van 3 + methyl met een OH erop, daarna alle plekken waar een O tussen twee C-atomen kan zitten."
+        }
+      },
+      na: {
+        plaat: PLAAT(29),
+        tekst: [
+          "Trompetten! De tuinmannen gooien zich plat op hun gezicht. Daar komt de Koningin van Harten, met haar hele hofhouding van speelkaarten.",
+          "Ze kijkt naar de rozen. Naar de verfpotten. Naar de tuinmannen.",
+          "“OFF WITH THEIR HEADS!”",
+          "Alice verstopt de drie snel in een grote bloempot en glipt weg door de heg. Daar ruikt ze iets: thee. En ze hoort gelach, en het rinkelen van kopjes."
+        ]
+      }
+    },
     { nr: 6, plek: "Het theekransje", leerdoel: "Aldehyde en keton", plaat: PLAAT(25) },
     { nr: 7, plek: "De keuken van de Hertogin", leerdoel: "Carbonzuur en amine", plaat: PLAAT(21) },
     { nr: 8, plek: "De taartjes van de Koningin", leerdoel: "Esters", plaat: PLAAT(1) },
@@ -353,7 +433,7 @@ window.WONDERLAND = {
 
 // Tekent een structuurformule zonder H-atomen als SVG.
 // atomen: ["C","C",...] (hoofdketen), bindingen: [1|2|3,...] tussen opeenvolgende atomen,
-// takken (optioneel): [{ bij: index, n: aantal C in de zijtak, r: -1 (omhoog) of 1 (omlaag) }]
+// takken (optioneel): [{ bij: index, n: aantal atomen in de zijtak, r: -1 (omhoog) of 1 (omlaag), label: bv. "OH" voor het laatste atoom }]
 window.wlKetenSVG = function ({ atomen, bindingen, takken = [] }, kleur = "#3b2a17") {
   const dx = 96, dy = 74, gat = 20, x0 = 30, marge = 32;
   const boven = Math.max(0, ...takken.filter(t => t.r < 0).map(t => t.n));
@@ -373,7 +453,7 @@ window.wlKetenSVG = function ({ atomen, bindingen, takken = [] }, kleur = "#3b2a
     for (let k = 1; k <= t.n; k++) {
       const ya = y + t.r * (dy * (k - 1) + gat), yb = y + t.r * (dy * k - gat);
       lijnen += `<line x1="${x}" y1="${ya}" x2="${x}" y2="${yb}"/>`;
-      letters += `<text x="${x}" y="${y + t.r * dy * k}">C</text>`;
+      letters += `<text x="${x}" y="${y + t.r * dy * k}">${k === t.n && t.label ? t.label : "C"}</text>`;
     }
   });
   return `<svg class="structuur" viewBox="0 0 ${breedte} ${h}" width="${breedte}" height="${h}" role="img" aria-label="structuurformule">
