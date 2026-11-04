@@ -664,7 +664,89 @@ window.WONDERLAND = {
         ]
       }
     },
-    { nr: 9, plek: "De rechtszaak", leerdoel: "Alles samen", plaat: PLAAT(38) }
+    {
+      nr: 9,
+      plek: "De rechtszaak",
+      leerdoel: "Alles samen: naamgeving (ketens, vertakkingen, ringen, karakteristieke groepen), isomerie en H-atomen tellen in de hoekpuntnotatie — door elkaar",
+      plaat: PLAAT(38),
+      scene: [
+        "In de grote zaal zit de Koning als rechter, met de kroon over zijn pruik. Naast hem de Koningin, met een gezicht als een donderwolk. Op een tafel in het midden: de taartjes. Voor de rechter staat de Boer van Harten — in ketenen.",
+        "De jury bestaat uit twaalf dieren, die ijverig op leitjes schrijven. Niemand weet precies wat.",
+        "“Lees de beschuldiging voor!” roept de Koning.",
+        "Dan draait de Koning zich om naar Alice. “Jij, meisje. Jij hebt alles gezien. Jij moet de bewijsstukken ontcijferen.”"
+      ],
+      deur: {
+        intro: "Vier bewijsstukken, uit vier verschillende hoeken van Wonderland. Bedenk bij elk stuk eerst wélke regel je nodig hebt. Elk antwoord is één getal van de code.",
+        vragen: [
+          {
+            tekst: "Bewijsstuk A — een kruimel op de mouw van de Boer bevat:",
+            formule: "2-methylbutaan-1-ol",
+            vraag: "Teken de structuur. Hoeveel H-atomen heeft het molecuul?",
+            hash: "d70a4c9265afa8dd0fb3d47c934eb8b820e0d3dcc7d88de493b78df4a1d92325",
+            hints: {
+              "11": "Vergeet de H van de OH-groep niet.",
+              "14": "Een alkanol heeft evenveel H-atomen als het alkaan met dezelfde keten.",
+              "10": "Vergeet de H-atomen aan de methylgroep niet."
+            },
+            hint: "Teken de keten van 4 C-atomen, zet de OH op C-atoom 1 en de methylgroep op C-atoom 2, en vul aan met H."
+          },
+          {
+            tekst: "Bewijsstuk B — een tekening in hoekpuntnotatie:",
+            skelet: { soort: "ring", n: 6, takken: [{ bij: 0, lengte: 1, hoek: -35 }, { bij: 0, lengte: 1, hoek: 35 }] },
+            formule: "",
+            vraag: "Hoeveel H-atomen zitten er aan het ring-C-atoom met de twee methylgroepen?",
+            hash: "8c0c77b52d74a58bbf5b2b7bf89d5543ebc0ba04981fbba962fdc609fe3ec552",
+            hints: {
+              "1": "Dit C-atoom heeft al vier bindingen naar andere C-atomen: twee in de ring en twee naar de methylgroepen.",
+              "2": "Tel de bindingen van dit ene C-atoom. Hoeveel plek is er nog voor H?",
+              "3": "Dat is het aantal H aan één methylgroep. De vraag gaat over het ring-C-atoom."
+            },
+            hint: "Tel de bindingen van dat ene C-atoom en vul aan tot 4."
+          },
+          {
+            tekst: "Bewijsstuk C — de jury heeft vijf stoffen op haar leitjes geschreven:",
+            formule: "ethylethanoaat · butanal · methylpropanoaat · butaan-1-ol · 2-methylpropaanzuur",
+            vraag: "Hoeveel van deze stoffen zijn isomeren van butaanzuur?",
+            hash: "e5b748762ae27a3a4a7d1d87bd19a3439face4a3ef3d13f6ba59a52d53a8e0d8",
+            hints: {
+              "2": "Vergelijk de molecuulformules. Esters en carbonzuren kunnen isomeren van elkaar zijn.",
+              "4": "Controleer het aantal O-atomen.",
+              "5": "Controleer het aantal O-atomen."
+            },
+            hint: "Geef van butaanzuur en van elke stof de molecuulformule en vergelijk."
+          },
+          {
+            tekst: "Bewijsstuk D — gevonden in de zak van de Boer (zonder H-atomen):",
+            structuur: { atomen: ["C", "C", "C", "C", "C"], bindingen: [1, 2, 1, 1], takken: [{ bij: 2, n: 1, r: -1 }] },
+            formule: "",
+            vraag: "Geef de naam. Welk plaatsnummer heeft de dubbele binding?",
+            hash: "478cb85108dc416e8b14e3966771329133ee3156d0683ec9f954a34f6530241a",
+            hints: {
+              "3": "Nummer vanaf de kant die het dichtst bij de dubbele binding zit.",
+              "4": "Nummer vanaf de kant die het dichtst bij de dubbele binding zit."
+            },
+            hint: "De dubbele binding krijgt een zo laag mogelijk plaatsnummer — die gaat vóór de methylgroep."
+          }
+        ],
+        geheim: {
+          tekst: "De Koningin eist nog één laatste bewijs:",
+          formule: "C₂H₄O₂ — carbonzuren en esters",
+          vraag: "Hoeveel stoffen met deze formule zijn een carbonzuur of een ester?",
+          hash: "669f5fd06a1589af20424c2bba7061b106e66f0c20c49a730589d3eb0e0cef83",
+          hint: "Een carbonzuur met 2 C-atomen, en een ester waarvan zuur-deel + alkanol-deel samen 2 C-atomen hebben."
+        }
+      },
+      na: {
+        plaat: PLAAT(42),
+        tekst: [
+          "“Eerst de straf — dan pas het vonnis!” krijst de Koningin.",
+          "“Onzin!” zegt Alice luid. Ze groeit, en groeit, tot ze hoger is dan de rechtersstoel. “Wie maalt er om jullie? Jullie zijn niets anders dan een pak kaarten!”",
+          "En de hele stapel kaarten vliegt op en dwarrelt op haar neer…",
+          "Alice opent haar ogen. Ze ligt aan de oever van de rivier, met haar hoofd in de schoot van haar zus, die zachtjes wat dode bladeren van haar gezicht veegt. “Wat een vreemde droom,” fluistert Alice.",
+          "Maar toen ze naar huis liep, rook ze appeltaart. En ze wist precies welke ester dat was."
+        ]
+      }
+    }
   ]
 };
 
@@ -701,7 +783,7 @@ window.wlKetenSVG = function ({ atomen, bindingen, takken = [] }, kleur = "#3b2a
 };
 
 // Hoekpuntnotatie (skeletformule) voor ringen: alleen lijnen, C-atomen op de hoekpunten.
-// spec: { soort: "ring", n, dubbel: [randindex,...], cirkel: bool, takken: [{ bij, lengte }] }
+// spec: { soort: "ring", n, dubbel: [randindex,...], cirkel: bool, takken: [{ bij, lengte, hoek (graden, optioneel) }] }
 //    of { soort: "naftaleen" }
 window.wlSkeletSVG = function (spec, kleur = "#3b2a17") {
   const R = 46, L = 46;
@@ -723,7 +805,8 @@ window.wlSkeletSVG = function (spec, kleur = "#3b2a17") {
       const [x, y] = pts[t.bij], len = Math.hypot(x, y), ux = x / len, uy = y / len;
       let vorige = t.bij, px = x, py = y;
       for (let k = 0; k < t.lengte; k++) {
-        const hoek = k === 0 ? 0 : (k % 2 ? 1 : -1) * Math.PI / 3;
+        const extra = (t.hoek || 0) * Math.PI / 180;
+        const hoek = extra + (k === 0 ? 0 : (k % 2 ? 1 : -1) * Math.PI / 3);
         const dxk = ux * Math.cos(hoek) - uy * Math.sin(hoek), dyk = ux * Math.sin(hoek) + uy * Math.cos(hoek);
         px += L * dxk; py += L * dyk; pts.push([px, py]);
         bonds.push([vorige, pts.length - 1, 1, -1]); vorige = pts.length - 1;
