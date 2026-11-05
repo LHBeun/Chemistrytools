@@ -49,7 +49,7 @@ window.WONDERLAND = {
             hint: "Welk aantal C-atomen hoort bij 'hept-'? En is het een alkaan, alkeen of alkyn?"
           },
           {
-            tekst: "Teken (zonder H) het onvertakte alkeen met 5 C-atomen, waarbij de dubbele binding aan het uiteinde van de keten zit.",
+            tekst: "Teken de structuurformule van het onvertakte alkeen met 5 C-atomen, waarbij de dubbele binding aan het uiteinde van de keten zit.",
             formule: "",
             vraag: "Hoeveel H-atomen zitten er aan het tweede C-atoom?",
             hash: "de346e890a6dc55c80924d7a6b5de16e221f8076729555d98839b9d3d6434a4c",
