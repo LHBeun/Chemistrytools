@@ -54,6 +54,32 @@
   .uitwerking.show{display:block;}
   .uitwerking h4{font-size:13px;margin-bottom:6px;color:var(--amber);}
   .note{font-size:12px;color:var(--text3);margin-top:1rem;border-top:1px solid var(--border);padding-top:0.75rem;line-height:1.6;}
+  .hr-tabs{display:flex;gap:8px;margin-bottom:1rem;}
+  .hr-tabs button{flex:1;padding:9px 12px;font-size:15px;font-weight:600;border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface);color:var(--text);cursor:pointer;font-family:inherit;}
+  .hr-tabs button.actief{background:var(--blue);border-color:var(--blue);color:#fff;}
+  .hr-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:12px;font-size:14px;}
+  .hr-bar label{display:flex;flex-direction:column;gap:3px;font-weight:500;}
+  .hr-bar select{width:auto;min-width:170px;}
+  .hr-bar .hr-chk{flex-direction:row;align-items:center;gap:6px;font-weight:400;padding-bottom:8px;}
+  .hr-plan{font-size:13px;color:var(--text2);margin-bottom:12px;}
+  .hr-plan summary{cursor:pointer;color:var(--blue);font-weight:500;}
+  .hr-plan>div{display:inline-block;vertical-align:top;margin:6px 24px 0 0;line-height:1.7;}
+  .hr-vraag{font-size:16px;margin:8px 0 10px;}
+  .hr-ctx{display:block;font-style:italic;color:var(--text2);margin-top:4px;}
+  .hr-eq{font-size:20px;background:var(--surface2);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;min-height:52px;}
+  .hr-eq .hr-new{color:var(--blue);font-weight:600;}
+  .hr-done{font-size:13px;color:var(--green);margin:2px 0;}
+  .hr-step{border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:var(--radius);padding:12px 14px;background:var(--surface);}
+  .hr-step h3{font-size:15px;margin-bottom:8px;}
+  .hr-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:8px;font-size:15px;}
+  .hr-row input[type=number]{width:70px;padding:7px 8px;font-size:15px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--hs-given,#fff);font-family:inherit;}
+  .hr-row select{width:auto;}
+  .hr-knoppen{display:flex;gap:8px;margin-top:6px;}
+  .hr-knoppen .btn{width:auto;margin-top:0;}
+  .hr-hint{font-size:13px;background:var(--amber-bg);border-left:3px solid var(--amber);padding:6px 10px;border-radius:6px;margin-top:8px;display:none;}
+  .hr-fb{margin-top:10px;font-size:14px;}
+  .hr-fb .ok{color:var(--green);font-weight:600;}
+  .hr-fb .no{color:var(--red);}
   .precip-note{background:#eef6ff;border-left:3px solid var(--blue);padding:8px 12px;border-radius:var(--radius);font-size:13px;margin-top:8px;color:var(--blue);}
 </style>
 <style id="huisstijl">
@@ -87,8 +113,13 @@ input[type="text"],select{background:var(--hs-given)}
 <div class="page">
   <header class="header">
     <h1>Redox Cel Simulator</h1>
-    <p>Onderzoek de elektrochemische cel met Binas tabel 48 en voorspel wat er gebeurt.</p>
+    <p>Onderzoek de elektrochemische cel met Binas tabel 48, of stel zelf halfreacties op.</p>
   </header>
+  <div class="hr-tabs">
+    <button id="tabBtnCel" class="actief" onclick="hrTab('cel')">Elektrochemische cel</button>
+    <button id="tabBtnHalf" onclick="hrTab('half')">Halfreacties opstellen</button>
+  </div>
+  <div id="tabCel">
 
   <div class="panel">
     <div class="cell-display">
@@ -176,6 +207,37 @@ input[type="text"],select{background:var(--hs-given)}
     <div class="note">
       Een Platina-elektrode is inert en reageert zelf niet.
     </div>
+  </div>
+  </div>
+  <div id="tabHalf" style="display:none">
+  <div class="panel">
+    <div class="hr-bar">
+      <label>Modus
+        <select id="hrModus" onchange="hrNieuw()">
+          <option value="stappen">Met stappen</option>
+          <option value="zonder">Zonder stappen</option>
+          <option value="context">Context: milieu zelf bepalen</option>
+        </select></label>
+      <label>Opgaven
+        <select id="hrMilieu" onchange="hrNieuw()">
+          <option value="gemengd">zuur en basisch</option>
+          <option value="zuur">alleen zuur</option>
+          <option value="basisch">alleen basisch</option>
+        </select></label>
+      <label class="hr-chk"><input type="checkbox" id="hrSter" onchange="hrNieuw()"> ★ extra moeilijk erbij</label>
+    </div>
+    <details class="hr-plan"><summary>Stappenplan</summary>
+      <div><b>Zuur milieu</b><br>1 Schrijf het deeltje en het product op<br>2 Maak de atomen kloppend, behalve O en H<br>3 Maak O kloppend met H₂O<br>4 Maak H kloppend met H⁺<br>5 Maak de lading kloppend met e⁻<br>6 e⁻ links: reductie (oxidator) · e⁻ rechts: oxidatie (reductor)</div>
+      <div><b>Basisch milieu</b><br>1 Stel de halfreactie eerst op in zuur milieu<br>2 Tel aan beide kanten evenveel OH⁻ op als er H⁺ staat<br>3 H⁺ + OH⁻ wordt H₂O<br>4 Streep H₂O weg die links én rechts staat</div>
+    </details>
+    <div class="hr-vraag" id="hrVraag"></div>
+    <div class="hr-eq" id="hrEq"></div>
+    <div id="hrKlaar"></div>
+    <div id="hrStap"></div>
+    <div class="hr-fb" id="hrFb"></div>
+    <div class="uitwerking" id="hrUitw"></div>
+    <button class="btn btn-sec" onclick="hrNieuw()">Nieuwe opgave</button>
+  </div>
   </div>
 </div>
 
@@ -504,6 +566,225 @@ function checkAlles(){
 }
 
 nieuweCel();
+</script>
+<script>
+// ===== Halfreacties opstellen: data + oplosser (volgt het stappenplan uit de les) =====
+const HR_OPG = [
+  // zuur
+  {m:'zuur', d:{f:'ClO⁻',el:{Cl:1,O:1},q:-1}, p:{f:'Cl₂',el:{Cl:2},q:0}},
+  {m:'zuur', d:{f:'NO₃⁻',el:{N:1,O:3},q:-1}, p:{f:'NO₂',el:{N:1,O:2},q:0}},
+  {m:'zuur', d:{f:'NO₃⁻',el:{N:1,O:3},q:-1}, p:{f:'NH₄⁺',el:{N:1,H:4},q:1}},
+  {m:'zuur', d:{f:'ClO₃⁻',el:{Cl:1,O:3},q:-1}, p:{f:'Cl⁻',el:{Cl:1},q:-1}},
+  {m:'zuur', d:{f:'IO₃⁻',el:{I:1,O:3},q:-1}, p:{f:'I₂',el:{I:2},q:0}},
+  {m:'zuur', d:{f:'PbO₂',el:{Pb:1,O:2},q:0}, p:{f:'Pb²⁺',el:{Pb:1},q:2}},
+  {m:'zuur', d:{f:'MnO₂',el:{Mn:1,O:2},q:0}, p:{f:'Mn²⁺',el:{Mn:1},q:2}},
+  {m:'zuur', d:{f:'HNO₂',el:{H:1,N:1,O:2},q:0}, p:{f:'NO',el:{N:1,O:1},q:0}},
+  {m:'zuur', d:{f:'H₂C₂O₄',el:{H:2,C:2,O:4},q:0}, p:{f:'CO₂',el:{C:1,O:2},q:0}},
+  {m:'zuur', d:{f:'SO₄²⁻',el:{S:1,O:4},q:-2}, p:{f:'SO₂',el:{S:1,O:2},q:0}},
+  {m:'zuur', d:{f:'H₂S',el:{H:2,S:1},q:0}, p:{f:'S',el:{S:1},q:0}},
+  {m:'zuur', d:{f:'Mn²⁺',el:{Mn:1},q:2}, p:{f:'MnO₄⁻',el:{Mn:1,O:4},q:-1}},
+  {m:'zuur', ster:true, d:{f:'BrO₃⁻',el:{Br:1,O:3},q:-1}, p:{f:'Br₂',el:{Br:2},q:0}},
+  {m:'zuur', ster:true, d:{f:'CH₃CH₂OH',el:{C:2,H:6,O:1},q:0}, p:{f:'CH₃COOH',el:{C:2,H:4,O:2},q:0}},
+  {m:'zuur', ster:true, d:{f:'S₂O₃²⁻',el:{S:2,O:3},q:-2}, p:{f:'SO₄²⁻',el:{S:1,O:4},q:-2}},
+  // basisch
+  {m:'basisch', d:{f:'ClO⁻',el:{Cl:1,O:1},q:-1}, p:{f:'Cl⁻',el:{Cl:1},q:-1}},
+  {m:'basisch', d:{f:'H₂O₂',el:{H:2,O:2},q:0}, p:{f:'O₂',el:{O:2},q:0}},
+  {m:'basisch', d:{f:'NO₂⁻',el:{N:1,O:2},q:-1}, p:{f:'NO₃⁻',el:{N:1,O:3},q:-1}},
+  {m:'basisch', d:{f:'Zn',el:{Zn:1},q:0}, p:{f:'Zn(OH)₂',el:{Zn:1,O:2,H:2},q:0}},
+  {m:'basisch', d:{f:'Ag₂O',el:{Ag:2,O:1},q:0}, p:{f:'Ag',el:{Ag:1},q:0}},
+  {m:'basisch', d:{f:'IO₃⁻',el:{I:1,O:3},q:-1}, p:{f:'I⁻',el:{I:1},q:-1}},
+  {m:'basisch', ster:true, d:{f:'Al',el:{Al:1},q:0}, p:{f:'Al(OH)₄⁻',el:{Al:1,O:4,H:4},q:-1}}
+];
+function hrGcd(a,b){ return b?hrGcd(b,a%b):a; }
+function hrLos(o){
+  const d=o.d, p=o.p, keys=new Set([...Object.keys(d.el),...Object.keys(p.el)].filter(k=>k!=='O'&&k!=='H'));
+  // stap 2: coëfficiënten (alles behalve O en H)
+  let a=1,b=1;   // er is steeds hooguit één element (naast O en H) dat aan beide kanten staat
+  keys.forEach(k=>{ const x=d.el[k]||0, y=p.el[k]||0; if(x&&y){ const l=x*y/hrGcd(x,y); a=l/x; b=l/y; } });
+  const cnt=(s,el,c)=> (s.el[el]||0)*c;
+  // stap 3: O met H2O
+  const OL=cnt(d,'O',a), OR=cnt(p,'O',b);
+  const w = {n:Math.abs(OL-OR), kant: OL<OR?'links':OL>OR?'rechts':null};
+  // stap 4: H met H+
+  const HL=cnt(d,'H',a)+(w.kant==='links'?2*w.n:0), HR=cnt(p,'H',b)+(w.kant==='rechts'?2*w.n:0);
+  const h = {n:Math.abs(HL-HR), kant: HL<HR?'links':HL>HR?'rechts':null};
+  // stap 5: lading met e-
+  const QL=d.q*a+(h.kant==='links'?h.n:0), QR=p.q*b+(h.kant==='rechts'?h.n:0);
+  const e = {n:Math.abs(QL-QR), kant: QL>QR?'links':QL<QR?'rechts':null};
+  const red = e.kant==='links';
+  const r={a,b,w,h,e,red};
+  if(o.m==='basisch'){
+    // B2: evenveel OH- als H+ aan beide kanten; B3: H+ + OH- -> H2O; B4: H2O wegstrepen
+    const oh=h.n, hk=h.kant, ander = hk==='links'?'rechts':'links';
+    const h2oOpHkant = oh + (w.kant===hk?w.n:0), h2oAnder = (w.kant===ander?w.n:0);
+    const net = h2oOpHkant-h2oAnder;
+    r.bas = {oh, ohKant:ander, gevormd:oh, wNet:{n:Math.abs(net), kant: net>0?hk:net<0?ander:null}};
+  }
+  return r;
+}
+
+// ===== Halfreacties opstellen: interface =====
+const HR_CTX = {
+  zuur:['De oplossing is aangezuurd met zwavelzuur.','Er is zoutzuur aan de oplossing toegevoegd.','De reactie verloopt in een zure oplossing.'],
+  basisch:['Er is natronloog aan de oplossing toegevoegd.','De reactie verloopt in kaliloog.','De reactie verloopt in een basische oplossing.']
+};
+const HR_STAPPEN = {
+  milieu:{t:'Zuur of basisch milieu?', hint:'Zure oplossing, aangezuurd, zwavelzuur of zoutzuur toegevoegd: zuur. Natronloog, kaliloog of een basische oplossing: basisch.'},
+  coef:{t:'Stap 2 · Maak de atomen kloppend, behalve O en H', hint:'Tel de atomen die geen O of H zijn. Staan ze links en rechts even vaak? Zet zo nodig een getal voor het deeltje of het product.'},
+  h2o:{t:'Stap 3 · Maak O kloppend met H₂O', hint:'Tel de O-atomen links en rechts. Zet H₂O aan de kant met te weinig O: per ontbrekend O-atoom één H₂O. Klopt O al, vul dan 0 in.'},
+  h:{t:'Stap 4 · Maak H kloppend met H⁺', hint:'Tel de H-atomen links en rechts, ook die in H₂O. Zet H⁺ aan de kant met te weinig H.'},
+  e:{t:'Stap 5 · Maak de lading kloppend met e⁻', hint:'Tel de totale lading links en rechts. Zet e⁻ aan de kant waar de lading het meest positief is, tot beide kanten gelijk zijn.'},
+  oh:{t:'Basisch · Tel aan beide kanten evenveel OH⁻ op als er H⁺ staat', hint:'Hoeveel H⁺ staat er? Zoveel OH⁻ tel je aan beide kanten op.'},
+  vorm:{t:'Basisch · H⁺ + OH⁻ wordt H₂O', hint:'Elke H⁺ vormt met één OH⁻ één H₂O.'},
+  net:{t:'Basisch · Streep H₂O weg die links én rechts staat', hint:'Tel H₂O links en rechts. Streep aan beide kanten evenveel weg. Hoeveel blijft er over, en aan welke kant? Blijft er niets over, vul dan 0 in.'},
+  soort:{t:'Stap 6 · Reductie of oxidatie?', hint:'e⁻ links: het deeltje neemt elektronen op. e⁻ rechts: het deeltje staat elektronen af.'}
+};
+let HR = null;
+const hrPick = a => a[Math.floor(Math.random()*a.length)];
+const hrTerm = (n,f) => n ? ((n>1?n+' ':'')+f) : '';
+function hrTab(t){
+  document.getElementById('tabCel').style.display = t==='cel'?'':'none';
+  document.getElementById('tabHalf').style.display = t==='half'?'':'none';
+  document.getElementById('tabBtnCel').classList.toggle('actief', t==='cel');
+  document.getElementById('tabBtnHalf').classList.toggle('actief', t==='half');
+  if(t==='half' && !HR) hrNieuw();
+}
+function hrNieuw(){
+  const modus = document.getElementById('hrModus').value, mf = document.getElementById('hrMilieu').value, ster = document.getElementById('hrSter').checked;
+  let pool = HR_OPG.filter(o => (mf==='gemengd'||o.m===mf) && (ster || !o.ster));
+  if(HR && pool.length>1) pool = pool.filter(o=>o!==HR.o);
+  const o = hrPick(pool), r = hrLos(o);
+  let stappen = modus==='zonder' ? ['zonder'] : ['coef','h2o','h','e', ...(o.m==='basisch'?['oh','vorm','net']:[]), 'soort'];
+  if(modus==='context') stappen = ['milieu', ...stappen];
+  HR = {o, r, modus, stappen, i:0, ctx: modus==='context' ? hrPick(HR_CTX[o.m]) : null, klaar:false};
+  document.getElementById('hrVraag').innerHTML = 'Stel de halfreactie op van <b>'+o.d.f+' → '+o.p.f+'</b>'+
+    (modus==='context' ? '.<span class="hr-ctx">'+HR.ctx+'</span>' : ' in <b>'+o.m+' milieu</b>.') + (o.ster?' <span title="extra moeilijk">★</span>':'');
+  document.getElementById('hrKlaar').innerHTML = '';
+  document.getElementById('hrFb').innerHTML = '';
+  document.getElementById('hrUitw').classList.remove('show');
+  hrRender();
+}
+// vergelijking opbouwen tot en met de afgeronde stappen
+function hrVgl(tot){
+  const o=HR.o, r=HR.r, gedaan = s => { const i=HR.stappen.indexOf(s); return i>-1 && (i<tot || HR.klaar); };
+  const L=[], R=[];
+  const coef = gedaan('coef')||gedaan('zonder');
+  L.push(hrTerm(coef?r.a:1,o.d.f)); R.push(hrTerm(coef?r.b:1,o.p.f));
+  const kant = (k,s) => k==='links'?L.push(s):R.push(s);
+  const bas = o.m==='basisch', fin = gedaan('net') || (gedaan('zonder') && bas);
+  if(fin){
+    const b=r.bas; if(b.wNet.n) kant(b.wNet.kant, hrTerm(b.wNet.n,'H₂O')); kant(b.ohKant, hrTerm(b.oh,'OH⁻'));
+  } else if(gedaan('vorm')){
+    const b=r.bas, hk=r.h.kant;
+    const opH = b.gevormd + (r.w.kant===hk?r.w.n:0), ander = (r.w.kant&&r.w.kant!==hk)?r.w.n:0;
+    kant(hk, hrTerm(opH,'H₂O')); if(ander) kant(r.w.kant, hrTerm(ander,'H₂O')); kant(b.ohKant, hrTerm(b.oh,'OH⁻'));
+  } else {
+    if(gedaan('h2o') && r.w.n) kant(r.w.kant, hrTerm(r.w.n,'H₂O'));
+    if(gedaan('h') && r.h.n) kant(r.h.kant, hrTerm(r.h.n,'H⁺'));
+    if(gedaan('oh')){ L.push(hrTerm(r.bas.oh,'OH⁻')); R.push(hrTerm(r.bas.oh,'OH⁻')); }
+  }
+  if((gedaan('e')||gedaan('zonder')) && r.e.n) kant(r.e.kant, hrTerm(r.e.n,'e⁻'));
+  return L.filter(Boolean).join(' + ')+' → '+R.filter(Boolean).join(' + ');
+}
+const hrNum = (id,lbl,ph) => '<span>'+lbl+'</span><input type="number" min="0" step="1" id="'+id+'" placeholder="'+(ph||'')+'">';
+const hrKant = id => '<select id="'+id+'"><option value="">kant…</option><option value="links">links</option><option value="rechts">rechts</option></select>';
+const hrSoort = () => '<select id="hrS1"><option value="">kies…</option><option value="red">reductie</option><option value="ox">oxidatie</option></select> <span>het deeltje '+HR.o.d.f+' is de</span> <select id="hrS2"><option value="">kies…</option><option value="oxr">oxidator</option><option value="red">reductor</option></select>';
+function hrVelden(s){
+  const o=HR.o, deeltjeH = o.m==='basisch' && HR.modus==='zonder' ? 'OH⁻' : 'H⁺';
+  switch(s){
+    case 'milieu': return '<div class="hr-row"><select id="hrMil"><option value="">kies…</option><option value="zuur">zuur milieu</option><option value="basisch">basisch milieu</option></select></div>';
+    case 'coef': return '<div class="hr-row">'+hrNum('hrA','getal voor '+o.d.f,'1')+hrNum('hrB','getal voor '+o.p.f,'1')+'</div>';
+    case 'h2o': return '<div class="hr-row">'+hrNum('hrN','aantal H₂O')+hrKant('hrK')+'</div>';
+    case 'h': return '<div class="hr-row">'+hrNum('hrN','aantal H⁺')+hrKant('hrK')+'</div>';
+    case 'e': return '<div class="hr-row">'+hrNum('hrN','aantal e⁻')+hrKant('hrK')+'</div>';
+    case 'oh': return '<div class="hr-row">'+hrNum('hrN','aantal OH⁻ (aan beide kanten)')+'</div>';
+    case 'vorm': return '<div class="hr-row">'+hrNum('hrN','hoeveel H₂O ontstaan er uit H⁺ + OH⁻?')+'</div>';
+    case 'net': return '<div class="hr-row">'+hrNum('hrN','aantal H₂O dat overblijft')+hrKant('hrK')+'</div>';
+    case 'soort': return '<div class="hr-row">'+hrSoort()+'</div>';
+    case 'zonder': return '<div class="hr-row">'+hrNum('hrA','getal voor '+o.d.f,'1')+hrNum('hrB','getal voor '+o.p.f,'1')+'</div>'+
+      '<div class="hr-row">'+hrNum('hrW','aantal H₂O')+hrKant('hrWk')+'</div>'+
+      '<div class="hr-row" id="hrRowH">'+hrNum('hrH','aantal '+deeltjeH)+hrKant('hrHk')+'</div>'+
+      '<div class="hr-row">'+hrNum('hrE','aantal e⁻')+hrKant('hrEk')+'</div>'+
+      '<div class="hr-row">'+hrSoort()+'</div>';
+  }
+}
+function hrRender(){
+  const s = HR.stappen[HR.i];
+  document.getElementById('hrEq').textContent = hrVgl(HR.i);
+  if(HR.klaar){ document.getElementById('hrStap').innerHTML=''; return; }
+  const titel = s==='zonder' ? 'Vul de hele halfreactie in' : HR_STAPPEN[s].t;
+  const pre = (HR.o.m==='basisch' && ['coef','h2o','h','e'].includes(s)) ? '<span style="color:var(--text2);font-weight:400">Eerst in zuur milieu · </span>' : '';
+  const hint = s==='zonder' ? 'Volg het stappenplan in je hoofd: eerst de atomen behalve O en H, dan O met H₂O, H met '+(HR.o.m==='basisch'?'H⁺ (en dat omzetten naar OH⁻)':'H⁺')+', en tot slot de lading met e⁻. Een getal 1 hoef je niet in te vullen; vul 0 in als iets er niet staat.' : HR_STAPPEN[s].hint;
+  document.getElementById('hrStap').innerHTML = HR.klaar ? '' :
+    '<div class="hr-step"><h3>'+pre+titel+'</h3>'+hrVelden(s)+
+    '<div class="hr-knoppen"><button class="btn" onclick="hrCheck()">Controleer</button><button class="btn btn-sec" onclick="this.closest(\'.hr-step\').querySelector(\'.hr-hint\').style.display=\'block\'">Hint</button></div>'+
+    '<div class="hr-hint">'+hint+'</div></div>';
+  const f = document.querySelector('#hrStap input, #hrStap select'); if(f) f.focus();
+  document.querySelectorAll('#hrStap input').forEach(x=>x.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); hrCheck(); } }));
+}
+const hrV = id => { const el=document.getElementById(id); return el ? el.value.trim() : ''; };
+const hrGetal = (id,leeg) => { const v=hrV(id); return v==='' ? leeg : parseInt(v,10); };
+// controleer een aantal + kant; bij 0 doet de kant er niet toe
+function hrPaar(nId,kId,doel){
+  const n = hrGetal(nId,0), k = hrV(kId);
+  if(n!==doel.n) return (doel.n && k===doel.kant) ? 'De kant klopt, maar het aantal nog niet.' : 'Het aantal klopt nog niet.';
+  if(doel.n && k!==doel.kant) return k ? 'Het aantal klopt, maar het staat aan de verkeerde kant.' : 'Kies ook de kant.';
+  return null;
+}
+function hrSoortFout(){
+  const r=HR.r, s1=hrV('hrS1'), s2=hrV('hrS2');
+  if(!s1||!s2) return 'Kies reductie of oxidatie, en oxidator of reductor.';
+  if(s1!==(r.red?'red':'ox')) return 'Kijk aan welke kant de e⁻ staan.';
+  if(s2!==(r.red?'oxr':'red')) return 'Een deeltje dat elektronen opneemt is de oxidator; een deeltje dat ze afstaat de reductor.';
+  return null;
+}
+function hrCheck(){
+  const s = HR.stappen[HR.i], r = HR.r, o = HR.o; let fout = null;
+  if(s==='milieu'){ const v=hrV('hrMil'); fout = !v ? 'Kies eerst een milieu.' : v!==o.m ? 'Lees de zin nog eens: welke stof is toegevoegd?' : null; }
+  if(s==='coef'){ const a=hrGetal('hrA',1), b=hrGetal('hrB',1); fout = (a!==r.a||b!==r.b) ? 'Tel de atomen die geen O of H zijn nog eens, links en rechts.' : null; }
+  if(s==='h2o') fout = hrPaar('hrN','hrK',r.w);
+  if(s==='h') fout = hrPaar('hrN','hrK',r.h);
+  if(s==='e') fout = hrPaar('hrN','hrK',r.e);
+  if(s==='oh') fout = hrGetal('hrN',0)!==r.bas.oh ? 'Het aantal OH⁻ is gelijk aan het aantal H⁺.' : null;
+  if(s==='vorm') fout = hrGetal('hrN',0)!==r.bas.gevormd ? 'Elke H⁺ vormt met één OH⁻ één H₂O.' : null;
+  if(s==='net') fout = hrPaar('hrN','hrK',r.bas.wNet);
+  if(s==='soort') fout = hrSoortFout();
+  if(s==='zonder'){
+    const bas=o.m==='basisch', W = bas?r.bas.wNet:r.w, Hd = bas?{n:r.bas.oh,kant:r.bas.ohKant}:r.h, regels=[];
+    if(hrGetal('hrA',1)!==r.a || hrGetal('hrB',1)!==r.b) regels.push('getallen voor '+o.d.f+' en '+o.p.f);
+    if(hrPaar('hrW','hrWk',W)) regels.push('H₂O');
+    if(hrPaar('hrH','hrHk',Hd)) regels.push(bas?'OH⁻':'H⁺');
+    if(hrPaar('hrE','hrEk',r.e)) regels.push('e⁻');
+    const sf = hrSoortFout(); if(sf) regels.push('reductie/oxidatie');
+    fout = regels.length ? 'Nog niet goed: '+regels.join(', ')+'.' : null;
+  }
+  const fb = document.getElementById('hrFb');
+  if(fout){ fb.innerHTML = '<span class="no">✗ '+fout+'</span>'; return; }
+  const samen = s==='milieu' ? o.m+' milieu' : s==='soort'||s==='zonder' ? (r.red?'reductie: '+o.d.f+' is de oxidator':'oxidatie: '+o.d.f+' is de reductor') : hrVgl(HR.i+1);
+  const kort = {milieu:'Milieu',coef:'Stap 2',h2o:'Stap 3',h:'Stap 4',e:'Stap 5',oh:'Basisch 2',vorm:'Basisch 3',net:'Basisch 4',soort:'Stap 6',zonder:'Halfreactie'}[s];
+  document.getElementById('hrKlaar').innerHTML += '<div class="hr-done">✓ '+kort+': '+samen+'</div>';
+  HR.i++;
+  if(HR.i>=HR.stappen.length){
+    HR.klaar = true;
+    fb.innerHTML = '<span class="ok">✓ Klopt! '+hrVgl(99)+' ('+(r.red?'reductie':'oxidatie')+')</span>';
+    hrUitwerking();
+  } else fb.innerHTML = '<span class="ok">✓ Goed.</span>';
+  hrRender();
+}
+function hrUitwerking(){
+  const o=HR.o, r=HR.r, regels=[];
+  const st = HR.stappen; HR.stappen = ['coef','h2o','h','e', ...(o.m==='basisch'?['oh','vorm','net']:[]), 'soort']; const k=HR.klaar; HR.klaar=false;
+  regels.push('1 '+o.d.f+' → '+o.p.f);
+  ['coef','h2o','h','e'].forEach((s,i)=>regels.push((i+2)+' '+hrVgl(i+1)));
+  regels.push('6 '+(r.e.kant==='links'?'e⁻ links: reductie, '+o.d.f+' is de oxidator':'e⁻ rechts: oxidatie, '+o.d.f+' is de reductor'));
+  let h = '<h4>Uitwerking ('+o.m+' milieu)</h4>'+regels.join('<br>');
+  if(o.m==='basisch'){
+    h += '<br><b>Basisch</b><br>1 zuur: '+hrVgl(4)+'<br>2 + '+r.bas.oh+' OH⁻: '+hrVgl(5)+'<br>3 '+hrVgl(6)+'<br>4 '+hrVgl(7);
+  }
+  HR.stappen = st; HR.klaar = k;
+  const u=document.getElementById('hrUitw'); u.innerHTML=h; u.classList.add('show');
+}
+
 </script>
 
 
