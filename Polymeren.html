@@ -622,12 +622,26 @@ function pastKetenstuk(S, mons, aantal){
   }
   return false;
 }
+// Additie: elke monomeereenheid mag in beide richtingen ingebouwd zijn (kop-staart én kop-kop),
+// bijv. bij PVC de Cl op C2, C4, C6 maar ook op C2, C3, C5. eenheden: de units in volgorde.
+function pastMetOmkeren(S, eenheden){
+  const keys = S.map(tokKey).join('#'), rev = S.map(tokKey).reverse().join('#');
+  const n = eenheden.length;
+  if(S.length !== eenheden.reduce((t,u)=>t+u.length,0)) return false;
+  for(let mask=0; mask<(1<<n); mask++){
+    const kand = eenheden.map((u,i)=> (mask>>i)&1 ? u.slice().reverse() : u).flat().map(tokKey).join('#');
+    if(kand===keys || kand===rev) return true;
+  }
+  return false;
+}
 function verwachteLengtes(mons, aantal){ const l=new Set(); for(let b=0;b<mons.length;b++){ let L=0; for(let j=0;j<aantal;j++) L+=mons[(b+j)%mons.length].length; l.add(L);} return [...l]; }
 // Feedback bij een getekend ketenstuk
 function tekenDiag(S, cfg){
   if(!S.length) return 'Klik op de tegels om het ketenstuk op te bouwen.';
   if(!cfg.dieen && S.some(t=>t.dbl)) return 'In je ketenstuk staat nog een C=C. Wat gebeurt er bij additie met de dubbele binding?';
   if(S.some(t=>t===OH_T||t===NH2_T)) return 'Een OH- of NH₂-groep zit alleen aan het uiteinde van een monomeer. In de keten is die groep omgezet in een ester- of amidebinding.';
+  if(cfg.eenheden && pastMetOmkeren(S, cfg.eenheden)) return null;
+  if(cfg.omkeerbaar && pastMetOmkeren(S, Array(cfg.aantal).fill(cfg.mons[0]))) return null;
   if(cfg.exact){
     const k=S.map(tokKey).join('#'), e=cfg.exact.map(tokKey).join('#'), r=cfg.exact.map(tokKey).reverse().join('#');
     if(k===e||k===r) return null;
@@ -663,7 +677,7 @@ function opdTekenAdditie(){
     instr:{ titel:'Nieuw: het polymeer tekenen', html:'Teken de monomeren naast elkaar met de C=C-binding in de lengterichting. Maak van elke C=C een C–C en verbind de monomeren. De zijgroepen blijven aan dezelfde C-atomen zitten. Een stuk uit het midden van een keten teken je met een golflijntje aan beide kanten.<br>Bouw het ketenstuk door op de tegels te klikken: elke tegel is één C-atoom van de keten met zijn zijgroepen.'+
       vbBlok('Polychlooretheen uit CH₂=CH−Cl, drie monomeereenheden:'+tekenKeten(herhaal(ADDITIE[2].unit,3))) },
     vraag:'Teken een stuk uit het additiepolymeer van <b>'+m.naam+'</b> ('+m.mono+') met <b>3 monomeereenheden</b>.',
-    parts:[{ soort:'teken', tegels: tegelSet(m.unit, extra), cfg:{mons:[m.unit], aantal:3}, antwoord: herhaal(m.unit,3) }],
+    parts:[{ soort:'teken', tegels: tegelSet(m.unit, extra), cfg:{mons:[m.unit], aantal:3, omkeerbaar:true}, antwoord: herhaal(m.unit,3) }],
     hint:'Hoeveel C-atomen in de keten komen uit één monomeer, en waar zit de zijgroep?',
     uitw:()=> 'Het juiste ketenstuk:'+tekenKeten(herhaal(m.unit,3))+'Elke C=C is een C–C geworden; per monomeereenheid zit de zijgroep op dezelfde plek als in het monomeer.'
   };
@@ -721,7 +735,7 @@ function opdTekenCopol(){
     instr:{ titel:'Nieuw: een copolymeer tekenen', html:'Een <b>copolymeer</b> ontstaat uit twee verschillende monomeren. Bij additie gaat ook nu elke C=C open. De volgorde van de monomeren in de keten kan om en om zijn, maar ook willekeurig. Teken de eenheden precies in de gevraagde volgorde.'+
       vbBlok('Etheen (A) en propeen (B) in de volgorde A–B–A–B:'+tekenKeten([...ADDITIE[0].unit,...ADDITIE[1].unit,...ADDITIE[0].unit,...ADDITIE[1].unit])) },
     vraag:'Een copolymeer bestaat uit <b>'+A.naam+'</b> (A, '+A.mono.replace(/ \(.*\)/,'')+') en <b>'+B.naam+'</b> (B, '+B.mono.replace(/ \(.*\)/,'')+'). Teken een stuk met <b>4 monomeereenheden</b> in de volgorde <b>'+volgorde.split('').join('–')+'</b>.',
-    parts:[{ soort:'teken', tegels: tegelSet([...A.unit,...B.unit],[DBL_T]), cfg:{exact}, antwoord: exact }],
+    parts:[{ soort:'teken', tegels: tegelSet([...A.unit,...B.unit],[DBL_T]), cfg:{exact, eenheden: volgorde.split('').map(c=>c==='A'?A.unit:B.unit)}, antwoord: exact }],
     hint:'Teken eerst één eenheid van A en één van B. Zet ze daarna in de gevraagde volgorde.',
     uitw:()=> 'Het juiste ketenstuk ('+volgorde.split('').join('–')+'):'+tekenKeten(exact)
   };
