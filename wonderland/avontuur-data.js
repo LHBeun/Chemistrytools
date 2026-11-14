@@ -1526,6 +1526,222 @@ window.WL_AVONTUUR = {
       intro: "In de soepketel glinstert iets: een gouden slotje. Het is maar voor heel weinig mensen te openen."
     },
     einde: "Alice loopt het bos in, achter de geur van taartjes aan. Maar onder de keukentafel wacht nog een schatkist…"
+  },
+  8: {
+    titel: "De taartjes van de Koningin",
+    plaat: P(29),
+    intro: ["Achter het theekransje ligt de tuin van het paleis. Uit de keuken komt een heerlijke geur: aardbeien, peren, ananas, banaan.", "De Koningin van Harten heeft taartjes laten bakken. Maar die geur komt niet van fruit — die komt uit flesjes."],
+    duur: "Ongeveer 20 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
+    personages: {
+      E: { naam: "De Koningin van Harten", plaat: P(29) },
+      N: { naam: "De Hoedenmaker", plaat: P(25) },
+      F: { naam: "De Rups", plaat: P(15) }
+    },
+    hoofdpad: [
+      {
+        id: "h1", type: "kies",
+        verhaal: "In de keuken van het paleis staan taartjes af te koelen. Ze ruiken naar aardbeien, peren en ananas. Op een plank staan zes flesjes geurstof. “De Koningin wil alleen de fruitige,” zegt de kok.",
+        vraag: "Kies álle flesjes met een ester.",
+        opties: [
+          { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0, "O"], [4, 0], [5, 0], [6, 0], [7, 0], [2, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [2, 8, 2]] }, omweg: "E", k: "98ca369c5a046c7c9921a4edd67334ae2ae571a4e32864fed4a4bfc327dad4d4" },
+          { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [7, -1, "O"], [7, 1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 2], [7, 9, 1]] }, omweg: "E", k: "c9422622610bcd2540af8f9aa2dec0e6eeedf55cafe7ee9d26dfc884387d15cf" },
+          { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0, "O"], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1]] }, omweg: "E", k: "58abbff99d331de3ac286534596989b8cea579e2960944d633e1f15874e0f05e" },
+          { label: "D", volledig: { atomen: [[0, 0], [1, 0, "O"], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [2, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [2, 8, 2]] }, omweg: "E", k: "294ef0b823721f44d221520e6f735701b03f0993a4284da5d5dd53ccb4b01f61" },
+          { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [3, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [3, 9, 2]] }, omweg: "E", k: "265d65fd2c0050875ea306aecd07a3d336e9b5c7b65efa62d82a38f8ff6f67b8" },
+          { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0, "O"], [6, 0], [7, 0], [8, 0], [4, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [4, 9, 2]] }, omweg: "E", k: "5c946e19dde390e8acaaf3510844a9924bab3d7b84db2992b61f9d4a4dbd705d" }
+        ],
+        hint: "Zoek bij elke tekening een C=O. Zit er direct naast dat C-atoom een O-atoom dat naar een volgend C-atoom gaat?",
+        goed: "De kok schenkt de drie flesjes leeg boven het deeg. De keuken ruikt naar een fruitmand.",
+        parallel: {
+          verhaal: "Op de plank erboven staan nog zes flesjes.",
+          vraag: "Kies álle flesjes met een ester.",
+          opties: [
+            { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0, "O"], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [3, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [3, 9, 2]] }, k: "6b73dbf532a9e7e9335efa785637b534d864b2e59f07187f95c7ac29b051dcff" },
+            { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [8, -1, "O"], [8, 1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 2], [8, 10, 1]] }, k: "ffad9c94fc962817b26461c7569db14b34ff7c126b543444b3690493e00d9394" },
+            { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0, "O"], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [2, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [2, 9, 2]] }, k: "17be071287106aa3c536da749e0fcf475f7bab24e15899e90fda99984db2bc6b" },
+            { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0, "O"], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1]] }, k: "ded067762e06768e562d2ba67483eb624a8a1879827f710dbbfa5431aceae8c3" },
+            { label: "E", volledig: { atomen: [[0, 0], [1, 0, "O"], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [0, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [0, 8, 2]] }, k: "5594e81e1b948cb899037a3eeae0f5044592156d8951cdf7344d629f41b8e9e7" },
+            { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [1, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 1], [1, 10, 2]] }, k: "489e46cde8f2e6f597e3934eed301c92d4813e461b086b3cc886442a96e3af91" }
+          ],
+          hint: "Een ester heeft de groep –C(=O)–O– midden in het molecuul: een C=O met direct daarnaast een O tussen twee C-atomen."
+        }
+      },
+      {
+        id: "h2", type: "naam",
+        verhaal: "Eén flesje heeft geen etiket. “Hoe heet dat?” vraagt de kok. “De Koningin wil van elke geur de naam weten. Anders… OFF WITH YOUR HEAD!”",
+        volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0, "O"], [7, 0], [8, 0], [9, 0], [5, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 1], [5, 10, 2]] },
+        vraag: "Geef de systematische naam van deze ester.",
+        hash: ["93925c7de5cfc588d6b0a4c4c6228ebec838e3336531eed3d33c742801fbd701"],
+        hint: "Knip de ester tussen het C-atoom van de C=O en het O-atoom in de keten. Welk deel hoort bij het zuur, en welk bij het alkanol?",
+        omweg: "N",
+        goed: "De kok schrijft de naam op het flesje, met trillende hand.",
+        parallel: {
+          verhaal: "Er staat nog een flesje zonder etiket.",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0, "O"], [3, 0], [4, 0], [5, 0], [6, 0], [1, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [1, 7, 2]] },
+          vraag: "Geef de systematische naam van deze ester.",
+          hash: ["fa57c7a440495e5197d51fd3399618136c8df5abab08477383306f1d2327fc41"],
+          hint: "Welke kant van het O-atoom heeft de C=O? Dat deel hoort bij het zuur en wordt het -oaat-deel."
+        }
+      },
+      {
+        id: "h3", type: "naam",
+        verhaal: "Op het receptenboek staat: “Voor de abrikozentaart: meng deze twee en verwarm met een beetje zwavelzuur.”",
+        formule: "pentaan-1-ol + propaanzuur",
+        vraag: "Geef de naam van de ester die ontstaat.",
+        hash: ["c2d5fbd05f5f07ed900e4acdb2edaf468c3a8ae4cbeb69ad9565df857dc7d17c"],
+        hint: "Uit het alkanol komt het eerste deel van de naam (alkyl-), uit het zuur het tweede deel (-oaat).",
+        omweg: "N",
+        goed: "De abrikozentaart ruikt heerlijk. De kok glimlacht voor het eerst.",
+        parallel: {
+          verhaal: "Op de volgende bladzijde: “Voor de sinaasappeltaart:”",
+          formule: "methanol + octaanzuur",
+          vraag: "Geef de naam van de ester die ontstaat.",
+          hash: ["e859a7e720358082096501ee555baa7470c491866a89117187914eea585a8b5f"],
+          hint: "Welk deel van de naam komt uit het alkanol, en welk deel uit het zuur?"
+        }
+      },
+      {
+        id: "h4", type: "kies",
+        verhaal: "De Hartenboer sluipt de keuken in. Hij ruikt aan een flesje en fluistert: “Hieruit wil ik de beginstoffen terug.” Naast het flesje liggen zes tekeningen.",
+        volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0, "O"], [9, 0], [10, 0], [7, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 1], [9, 10, 1], [7, 11, 2]] },
+        vraag: "Uit welke stoffen is deze ester gemaakt? Kies álle beginstoffen.",
+        opties: [
+          { label: "A", volledig: { atomen: [[0, 0], [1, 0], [1, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1]] }, omweg: "E", k: "c9a0b08264b459d8a923374155a9e49af887f99e275159059195c92b2040650c" },
+          { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [7, -1, "O"], [7, 1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 2], [7, 9, 1]] }, omweg: "E", k: "4f71eab64ac3fd73352acf6a5842e6c194aada1565092561fddb338abd6eb69f" },
+          { label: "C", volledig: { atomen: [[0, 0], [1, 0], [1, -1, "O"], [1, 1, "O"]], bindingen: [[0, 1, 1], [1, 2, 2], [1, 3, 1]] }, omweg: "E", k: "1741fe1b12176650e212eea6388ef44b6c635a08552b862e254a914165099016" },
+          { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [7, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1]] }, omweg: "E", k: "5e500943df09c94a1017897627c0b7f3dde9cb3506d049f80ca28a433379f0b3" },
+          { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [7, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 2]] }, omweg: "E", k: "f2d1c299a6845a50105d17292f7561b349fc3a991bf8f9a8685a1c2312a16842" },
+          { label: "F", volledig: { atomen: [[0, 0], [1, 0], [1, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 2]] }, omweg: "E", k: "8ed12ea46cc2ac6c8dc64407bfac4f2d53399b8fa2c35c864b9e6fe5ad70751c" }
+        ],
+        hint: "Knip de ester tussen het C-atoom van de C=O en het O-atoom in de keten. Zet aan beide kanten de OH of de H terug.",
+        goed: "“Precies,” fluistert de Hartenboer. Hij stopt een taartje in zijn zak.",
+        parallel: {
+          verhaal: "Hij pakt een tweede flesje.",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0, "O"], [7, 0], [8, 0], [9, 0], [7, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 1], [7, 10, 2]] },
+          vraag: "Uit welke stoffen is deze ester gemaakt? Kies álle beginstoffen.",
+          opties: [
+            { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [2, -1, "O"], [2, 1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 2], [2, 4, 1]] }, k: "f76939e1c2c73999a8502752c39a3c06d2996e541cbcd4e41f8dbf35f5e4adc1" },
+            { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [5, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1]] }, k: "33a38bf8d6c34c4939e57046898b9bbf82642d9dc36ae6f995461ba2495c8ea4" },
+            { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [2, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1]] }, k: "f02f55faa2a385d0e97d541e39a03d44f1678f1f925d1e3d2dafa101bb0990db" },
+            { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [5, -1, "O"], [5, 1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 2], [5, 7, 1]] }, k: "c0660211df7bc3da656cd724475fae53ba0c4bb950bd430f8646e024f719c0d0" },
+            { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [5, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 2]] }, k: "f68d1264ea941e228bb47a62d9c1cdc3f4cc6d53e3428352841517ea99022de4" },
+            { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [2, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 2]] }, k: "c03c360179cbbb16cd1998e5681104ed14cfffb68396c3ebc159287c20a769c7" }
+          ],
+          hint: "De kant met de C=O hoort bij het zuur; de kant met de –O–alkylgroep hoort bij het alkanol."
+        }
+      },
+      {
+        id: "h5", type: "getal",
+        verhaal: "Op een taartje staat in suiker: “Butaan-1-ol en hexaanzuur.” “Hoeveel waterstof zit er in die geurstof?” vraagt de kok zich af.",
+        formule: "de ester uit butaan-1-ol en hexaanzuur",
+        vraag: "Hoeveel H-atomen heeft één molecuul van deze ester?",
+        hash: ["953f9f3743ebab892595ae7b53018cd618b288eabe5de7aa9252e198c61f3643"],
+        hint: "Tel de H-atomen van het alkanol en het zuur op. Wat gaat er bij de reactie af?",
+        omweg: "F",
+        goed: "Het suikerschrift glinstert even, alsof het knipoogt.",
+        parallel: {
+          verhaal: "Op een ander taartje staat: “Ethanol en nonaanzuur.”",
+          formule: "de ester uit ethanol en nonaanzuur",
+          vraag: "Hoeveel H-atomen heeft één molecuul van deze ester?",
+          hash: ["6027b27a6b9ecaf41272968b4405fcdb4bf5c5b85e6cdfc1496ebfe811394e30"],
+          hint: "Bepaal de molecuulformules van het alkanol en het zuur, tel ze op en haal er H₂O af."
+        }
+      },
+      {
+        id: "h6", type: "kies",
+        verhaal: "Dan klinken er trompetten. De Koningin! Ze wijst naar zes taartjes. “Ik wil alleen de taartjes met C₆H₁₂O₂,” zegt ze. “En snel!”",
+        vraag: "Kies álle tekeningen met de molecuulformule C₆H₁₂O₂.",
+        opties: [
+          { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0, "O"], [4, 0], [5, 0], [6, 0], [2, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [2, 7, 2]] }, omweg: "F", k: "bee9196820a6200acc4c339be9ebc34d751a5cb68d4ecb22f216599128a02bb1" },
+          { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [5, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 2]] }, omweg: "F", k: "1766962e7caceab81fb6fe90bc668001ed95067106926d2d3555eff25d65b50f" },
+          { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [0, -1, "O"], [0, 1, "O"], [1, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [0, 5, 2], [0, 6, 1], [1, 7, 1]] }, omweg: "F", k: "4dadb04b8260739714d2ef26fc70589051c0aee82aae439cd7acde2a00062f67" },
+          { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0, "O"], [6, 0], [4, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [4, 7, 2]] }, omweg: "F", k: "5c4f83f316f75f685325247b7c6e284e38903eb99d2214cb5880fc85f10ddefe" },
+          { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0, "O"], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [10, 0], [3, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 1], [9, 10, 1], [3, 11, 2]] }, omweg: "F", k: "1e8e32c29a332db313987779d6a2ccc4862c111fcb8e2f512c85087f51761c5b" },
+          { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [5, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1]] }, omweg: "F", k: "d50d5514d3ecaddd22f15a38e7227dd7f352494a76825626b953071c4fe98f44" }
+        ],
+        hint: "Tel bij elke tekening de C-, H- en O-atomen.",
+        goed: "De Koningin eet ze alle drie op. “Waar zijn de rest?” Iemand heeft taartjes gestolen…",
+        parallel: {
+          verhaal: "“En nu C₈H₁₆O₂!”",
+          vraag: "Kies álle tekeningen met de molecuulformule C₈H₁₆O₂.",
+          opties: [
+            { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0, "O"], [5, 0], [6, 0], [7, 0], [8, 0], [3, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [3, 9, 2]] }, k: "bcfa97568fa6634229f73c29718d7361abb7a5daa4ddd16a24e1647b0b4ab21d" },
+            { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [7, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 2]] }, k: "1ea7ab26c6976eb0a17d5736c370c513baeaad82f1e3b36d5c2e492c53332e2a" },
+            { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [0, -1, "O"], [0, 1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [0, 8, 2], [0, 9, 1]] }, k: "a28d19580a8e65b20dafd4a5a3d04f14580a3cda2b214ed6842849f865825d8d" },
+            { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0, "O"], [7, 0], [8, 0], [7, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [7, 9, 2]] }, k: "ab1aefec4212fe8e2f09596ade9fc95787fec2292fb55362cc075a621e1920f1" },
+            { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [7, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1]] }, k: "94b639740ca0349a9bc95999a18bf83848fcbc3e65c56acddc104152a687bfd0" },
+            { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0, "O"], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [3, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 1], [3, 10, 2]] }, k: "aa1d6eb16878aec8e9b2e821d233957df5bfaf6ea98362e2a09e888c227035e1" }
+          ],
+          hint: "Tel de atomen. Een ester en een carbonzuur met evenveel C-atomen zijn isomeren."
+        }
+      }
+    ],
+    omwegen: {
+      E: {
+        personage: "E",
+        verhaal: "De Koningin van Harten tikt met haar scepter op een flesje. “Eerst de C=O zoeken,” snauwt ze. “Dáár knippen. En snel!”",
+        voorbeeld: {
+          tekst: "Een <b>ester</b> heeft de estergroep <b>–C(=O)–O–</b>: een C=O met direct daarnaast een O-atoom dat naar een volgend C-atoom gaat. Een ester ontstaat uit een <b>alkaanzuur</b> en een <b>alkanol</b> (er komt water bij vrij). Terugknippen: knip tussen het C-atoom van de C=O en het O-atoom in de keten. De kant <b>met de C=O</b> is het <b>zuur</b>, de kant met de –O–alkylgroep is het <b>alkanol</b>.",
+          structuren: [
+            { label: "methylheptanoaat", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0, "O"], [8, 0], [6, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [6, 9, 2]] } }
+          ],
+          uitwerking: "Links van de knip: 7 C-atomen met de C=O → <b>heptaanzuur</b>. Rechts: O–CH₃ → <b>methanol</b>. Samen: <b>methylheptanoaat</b>."
+        },
+        makkelijk: {
+          type: "getal",
+          verhaal: "“Nu jij,” zegt de Koningin. “Of… je weet wel.”",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0, "O"], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [10, 0], [11, 0], [12, 0], [4, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 1], [9, 10, 1], [10, 11, 1], [11, 12, 1], [4, 13, 2]] },
+          vraag: "Hoeveel C-atomen komen uit het zuur?",
+          hash: ["a1e85734a2c016e6f7348b45a6e468d1cbdb2583cfff98a546e721a3a151d228"],
+          hint: "Zoek de C=O en knip tussen dat C-atoom en het O-atoom in de keten. Tel aan de kant van de C=O, het C-atoom van de C=O telt mee."
+        }
+      },
+      N: {
+        personage: "N",
+        verhaal: "De Hoedenmaker zit aan het eind van de keukentafel, met een kopje thee. “De naam van een ester,” zegt hij, “begint met wie er als láátste bij kwam.”",
+        voorbeeld: {
+          tekst: "De naam van een ester is <b>alkylalkanoaat</b>, aan elkaar geschreven. Eerst het <b>alkyl</b>-deel: dat komt uit het <b>alkanol</b> (hexaan-1-ol → hexyl). Dan het <b>alkanoaat</b>-deel: dat komt uit het <b>zuur</b> (butaanzuur → butanoaat). In de tekening is het zuurdeel de kant met de C=O.",
+          structuren: [
+            { label: "hexylbutanoaat", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0, "O"], [7, 0], [8, 0], [9, 0], [10, 0], [7, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 1], [9, 10, 1], [7, 11, 2]] } }
+          ],
+          uitwerking: "Rechts van de O: 4 C-atomen met de C=O → uit <b>butaanzuur</b> → butanoaat. Links: 6 C-atomen → uit <b>hexaan-1-ol</b> → hexyl. Samen: <b>hexylbutanoaat</b>."
+        },
+        makkelijk: {
+          type: "naam",
+          verhaal: "“En deze?” vraagt de Hoedenmaker.",
+          formule: "heptaan-1-ol + ethaanzuur",
+          vraag: "Geef de naam van de ester die ontstaat.",
+          hash: ["0659a51fc0fb668c75d756cff6722d132975fd1353d6449e924588d0b740233e"],
+          hint: "Welk deel van de naam komt uit het alkanol, en welk deel uit het zuur?"
+        }
+      },
+      F: {
+        personage: "F",
+        verhaal: "De Rups is meegekomen, op een theeschoteltje. “Twee stoffen erin,” zegt hij langzaam. “Twee stoffen eruit. Maar één daarvan is… water.”",
+        voorbeeld: {
+          tekst: "Bij de vorming van een ester komt <b>water</b> vrij: de OH van het zuur en de H van de OH-groep van het alkanol. Dus: <b>molecuulformule ester = zuur + alkanol − H₂O</b>. Er verdwijnen geen C-atomen.",
+          structuren: [
+            { label: "pentylhexanoaat", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0, "O"], [7, 0], [8, 0], [9, 0], [10, 0], [11, 0], [5, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 1], [9, 10, 1], [10, 11, 1], [5, 12, 2]] } }
+          ],
+          uitwerking: "Hexaanzuur C₆H₁₂O₂ + pentaan-1-ol C₅H₁₂O = C₁₁H₂₄O₃. Min H₂O: <b>C₁₁H₂₂O₂</b>."
+        },
+        makkelijk: {
+          type: "getal",
+          verhaal: "“Reken maar,” zegt de Rups.",
+          formule: "de ester uit butaan-1-ol en pentaanzuur",
+          vraag: "Hoeveel H-atomen heeft één molecuul van deze ester?",
+          hash: ["e6afa6f9b6283c181ea9c1c43289fe8e87459141e3314c0b4dba533e1457d83c"],
+          hint: "Tel de H-atomen van het alkanol en het zuur op en haal er 2 af (het water)."
+        }
+      }
+    },
+    kluis: {
+      intro: "In de provisiekast staat een schatkist met vier draaischijven. Wie hem opent, krijgt een edelsteen. Werk in je schrift. Als je alle getallen hebt ingevuld, zie je per getal of het klopt."
+    },
+    geheim: {
+      intro: "Onder de laatste taartvorm glinstert een gouden slotje. Het is maar voor heel weinig mensen te openen."
+    },
+    einde: "De taartjes zijn klaar — maar er ontbreken er een paar. En in de provisiekast wacht nog een schatkist…"
   }
 };
 })();

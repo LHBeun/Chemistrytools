@@ -971,6 +971,139 @@ window.WL_FEEDBACK = {
       },
       zo: "octaan-1-, 2-, 3- en 4-amine. Dus <b>4</b>."
     }
+  },
+  // ── Les 8 · De taartjes van de Koningin ────────────────────
+  8: {
+    omwegen: {
+      E: "Het ging mis bij het herkennen of terugknippen van een ester.",
+      N: "Het ging mis bij de naam van een ester.",
+      F: "Het ging mis bij de molecuulformule."
+    },
+    h1: {
+      optieUitleg: {
+        B: "Hier zit een C=O met een OH aan hetzelfde C-atoom: een carbonzuur.",
+        C: "Hier zit wel een O tussen twee C-atomen, maar geen C=O: een ether.",
+        E: "Hier zit een C=O midden in de keten, maar geen O ernaast: een keton."
+      },
+      zo: "Drie esters: <b>A</b>, <b>D</b> en <b>F</b>. Steeds zit naast het C-atoom van de C=O een O-atoom dat naar een volgend C-atoom gaat: –C(=O)–O–."
+    },
+    p1: {
+      optieUitleg: {
+        B: "Hier zit een COOH-groep: een carbonzuur.",
+        D: "Een O tussen twee C-atomen, maar geen C=O: een ether.",
+        F: "Een C=O midden in de keten zonder O ernaast: een keton."
+      },
+      zo: "Drie esters: <b>A</b>, <b>C</b> en <b>E</b>. Bij E zit aan het C-atoom van de C=O nog een H: dat deel komt uit methaanzuur."
+    },
+    h2: {
+      fouten: {
+        "hexylpropanoaat": "Welke kant van het O-atoom heeft de C=O? Dat deel hoort bij het zuur en wordt het -oaat-deel.",
+        "propylpentanoaat": "Tel de C-atomen van het zuurdeel nog eens: het C-atoom van de C=O telt mee.",
+        "propylhexaanzuur": "Een ester heeft een naam op -oaat.",
+        "propaanhexanoaat": "Het alkanol-deel wordt een alkylgroep: propaan-1-ol → propyl.",
+        "propyl-hexanoaat": "Bijna: de naam van een ester is één woord, zonder streepje."
+      },
+      zo: "Knip tussen de C=O en de O. Links (met de C=O): 6 C-atomen → uit <b>hexaanzuur</b> → hexanoaat. Rechts: 3 C-atomen → uit <b>propaan-1-ol</b> → propyl. Samen: <b>propylhexanoaat</b>."
+    },
+    p2: {
+      fouten: {
+        "ethylbutanoaat": "Welke kant van het O-atoom heeft de C=O? Dat deel hoort bij het zuur.",
+        "butylmethanoaat": "Tel de C-atomen van het zuurdeel nog eens: het C-atoom van de C=O telt mee.",
+        "butylethaanzuur": "Een ester heeft een naam op -oaat."
+      },
+      zo: "Links (met de C=O): 2 C-atomen → uit ethaanzuur → ethanoaat. Rechts: 4 → uit butaan-1-ol → butyl. Samen: <b>butylethanoaat</b>."
+    },
+    h3: {
+      fouten: {
+        "propylpentanoaat": "Welk deel van de naam komt uit het alkanol? Dat komt vooraan.",
+        "pentylpropaanzuur": "Een ester heeft een naam op -oaat.",
+        "pentanolpropanoaat": "Het alkanol-deel wordt een alkylgroep: pentaan-1-ol → pentyl.",
+        "pentaanpropanoaat": "Het alkanol-deel wordt een alkylgroep: pentaan-1-ol → pentyl."
+      },
+      zo: "Uit pentaan-1-ol: <b>pentyl</b>. Uit propaanzuur: <b>propanoaat</b>. Samen: <b>pentylpropanoaat</b>."
+    },
+    p3: {
+      fouten: {
+        "octylmethanoaat": "Welk deel van de naam komt uit het alkanol? Dat komt vooraan.",
+        "methyloctaanzuur": "Een ester heeft een naam op -oaat.",
+        "methanoloctanoaat": "Het alkanol-deel wordt een alkylgroep: methanol → methyl."
+      },
+      zo: "Uit methanol: <b>methyl</b>. Uit octaanzuur: <b>octanoaat</b>. Samen: <b>methyloctanoaat</b>."
+    },
+    h4: {
+      optieUitleg: {
+        C: "Ethaanzuur heeft een C=O: maar in de ester zit de C=O aan de kant met 8 C-atomen.",
+        D: "Octaan-1-ol heeft geen C=O: maar in de ester zit de C=O aan de kant met 8 C-atomen.",
+        E: "Een aldehyde reageert niet tot een ester: daar is een zuur voor nodig.",
+        F: "Een aldehyde reageert niet tot een ester: daar is een alkanol voor nodig."
+      },
+      zo: "Knip tussen de C=O en de O. De kant met de C=O (8 C-atomen) wordt <b>octaanzuur</b>, de –O–ethylgroep wordt <b>ethanol</b>. De ester heet ethyloctanoaat."
+    },
+    p4: {
+      optieUitleg: {
+        C: "De C=O zit aan de kant met 3 C-atomen: die kant is het zuur, niet het alkanol.",
+        D: "De C=O zit aan de kant met 3 C-atomen: het zuur heeft dus 3 C-atomen.",
+        E: "Een aldehyde reageert niet tot een ester.",
+        F: "Een aldehyde reageert niet tot een ester."
+      },
+      zo: "De kant met de C=O (3 C-atomen) wordt <b>propaanzuur</b>, de –O–hexylgroep wordt <b>hexaan-1-ol</b>. De ester heet hexylpropanoaat."
+    },
+    h5: {
+      fouten: {
+        "22": "Bij de reactie komt water vrij: daarbij gaan 2 H-atomen weg.",
+        "21": "Bij de reactie gaan 2 H-atomen weg (in H₂O), niet 1.",
+        "24": "Tel de H-atomen van het alkanol en het zuur nog eens, en haal er H₂O af.",
+        "18": "Tel de H-atomen van het zuur nog eens: de OH telt ook mee."
+      },
+      zo: "Butaan-1-ol C₄H₁₀O + hexaanzuur C₆H₁₂O₂ = C₁₀H₂₂O₃. Min H₂O: C₁₀H₂₀O₂ → <b>20</b> H-atomen."
+    },
+    p5: {
+      fouten: {
+        "24": "Bij de reactie komt water vrij: daarbij gaan 2 H-atomen weg.",
+        "23": "Bij de reactie gaan 2 H-atomen weg (in H₂O), niet 1.",
+        "20": "Tel de H-atomen van ethanol nog eens."
+      },
+      zo: "Ethanol C₂H₆O + nonaanzuur C₉H₁₈O₂ = C₁₁H₂₄O₃. Min H₂O: C₁₁H₂₂O₂ → <b>22</b> H-atomen."
+    },
+    h6: {
+      optieUitleg: {
+        B: "C₆H₁₂O: een aldehyde heeft maar één O-atoom.",
+        E: "C₁₀H₂₀O₂: tel de C-atomen nog eens.",
+        F: "C₆H₁₄O: een alkanol heeft maar één O-atoom."
+      },
+      zo: "Drie stoffen met C₆H₁₂O₂: <b>A</b> (propylpropanoaat), <b>D</b> (methylpentanoaat) en <b>C</b> (2-methylpentaanzuur). Esters en carbonzuren met evenveel C-atomen zijn isomeren."
+    },
+    p6: {
+      optieUitleg: {
+        B: "C₈H₁₆O: een aldehyde heeft maar één O-atoom.",
+        E: "C₈H₁₈O: een alkanol heeft maar één O-atoom.",
+        F: "C₉H₁₈O₂: tel de C-atomen nog eens."
+      },
+      zo: "Drie stoffen met C₈H₁₆O₂: <b>A</b> (butylbutanoaat), <b>D</b> (hexylethanoaat) en <b>C</b> (octaanzuur)."
+    },
+    oE: {
+      fouten: {
+        "3": "Dat is de kant zonder C=O: die komt uit het alkanol.",
+        "8": "Het C-atoom van de C=O telt ook mee bij het zuur.",
+        "10": "Tel alleen de kant met de C=O."
+      },
+      zo: "De kant met de C=O heeft <b>9</b> C-atomen (nonaanzuur); de andere kant 3 (propaan-1-ol). De ester heet propylnonanoaat."
+    },
+    oN: {
+      fouten: {
+        "ethylheptanoaat": "Welk deel van de naam komt uit het alkanol? Dat komt vooraan.",
+        "heptylethaanzuur": "Een ester heeft een naam op -oaat.",
+        "heptanolethanoaat": "Het alkanol-deel wordt een alkylgroep: heptaan-1-ol → heptyl."
+      },
+      zo: "Uit heptaan-1-ol: <b>heptyl</b>. Uit ethaanzuur: <b>ethanoaat</b>. Samen: <b>heptylethanoaat</b>."
+    },
+    oF: {
+      fouten: {
+        "20": "Bij de reactie komt water vrij: daarbij gaan 2 H-atomen weg.",
+        "19": "Bij de reactie gaan 2 H-atomen weg (in H₂O), niet 1."
+      },
+      zo: "Butaan-1-ol C₄H₁₀O + pentaanzuur C₅H₁₀O₂ = C₉H₂₀O₃. Min H₂O: C₉H₁₈O₂ → <b>18</b>."
+    }
   }
 };
 })();
