@@ -120,7 +120,11 @@
   .avbalk { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
   .avbalk input[type=number] { width: 70px; font: 1.05rem var(--body); padding: 5px 8px; border-radius: 6px; border: 1px solid rgba(110,75,25,.5); background: rgba(255,255,255,.5); }
   .avbalk .knop { font-size: .85rem; padding: .4em 1em; }
-  .avbalk .knop.stil, .avrij .knop.stil { color: var(--bruin); border-color: rgba(110,75,25,.5); }
+  .avopen { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0 0 14px; padding: 10px 12px; border-radius: 10px; background: rgba(110,75,25,.08); }
+  .avopen b { margin-right: 4px; }
+  .avopen .knop { font-size: .85rem; padding: .35em .9em; }
+  .avopen .knop.dicht { color: var(--bruin); border-color: rgba(110,75,25,.5); background: transparent; box-shadow: none; opacity: .75; }
+  .avbalk .knop.stil, .avopen .knop.stil, .avrij .knop.stil { color: var(--bruin); border-color: rgba(110,75,25,.5); }
   table.avtabel { width: 100%; border-collapse: collapse; font-size: 1.05rem; }
   .avtabel th { text-align: left; font-family: var(--titel); font-weight: 400; padding: 6px 8px; border-bottom: 2px solid rgba(110,75,25,.35); }
   .avtabel td { padding: 6px 8px; border-bottom: 1px solid rgba(110,75,25,.2); vertical-align: middle; }
@@ -459,7 +463,7 @@ function tekenDeur(open, totaal) {
 }
 
 /* ── Status en schermen ── */
-let spelers = {};
+let spelers = {}, avOpen = {};
 let store, staat = null, pogingen = {}, huidigeSessie = null, vorigeFase = null, vorigeLes = null;
 function toon(id) { document.querySelectorAll(".scherm").forEach(s => s.classList.toggle("actief", s.id === id)); }
 
@@ -624,7 +628,12 @@ function tekenAvOverzicht() {
   const lessen = Object.keys(A).map(Number).sort((a, b) => a - b);
   const codes = Object.keys(spelers || {}).sort((a, b) => (echt[a] || "~" + a).localeCompare(echt[b] || "~" + b));
   const nr = A[staat?.les] ? staat.les : lessen[0];
-  let html = `<div class="avbalk">
+  let html = `<div class="avopen"><b>Open voor leerlingen:</b>
+      ${lessen.map(l => `<button class="knop ${avOpen[l] ? "" : "dicht"}" data-open="${l}" title="Klik om les ${l} ${avOpen[l] ? "te sluiten" : "open te zetten"}">${avOpen[l] ? "🔓" : "🔒"} Les ${l}</button>`).join("")}
+      <button class="knop stil" id="avAllesOpen">Alles open</button>
+      <button class="knop stil" id="avAllesDicht">Alles dicht</button>
+    </div>
+    <div class="avbalk">
       <input type="number" id="avAantal" min="1" max="40" value="${codes.length ? 1 : 12}">
       <button class="knop" id="avMaak">Codes aanmaken</button>
       <button class="knop stil" id="avPrint">Codes printen</button>
@@ -671,6 +680,10 @@ function tekenAvOverzicht() {
 }
 
 function koppelAvKnoppen(nr) {
+  document.querySelectorAll("[data-open]").forEach(b => b.onclick = () => store.werkBij("avontuur/open", { [b.dataset.open]: !avOpen[b.dataset.open] }));
+  const alle = v => Object.fromEntries(Object.keys(A).map(l => [l, v]));
+  $("avAllesOpen").onclick = () => store.werkBij("avontuur/open", alle(true));
+  $("avAllesDicht").onclick = () => { if (confirm("Alle hoofdstukken sluiten voor leerlingen?")) store.werkBij("avontuur/open", alle(false)); };
   $("avMaak").onclick = async () => {
     const n = Math.max(1, Math.min(40, +$("avAantal").value || 12));
     const nieuw = {};
@@ -773,6 +786,10 @@ document.addEventListener("click", e => {
 
 /* ── Start ── */
 async function start() {
+  store.luister("avontuur/open", v => {
+    avOpen = v || {};
+    if ($("overzicht").classList.contains("open")) tekenAvOverzicht();
+  });
   store.luister("avontuur/spelers", v => {
     spelers = v || {};
     if ((staat?.fase || "kaart") === "kaart") tekenKaart(staat);
