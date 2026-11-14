@@ -896,9 +896,9 @@ window.WL_AVONTUUR = {
           tekst: "Een ring krijgt <b>cyclo-</b> voor de stamnaam: cyclobutaan, cyclohexaan. Bij benzeen is <b>benzeen</b> de stamnaam. Eén zijtak: <b>geen plaatsnummer</b> nodig. Meer zijtakken: geef er één nummer 1 en tel rond de ring de kant op die de <b>laagste plaatsnummers</b> geeft.",
           structuren: [
             { label: "methylcyclooctaan", skelet: { soort: "ring", n: 8, takken: [{ bij: 0, lengte: 1 }] } },
-            { label: "1,2-dimethylcyclohexaan", skelet: { soort: "ring", n: 6, takken: [{ bij: 0, lengte: 1 }, { bij: 5, lengte: 1 }] } }
+            { label: "1,3-dimethylcycloheptaan", skelet: { soort: "ring", n: 7, takken: [{ bij: 0, lengte: 1 }, { bij: 5, lengte: 1 }] } }
           ],
-          uitwerking: "Rechts: met de klok mee geteld krijg je 1 en 6. Tegen de klok in liggen de methylgroepen naast elkaar: <b>1,2-dimethylcyclohexaan</b>."
+          uitwerking: "Rechts: met de klok mee geteld krijg je 1 en 6. Tegen de klok in kom je al na twee stappen bij de andere methylgroep: <b>1,3-dimethylcycloheptaan</b>."
         },
         makkelijk: {
           type: "naam",
