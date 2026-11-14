@@ -759,9 +759,9 @@ window.WL_AVONTUUR = {
       {
         id: "h3", type: "naam",
         verhaal: "Alleen de grijns hangt nog in de lucht. “Hoe heet ik?” vraagt hij, en hij tekent zichzelf.",
-        skelet: { soort: "ring", n: 6, takken: [{ bij: 1, lengte: 2 }] },
+        skelet: { soort: "ring", n: 6, takken: [{ bij: 1, lengte: 3 }] },
         vraag: "Geef de systematische naam van deze stof.",
-        hash: ["f15c128762747d20a0fb67e7743e2a5e0f28ba6bbd06b1968b2435450731d777", "c8c1c2f2760e0f0861f6c4ce9e2ccc02bd7a5efa3305e7ee1dffc1c534076711"],
+        hash: ["d1a837d55cc855b7f388f92f629c0489c431edeec38af924f0bef7f16fb87927", "dd93e8b2133536e2ea57c8b9425ac887b0eab0349a1e2bfdae670bdc39ecf72c"],
         hint: "Tel de hoekpunten van de ring. Welk voorvoegsel hoort bij een ring? En hoe lang is de zijtak?",
         omweg: "N",
         goed: "De grijns wordt nog breder. “Zo heet ik inderdaad.”",

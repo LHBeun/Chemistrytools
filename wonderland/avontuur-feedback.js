@@ -457,16 +457,16 @@ window.WL_FEEDBACK = {
     },
     h3: {
       fouten: {
-        "ethylhexaan": "Het is een ring: welk voorvoegsel hoort daarbij?",
-        "ethylbenzeen": "Zie je een cirkel of dubbele bindingen in de ring?",
-        "ethylcyclohexeen": "Zitten er dubbele bindingen in de ring?",
-        "ethylcyclopentaan": "Tel de hoekpunten van de ring nog eens.",
-        "ethylcycloheptaan": "Tel de hoekpunten van de ring nog eens.",
-        "methylcyclohexaan": "Hoe lang is de zijtak?",
-        "propylcyclohexaan": "Hoe lang is de zijtak?",
-        "cyclohexylethaan": "De ring is hier de stam; de zijtak komt ervoor."
+        "propylhexaan": "Het is een ring: welk voorvoegsel hoort daarbij?",
+        "propylbenzeen": "Zie je een cirkel of dubbele bindingen in de ring?",
+        "propylcyclohexeen": "Zitten er dubbele bindingen in de ring?",
+        "propylcyclopentaan": "Tel de hoekpunten van de ring nog eens.",
+        "propylcycloheptaan": "Tel de hoekpunten van de ring nog eens.",
+        "ethylcyclohexaan": "Hoe lang is de zijtak?",
+        "butylcyclohexaan": "Hoe lang is de zijtak?",
+        "cyclohexylpropaan": "De ring is hier de stam; de zijtak komt ervoor."
       },
-      zo: "Ring van 6 C-atomen zonder dubbele bindingen: <b>cyclohexaan</b>. Zijtak van 2 C-atomen: <b>ethyl</b>. Eén zijtak, dus geen plaatsnummer nodig: <b>ethylcyclohexaan</b>.",
+      zo: "Ring van 6 C-atomen zonder dubbele bindingen: <b>cyclohexaan</b>. Zijtak van 3 C-atomen: <b>propyl</b>. Eén zijtak, dus geen plaatsnummer nodig: <b>propylcyclohexaan</b>.",
       zoH: true
     },
     p3: {
