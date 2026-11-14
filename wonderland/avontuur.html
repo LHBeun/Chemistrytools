@@ -78,6 +78,7 @@
   .structuurvak { display: block; width: fit-content; max-width: 100%; margin: 10px 0; padding: 10px 18px; border-radius: 8px;
     background: rgba(255,255,255,.5); border: 1px solid rgba(110,75,25,.25); overflow-x: auto; }
   .structuurvak svg { display: block; max-width: 100%; height: auto; }
+  .meer { margin: 0 0 4px; font-style: italic; opacity: .8; font-size: 1.1rem; }
   .opties { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 12px 0 4px; }
   .optie { position: relative; display: grid; place-items: center; min-height: 150px; padding: 30px 12px 12px; border-radius: 10px; cursor: pointer;
     background: rgba(255,255,255,.5); border: 2px solid rgba(110,75,25,.25); transition: border-color .15s, box-shadow .15s, transform .15s; }
@@ -249,32 +250,56 @@ function vonken() {
   }
 }
 
-/* ── Volledige structuurformule (alle H-atomen getekend) ──
-   spec: { n, b: [orde tussen C(i) en C(i+1)], h: [aantal H per C] } */
-function volledigSVG({ n, b, h }, kleur = "#3b2a17") {
-  const dx = 74, x0 = 76, y = 72, L = 50, gat = 15;
-  const breedte = x0 * 2 + dx * (n - 1), hoogte = y * 2;
-  const R = Math.SQRT1_2;
-  const richting = { l: [-1, 0], r: [1, 0], b: [0, -1], o: [0, 1], lb: [-R, -R], lo: [-R, R], rb: [R, -R], ro: [R, R] };
-  const plekken = (i, k) => {
-    if (n > 1 && i === 0) return k === 3 ? ["l", "b", "o"] : k === 2 ? ["lb", "lo"] : k === 1 ? ["l"] : ["l", "b", "o", "lb"].slice(0, k);
-    if (n > 1 && i === n - 1) return k === 3 ? ["r", "b", "o"] : k === 2 ? ["rb", "ro"] : k === 1 ? ["r"] : ["r", "b", "o", "rb"].slice(0, k);
-    return ["b", "o", "rb", "lb"].slice(0, k);
-  };
+/* ── Volledige structuurformule (alle atomen getekend) ──
+   spec: { atomen: [[x, y, symbool?, aantalH?]], bindingen: [[i, j, orde]] }   (x, y in roostereenheden)
+   Het aantal H volgt uit de covalentie (C 4, N 3, O 2, halogeen 1), tenzij aantalH is opgegeven. */
+const COVALENTIE = { C: 4, N: 3, O: 2, F: 1, Cl: 1, Br: 1, I: 1 };
+function volledigSVG(spec, kleur = "#3b2a17") {
+  const G = 84, L = 47, gat = 15, rand = 66;
+  const at = spec.atomen.map(a => ({ x: a[0], y: a[1], s: a[2] || "C", h: a[3] }));
+  const xs = at.map(a => a.x), ys = at.map(a => a.y);
+  const mx = Math.min(...xs), my = Math.min(...ys);
+  const px = a => rand + (a.x - mx) * G, py = a => rand + (a.y - my) * G;
+  const breedte = rand * 2 + (Math.max(...xs) - mx) * G, hoogte = rand * 2 + (Math.max(...ys) - my) * G;
+  const buren = at.map(() => []), som = at.map(() => 0);
   let lijnen = "", letters = "";
-  for (let i = 0; i < n; i++) {
-    const x = x0 + dx * i;
-    letters += `<text x="${x}" y="${y}">C</text>`;
-    if (i < n - 1) {
-      const orde = b[i] || 1, offs = orde === 1 ? [0] : orde === 2 ? [-4, 4] : [-6.5, 0, 6.5];
-      offs.forEach(o => { lijnen += `<line x1="${x + gat}" y1="${y + o}" x2="${x + dx - gat}" y2="${y + o}"/>`; });
+  spec.bindingen.forEach(([i, j, orde = 1]) => {
+    const a = at[i], b = at[j], dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy), ux = dx / len, uy = dy / len;
+    buren[i].push([ux, uy]); buren[j].push([-ux, -uy]); som[i] += orde; som[j] += orde;
+    const offs = orde === 1 ? [0] : orde === 2 ? [-4, 4] : [-6.5, 0, 6.5];
+    offs.forEach(o => {
+      const ox = -uy * o, oy = ux * o;
+      lijnen += `<line x1="${px(a) + ux * gat + ox}" y1="${py(a) + uy * gat + oy}" x2="${px(b) - ux * gat + ox}" y2="${py(b) - uy * gat + oy}"/>`;
+    });
+  });
+  const R = Math.SQRT1_2;
+  const ORTHO = [[0, -1], [0, 1], [-1, 0], [1, 0]];
+  const DIAG = [[R, -R], [-R, -R], [R, R], [-R, R]];
+  const bezet = (d, bs) => bs.some(([bx, by]) => d[0] * bx + d[1] * by > 0.6);
+  at.forEach((a, i) => {
+    const nH = a.h ?? Math.max(0, (COVALENTIE[a.s] ?? 4) - som[i]);
+    const bs = buren[i];
+    let dirs = [];
+    if (bs.length === 1 && nH >= 1 && nH <= 3) {
+      const [bx, by] = bs[0], tx = -bx, ty = -by;               // tegenover de enige binding
+      if (nH === 1) dirs = [[tx, ty]];
+      else if (nH === 2) dirs = [[R * (tx - ty), R * (ty + tx)], [R * (tx + ty), R * (ty - tx)]];
+      else dirs = [[tx, ty], [-ty, tx], [ty, -tx]];
+    } else if (nH > 0) {
+      dirs = ORTHO.filter(d => !bezet(d, bs));
+      if (dirs.length < nH) {
+        const vrij = d => -Math.max(...bs.map(([bx, by]) => d[0] * bx + d[1] * by), -1);
+        dirs = dirs.concat([...DIAG].sort((p, q) => vrij(q) - vrij(p)));   // schuin, zo ver mogelijk van de bindingen
+      }
+      dirs = dirs.slice(0, nH);
     }
-    plekken(i, h[i] || 0).forEach(p => {
-      const [ux, uy] = richting[p];
+    const x = px(a), y = py(a);
+    letters += `<text x="${x}" y="${y}">${a.s}</text>`;
+    dirs.forEach(([ux, uy]) => {
       lijnen += `<line x1="${x + ux * gat}" y1="${y + uy * gat}" x2="${x + ux * (L - 13)}" y2="${y + uy * (L - 13)}"/>`;
       letters += `<text x="${x + ux * L}" y="${y + uy * L}">H</text>`;
     });
-  }
+  });
   return `<svg viewBox="0 0 ${breedte} ${hoogte}" width="${breedte}" height="${hoogte}" role="img" aria-label="structuurformule">
     <g stroke="${kleur}" stroke-width="2.3" stroke-linecap="round">${lijnen}</g>
     <g fill="${kleur}" font-family="Arial, Helvetica, sans-serif" font-size="23" text-anchor="middle" dominant-baseline="central">${letters}</g></svg>`;
@@ -396,14 +421,19 @@ const item = () => {
 function inhoudHTML(it) {
   let h = "";
   if (it.formule) h += `<div><span class="formule">${it.formule}</span></div>`;
-  if (it.volledig) h += `<div class="structuurvak">${klein(volledigSVG(it.volledig), it.volledig.n > 6 ? 0.82 : 1)}</div>`;
+  if (it.volledig) h += `<div class="structuurvak">${klein(volledigSVG(it.volledig), it.volledig.atomen.length > 6 ? 0.82 : 1)}</div>`;
   if (it.keten) h += `<div class="structuurvak">${klein(wlKetenSVG(it.keten), 0.8)}</div>`;
   h += `<p class="opdracht">${it.vraag}</p>`;
   if (it.type === "naam") h += `<div class="antwoord"><input class="naam" id="ant" autocomplete="off" spellcheck="false" placeholder="naam"><button class="knop" id="controleer" disabled>Controleer</button></div>`;
   if (it.type === "getal") h += `<div class="antwoord"><input class="getal" id="ant" inputmode="numeric" autocomplete="off" maxlength="3"><button class="knop" id="controleer" disabled>Controleer</button></div>`;
   if (it.type === "kies") {
     const tekst = it.opties.every(o => o.tekst);
-    h += `<div class="opties" ${tekst ? `style="grid-template-columns:repeat(${it.opties.length},minmax(0,1fr))"` : ""}>${it.opties.map(o => `<div class="optie ${tekst ? "tekstoptie" : ""}" data-label="${o.label}"><b>${o.label}</b>${o.tekst ? o.tekst : klein(volledigSVG(o.volledig), 0.72)}</div>`).join("")}</div>
+    if (!it.enkel) h += `<p class="meer">Er kunnen er meer goed zijn.</p>`;
+    // alle opties op dezelfde schaal, zodat de grootte niets verraadt
+    const svgs = it.opties.map(o => o.volledig ? volledigSVG(o.volledig) : null);
+    const maxB = Math.max(1, ...svgs.filter(Boolean).map(x => +x.match(/width="([\d.]+)"/)[1]));
+    const f = Math.min(0.72, 340 / maxB);
+    h += `<div class="opties" ${tekst ? `style="grid-template-columns:repeat(${it.opties.length},minmax(0,1fr))"` : ""}>${it.opties.map((o, i) => `<div class="optie ${tekst ? "tekstoptie" : ""}" data-label="${o.label}"><b>${o.label}</b>${o.tekst ? o.tekst : klein(svgs[i], f)}</div>`).join("")}</div>
       <div class="antwoord"><button class="knop" id="controleer" disabled>Controleer</button></div>`;
   }
   if (it.type === "indeling") {
@@ -415,36 +445,60 @@ function inhoudHTML(it) {
 }
 
 function koppelInvoer(it, onControle) {
-  let keuze = null; const rijen = {};
+  let keuze = null; const gekozen = new Set(); const rijen = {};
   const knop = $("controleer");
   const ant = $("ant");
+  const reset = () => { $("tk").className = "terugkoppeling"; };
   if (ant) {
     ant.addEventListener("input", () => {
       if (it.type === "getal") ant.value = ant.value.replace(/[^0-9]/g, "");
-      knop.disabled = !ant.value.trim(); $("tk").className = "terugkoppeling";
+      knop.disabled = !ant.value.trim(); reset();
     });
     ant.addEventListener("keydown", e => { if (e.key === "Enter" && !knop.disabled) knop.click(); });
     setTimeout(() => ant.focus(), 60);
   }
   document.querySelectorAll(".optie").forEach(o => o.onclick = () => {
-    document.querySelectorAll(".optie").forEach(x => x.classList.remove("gekozen"));
-    o.classList.add("gekozen"); keuze = o.dataset.label; knop.disabled = false;
+    if (it.enkel) {
+      document.querySelectorAll(".optie").forEach(x => x.classList.remove("gekozen"));
+      o.classList.add("gekozen"); keuze = o.dataset.label;
+    } else {
+      o.classList.toggle("gekozen");
+      if (o.classList.contains("gekozen")) gekozen.add(o.dataset.label); else gekozen.delete(o.dataset.label);
+    }
+    knop.disabled = it.enkel ? !keuze : gekozen.size === 0; reset();
   });
   document.querySelectorAll(".keuzeknop").forEach(k => k.onclick = () => {
     document.querySelectorAll(`.keuzeknop[data-rij="${k.dataset.rij}"]`).forEach(x => x.classList.remove("gekozen"));
     k.classList.add("gekozen"); rijen[k.dataset.rij] = k.dataset.k;
-    knop.disabled = Object.keys(rijen).length < it.items.length;
+    knop.disabled = Object.keys(rijen).length < it.items.length; reset();
   });
   knop.onclick = async () => {
     if (busy) return; busy = true;
-    let waarde;
-    if (it.type === "naam") waarde = ant.value.trim().toLowerCase().replace(/\s+/g, "").replace(/[‐‑‒–—−]/g, "-");
-    else if (it.type === "getal") waarde = String(parseInt(ant.value, 10));
-    else if (it.type === "kies") waarde = keuze;
-    else waarde = it.items.map((_, i) => rijen[i]).join(",");
     try {
+      // Meerdere-antwoorden-kiesvraag: per optie controleren
+      if (it.type === "kies" && !it.enkel) {
+        const fouteKeuze = [], gemist = [];
+        for (const o of it.opties) {
+          const goed = (await wlHash(huidig, `a-${it.id}-${o.label}`, "ja")) === o.k;
+          if (gekozen.has(o.label) && !goed) fouteKeuze.push(o);
+          if (!gekozen.has(o.label) && goed) gemist.push(o);
+        }
+        const waarde = [...gekozen].sort().join(",");
+        await onControle(!fouteKeuze.length && !gemist.length, waarde, { fouteKeuze, gemist });
+        return;
+      }
+      if (it.type === "indeling") {
+        let fout = 0;
+        for (let i = 0; i < it.items.length; i++) if ((await wlHash(huidig, `a-${it.id}-r${i}`, rijen[i])) !== it.rijHash[i]) fout++;
+        await onControle(fout === 0, it.items.map((_, i) => rijen[i]).join(","), { foutRijen: fout });
+        return;
+      }
+      let waarde;
+      if (it.type === "naam") waarde = ant.value.trim().toLowerCase().replace(/\s+/g, "").replace(/[‐‑‒–—−]/g, "-");
+      else if (it.type === "getal") waarde = String(parseInt(ant.value, 10));
+      else waarde = keuze;
       const hash = await wlHash(huidig, "a-" + it.id, waarde);
-      await onControle(it.hash.includes(hash), waarde, keuze);
+      await onControle(it.hash.includes(hash), waarde, {});
     } finally { busy = false; }
   };
 }
@@ -479,7 +533,7 @@ function teken() {
     const kop = r.fase === "opgave" ? `Stap ${r.stap + 1} van ${av.hoofdpad.length}` : r.fase === "makkelijk" ? `Omweg · ${pers.naam}` : `Terug op het pad · stap ${r.bron + 1}`;
     p.innerHTML = `<div class="kaart perkament ${r.fase === "makkelijk" ? "omweg" : ""}"><div class="kop">${kop}</div>
       <p class="verhaal">${it.verhaal}</p>${inhoudHTML(it)}</div>`;
-    koppelInvoer(it, async (goed, waarde, keuze) => {
+    koppelInvoer(it, async (goed, waarde, detail) => {
       const tk = $("tk");
       if (goed) {
         tk.className = "terugkoppeling goed";
@@ -495,7 +549,7 @@ function teken() {
       r.pog = (r.pog || 0) + 1;
       schud();
       if (r.fase === "opgave" && r.pog >= 2) {
-        const om = it.type === "kies" ? (it.opties.find(o => o.label === keuze)?.omweg || it.omweg || "A") : it.omweg;
+        const om = detail.fouteKeuze?.[0]?.omweg || detail.gemist?.[0]?.omweg || it.omweg || "A";
         r.o[it.id].om = om;
         r.fase = "voorbeeld"; r.om = om; r.bron = r.stap; r.pog = 0;
         await bewaar();
@@ -507,7 +561,9 @@ function teken() {
       if (r.fase === "parallel" && r.pog >= 2) r.o[it.id].vast = true;
       await bewaar();
       tk.className = "terugkoppeling fout";
-      tk.innerHTML = `✗ Nog niet goed. ${it.hint}`;
+      const extra = detail.fouteKeuze ? [detail.fouteKeuze.length ? "Er zit er minstens één tussen die niet past." : "", detail.gemist.length ? "Je mist er nog minstens één." : ""].filter(Boolean).join(" ")
+        : detail.foutRijen ? `Er ${detail.foutRijen === 1 ? "staat er nog 1" : `staan er nog ${detail.foutRijen}`} verkeerd.` : "";
+      tk.innerHTML = `✗ Nog niet goed. ${extra ? extra + " " : ""}${it.hint}`;
       if (r.fase !== "opgave" && r.pog >= 2) {
         $("na").innerHTML = `<button class="knop donker" id="nogmaals">Bekijk de uitleg nog eens</button>`;
         $("nogmaals").onclick = () => { r.terugFase = r.fase; r.fase = "voorbeeld"; r.pog = 0; bewaar(); teken(); };
