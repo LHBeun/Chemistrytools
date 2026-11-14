@@ -1320,6 +1320,212 @@ window.WL_AVONTUUR = {
       intro: "In de theepot, naast de Hazelmuis, glinstert een gouden slotje. Het is maar voor heel weinig mensen te openen."
     },
     einde: "Alice loopt door het deurtje in de boom. Maar onder de theetafel wacht nog een schatkist…"
+  },
+  7: {
+    titel: "De keuken van de Hertogin",
+    plaat: P(21),
+    intro: ["Midden in het bos staat een huisje. Een lakei met een vissenkop overhandigt een enorme brief aan een lakei met een kikkerkop: “Voor de Hertogin. Een uitnodiging van de Koningin.”", "Alice glipt naar binnen. De keuken staat vol rook. Een kokkin roert in een ketel soep, en het ruikt naar azijn, peper en… vis."],
+    duur: "Ongeveer 20 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
+    personages: {
+      Z: { naam: "De kokkin", plaat: P(21) },
+      A: { naam: "De Kolderkat", plaat: P(23) },
+      T: { naam: "De Hoedenmaker", plaat: P(25) }
+    },
+    hoofdpad: [
+      {
+        id: "h1", type: "kies",
+        verhaal: "Uit een huis in het bos komt een vreselijke geur. Binnen, in de keuken van de Hertogin, staat een kokkin te roeren in een ketel. Op de plank staan zes potten met een tekening. “Zuur!” roept de kokkin. “Ik wil alleen de zure!”",
+        vraag: "Kies álle potten met een carbonzuur.",
+        opties: [
+          { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [7, -1, "O"], [7, 1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 2], [7, 9, 1]] }, omweg: "Z", k: "2ec002f4052afde6d999cf1149a9137ddf2e93a90127e0daf4d71b3510d6f412" },
+          { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [7, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 2]] }, omweg: "Z", k: "108e528d756dec7ef7821559a128a435e380390293fb1bd6ffd4836ff3fb9503" },
+          { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [0, -1, "O"], [0, 1, "O"], [3, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [0, 5, 2], [0, 6, 1], [3, 7, 1]] }, omweg: "Z", k: "fd8318c2149a7c502e62397d99adf43c030c7f8c809f1dcdba3d73d90bf42ef0" },
+          { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [0, -1, "N"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [0, 6, 1]] }, omweg: "A", k: "999e2a444fb6db4f1b507bdac4ecf45859ee9306a6c126850d87af1b343c6283" },
+          { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [5, -1, "O"], [5, 1, "O"], [3, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 2], [5, 7, 1], [3, 8, 1]] }, omweg: "Z", k: "9fca28803d0ddbe719eb8cfef6d3a13a41e08e3ea40c54e4513bfc8c22a33371" },
+          { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [0, -1, "O"], [1, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [0, 6, 2], [1, 7, 1]] }, omweg: "Z", k: "93335b8c29de6d1749c9a468216645f4385c7d69dbaa251bfe9616386a28a101" }
+        ],
+        hint: "Zoek bij elke tekening de groep aan het uiteinde. Zit er aan het eind-C een C=O én een OH?",
+        goed: "De kokkin gooit ze er alle drie in. De soep begint nog zuurder te ruiken.",
+        parallel: {
+          verhaal: "“En nu de vispotten!” Op de onderste plank staan nog zes potten.",
+          vraag: "Kies álle potten met een amine.",
+          opties: [
+            { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [1, -1, "N"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [1, 6, 1]] }, k: "6f2fe2598540879fa5e3530ed81a62302a5e79f96dd17b416ac3865cac10409f" },
+            { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [8, -1, "O"], [8, 1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 2], [8, 10, 1]] }, k: "99a70c86c7317d3b826b983a5cb933c8b0f7a61314a47ef7f784f81dc94d037f" },
+            { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [6, -1, "N"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1]] }, k: "9992c43b582837197a0a5bc840eb55c6d0216b0567f966bf8dcc65a8cdf8bde9" },
+            { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [0, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [0, 6, 1]] }, k: "4838f7402a95cc5a5476a13e0b42fc2dabfc646ca5a43a7ecc9d69c7ec1ea92f" },
+            { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [1, -1, "N"], [1, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [1, 4, 1], [1, 5, 1]] }, k: "f970b8a3c109c989402180983866c897bf1247cedfea28eb57cd11e4d2e32c74" },
+            { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [7, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 2]] }, k: "81e3b1b860815358321fb2050dfb180348b828bce30f34ecce6a2cbb2984a2c0" }
+          ],
+          hint: "Een amine heeft een N-atoom met twee H-atomen: –NH₂."
+        }
+      },
+      {
+        id: "h2", type: "naam",
+        verhaal: "Een lakei met een kikkerkop houdt Alice een pot voor. “Wat staat erop?” kwaakt hij. “Ik kan niet lezen.”",
+        volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [6, -1, "O"], [6, 1, "O"], [4, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 2], [6, 8, 1], [4, 9, 1]] },
+        vraag: "Geef de systematische naam van deze stof.",
+        hash: ["21cbaaba1d98139b4ff07c87385a99e48542cffaf9d12a8a5f34a0689ced74cd"],
+        hint: "Welk C-atoom krijgt bij een carbonzuur altijd nummer 1? Tel de keten vanaf daar.",
+        omweg: "Z",
+        goed: "“Aha,” kwaakt de lakei. Hij zet de pot ondersteboven terug.",
+        parallel: {
+          verhaal: "De lakei heeft nog een pot.",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [0, -1, "O"], [0, 1, "O"], [1, 1], [1, 2]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [0, 5, 2], [0, 6, 1], [1, 7, 1], [7, 8, 1]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["e9f2e1a117b222abba784fa6dfa54ea8670e976b79ec9249320f56152333804b"],
+          hint: "Zoek de langste keten met het C-atoom van de COOH erin, en geef dat C-atoom nummer 1."
+        }
+      },
+      {
+        id: "h3", type: "naam",
+        verhaal: "Een lakei met een vissenkop komt binnen. Hij ruikt naar… vis. In zijn hand een flesje.",
+        volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [5, -1, "N"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [5, 7, 1]] },
+        vraag: "Geef de systematische naam van deze stof.",
+        hash: ["81e55f875f0c51c4fe134f73590fce439bcfb7796f191622b7844bcf6055e6b2"],
+        hint: "Aan welk C-atoom zit de NH₂-groep? Nummer zo dat dat nummer zo laag mogelijk is.",
+        omweg: "A",
+        goed: "De vissenlakei buigt zo diep dat zijn pruik op de grond valt.",
+        parallel: {
+          verhaal: "Uit zijn zak haalt hij nog een flesje.",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [5, 1, "N"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [5, 8, 1]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["d2c7a285a5a7cd478ac908e168e372b230bcb01975cf911065f75bdbee8d2538"],
+          hint: "Nummer vanaf de kant die het dichtst bij de NH₂-groep zit."
+        }
+      },
+      {
+        id: "h4", type: "getal",
+        verhaal: "De Hertogin wiegt een baby die steeds harder niest. “Peper!” roept ze. Op het peperpotje staat een naam.",
+        formule: "4-methylpentaan-1-amine",
+        vraag: "Teken de structuur. Hoeveel H-atomen heeft het molecuul?",
+        hash: ["757aadb1f2b01e75f1123731ac658e096ff7d73fe9a2f82eabe5dcd031b6bfc8"],
+        hint: "Teken de keten, zet de methylgroep en de NH₂-groep erop en vul elk C-atoom aan tot 4 bindingen. Vergeet de H-atomen aan de N niet.",
+        omweg: "A",
+        goed: "De baby niest. En niest nog eens.",
+        parallel: {
+          verhaal: "Op het zoutvaatje staat ook een naam.",
+          formule: "2-ethylbutaanzuur",
+          vraag: "Teken de structuur. Hoeveel H-atomen heeft het molecuul?",
+          hash: ["27a3cb26db23f4ab78912d4131c8961e20785b46aaed62ad17dd922db7583d08"],
+          hint: "Teken de keten met de COOH aan C-atoom 1. Het C-atoom van de COOH heeft geen H aan zich; de OH wel."
+        }
+      },
+      {
+        id: "h5", type: "kies",
+        verhaal: "“Hier, pas jij er maar even op,” zegt de Hertogin, en ze gooit Alice de baby toe. Op de wieg hangt een briefje: “C₇H₁₄O₂”. Daaronder zes tekeningen.",
+        vraag: "Kies álle tekeningen met de molecuulformule C₇H₁₄O₂.",
+        opties: [
+          { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [0, -1, "O"], [0, 1, "O"], [1, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [0, 6, 2], [0, 7, 1], [1, 8, 1]] }, omweg: "Z", k: "cd96c59ac1ae3158a9259165dad83f87c362257f20a50fac9b74e4579d5a5db9" },
+          { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [6, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 2]] }, omweg: "Z", k: "cdccbe94ec09aa150b1d7b5bd4c6ed98945c7233397f1c320c1b069d3b268871" },
+          { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [0, -1, "O"], [0, 1, "O"], [2, 1], [2, -1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [0, 5, 2], [0, 6, 1], [2, 7, 1], [2, 8, 1]] }, omweg: "Z", k: "4ceb5f17cefd304f23eb03543169a69e3c636e14fda398836e9c66271a805443" },
+          { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [0, -1, "N"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [0, 7, 1]] }, omweg: "A", k: "972518940539809da44085ff1029fcac47c5de81cae1a53db5c2bdc7fddb6d50" },
+          { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [0, -1, "O"], [0, 1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [0, 8, 2], [0, 9, 1]] }, omweg: "Z", k: "034aae6ee6f782e8affb31e7f11dd758cffb80f5e383ed46e21e279a56d41ca7" },
+          { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [0, -1, "O"], [0, 1, "O"], [3, 1], [3, 2]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [0, 5, 2], [0, 6, 1], [3, 7, 1], [7, 8, 1]] }, omweg: "Z", k: "dc9f412c9cb23a46fdae492c0055135a514103cba405b0c0e584fb2d7bb60d02" }
+        ],
+        hint: "Tel bij elke tekening de C-, H-, O- en N-atomen.",
+        goed: "Buiten begint de baby te knorren. Als Alice kijkt, is het geen baby meer — maar een biggetje.",
+        parallel: {
+          verhaal: "Op de achterkant van het briefje: “C₆H₁₅N”.",
+          vraag: "Kies álle tekeningen met de molecuulformule C₆H₁₅N.",
+          opties: [
+            { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [2, -1, "N"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [2, 6, 1]] }, k: "0090c407f3a82da4da5fe4e78fc91385d5c0e1bd4e2149fdcd1a7656cee75e81" },
+            { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [0, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [0, 6, 2]] }, k: "ad058e955a31ac92114cef6aea2835069c2a7d8a52cd49f300201c346c4184f2" },
+            { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [1, -1, "N"], [2, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [1, 5, 1], [2, 6, 1]] }, k: "a8a75528964ec739f9ada372e92e2e65ee63772827ad97c4d804f3f5f7784769" },
+            { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [1, -1, "N"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [1, 7, 1]] }, k: "1b1aa015385aca3e2eaa23227e689eb8b7b2dbf601481723a0037cfb0490a5f4" },
+            { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [5, -1, "N"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1]] }, k: "f25f0c79aabfd4ceda36cfd050f71eff0677ab4e13cf9dd201e1b5b7b70a7a02" },
+            { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [5, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1]] }, k: "5bc83881b808508b2edc4610c0a07239e3da3818e5c1b8ecb1d4c70d6c4af151" }
+          ],
+          hint: "Tel de C-, H- en N-atomen. Vergeet de twee H-atomen aan de N niet."
+        }
+      },
+      {
+        id: "h6", type: "getal",
+        verhaal: "Het biggetje draaft het bos in. Alice ruikt de soep nog. “Hoeveel verschillende vissige stoffen zitten daar wel niet in?” vraagt ze zich af.",
+        formule: "C₆H₁₅N — amines met een onvertakte keten",
+        vraag: "Hoeveel verschillende stoffen passen bij deze beschrijving?",
+        hash: ["7417c13cafcd9cb41ec107e5ff8971f6c185e493d10233f6485541ef8d5b9956"],
+        hint: "Schuif de NH₂-groep stap voor stap van het uiteinde naar het midden van de keten. Geef elke stof een naam.",
+        omweg: "T",
+        goed: "Uit de verte waait een heerlijke geur aan: aardbeien, peren, ananas. Het komt uit de keuken van het paleis.",
+        parallel: {
+          verhaal: "En met één C-atoom meer?",
+          formule: "C₇H₁₇N — amines met een onvertakte keten",
+          vraag: "Hoeveel verschillende stoffen passen bij deze beschrijving?",
+          hash: ["8ec0a11430f41b46b65f7d4b62417fca5628eebde3ee7ab98b48826a0e90701a"],
+          hint: "Schuif de NH₂-groep van C-atoom 1 naar het midden. Welke plaatsen geven verschillende namen?"
+        }
+      }
+    ],
+    omwegen: {
+      Z: {
+        personage: "Z",
+        verhaal: "De kokkin slaat met haar pollepel op de ketel. “Een zuur herken je aan het eind,” bromt ze. “Daar zit een C=O én een OH aan hetzelfde C-atoom.”",
+        voorbeeld: {
+          tekst: "Een <b>carbonzuur</b> heeft een <b>carboxylgroep</b>: een C-atoom met een <b>C=O</b> én een <b>OH</b> (–COOH). Dat C-atoom zit altijd aan het <b>uiteinde</b>, <b>telt mee</b> in de stamnaam en krijgt altijd <b>nummer 1</b>. De naam eindigt op <b>-zuur</b>: alkaanzuur. Let op: bij een aldehyde zit aan dat C-atoom een H in plaats van een OH.",
+          structuren: [
+            { label: "3-methylpentaanzuur", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [4, -1, "O"], [4, 1, "O"], [2, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 2], [4, 6, 1], [2, 7, 1]] } }
+          ],
+          uitwerking: "Het C-atoom van de COOH (rechts) is C-atoom 1. De keten is 5 lang → <b>pentaanzuur</b>. De methylgroep zit dan op 3: <b>3-methylpentaanzuur</b>."
+        },
+        makkelijk: {
+          type: "naam",
+          verhaal: "“Nu jij,” zegt de kokkin, en ze strooit nog wat peper.",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [0, -1, "O"], [0, 1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 1], [0, 10, 2], [0, 11, 1]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["d5986928d75e253197b135adba7e46ae02d4258442605b94f9415447fc72caf5"],
+          hint: "Tel alle C-atomen, ook het C-atoom van de COOH."
+        }
+      },
+      A: {
+        personage: "A",
+        verhaal: "In de hoek van de keuken verschijnt een grijns. “Vis,” zegt de Kolderkat, en hij snuift. “Dat is stikstof. Drie armen heeft dat.”",
+        voorbeeld: {
+          tekst: "Een <b>amine</b> heeft een <b>aminogroep</b>: –NH₂. Een N-atoom heeft <b>3 bindingen</b>: één naar het C-atoom en twee naar H-atomen. De naam is <b>alkaanamine</b>, met het plaatsnummer van de NH₂-groep ervoor. Nummer zo dat dat nummer <b>zo laag mogelijk</b> is.",
+          structuren: [
+            { label: "butaan-1-amine", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [0, -1, "N"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [0, 4, 1]] } },
+            { label: "pentaan-3-amine", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [2, -1, "N"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [2, 5, 1]] } }
+          ],
+          uitwerking: "Links zit de NH₂ aan het uiteinde: <b>butaan-1-amine</b>. Rechts zit hij precies in het midden: van beide kanten C-atoom 3, <b>pentaan-3-amine</b>."
+        },
+        makkelijk: {
+          type: "naam",
+          verhaal: "“En deze?” vraagt de Kat. Alleen zijn grijns is nog te zien.",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [3, -1, "N"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [3, 7, 1]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["75ba541829b7cba887ed48799d48c0e005f3d3bb27caa259c945b95e26e25df9"],
+          hint: "Tel de C-atomen en zoek aan welk C-atoom de NH₂ zit."
+        }
+      },
+      T: {
+        personage: "T",
+        verhaal: "De Hoedenmaker steekt zijn hoofd door het raam. “Opschuiven! Altijd opschuiven! Tot je in het midden bent!”",
+        voorbeeld: {
+          tekst: "Zo vind je systematisch alle onvertakte amines bij een formule: zet de NH₂ eerst aan het <b>uiteinde</b> en <b>schuif</b> hem dan stap voor stap naar het midden. Geef elke stof een naam: wat voorbij het midden komt, is dezelfde stof van de andere kant.",
+          structuren: [
+            { label: "pentaan-1-amine", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [0, -1, "N"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [0, 5, 1]] } },
+            { label: "pentaan-2-amine", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [1, -1, "N"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [1, 5, 1]] } },
+            { label: "pentaan-3-amine", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [2, -1, "N"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [2, 5, 1]] } }
+          ],
+          uitwerking: "Onvertakt C₅H₁₃N: NH₂ op C-atoom 1, 2 of 3. ‘Pentaan-4-amine’ is pentaan-2-amine van de andere kant. Dus <b>3</b> stoffen."
+        },
+        makkelijk: {
+          type: "getal",
+          verhaal: "“Tel maar,” zegt de Hoedenmaker.",
+          formule: "C₈H₁₉N — amines met een onvertakte keten",
+          vraag: "Hoeveel verschillende stoffen passen bij deze beschrijving?",
+          hash: ["423e9e15f78983843ab55e2bb2f3b2a4cd4a8e8564edd5835cdcb683e3188814"],
+          hint: "Schuif de NH₂ van C-atoom 1 naar het midden en geef elke stof een naam."
+        }
+      }
+    },
+    kluis: {
+      intro: "Onder de keukentafel staat een schatkist met vier draaischijven. Wie hem opent, krijgt een edelsteen. Werk in je schrift. Als je alle getallen hebt ingevuld, zie je per getal of het klopt."
+    },
+    geheim: {
+      intro: "In de soepketel glinstert iets: een gouden slotje. Het is maar voor heel weinig mensen te openen."
+    },
+    einde: "Alice loopt het bos in, achter de geur van taartjes aan. Maar onder de keukentafel wacht nog een schatkist…"
   }
 };
 })();

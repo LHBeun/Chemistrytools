@@ -835,6 +835,142 @@ window.WL_FEEDBACK = {
       },
       zo: "decaan-2-on, 3-on, 4-on en 5-on. Dus <b>4</b>."
     }
+  },
+  // ── Les 7 · De keuken van de Hertogin ──────────────────────
+  7: {
+    omwegen: {
+      Z: "Het ging mis bij het herkennen of benoemen van een carbonzuur.",
+      A: "Het ging mis bij het herkennen of benoemen van een amine.",
+      T: "Het ging mis bij het systematisch tellen."
+    },
+    h1: {
+      optieUitleg: {
+        B: "Aan het eind-C zit een C=O en een H, geen OH: een aldehyde.",
+        D: "Hier zit een NH₂-groep: een amine.",
+        F: "Aan het eind-C zit een C=O en een H, geen OH: een aldehyde."
+      },
+      zo: "Drie carbonzuren: <b>A</b>, <b>C</b> en <b>E</b>. Steeds zit aan het eind-C een C=O én een OH (bij C links)."
+    },
+    p1: {
+      optieUitleg: {
+        B: "Hier zit een COOH-groep: een carbonzuur.",
+        D: "Hier zit een OH-groep, geen NH₂: een alkanol.",
+        F: "Hier zit een C=O aan het uiteinde: een aldehyde."
+      },
+      zo: "Drie amines: <b>A</b>, <b>C</b> en <b>E</b>, elk met een –NH₂-groep."
+    },
+    h2: {
+      fouten: {
+        "5-methylheptaanzuur": "Bij een carbonzuur krijgt het C-atoom van de COOH altijd nummer 1. Tel vanaf daar.",
+        "3-methylhexaanzuur": "Het C-atoom van de COOH telt mee in de stamnaam.",
+        "3-methylheptanal": "Kijk nog eens naar het eind-C: zit er een H of een OH aan?",
+        "methylheptaanzuur": "Op welk C-atoom zit de methylgroep? Dat nummer hoort in de naam.",
+        "3-methylheptaan-1-zuur": "Bij een carbonzuur is geen plaatsnummer voor -zuur nodig: de COOH zit altijd op 1."
+      },
+      zo: "Het C-atoom van de COOH (rechts) is C-atoom 1. Keten van 7 → <b>heptaanzuur</b>. Methyl op 3: <b>3-methylheptaanzuur</b>."
+    },
+    p2: {
+      fouten: {
+        "2-ethylbutaanzuur": "Tel de langste keten nog eens, vanaf het C-atoom van de COOH.",
+        "2-propylbutaanzuur": "Is dit echt de langste keten? Probeer ook de route door de zijtak.",
+        "4-ethylpentaanzuur": "Het C-atoom van de COOH krijgt nummer 1."
+      },
+      zo: "Vanaf het C-atoom van de COOH (links) is de langste keten 5 lang → <b>pentaanzuur</b>. De ethylgroep zit op 2: <b>2-ethylpentaanzuur</b>."
+    },
+    h3: {
+      fouten: {
+        "heptaan-6-amine": "Nummer vanaf de kant die het dichtst bij de NH₂-groep zit.",
+        "heptaanamine": "Aan welk C-atoom zit de NH₂-groep? Dat nummer hoort in de naam.",
+        "2-heptaanamine": "Het plaatsnummer staat vlak voor -amine: heptaan-…-amine.",
+        "heptaan-2-ol": "Kijk welk atoom er aan de keten zit: O of N?",
+        "hexaan-2-amine": "Tel de C-atomen nog eens."
+      },
+      zo: "7 C-atomen → <b>heptaan</b>. Van rechts genummerd zit de NH₂ op 2: <b>heptaan-2-amine</b>."
+    },
+    p3: {
+      fouten: {
+        "octaan-6-amine": "Nummer vanaf de kant die het dichtst bij de NH₂-groep zit.",
+        "octaanamine": "Aan welk C-atoom zit de NH₂-groep? Dat nummer hoort in de naam.",
+        "3-octaanamine": "Het plaatsnummer staat vlak voor -amine: octaan-…-amine."
+      },
+      zo: "Van rechts genummerd zit de NH₂ op 3: <b>octaan-3-amine</b>."
+    },
+    h4: {
+      fouten: {
+        "13": "Vergeet de twee H-atomen aan de N niet.",
+        "14": "Tel nog eens: aan de N zitten twee H-atomen.",
+        "16": "Het C-atoom met de NH₂-groep heeft één H minder.",
+        "12": "Vergeet de H-atomen aan de methylgroep niet."
+      },
+      zo: "C₆H₁₅N: H₂N–CH₂–CH₂–CH₂–CH(CH₃)–CH₃. 2 (aan N) + 2 + 2 + 2 + 1 + 3 + 3 = <b>15</b>."
+    },
+    p4: {
+      fouten: {
+        "11": "Vergeet de H van de OH-groep niet.",
+        "13": "Het C-atoom van de COOH heeft zelf geen H.",
+        "14": "Een C=O kost twee H. Het C-atoom van de COOH heeft zelf geen H.",
+        "10": "Tel de H-atomen aan de ethylgroep nog eens."
+      },
+      zo: "C₆H₁₂O₂: COOH (1 H) – CH(C₂H₅) (1 + 5 H) – CH₂ – CH₃ (2 + 3). Samen <b>12</b>."
+    },
+    h5: {
+      optieUitleg: {
+        B: "C₇H₁₄O: een aldehyde heeft maar één O-atoom.",
+        D: "C₇H₁₇N: hier zit geen O, maar een N.",
+        E: "C₈H₁₆O₂: tel de C-atomen nog eens."
+      },
+      zo: "Drie carbonzuren met C₇H₁₄O₂: <b>A</b> (2-methylhexaanzuur), <b>C</b> (3,3-dimethylpentaanzuur) en <b>F</b> (de keten loopt door de ethylgroep: 4-methylhexaanzuur)."
+    },
+    p5: {
+      optieUitleg: {
+        B: "C₆H₁₂O: hier zit geen N in.",
+        D: "C₇H₁₇N: tel de C-atomen nog eens.",
+        F: "C₆H₁₄O: een OH-groep, geen NH₂."
+      },
+      zo: "Drie amines met C₆H₁₅N: <b>A</b> (hexaan-3-amine), <b>C</b> (3-methylpentaan-2-amine) en <b>E</b> (hexaan-1-amine)."
+    },
+    h6: {
+      fouten: {
+        "6": "Sommige zijn dezelfde stof, van de andere kant genummerd. Geef ze allemaal een naam.",
+        "5": "Sommige zijn dezelfde stof, van de andere kant genummerd. Geef ze allemaal een naam.",
+        "4": "Sommige zijn dezelfde stof, van de andere kant genummerd. Geef ze allemaal een naam.",
+        "2": "Kan de NH₂ ook dichter bij het midden zitten?",
+        "1": "De NH₂ kan op meer plekken zitten dan aan het uiteinde."
+      },
+      zo: "hexaan-1-amine, hexaan-2-amine en hexaan-3-amine. ‘Hexaan-4-amine’ is hexaan-3-amine van de andere kant. Dus <b>3</b>."
+    },
+    p6: {
+      fouten: {
+        "7": "Sommige zijn dezelfde stof, van de andere kant genummerd.",
+        "6": "Sommige zijn dezelfde stof, van de andere kant genummerd.",
+        "5": "Sommige zijn dezelfde stof, van de andere kant genummerd.",
+        "3": "Kan de NH₂ ook precies in het midden zitten?"
+      },
+      zo: "heptaan-1-, 2-, 3- en 4-amine. Dus <b>4</b>."
+    },
+    oZ: {
+      fouten: {
+        "nonaanzuur": "Tel de C-atomen nog eens, ook het C-atoom van de COOH.",
+        "decanal": "Kijk naar het eind-C: zit er een H of een OH aan?",
+        "decaan-1-zuur": "Bij een carbonzuur is geen plaatsnummer voor -zuur nodig."
+      },
+      zo: "10 C-atomen, inclusief het C-atoom van de COOH: <b>decaanzuur</b>."
+    },
+    oA: {
+      fouten: {
+        "heptaanamine": "Aan welk C-atoom zit de NH₂-groep? Dat nummer hoort in de naam.",
+        "heptaan-4-ol": "Kijk welk atoom er aan de keten zit: O of N?"
+      },
+      zo: "De NH₂ zit precies in het midden van 7 C-atomen: <b>heptaan-4-amine</b>."
+    },
+    oT: {
+      fouten: {
+        "8": "Sommige zijn dezelfde stof, van de andere kant genummerd.",
+        "7": "Sommige zijn dezelfde stof, van de andere kant genummerd.",
+        "3": "Kan de NH₂ ook precies in het midden zitten?"
+      },
+      zo: "octaan-1-, 2-, 3- en 4-amine. Dus <b>4</b>."
+    }
   }
 };
 })();
