@@ -529,7 +529,7 @@ window.WL_FEEDBACK = {
         D: "C₉H₂₀: zonder ring of dubbele binding heeft een stof 2 H meer.",
         F: "C₈H₁₆: tel de C-atomen nog eens."
       },
-      zo: "Drie tekeningen passen: <b>A</b> (propylcyclohexaan), <b>E</b> (1-ethyl-3-methylcyclohexaan) en <b>C</b> (non-2-een), allemaal C₉H₁₈."
+      zo: "Drie tekeningen passen: <b>A</b> (propylcyclohexaan), <b>E</b> (1-ethyl-2-methylcyclohexaan) en <b>C</b> (non-2-een), allemaal C₉H₁₈."
     },
     oR: {
       fouten: {

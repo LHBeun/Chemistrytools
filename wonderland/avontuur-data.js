@@ -840,7 +840,7 @@ window.WL_AVONTUUR = {
             { label: "B", skelet: { soort: "ring", n: 6, cirkel: true, takken: [{ bij: 0, lengte: 1 }, { bij: 2, lengte: 1 }, { bij: 4, lengte: 1 }] }, k: "52e42f6db759cf063423a106e301d8080490f9046a933e0795110100cc542448" },
             { label: "C", volledig: recht(9, { 1: 2 }), k: "c3ac21080daecd6c739f831c5d2a6664acec5931c1d6258d57b49978db7dc4ce" },
             { label: "D", volledig: recht(9), k: "c40eb87fc404e521d0773ff9e919bab9871d8d61646c8fdcc024ff405d951444" },
-            { label: "E", skelet: { soort: "ring", n: 6, takken: [{ bij: 0, lengte: 2 }, { bij: 2, lengte: 1 }] }, k: "5463c1942dc7b3dfd52edac9b5fe99c99bb5a84119c131d22bca0e5c4fa85f76" },
+            { label: "E", skelet: { soort: "ring", n: 6, takken: [{ bij: 0, lengte: 2 }, { bij: 1, lengte: 1 }] }, k: "5463c1942dc7b3dfd52edac9b5fe99c99bb5a84119c131d22bca0e5c4fa85f76" },
             { label: "F", skelet: { soort: "ring", n: 5, takken: [{ bij: 0, lengte: 3 }] }, k: "65b8ebf7b7facf55413092c116b967951e8a957de706b5322d7e2e8eba0e4076" }
           ],
           hint: "Tel de C-atomen en de H-atomen. Een ring en een dubbele binding kosten allebei twee H ten opzichte van het alkaan."
