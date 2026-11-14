@@ -700,6 +700,141 @@ window.WL_FEEDBACK = {
       },
       zo: "1 C-atoom → <b>methoxy-</b>, 6 C-atomen → <b>hexaan</b>: <b>methoxyhexaan</b>."
     }
+  },
+  // ── Les 6 · Het theekransje ───────────────────────────────
+  6: {
+    omwegen: {
+      K: "Het ging mis bij het onderscheid tussen aldehyde en keton.",
+      N: "Het ging mis bij het nummeren van een aldehyde of keton.",
+      T: "Het ging mis bij het systematisch vinden van alle mogelijkheden."
+    },
+    h1: {
+      optieUitleg: {
+        B: "De C=O zit hier midden in de keten: een keton.",
+        C: "Hier zit een –OH aan het uiteinde, geen C=O: een alkanol.",
+        E: "De C=O zit hier midden in de keten: een keton."
+      },
+      zo: "Drie aldehyden: <b>A</b>, <b>D</b> en <b>F</b>. Steeds zit de C=O aan het uiteinde van de keten (bij F links). B en E zijn ketonen, C is een alkanol."
+    },
+    p1: {
+      optieUitleg: {
+        B: "De C=O zit hier aan het uiteinde: een aldehyde.",
+        D: "Hier zit een –OH, geen C=O: een alkanol.",
+        E: "De C=O zit hier aan het uiteinde: een aldehyde."
+      },
+      zo: "Drie ketonen: <b>A</b>, <b>C</b> en <b>F</b>, met de C=O steeds midden in de keten."
+    },
+    h2: {
+      fouten: {
+        "2-methylpentanal": "Bij een aldehyde krijgt het C-atoom van de C=O altijd nummer 1. Tel vanaf daar.",
+        "4-methylpentaan-2-on": "Zit de C=O aan het uiteinde of midden in de keten?",
+        "4-methylhexanal": "Tel de C-atomen in de keten nog eens, inclusief het C-atoom van de C=O.",
+        "4-methylbutanal": "Tel de C-atomen in de keten nog eens, inclusief het C-atoom van de C=O.",
+        "methylpentanal": "Op welk C-atoom zit de methylgroep? Dat nummer hoort in de naam."
+      },
+      zo: "Het C-atoom van de C=O is C-atoom 1. De keten is 5 lang → <b>pentanal</b>. De methylgroep zit op 4: <b>4-methylpentanal</b>."
+    },
+    p2: {
+      fouten: {
+        "4-ethylhexanal": "Bij een aldehyde krijgt het C-atoom van de C=O altijd nummer 1. Tel vanaf daar.",
+        "3-ethylheptanal": "Tel de C-atomen in de keten nog eens.",
+        "3-ethylhexaan-6-al": "Het C-atoom van de C=O is C-atoom 1."
+      },
+      zo: "Van rechts: het C-atoom van de C=O is 1, de ethylgroep zit op 3: <b>3-ethylhexanal</b>."
+    },
+    h3: {
+      fouten: {
+        "octaan-6-on": "Nummer vanaf de kant die het dichtst bij de C=O zit.",
+        "octanon": "Waar zit de C=O? Dat nummer hoort in de naam.",
+        "octaan-3-al": "De C=O zit midden in de keten: is het dan een aldehyde?",
+        "3-octanon": "Het plaatsnummer staat vlak voor -on: octaan-…-on.",
+        "octaan-3-ol": "Een C=O is geen –OH: welke uitgang hoort bij een keton?"
+      },
+      zo: "8 C-atomen, C=O midden in de keten → keton. Van rechts genummerd zit de C=O op 3: <b>octaan-3-on</b>."
+    },
+    p3: {
+      fouten: {
+        "nonaan-8-on": "Nummer vanaf de kant die het dichtst bij de C=O zit.",
+        "nonanon": "Waar zit de C=O? Dat nummer hoort in de naam.",
+        "2-nonanon": "Het plaatsnummer staat vlak voor -on: nonaan-…-on."
+      },
+      zo: "Van rechts genummerd zit de C=O op 2: <b>nonaan-2-on</b>."
+    },
+    h4: {
+      optieUitleg: {
+        B: "C₈H₁₈O: een alkanol heeft 2 H meer dan een keton.",
+        C: "Dit is octaan-2-on zelf, gespiegeld: dezelfde stof, dus geen isomeer.",
+        F: "C₈H₁₆: hier zit geen O-atoom in."
+      },
+      zo: "Drie isomeren (C₈H₁₆O): <b>A</b> (2-methylheptanal), <b>D</b> (octaan-4-on) en <b>E</b> (5-methylheptaan-3-on)."
+    },
+    p4: {
+      optieUitleg: {
+        B: "Dit is nonanal zelf, gespiegeld: dezelfde stof, dus geen isomeer.",
+        D: "C₉H₂₀O: een alkanol heeft 2 H meer.",
+        F: "C₈H₁₆O: één C-atoom minder."
+      },
+      zo: "Drie isomeren (C₉H₁₈O): <b>A</b> (nonaan-2-on), <b>C</b> (2-methyloctanal) en <b>E</b> (nonaan-5-on)."
+    },
+    h5: {
+      fouten: {
+        "15": "Het C-atoom van de C=O heeft maar één H.",
+        "16": "De C=O kost twee H: het C-atoom van de C=O heeft er maar één.",
+        "13": "Tel de H-atomen aan de methylgroepen nog eens.",
+        "12": "Het C-atoom van de C=O heeft nog één H."
+      },
+      zo: "C₇H₁₄O: CHO (1 H) – C(CH₃)₂ (0 H aan C2, 2 × 3 H aan de methylgroepen) – CH₂ – CH₂ – CH₃. 1 + 6 + 2 + 2 + 3 = <b>14</b>."
+    },
+    p5: {
+      fouten: {
+        "17": "Het C-atoom van de C=O heeft maar één H.",
+        "18": "De C=O kost twee H: het C-atoom van de C=O heeft er maar één.",
+        "14": "Tel de H-atomen aan de methylgroepen nog eens."
+      },
+      zo: "C₈H₁₆O: 1 (CHO) + 2 + 0 + 6 (methylgroepen) + 2 + 2 + 3 = <b>16</b>."
+    },
+    h6: {
+      fouten: {
+        "3": "Vergeet het aldehyde niet: de C=O kan ook aan het uiteinde zitten.",
+        "5": "Sommige zijn dezelfde stof, van de andere kant genummerd. Geef ze allemaal een naam.",
+        "6": "Sommige zijn dezelfde stof, van de andere kant genummerd. Geef ze allemaal een naam.",
+        "7": "Sommige zijn dezelfde stof, van de andere kant genummerd. Geef ze allemaal een naam.",
+        "1": "De C=O kan op meer plekken zitten dan aan het uiteinde."
+      },
+      zo: "heptanal, heptaan-2-on, heptaan-3-on en heptaan-4-on. ‘Heptaan-5-on’ is heptaan-3-on van de andere kant. Dus <b>4</b>."
+    },
+    p6: {
+      fouten: {
+        "4": "Alleen ketonen: octanal telt niet mee. Of heb je dubbelen?",
+        "5": "Sommige zijn dezelfde stof, van de andere kant genummerd.",
+        "6": "Sommige zijn dezelfde stof, van de andere kant genummerd.",
+        "2": "Kan de C=O ook dichter bij het midden zitten?"
+      },
+      zo: "octaan-2-on, octaan-3-on en octaan-4-on. Dus <b>3</b>."
+    },
+    oK: {
+      fouten: {
+        "decaan-7-on": "Nummer vanaf de kant die het dichtst bij de C=O zit.",
+        "decanal": "De C=O zit midden in de keten: is het dan een aldehyde?",
+        "decaan-4-al": "De C=O zit midden in de keten: welke uitgang hoort bij een keton?"
+      },
+      zo: "Keton (C=O midden in de keten), van links op C-atoom 4: <b>decaan-4-on</b>."
+    },
+    oN: {
+      fouten: {
+        "decaan-9-on": "Nummer vanaf de kant die het dichtst bij de C=O zit.",
+        "decanal": "De C=O zit niet aan het uiteinde: is het dan een aldehyde?"
+      },
+      zo: "Van rechts genummerd zit de C=O op 2: <b>decaan-2-on</b>."
+    },
+    oT: {
+      fouten: {
+        "5": "Alleen ketonen: het aldehyde telt niet mee.",
+        "8": "Sommige zijn dezelfde stof, van de andere kant genummerd.",
+        "3": "Kan de C=O ook precies in het midden zitten?"
+      },
+      zo: "decaan-2-on, 3-on, 4-on en 5-on. Dus <b>4</b>."
+    }
   }
 };
 })();

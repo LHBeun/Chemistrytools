@@ -1111,6 +1111,215 @@ window.WL_AVONTUUR = {
       intro: "Tussen de rode rozen hangt één witte roos. Er zit een gouden slotje aan. Het is maar voor heel weinig mensen te openen."
     },
     einde: "De potjes staan op hun plek. Maar onder de rozenstruik wacht nog een schatkist…"
+  },
+  6: {
+    titel: "Het theekransje",
+    plaat: P(25),
+    intro: ["Achter het deurtje van de Kolderkat staat een lange tafel onder een boom, gedekt voor heel veel gasten. Maar er zitten er maar drie: de Hoedenmaker, de Maartse Haas en een slapende Hazelmuis.", "Het is altijd zes uur, dus het is altijd theetijd. En steeds als hun kopjes vuil zijn, schuiven ze een plaats op."],
+    duur: "Ongeveer 20 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
+    personages: {
+      K: { naam: "De Maartse Haas", plaat: P(25) },
+      N: { naam: "De Hoedenmaker", plaat: P(25) },
+      T: { naam: "De Rups", plaat: P(15) }
+    },
+    hoofdpad: [
+      {
+        id: "h1", type: "kies",
+        verhaal: "Onder een boom staat een lange tafel, gedekt voor heel veel gasten. Aan één hoekje zitten de Hoedenmaker, de Maartse Haas en een slapende Hazelmuis. “Geen plaats! Geen plaats!” roepen ze. Op tafel staan zes theepotten met een tekening erop.",
+        vraag: "Kies álle theepotten met een aldehyde.",
+        opties: [
+          { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [7, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 2]] }, omweg: "K", k: "4309134338309995e8a086aeb0a21e2ff6d6d5bb59e37db573745768eaee8bc4" },
+          { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [1, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [1, 8, 2]] }, omweg: "K", k: "baa4e28fff154bb47308114f186f18cc63328c1fece3a573344695d321237114" },
+          { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [6, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1]] }, omweg: "K", k: "5449b9943cf5ad8fe36d4fc3fae9d63e014b0956986260abf48e2f382a7be056" },
+          { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [0, -1, "O"], [1, 1], [2, -1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [0, 5, 2], [1, 6, 1], [2, 7, 1]] }, omweg: "K", k: "9888ca449cb137f51ddc437ed81e914c35de887eb8f45d97e5149245093b05f6" },
+          { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [3, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [3, 9, 2]] }, omweg: "K", k: "20869c034988b81bbb568a34d56e004800d2c22827167a06fe1ca40909c4f0e6" },
+          { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [0, -1, "O"], [3, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [0, 6, 2], [3, 7, 1]] }, omweg: "K", k: "5f083af416641380caa23fb70f1d7aa3021a3ddc34617366c9547abaca24bbe4" }
+        ],
+        hint: "Zoek bij elke tekening de C=O. Zit die aan het uiteinde of midden in de keten? En is het wel een C=O?",
+        goed: "“Ga zitten,” zegt de Maartse Haas, al is er helemaal geen stoel vrij.",
+        parallel: {
+          verhaal: "“Andere kopjes!” roept de Hoedenmaker, en iedereen schuift een plaats op. Op de nieuwe kopjes staan weer tekeningen.",
+          vraag: "Kies álle kopjes met een keton.",
+          opties: [
+            { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [2, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [2, 9, 2]] }, k: "3326afca9105317faa11ebe78b0a9219b3aa2db617a997d6ed0e0461efde0df7" },
+            { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [8, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 2]] }, k: "cb45f802c7c95992ee909c2bd237ef43072ce427d72754f5c380776a49a013f3" },
+            { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [1, -1, "O"], [2, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [1, 6, 2], [2, 7, 1]] }, k: "6cb43c9c2184c0fb67883c45974d552be37221a9ff25844ec470d0fdc61c6b5a" },
+            { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [1, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [1, 8, 1]] }, k: "263114b30ebe3ebeff3255ec7364202fcf84bcf7665b90e6406345c8a9062176" },
+            { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [0, -1, "O"], [1, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [0, 6, 2], [1, 7, 1]] }, k: "2acb14e1d7a198249197c9a671ea6bb30b50bd8020b95eaec60bfcb771fc6475" },
+            { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [3, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [3, 8, 2]] }, k: "bc043e92591f87f8e7040c7de70ca6ad1b2909bb43e63e109dc9b54eedb62d0d" }
+          ],
+          hint: "Een keton heeft de C=O midden in de keten, niet aan het uiteinde."
+        }
+      },
+      {
+        id: "h2", type: "naam",
+        verhaal: "“Wil je wat wijn?” vraagt de Maartse Haas. Alice ziet alleen thee. Op de theepot voor haar staat een tekening, maar geen naam.",
+        volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [0, -1, "O"], [3, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [0, 5, 2], [3, 6, 1]] },
+        vraag: "Geef de systematische naam van deze stof.",
+        hash: ["1d5b5c7f0d2b752cdc2bfe9960138dc23bec1aca641d72e5814f662cc42a9afb", "7f525f98c99ecb2cf8c2f888e2225cf03f5ddf0fab211a0e0d32d0ca4f8c4a44", "8f8768280ec63fe70a4957095c14e09e1e3a8c5c826dc153eaaf903a6901ae66"],
+        hint: "Welk C-atoom krijgt bij een aldehyde altijd nummer 1? Tel vanaf daar.",
+        omweg: "N",
+        goed: "“Er is helemaal geen wijn,” zegt de Maartse Haas tevreden.",
+        parallel: {
+          verhaal: "Op de suikerpot staat ook een tekening.",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [5, -1, "O"], [3, 1], [3, 2]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 2], [3, 7, 1], [7, 8, 1]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["04e93160ddf32e9c2635e3a6971c5b2a28528a105e84d9923901c541486068fa", "9e8b41a5b9dc97733e850be633f7d831fcd4ebe6ca4cc45d80a850a60d4b5aa4", "83f48f607c7784d6fce6446dfdaf8b38b24b1825f2d37ba92eda6b17db36b1d9"],
+          hint: "Zoek de langste keten met het C-atoom van de C=O erin, en geef dat C-atoom nummer 1."
+        }
+      },
+      {
+        id: "h3", type: "naam",
+        verhaal: "“Waarom lijkt een raaf op een schrijftafel?” vraagt de Hoedenmaker. Alice weet het niet. “Ik ook niet,” zegt hij. “Maar hoe heet déze?”",
+        volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [5, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [5, 8, 2]] },
+        vraag: "Geef de systematische naam van deze stof.",
+        hash: ["14a307afe7a5fce067f8ed2cd264de0b05617c2426b93497bb03ec0a5f5c8243"],
+        hint: "Waar zit de C=O? Nummer zo dat dat C-atoom een zo laag mogelijk nummer krijgt.",
+        omweg: "N",
+        goed: "“Goed zo,” zegt de Hoedenmaker. “Een raadsel zonder antwoord is ook een raadsel.”",
+        parallel: {
+          verhaal: "De Hoedenmaker schuift zijn kopje naar Alice. Er staat een tekening op.",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [7, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [7, 9, 2]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["6b03ad41b4badfad7c9c2c4e9588f0ed159ae7612165dde6587d3ab88113170c"],
+          hint: "Nummer vanaf de kant die het dichtst bij de C=O zit."
+        }
+      },
+      {
+        id: "h4", type: "kies",
+        verhaal: "“Schuif op!” roept de Hoedenmaker weer. “Zelfde gasten, andere plaatsen.” Hij legt een kaartje neer: octaan-2-on. “Wie hoort er bij mijn familie?”",
+        vraag: "Kies álle isomeren van octaan-2-on.",
+        opties: [
+          { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [0, -1, "O"], [1, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [0, 7, 2], [1, 8, 1]] }, omweg: "T", k: "45376be764d833f235aa1b67b0ce75fecfcca7d099519a60d3d1dff513f93b43" },
+          { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [1, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [1, 8, 1]] }, omweg: "T", k: "fc25e9838fbd520abbff78ceb667ff62478953181d1269aaa19023a80da03a5f" },
+          { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [6, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [6, 8, 2]] }, omweg: "T", k: "8569f7e206ad7a7f45cd20c5f0c3c23049ad9d1be84daf43db5979ab45000ea1" },
+          { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [3, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [3, 8, 2]] }, omweg: "T", k: "cdf4f0839c79df78ea285173c4e198390babfbee466c6f1444556a2e8f8e3f58" },
+          { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [2, -1, "O"], [4, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [2, 7, 2], [4, 8, 1]] }, omweg: "T", k: "aebc555c26bd6379d185543428df2e80c5804a92edeec98434ef6ec5aede45be" },
+          { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0]], bindingen: [[0, 1, 1], [1, 2, 2], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1]] }, omweg: "T", k: "026554ed4f23f953b806c0ebba14c3e1e16dfe48725b362bd1da8c86b40d89c4" }
+        ],
+        hint: "Bepaal bij elke tekening de molecuulformule en vergelijk met octaan-2-on. Is het wel een ándere stof?",
+        goed: "“Dezelfde stukjes, een andere plaats aan tafel,” zegt de Hoedenmaker. “Zo hoort het.”",
+        parallel: {
+          verhaal: "Een nieuw kaartje: nonanal.",
+          vraag: "Kies álle isomeren van nonanal.",
+          opties: [
+            { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [1, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [1, 9, 2]] }, k: "60d000e9775541d1b325149d924998ddfed17f87de5403380345ce2c0018e9f8" },
+            { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [0, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [0, 9, 2]] }, k: "68a205f9e7a1cb457c4ca1806efbd39c04d294fd9d0027e09a21e0d5eea5fb5a" },
+            { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [0, -1, "O"], [1, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [0, 8, 2], [1, 9, 1]] }, k: "cbc02c2401f59cc5f1e658df0327fe6c92ec7939cdfc2f7b95cc31461ab29fea" },
+            { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [8, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 1]] }, k: "fd2030ab7f1d03fd11ebb5e1a1760ae8978f4bfeac635828371d0a69ba9da025" },
+            { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [4, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [4, 9, 2]] }, k: "dbd7d6dcf80174ee7dc32add9cb4af9ee51e494571763a74db82a1a2f07e9c8d" },
+            { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [7, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 2]] }, k: "a4e4ab5fdb7ffd0a4aab7d89c3b15893615fe9b264d530d52e3ecef4b19f24eb" }
+          ],
+          hint: "Een isomeer heeft dezelfde molecuulformule, maar is een andere stof."
+        }
+      },
+      {
+        id: "h5", type: "getal",
+        verhaal: "De Hazelmuis wordt even wakker. “Ik heb een theepot gedroomd,” mompelt hij, “met dit erop.” En hij valt weer in slaap.",
+        formule: "2,2-dimethylpentanal",
+        vraag: "Teken de structuur. Hoeveel H-atomen heeft het molecuul?",
+        hash: ["78151920941f40502e7e33edc8b46c1980727d1445b7080c0b0753f8b4f1f55b"],
+        hint: "Teken eerst de keten met de C=O aan C-atoom 1. Zet de methylgroepen erop en vul elk C-atoom aan tot 4 bindingen.",
+        omweg: "T",
+        goed: "De Hazelmuis snurkt tevreden.",
+        parallel: {
+          verhaal: "De Hazelmuis mompelt nog iets.",
+          formule: "3,3-dimethylhexanal",
+          vraag: "Teken de structuur. Hoeveel H-atomen heeft het molecuul?",
+          hash: ["0d4e4e099e9afab4b64c6d52fd5f0ea8d21f2c9d82e81a36e923a5dc51c0bbaa"],
+          hint: "Teken de keten van 6 C-atomen met de C=O aan C-atoom 1, en zet beide methylgroepen op C-atoom 3."
+        }
+      },
+      {
+        id: "h6", type: "getal",
+        verhaal: "Dan stoppen ze de Hazelmuis in de theepot. “Laatste raadsel,” zegt de Maartse Haas. “Zeven koolstofatomen, één zuurstofatoom, een C=O — en geen vertakkingen.”",
+        formule: "C₇H₁₄O — aldehyden én ketonen, onvertakt",
+        vraag: "Hoeveel verschillende stoffen passen bij deze beschrijving?",
+        hash: ["c0ea46990ed62d7fe75e5e9e6cfe6e5a2e620284720fcdbdd7d7f5bac09bbcec"],
+        hint: "Schuif de C=O stap voor stap door de keten, van het uiteinde naar het midden. Geef elke stof een naam.",
+        omweg: "T",
+        goed: "Alice staat op. “Dit is het domste theekransje waar ik ooit ben geweest,” zegt ze — en ze ziet een deurtje in een boomstam.",
+        parallel: {
+          verhaal: "Nog één: “Acht koolstofatomen, alleen ketonen, onvertakt.”",
+          formule: "C₈H₁₆O — alleen ketonen, onvertakt",
+          vraag: "Hoeveel verschillende stoffen passen bij deze beschrijving?",
+          hash: ["aeca3bc0d28c45740853e8f43524694d526e152082db13e3c053d2511a5ab9f2"],
+          hint: "Een keton heeft de C=O midden in de keten. Welke plaatsen geven verschillende namen?"
+        }
+      }
+    ],
+    omwegen: {
+      K: {
+        personage: "K",
+        verhaal: "De Maartse Haas zet twee theepotten naast elkaar. “Kijk goed,” zegt hij. “Waar zit het deksel?”",
+        voorbeeld: {
+          tekst: "Een <b>carbonylgroep</b> is een C-atoom met een dubbele binding naar een O-atoom: <b>C=O</b>. Zit de C=O aan het <b>uiteinde</b> van de keten, dan is het een <b>aldehyde</b> (naam op <b>-al</b>). Zit de C=O <b>midden in</b> de keten, dan is het een <b>keton</b> (naam op <b>-on</b>). Let op: een –OH is géén C=O, dat is een alkanol.",
+          structuren: [
+            { label: "octanal · aldehyde", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [7, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 2]] } },
+            { label: "octaan-2-on · keton", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [1, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [1, 8, 2]] } }
+          ],
+          uitwerking: "Bij octanal heeft het C-atoom van de C=O nog 1 H en maar één buur-C. Bij octaan-2-on zit de C=O tussen twee C-atomen."
+        },
+        makkelijk: {
+          type: "naam",
+          verhaal: "“Nu jij,” zegt de Haas.",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [3, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 1], [3, 10, 2]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["4796682b7117af7ab4a6c4b44a3f203bf6e2be6a403492e55a9102cf5822f399"],
+          hint: "Is het een aldehyde of een keton? Nummer daarna vanaf de kant die het dichtst bij de C=O zit."
+        }
+      },
+      N: {
+        personage: "N",
+        verhaal: "“Nummer één aan tafel!” roept de Hoedenmaker. “Bij een aldehyde zit de C=O altijd op plek één. Bij een keton: zo dicht mogelijk bij het begin.”",
+        voorbeeld: {
+          tekst: "Bij een <b>aldehyde</b> krijgt het C-atoom van de C=O altijd <b>nummer 1</b>; een plaatsnummer voor -al is niet nodig. Zijtakken nummer je vanaf dat C-atoom. Bij een <b>keton</b> nummer je zo dat de C=O een <b>zo laag mogelijk</b> nummer krijgt; dat nummer staat vóór -on.",
+          structuren: [
+            { label: "2-ethylhexanal", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [0, -1, "O"], [1, 1], [1, 2]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [0, 6, 2], [1, 7, 1], [7, 8, 1]] } },
+            { label: "nonaan-3-on", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [6, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [6, 9, 2]] } }
+          ],
+          uitwerking: "Links: de C=O zit aan het uiteinde, dus dat C-atoom is 1. De ethylgroep zit op 2: <b>2-ethylhexanal</b>. Rechts: van links zou de C=O op 7 zitten, van rechts op 3: <b>nonaan-3-on</b>."
+        },
+        makkelijk: {
+          type: "naam",
+          verhaal: "“En deze?” De Hoedenmaker tikt met zijn lepeltje op een kopje.",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [8, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 1], [8, 10, 2]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["b5fee9fcad901a6df0397583285d81e1432a9a143679aa0b71bd1e042ec386f3"],
+          hint: "Nummer vanaf de kant die het dichtst bij de C=O zit."
+        }
+      },
+      T: {
+        personage: "T",
+        verhaal: "De Rups is er ook, op een paddenstoel naast de tafel. “Schuif op,” zegt hij langzaam. “Eén plaats. En nog één. Tot je in het midden bent.”",
+        voorbeeld: {
+          tekst: "Zo vind je systematisch alle aldehyden en ketonen bij een formule: zet de C=O eerst aan het <b>uiteinde</b> (aldehyde) en <b>schuif</b> hem dan stap voor stap op naar het midden (ketonen). Geef elke stof een naam: wat voorbij het midden komt, is dezelfde stof van de andere kant. Een aldehyde en een keton met evenveel C-atomen zijn <b>isomeren</b> (CₙH₂ₙO).",
+          structuren: [
+            { label: "nonanal", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [8, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 2]] } },
+            { label: "nonaan-2-on", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [1, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [1, 9, 2]] } },
+            { label: "nonaan-3-on", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [2, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [2, 9, 2]] } },
+            { label: "nonaan-4-on", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [3, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [3, 9, 2]] } },
+            { label: "nonaan-5-on", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [4, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [4, 9, 2]] } }
+          ],
+          uitwerking: "Onvertakt C₉H₁₈O: nonanal en nonaan-2-, 3-, 4- en 5-on. ‘Nonaan-6-on’ is nonaan-4-on van de andere kant. Dus <b>5</b> stoffen."
+        },
+        makkelijk: {
+          type: "getal",
+          verhaal: "“Tel maar,” zegt de Rups.",
+          formule: "C₁₀H₂₀O — alleen ketonen, onvertakt",
+          vraag: "Hoeveel verschillende stoffen passen bij deze beschrijving?",
+          hash: ["558aad6002212f809a32ae30b3e402098ea90b86dceb78b4090a525fee1e1675"],
+          hint: "Schuif de C=O vanaf C-atoom 2 naar het midden en geef elke stof een naam."
+        }
+      }
+    },
+    kluis: {
+      intro: "Onder de theetafel staat een schatkist met vier draaischijven. Wie hem opent, krijgt een edelsteen. Werk in je schrift. Als je alle getallen hebt ingevuld, zie je per getal of het klopt."
+    },
+    geheim: {
+      intro: "In de theepot, naast de Hazelmuis, glinstert een gouden slotje. Het is maar voor heel weinig mensen te openen."
+    },
+    einde: "Alice loopt door het deurtje in de boom. Maar onder de theetafel wacht nog een schatkist…"
   }
 };
 })();
