@@ -1652,7 +1652,7 @@ window.WL_AVONTUUR = {
         verhaal: "Dan klinken er trompetten. De Koningin! Ze wijst naar zes taartjes. “Ik wil alleen de taartjes met C₆H₁₂O₂,” zegt ze. “En snel!”",
         vraag: "Kies álle tekeningen met de molecuulformule C₆H₁₂O₂.",
         opties: [
-          { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0, "O"], [4, 0], [5, 0], [6, 0], [2, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [2, 7, 2]] }, omweg: "F", k: "bee9196820a6200acc4c339be9ebc34d751a5cb68d4ecb22f216599128a02bb1" },
+          { label: "A", volledig: { atomen: [[0, 0], [1, 0, "O"], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [0, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [0, 7, 2]] }, omweg: "F", k: "bee9196820a6200acc4c339be9ebc34d751a5cb68d4ecb22f216599128a02bb1" },
           { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [5, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 2]] }, omweg: "F", k: "1766962e7caceab81fb6fe90bc668001ed95067106926d2d3555eff25d65b50f" },
           { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [0, -1, "O"], [0, 1, "O"], [1, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [0, 5, 2], [0, 6, 1], [1, 7, 1]] }, omweg: "F", k: "4dadb04b8260739714d2ef26fc70589051c0aee82aae439cd7acde2a00062f67" },
           { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0, "O"], [6, 0], [4, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [4, 7, 2]] }, omweg: "F", k: "5c4f83f316f75f685325247b7c6e284e38903eb99d2214cb5880fc85f10ddefe" },

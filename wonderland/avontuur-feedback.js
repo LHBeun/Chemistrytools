@@ -1071,7 +1071,7 @@ window.WL_FEEDBACK = {
         E: "C₁₀H₂₀O₂: tel de C-atomen nog eens.",
         F: "C₆H₁₄O: een alkanol heeft maar één O-atoom."
       },
-      zo: "Drie stoffen met C₆H₁₂O₂: <b>A</b> (propylpropanoaat), <b>D</b> (methylpentanoaat) en <b>C</b> (2-methylpentaanzuur). Esters en carbonzuren met evenveel C-atomen zijn isomeren."
+      zo: "Drie stoffen met C₆H₁₂O₂: <b>A</b> (pentylmethanoaat), <b>D</b> (methylpentanoaat) en <b>C</b> (2-methylpentaanzuur). Esters en carbonzuren met evenveel C-atomen zijn isomeren."
     },
     p6: {
       optieUitleg: {
