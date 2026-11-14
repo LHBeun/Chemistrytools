@@ -1,0 +1,414 @@
+// ─────────────────────────────────────────────────────────────
+//  De deuren van Wonderland — feedback bij het individuele avontuur
+//  Per les, per opgave-id (h = hoofdpad, p = parallel, o = makkelijke opgave
+//  van een omweg):
+//    fouten:      { "<fout antwoord>": "gerichte feedback" }  (naam- en getalvragen)
+//    optieUitleg: { "<label>": "waarom deze keuze niet past" } (kiesvragen)
+//    rijHints:    [ "aanwijzing per rij" ]                    (indeelvragen)
+//    zo:          "korte uitwerking, te zien na een goed antwoord"
+//  omwegen: { "<letter>": "aankondiging: waar ging het mis?" }
+//  Onbekende foute antwoorden krijgen de algemene hint uit avontuur-data.js.
+// ─────────────────────────────────────────────────────────────
+(function () {
+const ANDERE_KANT = "Keten en zijtak kloppen. Nummer nog eens vanaf de andere kant.";
+const BINDING_ANDERE_KANT = "Nummer vanaf de andere kant: welk nummer krijgt de binding dan?";
+const LANGSTE_KETEN = "Is dit echt de langste keten? Probeer ook de route naar beneden.";
+const DUBBEL = "Sommige zijn dezelfde stof, van de andere kant genummerd. Geef ze allemaal een naam.";
+const alkaanRij = (n) => `Een alkaan met ${n} C-atomen heeft ${2 * n + 2} H-atomen. Hoeveel heeft deze stof er?`;
+
+window.WL_FEEDBACK = {
+  // ── Les 1 · De gang met deuren ─────────────────────────────
+  1: {
+    omwegen: {
+      A: "Het ging mis bij de naam: de stam of de uitgang.",
+      B: "Het ging mis bij het aantal bindingen van een C-atoom.",
+      C: "Het ging mis bij het aantal H-atomen.",
+      K: "Het ging mis bij de vorm van de keten: een knik of een vertakking?"
+    },
+    h1: {
+      fouten: {
+        "propaan": "De uitgang klopt. Tel de C-atomen nog eens.",
+        "pentaan": "De uitgang klopt. Tel de C-atomen nog eens.",
+        "buteen": "De stam klopt. Past de uitgang bij het aantal H-atomen?",
+        "butyn": "De stam klopt. Past de uitgang bij het aantal H-atomen?",
+        "but-1-een": "De stam klopt. Past de uitgang bij het aantal H-atomen?"
+      },
+      zo: "4 C-atomen → stam <b>but-</b>. 10 H-atomen = 2 × 4 + 2, dus alleen enkele bindingen → <b>-aan</b>: <b>butaan</b>."
+    },
+    p1: {
+      fouten: {
+        "heptaan": "De uitgang klopt. Tel de C-atomen nog eens.",
+        "nonaan": "De uitgang klopt. Tel de C-atomen nog eens.",
+        "octeen": "De stam klopt. Past de uitgang bij het aantal H-atomen?"
+      },
+      zo: "8 C-atomen → stam <b>oct-</b>. 18 H-atomen = 2 × 8 + 2, dus alleen enkele bindingen: <b>octaan</b>."
+    },
+    h2: {
+      fouten: {
+        "butaan": "Tel de C-atomen nog eens.",
+        "hexaan": "Tel de C-atomen nog eens.",
+        "penteen": "Kijk naar de bindingen tussen de C-atomen.",
+        "pentyn": "Kijk naar de bindingen tussen de C-atomen."
+      },
+      zo: "5 C-atomen in de keten en alleen enkele bindingen: <b>pentaan</b>."
+    },
+    p2: {
+      fouten: {
+        "octaan": "Tel de C-atomen nog eens.",
+        "decaan": "Tel de C-atomen nog eens.",
+        "noneen": "Kijk naar de bindingen tussen de C-atomen."
+      },
+      zo: "9 C-atomen in de keten en alleen enkele bindingen: <b>nonaan</b>."
+    },
+    h3: {
+      optieUitleg: {
+        B: "Deze keten heeft 5 C-atomen.",
+        C: "Eén C-atoom heeft hier maar 3 bindingen.",
+        D: "Hier zit één C-atoom aan drie andere C-atomen vast: een vertakking.",
+        F: "Eén C-atoom heeft hier 5 bindingen."
+      },
+      zo: "Twee sleuteltjes passen: <b>A</b> (met een knik) en <b>E</b> (recht). Allebei 6 C-atomen achter elkaar, en elk C-atoom heeft 4 bindingen."
+    },
+    p3: {
+      optieUitleg: {
+        A: "Deze keten heeft 3 C-atomen.",
+        C: "Eén C-atoom heeft hier 5 bindingen.",
+        D: "Hier zit één C-atoom aan drie andere C-atomen vast: een vertakking.",
+        E: "Eén C-atoom heeft hier maar 3 bindingen."
+      },
+      zo: "Twee sleuteltjes passen: <b>B</b> (met een knik) en <b>F</b> (recht). Allebei 4 C-atomen achter elkaar, met 4 bindingen per C-atoom."
+    },
+    h4: {
+      rijHints: [alkaanRij(5), alkaanRij(7), alkaanRij(6), alkaanRij(3), alkaanRij(5)],
+      zo: "Reken per flesje uit hoeveel H-atomen het alkaan zou hebben (2n + 2). Evenveel → alkaan, 2 minder → alkeen, 4 minder → alkyn.<br>C₅H₁₀ alkeen · C₇H₁₂ alkyn · C₆H₁₄ alkaan · C₃H₆ alkeen · C₅H₈ alkyn."
+    },
+    p4: {
+      rijHints: [alkaanRij(4), alkaanRij(4), alkaanRij(8), alkaanRij(6), alkaanRij(10)],
+      zo: "C₄H₁₀ alkaan · C₄H₆ alkyn (4 H minder) · C₈H₁₆ alkeen (2 H minder) · C₆H₁₀ alkyn · C₁₀H₂₀ alkeen."
+    },
+    h5: {
+      optieUitleg: {
+        A: "Hier zit een dubbele binding.",
+        C: "Een dubbele binding, en één C-atoom heeft 5 bindingen.",
+        E: "Hier zitten alleen enkele bindingen.",
+        F: "Hier zit een dubbele binding."
+      },
+      zo: "Twee kaartjes: <b>B</b> en <b>D</b>. Allebei een drievoudige binding; bij D loopt de keten met een knik."
+    },
+    p5: {
+      optieUitleg: {
+        A: "Alleen enkele bindingen, en één C-atoom heeft maar 3 bindingen.",
+        C: "Hier zit een drievoudige binding.",
+        D: "Hier zitten alleen enkele bindingen.",
+        F: "Hier zitten alleen enkele bindingen."
+      },
+      zo: "Twee kaartjes: <b>B</b> (met een knik) en <b>E</b>. Allebei één dubbele binding, en elk C-atoom heeft 4 bindingen."
+    },
+    h6: {
+      fouten: {
+        "12": "Tel de H-atomen aan de uiteinden nog eens na.",
+        "18": "Niet elk C-atoom heeft evenveel H-atomen.",
+        "24": "Een deel van de vier bindingen gaat naar andere C-atomen.",
+        "6": "Een C-atoom heeft 4 bindingen. Hoeveel daarvan gaan naar H?"
+      },
+      zo: "Uiteinden: 2 × 3 H. Midden: 4 × 2 H. Samen <b>14</b> H-atomen (C₆H₁₄)."
+    },
+    p6: {
+      fouten: {
+        "8": "Tel de H-atomen aan de uiteinden nog eens na.",
+        "12": "Niet elk C-atoom heeft evenveel H-atomen.",
+        "16": "Een deel van de vier bindingen gaat naar andere C-atomen."
+      },
+      zo: "Uiteinden: 2 × 3 H. Midden: 2 × 2 H. Samen <b>10</b> H-atomen (C₄H₁₀)."
+    },
+    oA: {
+      fouten: {
+        "methaan": "Tel de C-atomen nog eens.",
+        "propaan": "Tel de C-atomen nog eens.",
+        "etheen": "De stam klopt. Past de uitgang bij het aantal H-atomen?"
+      },
+      zo: "2 C-atomen → <b>eth-</b>, alleen enkele bindingen → <b>ethaan</b>."
+    },
+    oB: {
+      zo: "Het middelste C-atoom heeft 2 bindingen naar C en maar 1 naar H: samen 3. Er hoort nog een H bij. Dus: <b>nee</b>."
+    },
+    oC: {
+      fouten: {
+        "10": "Tel de H-atomen aan de uiteinden nog eens na.",
+        "15": "Niet elk C-atoom heeft evenveel H-atomen.",
+        "20": "Een deel van de vier bindingen gaat naar andere C-atomen."
+      },
+      zo: "2 × 3 + 3 × 2 = <b>12</b> H-atomen."
+    },
+    oK: {
+      fouten: {
+        "4": "Volg de keten ook om de hoeken.",
+        "5": "Volg de keten ook om de hoeken."
+      },
+      zo: "De keten loopt twee keer om de hoek, maar het blijft één keten van <b>6</b> C-atomen."
+    }
+  },
+
+  // ── Les 2 · Het huis van het Witte Konijn ──────────────────
+  2: {
+    omwegen: {
+      D: "Het ging mis bij het vinden van de langste keten.",
+      E: "Het ging mis bij het nummeren.",
+      F: "Het ging mis bij het opbouwen van de naam."
+    },
+    h1: {
+      fouten: {
+        "6-methylheptaan": ANDERE_KANT,
+        "methylheptaan": "Op welk C-atoom zit de zijtak? Dat nummer hoort in de naam.",
+        "2-methyl-heptaan": "Bijna: zijtak en stam staan aan elkaar, zonder streepje.",
+        "2-methylhexaan": "Tel de C-atomen in de langste keten nog eens."
+      },
+      zo: "Langste keten: 7 C-atomen → <b>heptaan</b>. Zijtak CH₃ → <b>methyl</b>. Van links genummerd zit hij op C-atoom 2: <b>2-methylheptaan</b>."
+    },
+    p1: {
+      fouten: {
+        "7-methyloctaan": ANDERE_KANT,
+        "methyloctaan": "Op welk C-atoom zit de zijtak? Dat nummer hoort in de naam.",
+        "2-methyl-octaan": "Bijna: zijtak en stam staan aan elkaar, zonder streepje."
+      },
+      zo: "Langste keten: 8 → <b>octaan</b>. Van rechts genummerd zit de methylgroep op C-atoom 2: <b>2-methyloctaan</b>."
+    },
+    h2: {
+      optieUitleg: {
+        A: "Hier zitten beide methylgroepen aan hetzelfde C-atoom.",
+        C: "De langste keten is hier 6 lang.",
+        E: "Hier zitten drie methylgroepen."
+      },
+      zo: "Drie tekeningen passen: <b>D</b> (recht), <b>B</b> (gespiegeld: van rechts genummerd ook 2 en 3) en <b>F</b> (met een knik: de keten blijft 5 lang)."
+    },
+    p2: {
+      optieUitleg: {
+        A: "Nummer van beide kanten: hier worden de plaatsnummers 2 en 5.",
+        C: "Hier zitten beide methylgroepen aan hetzelfde C-atoom.",
+        D: "De langste keten is hier 7 lang.",
+        F: "Hier zitten drie methylgroepen."
+      },
+      zo: "Twee tekeningen passen: <b>B</b> (van rechts genummerd 2 en 4) en <b>E</b> (de keten loopt aan het eind naar beneden en is 6 lang)."
+    },
+    h3: {
+      fouten: {
+        "2-ethylhexaan": LANGSTE_KETEN,
+        "5-methylheptaan": ANDERE_KANT,
+        "3-methylhexaan": "Tel de C-atomen in de langste keten nog eens."
+      },
+      zo: "Via de route naar beneden is de keten <b>7</b> lang. Wat overblijft is één methylgroep, vanaf onder genummerd op C-atoom 3: <b>3-methylheptaan</b>."
+    },
+    p3: {
+      fouten: {
+        "2-propylhexaan": LANGSTE_KETEN,
+        "5-methyloctaan": ANDERE_KANT
+      },
+      zo: "De langste keten loopt naar beneden en is <b>8</b> lang. De methylgroep zit op C-atoom 4: <b>4-methyloctaan</b>."
+    },
+    h4: {
+      fouten: {
+        "2-methyl-3-ethylpentaan": "Je plaatsnummers kloppen. Kijk nog eens naar de volgorde van de zijtakken in de naam.",
+        "3-ethyl-4-methylpentaan": "De volgorde klopt. Nummer nog eens vanaf de andere kant.",
+        "4-methyl-3-ethylpentaan": "Kijk naar het nummeren én naar de volgorde van de zijtakken."
+      },
+      zo: "Van links: methyl op 2, ethyl op 3. Van rechts zou het 3 en 4 worden: hoger. Ethyl komt vóór methyl (alfabet): <b>3-ethyl-2-methylpentaan</b>."
+    },
+    p4: {
+      fouten: {
+        "2-methyl-4-ethylhexaan": "Je plaatsnummers kloppen. Kijk nog eens naar de volgorde van de zijtakken in de naam.",
+        "3-ethyl-5-methylhexaan": "De volgorde klopt. Nummer nog eens vanaf de andere kant.",
+        "5-methyl-3-ethylhexaan": "Kijk naar het nummeren én naar de volgorde van de zijtakken."
+      },
+      zo: "Van rechts: methyl op 2, ethyl op 4. Van links zou het 3 en 5 worden: hoger. Ethyl vóór methyl: <b>4-ethyl-2-methylhexaan</b>."
+    },
+    h5: {
+      fouten: {
+        "hept-4-een": BINDING_ANDERE_KANT,
+        "hepteen": "Waar begint de dubbele binding? Dat nummer hoort in de naam.",
+        "3-hepteen": "Het plaatsnummer staat vlak voor -een: hept-…-een.",
+        "hept-3-yn": "Kijk nog eens naar de soort binding."
+      },
+      zo: "Van links begint de dubbele binding bij C-atoom 4, van rechts bij C-atoom 3. Het laagste nummer wint: <b>hept-3-een</b>."
+    },
+    p5: {
+      fouten: {
+        "oct-6-een": BINDING_ANDERE_KANT,
+        "octeen": "Waar begint de dubbele binding? Dat nummer hoort in de naam.",
+        "2-octeen": "Het plaatsnummer staat vlak voor -een: oct-…-een.",
+        "hept-2-een": "Tel de C-atomen in de keten nog eens, ook om de hoek."
+      },
+      zo: "De keten is 8 lang (om de hoek). Vanaf onder genummerd begint de dubbele binding bij C-atoom 2: <b>oct-2-een</b>."
+    },
+    h6: {
+      optieUitleg: {
+        A: "Hier zit een dubbele binding.",
+        C: "Nummer vanaf de kant van de drievoudige binding: waar zit de methylgroep dan?",
+        D: "Hier zitten twee methylgroepen.",
+        F: "De langste keten is hier 7 lang."
+      },
+      zo: "Twee tekeningen passen: <b>E</b> (recht) en <b>B</b> (gespiegeld). Nummer steeds vanaf de kant van de drievoudige binding: binding op 2, methyl op 4."
+    },
+    p6: {
+      optieUitleg: {
+        A: "Hier begint de dubbele binding bij C-atoom 3, van welke kant je ook nummert.",
+        C: "Nummer vanaf de kant van de dubbele binding: waar zit de methylgroep dan?",
+        E: "Hier zit een drievoudige binding.",
+        F: "De langste keten is hier 7 lang."
+      },
+      zo: "Twee tekeningen passen: <b>D</b> (gespiegeld) en <b>B</b> (met een knik). Binding op 2, methyl op 5."
+    },
+    oD: {
+      fouten: {
+        "5": "Dat is de horizontale keten. Probeer ook de route naar beneden.",
+        "6": "Tel nog eens: probeer elke route van uiteinde tot uiteinde."
+      },
+      zo: "Van links via de route naar beneden: 2 + 1 + 4 = <b>7</b> C-atomen."
+    },
+    oE: {
+      fouten: {
+        "5": "Je nummerde vanaf links. Probeer de andere kant.",
+        "6": "Het plaatsnummer is het nummer van het eerste C-atoom van de binding."
+      },
+      zo: "Van rechts genummerd begint de drievoudige binding bij C-atoom <b>2</b>: hept-2-yn."
+    },
+    oF: {
+      fouten: {
+        "3,4-methylhexaan": "Twee dezelfde zijtakken: hoe geef je dat aan in de naam?",
+        "3-4-dimethylhexaan": "Tussen twee getallen staat een komma.",
+        "3,4dimethylhexaan": "Tussen getal en woord staat een streepje.",
+        "3,4-dimethyl-hexaan": "Bijna: zijtak en stam staan aan elkaar, zonder streepje."
+      },
+      zo: "Twee methylgroepen → <b>dimethyl</b>, op C-atoom 3 en 4: <b>3,4-dimethylhexaan</b>."
+    }
+  },
+
+  // ── Les 3 · De Rups ────────────────────────────────────────
+  3: {
+    omwegen: {
+      G: "Het ging mis bij het herkennen van isomeren.",
+      H: "Het ging mis bij het systematisch tellen.",
+      K: "Het ging mis bij het herkennen van dezelfde stof."
+    },
+    h1: {
+      rijHints: [
+        "Bepaal van allebei de molecuulformule.",
+        "Vergelijk de aantallen H-atomen.",
+        "Teken allebei en nummer vanaf beide kanten.",
+        "Tel bij allebei de C- en H-atomen.",
+        "Vergelijk de aantallen H-atomen.",
+        "Teken 1-methylhexaan. Hoe lang is de langste keten?"
+      ],
+      zo: "heptaan + 2,3-dimethylpentaan: allebei C₇H₁₆, andere structuur → <b>isomeren</b><br>octaan (C₈H₁₈) + oct-1-een (C₈H₁₆) → <b>geen isomeren</b><br>5-methylheptaan is 3-methylheptaan van de andere kant → <b>dezelfde stof</b><br>pent-1-yn + 3-methylbut-1-yn: allebei C₅H₈ → <b>isomeren</b><br>2-methylbutaan (C₅H₁₂) + 2-methylbut-1-een (C₅H₁₀) → <b>geen isomeren</b><br>1-methylhexaan heeft een keten van 7: dat is heptaan → <b>dezelfde stof</b>"
+    },
+    p1: {
+      rijHints: [
+        "Teken 2-ethylhexaan. Hoe lang is de langste keten?",
+        "Bepaal van allebei de molecuulformule.",
+        "Vergelijk de aantallen H-atomen.",
+        "Tel bij allebei de C- en H-atomen.",
+        "Teken allebei en nummer vanaf beide kanten.",
+        "Bepaal van allebei de molecuulformule."
+      ],
+      zo: "2-ethylhexaan heeft een keten van 7: dat is 3-methylheptaan → <b>dezelfde stof</b><br>nonaan + 2,2-dimethylheptaan: allebei C₉H₂₀ → <b>isomeren</b><br>hex-1-yn (C₆H₁₀) + hex-1-een (C₆H₁₂) → <b>geen isomeren</b><br>oct-2-yn + oct-3-yn: allebei C₈H₁₄ → <b>isomeren</b><br>pent-4-een is pent-1-een van de andere kant → <b>dezelfde stof</b><br>hex-1-een + 2-methylpent-2-een: allebei C₆H₁₂ → <b>isomeren</b>"
+    },
+    h2: {
+      fouten: { "4": DUBBEL, "5": DUBBEL, "6": DUBBEL, "2": "Kan de drievoudige binding ook in het midden zitten?" },
+      zo: "hex-1-yn, hex-2-yn en hex-3-yn. ‘Hex-4-yn’ is hex-2-yn en ‘hex-5-yn’ is hex-1-yn. Dus <b>3</b>."
+    },
+    p2: {
+      fouten: { "5": DUBBEL, "6": DUBBEL, "7": DUBBEL, "3": "Kan de dubbele binding ook precies in het midden zitten?" },
+      zo: "oct-1-een, oct-2-een, oct-3-een en oct-4-een. Verder schuiven geeft dezelfde stoffen van de andere kant. Dus <b>4</b>."
+    },
+    h3: {
+      optieUitleg: {
+        A: "Deze heet 2,4-dimethylhexaan: de methylgroepen zitten anders.",
+        D: "De langste keten loopt door de ethylgroep: dit is 3,4-dimethylhexaan.",
+        E: "De keten is hier 7 lang: dit molecuul heeft meer C-atomen."
+      },
+      zo: "Drie tekeningen passen: <b>C</b> (gespiegeld), <b>F</b> (met een knik) en <b>B</b> (de keten loopt naar beneden). Ze heten alle drie 2,3-dimethylhexaan."
+    },
+    p3: {
+      optieUitleg: {
+        A: "Hier zitten de methylgroepen op C-atoom 3.",
+        B: "De keten is hier 7 lang: dit molecuul heeft meer C-atomen.",
+        D: "Hier zitten de methylgroepen aan twee verschillende C-atomen.",
+        F: "De keten is hier 5 lang: dit molecuul heeft minder C-atomen."
+      },
+      zo: "Twee tekeningen passen: <b>E</b> (gespiegeld) en <b>C</b> (de keten loopt naar beneden). Allebei 2,2-dimethylhexaan."
+    },
+    h4: {
+      fouten: {
+        "4": "Geef elke structuur een naam: sommige zijn dezelfde stof, of hebben een langere keten.",
+        "5": "Geef elke structuur een naam: sommige zijn dezelfde stof, of hebben een langere keten.",
+        "6": "Geef elke structuur een naam: sommige zijn dezelfde stof, of hebben een langere keten.",
+        "2": "Probeer ook plekken dichter bij het midden."
+      },
+      zo: "2-, 3- en 4-methylheptaan. Op C-atoom 1 wordt de keten 8 lang, en 5- en 6- zijn 3- en 2- van de andere kant. Dus <b>3</b>."
+    },
+    p4: {
+      fouten: {
+        "5": "Geef elke structuur een naam: sommige zijn dezelfde stof, of hebben een langere keten.",
+        "6": "Geef elke structuur een naam: sommige zijn dezelfde stof, of hebben een langere keten.",
+        "7": "Geef elke structuur een naam: sommige zijn dezelfde stof, of hebben een langere keten.",
+        "8": "Geef elke structuur een naam: sommige zijn dezelfde stof, of hebben een langere keten.",
+        "3": "Probeer ook plekken dichter bij het midden."
+      },
+      zo: "2-, 3-, 4- en 5-methylnonaan. Verder schuiven geeft dezelfde stoffen van de andere kant. Dus <b>4</b>."
+    },
+    h5: {
+      fouten: {
+        "4-methylhex-1-een": "De dubbele binding klopt nu. Op welk C-atoom zit de methylgroep als je zo nummert?",
+        "3-methylhex-5-een": "Welke kant geeft de dubbele binding het laagste nummer?",
+        "4-methylhex-5-een": "Dat is de naam van de Rups. Nummer opnieuw volgens de regels.",
+        "3-methylhexeen": "Waar begint de dubbele binding? Dat nummer hoort in de naam."
+      },
+      zo: "Opnieuw genummerd vanaf de kant van de dubbele binding: binding op 1, methyl op 3 → <b>3-methylhex-1-een</b>."
+    },
+    p5: {
+      fouten: {
+        "3,4-dimethylpentaan": ANDERE_KANT,
+        "2-ethyl-3-methylbutaan": "Dat is de naam van de Rups. Zoek de langste keten opnieuw.",
+        "2,3-methylpentaan": "Twee dezelfde zijtakken: hoe geef je dat aan in de naam?",
+        "3-methyl-2-ethylbutaan": "Zoek de langste keten opnieuw: loopt die misschien door de ethylgroep?"
+      },
+      zo: "De langste keten loopt door de ethylgroep en is 5 lang. Er blijven twee methylgroepen over, op 2 en 3: <b>2,3-dimethylpentaan</b>."
+    },
+    h6: {
+      optieUitleg: {
+        A: "C₇H₁₆: twee H-atomen meer.",
+        C: "Dit is 2-methylhex-1-een zelf, anders getekend: dezelfde stof, dus geen isomeer.",
+        D: "C₇H₁₂: twee H-atomen minder.",
+        F: "C₆H₁₂: één C-atoom minder."
+      },
+      zo: "Isomeren hebben dezelfde molecuulformule (C₇H₁₄) én zijn een andere stof: <b>B</b> (hept-1-een) en <b>E</b> (3-ethylpent-2-een)."
+    },
+    p6: {
+      optieUitleg: {
+        A: "C₈H₁₆: twee H-atomen meer.",
+        C: "Dit is oct-1-yn zelf, anders getekend: dezelfde stof, dus geen isomeer.",
+        E: "C₇H₁₂: één C-atoom minder."
+      },
+      zo: "Drie isomeren (C₈H₁₄): <b>B</b> (oct-3-yn), <b>D</b> (3,3-dimethylhex-1-yn) en <b>F</b> (4-methylhept-2-yn)."
+    },
+    oG: {
+      fouten: {
+        "20": "Een isomeer heeft precies dezelfde molecuulformule als decaan.",
+        "24": "Een isomeer heeft precies dezelfde molecuulformule als decaan."
+      },
+      zo: "Decaan is C₁₀H₂₂. Elk isomeer heeft ook <b>22</b> H-atomen."
+    },
+    oH: {
+      fouten: { "4": DUBBEL, "5": DUBBEL, "6": DUBBEL, "2": "Kan de drievoudige binding ook in het midden zitten?" },
+      zo: "hept-1-yn, hept-2-yn en hept-3-yn. Verder schuiven geeft dezelfde stoffen van de andere kant. Dus <b>3</b>."
+    },
+    oK: {
+      fouten: {
+        "3-propylhexaan": LANGSTE_KETEN,
+        "4-propylhexaan": LANGSTE_KETEN,
+        "2-ethylheptaan": "Tel de C-atomen in de langste keten nog eens."
+      },
+      zo: "De langste keten loopt naar beneden en is <b>7</b> lang. De ethylgroep zit op C-atoom 4: <b>4-ethylheptaan</b>."
+    }
+  }
+};
+})();

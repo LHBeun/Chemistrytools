@@ -107,6 +107,16 @@
   .antwoord input:focus { border-color: var(--goud-donker); box-shadow: 0 0 0 4px rgba(226,182,90,.35); }
   .terugkoppeling { display: none; margin-top: 14px; padding: 12px 16px; border-radius: 0 8px 8px 0; font-family: var(--verhaal); font-size: 1.2rem; }
   .terugkoppeling.fout { display: block; border-left: 4px solid var(--roos); background: rgba(200,55,79,.09); color: #7c1f2e; }
+  .optie.fout { border-color: var(--roos); box-shadow: 0 0 0 3px rgba(200,55,79,.25); }
+  .optie .uitleg { margin-top: 6px; font: 600 .95rem var(--body); color: #7c1f2e; text-align: center; line-height: 1.25; }
+  .indrij.fout .formule { box-shadow: 0 0 0 2px var(--roos); }
+  .indrij .rijhint { flex-basis: 100%; font: 1rem var(--body); color: #7c1f2e; }
+  .terugkoppeling details.zo { margin-top: 10px; font-family: var(--body); font-size: 1.05rem; color: #234b38; }
+  .terugkoppeling details.zo summary { cursor: pointer; font-weight: 700; }
+  .terugkoppeling details.zo div { margin-top: 6px; line-height: 1.45; }
+  .uitleg b, .terugkoppeling b, .optie .uitleg { white-space: nowrap; }
+  .optie .uitleg { white-space: normal; }
+  .aanleiding { margin: 0 0 10px; padding: 8px 12px; border-radius: 8px; background: rgba(200,55,79,.08); color: #7c1f2e; font: 600 1.05rem var(--body); }
   .terugkoppeling.goed { display: block; border-left: 4px solid var(--groen); background: rgba(63,174,124,.12); color: #1f5a40; }
   .kaart.schud { animation: schud .4s; }
   @keyframes schud { 20%,60% { transform: translateX(-6px) } 40%,80% { transform: translateX(6px) } }
@@ -223,6 +233,7 @@
 
 <script src="data.js"></script>
 <script src="avontuur-data.js"></script>
+<script src="avontuur-feedback.js"></script>
 <script type="module">
 const W = window.WONDERLAND, A = window.WL_AVONTUUR;
 const $ = id => document.getElementById(id);
@@ -415,11 +426,21 @@ function zijkant(plaat) {
 }
 
 const AV = () => A[huidig];
+// Feedback (avontuur-feedback.js): per les en per opgave-id
+const FB = () => (window.WL_FEEDBACK || {})[huidig] || {};
+const metFeedback = it => it ? { ...it, ...(FB()[it.id] || {}) } : null;
+const normNaam = v => String(v).trim().toLowerCase().replace(/\s+/g, "").replace(/[‐‑‒–—−]/g, "-");
+function gerichteFout(it, waarde) {
+  if (!it.fouten) return "";
+  const n = it.type === "getal" ? (v => String(parseInt(v, 10))) : normNaam;
+  const k = Object.keys(it.fouten).find(f => n(f) === waarde);
+  return k ? it.fouten[k] : "";
+}
 const item = () => {
   const op = AV().hoofdpad[r.stap];
-  if (r.fase === "opgave") return { ...op };
-  if (r.fase === "parallel") { const bron = AV().hoofdpad[r.bron]; return { ...bron.parallel, id: bron.id.replace("h", "p"), type: bron.type, keuzes: bron.parallel.keuzes || bron.keuzes }; }
-  if (r.fase === "makkelijk") return { ...AV().omwegen[r.om].makkelijk, id: "o" + r.om };
+  if (r.fase === "opgave") return metFeedback({ ...op });
+  if (r.fase === "parallel") { const bron = AV().hoofdpad[r.bron]; return metFeedback({ ...bron.parallel, id: bron.id.replace("h", "p"), type: bron.type, keuzes: bron.parallel.keuzes || bron.keuzes }); }
+  if (r.fase === "makkelijk") return metFeedback({ ...AV().omwegen[r.om].makkelijk, id: "o" + r.om });
   return null;
 };
 
@@ -463,6 +484,7 @@ function koppelInvoer(it, onControle) {
     setTimeout(() => ant.focus(), 60);
   }
   document.querySelectorAll(".optie").forEach(o => o.onclick = () => {
+    o.classList.remove("fout"); o.querySelector(".uitleg")?.remove();
     if (it.enkel) {
       document.querySelectorAll(".optie").forEach(x => x.classList.remove("gekozen"));
       o.classList.add("gekozen"); keuze = o.dataset.label;
@@ -473,6 +495,7 @@ function koppelInvoer(it, onControle) {
     knop.disabled = it.enkel ? !keuze : gekozen.size === 0; reset();
   });
   document.querySelectorAll(".keuzeknop").forEach(k => k.onclick = () => {
+    const rij = k.closest(".indrij"); rij.classList.remove("fout"); rij.querySelector(".rijhint")?.remove();
     document.querySelectorAll(`.keuzeknop[data-rij="${k.dataset.rij}"]`).forEach(x => x.classList.remove("gekozen"));
     k.classList.add("gekozen"); rijen[k.dataset.rij] = k.dataset.k;
     knop.disabled = Object.keys(rijen).length < it.items.length; reset();
@@ -493,9 +516,9 @@ function koppelInvoer(it, onControle) {
         return;
       }
       if (it.type === "indeling") {
-        let fout = 0;
-        for (let i = 0; i < it.items.length; i++) if ((await wlHash(huidig, `a-${it.id}-r${i}`, rijen[i])) !== it.rijHash[i]) fout++;
-        await onControle(fout === 0, it.items.map((_, i) => rijen[i]).join(","), { foutRijen: fout });
+        const foutIdx = [];
+        for (let i = 0; i < it.items.length; i++) if ((await wlHash(huidig, `a-${it.id}-r${i}`, rijen[i])) !== it.rijHash[i]) foutIdx.push(i);
+        await onControle(foutIdx.length === 0, it.items.map((_, i) => rijen[i]).join(","), { foutRijen: foutIdx.length, foutIdx });
         return;
       }
       let waarde;
@@ -543,6 +566,9 @@ function teken() {
       if (goed) {
         tk.className = "terugkoppeling goed";
         tk.textContent = r.fase === "opgave" ? (it.goed || "Goed!") : r.fase === "makkelijk" ? "Goed! Nu terug naar het pad." : "Goed! Je bent weer op het pad.";
+        document.querySelectorAll(".optie.fout, .indrij.fout").forEach(e => e.classList.remove("fout"));
+        document.querySelectorAll(".optie .uitleg, .indrij .rijhint").forEach(e => e.remove());
+        if (it.zo) tk.insertAdjacentHTML("beforeend", `<details class="zo"><summary>Zo zit het</summary><div>${it.zo}</div></details>`);
         document.querySelectorAll("#controleer, #ant, .optie, .keuzeknop").forEach(e => { e.disabled = true; e.style.pointerEvents = "none"; });
         $("na").innerHTML = `<button class="knop" id="verder">Verder ▸</button>`;
         $("verder").focus();
@@ -566,9 +592,24 @@ function teken() {
       if (r.fase === "parallel" && r.pog >= 2) r.o[it.id].vast = true;
       await bewaar();
       tk.className = "terugkoppeling fout";
-      const extra = detail.fouteKeuze ? [detail.fouteKeuze.length ? "Er zit er minstens één tussen die niet past." : "", detail.gemist.length ? "Je mist er nog minstens één." : ""].filter(Boolean).join(" ")
+      let uitgelegd = false;
+      if (detail.fouteKeuze) detail.fouteKeuze.forEach(o => {
+        const el = document.querySelector(`.optie[data-label="${o.label}"]`); if (!el) return;
+        el.classList.add("fout");
+        const u = it.optieUitleg?.[o.label];
+        if (u) { el.insertAdjacentHTML("beforeend", `<div class="uitleg">${u}</div>`); uitgelegd = true; }
+      });
+      if (detail.foutIdx) detail.foutIdx.forEach(i => {
+        const rij = document.querySelectorAll(".indrij")[i]; if (!rij) return;
+        rij.classList.add("fout");
+        const u = it.rijHints?.[i];
+        if (u) { rij.insertAdjacentHTML("beforeend", `<div class="rijhint">${u}</div>`); uitgelegd = true; }
+      });
+      const n = detail.gemist?.length || 0;
+      const extra = detail.fouteKeuze ? [detail.fouteKeuze.length ? (detail.fouteKeuze.length === 1 ? "De rood omlijnde keuze past niet." : "De rood omlijnde keuzes passen niet.") : "", n ? `Je mist er nog ${n}.` : ""].filter(Boolean).join(" ")
         : detail.foutRijen ? `Er ${detail.foutRijen === 1 ? "staat er nog 1" : `staan er nog ${detail.foutRijen}`} verkeerd.` : "";
-      tk.innerHTML = `✗ Nog niet goed. ${extra ? extra + " " : ""}${it.hint}`;
+      const gericht = gerichteFout(it, waarde);
+      tk.innerHTML = `✗ Nog niet goed. ${extra ? extra + " " : ""}${gericht || (uitgelegd ? "" : it.hint)}`;
       if (r.fase !== "opgave" && r.pog >= 2) {
         $("na").innerHTML = `<button class="knop donker" id="nogmaals">Bekijk de uitleg nog eens</button>`;
         $("nogmaals").onclick = () => { r.terugFase = r.fase; r.fase = "voorbeeld"; r.pog = 0; bewaar(); teken(); };
@@ -582,6 +623,7 @@ function teken() {
     zijkant(pers.plaat);
     const STAMMEN = ["meth", "eth", "prop", "but", "pent", "hex", "hept", "oct", "non", "dec"];
     p.innerHTML = `<div class="kaart perkament omweg"><div class="kop">Omweg · ${pers.naam}</div>
+      ${!r.terugFase && FB().omwegen?.[r.om] ? `<p class="aanleiding">${FB().omwegen[r.om]}</p>` : ""}
       <div class="personage"><div class="plaatje"><img class="plaat" src="${pers.plaat}" alt=""></div><p class="verhaal">${om.verhaal}</p></div>
       <div class="uitleg">${v.tekst}
         ${v.stammen ? `<div class="stammen">${STAMMEN.map((s, i) => `<span>${s}-<small>${i + 1} C</small></span>`).join("")}</div>` : ""}
