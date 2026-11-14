@@ -480,6 +480,222 @@ window.WL_AVONTUUR = {
       intro: "Achter op de bovenste plank glinstert een gouden slotje, half verstopt achter een stoffig potje."
     },
     einde: "Alice is zo groot geworden dat haar arm uit het raam steekt. Maar de schatkist onder het bed wacht nog…"
+  },
+  3: {
+    titel: "De Rups",
+    plaat: P(15),
+    intro: [
+      "Alice is nu zo klein als een duim. Ze kijkt over de rand van een paddenstoel — recht in de ogen van een grote blauwe Rups met een waterpijp.",
+      "“Ik weet niet meer wie ik ben,” zegt Alice. “Ik ben nog van dezelfde dingen gemaakt, maar ik ben niet meer dezelfde.” De Rups blaast een kringetje rook. “Dat,” zegt hij, “gaan we uitzoeken.”"
+    ],
+    duur: "Ongeveer 20 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
+    personages: {
+      G: { naam: "De Rups", plaat: P(15) },
+      H: { naam: "De Hoedenmaker", plaat: P(25) },
+      K: { naam: "De Kolderkat", plaat: P(23) }
+    },
+    hoofdpad: [
+      {
+        id: "h1", type: "indeling",
+        verhaal: "“Who… are… YOU?” vraagt de Rups. Hij legt zes kaartjes neer, met op elk kaartje twee namen. “Zijn dat twee verschillende stoffen met dezelfde dingen erin? Of dezelfde stof met een andere naam? Of hebben ze niets met elkaar te maken?”",
+        vraag: "Wat geldt voor elk paar?",
+        items: ["heptaan + 2,3-dimethylpentaan", "octaan + oct-1-een", "3-methylheptaan + 5-methylheptaan", "pent-1-yn + 3-methylbut-1-yn", "2-methylbutaan + 2-methylbut-1-een", "1-methylhexaan + heptaan"],
+        keuzes: ["isomeren", "dezelfde stof", "geen isomeren"],
+        rijHash: ["f39433225a3b2ee26145e734a6519e3e7fa033b3230c8172943a67adfec50c03", "6728775bd79f178606c1f7840e56b702f218c174cf5f2a4eca0d58258e51eadc", "d2b730f0502d04ad0168eca1949a32e8d914d08fce9a56c71cc05254cf2bafda", "7a800e2ffde3cd765bfbd5b5e426b07d6db5e0b20db6675a5300fea9db9d6fe9", "9e53c93db66873a3cc076ef737c559a131a09dd11e50c428a6d2c26bf723d9e9", "f786f3c31c154e1764e3f5541f547c64901ed0a79c66e3fc9fae8065baa109ea"],
+        hint: "Teken in je schrift bij elke naam de structuur en bepaal de molecuulformule. Hebben twee namen dezelfde structuur, dan zijn ze dezelfde stof.",
+        omweg: "G",
+        goed: "De Rups blaast een kringetje rook. “Hm. Je weet in elk geval wat je ziet.”",
+        parallel: {
+          verhaal: "De Rups schudt de kaartjes en legt er zes nieuwe neer.",
+          vraag: "Wat geldt voor elk paar?",
+          items: ["2-ethylhexaan + 3-methylheptaan", "nonaan + 2,2-dimethylheptaan", "hex-1-yn + hex-1-een", "oct-2-yn + oct-3-yn", "pent-4-een + pent-1-een", "hex-1-een + 2-methylpent-2-een"],
+          keuzes: ["isomeren", "dezelfde stof", "geen isomeren"],
+          rijHash: ["2cff026ffb7ec9db9551fee1ba9fa2164a92a484d38c520c371f90758e745404", "eaf639615f0f413e3c1a5048199e3821495f1ec3fb0e278bead7e913c3e38062", "7a53eba9c49f74ef1ad6d0db01253848eb0a63c91a49f86bd9fa4ffad6ea428f", "43fe05cbaf5a5eafda1a68a742a2ea94f80f5365ebeda93f6bd8d3fc51fe6c83", "d8ccfb12a1f1c0cda8af0745d72fef25b835ba5a9de8ee60115581a595e0fc7c", "d28b9cd25eee987aa5320c8e95cdd4b3e6faff6c4bb95115717920525db2433b"],
+          hint: "Bepaal bij elke naam de molecuulformule. Dezelfde formule maar een andere structuur: isomeren. Dezelfde structuur: dezelfde stof."
+        }
+      },
+      {
+        id: "h2", type: "getal",
+        verhaal: "“Ik ken een stof met zes koolstofatomen en een drievoudige binding,” zegt de Rups. “Zonder vertakkingen. Maar welke bedoel ik?”",
+        formule: "C₆H₁₀ — onvertakt, alkyn",
+        vraag: "Hoeveel verschillende stoffen passen bij deze beschrijving?",
+        hash: ["2bffdc57be916168b5feff181a3bd397c6e456bc7d739d2b244d007b1b6c90d4"],
+        hint: "Teken in je schrift alle mogelijkheden en geef elke stof een naam. Hoeveel verschillende namen houd je over?",
+        omweg: "H",
+        goed: "“Precies zoveel,” zegt de Rups. “Niet meer, niet minder.”",
+        parallel: {
+          verhaal: "“En nu met een dubbele binding,” zegt de Rups, “en wat langer.”",
+          formule: "C₈H₁₆ — onvertakt, alkeen",
+          vraag: "Hoeveel verschillende stoffen passen bij deze beschrijving?",
+          hash: ["20f9afa2f01c29a9a48efeb980d72ed511d8814c5c86647f3222ea970039910b"],
+          hint: "Schuif de dubbele binding stap voor stap door de keten en geef elke stof een naam. Welke namen zijn dubbel?"
+        }
+      },
+      {
+        id: "h3", type: "kies",
+        verhaal: "Op de paddenstoel ligt een etiket met een tekening. Eromheen liggen zes andere tekeningen. “Sommige zijn mij,” zegt de Rups, “alleen anders gaan zitten.”",
+        volledig: tak(tak(recht(6), 1, [0, 1]), 2, [0, -1]),
+        vraag: "Kies álle tekeningen van dezelfde stof als op het etiket.",
+        opties: [
+          { label: "A", volledig: tak(tak(recht(6), 1, [0, 1]), 3, [0, 1]), omweg: "K", k: "1da0d3411caec8ca830aba748bced462e218ec7313926b15fd277dcbaab79147" },
+          { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [2, 1], [2, 2], [2, 3], [1, -1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [2, 4, 1], [4, 5, 1], [5, 6, 1], [1, 7, 1]] }, omweg: "K", k: "dc15a8704b9e20fce8065568bf02307458dd9784bb115b469a2f0ff761821c63" },
+          { label: "C", volledig: tak(tak(recht(6), 3, [0, -1]), 4, [0, 1]), omweg: "K", k: "e5c4dfc5ff61bbc0c63cdf69ed673cb0cdf3be46a96456912221b3cfea743c32" },
+          { label: "D", volledig: tak(tak(recht(5), 1, [0, 1], 2), 2, [0, -1]), omweg: "K", k: "e63fff033059dca308aef28041f87dc29598e55ef9f3c08473f907f32ba8c54e" },
+          { label: "E", volledig: tak(tak(recht(7), 1, [0, 1]), 2, [0, -1]), omweg: "K", k: "cb9a2af35750d786e11b3881822f0b5d3393c765fb01dc98c6265cbee9d9d144" },
+          { label: "F", volledig: tak(tak(knik(6, 5), 1, [0, 1]), 2, [0, -1]), omweg: "K", k: "14b95f8ba6d099384274ac99fa2081a1c0e70e95a09078590ece5afc2b08838e" }
+        ],
+        hint: "Geef het etiket en elke tekening een systematische naam. Dezelfde naam is dezelfde stof.",
+        goed: "“Allemaal ik,” knikt de Rups. “Hoe ik ook ga zitten.”",
+        parallel: {
+          verhaal: "De Rups kruipt naar een tweede etiket.",
+          volledig: tak(tak(recht(6), 1, [0, 1]), 1, [0, -1]),
+          vraag: "Kies álle tekeningen van dezelfde stof als op het etiket.",
+          opties: [
+            { label: "A", volledig: tak(tak(recht(6), 2, [0, 1]), 2, [0, -1]), k: "945e2cf27b50fe631c03e3a11fdb11136698587e7e43d27d3a65128e3223536a" },
+            { label: "B", volledig: tak(tak(recht(7), 1, [0, 1]), 1, [0, -1]), k: "45670081aed9b41f683644703155e5007597d3fcc0e865c9066076c60c2b1814" },
+            { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [1, -1], [1, 1], [1, 2], [1, 3], [1, 4]], bindingen: [[0, 1, 1], [1, 2, 1], [1, 3, 1], [1, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1]] }, k: "c3f7f4610d57088ed24cfa2d07c6335b87ae84d93926bc20d45af22a561ea10f" },
+            { label: "D", volledig: tak(tak(recht(6), 1, [0, 1]), 4, [0, 1]), k: "1e29e3455268ef747a4a8c55f398eb227c088b977e91ad71dd0fdd1c4915cd6a" },
+            { label: "E", volledig: tak(tak(recht(6), 4, [0, 1]), 4, [0, -1]), k: "ce0452b675fe74e085ab46a1b1d83464f28091d720e364af5dd5a5fc04742c09" },
+            { label: "F", volledig: tak(tak(recht(5), 1, [0, 1]), 1, [0, -1]), k: "b8d62ae87d01c01cf85f24850acec1956bd60d71d19d63c4218a9bc903a3f29b" }
+          ],
+          hint: "Zoek bij elke tekening de langste keten, ook als die naar beneden loopt. Geef daarna elke tekening een naam."
+        }
+      },
+      {
+        id: "h4", type: "getal",
+        verhaal: "“Ik heb acht koolstofatomen,” zegt de Rups, “en mijn langste keten is zeven lang. Meer zeg ik niet.”",
+        formule: "C₈H₁₈ — langste keten van 7 C-atomen",
+        vraag: "Hoeveel verschillende alkanen passen bij deze beschrijving?",
+        hash: ["c7cbc0cb6fac4731f86fd351202ec58dab1ffdf63326caa415e434e2522fdec1"],
+        hint: "Zet de zijtak op elke plek van de keten en geef elke structuur een naam. Wordt de keten ergens langer? Zijn er namen dubbel?",
+        omweg: "H",
+        goed: "“Slimme meid,” mompelt de Rups. Het klinkt bijna als een compliment.",
+        parallel: {
+          verhaal: "“Nog eentje. Groter.”",
+          formule: "C₁₀H₂₂ — langste keten van 9 C-atomen",
+          vraag: "Hoeveel verschillende alkanen passen bij deze beschrijving?",
+          hash: ["1bfe36397387125ee4764d68d1b4c33a66f20ca6c26100d65059c861707590f0"],
+          hint: "Teken de keten van 9 en zet de zijtak op elke plek. Welke plekken geven dezelfde naam?"
+        }
+      },
+      {
+        id: "h5", type: "naam",
+        verhaal: "Op een blaadje heeft de Rups een naam gekrabbeld. “Dat ben ik,” zegt hij. “Toch?” Alice tekent de stof — en schudt haar hoofd. Het is de goede stof, maar niet de goede naam.",
+        formule: "4-methylhex-5-een",
+        vraag: "Geef de juiste systematische naam van deze stof.",
+        hash: ["53d92b4e392bb37daaab1be536deaf97848f077d1824cb6a18df0a896441446e"],
+        hint: "Teken de stof zoals de naam zegt. Nummer daarna opnieuw volgens de regels: wat krijgt het laagste plaatsnummer?",
+        omweg: "K",
+        goed: "De Rups kijkt lang naar het blaadje. “Dezelfde stof,” zegt hij. “Een andere naam. Interessant.”",
+        parallel: {
+          verhaal: "Op de achterkant van het blaadje staat nog een naam.",
+          formule: "2-ethyl-3-methylbutaan",
+          vraag: "Geef de juiste systematische naam van deze stof.",
+          hash: ["e3cf06603d8635bb5834afd3e84dfc59aec221125fb9f11443cfa76678b3283e"],
+          hint: "Teken de stof en zoek opnieuw de langste keten: loopt die misschien door de zijtak?"
+        }
+      },
+      {
+        id: "h6", type: "kies",
+        verhaal: "“Laatste vraag,” zegt de Rups, en hij laat zich van de paddenstoel glijden. “Ik ben 2-methylhex-1-een. Wie zijn mijn familieleden: dezelfde dingen, maar een ander?”",
+        vraag: "Kies álle isomeren van 2-methylhex-1-een.",
+        opties: [
+          { label: "A", volledig: tak(recht(6), 1, [0, 1]), omweg: "G", k: "f3acefd19d55c367647f0b9b1f3c9115999c2b4dece828fff3779fd92ccd7e79" },
+          { label: "B", volledig: recht(7, { 0: 2 }), omweg: "G", k: "7d28f2bf5620742917894141d2e7db7047e6f9c428fc9f56e04504f4312c6942" },
+          { label: "C", volledig: tak(knik(6, 4, { 0: 2 }), 1, [0, -1]), omweg: "K", k: "1a7efb580f11d972b7229060b5962e84b338ae691d830c4f3b11e85897c2caec" },
+          { label: "D", volledig: tak(recht(6, { 0: 3 }), 4, [0, 1]), omweg: "G", k: "084460f335a5fc72f3d1cec2b5e9cda7985710190e55a7301a22506e4da89249" },
+          { label: "E", volledig: tak(recht(5, { 1: 2 }), 2, [0, 1], 2), omweg: "G", k: "a6ec83f86e9d2549a162b76b86f8a7121862d3e3466e127ab576db749fe51603" },
+          { label: "F", volledig: tak(recht(5, { 0: 2 }), 1, [0, -1]), omweg: "G", k: "c2e30a51f39d9159acdb7575ad25762dd97b730d0aa699a798b49cc4344ba439" }
+        ],
+        hint: "Bepaal bij elke tekening de molecuulformule en vergelijk met 2-methylhex-1-een. Let op: is het wel een ándere stof?",
+        goed: "De Rups kruipt weg in het gras. “De ene kant maakt je groter,” roept hij nog. “De andere kant kleiner.”",
+        parallel: {
+          verhaal: "Onder de paddenstoel vindt Alice nog een etiket: oct-1-yn.",
+          vraag: "Kies álle isomeren van oct-1-yn.",
+          opties: [
+            { label: "A", volledig: recht(8, { 0: 2 }), k: "8760f0060be98c16a3892c6fa745960ad9870885e974031d48c1a8099b56bf94" },
+            { label: "B", volledig: recht(8, { 2: 3 }), k: "625e68d28b81f8e41bcd04a598df154e0e3e23fce942ee2e28bff930e9de9376" },
+            { label: "C", volledig: knik(8, 5, { 0: 3 }), k: "647690428159caa055f55704869a4b06ccfe7765090d5b779719a54b4b299f9e" },
+            { label: "D", volledig: tak(tak(recht(6, { 0: 3 }), 2, [0, 1]), 2, [0, -1]), k: "2eae1606509ce48834dfba91d2dd1bbbcca6e2f99fcd83527bccdb175695a556" },
+            { label: "E", volledig: recht(7, { 0: 3 }), k: "5abc3bf4692a50df26a7e2aab413f48c569a95a68a2fba31ccfa08936c473146" },
+            { label: "F", volledig: tak(recht(7, { 1: 3 }), 3, [0, 1]), k: "69cdda9c8c547387b28d65ab5afd1a7ed46c26c189ffa63f8cea711aeb42bb69" }
+          ],
+          hint: "Een isomeer heeft dezelfde molecuulformule, maar is een andere stof. Controleer dus allebei."
+        }
+      }
+    ],
+    omwegen: {
+      G: {
+        personage: "G",
+        verhaal: "De Rups haalt de waterpijp uit zijn mond. “Dezelfde… dingen,” zegt hij heel langzaam. “Tel… ze… eerst.”",
+        voorbeeld: {
+          tekst: "<b>Isomeren</b> zijn stoffen met <b>dezelfde molecuulformule</b> maar een <b>andere structuurformule</b>. Het zijn echt verschillende stoffen. Bepaal dus altijd eerst de molecuulformule, en kijk daarna of de structuur anders is.",
+          structuren: [
+            { label: "nonaan · C₉H₂₀", volledig: recht(9) },
+            { label: "3-ethyl-3-methylhexaan · C₉H₂₀", volledig: tak(tak(recht(6), 2, [0, 1], 2), 2, [0, -1]) },
+            { label: "non-1-een · C₉H₁₈", volledig: recht(9, { 0: 2 }) }
+          ],
+          uitwerking: "Nonaan en 3-ethyl-3-methylhexaan hebben allebei <b>C₉H₂₀</b>, met een andere structuur: <b>isomeren</b>. Non-1-een heeft <b>C₉H₁₈</b>: twee H-atomen minder, dus <b>geen</b> isomeer van nonaan."
+        },
+        makkelijk: {
+          type: "getal",
+          verhaal: "“Nu jij,” zegt de Rups.",
+          formule: "een isomeer van decaan",
+          vraag: "Hoeveel H-atomen heeft één molecuul van dit isomeer?",
+          hash: ["d047aa3e027b12df90c8887dbc3499f84fa8c4dffddc139c348e3f5d03206fca"],
+          hint: "Een isomeer heeft dezelfde molecuulformule. Wat is de molecuulformule van decaan?"
+        }
+      },
+      H: {
+        personage: "H",
+        verhaal: "“Opschuiven! Opschuiven!” roept de Hoedenmaker, en hij schuift een plaats op aan de theetafel. “Zo vind je ze allemaal: één voor één opschuiven, en dan tellen!”",
+        voorbeeld: {
+          tekst: "Zo vind je systematisch alle mogelijkheden: <b>schuif</b> de binding of de zijtak stap voor stap door de keten, en <b>geef elke stof een naam</b>. Twee structuren met dezelfde naam tel je maar één keer.",
+          structuren: [
+            { label: "hept-1-een", volledig: recht(7, { 0: 2 }) },
+            { label: "hept-2-een", volledig: recht(7, { 1: 2 }) },
+            { label: "hept-3-een", volledig: recht(7, { 2: 2 }) }
+          ],
+          uitwerking: "Onvertakte alkenen C₇H₁₄: de dubbele binding kan beginnen bij C-atoom 1, 2 of 3. Bij C-atoom 4 is het hept-3-een vanaf de andere kant. Dus <b>3</b> stoffen.<br>Zo werkt het ook met een zijtak. Alkanen C₉H₂₀ met een langste keten van 8: een methylgroep op C-atoom 2, 3 of 4. Op C-atoom 1 wordt de keten langer, en op C-atoom 5 is het 4-methyloctaan vanaf de andere kant. Ook <b>3</b> stoffen."
+        },
+        makkelijk: {
+          type: "getal",
+          verhaal: "“Een kopje thee als je dit goed telt,” zegt de Hoedenmaker.",
+          formule: "C₇H₁₂ — onvertakt, alkyn",
+          vraag: "Hoeveel verschillende stoffen passen bij deze beschrijving?",
+          hash: ["298a49e36ebef24c5a129b7ae7a43c3b833bad197e2a0ba559f596ff2cc63ddb"],
+          hint: "Schuif de drievoudige binding door de keten en geef elke stof een naam."
+        }
+      },
+      K: {
+        personage: "K",
+        verhaal: "De Kolderkat draait zich om. En nog eens. Dan hangt hij ondersteboven aan een tak. “Ik ben nog steeds dezelfde kat,” grijnst hij. “Hoe je me ook neerlegt.”",
+        voorbeeld: {
+          tekst: "Een molecuul <b>draaien</b>, <b>spiegelen</b> of de keten <b>om de hoek</b> tekenen maakt <b>geen nieuwe stof</b>. Twijfel je of twee tekeningen dezelfde stof zijn? Geef ze allebei een systematische naam: <b>dezelfde naam = dezelfde stof</b>.",
+          structuren: [
+            { label: "3-ethylheptaan", volledig: tak(recht(7), 2, [0, 1], 2) },
+            { label: "ook 3-ethylheptaan: gespiegeld", volledig: tak(recht(7), 4, [0, -1], 2) },
+            { label: "ook 3-ethylheptaan: om de hoek", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [2, 1], [2, 2], [2, 3], [2, 4]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [2, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1]] } }
+          ],
+          uitwerking: "In de derde tekening lijkt de horizontale keten maar 5 lang. Maar de langste keten loopt naar beneden: <b>7</b> C-atomen. Wat overblijft is een ethylgroep op C-atoom <b>3</b>. Dezelfde naam, dus dezelfde stof."
+        },
+        makkelijk: {
+          type: "naam",
+          verhaal: "“En deze?” vraagt de Kat. Alleen zijn grijns is nog te zien.",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [2, 1], [2, 2], [2, 3]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [2, 6, 1], [6, 7, 1], [7, 8, 1]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["b995afe936d4f2ad088db6e80ff3b6a4fc7f2764d8e6d7f88b1d8b8ee53ca872"],
+          hint: "Zoek eerst de langste keten: probeer ook de route naar beneden."
+        }
+      }
+    },
+    kluis: {
+      intro: "Aan de voet van de paddenstoel staat een schatkist met vier draaischijven. Wie hem opent, krijgt een edelsteen. Werk in je schrift en teken systematisch. Als je alle getallen hebt ingevuld, zie je per getal of het klopt."
+    },
+    geheim: {
+      intro: "In de hoed van de paddenstoel zit een gouden slotje verstopt. Het is maar voor heel weinig mensen te openen."
+    },
+    einde: "Alice heeft van beide kanten van de paddenstoel een stukje. Maar onder de paddenstoel wacht nog een schatkist…"
   }
 };
 })();

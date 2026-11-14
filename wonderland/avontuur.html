@@ -91,6 +91,11 @@
   .indeling { display: grid; gap: 10px; margin: 12px 0 4px; }
   .indrij { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
   .indrij .formule { min-width: 120px; text-align: center; }
+  /* lange items (bijv. paren namen): tekst op een eigen regel, knoppen eronder */
+  .indeling.lang { gap: 14px; }
+  .indeling.lang .indrij { gap: 8px; padding-bottom: 12px; border-bottom: 1px solid rgba(110,75,25,.18); }
+  .indeling.lang .indrij:last-child { border-bottom: 0; }
+  .indeling.lang .formule { flex-basis: 100%; text-align: left; font-size: 1.15rem; }
   .keuzeknop { font: 600 1.15rem var(--body); padding: 6px 16px; border-radius: 999px; cursor: pointer;
     border: 2px solid rgba(110,75,25,.35); background: rgba(255,255,255,.55); color: var(--bruin); }
   .keuzeknop.gekozen { border-color: var(--goud-donker); background: #f7e7b5; box-shadow: 0 0 0 3px rgba(226,182,90,.4); }
@@ -437,7 +442,7 @@ function inhoudHTML(it) {
       <div class="antwoord"><button class="knop" id="controleer" disabled>Controleer</button></div>`;
   }
   if (it.type === "indeling") {
-    h += `<div class="indeling">${it.items.map((f, i) => `<div class="indrij"><span class="formule">${f}</span>${it.keuzes.map(k => `<button class="keuzeknop" data-rij="${i}" data-k="${k}">${k}</button>`).join("")}</div>`).join("")}</div>
+    h += `<div class="indeling${it.items.some(f => f.length > 14) ? " lang" : ""}">${it.items.map((f, i) => `<div class="indrij"><span class="formule">${f}</span>${it.keuzes.map(k => `<button class="keuzeknop" data-rij="${i}" data-k="${k}">${k}</button>`).join("")}</div>`).join("")}</div>
       <div class="antwoord"><button class="knop" id="controleer" disabled>Controleer</button></div>`;
   }
   h += `<div class="terugkoppeling" id="tk"></div><div class="knoprij" id="na"></div>`;
