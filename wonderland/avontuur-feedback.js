@@ -409,6 +409,157 @@ window.WL_FEEDBACK = {
       },
       zo: "De langste keten loopt naar beneden en is <b>7</b> lang. De ethylgroep zit op C-atoom 4: <b>4-ethylheptaan</b>."
     }
+  },
+  // ── Les 4 · De Cheshire Kat ────────────────────────────────
+  4: {
+    omwegen: {
+      R: "Het ging mis bij het lezen van de hoekpuntnotatie.",
+      B: "Het ging mis bij benzeen of bij het aantal H-atomen van een ring.",
+      N: "Het ging mis bij de naam van een ringverbinding."
+    },
+    h1: {
+      optieUitleg: {
+        B: "De cirkel staat voor drie dubbele bindingen: dit is benzeen.",
+        D: "Deze ring heeft 5 C-atomen.",
+        E: "Dit is een keten, geen ring.",
+        F: "Aan deze ring zit nog een C-atoom vast: een methylgroep."
+      },
+      zo: "Twee tekeningen passen: <b>A</b> (volledig, met alle atomen) en <b>C</b> (hoekpuntnotatie). Allebei een ring van 6 C-atomen zonder dubbele bindingen."
+    },
+    p1: {
+      optieUitleg: {
+        A: "Geen dubbele bindingen: dit is cyclohexaan.",
+        D: "Maar één dubbele binding in de ring.",
+        F: "Maar twee dubbele bindingen in de ring."
+      },
+      zo: "Drie tekeningen passen: <b>B</b> (met cirkel), <b>C</b> (drie dubbele bindingen) en <b>E</b> (volledig). Allemaal benzeen, C₆H₆."
+    },
+    h2: {
+      fouten: {
+        "15": "Op het ring-C-atoom met de zijtak zit één H minder.",
+        "7": "Tel ook de H-atomen aan de ring.",
+        "8": "Vergeet de H-atomen aan de zijtak niet.",
+        "16": "Op het ring-C-atoom met de zijtak zit één H minder."
+      },
+      zo: "Ring: 3 C-atomen met 2 H en 1 C-atoom met 1 H = 7. Propylgroep: 2 + 2 + 3 = 7. Samen <b>14</b> (C₇H₁₄).",
+      zoH: true
+    },
+    p2: {
+      fouten: {
+        "13": "Op het ring-C-atoom met de zijtak zit geen H.",
+        "7": "Vergeet de H-atomen aan de zijtak niet.",
+        "5": "Vergeet de H-atomen aan de zijtak niet.",
+        "18": "Dit is een benzeenring: hoeveel H heeft elk ring-C-atoom?",
+        "17": "Dit is een benzeenring: hoeveel H heeft elk ring-C-atoom?"
+      },
+      zo: "Ring: 5 C-atomen met 1 H, het C-atoom met de zijtak 0 H = 5. Propylgroep: 7. Samen <b>12</b> (C₉H₁₂).",
+      zoH: true
+    },
+    h3: {
+      fouten: {
+        "ethylhexaan": "Het is een ring: welk voorvoegsel hoort daarbij?",
+        "ethylbenzeen": "Zie je een cirkel of dubbele bindingen in de ring?",
+        "ethylcyclohexeen": "Zitten er dubbele bindingen in de ring?",
+        "ethylcyclopentaan": "Tel de hoekpunten van de ring nog eens.",
+        "ethylcycloheptaan": "Tel de hoekpunten van de ring nog eens.",
+        "methylcyclohexaan": "Hoe lang is de zijtak?",
+        "propylcyclohexaan": "Hoe lang is de zijtak?",
+        "cyclohexylethaan": "De ring is hier de stam; de zijtak komt ervoor."
+      },
+      zo: "Ring van 6 C-atomen zonder dubbele bindingen: <b>cyclohexaan</b>. Zijtak van 2 C-atomen: <b>ethyl</b>. Eén zijtak, dus geen plaatsnummer nodig: <b>ethylcyclohexaan</b>.",
+      zoH: true
+    },
+    p3: {
+      fouten: {
+        "methylcyclohexaan": "Tel de hoekpunten van de ring nog eens.",
+        "methylcyclooctaan": "Tel de hoekpunten van de ring nog eens.",
+        "methylheptaan": "Het is een ring: welk voorvoegsel hoort daarbij?",
+        "ethylcycloheptaan": "Hoe lang is de zijtak?"
+      },
+      zo: "Ring van 7 C-atomen: <b>cycloheptaan</b>. Zijtak: <b>methyl</b>. Dus <b>methylcycloheptaan</b>.",
+      zoH: true
+    },
+    h4: {
+      fouten: {
+        "1,5-diethylbenzeen": "Tel de andere kant op rond de ring.",
+        "1,3-ethylbenzeen": "Twee dezelfde zijtakken: hoe geef je dat aan in de naam?",
+        "diethylbenzeen": "Waar zitten de ethylgroepen? Die plaatsnummers horen in de naam.",
+        "1,3-diethylcyclohexaan": "Kijk naar de ring: welke stamnaam hoort bij deze ring?",
+        "1,3-dimethylbenzeen": "Hoe lang zijn de zijtakken?",
+        "1-3-diethylbenzeen": "Tussen twee getallen staat een komma."
+      },
+      zo: "De cirkel maakt het een benzeenring. Twee ethylgroepen → <b>diethyl</b>. Geef de bovenste nummer 1 en tel tegen de klok in: de andere zit op 3 (met de klok mee zou het 5 zijn). <b>1,3-diethylbenzeen</b>."
+    },
+    p4: {
+      fouten: {
+        "1,5-diethylcyclopentaan": "Tel de andere kant op rond de ring.",
+        "1,2-ethylcyclopentaan": "Twee dezelfde zijtakken: hoe geef je dat aan in de naam?",
+        "diethylcyclopentaan": "Waar zitten de ethylgroepen? Die plaatsnummers horen in de naam.",
+        "1,2-diethylpentaan": "Het is een ring: welk voorvoegsel hoort daarbij?"
+      },
+      zo: "Vijfring: <b>cyclopentaan</b>. De twee ethylgroepen zitten aan C-atomen naast elkaar: <b>1,2-diethylcyclopentaan</b>."
+    },
+    h5: {
+      optieUitleg: {
+        C: "Hier zitten de methylgroepen aan C-atomen tegenover elkaar: 1,3.",
+        E: "Hier zitten beide methylgroepen aan hetzelfde C-atoom.",
+        F: "Volledig getekend, maar de methylgroepen zitten tegenover elkaar: 1,3."
+      },
+      zo: "Drie tekeningen passen: <b>A</b> en <b>D</b> (hoekpuntnotatie, gedraaid) en <b>B</b> (volledig). Steeds zitten de methylgroepen aan twee C-atomen die naast elkaar liggen."
+    },
+    p5: {
+      optieUitleg: {
+        A: "Hier zitten de methylgroepen aan C-atomen naast elkaar: 1,2.",
+        D: "Hier zitten beide methylgroepen aan hetzelfde C-atoom.",
+        E: "Volledig getekend, maar de methylgroepen zitten naast elkaar: 1,2."
+      },
+      zo: "Drie tekeningen passen: <b>B</b> en <b>F</b> (hoekpuntnotatie) en <b>C</b> (volledig). De methylgroepen zitten steeds tegenover elkaar in de vierring."
+    },
+    h6: {
+      optieUitleg: {
+        B: "C₉H₁₂: een benzeenring heeft veel minder H-atomen, en hier zijn het 9 C-atomen.",
+        E: "C₅H₁₀: tel de C-atomen nog eens.",
+        F: "C₈H₁₈: zonder ring of dubbele binding heeft een stof 2 H meer."
+      },
+      zo: "Drie tekeningen passen: <b>A</b> (propylcyclopentaan), <b>D</b> (1,2-dimethylcyclohexaan) en <b>C</b> (oct-2-een). Een ring en een dubbele binding kosten allebei 2 H: C₈H₁₈ − 2 H = C₈H₁₆."
+    },
+    p6: {
+      optieUitleg: {
+        B: "C₉H₁₂: in een benzeenring heeft elk C-atoom hoogstens 1 H.",
+        D: "C₉H₂₀: zonder ring of dubbele binding heeft een stof 2 H meer.",
+        F: "C₈H₁₆: tel de C-atomen nog eens."
+      },
+      zo: "Drie tekeningen passen: <b>A</b> (propylcyclohexaan), <b>E</b> (1-ethyl-3-methylcyclohexaan) en <b>C</b> (non-2-een), allemaal C₉H₁₈."
+    },
+    oR: {
+      fouten: {
+        "9": "Op het ring-C-atoom met de methylgroep zit één H minder.",
+        "4": "Vergeet de H-atomen aan de ring niet.",
+        "3": "Vergeet de H-atomen aan de ring niet.",
+        "10": "Tel nog eens per C-atoom: hoeveel bindingen heeft het al?"
+      },
+      zo: "Ring: 2 C-atomen met 2 H en 1 C-atoom met 1 H = 5. Methylgroep: 3. Samen <b>8</b> (C₄H₈).",
+      zoH: true
+    },
+    oB: {
+      fouten: {
+        "6": "Op de C-atomen met een zijtak zit geen H.",
+        "5": "Er zitten twee zijtakken aan de ring.",
+        "8": "Elk ring-C-atoom van benzeen heeft hoogstens 1 H.",
+        "12": "Alleen de H-atomen direct aan de ring tellen."
+      },
+      zo: "6 ring-C-atomen, waarvan 2 met een zijtak: <b>4</b> H-atomen aan de ring.",
+      zoH: true
+    },
+    oN: {
+      fouten: {
+        "1,4-ethylbenzeen": "Twee dezelfde zijtakken: hoe geef je dat aan in de naam?",
+        "diethylbenzeen": "Waar zitten de ethylgroepen? Die plaatsnummers horen in de naam.",
+        "1,4-diethylcyclohexaan": "Kijk naar de ring: welke stamnaam hoort bij deze ring?",
+        "1,4-dimethylbenzeen": "Hoe lang zijn de zijtakken?"
+      },
+      zo: "Benzeenring met twee ethylgroepen tegenover elkaar: <b>1,4-diethylbenzeen</b>."
+    }
   }
 };
 })();

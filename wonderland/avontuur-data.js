@@ -696,6 +696,227 @@ window.WL_AVONTUUR = {
       intro: "In de hoed van de paddenstoel zit een gouden slotje verstopt. Het is maar voor heel weinig mensen te openen."
     },
     einde: "Alice heeft van beide kanten van de paddenstoel een stukje. Maar onder de paddenstoel wacht nog een schatkist…"
+  },
+  4: {
+    titel: "De Cheshire Kat",
+    plaat: P(23),
+    intro: [
+      "Op een tak zit een kat, met een grijns van oor tot oor. “Wilt u me alstublieft zeggen welke kant ik op moet?” vraagt Alice.",
+      "“Dat hangt er nogal van af waar je naartoe wilt,” zegt de Kat. “In mijn wereld tekenen we trouwens niet wat iedereen allang weet. Maar dat betekent niet dat het er niet is.”"
+    ],
+    duur: "Ongeveer 20 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
+    personages: {
+      R: { naam: "De Kolderkat", plaat: P(23) },
+      B: { naam: "De Rups", plaat: P(15) },
+      N: { naam: "De Hoedenmaker", plaat: P(25) }
+    },
+    hoofdpad: [
+      {
+        id: "h1", type: "kies",
+        verhaal: "Op een tak zit een kat met een grijns van oor tot oor. Onder de boom liggen zes tekeningen in het gras. “Eén stof,” zegt de Kat, “maar ik teken hem op verschillende manieren. En ik heb er een paar valse tussen gelegd.”",
+        vraag: "Kies álle tekeningen van cyclohexaan.",
+        opties: [
+          { label: "A", volledig: { atomen: [[0.0, -1.0], [0.866, -0.5], [0.866, 0.5], [0.0, 1.0], [-0.866, 0.5], [-0.866, -0.5]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 0, 1]] }, omweg: "R", k: "132539e9a1a50d9263eced860013047a1513e8d8c8d650fa819bdba10fe33680" },
+          { label: "B", skelet: { soort: "ring", n: 6, cirkel: true }, omweg: "B", k: "a228cf954f0d08c1f8e9a8839bc41f179a6f20f56ec0420d1735c54f927433ad" },
+          { label: "C", skelet: { soort: "ring", n: 6 }, omweg: "R", k: "a502d849d6e081db366ae1d7efeffcd50b23549a5433b3841bc48ac97f7d0845" },
+          { label: "D", skelet: { soort: "ring", n: 5 }, omweg: "R", k: "6ac64f84031c54bb93a320e923822d6e08211e4231cf5f504082245e0cd90b3c" },
+          { label: "E", volledig: recht(6), omweg: "R", k: "9f8cda5f7dd1fd5a8a88ebed100a173da81d0f0202c0ab135b193f653136185f" },
+          { label: "F", skelet: { soort: "ring", n: 6, takken: [{ bij: 0, lengte: 1 }] }, omweg: "R", k: "5b8813e99b5efd2a9f198c53d3181cfdcd5c220d4f0f7a2687b827e84de36361" }
+        ],
+        hint: "Tel bij elke tekening de C-atomen, ook de hoekpunten. Is het een ring? En zitten er dubbele bindingen in?",
+        goed: "De Kat knikt. “Met of zonder letters: het blijft dezelfde ring.”",
+        parallel: {
+          verhaal: "De Kat veegt de tekeningen weg en legt er zes nieuwe neer. “En nu benzeen.”",
+          vraag: "Kies álle tekeningen van benzeen.",
+          opties: [
+            { label: "A", skelet: { soort: "ring", n: 6 }, k: "69bedc309b23fdf3e5b2fd789e3c4d24a7ffc75b0f712d42c4e35ded1543d064" },
+            { label: "B", skelet: { soort: "ring", n: 6, cirkel: true }, k: "f9dcdd93afab4235cbeb254737e6f71a9cebd121dd4c45bb1d61831e3426fd8e" },
+            { label: "C", skelet: { soort: "ring", n: 6, dubbel: [0, 2, 4] }, k: "356bf30c75d08d51b7608de4d07506a2ae49a918cb4f15a3a850bb92b62043f2" },
+            { label: "D", skelet: { soort: "ring", n: 6, dubbel: [0] }, k: "88dda367403286c6ffa22a192692ff9c4e064ff5932745a9f9d0fbb8d80dd8a4" },
+            { label: "E", volledig: { atomen: [[0.0, -1.0], [0.866, -0.5], [0.866, 0.5], [0.0, 1.0], [-0.866, 0.5], [-0.866, -0.5]], bindingen: [[0, 1, 2], [1, 2, 1], [2, 3, 2], [3, 4, 1], [4, 5, 2], [5, 0, 1]] }, k: "d0e582ef3d3edc4d206c6571611cec1073a079a987c19697582dbde2fa5caa75" },
+            { label: "F", skelet: { soort: "ring", n: 6, dubbel: [0, 2] }, k: "bbe5fa075790ca5843ffe6a53313d0877db3a6c1d3502aebe82983b49984c45a" }
+          ],
+          hint: "Benzeen is een zesring met drie dubbele bindingen. Een cirkel in de ring betekent hetzelfde."
+        }
+      },
+      {
+        id: "h2", type: "getal",
+        verhaal: "Dan begint de Kat te verdwijnen. Eerst zijn staart, dan zijn poten. Op de tak blijft een tekening achter — alleen lijnen.",
+        skelet: { soort: "ring", n: 4, takken: [{ bij: 0, lengte: 3 }] },
+        vraag: "Hoeveel H-atomen heeft dit molecuul?",
+        hash: ["0f7360700fbec04eb4b699bf6ef1c336d93357db33889340e2aa8585a84a694f"],
+        hint: "Ga elk hoekpunt en elk uiteinde langs: hoeveel bindingen heeft dit C-atoom al? Vul aan tot 4 met H.",
+        omweg: "R",
+        goed: "“Precies,” zegt de grijns. “Je ziet ze niet, maar ze zijn er wel.”",
+        parallel: {
+          verhaal: "Verderop in de boom hangt nog een tekening.",
+          skelet: { soort: "ring", n: 6, cirkel: true, takken: [{ bij: 0, lengte: 3 }] },
+          vraag: "Hoeveel H-atomen heeft dit molecuul?",
+          hash: ["4ee0fb1cc0f694c45a028c706d2ee260bbd5c1d363accc2c02c2613f2d5668fe"],
+          hint: "Op elk hoekpunt zit een C-atoom. Hoeveel H heeft een C-atoom in een benzeenring? En op het hoekpunt met de zijtak?"
+        }
+      },
+      {
+        id: "h3", type: "naam",
+        verhaal: "Alleen de grijns hangt nog in de lucht. “Hoe heet ik?” vraagt hij, en hij tekent zichzelf.",
+        skelet: { soort: "ring", n: 6, takken: [{ bij: 1, lengte: 2 }] },
+        vraag: "Geef de systematische naam van deze stof.",
+        hash: ["f15c128762747d20a0fb67e7743e2a5e0f28ba6bbd06b1968b2435450731d777", "c8c1c2f2760e0f0861f6c4ce9e2ccc02bd7a5efa3305e7ee1dffc1c534076711"],
+        hint: "Tel de hoekpunten van de ring. Welk voorvoegsel hoort bij een ring? En hoe lang is de zijtak?",
+        omweg: "N",
+        goed: "De grijns wordt nog breder. “Zo heet ik inderdaad.”",
+        parallel: {
+          verhaal: "“En mijn neef?” De grijns tekent nog een ring.",
+          skelet: { soort: "ring", n: 7, takken: [{ bij: 2, lengte: 1 }] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["1f92fae0a459d7a4562481ed74a8c71df268feb7863de7d4a923cf709dcef4e3", "cf3289798a335f6e45b6eea82683113717c996a77901efac58405bbbfa8bfbfa"],
+          hint: "Tel de hoekpunten van de ring nog eens zorgvuldig. Welke zijtak zit eraan?"
+        }
+      },
+      {
+        id: "h4", type: "naam",
+        verhaal: "“Welke kant moet ik op?” vraagt Alice. “Dat hangt ervan af waar je heen wilt,” zegt de grijns, en hij tekent een ring met twee zijtakken.",
+        skelet: { soort: "ring", n: 6, cirkel: true, takken: [{ bij: 0, lengte: 2 }, { bij: 4, lengte: 2 }] },
+        vraag: "Geef de systematische naam van deze stof.",
+        hash: ["1558f95320720ab362f0b6f85b2876bd507e0050423d0373942da780fc2e0c73"],
+        hint: "Geef een zijtak nummer 1 en tel rond de ring. Welke kant op geeft de laagste plaatsnummers?",
+        omweg: "N",
+        goed: "“Die kant op dus,” zegt de grijns. “Naar de Hoedenmaker. Of naar de Maartse Haas. Ze zijn allebei gek.”",
+        parallel: {
+          verhaal: "Op de stam van de boom staat nog een ring gekrast.",
+          skelet: { soort: "ring", n: 5, takken: [{ bij: 0, lengte: 2 }, { bij: 4, lengte: 2 }] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["f70e8203a5ad4f58e5a7cd430ad8b0906b3b968a33a01311e96be9ae079b7de7"],
+          hint: "Geef een zijtak nummer 1. Tel de kant op rond de ring waarmee je het snelst bij de andere zijtak bent."
+        }
+      },
+      {
+        id: "h5", type: "kies",
+        verhaal: "“Ben je een goede kijker?” vraagt de grijns. Op het gras liggen zes tekeningen: sommige met letters, sommige alleen met lijnen.",
+        vraag: "Kies álle tekeningen van 1,2-dimethylcyclobutaan.",
+        opties: [
+          { label: "A", skelet: { soort: "ring", n: 4, takken: [{ bij: 0, lengte: 1 }, { bij: 1, lengte: 1 }] }, omweg: "R", k: "0e713b0ff93feb12ebfeb408ebad9f5f026a22b96dcc06fdccc9d659e44dc037" },
+          { label: "B", volledig: { atomen: [[0, 0], [1, 0], [1, 1], [0, 1], [-1, 0], [2, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 0, 1], [0, 4, 1], [1, 5, 1]] }, omweg: "R", k: "548f7010b84d1002beaaddccec3886d11f56056d528b9a0451237511bf2abba3" },
+          { label: "C", skelet: { soort: "ring", n: 4, takken: [{ bij: 0, lengte: 1 }, { bij: 2, lengte: 1 }] }, omweg: "R", k: "731b41aee44590b4843c343017325d09c271f1ce975fc3446d3e9d768dd7e3a8" },
+          { label: "D", skelet: { soort: "ring", n: 4, takken: [{ bij: 2, lengte: 1 }, { bij: 3, lengte: 1 }] }, omweg: "R", k: "5333ed5f6fb4952cb611b1e4eb363f92ab6150a1a47e1589d91685b063b9e2f8" },
+          { label: "E", skelet: { soort: "ring", n: 4, takken: [{ bij: 0, lengte: 1, hoek: -35 }, { bij: 0, lengte: 1, hoek: 35 }] }, omweg: "R", k: "72d6914d4388ad11c88b7089e419f4acbc8f637af94310d491cbc080eacb3bd7" },
+          { label: "F", volledig: { atomen: [[0, 0], [1, 0], [1, 1], [0, 1], [-1, 0], [2, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 0, 1], [0, 4, 1], [2, 5, 1]] }, omweg: "R", k: "5922d751537efe617459ba0bf60594e4c32362a0f4122654dbb2912cffea870a" }
+        ],
+        hint: "Zoek bij elke tekening de ring en de methylgroepen. Zitten de methylgroepen aan C-atomen die naast elkaar liggen?",
+        goed: "“Met letters of zonder,” zegt de grijns. “Jij ziet het toch.”",
+        parallel: {
+          verhaal: "De grijns legt nog zes tekeningen neer.",
+          vraag: "Kies álle tekeningen van 1,3-dimethylcyclobutaan.",
+          opties: [
+            { label: "A", skelet: { soort: "ring", n: 4, takken: [{ bij: 0, lengte: 1 }, { bij: 1, lengte: 1 }] }, k: "68f6b4322efc85a39e33552b74dce46e4881ca27db819517c3dbeaee8d206bbd" },
+            { label: "B", skelet: { soort: "ring", n: 4, takken: [{ bij: 1, lengte: 1 }, { bij: 3, lengte: 1 }] }, k: "2b1d90761eda0b146b2376877a88ac11c392d9a3932ea64249e36ad0b7ba1e04" },
+            { label: "C", volledig: { atomen: [[0, 0], [1, 0], [1, 1], [0, 1], [-1, 0], [2, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 0, 1], [0, 4, 1], [2, 5, 1]] }, k: "3b9e307d59724ce5b6ae7a8cf368ade36799b9d71a7799576ee1f22b67f0fc86" },
+            { label: "D", skelet: { soort: "ring", n: 4, takken: [{ bij: 0, lengte: 1, hoek: -35 }, { bij: 0, lengte: 1, hoek: 35 }] }, k: "364694556aa22959be54a6ebad11369f7d618259e4669759095532734857d01f" },
+            { label: "E", volledig: { atomen: [[0, 0], [1, 0], [1, 1], [0, 1], [-1, 0], [2, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 0, 1], [0, 4, 1], [1, 5, 1]] }, k: "00cb65079ab2650e8c6c9516a5777284c64bf4cc652556c4c7e73cbd359e0c0f" },
+            { label: "F", skelet: { soort: "ring", n: 4, takken: [{ bij: 0, lengte: 1 }, { bij: 2, lengte: 1 }] }, k: "010ac7ebf85acae88b83361cf805a6d28b7a8c2e6c2cc40c1d9887667d41259e" }
+          ],
+          hint: "Bij 1,3 zitten de twee methylgroepen aan C-atomen die tegenover elkaar liggen in de vierring."
+        }
+      },
+      {
+        id: "h6", type: "kies",
+        verhaal: "Voordat de grijns helemaal verdwijnt, laat hij een briefje vallen: “C₈H₁₆. Wie past in mijn formule?”",
+        vraag: "Kies álle tekeningen met de molecuulformule C₈H₁₆.",
+        opties: [
+          { label: "A", skelet: { soort: "ring", n: 5, takken: [{ bij: 0, lengte: 3 }] }, omweg: "B", k: "0f86b3736648be73f9ddc21cc658b41650e9e3181820d531a70a3872279300b0" },
+          { label: "B", skelet: { soort: "ring", n: 6, cirkel: true, takken: [{ bij: 0, lengte: 2 }, { bij: 2, lengte: 1 }] }, omweg: "B", k: "7d71182019bf7d8325feec7a30742baa51c275cfb3e2daf872c5ebe0dc9fbe60" },
+          { label: "C", volledig: recht(8, { 1: 2 }), omweg: "B", k: "f88d1818d85187021a06969eb9a328aab7bfcc3f029677b69d6e344ee97de7dc" },
+          { label: "D", skelet: { soort: "ring", n: 6, takken: [{ bij: 0, lengte: 1 }, { bij: 1, lengte: 1 }] }, omweg: "B", k: "1d45bf4d0a0e82fadda8564814195a98d7f0b98ce559cf0eeb3766767afa2367" },
+          { label: "E", skelet: { soort: "ring", n: 3, takken: [{ bij: 0, lengte: 1 }, { bij: 1, lengte: 1 }] }, omweg: "B", k: "efe501cbaf1e2bc43dfc5c1e91a4209df7634aef9c642d575485234d036b6f76" },
+          { label: "F", volledig: recht(8), omweg: "B", k: "bdb45f60da2f417c95fb18314860f9b4acafe6ca50d5cc874f675bf487e456d3" }
+        ],
+        hint: "Bepaal bij elke tekening het aantal C- en H-atomen. Denk bij de hoekpuntnotatie aan de H-atomen die je niet ziet.",
+        goed: "De grijns verdwijnt. Alleen zijn stem blijft nog even hangen: “Een ring of een dubbele binding — allebei kosten ze twee H.”",
+        parallel: {
+          verhaal: "Op de achterkant van het briefje: “C₉H₁₈.”",
+          vraag: "Kies álle tekeningen met de molecuulformule C₉H₁₈.",
+          opties: [
+            { label: "A", skelet: { soort: "ring", n: 6, takken: [{ bij: 0, lengte: 3 }] }, k: "cde533b73fdc962568db36c90aec24d47e955d89c2cc9d94beff5b704caa3a59" },
+            { label: "B", skelet: { soort: "ring", n: 6, cirkel: true, takken: [{ bij: 0, lengte: 1 }, { bij: 2, lengte: 1 }, { bij: 4, lengte: 1 }] }, k: "52e42f6db759cf063423a106e301d8080490f9046a933e0795110100cc542448" },
+            { label: "C", volledig: recht(9, { 1: 2 }), k: "c3ac21080daecd6c739f831c5d2a6664acec5931c1d6258d57b49978db7dc4ce" },
+            { label: "D", volledig: recht(9), k: "c40eb87fc404e521d0773ff9e919bab9871d8d61646c8fdcc024ff405d951444" },
+            { label: "E", skelet: { soort: "ring", n: 6, takken: [{ bij: 0, lengte: 2 }, { bij: 2, lengte: 1 }] }, k: "5463c1942dc7b3dfd52edac9b5fe99c99bb5a84119c131d22bca0e5c4fa85f76" },
+            { label: "F", skelet: { soort: "ring", n: 5, takken: [{ bij: 0, lengte: 3 }] }, k: "65b8ebf7b7facf55413092c116b967951e8a957de706b5322d7e2e8eba0e4076" }
+          ],
+          hint: "Tel de C-atomen en de H-atomen. Een ring en een dubbele binding kosten allebei twee H ten opzichte van het alkaan."
+        }
+      }
+    ],
+    omwegen: {
+      R: {
+        personage: "R",
+        verhaal: "De Kolderkat komt even helemaal terug. “Kijk,” zegt hij. “Eerst teken ik alles. Dan laat ik weg wat iedereen allang weet.”",
+        voorbeeld: {
+          tekst: "In de <b>hoekpuntnotatie</b> is elk hoekpunt en elk uiteinde van een lijn een <b>C-atoom</b>. De H-atomen teken je niet: vul elk C-atoom in gedachten aan tot <b>4 bindingen</b>. Zit er een zijtak aan een hoekpunt, dan zit daar <b>één H minder</b>.",
+          structuren: [
+            { label: "ethylcyclopropaan · volledig", volledig: { atomen: [[0, 0], [1, 0], [0.5, 0.866], [-1, 0], [-2, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 0, 1], [0, 3, 1], [3, 4, 1]] } },
+            { label: "dezelfde stof · hoekpuntnotatie", skelet: { soort: "ring", n: 3, takken: [{ bij: 0, lengte: 2 }] } }
+          ],
+          uitwerking: "Ring-C-atoom met de zijtak: 1 H. De twee andere ring-C-atomen: elk 2 H. De ethylgroep: 2 + 3 = 5 H. Samen 1 + 4 + 5 = <b>10</b> H: C₅H₁₀."
+        },
+        makkelijk: {
+          type: "getal",
+          verhaal: "“Nu jij,” zegt de Kat, en zijn staart begint alweer te vervagen.",
+          skelet: { soort: "ring", n: 3, takken: [{ bij: 0, lengte: 1 }] },
+          vraag: "Hoeveel H-atomen heeft dit molecuul?",
+          hash: ["17c4c25c19cd7abe6eee9f69de0c7ea6ced6eed55b463a0c2a82d68d5374144d"],
+          hint: "Ga elk hoekpunt en het uiteinde langs en vul aan tot 4 bindingen."
+        }
+      },
+      B: {
+        personage: "B",
+        verhaal: "De Rups kijkt op van zijn paddenstoel. “Een ring met een cirkel erin,” zegt hij langzaam, “is niet dezelfde als een ring zonder.”",
+        voorbeeld: {
+          tekst: "<b>Benzeen</b> is een zesring met <b>drie afwisselende dubbele bindingen</b>. Vaak teken je een <b>cirkel</b> in plaats van die dubbele bindingen: dat is dezelfde stof. Elk C-atoom van benzeen heeft <b>1 H</b>. In <b>cyclohexaan</b> (geen dubbele bindingen) heeft elk C-atoom <b>2 H</b>. Een ring zonder dubbele binding heeft de formule <b>CₙH₂ₙ</b>: net zoveel H als een alkeen.",
+          structuren: [
+            { label: "benzeen · C₆H₆", skelet: { soort: "ring", n: 6, dubbel: [0, 2, 4] } },
+            { label: "benzeen · C₆H₆", skelet: { soort: "ring", n: 6, cirkel: true } },
+            { label: "cyclohexaan · C₆H₁₂", skelet: { soort: "ring", n: 6 } }
+          ],
+          uitwerking: "Benzeen en cyclohexaan hebben allebei 6 C-atomen, maar benzeen heeft 6 H en cyclohexaan 12 H."
+        },
+        makkelijk: {
+          type: "getal",
+          verhaal: "“Tel maar,” zegt de Rups. “Alleen aan de ring.”",
+          skelet: { soort: "ring", n: 6, cirkel: true, takken: [{ bij: 0, lengte: 2 }, { bij: 3, lengte: 1 }] },
+          vraag: "Hoeveel H-atomen zitten er direct aan de ring?",
+          hash: ["4607c4512ee26f9de267b396e49113364444b2bf600013a8b964a6c70f030b61"],
+          hint: "Elk C-atoom van een benzeenring heeft 1 H, behalve waar een zijtak zit."
+        }
+      },
+      N: {
+        personage: "N",
+        verhaal: "Uit de struiken stapt de Hoedenmaker, met zijn hoed vol cijfertjes. “Rond de ring, rond de ring! Maar wel de kortste kant op!”",
+        voorbeeld: {
+          tekst: "Een ring krijgt <b>cyclo-</b> voor de stamnaam: cyclobutaan, cyclohexaan. Bij benzeen is <b>benzeen</b> de stamnaam. Eén zijtak: <b>geen plaatsnummer</b> nodig. Meer zijtakken: geef er één nummer 1 en tel rond de ring de kant op die de <b>laagste plaatsnummers</b> geeft.",
+          structuren: [
+            { label: "methylcyclooctaan", skelet: { soort: "ring", n: 8, takken: [{ bij: 0, lengte: 1 }] } },
+            { label: "1,2-dimethylcyclohexaan", skelet: { soort: "ring", n: 6, takken: [{ bij: 0, lengte: 1 }, { bij: 5, lengte: 1 }] } }
+          ],
+          uitwerking: "Rechts: met de klok mee geteld krijg je 1 en 6. Tegen de klok in liggen de methylgroepen naast elkaar: <b>1,2-dimethylcyclohexaan</b>."
+        },
+        makkelijk: {
+          type: "naam",
+          verhaal: "“Hoe heet deze?” De Hoedenmaker tikt met zijn lepeltje op een tekening.",
+          skelet: { soort: "ring", n: 6, cirkel: true, takken: [{ bij: 0, lengte: 2 }, { bij: 3, lengte: 2 }] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["c31a8061c007568c377ae93dff21c9240df2f3ec370241088e1e2ad914fec789"],
+          hint: "Welke zijtakken zie je, en hoeveel? Tel rond de ring van de ene naar de andere."
+        }
+      }
+    },
+    kluis: {
+      intro: "Onder de boom staat een schatkist met vier draaischijven. Wie hem opent, krijgt een edelsteen. Werk in je schrift. Als je alle getallen hebt ingevuld, zie je per getal of het klopt."
+    },
+    geheim: {
+      intro: "In de lucht hangt nog een glinstering waar net de grijns was: een gouden slotje. Het is maar voor heel weinig mensen te openen."
+    },
+    einde: "De grijns is weg. Maar onder de boom wacht nog een schatkist…"
   }
 };
 })();
