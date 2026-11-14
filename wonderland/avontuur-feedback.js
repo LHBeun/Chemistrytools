@@ -1104,6 +1104,142 @@ window.WL_FEEDBACK = {
       },
       zo: "Butaan-1-ol C₄H₁₀O + pentaanzuur C₅H₁₀O₂ = C₉H₂₀O₃. Min H₂O: C₉H₁₈O₂ → <b>18</b>."
     }
+  },
+  // ── Les 9 · De rechtszaak ──────────────────────────────────
+  9: {
+    omwegen: {
+      S: "Het ging mis bij het stappenplan voor de naam.",
+      I: "Het ging mis bij het herkennen van isomeren.",
+      R: "Het ging mis bij het lezen van de hoekpuntnotatie."
+    },
+    h1: {
+      fouten: {
+        "1-chloorbutaan-3-ol": "De OH-groep bepaalt de uitgang: die moet het laagste nummer krijgen.",
+        "4-chloorbutanol": "Aan welk C-atoom zit de OH-groep? Dat nummer hoort in de naam.",
+        "3-hydroxy-1-chloorbutaan": "De OH-groep bepaalt de uitgang -ol; alleen het chloor komt vooraan.",
+        "4-chloorbutaan-2-on": "Is het een C=O of een OH?",
+        "1-chloor-3-butanol": "Het plaatsnummer van de OH staat vlak voor -ol: butaan-…-ol."
+      },
+      zo: "De OH bepaalt de uitgang: <b>-ol</b>. Keten van 4. Van rechts zit de OH op 2 (van links op 3), dus van rechts nummeren. Cl zit dan op 4: <b>4-chloorbutaan-2-ol</b>."
+    },
+    p1: {
+      fouten: {
+        "2-methylhexaan-4-ol": "De OH-groep moet het laagste nummer krijgen, niet de methylgroep.",
+        "5-methylhexanol": "Aan welk C-atoom zit de OH-groep? Dat nummer hoort in de naam.",
+        "5-methylheptaan-3-ol": "Tel de C-atomen in de keten nog eens."
+      },
+      zo: "OH op 3 (van rechts), methyl dan op 5: <b>5-methylhexaan-3-ol</b>."
+    },
+    h2: {
+      fouten: {
+        "20": "Op de ring-C-atomen met een zijtak zit één H minder.",
+        "19": "Op beide ring-C-atomen met een zijtak zit één H minder.",
+        "10": "Vergeet de H-atomen aan de ethylgroepen niet.",
+        "8": "Tel ook de H-atomen aan de ring."
+      },
+      zo: "Ring: 3 C-atomen met 2 H en 2 met 1 H = 8. Twee ethylgroepen: 2 × 5 = 10. Samen <b>18</b> (C₉H₁₈).",
+      zoH: true
+    },
+    p2: {
+      fouten: {
+        "15": "Op het ring-C-atoom met de zijtak zit geen H.",
+        "20": "Dit is een benzeenring: elk ring-C-atoom heeft hoogstens één H.",
+        "9": "Vergeet de H-atomen aan de butylgroep niet.",
+        "5": "Vergeet de H-atomen aan de butylgroep niet."
+      },
+      zo: "Ring: 5 H. Butylgroep: 2 + 2 + 2 + 3 = 9. Samen <b>14</b> (C₁₀H₁₄).",
+      zoH: true
+    },
+    h3: {
+      fouten: {
+        "2-ethylpentaan-3-on": "Dat is de naam van de Boer. Zoek de langste keten opnieuw: loopt die door de ethylgroep?",
+        "3-methylhexaan-4-on": "De keten klopt. Nummer zo dat de C=O het laagste nummer krijgt.",
+        "4-methylhexaan-3-ol": "Een C=O is geen OH: welke uitgang hoort bij een keton?",
+        "4-ethylpentaan-3-on": "Zoek de langste keten opnieuw: loopt die door de ethylgroep?"
+      },
+      zo: "De langste keten loopt door de ethylgroep: 6 C-atomen. Van de kant van de C=O genummerd: C=O op 3, methyl op 4 → <b>4-methylhexaan-3-on</b>."
+    },
+    p3: {
+      fouten: {
+        "3-propylbutaanzuur": "Dat is de naam van de Boer. Zoek de langste keten opnieuw vanaf het C-atoom van de COOH.",
+        "4-methylhexaanzuur": "Tel nog eens vanaf het C-atoom van de COOH: dat is C-atoom 1.",
+        "3-methylpentaanzuur": "Tel de C-atomen in de langste keten nog eens."
+      },
+      zo: "De langste keten vanaf de COOH loopt door de propylgroep: 6 C-atomen → <b>hexaanzuur</b>. Wat overblijft is een methylgroep op 3: <b>3-methylhexaanzuur</b>."
+    },
+    h4: {
+      optieUitleg: {
+        B: "Dit is ethylhexanoaat zelf, gespiegeld: dezelfde stof, dus geen isomeer.",
+        D: "C₈H₁₆O: een aldehyde heeft maar één O-atoom.",
+        F: "C₉H₁₈O₂: tel de C-atomen nog eens."
+      },
+      zo: "Ethylhexanoaat is C₈H₁₆O₂. Isomeren: <b>A</b> (octaanzuur), <b>C</b> (butylbutanoaat) en <b>E</b> (propylpentanoaat)."
+    },
+    p4: {
+      optieUitleg: {
+        B: "C₆H₁₂O: een aldehyde heeft 2 H minder.",
+        D: "C₆H₁₅N: hier zit een N in plaats van een O.",
+        E: "Dit is hexaan-1-ol zelf, met een knik getekend: dezelfde stof, dus geen isomeer."
+      },
+      zo: "Hexaan-1-ol is C₆H₁₄O. Isomeren: <b>A</b> (propoxypropaan), <b>C</b> (2-methylpentaan-3-ol) en <b>F</b> (ethoxybutaan)."
+    },
+    h5: {
+      optieUitleg: {
+        C: "Hier zit de NH₂-groep aan het uiteinde: 4-methylpentaan-1-amine.",
+        D: "Hier zit een C=O, geen NH₂: een keton.",
+        E: "Hier zit de methylgroep op C-atoom 3: 3-methylpentaan-2-amine."
+      },
+      zo: "Drie tekeningen passen: <b>A</b> (recht), <b>B</b> (gespiegeld: van rechts genummerd) en <b>F</b> (de keten loopt aan het eind naar beneden)."
+    },
+    p5: {
+      optieUitleg: {
+        C: "Hier zit het Br-atoom op C-atoom 3 en de methylgroep op 2.",
+        D: "Hier zit de methylgroep op C-atoom 3.",
+        E: "Hier zit een Cl-atoom, geen Br-atoom.",
+        F: "Deze keten is 4 lang, met het Br-atoom aan het uiteinde."
+      },
+      zo: "Twee tekeningen passen: <b>A</b> en <b>B</b> (gespiegeld). Br op 2, methyl op 4."
+    },
+    h6: {
+      fouten: {
+        "6": "Sommige zijn dezelfde stof, van de andere kant genummerd. Geef ze allemaal een naam.",
+        "5": "Sommige zijn dezelfde stof, van de andere kant genummerd. Geef ze allemaal een naam.",
+        "4": "Sommige zijn dezelfde stof, van de andere kant genummerd. Geef ze allemaal een naam.",
+        "2": "Kan de OH-groep ook dichter bij het midden zitten?"
+      },
+      zo: "hexaan-1-ol, hexaan-2-ol en hexaan-3-ol. Dus <b>3</b>."
+    },
+    p6: {
+      fouten: {
+        "4": "Sommige zijn dezelfde ether, van de andere kant bekeken. Geef ze allemaal een naam.",
+        "3": "Sommige zijn dezelfde ether, van de andere kant bekeken. Geef ze allemaal een naam.",
+        "1": "Het O-atoom kan op meer plekken in de keten zitten."
+      },
+      zo: "methoxybutaan (C–O–C–C–C–C) en ethoxypropaan (C–C–O–C–C–C). Verder schuiven geeft dezelfde ethers. Dus <b>2</b>."
+    },
+    oS: {
+      fouten: {
+        "1-broompropaan-3-ol": "De OH-groep bepaalt de uitgang: die moet het laagste nummer krijgen.",
+        "3-broompropanol": "Aan welk C-atoom zit de OH-groep? Dat nummer hoort in de naam."
+      },
+      zo: "OH op 1 (van rechts), Br dan op 3: <b>3-broompropaan-1-ol</b>."
+    },
+    oI: {
+      fouten: {
+        "18": "Een isomeer heeft precies dezelfde molecuulformule als octaanzuur.",
+        "14": "Een isomeer heeft precies dezelfde molecuulformule als octaanzuur."
+      },
+      zo: "Octaanzuur is C₈H₁₆O₂. Elk isomeer heeft ook <b>16</b> H-atomen."
+    },
+    oR: {
+      fouten: {
+        "20": "Op de ring-C-atomen met een zijtak zit één H minder.",
+        "19": "Op beide ring-C-atomen met een zijtak zit één H minder.",
+        "10": "Tel ook de H-atomen aan de ring."
+      },
+      zo: "Ring: 4 C-atomen met 2 H en 2 met 1 H = 10. Ethyl 5, methyl 3. Samen <b>18</b>.",
+      zoH: true
+    }
   }
 };
 })();

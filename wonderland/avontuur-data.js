@@ -1742,6 +1742,210 @@ window.WL_AVONTUUR = {
       intro: "Onder de laatste taartvorm glinstert een gouden slotje. Het is maar voor heel weinig mensen te openen."
     },
     einde: "De taartjes zijn klaar — maar er ontbreken er een paar. En in de provisiekast wacht nog een schatkist…"
+  },
+  9: {
+    titel: "De rechtszaak",
+    plaat: P(38),
+    intro: ["In de rechtszaal is het een drukte van belang. De Koning en de Koningin van Harten zitten op hun troon. Op tafel staat een schaal taartjes.", "De Hartenboer staat in ketens. “Hij heeft de taartjes gestolen!” roept de Koningin. Het Witte Konijn ontrolt een perkament: “Laat de bewijsstukken binnenkomen!”"],
+    duur: "Ongeveer 20 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
+    personages: {
+      S: { naam: "De Koning van Harten", plaat: P(38) },
+      I: { naam: "De Rups", plaat: P(15) },
+      R: { naam: "De Kolderkat", plaat: P(23) }
+    },
+    hoofdpad: [
+      {
+        id: "h1", type: "naam",
+        verhaal: "In de rechtszaal zitten de Koning en de Koningin van Harten op hun troon. De Hartenboer staat in ketens: hij zou de taartjes hebben gestolen. “Bewijsstuk A!” roept het Witte Konijn, en hij houdt een tekening omhoog.",
+        volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [2, -1, "O"], [0, 1, "Cl"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [2, 4, 1], [0, 5, 1]] },
+        vraag: "Geef de systematische naam van deze stof.",
+        hash: ["b5698a8f8f7b03815791bf5249c1790990c2945dcee617482f81e08871f3dadf"],
+        hint: "Welke groep bepaalt de uitgang van de naam? Nummer zo dat díe groep het laagste nummer krijgt. De andere groep komt ervoor.",
+        omweg: "S",
+        goed: "“Genoteerd,” zegt de Koning, en hij zet zijn bril recht over zijn kroon.",
+        parallel: {
+          verhaal: "“Bewijsstuk A, tweede blad!”",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [1, 1], [3, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [1, 6, 1], [3, 7, 1]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["e35c4ab3bb68ecf329308a06fc8a2cf1ad9806820a1477ee85598e44551e3645"],
+          hint: "Nummer zo dat de OH-groep het laagste nummer krijgt. Zet de methylgroep met zijn nummer vooraan."
+        }
+      },
+      {
+        id: "h2", type: "getal",
+        verhaal: "“Bewijsstuk B!” Een tekening met alleen lijnen. De Kolderkat grijnst vanaf de tribune.",
+        skelet: { soort: "ring", n: 5, takken: [{ bij: 0, lengte: 2 }, { bij: 2, lengte: 2 }] },
+        vraag: "Hoeveel H-atomen heeft dit molecuul?",
+        hash: ["8d1f7f9573b0d3bcdcb64bd35be1a823b90b2db8248f993c0329ad8f3495bb35"],
+        hint: "Ga elk hoekpunt en elk uiteinde langs en vul aan tot 4 bindingen. Op een ring-C-atoom met een zijtak zit één H minder.",
+        omweg: "R",
+        goed: "De grijns op de tribune wordt breder.",
+        parallel: {
+          verhaal: "“Bewijsstuk B, achterkant!”",
+          skelet: { soort: "ring", n: 6, cirkel: true, takken: [{ bij: 0, lengte: 4 }] },
+          vraag: "Hoeveel H-atomen heeft dit molecuul?",
+          hash: ["9ace246f84b6b81c6fa312db755c0ffc8aa9225278b5dc4930ae3ea894d14d37"],
+          hint: "In een benzeenring heeft elk C-atoom hoogstens één H. Op het C-atoom met de zijtak zit er geen."
+        }
+      },
+      {
+        id: "h3", type: "naam",
+        verhaal: "“Bewijsstuk C!” roept het Konijn. Op een etiket heeft de Boer geschreven: ‘2-ethylpentaan-3-on’. “Dat is geen goede naam!” roept Alice.",
+        formule: "2-ethylpentaan-3-on",
+        vraag: "Geef de juiste systematische naam van deze stof.",
+        hash: ["97c277d430c194764efc0f94d32dfa74072b369f962f66a1d838b4c4d6a35cc5"],
+        hint: "Teken de stof zoals de naam zegt. Zoek dan opnieuw de langste keten, en nummer zo dat de C=O het laagste nummer krijgt.",
+        omweg: "S",
+        goed: "Een gemompel gaat door de zaal. “Ze heeft gelijk,” fluistert de Hazelmuis.",
+        parallel: {
+          verhaal: "“Nog een etiket van de Boer!” Er staat: ‘3-propylbutaanzuur’.",
+          formule: "3-propylbutaanzuur",
+          vraag: "Geef de juiste systematische naam van deze stof.",
+          hash: ["a4ec10d58a333462ca551c670d292c8da88d48c9221c244b9a1dd200690248a2"],
+          hint: "Teken de stof en zoek opnieuw de langste keten vanaf het C-atoom van de COOH."
+        }
+      },
+      {
+        id: "h4", type: "kies",
+        verhaal: "“Bewijsstuk D!” Op de taartjes van de Koningin zat ethylhexanoaat. In de zakken van de Boer vinden ze zes flesjes. “Welke daarvan hebben dezelfde formule?” vraagt de Koning.",
+        vraag: "Kies álle isomeren van ethylhexanoaat.",
+        opties: [
+          { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [7, -1, "O"], [7, 1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 2], [7, 9, 1]] }, omweg: "I", k: "82eac572222732e03994736afcafe7d7c8b59cdfede8a429d701b1581153f22d" },
+          { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0, "O"], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [3, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [3, 9, 2]] }, omweg: "I", k: "1cb2daa8834cc8b9c85fd31c42c4ddc3a82518c26361caadd95f2b8141b30065" },
+          { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0, "O"], [5, 0], [6, 0], [7, 0], [8, 0], [3, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [3, 9, 2]] }, omweg: "I", k: "7848bc3ed32460d0abb6cb43c6023e55b4bec15a6801d9ae6b0b903b9599a784" },
+          { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [7, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 2]] }, omweg: "I", k: "faf371ea589d0082491fc574b85ff715c50d9e7f47b8b30c3632f6ca7a00ca16" },
+          { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0, "O"], [6, 0], [7, 0], [8, 0], [4, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [4, 9, 2]] }, omweg: "I", k: "6338d03c22839c627c2427716dd393bdb81411f3f63697b8490317e7d925e4a4" },
+          { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0, "O"], [8, 0], [9, 0], [6, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 1], [6, 10, 2]] }, omweg: "I", k: "9b6f3a94722a3a0ed1baf66c10b1a5ecba7893645408aaec7a7a3cc5413ced58" }
+        ],
+        hint: "Bepaal de molecuulformule van ethylhexanoaat en van elke tekening. Is het wel een ándere stof?",
+        goed: "“Dat zegt nog niets,” bromt de Boer. “Dezelfde formule is nog niet dezelfde stof.”",
+        parallel: {
+          verhaal: "In de andere zak: een flesje met hexaan-1-ol, en zes tekeningen.",
+          vraag: "Kies álle isomeren van hexaan-1-ol.",
+          opties: [
+            { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0, "O"], [4, 0], [5, 0], [6, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1]] }, k: "6b91b7a3e6be9b2745075b74925745318bbcc167933151967ed47c970b8b92a6" },
+            { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [5, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 2]] }, k: "e15aa73a3c9b91a1a482963c8e6af592ed4d45b8607249e8b40c9978726a8f6b" },
+            { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [1, 1], [2, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [1, 5, 1], [2, 6, 1]] }, k: "240d7ff89972264e0113283cd7aaf1bed32448afc9346d729127a46c998a5099" },
+            { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [0, -1, "N"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [0, 6, 1]] }, k: "1bc605729db52a9784d024bae991b36c51e88692a902dd35efa14bb903c20e4c" },
+            { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1], [3, 2], [4, 2, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1]] }, k: "be4bdbb06883d661875e62c8f4c855c2d315d31adc94064ef8a3cca8b7e7daa7" },
+            { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0, "O"], [3, 0], [4, 0], [5, 0], [6, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1]] }, k: "c06fe8ebe753c598662baa1430955da81d24fba0e4852dfc3032b9591db65c65" }
+          ],
+          hint: "Een isomeer heeft dezelfde molecuulformule, maar is een andere stof. Controleer allebei."
+        }
+      },
+      {
+        id: "h5", type: "kies",
+        verhaal: "“Getuige!” roept het Konijn. De Hoedenmaker komt binnen, met een kopje in de ene hand en een boterham in de andere. “Ik heb deze stof gezien,” zegt hij. “4-methylpentaan-2-amine. Maar ik weet niet meer welke tekening het was.”",
+        vraag: "Kies álle tekeningen van 4-methylpentaan-2-amine.",
+        opties: [
+          { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [1, -1, "N"], [3, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [1, 5, 1], [3, 6, 1]] }, omweg: "S", k: "123e3ac1aa7aa00095f5592cf6821f17c3af488a022d6e13d587e378f8ba6e90" },
+          { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [3, -1, "N"], [1, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [3, 5, 1], [1, 6, 1]] }, omweg: "S", k: "532babdcb2a0b04b3d3d6c5a214021602b71caf5ed8feb1b7d2b91e975bc7e10" },
+          { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [0, -1, "N"], [3, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [0, 5, 1], [3, 6, 1]] }, omweg: "S", k: "18b8803a0788edc5b5a6c306408e1b6e490af0542447fd37cd4d2e31f19cef15" },
+          { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [1, -1, "O"], [3, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [1, 5, 2], [3, 6, 1]] }, omweg: "S", k: "48cd0a6059dd1338b39e33513912d57f11c3cd3920c8e996448e8a21006ac958" },
+          { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [1, -1, "N"], [2, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [1, 5, 1], [2, 6, 1]] }, omweg: "S", k: "4332a46d9f3a6ff5d637b930e9b84c2108dd3c9de40f5a5678c27516179ea691" },
+          { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1], [3, -1], [1, 1, "N"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [3, 5, 1], [1, 6, 1]] }, omweg: "S", k: "d0b073826ac2580e939ed7189d9563a8aaa848a9c6a92d60ea1060e58087c7e1" }
+        ],
+        hint: "Geef elke tekening zelf een naam. Kijk naar de groep, de langste keten en de plaatsnummers.",
+        goed: "“Ja, die,” zegt de Hoedenmaker, en hij neemt per ongeluk een hap uit zijn kopje.",
+        parallel: {
+          verhaal: "De kokkin van de Hertogin wordt opgeroepen. “2-broom-4-methylpentaan,” zegt ze. “Die zat in de peper.”",
+          vraag: "Kies álle tekeningen van 2-broom-4-methylpentaan.",
+          opties: [
+            { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [1, -1, "Br"], [3, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [1, 5, 1], [3, 6, 1]] }, k: "f5772f0c7920c43393c8826a7bf3ede6b82b785a0036213b7e89831e8d3eb898" },
+            { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [3, 1, "Br"], [1, -1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [3, 5, 1], [1, 6, 1]] }, k: "66dcccb9e6af83b4f5432f48fa8626182aba595e6f8bfc2386e6d8d7d2fcfdf9" },
+            { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [1, 1], [2, -1, "Br"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [1, 5, 1], [2, 6, 1]] }, k: "5cb553d28ac29f8e2a098a1a07a9f90bdca252d211a5d5859917ede47c5c4914" },
+            { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [1, -1, "Br"], [2, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [1, 5, 1], [2, 6, 1]] }, k: "e25c082acbfefd6d86c956a4e9580b632b731d67ce311e2f9e7d0369884796c3" },
+            { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [1, -1, "Cl"], [3, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [1, 5, 1], [3, 6, 1]] }, k: "2363798136f938ffe9876159e97bbabbafc6de8577de1d15cf9c9d129ce7a265" },
+            { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [0, -1, "Br"], [2, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [0, 4, 1], [2, 5, 1]] }, k: "d0ad2e56b2af5df570e211e4a645f1318a127815b2548e0798bfa56d4a38289f" }
+          ],
+          hint: "Geef elke tekening een naam: welk halogeen, en waar zitten de zijtakken?"
+        }
+      },
+      {
+        id: "h6", type: "getal",
+        verhaal: "“De jury moet nog één ding uitrekenen,” zegt de Koning. De juryleden pakken hun leitjes.",
+        formule: "C₆H₁₄O — alkanolen met een onvertakte keten",
+        vraag: "Hoeveel verschillende stoffen passen bij deze beschrijving?",
+        hash: ["215582762ee44b17535942626c0660987321968c453930d1aea19e6a0f7db011"],
+        hint: "Schuif de OH-groep stap voor stap van het uiteinde naar het midden. Geef elke stof een naam.",
+        omweg: "I",
+        goed: "“Schuldig!” roept de Koningin. “Off with his head!” Maar Alice is ineens zo groot geworden dat niemand meer naar de Koningin luistert…",
+        parallel: {
+          verhaal: "“Nog een!” roept de Koningin.",
+          formule: "C₅H₁₂O — ethers met een onvertakte keten",
+          vraag: "Hoeveel verschillende stoffen passen bij deze beschrijving?",
+          hash: ["0be8ceb2d8ea1bb13673358cd6e8e4d9edb50e8df2c9d5432a203b7cc0af6575"],
+          hint: "Zet het O-atoom tussen twee C-atomen en schuif het door de keten. Geef elke ether een naam (alkoxyalkaan)."
+        }
+      }
+    ],
+    omwegen: {
+      S: {
+        personage: "S",
+        verhaal: "De Koning tikt met zijn hamer. “Orde! Eerst de belangrijkste groep. Dan de rest.”",
+        voorbeeld: {
+          tekst: "<b>Stappenplan</b>: (1) Welke karakteristieke groep bepaalt de <b>uitgang</b> (-ol, -on, -al, -zuur, -amine)? (2) Zoek de <b>langste keten</b> waar die groep in of aan zit. (3) Nummer zo dat <b>die groep</b> het laagste nummer krijgt. (4) Zet de andere groepen (alkyl, halogeen) met hun nummer <b>ervoor</b>, op alfabet.",
+          structuren: [
+            { label: "5-chloorpentaan-2-on", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [1, -1, "O"], [4, 1, "Cl"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [1, 5, 2], [4, 6, 1]] } }
+          ],
+          uitwerking: "De C=O bepaalt de uitgang: <b>-on</b>. Keten van 5. Van links zit de C=O op 2 (van rechts op 4): dus van links nummeren. Het Cl-atoom zit dan op 5: <b>5-chloorpentaan-2-on</b>."
+        },
+        makkelijk: {
+          type: "naam",
+          verhaal: "“Nu jij,” zegt de Koning.",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [2, -1, "O"], [0, 1, "Br"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [0, 4, 1]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["eb8bf23a13a803db1200c79458585357c13257d8feef55d511951a2e07c2e75b"],
+          hint: "Welke groep bepaalt de uitgang? Geef die groep het laagste nummer."
+        }
+      },
+      I: {
+        personage: "I",
+        verhaal: "De Rups zit in de jurybank. “Isomeren,” zegt hij langzaam, “kunnen van een héél andere familie zijn.”",
+        voorbeeld: {
+          tekst: "<b>Isomeren</b> hebben dezelfde molecuulformule maar een andere structuur. Ze kunnen uit een andere stofklasse komen: een alkanol en een ether, een aldehyde en een keton, een carbonzuur en een ester. Bepaal dus altijd de <b>molecuulformule</b>, en controleer daarna of het echt een <b>andere stof</b> is.",
+          structuren: [
+            { label: "nonaanzuur · C₉H₁₈O₂", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [8, -1, "O"], [8, 1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 2], [8, 10, 1]] } },
+            { label: "ethylheptanoaat · C₉H₁₈O₂", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0, "O"], [8, 0], [9, 0], [6, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 1], [6, 10, 2]] } }
+          ],
+          uitwerking: "Een carbonzuur en een ester, allebei C₉H₁₈O₂: <b>isomeren</b>."
+        },
+        makkelijk: {
+          type: "getal",
+          verhaal: "“Nu jij,” zegt de Rups.",
+          formule: "een isomeer van octaanzuur",
+          vraag: "Hoeveel H-atomen heeft één molecuul van dit isomeer?",
+          hash: ["cf64d4f3c53e98e1a9b68a60e53e58a8304dfcf847e78b8fafc9d91c7d5fbd49"],
+          hint: "Een isomeer heeft dezelfde molecuulformule. Wat is de molecuulformule van octaanzuur?"
+        }
+      },
+      R: {
+        personage: "R",
+        verhaal: "De Kolderkat verschijnt op de rand van de jurybank. “Weet je nog?” grijnst hij. “Wat iedereen weet, teken ik niet.”",
+        voorbeeld: {
+          tekst: "In de <b>hoekpuntnotatie</b> is elk hoekpunt en elk uiteinde een C-atoom. Vul elk C-atoom aan tot <b>4 bindingen</b> met H. Op een C-atoom met een zijtak zit <b>één H minder</b>.",
+          structuren: [
+            { label: "1-ethyl-2-methylcyclopentaan", skelet: { soort: "ring", n: 5, takken: [{ bij: 0, lengte: 2 }, { bij: 1, lengte: 1 }] } }
+          ],
+          uitwerking: "Ring: 3 C-atomen met 2 H, 2 C-atomen met 1 H (daar zit een zijtak) = 8. Ethyl: 5, methyl: 3. Samen <b>16</b> H: C₈H₁₆."
+        },
+        makkelijk: {
+          type: "getal",
+          verhaal: "“Tel maar,” zegt de Kat.",
+          skelet: { soort: "ring", n: 6, takken: [{ bij: 0, lengte: 2 }, { bij: 3, lengte: 1 }] },
+          vraag: "Hoeveel H-atomen heeft dit molecuul?",
+          hash: ["19ee704f8894437cfb40266beec669a4570215e736e1ff9034bc9869da6f8b41"],
+          hint: "Ga elk hoekpunt en elk uiteinde langs."
+        }
+      }
+    },
+    kluis: {
+      intro: "Onder de rechterstafel staat een schatkist met vier draaischijven. Wie hem opent, krijgt een edelsteen. Werk in je schrift. Als je alle getallen hebt ingevuld, zie je per getal of het klopt."
+    },
+    geheim: {
+      intro: "Op de troon van de Koningin glinstert een gouden slotje. Het is maar voor heel weinig mensen te openen."
+    },
+    einde: "“Jullie zijn niets meer dan een pak speelkaarten!” roept Alice. De kaarten vliegen op — en Alice wordt wakker, met haar hoofd in de schoot van haar zus."
   }
 };
 })();
