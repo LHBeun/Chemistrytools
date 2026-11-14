@@ -917,6 +917,200 @@ window.WL_AVONTUUR = {
       intro: "In de lucht hangt nog een glinstering waar net de grijns was: een gouden slotje. Het is maar voor heel weinig mensen te openen."
     },
     einde: "De grijns is weg. Maar onder de boom wacht nog een schatkist…"
+  },
+  5: {
+    titel: "De tuinmannen van de Koningin",
+    plaat: P(28),
+    intro: ["Achter een poortje in een hoge muur ligt een tuin vol rozenstruiken. Drie tuinmannen, plat als speelkaarten, schilderen witte rozen razendsnel rood.", "“Als de Koningin ziet dat we een witte struik hebben geplant…” fluistert Twee. Overal staan potjes en flesjes — maar de etiketten zijn van de regen uitgelopen."],
+    duur: "Ongeveer 20 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
+    personages: {
+      X: { naam: "Tuinman Twee", plaat: P(28) },
+      Y: { naam: "De Hoedenmaker", plaat: P(25) },
+      Z: { naam: "De Rups", plaat: P(15) }
+    },
+    hoofdpad: [
+      {
+        id: "h1", type: "naam",
+        verhaal: "Bij de rozenstruik staan drie tuinmannen, plat als speelkaarten, met verfpotten. Op het eerste potje staat geen naam meer — alleen een tekening.",
+        volledig: { atomen: [[0, 0], [1, 0], [2, 0], [0, -1, "Cl"], [2, 1, "Cl"]], bindingen: [[0, 1, 1], [1, 2, 1], [0, 3, 1], [2, 4, 1]] },
+        vraag: "Geef de systematische naam van deze stof.",
+        hash: ["5573fb7448ddf7a077f3328851e9289952fd7efd797233eab19bd2f8bb27f028"],
+        hint: "Hoeveel Cl-atomen zie je, en aan welke C-atomen zitten ze? Dat hoort allemaal in de naam.",
+        omweg: "X",
+        goed: "“Dank u, juffrouw,” fluistert tuinman Twee. “Nu weten we tenminste wat erin zit.”",
+        parallel: {
+          verhaal: "Op een tweede potje staat ook alleen een tekening.",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [3, 1, "I"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [3, 6, 1]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["eef67963b802b10a19ebd7dc53dee2fad9eb680dea1eaf57b7fb0a4f0835ed92"],
+          hint: "Nummer de keten vanaf de kant die het dichtst bij het I-atoom zit."
+        }
+      },
+      {
+        id: "h2", type: "naam",
+        verhaal: "Tuinman Vijf houdt een potje omhoog. “Hier zitten twee verschillende dingen aan de keten,” zegt hij. “Hoe moet dat in de naam?”",
+        volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [1, 1], [2, -1, "Br"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [1, 5, 1], [2, 6, 1]] },
+        vraag: "Geef de systematische naam van deze stof.",
+        hash: ["e07ce995f6c52830a3e3be24bdb98b29ebb70652724617df1525a181ed19eac1"],
+        hint: "Nummer zo dat de plaatsnummers zo laag mogelijk zijn. In welke volgorde zet je broom en methyl in de naam?",
+        omweg: "X",
+        goed: "Vijf schrijft de naam op het potje. Zijn kwast trilt een beetje.",
+        parallel: {
+          verhaal: "Tuinman Zeven heeft er ook nog een.",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [4, -1, "Cl"], [2, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [4, 6, 1], [2, 7, 1]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["866f49e6162ae78011cda24b39fc285833d13654b753cba6af2a099dfddee833"],
+          hint: "Nummer vanaf beide kanten: welke kant geeft de laagste plaatsnummers? Pas daarna kies je de volgorde in de naam."
+        }
+      },
+      {
+        id: "h3", type: "naam",
+        verhaal: "“Deze ruikt naar… alcohol,” zegt Alice, en ze houdt een flesje een eindje van zich af.",
+        volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [3, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [3, 5, 1]] },
+        vraag: "Geef de systematische naam van deze stof.",
+        hash: ["ab2045288bdf9e0f298d265a17398a420fa3f119ba5464ec1bf5177a852d3489"],
+        hint: "Aan welk C-atoom zit de OH-groep? Nummer zo dat dat nummer zo laag mogelijk is.",
+        omweg: "Y",
+        goed: "“Precies,” zegt Twee. “Die gebruiken we om de kwasten schoon te maken.”",
+        parallel: {
+          verhaal: "Naast het flesje staat er nog een.",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [4, 1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [4, 7, 1]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["fe4d088930bb4b67abdf0d3fc48ea83b2a3017cafa44d63e9c7b37ecd7e2d112"],
+          hint: "Nummer vanaf de kant die het dichtst bij de OH-groep zit."
+        }
+      },
+      {
+        id: "h4", type: "naam",
+        verhaal: "In de schuur staat een fles met een zoete, bedwelmende geur. “Niet aan ruiken!” roept Zeven. “Daar val je van in slaap!”",
+        volledig: { atomen: [[0, 0], [1, 0], [2, 0, "O"], [3, 0], [4, 0], [5, 0], [6, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1]] },
+        vraag: "Geef de systematische naam van deze stof.",
+        hash: ["6dd88b9703cb34c83bc885afe0a86dc3403ffbce670d35ac1e00736c1788eb4f", "48b99a8e97834770859eaaa142a7f2bdd6d0b2025df9166e0a5bcbe943594d3e"],
+        hint: "Waar zit het O-atoom? Tel aan beide kanten de C-atomen. Welk deel wordt de alkoxy-groep, en welk deel de stam?",
+        omweg: "Z",
+        goed: "Alice zet de fles voorzichtig terug, met de dop er stevig op.",
+        parallel: {
+          verhaal: "Op de plank erboven staat nog een fles met zo'n geur.",
+          volledig: { atomen: [[0, 0], [1, 0, "O"], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["b2daa3e7ebf3f5c113b86d40cac9ee257deaf602a5475a3ecf14149b7ca6dbf1", "a9cba1c2a69d05206eae43ccccb9842988986eadfc41b090a816d2b75c93acdd"],
+          hint: "Tel de C-atomen aan beide kanten van het O-atoom. Het kleinste deel wordt de alkoxy-groep."
+        }
+      },
+      {
+        id: "h5", type: "kies",
+        verhaal: "Op de grond liggen zes etiketten. “De Koningin wil alleen potjes met C₅H₁₂O,” zegt Twee. “Welke etiketten passen daarbij?”",
+        vraag: "Kies álle tekeningen met de molecuulformule C₅H₁₂O.",
+        opties: [
+          { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [0, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [0, 5, 1]] }, omweg: "Z", k: "1ef5d4ea578dec763a591f9ef0691142bdb5eed33952c03396cb16e62de30fd3" },
+          { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [0, -1, "Cl"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [0, 5, 1]] }, omweg: "X", k: "d85f489bf7c28713ecb2d0ad5a46cfdebbecb6967993efbc0c132e4510ae8fc9" },
+          { label: "C", volledig: { atomen: [[0, 0], [1, 0, "O"], [2, 0], [3, 0], [4, 0], [5, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1]] }, omweg: "Z", k: "64a9f5847900cdcab51dc99d66417d1a989925efb1de5c338ca6a7591ffcd6ba" },
+          { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [5, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1]] }, omweg: "Z", k: "4410b38003833ac1ae71b53c49210f64b0edb7b6b1bccf9443555d1e1e0a5091" },
+          { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [1, 1], [1, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [1, 4, 1], [1, 5, 1]] }, omweg: "Y", k: "11b60b22ffe1b95a8f9d80111957bdce1c2e0171c3761b34050fcdf1f5852cea" },
+          { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [1, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [1, 4, 1]] }, omweg: "Z", k: "f93f2d8b5bb5b1370bfcb7d9251e294c1bcf8a920656d432a81d15afc3534f0d" }
+        ],
+        hint: "Tel bij elke tekening de C-, H- en O-atomen.",
+        goed: "“Drie verschillende stoffen,” zegt Twee verbaasd, “en toch dezelfde formule.”",
+        parallel: {
+          verhaal: "“En nu C₆H₁₄O,” zegt Zeven, en hij legt zes nieuwe etiketten neer.",
+          vraag: "Kies álle tekeningen met de molecuulformule C₆H₁₄O.",
+          opties: [
+            { label: "A", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [1, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [1, 6, 1]] }, k: "922ca646407a57391f6becb487b004950576037b988b3d890d22f879b1a9bb8c" },
+            { label: "B", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [4, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1]] }, k: "05e5e450bfb6021d0c6991075668f00bd53ff5417396082f9e1f56251e67f367" },
+            { label: "C", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0, "O"], [4, 0], [5, 0], [6, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1]] }, k: "075d207d5fee54aadbff41a3816c9a1e106cb9273b95c5ff79c97b22133c573d" },
+            { label: "D", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [1, 1], [2, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [1, 5, 1], [2, 6, 1]] }, k: "cc452913eea2471778023f30b49eb6758cc5ddb77eba5a40c1e7497e9c149b1e" },
+            { label: "E", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [0, -1, "Cl"], [1, 1, "Cl"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [0, 6, 1], [1, 7, 1]] }, k: "949203d2d48b9b871606036fdfa6c5e194b31d78620ab0b091da4480a2e8a7fd" },
+            { label: "F", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1]] }, k: "09a0e19ae20c0879134e902bf55c9dc591093ece11c83901988853e487d4382f" }
+          ],
+          hint: "Tel de C-, H- en O-atomen. Een alkanol en een ether kunnen dezelfde formule hebben."
+        }
+      },
+      {
+        id: "h6", type: "indeling",
+        verhaal: "Dan klinken er trompetten. “De Koningin!” Snel moeten alle potjes op de goede plank: één plank voor elke soort.",
+        vraag: "Op welke plank hoort elk potje?",
+        items: ["CH₃–O–CH₂–CH₂–CH₂–CH₃", "CH₃–CHBr–CH₃", "CH₃–CH(OH)–CH₂–CH₂–CH₂–CH₃", "CH₃–CH₂–CH₂–O–CH₂–CH₂–CH₃", "CH₃–CH₂–CH₂–CH₂–CH₂–O–H", "I–CH₂–CH₂–CH₃"],
+        keuzes: ["alkanol", "ether", "halogeenalkaan"],
+        rijHash: ["514cd22791396e34a5e7fbb52cddecd1358c3600c654b752efd08ec3e5a24121", "c6ea3c15a250265b32fd1942c0edd34fac2a2b2c93d9409403878d8211a991c6", "9f0de141d8ea6cacb4bb2588544eb2e7b377958bd0c029beffffb6b2b9e70421", "546e6c7a8bdcab99ec76ef5124aaf34862b78a9ddebbafc2d8bf5a9d8adcf7ac", "7b08d5a022592cdba376b7a9887abbbc4d39289e008ca760e3d44f20c650ec47", "bc88b7eacab92b257738617cf7e0970b34bfae339fdc6cc79b3d702e39c1476b"],
+        hint: "Zoek bij elk potje het O- of halogeenatoom. Zit de O tussen twee C-atomen, of tussen een C-atoom en een H-atoom?",
+        omweg: "Z",
+        goed: "Net op tijd. De tuinmannen gooien zich plat op hun gezicht.",
+        parallel: {
+          verhaal: "Op het onderste schap staan nog zes potjes zonder plek.",
+          vraag: "Op welke plank hoort elk potje?",
+          items: ["CH₃–CH₂–Br", "CH₃–CH₂–CH₂–O–CH₂–CH₂–CH₂–CH₃", "HO–CH₂–CH₂–CH₂–CH₂–CH₂–CH₂–CH₃", "CH₂F–CH₂F", "CH₃–CH₂–CH₂–CH₂–O–CH₂–CH₂–CH₂–CH₃", "CH₃–O–H"],
+          keuzes: ["alkanol", "ether", "halogeenalkaan"],
+          rijHash: ["e10a3b3192b62059bc542db3eb7840ab5cbc5cf62761e0e71dbf3fabe1a4235a", "9404108b794bf8ad18e1ad5713e1b40371dc016b03182e6b616a40bd6443e5a7", "36b41874330a7ca29c8f3e2004d767a418dec120e724be930bc9e8e0b72343da", "f729ec4c6fb765e37e9dd0a64bfe85945b6809fe36d69618e114c07a7f7c972f", "28d259c9bd0c7d293efd8cf8656e09bef9d23d5bec94310a0b943dfa8e977c43", "0a4b860063591e4b1707830679c3a23ed029d6a910e02419b4ed83995da251fd"],
+          hint: "Waar zit de O: tussen twee C-atomen (ether) of tussen een C-atoom en een H-atoom (alkanol)?"
+        }
+      }
+    ],
+    omwegen: {
+      X: {
+        personage: "X",
+        verhaal: "Tuinman Twee legt zijn kwast neer. “Een H vervangen door Cl, Br of I is net als een roos overschilderen,” zegt hij. “Het blijft dezelfde struik, maar je moet wel zeggen wát je hebt overgeschilderd.”",
+        voorbeeld: {
+          tekst: "Een H-atoom kan vervangen zijn door een <b>halogeenatoom</b>: <b>fluor-</b>, <b>chloor-</b>, <b>broom-</b> of <b>jood-</b>. Dat komt met een plaatsnummer vóór de stamnaam, zo nodig met <b>di-</b> of <b>tri-</b>. Halogenen en alkylgroepen samen zet je op <b>alfabet</b>; de plaatsnummers kies je zo laag mogelijk.",
+          structuren: [
+            { label: "3-chloor-2-methylhexaan", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [1, 1], [2, -1, "Cl"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [1, 6, 1], [2, 7, 1]] } }
+          ],
+          uitwerking: "Langste keten: 6 → hexaan. Van links: methyl op 2, Cl op 3. Van rechts zou het 4 en 5 zijn: hoger. Op alfabet: chloor vóór methyl → <b>3-chloor-2-methylhexaan</b>. Let op: de volgorde in de naam is níet de volgorde van de nummers."
+        },
+        makkelijk: {
+          type: "naam",
+          verhaal: "“Nu jij,” zegt Twee, en hij doopt zijn kwast in de verf.",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [0, -1, "I"], [1, 1, "I"]], bindingen: [[0, 1, 1], [1, 2, 1], [0, 3, 1], [1, 4, 1]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["2c8e4f01778ca7df8f4e1719731e3bdbe39b27b25ac5a006854050df0cfaa7e9"],
+          hint: "Hoeveel I-atomen zie je? Welk voorvoegsel hoort daarbij?"
+        }
+      },
+      Y: {
+        personage: "Y",
+        verhaal: "“Een OH!” roept de Hoedenmaker, die over de heg kijkt. “Die krijgt altijd voorrang bij het nummeren. Altijd!”",
+        voorbeeld: {
+          tekst: "Een <b>hydroxylgroep</b> is een –OH-groep. Een alkaan met een OH-groep heet een <b>alkanol</b>: de naam eindigt op <b>-ol</b>, met het plaatsnummer van de OH ervoor. Nummer zo dat de OH-groep een <b>zo laag mogelijk</b> nummer krijgt.",
+          structuren: [
+            { label: "octaan-3-ol", volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [5, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [5, 8, 1]] } }
+          ],
+          uitwerking: "Van links genummerd zit de OH aan C-atoom 6, van rechts aan C-atoom 3. Het laagste nummer wint: <b>octaan-3-ol</b>."
+        },
+        makkelijk: {
+          type: "naam",
+          verhaal: "“En deze?” De Hoedenmaker zwaait met een theelepeltje.",
+          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [4, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["f04ea5e4cd7e0cf8e78a10c6d2e1ef6de979472b94348e71441cfc8cff74829a"],
+          hint: "Begin met nummeren aan de kant van de OH-groep."
+        }
+      },
+      Z: {
+        personage: "Z",
+        verhaal: "De Rups kronkelt naar de rand van zijn paddenstoel. “Een O-atoom,” zegt hij langzaam, “kan aan het eind zitten… of ertussen.”",
+        voorbeeld: {
+          tekst: "Zit het O-atoom tussen een C-atoom en een H-atoom (–O–H), dan is het een <b>alkanol</b>. Zit het O-atoom <b>tussen twee C-atomen</b> (C–O–C), dan is het een <b>ether</b>. Een ether heet <b>alkoxyalkaan</b>: het <b>kleinste</b> deel wordt alkoxy- (methoxy-, ethoxy-, propoxy-), het grootste deel geeft de stamnaam. Een alkanol en een ether met evenveel C-atomen zijn isomeren.",
+          structuren: [
+            { label: "ethoxypentaan", volledig: { atomen: [[0, 0], [1, 0], [2, 0, "O"], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1]] } }
+          ],
+          uitwerking: "Links van de O: 2 C-atomen → <b>ethoxy-</b>. Rechts: 5 C-atomen → <b>pentaan</b>. Samen: <b>ethoxypentaan</b>, C₇H₁₆O."
+        },
+        makkelijk: {
+          type: "naam",
+          verhaal: "“Nu jij,” zegt de Rups, en hij blaast een kringetje.",
+          volledig: { atomen: [[0, 0], [1, 0, "O"], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1]] },
+          vraag: "Geef de systematische naam van deze stof.",
+          hash: ["2f902d7b8b5915ff1a35ccd726bc4320f5733391d9b9564b7defa8cfde2831f6", "026ec2a5c788a6333c90e0a1e5644e5792681748f329f454cbe5ed7524fcb4f5"],
+          hint: "Tel de C-atomen aan beide kanten van het O-atoom."
+        }
+      }
+    },
+    kluis: {
+      intro: "Onder de rozenstruik staat een schatkist met vier draaischijven. Wie hem opent, krijgt een edelsteen. Werk in je schrift. Als je alle getallen hebt ingevuld, zie je per getal of het klopt."
+    },
+    geheim: {
+      intro: "Tussen de rode rozen hangt één witte roos. Er zit een gouden slotje aan. Het is maar voor heel weinig mensen te openen."
+    },
+    einde: "De potjes staan op hun plek. Maar onder de rozenstruik wacht nog een schatkist…"
   }
 };
 })();

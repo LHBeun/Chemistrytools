@@ -560,6 +560,146 @@ window.WL_FEEDBACK = {
       },
       zo: "Benzeenring met twee ethylgroepen tegenover elkaar: <b>1,4-diethylbenzeen</b>."
     }
+  },
+  // ── Les 5 · De tuinmannen van de Koningin ──────────────────
+  5: {
+    omwegen: {
+      X: "Het ging mis bij de halogenen in de naam.",
+      Y: "Het ging mis bij het plaatsnummer van de OH-groep.",
+      Z: "Het ging mis bij het herkennen of benoemen van een ether of alkanol."
+    },
+    h1: {
+      fouten: {
+        "1,3-chloorpropaan": "Twee dezelfde atomen: hoe geef je dat aan in de naam?",
+        "dichloorpropaan": "Aan welke C-atomen zitten de Cl-atomen? Die nummers horen in de naam.",
+        "1,3-dichloropropaan": "Gebruik de Nederlandse naam: chloor-.",
+        "1-3-dichloorpropaan": "Tussen twee getallen staat een komma.",
+        "1,3-dichloorbutaan": "Tel de C-atomen in de keten nog eens."
+      },
+      zo: "3 C-atomen → <b>propaan</b>. Twee Cl-atomen → <b>dichloor</b>, aan C-atoom 1 en 3: <b>1,3-dichloorpropaan</b>."
+    },
+    p1: {
+      fouten: {
+        "4-joodhexaan": "Nummer nog eens vanaf de andere kant.",
+        "joodhexaan": "Aan welk C-atoom zit het I-atoom? Dat nummer hoort in de naam.",
+        "3-jodiumhexaan": "Het voorvoegsel voor I is jood-."
+      },
+      zo: "Van rechts genummerd zit het I-atoom aan C-atoom 3: <b>3-joodhexaan</b>."
+    },
+    h2: {
+      fouten: {
+        "2-methyl-3-broompentaan": "Je plaatsnummers kloppen. Kijk nog eens naar de volgorde in de naam.",
+        "3-broom-4-methylpentaan": "De volgorde klopt. Nummer nog eens vanaf de andere kant.",
+        "4-methyl-3-broompentaan": "Kijk naar het nummeren én naar de volgorde in de naam.",
+        "3-broom-2-methylbutaan": "Tel de C-atomen in de keten nog eens."
+      },
+      zo: "Van links: methyl op 2, Br op 3 (van rechts 3 en 4: hoger). Op alfabet: broom vóór methyl → <b>3-broom-2-methylpentaan</b>."
+    },
+    p2: {
+      fouten: {
+        "4-methyl-2-chloorhexaan": "Je plaatsnummers kloppen. Kijk nog eens naar de volgorde in de naam.",
+        "5-chloor-3-methylhexaan": "De volgorde klopt. Nummer nog eens vanaf de andere kant.",
+        "3-methyl-5-chloorhexaan": "Kijk naar het nummeren én naar de volgorde in de naam."
+      },
+      zo: "Van rechts: Cl op 2, methyl op 4 (van links 3 en 5: hoger). Chloor vóór methyl: <b>2-chloor-4-methylhexaan</b>."
+    },
+    h3: {
+      fouten: {
+        "pentaan-4-ol": "Nummer vanaf de kant die het dichtst bij de OH-groep zit.",
+        "pentanol": "Aan welk C-atoom zit de OH-groep? Dat nummer hoort in de naam.",
+        "pentaanol": "Aan welk C-atoom zit de OH-groep? Dat nummer hoort in de naam.",
+        "2-pentanol": "Het plaatsnummer staat vlak voor -ol: pentaan-…-ol.",
+        "hexaan-2-ol": "Tel de C-atomen nog eens. Het O-atoom telt niet mee."
+      },
+      zo: "5 C-atomen → <b>pentaan</b>. Van rechts genummerd zit de OH aan C-atoom 2: <b>pentaan-2-ol</b>."
+    },
+    p3: {
+      fouten: {
+        "heptaan-5-ol": "Nummer vanaf de kant die het dichtst bij de OH-groep zit.",
+        "heptanol": "Aan welk C-atoom zit de OH-groep? Dat nummer hoort in de naam.",
+        "3-heptanol": "Het plaatsnummer staat vlak voor -ol: heptaan-…-ol."
+      },
+      zo: "Van rechts genummerd zit de OH aan C-atoom 3: <b>heptaan-3-ol</b>."
+    },
+    h4: {
+      fouten: {
+        "butoxyethaan": "Welk deel aan de kant van de O is het kleinst? Dat wordt de alkoxy-groep.",
+        "ethylbutylether": "Gebruik de systematische naam: alkoxyalkaan.",
+        "hexaan-3-ol": "Zit de O tussen een C-atoom en een H-atoom, of tussen twee C-atomen?",
+        "ethoxypentaan": "Tel de C-atomen aan beide kanten van de O nog eens.",
+        "methoxybutaan": "Tel de C-atomen aan beide kanten van de O nog eens."
+      },
+      zo: "Links van de O: 2 C-atomen → <b>ethoxy-</b>. Rechts: 4 C-atomen → <b>butaan</b>. Samen <b>ethoxybutaan</b>."
+    },
+    p4: {
+      fouten: {
+        "pentoxymethaan": "Welk deel aan de kant van de O is het kleinst? Dat wordt de alkoxy-groep.",
+        "methylpentylether": "Gebruik de systematische naam: alkoxyalkaan.",
+        "methoxyhexaan": "Tel de C-atomen aan beide kanten van de O nog eens."
+      },
+      zo: "Links van de O: 1 C-atoom → <b>methoxy-</b>. Rechts: 5 → <b>pentaan</b>: <b>methoxypentaan</b>."
+    },
+    h5: {
+      optieUitleg: {
+        B: "C₅H₁₁Cl: hier zit een Cl-atoom in plaats van een O-atoom.",
+        D: "C₆H₁₄O: tel de C-atomen nog eens.",
+        F: "C₅H₁₂: hier zit geen O-atoom in."
+      },
+      zo: "Drie tekeningen passen: <b>A</b> (pentaan-1-ol), <b>E</b> (2-methylbutaan-2-ol) en <b>C</b> (methoxybutaan). Alkanolen en ethers met evenveel C-atomen zijn isomeren."
+    },
+    p5: {
+      optieUitleg: {
+        B: "C₅H₁₂O: tel de C-atomen nog eens.",
+        E: "C₆H₁₂Cl₂: hier zitten Cl-atomen in plaats van een O-atoom.",
+        F: "C₆H₁₄: hier zit geen O-atoom in."
+      },
+      zo: "Drie tekeningen passen: <b>A</b> (hexaan-2-ol), <b>D</b> (2-methylpentaan-3-ol) en <b>C</b> (propoxypropaan)."
+    },
+    h6: {
+      rijHints: [
+        "Zit de O tussen twee C-atomen, of tussen een C-atoom en een H-atoom?",
+        "Welk atoom is hier in de plaats van een H gekomen?",
+        "Zit de O tussen twee C-atomen, of tussen een C-atoom en een H-atoom?",
+        "Zit de O tussen twee C-atomen, of tussen een C-atoom en een H-atoom?",
+        "Kijk goed waar de O tussen zit: aan de rechterkant staat een H.",
+        "Welk atoom is hier in de plaats van een H gekomen?"
+      ],
+      zo: "Ether: C–O–C (rij 1 en 4). Alkanol: C–O–H (rij 3 en 5; in rij 3 staat de OH tussen haakjes). Halogeenalkaan: Br of I in plaats van een H (rij 2 en 6)."
+    },
+    p6: {
+      rijHints: [
+        "Welk atoom is hier in de plaats van een H gekomen?",
+        "Zit de O tussen twee C-atomen, of tussen een C-atoom en een H-atoom?",
+        "Zit de O tussen twee C-atomen, of tussen een C-atoom en een H-atoom?",
+        "Welk atoom is hier in de plaats van een H gekomen?",
+        "Zit de O tussen twee C-atomen, of tussen een C-atoom en een H-atoom?",
+        "Kijk goed waar de O tussen zit: aan de rechterkant staat een H."
+      ],
+      zo: "Halogeenalkaan: rij 1 en 4. Ether: rij 2 en 5 (C–O–C). Alkanol: rij 3 en 6 — ook CH₃–O–H (methanol) is een alkanol."
+    },
+    oX: {
+      fouten: {
+        "1,2-joodpropaan": "Twee dezelfde atomen: hoe geef je dat aan in de naam?",
+        "dijoodpropaan": "Aan welke C-atomen zitten de I-atomen? Die nummers horen in de naam.",
+        "2,3-dijoodpropaan": "Nummer vanaf de andere kant."
+      },
+      zo: "Twee I-atomen → <b>dijood</b>, aan C-atoom 1 en 2: <b>1,2-dijoodpropaan</b>."
+    },
+    oY: {
+      fouten: {
+        "pentaan-5-ol": "Begin met nummeren aan de kant van de OH-groep.",
+        "pentanol": "Aan welk C-atoom zit de OH-groep? Dat nummer hoort in de naam."
+      },
+      zo: "Van rechts genummerd zit de OH aan C-atoom 1: <b>pentaan-1-ol</b>."
+    },
+    oZ: {
+      fouten: {
+        "hexoxymethaan": "Welk deel is het kleinst? Dat wordt de alkoxy-groep.",
+        "methoxyheptaan": "Tel de C-atomen aan beide kanten van de O nog eens.",
+        "heptaan-1-ol": "Zit de O tussen een C-atoom en een H-atoom, of tussen twee C-atomen?"
+      },
+      zo: "1 C-atoom → <b>methoxy-</b>, 6 C-atomen → <b>hexaan</b>: <b>methoxyhexaan</b>."
+    }
   }
 };
 })();
