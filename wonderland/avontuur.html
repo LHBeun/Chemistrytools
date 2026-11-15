@@ -116,6 +116,8 @@
   .terugkoppeling details.zo div { margin-top: 6px; line-height: 1.45; }
   .uitleg b, .terugkoppeling b, .optie .uitleg { white-space: nowrap; }
   .optie .uitleg { white-space: normal; }
+  .zoH { margin-top: 8px; } .zoH .hl { opacity: 1; }
+  .terugkoppeling .noot { margin: 8px 0 0; font: italic 1.02rem var(--body); color: #234b38; }
   .aanleiding { margin: 0 0 10px; padding: 8px 12px; border-radius: 8px; background: rgba(200,55,79,.08); color: #7c1f2e; font: 600 1.05rem var(--body); }
   .terugkoppeling.goed { display: block; border-left: 4px solid var(--groen); background: rgba(63,174,124,.12); color: #1f5a40; }
   .kaart.schud { animation: schud .4s; }
@@ -296,7 +298,22 @@ function volledigSVG(spec, kleur = "#3b2a17") {
     const nH = a.h ?? Math.max(0, (COVALENTIE[a.s] ?? 4) - som[i]);
     const bs = buren[i];
     let dirs = [];
-    if (bs.length === 1 && nH >= 1 && nH <= 3) {
+    const schuin = bs.some(([bx, by]) => Math.abs(bx) > 0.1 && Math.abs(by) > 0.1);
+    if (schuin && bs.length >= 2 && nH > 0) {
+      // ring: H-atomen in de grootste opening tussen de bindingen, liefst weg van het midden van het molecuul
+      const cx = at.reduce((t, b) => t + b.x, 0) / at.length, cy = at.reduce((t, b) => t + b.y, 0) / at.length;
+      const uit = Math.atan2(a.y - cy, a.x - cx);
+      const hoeken = bs.map(([bx, by]) => Math.atan2(by, bx)).sort((p, q) => p - q);
+      let beste = null;
+      hoeken.forEach((h0, k) => {
+        const h1 = k === hoeken.length - 1 ? hoeken[0] + 2 * Math.PI : hoeken[k + 1];
+        const gat = h1 - h0, sc = gat + 0.6 * Math.cos(h0 + gat / 2 - uit);
+        if (!beste || sc > beste.sc) beste = { h0, gat, sc };
+      });
+      const stap = Math.min(beste.gat / (nH + 1), 1.2);
+      const midden = beste.h0 + beste.gat / 2;
+      dirs = Array.from({ length: nH }, (_, k) => { const t = midden + (k - (nH - 1) / 2) * stap; return [Math.cos(t), Math.sin(t)]; });
+    } else if (bs.length === 1 && nH >= 1 && nH <= 3) {
       const [bx, by] = bs[0], tx = -bx, ty = -by;               // tegenover de enige binding
       if (nH === 1) dirs = [[tx, ty]];
       else if (nH === 2) dirs = [[R * (tx - ty), R * (ty + tx)], [R * (tx + ty), R * (ty - tx)]];
@@ -449,6 +466,7 @@ function inhoudHTML(it) {
   if (it.formule) h += `<div><span class="formule">${it.formule}</span></div>`;
   if (it.volledig) h += `<div class="structuurvak">${klein(volledigSVG(it.volledig), it.volledig.atomen.length > 6 ? 0.82 : 1)}</div>`;
   if (it.keten) h += `<div class="structuurvak">${klein(wlKetenSVG(it.keten), 0.8)}</div>`;
+  if (it.skelet) h += `<div class="structuurvak">${klein(wlSkeletSVG(it.skelet), 1.3)}</div>`;
   h += `<p class="opdracht">${it.vraag}</p>`;
   if (it.type === "naam") h += `<div class="antwoord"><input class="naam" id="ant" autocomplete="off" spellcheck="false" placeholder="naam"><button class="knop" id="controleer" disabled>Controleer</button></div>`;
   if (it.type === "getal") h += `<div class="antwoord"><input class="getal" id="ant" inputmode="numeric" autocomplete="off" maxlength="3"><button class="knop" id="controleer" disabled>Controleer</button></div>`;
@@ -456,7 +474,7 @@ function inhoudHTML(it) {
     const tekst = it.opties.every(o => o.tekst);
     if (!it.enkel) h += `<p class="meer">Er kunnen er meer goed zijn.</p>`;
     // alle opties op dezelfde schaal, zodat de grootte niets verraadt
-    const svgs = it.opties.map(o => o.volledig ? volledigSVG(o.volledig) : null);
+    const svgs = it.opties.map(o => o.volledig ? volledigSVG(o.volledig) : o.skelet ? klein(wlSkeletSVG(o.skelet), 1.6) : null);
     const maxB = Math.max(1, ...svgs.filter(Boolean).map(x => +x.match(/width="([\d.]+)"/)[1]));
     const f = Math.min(0.72, 340 / maxB);
     h += `<div class="opties" ${tekst ? `style="grid-template-columns:repeat(${it.opties.length},minmax(0,1fr))"` : ""}>${it.opties.map((o, i) => `<div class="optie ${tekst ? "tekstoptie" : ""}" data-label="${o.label}"><b>${o.label}</b>${o.tekst ? o.tekst : klein(svgs[i], f)}</div>`).join("")}</div>
@@ -526,7 +544,9 @@ function koppelInvoer(it, onControle) {
       else if (it.type === "getal") waarde = String(parseInt(ant.value, 10));
       else waarde = keuze;
       const hash = await wlHash(huidig, "a-" + it.id, waarde);
-      await onControle(it.hash.includes(hash), waarde, {});
+      // estersnamen zijn één woord: een spatie is fout
+      const spatie = it.type === "naam" && it.geenSpatie && /\S\s+\S/.test(ant.value.trim());
+      await onControle(it.hash.includes(hash) && !spatie, waarde, spatie ? { spatie: true } : {});
     } finally { busy = false; }
   };
 }
@@ -568,7 +588,9 @@ function teken() {
         tk.textContent = r.fase === "opgave" ? (it.goed || "Goed!") : r.fase === "makkelijk" ? "Goed! Nu terug naar het pad." : "Goed! Je bent weer op het pad.";
         document.querySelectorAll(".optie.fout, .indrij.fout").forEach(e => e.classList.remove("fout"));
         document.querySelectorAll(".optie .uitleg, .indrij .rijhint").forEach(e => e.remove());
-        if (it.zo) tk.insertAdjacentHTML("beforeend", `<details class="zo"><summary>Zo zit het</summary><div>${it.zo}</div></details>`);
+        const noot = it.goedMaar && Object.keys(it.goedMaar).find(k => normNaam(k) === waarde);
+        if (noot) tk.insertAdjacentHTML("beforeend", `<p class="noot">${it.goedMaar[noot]}</p>`);
+        if (it.zo) tk.insertAdjacentHTML("beforeend", `<details class="zo"><summary>Zo zit het</summary><div>${it.zo}${it.zoH && it.skelet ? `<div class="zoH">${klein(wlSkeletSVG(it.skelet), 1.3)}</div>` : ""}</div></details>`);
         document.querySelectorAll("#controleer, #ant, .optie, .keuzeknop").forEach(e => { e.disabled = true; e.style.pointerEvents = "none"; });
         $("na").innerHTML = `<button class="knop" id="verder">Verder ▸</button>`;
         $("verder").focus();
@@ -608,7 +630,7 @@ function teken() {
       const n = detail.gemist?.length || 0;
       const extra = detail.fouteKeuze ? [detail.fouteKeuze.length ? (detail.fouteKeuze.length === 1 ? "De rood omlijnde keuze past niet." : "De rood omlijnde keuzes passen niet.") : "", n ? `Je mist er nog ${n}.` : ""].filter(Boolean).join(" ")
         : detail.foutRijen ? `Er ${detail.foutRijen === 1 ? "staat er nog 1" : `staan er nog ${detail.foutRijen}`} verkeerd.` : "";
-      const gericht = gerichteFout(it, waarde);
+      const gericht = detail.spatie ? "Bijna: de naam van een ester schrijf je als één woord, zonder spatie." : gerichteFout(it, waarde);
       tk.innerHTML = `✗ Nog niet goed. ${extra ? extra + " " : ""}${gericht || (uitgelegd ? "" : it.hint)}`;
       if (r.fase !== "opgave" && r.pog >= 2) {
         $("na").innerHTML = `<button class="knop donker" id="nogmaals">Bekijk de uitleg nog eens</button>`;
@@ -627,7 +649,7 @@ function teken() {
       <div class="personage"><div class="plaatje"><img class="plaat" src="${pers.plaat}" alt=""></div><p class="verhaal">${om.verhaal}</p></div>
       <div class="uitleg">${v.tekst}
         ${v.stammen ? `<div class="stammen">${STAMMEN.map((s, i) => `<span>${s}-<small>${i + 1} C</small></span>`).join("")}</div>` : ""}
-        ${v.structuren ? `<div class="voorbeeldstructuren">${v.structuren.map(s => `<figure>${klein(volledigSVG(s.volledig), 0.8)}<figcaption>${s.label}</figcaption></figure>`).join("")}</div>` : ""}
+        ${v.structuren ? `<div class="voorbeeldstructuren">${v.structuren.map(s => `<figure>${s.skelet ? klein(wlSkeletSVG(s.skelet), 1.3) : klein(volledigSVG(s.volledig), 0.8)}<figcaption>${s.label}</figcaption></figure>`).join("")}</div>` : ""}
         ${v.uitwerking ? `<p style="margin:8px 0 0">${v.uitwerking}</p>` : ""}
       </div>
       <div class="knoprij"><button class="knop" id="snap">Ik snap het ▸</button></div></div>`;
