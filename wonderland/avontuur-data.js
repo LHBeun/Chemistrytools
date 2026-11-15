@@ -589,9 +589,9 @@ window.WL_AVONTUUR = {
         goed: "De Rups kijkt lang naar het blaadje. “Dezelfde stof,” zegt hij. “Een andere naam. Interessant.”",
         parallel: {
           verhaal: "Op de achterkant van het blaadje staat nog een naam.",
-          formule: "2-ethyl-3-methylbutaan",
+          formule: "3-methyl-2-propylpentaan",
           vraag: "Geef de juiste systematische naam van deze stof.",
-          hash: ["e3cf06603d8635bb5834afd3e84dfc59aec221125fb9f11443cfa76678b3283e"],
+          hash: ["994cd52095ee2a53552ba5e7167db32ba62f274635c650901ff54dbe64112785"],
           hint: "Teken de stof en zoek opnieuw de langste keten: loopt die misschien door de zijtak?"
         }
       },
@@ -985,7 +985,7 @@ window.WL_AVONTUUR = {
         verhaal: "In de schuur staat een fles met een zoete, bedwelmende geur. “Niet aan ruiken!” roept Zeven. “Daar val je van in slaap!”",
         volledig: { atomen: [[0, 0], [1, 0], [2, 0, "O"], [3, 0], [4, 0], [5, 0], [6, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1]] },
         vraag: "Geef de systematische naam van deze stof.",
-        hash: ["6dd88b9703cb34c83bc885afe0a86dc3403ffbce670d35ac1e00736c1788eb4f", "48b99a8e97834770859eaaa142a7f2bdd6d0b2025df9166e0a5bcbe943594d3e"],
+        hash: ["48b99a8e97834770859eaaa142a7f2bdd6d0b2025df9166e0a5bcbe943594d3e"],
         hint: "Waar zit het O-atoom? Tel aan beide kanten de C-atomen. Welk deel wordt de alkoxy-groep, en welk deel de stam?",
         omweg: "Z",
         goed: "Alice zet de fles voorzichtig terug, met de dop er stevig op.",
@@ -993,7 +993,7 @@ window.WL_AVONTUUR = {
           verhaal: "Op de plank erboven staat nog een fles met zo'n geur.",
           volledig: { atomen: [[0, 0], [1, 0, "O"], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1]] },
           vraag: "Geef de systematische naam van deze stof.",
-          hash: ["b2daa3e7ebf3f5c113b86d40cac9ee257deaf602a5475a3ecf14149b7ca6dbf1", "a9cba1c2a69d05206eae43ccccb9842988986eadfc41b090a816d2b75c93acdd"],
+          hash: ["a9cba1c2a69d05206eae43ccccb9842988986eadfc41b090a816d2b75c93acdd"],
           hint: "Tel de C-atomen aan beide kanten van het O-atoom. Het kleinste deel wordt de alkoxy-groep."
         }
       },
@@ -1088,18 +1088,18 @@ window.WL_AVONTUUR = {
         personage: "Z",
         verhaal: "De Rups kronkelt naar de rand van zijn paddenstoel. “Een O-atoom,” zegt hij langzaam, “kan aan het eind zitten… of ertussen.”",
         voorbeeld: {
-          tekst: "Zit het O-atoom tussen een C-atoom en een H-atoom (–O–H), dan is het een <b>alkanol</b>. Zit het O-atoom <b>tussen twee C-atomen</b> (C–O–C), dan is het een <b>ether</b>. Een ether heet <b>alkoxyalkaan</b>: het <b>kleinste</b> deel wordt alkoxy- (methoxy-, ethoxy-, propoxy-), het grootste deel geeft de stamnaam. Een alkanol en een ether met evenveel C-atomen zijn isomeren.",
+          tekst: "Zit het O-atoom tussen een C-atoom en een H-atoom (–O–H), dan is het een <b>alkanol</b>. Zit het O-atoom <b>tussen twee C-atomen</b> (C–O–C), dan is het een <b>ether</b>. Een ether heet <b>alkoxyalkaan</b>: het <b>kleinste</b> deel wordt alkoxy- (methoxy-, ethoxy-, propoxy-), het grootste deel geeft de stamnaam. Kan de alkoxygroep op meer plekken aan de stam zitten, dan zet je er net als bij een alkanol een <b>plaatsnummer</b> voor. Een alkanol en een ether met evenveel C-atomen zijn isomeren.",
           structuren: [
-            { label: "ethoxypentaan", volledig: { atomen: [[0, 0], [1, 0], [2, 0, "O"], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1]] } }
+            { label: "1-ethoxypentaan", volledig: { atomen: [[0, 0], [1, 0], [2, 0, "O"], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1]] } }
           ],
-          uitwerking: "Links van de O: 2 C-atomen → <b>ethoxy-</b>. Rechts: 5 C-atomen → <b>pentaan</b>. Samen: <b>ethoxypentaan</b>, C₇H₁₆O."
+          uitwerking: "Links van de O: 2 C-atomen → <b>ethoxy-</b>. Rechts: 5 C-atomen → <b>pentaan</b>. De ethoxygroep zit aan C-atoom 1 van de pentaanketen (aan C-atoom 2 zou ook kunnen): <b>1-ethoxypentaan</b>, C₇H₁₆O."
         },
         makkelijk: {
           type: "naam",
           verhaal: "“Nu jij,” zegt de Rups, en hij blaast een kringetje.",
           volledig: { atomen: [[0, 0], [1, 0, "O"], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1]] },
           vraag: "Geef de systematische naam van deze stof.",
-          hash: ["2f902d7b8b5915ff1a35ccd726bc4320f5733391d9b9564b7defa8cfde2831f6", "026ec2a5c788a6333c90e0a1e5644e5792681748f329f454cbe5ed7524fcb4f5"],
+          hash: ["026ec2a5c788a6333c90e0a1e5644e5792681748f329f454cbe5ed7524fcb4f5"],
           hint: "Tel de C-atomen aan beide kanten van het O-atoom."
         }
       }

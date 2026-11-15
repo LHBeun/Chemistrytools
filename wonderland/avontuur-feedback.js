@@ -366,12 +366,12 @@ window.WL_FEEDBACK = {
     },
     p5: {
       fouten: {
-        "3,4-dimethylpentaan": ANDERE_KANT,
-        "2-ethyl-3-methylbutaan": "Dat is de naam van de Rups. Zoek de langste keten opnieuw.",
-        "2,3-methylpentaan": "Twee dezelfde zijtakken: hoe geef je dat aan in de naam?",
-        "3-methyl-2-ethylbutaan": "Zoek de langste keten opnieuw: loopt die misschien door de ethylgroep?"
+        "4,5-dimethylheptaan": ANDERE_KANT,
+        "3-methyl-2-propylpentaan": "Dat is de naam van de Rups. Zoek de langste keten opnieuw.",
+        "3,4-methylheptaan": "Twee dezelfde zijtakken: hoe geef je dat aan in de naam?",
+        "2-propyl-3-methylpentaan": "Zoek de langste keten opnieuw: loopt die misschien door de propylgroep?"
       },
-      zo: "De langste keten loopt door de ethylgroep en is 5 lang. Er blijven twee methylgroepen over, op 2 en 3: <b>2,3-dimethylpentaan</b>."
+      zo: "De langste keten loopt door de propylgroep en is 7 lang. Er blijven twee methylgroepen over, op 3 en 4: <b>3,4-dimethylheptaan</b>."
     },
     h6: {
       optieUitleg: {
@@ -380,7 +380,7 @@ window.WL_FEEDBACK = {
         D: "C₇H₁₂: twee H-atomen minder.",
         F: "C₆H₁₂: één C-atoom minder."
       },
-      zo: "Isomeren hebben dezelfde molecuulformule (C₇H₁₄) én zijn een andere stof: <b>B</b> (hept-1-een) en <b>E</b> (3-ethylpent-2-een)."
+      zo: "Isomeren hebben dezelfde molecuulformule (C₇H₁₄) én zijn een andere stof: <b>B</b> (hept-1-een) en <b>E</b> (ethylpent-2-een)."
     },
     p6: {
       optieUitleg: {
@@ -628,28 +628,25 @@ window.WL_FEEDBACK = {
       zo: "Van rechts genummerd zit de OH aan C-atoom 3: <b>heptaan-3-ol</b>."
     },
     h4: {
-      goedMaar: {
-        "1-ethoxybutaan": "Goed! Het plaatsnummer 1 is niet nodig: zonder nummer zit de alkoxygroep aan het uiteinde."
-      },
       fouten: {
+        "ethoxybutaan": "Bijna. De ethoxygroep kan op meer plekken aan de butaanketen zitten. Welk plaatsnummer hoort erbij?",
         "butoxyethaan": "Welk deel aan de kant van de O is het kleinst? Dat wordt de alkoxy-groep.",
         "ethylbutylether": "Gebruik de systematische naam: alkoxyalkaan.",
         "hexaan-3-ol": "Zit de O tussen een C-atoom en een H-atoom, of tussen twee C-atomen?",
-        "ethoxypentaan": "Tel de C-atomen aan beide kanten van de O nog eens.",
-        "methoxybutaan": "Tel de C-atomen aan beide kanten van de O nog eens."
+        "1-ethoxypentaan": "Tel de C-atomen aan beide kanten van de O nog eens.",
+        "1-methoxybutaan": "Tel de C-atomen aan beide kanten van de O nog eens.",
+        "2-ethoxybutaan": "Aan welk C-atoom van de butaanketen zit de O? Nummer vanaf de kant van de O."
       },
-      zo: "Links van de O: 2 C-atomen → <b>ethoxy-</b>. Rechts: 4 C-atomen → <b>butaan</b>. Samen <b>ethoxybutaan</b>."
+      zo: "Links van de O: 2 C-atomen → <b>ethoxy-</b>. Rechts: 4 C-atomen → <b>butaan</b>. De O zit aan C-atoom 1 van de butaanketen: <b>1-ethoxybutaan</b>. (Aan C-atoom 2 zou ook kunnen, dus het nummer is nodig.)"
     },
     p4: {
-      goedMaar: {
-        "1-methoxypentaan": "Goed! Het plaatsnummer 1 is niet nodig: zonder nummer zit de alkoxygroep aan het uiteinde."
-      },
       fouten: {
+        "methoxypentaan": "Bijna. De methoxygroep kan op meer plekken aan de pentaanketen zitten. Welk plaatsnummer hoort erbij?",
         "pentoxymethaan": "Welk deel aan de kant van de O is het kleinst? Dat wordt de alkoxy-groep.",
         "methylpentylether": "Gebruik de systematische naam: alkoxyalkaan.",
-        "methoxyhexaan": "Tel de C-atomen aan beide kanten van de O nog eens."
+        "1-methoxyhexaan": "Tel de C-atomen aan beide kanten van de O nog eens."
       },
-      zo: "Links van de O: 1 C-atoom → <b>methoxy-</b>. Rechts: 5 → <b>pentaan</b>: <b>methoxypentaan</b>."
+      zo: "Links van de O: 1 C-atoom → <b>methoxy-</b>. Rechts: 5 → <b>pentaan</b>. De O zit aan C-atoom 1 van de pentaanketen: <b>1-methoxypentaan</b>."
     },
     h5: {
       optieUitleg: {
@@ -657,7 +654,7 @@ window.WL_FEEDBACK = {
         D: "C₆H₁₄O: tel de C-atomen nog eens.",
         F: "C₅H₁₂: hier zit geen O-atoom in."
       },
-      zo: "Drie tekeningen passen: <b>A</b> (pentaan-1-ol), <b>E</b> (2-methylbutaan-2-ol) en <b>C</b> (methoxybutaan). Alkanolen en ethers met evenveel C-atomen zijn isomeren."
+      zo: "Drie tekeningen passen: <b>A</b> (pentaan-1-ol), <b>E</b> (2-methylbutaan-2-ol) en <b>C</b> (1-methoxybutaan). Alkanolen en ethers met evenveel C-atomen zijn isomeren."
     },
     p5: {
       optieUitleg: {
@@ -665,7 +662,7 @@ window.WL_FEEDBACK = {
         E: "C₆H₁₂Cl₂: hier zitten Cl-atomen in plaats van een O-atoom.",
         F: "C₆H₁₄: hier zit geen O-atoom in."
       },
-      zo: "Drie tekeningen passen: <b>A</b> (hexaan-2-ol), <b>D</b> (2-methylpentaan-3-ol) en <b>C</b> (propoxypropaan)."
+      zo: "Drie tekeningen passen: <b>A</b> (hexaan-2-ol), <b>D</b> (2-methylpentaan-3-ol) en <b>C</b> (1-propoxypropaan)."
     },
     h6: {
       rijHints: [
@@ -705,15 +702,13 @@ window.WL_FEEDBACK = {
       zo: "Van rechts genummerd zit de OH aan C-atoom 1: <b>pentaan-1-ol</b>."
     },
     oZ: {
-      goedMaar: {
-        "1-methoxyhexaan": "Goed! Het plaatsnummer 1 is niet nodig: zonder nummer zit de alkoxygroep aan het uiteinde."
-      },
       fouten: {
+        "methoxyhexaan": "Bijna. De methoxygroep kan op meer plekken aan de hexaanketen zitten. Welk plaatsnummer hoort erbij?",
         "hexoxymethaan": "Welk deel is het kleinst? Dat wordt de alkoxy-groep.",
-        "methoxyheptaan": "Tel de C-atomen aan beide kanten van de O nog eens.",
+        "1-methoxyheptaan": "Tel de C-atomen aan beide kanten van de O nog eens.",
         "heptaan-1-ol": "Zit de O tussen een C-atoom en een H-atoom, of tussen twee C-atomen?"
       },
-      zo: "1 C-atoom → <b>methoxy-</b>, 6 C-atomen → <b>hexaan</b>: <b>methoxyhexaan</b>."
+      zo: "1 C-atoom → <b>methoxy-</b>, 6 C-atomen → <b>hexaan</b>, O aan C-atoom 1: <b>1-methoxyhexaan</b>."
     }
   },
   // ── Les 6 · Het theekransje ───────────────────────────────
@@ -1219,7 +1214,7 @@ window.WL_FEEDBACK = {
         D: "C₆H₁₅N: hier zit een N in plaats van een O.",
         E: "Dit is hexaan-1-ol zelf, met een knik getekend: dezelfde stof, dus geen isomeer."
       },
-      zo: "Hexaan-1-ol is C₆H₁₄O. Isomeren: <b>A</b> (propoxypropaan), <b>C</b> (2-methylpentaan-3-ol) en <b>F</b> (ethoxybutaan)."
+      zo: "Hexaan-1-ol is C₆H₁₄O. Isomeren: <b>A</b> (1-propoxypropaan), <b>C</b> (2-methylpentaan-3-ol) en <b>F</b> (1-ethoxybutaan)."
     },
     h5: {
       optieUitleg: {
@@ -1253,7 +1248,7 @@ window.WL_FEEDBACK = {
         "3": "Sommige zijn dezelfde ether, van de andere kant bekeken. Geef ze allemaal een naam.",
         "1": "Het O-atoom kan op meer plekken in de keten zitten."
       },
-      zo: "methoxybutaan (C–O–C–C–C–C) en ethoxypropaan (C–C–O–C–C–C). Verder schuiven geeft dezelfde ethers. Dus <b>2</b>."
+      zo: "1-methoxybutaan (C–O–C–C–C–C) en 1-ethoxypropaan (C–C–O–C–C–C). Verder schuiven geeft dezelfde ethers. Dus <b>2</b>."
     },
     oS: {
       fouten: {
