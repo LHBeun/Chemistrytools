@@ -141,7 +141,7 @@ window.WONDERLAND = {
           },
           {
             tekst: "Op het laatste etiket staat:",
-            formule: "3-methylbut-1-yn",
+            formule: "methylbutyn",
             vraag: "Teken de structuur. Hoeveel H-atomen heeft het molecuul?",
             hash: "fb7a64956a1dd2503c5546c08521d229cc96f8155920256b48a0bcf0c28e77a7",
             hints: {
@@ -563,7 +563,7 @@ window.WONDERLAND = {
           },
           {
             tekst: "De Vis-Lakei ruikt naar:",
-            formule: "2-methylpropaan-2-amine",
+            formule: "methylpropaan-2-amine",
             vraag: "Teken de structuur. Hoeveel H-atomen heeft het molecuul?",
             hash: "9e615a30966681d0d4600118c3c36681758bb04b1ac019d0d3f26ae42d195105",
             hints: {
@@ -713,7 +713,7 @@ window.WONDERLAND = {
           },
           {
             tekst: "Bewijsstuk C — de jury heeft vijf stoffen op haar leitjes geschreven:",
-            formule: "ethylethanoaat · butanal · methylpropanoaat · butaan-1-ol · 2-methylpropaanzuur",
+            formule: "ethylethanoaat · butanal · methylpropanoaat · butaan-1-ol · methylpropaanzuur",
             vraag: "Hoeveel van deze stoffen zijn isomeren van butaanzuur?",
             hash: "e5b748762ae27a3a4a7d1d87bd19a3439face4a3ef3d13f6ba59a52d53a8e0d8",
             hints: {

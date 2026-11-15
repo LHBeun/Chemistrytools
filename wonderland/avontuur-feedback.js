@@ -298,7 +298,7 @@ window.WL_FEEDBACK = {
         "Vergelijk de aantallen H-atomen.",
         "Teken 1-methylhexaan. Hoe lang is de langste keten?"
       ],
-      zo: "heptaan + 2,3-dimethylpentaan: allebei C₇H₁₆, andere structuur → <b>isomeren</b><br>octaan (C₈H₁₈) + oct-1-een (C₈H₁₆) → <b>geen isomeren</b><br>5-methylheptaan is 3-methylheptaan van de andere kant → <b>dezelfde stof</b><br>pent-1-yn + 3-methylbut-1-yn: allebei C₅H₈ → <b>isomeren</b><br>2-methylbutaan (C₅H₁₂) + 2-methylbut-1-een (C₅H₁₀) → <b>geen isomeren</b><br>1-methylhexaan heeft een keten van 7: dat is heptaan → <b>dezelfde stof</b>"
+      zo: "heptaan + 2,3-dimethylpentaan: allebei C₇H₁₆, andere structuur → <b>isomeren</b><br>octaan (C₈H₁₈) + oct-1-een (C₈H₁₆) → <b>geen isomeren</b><br>5-methylheptaan is 3-methylheptaan van de andere kant → <b>dezelfde stof</b><br>pent-1-yn + methylbutyn: allebei C₅H₈ → <b>isomeren</b><br>methylbutaan (C₅H₁₂) + 2-methylbut-1-een (C₅H₁₀) → <b>geen isomeren</b><br>1-methylhexaan heeft een keten van 7: dat is heptaan → <b>dezelfde stof</b>"
     },
     p1: {
       rijHints: [
@@ -456,6 +456,9 @@ window.WL_FEEDBACK = {
       zoH: true
     },
     h3: {
+      goedMaar: {
+        "1-propylcyclohexaan": "Goed! Het plaatsnummer 1 is niet nodig: bij één zijtak aan een ring is er maar één plek mogelijk."
+      },
       fouten: {
         "propylhexaan": "Het is een ring: welk voorvoegsel hoort daarbij?",
         "propylbenzeen": "Zie je een cirkel of dubbele bindingen in de ring?",
@@ -470,6 +473,9 @@ window.WL_FEEDBACK = {
       zoH: true
     },
     p3: {
+      goedMaar: {
+        "1-methylcycloheptaan": "Goed! Het plaatsnummer 1 is niet nodig: bij één zijtak aan een ring is er maar één plek mogelijk."
+      },
       fouten: {
         "methylcyclohexaan": "Tel de hoekpunten van de ring nog eens.",
         "methylcyclooctaan": "Tel de hoekpunten van de ring nog eens.",
@@ -622,6 +628,9 @@ window.WL_FEEDBACK = {
       zo: "Van rechts genummerd zit de OH aan C-atoom 3: <b>heptaan-3-ol</b>."
     },
     h4: {
+      goedMaar: {
+        "1-ethoxybutaan": "Goed! Het plaatsnummer 1 is niet nodig: zonder nummer zit de alkoxygroep aan het uiteinde."
+      },
       fouten: {
         "butoxyethaan": "Welk deel aan de kant van de O is het kleinst? Dat wordt de alkoxy-groep.",
         "ethylbutylether": "Gebruik de systematische naam: alkoxyalkaan.",
@@ -632,6 +641,9 @@ window.WL_FEEDBACK = {
       zo: "Links van de O: 2 C-atomen → <b>ethoxy-</b>. Rechts: 4 C-atomen → <b>butaan</b>. Samen <b>ethoxybutaan</b>."
     },
     p4: {
+      goedMaar: {
+        "1-methoxypentaan": "Goed! Het plaatsnummer 1 is niet nodig: zonder nummer zit de alkoxygroep aan het uiteinde."
+      },
       fouten: {
         "pentoxymethaan": "Welk deel aan de kant van de O is het kleinst? Dat wordt de alkoxy-groep.",
         "methylpentylether": "Gebruik de systematische naam: alkoxyalkaan.",
@@ -693,6 +705,9 @@ window.WL_FEEDBACK = {
       zo: "Van rechts genummerd zit de OH aan C-atoom 1: <b>pentaan-1-ol</b>."
     },
     oZ: {
+      goedMaar: {
+        "1-methoxyhexaan": "Goed! Het plaatsnummer 1 is niet nodig: zonder nummer zit de alkoxygroep aan het uiteinde."
+      },
       fouten: {
         "hexoxymethaan": "Welk deel is het kleinst? Dat wordt de alkoxy-groep.",
         "methoxyheptaan": "Tel de C-atomen aan beide kanten van de O nog eens.",
@@ -725,6 +740,10 @@ window.WL_FEEDBACK = {
       zo: "Drie ketonen: <b>A</b>, <b>C</b> en <b>F</b>, met de C=O steeds midden in de keten."
     },
     h2: {
+      goedMaar: {
+        "4-methylpentaan-1-al": "Goed! Het plaatsnummer 1 is niet nodig: bij een aldehyde zit de C=O altijd aan C-atoom 1.",
+        "4-methylpentan-1-al": "Goed! Het plaatsnummer 1 is niet nodig: bij een aldehyde zit de C=O altijd aan C-atoom 1."
+      },
       fouten: {
         "2-methylpentanal": "Bij een aldehyde krijgt het C-atoom van de C=O altijd nummer 1. Tel vanaf daar.",
         "4-methylpentaan-2-on": "Zit de C=O aan het uiteinde of midden in de keten?",
@@ -735,6 +754,10 @@ window.WL_FEEDBACK = {
       zo: "Het C-atoom van de C=O is C-atoom 1. De keten is 5 lang → <b>pentanal</b>. De methylgroep zit op 4: <b>4-methylpentanal</b>."
     },
     p2: {
+      goedMaar: {
+        "3-ethylhexaan-1-al": "Goed! Het plaatsnummer 1 is niet nodig: bij een aldehyde zit de C=O altijd aan C-atoom 1.",
+        "3-ethylhexan-1-al": "Goed! Het plaatsnummer 1 is niet nodig: bij een aldehyde zit de C=O altijd aan C-atoom 1."
+      },
       fouten: {
         "4-ethylhexanal": "Bij een aldehyde krijgt het C-atoom van de C=O altijd nummer 1. Tel vanaf daar.",
         "3-ethylheptanal": "Tel de C-atomen in de keten nog eens.",
@@ -860,16 +883,21 @@ window.WL_FEEDBACK = {
       zo: "Drie amines: <b>A</b>, <b>C</b> en <b>E</b>, elk met een –NH₂-groep."
     },
     h2: {
+      goedMaar: {
+        "3-methylheptaan-1-zuur": "Goed! Het plaatsnummer 1 is niet nodig: bij een carbonzuur zit de COOH altijd aan C-atoom 1."
+      },
       fouten: {
         "5-methylheptaanzuur": "Bij een carbonzuur krijgt het C-atoom van de COOH altijd nummer 1. Tel vanaf daar.",
         "3-methylhexaanzuur": "Het C-atoom van de COOH telt mee in de stamnaam.",
         "3-methylheptanal": "Kijk nog eens naar het eind-C: zit er een H of een OH aan?",
-        "methylheptaanzuur": "Op welk C-atoom zit de methylgroep? Dat nummer hoort in de naam.",
-        "3-methylheptaan-1-zuur": "Bij een carbonzuur is geen plaatsnummer voor -zuur nodig: de COOH zit altijd op 1."
+        "methylheptaanzuur": "Op welk C-atoom zit de methylgroep? Dat nummer hoort in de naam."
       },
       zo: "Het C-atoom van de COOH (rechts) is C-atoom 1. Keten van 7 → <b>heptaanzuur</b>. Methyl op 3: <b>3-methylheptaanzuur</b>."
     },
     p2: {
+      goedMaar: {
+        "2-ethylpentaan-1-zuur": "Goed! Het plaatsnummer 1 is niet nodig: bij een carbonzuur zit de COOH altijd aan C-atoom 1."
+      },
       fouten: {
         "2-ethylbutaanzuur": "Tel de langste keten nog eens, vanaf het C-atoom van de COOH.",
         "2-propylbutaanzuur": "Is dit echt de langste keten? Probeer ook de route door de zijtak.",
@@ -949,10 +977,12 @@ window.WL_FEEDBACK = {
       zo: "heptaan-1-, 2-, 3- en 4-amine. Dus <b>4</b>."
     },
     oZ: {
+      goedMaar: {
+        "decaan-1-zuur": "Goed! Het plaatsnummer 1 is niet nodig: bij een carbonzuur zit de COOH altijd aan C-atoom 1."
+      },
       fouten: {
         "nonaanzuur": "Tel de C-atomen nog eens, ook het C-atoom van de COOH.",
-        "decanal": "Kijk naar het eind-C: zit er een H of een OH aan?",
-        "decaan-1-zuur": "Bij een carbonzuur is geen plaatsnummer voor -zuur nodig."
+        "decanal": "Kijk naar het eind-C: zit er een H of een OH aan?"
       },
       zo: "10 C-atomen, inclusief het C-atoom van de COOH: <b>decaanzuur</b>."
     },
@@ -996,6 +1026,7 @@ window.WL_FEEDBACK = {
       zo: "Drie esters: <b>A</b>, <b>C</b> en <b>E</b>. Bij E zit aan het C-atoom van de C=O nog een H: dat deel komt uit methaanzuur."
     },
     h2: {
+      geenSpatie: true,
       fouten: {
         "hexylpropanoaat": "Welke kant van het O-atoom heeft de C=O? Dat deel hoort bij het zuur en wordt het -oaat-deel.",
         "propylpentanoaat": "Tel de C-atomen van het zuurdeel nog eens: het C-atoom van de C=O telt mee.",
@@ -1006,6 +1037,7 @@ window.WL_FEEDBACK = {
       zo: "Knip tussen de C=O en de O. Links (met de C=O): 6 C-atomen → uit <b>hexaanzuur</b> → hexanoaat. Rechts: 3 C-atomen → uit <b>propaan-1-ol</b> → propyl. Samen: <b>propylhexanoaat</b>."
     },
     p2: {
+      geenSpatie: true,
       fouten: {
         "ethylbutanoaat": "Welke kant van het O-atoom heeft de C=O? Dat deel hoort bij het zuur.",
         "butylmethanoaat": "Tel de C-atomen van het zuurdeel nog eens: het C-atoom van de C=O telt mee.",
@@ -1014,6 +1046,7 @@ window.WL_FEEDBACK = {
       zo: "Links (met de C=O): 2 C-atomen → uit ethaanzuur → ethanoaat. Rechts: 4 → uit butaan-1-ol → butyl. Samen: <b>butylethanoaat</b>."
     },
     h3: {
+      geenSpatie: true,
       fouten: {
         "propylpentanoaat": "Welk deel van de naam komt uit het alkanol? Dat komt vooraan.",
         "pentylpropaanzuur": "Een ester heeft een naam op -oaat.",
@@ -1023,6 +1056,7 @@ window.WL_FEEDBACK = {
       zo: "Uit pentaan-1-ol: <b>pentyl</b>. Uit propaanzuur: <b>propanoaat</b>. Samen: <b>pentylpropanoaat</b>."
     },
     p3: {
+      geenSpatie: true,
       fouten: {
         "octylmethanoaat": "Welk deel van de naam komt uit het alkanol? Dat komt vooraan.",
         "methyloctaanzuur": "Een ester heeft een naam op -oaat.",
@@ -1090,6 +1124,7 @@ window.WL_FEEDBACK = {
       zo: "De kant met de C=O heeft <b>9</b> C-atomen (nonaanzuur); de andere kant 3 (propaan-1-ol). De ester heet propylnonanoaat."
     },
     oN: {
+      geenSpatie: true,
       fouten: {
         "ethylheptanoaat": "Welk deel van de naam komt uit het alkanol? Dat komt vooraan.",
         "heptylethaanzuur": "Een ester heeft een naam op -oaat.",
@@ -1160,6 +1195,9 @@ window.WL_FEEDBACK = {
       zo: "De langste keten loopt door de ethylgroep: 6 C-atomen. Van de kant van de C=O genummerd: C=O op 3, methyl op 4 → <b>4-methylhexaan-3-on</b>."
     },
     p3: {
+      goedMaar: {
+        "3-methylhexaan-1-zuur": "Goed! Het plaatsnummer 1 is niet nodig: bij een carbonzuur zit de COOH altijd aan C-atoom 1."
+      },
       fouten: {
         "3-propylbutaanzuur": "Dat is de naam van de Boer. Zoek de langste keten opnieuw vanaf het C-atoom van de COOH.",
         "4-methylhexaanzuur": "Tel nog eens vanaf het C-atoom van de COOH: dat is C-atoom 1.",

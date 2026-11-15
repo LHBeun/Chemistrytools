@@ -117,6 +117,7 @@
   .uitleg b, .terugkoppeling b, .optie .uitleg { white-space: nowrap; }
   .optie .uitleg { white-space: normal; }
   .zoH { margin-top: 8px; } .zoH .hl { opacity: 1; }
+  .terugkoppeling .noot { margin: 8px 0 0; font: italic 1.02rem var(--body); color: #234b38; }
   .aanleiding { margin: 0 0 10px; padding: 8px 12px; border-radius: 8px; background: rgba(200,55,79,.08); color: #7c1f2e; font: 600 1.05rem var(--body); }
   .terugkoppeling.goed { display: block; border-left: 4px solid var(--groen); background: rgba(63,174,124,.12); color: #1f5a40; }
   .kaart.schud { animation: schud .4s; }
@@ -543,7 +544,9 @@ function koppelInvoer(it, onControle) {
       else if (it.type === "getal") waarde = String(parseInt(ant.value, 10));
       else waarde = keuze;
       const hash = await wlHash(huidig, "a-" + it.id, waarde);
-      await onControle(it.hash.includes(hash), waarde, {});
+      // estersnamen zijn één woord: een spatie is fout
+      const spatie = it.type === "naam" && it.geenSpatie && /\S\s+\S/.test(ant.value.trim());
+      await onControle(it.hash.includes(hash) && !spatie, waarde, spatie ? { spatie: true } : {});
     } finally { busy = false; }
   };
 }
@@ -585,6 +588,8 @@ function teken() {
         tk.textContent = r.fase === "opgave" ? (it.goed || "Goed!") : r.fase === "makkelijk" ? "Goed! Nu terug naar het pad." : "Goed! Je bent weer op het pad.";
         document.querySelectorAll(".optie.fout, .indrij.fout").forEach(e => e.classList.remove("fout"));
         document.querySelectorAll(".optie .uitleg, .indrij .rijhint").forEach(e => e.remove());
+        const noot = it.goedMaar && Object.keys(it.goedMaar).find(k => normNaam(k) === waarde);
+        if (noot) tk.insertAdjacentHTML("beforeend", `<p class="noot">${it.goedMaar[noot]}</p>`);
         if (it.zo) tk.insertAdjacentHTML("beforeend", `<details class="zo"><summary>Zo zit het</summary><div>${it.zo}${it.zoH && it.skelet ? `<div class="zoH">${klein(wlSkeletSVG(it.skelet), 1.3)}</div>` : ""}</div></details>`);
         document.querySelectorAll("#controleer, #ant, .optie, .keuzeknop").forEach(e => { e.disabled = true; e.style.pointerEvents = "none"; });
         $("na").innerHTML = `<button class="knop" id="verder">Verder ▸</button>`;
@@ -625,7 +630,7 @@ function teken() {
       const n = detail.gemist?.length || 0;
       const extra = detail.fouteKeuze ? [detail.fouteKeuze.length ? (detail.fouteKeuze.length === 1 ? "De rood omlijnde keuze past niet." : "De rood omlijnde keuzes passen niet.") : "", n ? `Je mist er nog ${n}.` : ""].filter(Boolean).join(" ")
         : detail.foutRijen ? `Er ${detail.foutRijen === 1 ? "staat er nog 1" : `staan er nog ${detail.foutRijen}`} verkeerd.` : "";
-      const gericht = gerichteFout(it, waarde);
+      const gericht = detail.spatie ? "Bijna: de naam van een ester schrijf je als één woord, zonder spatie." : gerichteFout(it, waarde);
       tk.innerHTML = `✗ Nog niet goed. ${extra ? extra + " " : ""}${gericht || (uitgelegd ? "" : it.hint)}`;
       if (r.fase !== "opgave" && r.pog >= 2) {
         $("na").innerHTML = `<button class="knop donker" id="nogmaals">Bekijk de uitleg nog eens</button>`;

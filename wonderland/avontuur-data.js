@@ -499,7 +499,7 @@ window.WL_AVONTUUR = {
         id: "h1", type: "indeling",
         verhaal: "“Who… are… YOU?” vraagt de Rups. Hij legt zes kaartjes neer, met op elk kaartje twee namen. “Zijn dat twee verschillende stoffen met dezelfde dingen erin? Of dezelfde stof met een andere naam? Of hebben ze niets met elkaar te maken?”",
         vraag: "Wat geldt voor elk paar?",
-        items: ["heptaan + 2,3-dimethylpentaan", "octaan + oct-1-een", "3-methylheptaan + 5-methylheptaan", "pent-1-yn + 3-methylbut-1-yn", "2-methylbutaan + 2-methylbut-1-een", "1-methylhexaan + heptaan"],
+        items: ["heptaan + 2,3-dimethylpentaan", "octaan + oct-1-een", "3-methylheptaan + 5-methylheptaan", "pent-1-yn + methylbutyn", "methylbutaan + 2-methylbut-1-een", "1-methylhexaan + heptaan"],
         keuzes: ["isomeren", "dezelfde stof", "geen isomeren"],
         rijHash: ["f39433225a3b2ee26145e734a6519e3e7fa033b3230c8172943a67adfec50c03", "6728775bd79f178606c1f7840e56b702f218c174cf5f2a4eca0d58258e51eadc", "d2b730f0502d04ad0168eca1949a32e8d914d08fce9a56c71cc05254cf2bafda", "7a800e2ffde3cd765bfbd5b5e426b07d6db5e0b20db6675a5300fea9db9d6fe9", "9e53c93db66873a3cc076ef737c559a131a09dd11e50c428a6d2c26bf723d9e9", "f786f3c31c154e1764e3f5541f547c64901ed0a79c66e3fc9fae8065baa109ea"],
         hint: "Teken in je schrift bij elke naam de structuur en bepaal de molecuulformule. Hebben twee namen dezelfde structuur, dan zijn ze dezelfde stof.",
@@ -1365,7 +1365,7 @@ window.WL_AVONTUUR = {
         verhaal: "Een lakei met een kikkerkop houdt Alice een pot voor. “Wat staat erop?” kwaakt hij. “Ik kan niet lezen.”",
         volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [6, -1, "O"], [6, 1, "O"], [4, 1]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 2], [6, 8, 1], [4, 9, 1]] },
         vraag: "Geef de systematische naam van deze stof.",
-        hash: ["21cbaaba1d98139b4ff07c87385a99e48542cffaf9d12a8a5f34a0689ced74cd"],
+        hash: ["21cbaaba1d98139b4ff07c87385a99e48542cffaf9d12a8a5f34a0689ced74cd", "3e72a861887ff7c005e204260ca0c48b1fa7ddb94116233524494b007c53c887"],
         hint: "Welk C-atoom krijgt bij een carbonzuur altijd nummer 1? Tel de keten vanaf daar.",
         omweg: "Z",
         goed: "“Aha,” kwaakt de lakei. Hij zet de pot ondersteboven terug.",
@@ -1373,7 +1373,7 @@ window.WL_AVONTUUR = {
           verhaal: "De lakei heeft nog een pot.",
           volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [0, -1, "O"], [0, 1, "O"], [1, 1], [1, 2]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [0, 5, 2], [0, 6, 1], [1, 7, 1], [7, 8, 1]] },
           vraag: "Geef de systematische naam van deze stof.",
-          hash: ["e9f2e1a117b222abba784fa6dfa54ea8670e976b79ec9249320f56152333804b"],
+          hash: ["e9f2e1a117b222abba784fa6dfa54ea8670e976b79ec9249320f56152333804b", "8faba20db4d806317af95bcdb9b1efe6bf5d88ed5c7fb545ac28c87abbd582fd"],
           hint: "Zoek de langste keten met het C-atoom van de COOH erin, en geef dat C-atoom nummer 1."
         }
       },
@@ -1405,7 +1405,7 @@ window.WL_AVONTUUR = {
         goed: "De baby niest. En niest nog eens.",
         parallel: {
           verhaal: "Op het zoutvaatje staat ook een naam.",
-          formule: "2-ethylbutaanzuur",
+          formule: "ethylbutaanzuur",
           vraag: "Teken de structuur. Hoeveel H-atomen heeft het molecuul?",
           hash: ["27a3cb26db23f4ab78912d4131c8961e20785b46aaed62ad17dd922db7583d08"],
           hint: "Teken de keten met de COOH aan C-atoom 1. Het C-atoom van de COOH heeft geen H aan zich; de OH wel."
@@ -1473,7 +1473,7 @@ window.WL_AVONTUUR = {
           verhaal: "“Nu jij,” zegt de kokkin, en ze strooit nog wat peper.",
           volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [0, -1, "O"], [0, 1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [7, 8, 1], [8, 9, 1], [0, 10, 2], [0, 11, 1]] },
           vraag: "Geef de systematische naam van deze stof.",
-          hash: ["d5986928d75e253197b135adba7e46ae02d4258442605b94f9415447fc72caf5"],
+          hash: ["d5986928d75e253197b135adba7e46ae02d4258442605b94f9415447fc72caf5", "ad01216f544368a8dfa5fd07d718a3b3ae271cf45c99d04c20aad2aa3cd3e605"],
           hint: "Tel alle C-atomen, ook het C-atoom van de COOH."
         }
       },
@@ -1801,7 +1801,7 @@ window.WL_AVONTUUR = {
           verhaal: "“Nog een etiket van de Boer!” Er staat: ‘3-propylbutaanzuur’.",
           formule: "3-propylbutaanzuur",
           vraag: "Geef de juiste systematische naam van deze stof.",
-          hash: ["a4ec10d58a333462ca551c670d292c8da88d48c9221c244b9a1dd200690248a2"],
+          hash: ["a4ec10d58a333462ca551c670d292c8da88d48c9221c244b9a1dd200690248a2", "26643e68d0be55ff151078d0131fe215381a16ea709a62ce82943243d7c7fc62"],
           hint: "Teken de stof en zoek opnieuw de langste keten vanaf het C-atoom van de COOH."
         }
       },
