@@ -23,7 +23,8 @@ window.WL_FEEDBACK = {
       A: "Het ging mis bij de naam: de stam of de uitgang.",
       B: "Het ging mis bij het aantal bindingen van een C-atoom.",
       C: "Het ging mis bij het aantal H-atomen.",
-      K: "Het ging mis bij de vorm van de keten: een knik of een vertakking?"
+      K: "Het ging mis bij de vorm van de keten: een knik of een vertakking?",
+      V: "Een reactievergelijking kloppend maken is lastig. De Kolderkat laat zien hoe je dat stap voor stap doet."
     },
     h1: {
       fouten: {
@@ -42,23 +43,6 @@ window.WL_FEEDBACK = {
         "octeen": "De stam klopt. Past de uitgang bij het aantal H-atomen?"
       },
       zo: "8 C-atomen → stam <b>oct-</b>. 18 H-atomen = 2 × 8 + 2, dus alleen enkele bindingen: <b>octaan</b>."
-    },
-    h2: {
-      fouten: {
-        "butaan": "Tel de C-atomen nog eens.",
-        "hexaan": "Tel de C-atomen nog eens.",
-        "penteen": "Kijk naar de bindingen tussen de C-atomen.",
-        "pentyn": "Kijk naar de bindingen tussen de C-atomen."
-      },
-      zo: "5 C-atomen in de keten en alleen enkele bindingen: <b>pentaan</b>."
-    },
-    p2: {
-      fouten: {
-        "octaan": "Tel de C-atomen nog eens.",
-        "decaan": "Tel de C-atomen nog eens.",
-        "noneen": "Kijk naar de bindingen tussen de C-atomen."
-      },
-      zo: "9 C-atomen in de keten en alleen enkele bindingen: <b>nonaan</b>."
     },
     h3: {
       optieUitleg: {
@@ -85,24 +69,6 @@ window.WL_FEEDBACK = {
     p4: {
       rijHints: [alkaanRij(4), alkaanRij(4), alkaanRij(8), alkaanRij(6), alkaanRij(10)],
       zo: "C₄H₁₀ alkaan · C₄H₆ alkyn (4 H minder) · C₈H₁₆ alkeen (2 H minder) · C₆H₁₀ alkyn · C₁₀H₂₀ alkeen."
-    },
-    h5: {
-      optieUitleg: {
-        A: "Hier zit een dubbele binding.",
-        C: "Een dubbele binding, en één C-atoom heeft 5 bindingen.",
-        E: "Hier zitten alleen enkele bindingen.",
-        F: "Hier zit een dubbele binding."
-      },
-      zo: "Twee kaartjes: <b>B</b> en <b>D</b>. Allebei een drievoudige binding; bij D loopt de keten met een knik."
-    },
-    p5: {
-      optieUitleg: {
-        A: "Alleen enkele bindingen, en één C-atoom heeft maar 3 bindingen.",
-        C: "Hier zit een drievoudige binding.",
-        D: "Hier zitten alleen enkele bindingen.",
-        F: "Hier zitten alleen enkele bindingen."
-      },
-      zo: "Twee kaartjes: <b>B</b> (met een knik) en <b>E</b>. Allebei één dubbele binding, en elk C-atoom heeft 4 bindingen."
     },
     h6: {
       fouten: {
@@ -146,6 +112,28 @@ window.WL_FEEDBACK = {
         "5": "Volg de keten ook om de hoeken."
       },
       zo: "De keten loopt twee keer om de hoek, maar het blijft één keten van <b>6</b> C-atomen."
+    },
+    h7: {
+      zo: "C: 5 → <b>5</b> CO₂. H: 12 → <b>6</b> H₂O. O rechts: 10 + 6 = 16 → <b>8</b> O₂.<br>C₅H₁₂ + 8 O₂ ⟶ 5 CO₂ + 6 H₂O"
+    },
+    p7: {
+      zo: "C: 7 → <b>7</b> CO₂. H: 16 → <b>8</b> H₂O. O rechts: 14 + 8 = 22 → <b>11</b> O₂.<br>C₇H₁₆ + 11 O₂ ⟶ 7 CO₂ + 8 H₂O"
+    },
+    oV: {
+      zo: "C₃H₄ + 4 O₂ ⟶ 3 CO₂ + 2 H₂O"
+    },
+    h8: {
+      fouten: {
+        C6H6: "Een molecuul H₂O bevat 2 H-atomen. Hoeveel H-atomen zitten er dan in 6 moleculen H₂O?",
+        C6H12O18: "De O-atomen komen uit de zuurstof (O₂), niet uit de olie."
+      },
+      zo: "6 moleculen CO₂ → 6 C-atomen. 6 moleculen H₂O → 12 H-atomen. De olie is <b>C₆H₁₂</b>."
+    },
+    p8: {
+      fouten: {
+        C7H8: "Een molecuul H₂O bevat 2 H-atomen. Hoeveel H-atomen zitten er dan in 8 moleculen H₂O?"
+      },
+      zo: "7 C-atomen en 16 H-atomen: <b>C₇H₁₆</b>, heptaan."
     }
   },
 
@@ -154,7 +142,8 @@ window.WL_FEEDBACK = {
     omwegen: {
       D: "Het ging mis bij het vinden van de langste keten.",
       E: "Het ging mis bij het nummeren.",
-      F: "Het ging mis bij het opbouwen van de naam."
+      F: "Het ging mis bij het opbouwen van de naam.",
+      W: "Bij kraken gaan geen atomen verloren. Bill de hagedis laat zien hoe je de ontbrekende stof vindt."
     },
     h1: {
       fouten: {
@@ -190,21 +179,6 @@ window.WL_FEEDBACK = {
       },
       zo: "Twee tekeningen passen: <b>B</b> (van rechts genummerd 2 en 4) en <b>E</b> (de keten loopt aan het eind naar beneden en is 6 lang)."
     },
-    h3: {
-      fouten: {
-        "2-ethylhexaan": LANGSTE_KETEN,
-        "5-methylheptaan": ANDERE_KANT,
-        "3-methylhexaan": "Tel de C-atomen in de langste keten nog eens."
-      },
-      zo: "Via de route naar beneden is de keten <b>7</b> lang. Wat overblijft is één methylgroep, vanaf onder genummerd op C-atoom 3: <b>3-methylheptaan</b>."
-    },
-    p3: {
-      fouten: {
-        "2-propylhexaan": LANGSTE_KETEN,
-        "5-methyloctaan": ANDERE_KANT
-      },
-      zo: "De langste keten loopt naar beneden en is <b>8</b> lang. De methylgroep zit op C-atoom 4: <b>4-methyloctaan</b>."
-    },
     h4: {
       fouten: {
         "2-methyl-3-ethylpentaan": "Je plaatsnummers kloppen. Kijk nog eens naar de volgorde van de zijtakken in de naam.",
@@ -220,24 +194,6 @@ window.WL_FEEDBACK = {
         "5-methyl-3-ethylhexaan": "Kijk naar het nummeren én naar de volgorde van de zijtakken."
       },
       zo: "Van rechts: methyl op 2, ethyl op 4. Van links zou het 3 en 5 worden: hoger. Ethyl vóór methyl: <b>4-ethyl-2-methylhexaan</b>."
-    },
-    h5: {
-      fouten: {
-        "hept-4-een": BINDING_ANDERE_KANT,
-        "hepteen": "Waar begint de dubbele binding? Dat nummer hoort in de naam.",
-        "3-hepteen": "Het plaatsnummer staat vlak voor -een: hept-…-een.",
-        "hept-3-yn": "Kijk nog eens naar de soort binding."
-      },
-      zo: "Van links begint de dubbele binding bij C-atoom 4, van rechts bij C-atoom 3. Het laagste nummer wint: <b>hept-3-een</b>."
-    },
-    p5: {
-      fouten: {
-        "oct-6-een": BINDING_ANDERE_KANT,
-        "octeen": "Waar begint de dubbele binding? Dat nummer hoort in de naam.",
-        "2-octeen": "Het plaatsnummer staat vlak voor -een: oct-…-een.",
-        "hept-2-een": "Tel de C-atomen in de keten nog eens, ook om de hoek."
-      },
-      zo: "De keten is 8 lang (om de hoek). Vanaf onder genummerd begint de dubbele binding bij C-atoom 2: <b>oct-2-een</b>."
     },
     h6: {
       optieUitleg: {
@@ -279,6 +235,40 @@ window.WL_FEEDBACK = {
         "3,4-dimethyl-hexaan": "Bijna: zijtak en stam staan aan elkaar, zonder streepje."
       },
       zo: "Twee methylgroepen → <b>dimethyl</b>, op C-atoom 3 en 4: <b>3,4-dimethylhexaan</b>."
+    },
+    h7: {
+      fouten: {
+        C3H8: "Tel de H-atomen nog eens: 26 − 20 = ?",
+        C21H46: "Bij kraken breekt een molecuul: de stoffen rechts samen zijn net zo groot als de stof links."
+      },
+      zo: "C: 12 − 9 = 3. H: 26 − 20 = 6. Dat is <b>C₃H₆</b>, propeen."
+    },
+    p7: {
+      fouten: {
+        C4H10: "Tel de H-atomen nog eens: 24 − 16 = ?"
+      },
+      zo: "C: 11 − 7 = 4. H: 24 − 16 = 8. Dat is <b>C₄H₈</b>, een buteen."
+    },
+    oW: {
+      zo: "C: 7 − 5 = 2. H: 16 − 12 = 4: <b>C₂H₄</b>, etheen."
+    },
+    h8: {
+      fouten: {
+        propaan: "Dat is een alkaan. Naast het alkaan ontstaat bij kraken een alkeen.",
+        c3h6: "Dat is de molecuulformule. Welke naam hoort erbij?"
+      },
+      goedMaar: {
+        "prop-1-een": "Goed! Het plaatsnummer 1 is niet nodig: in propeen kan de dubbele binding maar op één plek zitten."
+      },
+      zo: "Decaan C₁₀H₂₂ ⟶ heptaan C₇H₁₆ + <b>C₃H₆</b>. Een alkeen met 3 C-atomen: <b>propeen</b>."
+    },
+    p8: {
+      fouten: {
+        buteen: "Er bestaan meer butenen. Waar zit de dubbele binding?",
+        "but-2-een": "De dubbele binding zit aan het uiteinde.",
+        butaan: "Dat is een alkaan. Naast het alkaan ontstaat bij kraken een alkeen."
+      },
+      zo: "Dodecaan C₁₂H₂₆ ⟶ octaan C₈H₁₈ + <b>C₄H₈</b>. Onvertakt, dubbele binding aan het uiteinde: <b>but-1-een</b>."
     }
   },
 
@@ -287,7 +277,8 @@ window.WL_FEEDBACK = {
     omwegen: {
       G: "Het ging mis bij het herkennen van isomeren.",
       H: "Het ging mis bij het systematisch tellen.",
-      K: "Het ging mis bij het herkennen van dezelfde stof."
+      K: "Het ging mis bij het herkennen van dezelfde stof.",
+      W: "Combinaties tellen gaat het best in een rijtje. De duif laat zien hoe."
     },
     h1: {
       rijHints: [
@@ -355,24 +346,6 @@ window.WL_FEEDBACK = {
       },
       zo: "2-, 3-, 4- en 5-methylnonaan. Verder schuiven geeft dezelfde stoffen van de andere kant. Dus <b>4</b>."
     },
-    h5: {
-      fouten: {
-        "4-methylhex-1-een": "De dubbele binding klopt nu. Op welk C-atoom zit de methylgroep als je zo nummert?",
-        "3-methylhex-5-een": "Welke kant geeft de dubbele binding het laagste nummer?",
-        "4-methylhex-5-een": "Dat is de naam van de Rups. Nummer opnieuw volgens de regels.",
-        "3-methylhexeen": "Waar begint de dubbele binding? Dat nummer hoort in de naam."
-      },
-      zo: "Opnieuw genummerd vanaf de kant van de dubbele binding: binding op 1, methyl op 3 → <b>3-methylhex-1-een</b>."
-    },
-    p5: {
-      fouten: {
-        "4,5-dimethylheptaan": ANDERE_KANT,
-        "3-methyl-2-propylpentaan": "Dat is de naam van de Rups. Zoek de langste keten opnieuw.",
-        "3,4-methylheptaan": "Twee dezelfde zijtakken: hoe geef je dat aan in de naam?",
-        "2-propyl-3-methylpentaan": "Zoek de langste keten opnieuw: loopt die misschien door de propylgroep?"
-      },
-      zo: "De langste keten loopt door de propylgroep en is 7 lang. Er blijven twee methylgroepen over, op 3 en 4: <b>3,4-dimethylheptaan</b>."
-    },
     h6: {
       optieUitleg: {
         A: "C₇H₁₆: twee H-atomen meer.",
@@ -408,6 +381,25 @@ window.WL_FEEDBACK = {
         "2-ethylheptaan": "Tel de C-atomen in de langste keten nog eens."
       },
       zo: "De langste keten loopt naar beneden en is <b>7</b> lang. De ethylgroep zit op C-atoom 4: <b>4-ethylheptaan</b>."
+    },
+    h7: {
+      fouten: {
+        "6": "Kan er een alkeen met 1 C-atoom bestaan?",
+        "7": "Een alkaan en een alkeen met samen 7 C-atomen: niet allebei 7."
+      },
+      zo: "CH₄ + C₆H₁₂, C₂H₆ + C₅H₁₀, C₃H₈ + C₄H₈, C₄H₁₀ + C₃H₆ en C₅H₁₂ + C₂H₄: <b>5</b>. Een alkeen met 1 C-atoom bestaat niet."
+    },
+    p7: {
+      fouten: {
+        "7": "Kan er een alkeen met 1 C-atoom bestaan?"
+      },
+      zo: "Het alkaan heeft 1 tot en met 6 C-atomen, het alkeen dan 7 tot en met 2: <b>6</b> combinaties."
+    },
+    oW: {
+      fouten: {
+        "5": "Kan er een alkeen met 1 C-atoom bestaan?"
+      },
+      zo: "CH₄ + C₅H₁₀, C₂H₆ + C₄H₈, C₃H₈ + C₃H₆, C₄H₁₀ + C₂H₄: <b>4</b>."
     }
   },
   // ── Les 4 · De Cheshire Kat ────────────────────────────────
@@ -415,7 +407,8 @@ window.WL_FEEDBACK = {
     omwegen: {
       R: "Het ging mis bij het lezen van de hoekpuntnotatie.",
       B: "Het ging mis bij benzeen of bij het aantal H-atomen van een ring.",
-      N: "Het ging mis bij de naam van een ringverbinding."
+      N: "Het ging mis bij de naam van een ringverbinding.",
+      Q: "Additie van waterstof verandert alleen de binding, niet het skelet. De Kat laat het zien."
     },
     h1: {
       optieUitleg: {
@@ -565,6 +558,34 @@ window.WL_FEEDBACK = {
         "1,4-dimethylbenzeen": "Hoe lang zijn de zijtakken?"
       },
       zo: "Benzeenring met twee ethylgroepen tegenover elkaar: <b>1,4-diethylbenzeen</b>."
+    },
+    h7: {
+      zo: "Rechts 14 H, links 8 H: er zijn 6 H-atomen nodig, dus <b>3</b> H₂ (een benzeenring heeft 3 dubbele bindingen).<br>C₇H₈ + 3 H₂ ⟶ C₇H₁₄"
+    },
+    p7: {
+      zo: "C₈H₁₀ + 3 H₂ ⟶ C₈H₁₆"
+    },
+    h8: {
+      optieUitleg: {
+        B: "Dit is hex-1-een. Met waterstof wordt dat hexaan: een onvertakte keten.",
+        D: "De methylgroep zit hier aan C-atoom 3. Met waterstof wordt dat 3-methylpentaan.",
+        F: "Twee methylgroepen: met waterstof wordt dat 2,3-dimethylbutaan."
+      },
+      zo: "Elk alkeen met het skelet van 2-methylpentaan geeft 2-methylpentaan: de dubbele binding mag op elke plek in dat skelet zitten (A, C, E en G)."
+    },
+    p8: {
+      optieUitleg: {
+        B: "De methylgroep zit hier aan C-atoom 2. Met waterstof wordt dat 2-methylpentaan.",
+        D: "Dit is hex-2-een. Met waterstof wordt dat hexaan.",
+        F: "Twee methylgroepen: met waterstof wordt dat 2,2-dimethylbutaan."
+      },
+      zo: "A, C en E hebben het skelet van 3-methylpentaan. C ziet er anders uit, maar de langste keten loopt door de zijtak: ook dat is het skelet van 3-methylpentaan."
+    },
+    oQ: {
+      fouten: {
+        "pent-2-een": "Dat is de beginstof. Wat gebeurt er met de dubbele binding?"
+      },
+      zo: "De dubbele binding wordt enkel: <b>pentaan</b>."
     }
   },
   // ── Les 5 · De tuinmannen van de Koningin ──────────────────
@@ -572,7 +593,8 @@ window.WL_FEEDBACK = {
     omwegen: {
       X: "Het ging mis bij de halogenen in de naam.",
       Y: "Het ging mis bij het plaatsnummer van de OH-groep.",
-      Z: "Het ging mis bij het herkennen of benoemen van een ether of alkanol."
+      Z: "Het ging mis bij het herkennen of benoemen van een ether of alkanol.",
+      Q: "Additie of substitutie: kijk wat er ontstaat. Tuinman Twee laat het verschil zien."
     },
     h1: {
       fouten: {
@@ -709,6 +731,35 @@ window.WL_FEEDBACK = {
         "heptaan-1-ol": "Zit de O tussen een C-atoom en een H-atoom, of tussen twee C-atomen?"
       },
       zo: "1 C-atoom → <b>methoxy-</b>, 6 C-atomen → <b>hexaan</b>, O aan C-atoom 1: <b>1-methoxyhexaan</b>."
+    },
+    h7: {
+      rijHints: ["Ontstaat er één stof of twee?", "Er ontstaat ook HCl: een H-atoom is vervangen.", "Ontstaat er één stof of twee?", "Er ontstaat ook HBr: een H-atoom is vervangen.", "Welke producten ontstaan er?", "Ontstaat er één stof of twee?"]
+    },
+    p7: {
+      rijHints: ["Er ontstaat ook HBr: een H-atoom is vervangen.", "Ontstaat er één stof of twee?", "Welke producten ontstaan er?", "Ontstaat er één stof of twee?", "Er ontstaat ook HCl: een H-atoom is vervangen.", "Ontstaat er één stof of twee?"]
+    },
+    h8: {
+      fouten: {
+        "2,3-broompentaan": "Er zitten twee Br-atomen in het molecuul. Hoe geef je dat aan?",
+        "3,4-dibroompentaan": "Nummer vanaf de kant die de laagste plaatsnummers geeft.",
+        "1,2-dibroompentaan": "De dubbele binding zat tussen C-atoom 2 en 3.",
+        dibroompentaan: "Er bestaan meer dibroompentanen. Waar zitten de Br-atomen?"
+      },
+      zo: "De dubbele binding zat tussen C-atoom 2 en 3. Daar komen de twee Br-atomen: <b>2,3-dibroompentaan</b>."
+    },
+    p8: {
+      fouten: {
+        "1,2-broombutaan": "Er zitten twee Br-atomen in het molecuul. Hoe geef je dat aan?",
+        "3,4-dibroombutaan": "Nummer vanaf de kant die de laagste plaatsnummers geeft."
+      },
+      zo: "De dubbele binding zat tussen C-atoom 1 en 2: <b>1,2-dibroombutaan</b>."
+    },
+    oQ: {
+      fouten: {
+        "1,2-broompropaan": "Er zitten twee Br-atomen in het molecuul. Hoe geef je dat aan?",
+        "2,3-dibroompropaan": "Nummer vanaf de kant die de laagste plaatsnummers geeft."
+      },
+      zo: "<b>1,2-dibroompropaan</b>"
     }
   },
   // ── Les 6 · Het theekransje ───────────────────────────────
@@ -716,7 +767,8 @@ window.WL_FEEDBACK = {
     omwegen: {
       K: "Het ging mis bij het onderscheid tussen aldehyde en keton.",
       N: "Het ging mis bij het nummeren van een aldehyde of keton.",
-      T: "Het ging mis bij het systematisch vinden van alle mogelijkheden."
+      T: "Het ging mis bij het systematisch vinden van alle mogelijkheden.",
+      O: "Een alkanol dat met zuurstof reageert: waar de OH zit, bepaalt wat er ontstaat. De Slaapmuis legt het uit (half slapend)."
     },
     h1: {
       optieUitleg: {
@@ -852,6 +904,39 @@ window.WL_FEEDBACK = {
         "3": "Kan de C=O ook precies in het midden zitten?"
       },
       zo: "decaan-2-on, 3-on, 4-on en 5-on. Dus <b>4</b>."
+    },
+    h7: {
+      fouten: {
+        hexanal: "Waar zit de OH in hexaan-2-ol: aan het uiteinde of midden in de keten?",
+        "hexaan-2-ol": "Dat is de beginstof. Wat ontstaat er als de OH-groep een C=O wordt?",
+        hexaanzuur: "Een carbonzuur kan alleen ontstaan uit een aldehyde. Wat ontstaat er uit een OH in het midden?"
+      },
+      zo: "De OH zit aan C-atoom 2, midden in de keten (een secundair alkanol). Er ontstaat een keton: <b>hexaan-2-on</b>."
+    },
+    p7: {
+      fouten: {
+        "heptaan-1-on": "Een C=O aan het uiteinde van de keten: dat is geen keton. Wat dan?",
+        "heptaan-1-ol": "Dat is de beginstof."
+      },
+      goedMaar: {
+        "heptaan-1-al": "Goed! Het plaatsnummer 1 is niet nodig: bij een aldehyde zit de C=O altijd aan het uiteinde."
+      },
+      zo: "De OH zit aan het uiteinde (een primair alkanol). Er ontstaat een aldehyde: <b>heptanal</b>."
+    },
+    h8: {
+      zo: "2 C₆H₁₄O + O₂ ⟶ 2 C₆H₁₂O + 2 H₂O. Uit twee moleculen alkanol gaan 4 H-atomen; die vormen met de 2 O-atomen van één O₂ twee moleculen water."
+    },
+    p8: {
+      zo: "2 C₅H₁₂O + O₂ ⟶ 2 C₅H₁₀O + 2 H₂O"
+    },
+    oO: {
+      goedMaar: {
+        "propaan-1-al": "Goed! Het plaatsnummer 1 is niet nodig: bij een aldehyde zit de C=O altijd aan het uiteinde."
+      },
+      fouten: {
+        propanon: "Waar zit de OH in propaan-1-ol: aan het uiteinde of in het midden?"
+      },
+      zo: "OH aan het uiteinde → aldehyde: <b>propanal</b>."
     }
   },
   // ── Les 7 · De keuken van de Hertogin ──────────────────────
@@ -859,7 +944,8 @@ window.WL_FEEDBACK = {
     omwegen: {
       Z: "Het ging mis bij het herkennen of benoemen van een carbonzuur.",
       A: "Het ging mis bij het herkennen of benoemen van een amine.",
-      T: "Het ging mis bij het systematisch tellen."
+      T: "Het ging mis bij het systematisch tellen.",
+      O: "Welke stof kan nog verder reageren? De Hertogin vertelt het, met een moraal erbij."
     },
     h1: {
       optieUitleg: {
@@ -995,6 +1081,38 @@ window.WL_FEEDBACK = {
         "3": "Kan de NH₂ ook precies in het midden zitten?"
       },
       zo: "octaan-1-, 2-, 3- en 4-amine. Dus <b>4</b>."
+    },
+    h7: {
+      optieUitleg: {
+        B: "Butanon is een keton: er zit geen H aan de C=O.",
+        D: "De OH zit midden in de keten: er ontstaat een keton, en dat reageert niet verder.",
+        E: "De OH zit aan een C-atoom zonder H: dit alkanol reageert niet met zuurstof."
+      },
+      zo: "Propanal en hexanal zijn aldehyden. Pentaan-1-ol wordt eerst pentanal en daarna pentaanzuur."
+    },
+    p7: {
+      optieUitleg: {
+        B: "Propanon is een keton: er zit geen H aan de C=O.",
+        D: "De OH zit midden in de keten: er ontstaat een keton, en dat reageert niet verder.",
+        F: "De OH zit aan een C-atoom zonder H: dit alkanol reageert niet met zuurstof."
+      },
+      zo: "Ethanal en heptanal zijn aldehyden. Butaan-1-ol wordt eerst butanal en daarna butaanzuur."
+    },
+    h8: {
+      zo: "2 C₅H₁₀O + O₂ ⟶ 2 C₅H₁₀O₂. Elk molecuul krijgt één O-atoom erbij; één O₂ is genoeg voor twee moleculen."
+    },
+    p8: {
+      zo: "2 C₇H₁₄O + O₂ ⟶ 2 C₇H₁₄O₂"
+    },
+    oO: {
+      fouten: {
+        butanol: "Er komt zuurstof bij, geen waterstof.",
+        "butaan-1-ol": "Er komt zuurstof bij, geen waterstof."
+      },
+      goedMaar: {
+        "butaan-1-zuur": "Goed! Het plaatsnummer 1 is niet nodig: bij een carbonzuur zit de COOH altijd aan C-atoom 1."
+      },
+      zo: "<b>butaanzuur</b>"
     }
   },
   // ── Les 8 · De taartjes van de Koningin ────────────────────
@@ -1002,7 +1120,8 @@ window.WL_FEEDBACK = {
     omwegen: {
       E: "Het ging mis bij het herkennen of terugknippen van een ester.",
       N: "Het ging mis bij de naam van een ester.",
-      F: "Het ging mis bij de molecuulformule."
+      F: "Het ging mis bij de molecuulformule.",
+      Q: "Estervorming en hydrolyse zijn elkaars omgekeerde. De Boer van Harten laat het zien."
     },
     h1: {
       optieUitleg: {
@@ -1133,6 +1252,46 @@ window.WL_FEEDBACK = {
         "19": "Bij de reactie gaan 2 H-atomen weg (in H₂O), niet 1."
       },
       zo: "Butaan-1-ol C₄H₁₀O + pentaanzuur C₅H₁₀O₂ = C₉H₂₀O₃. Min H₂O: C₉H₁₈O₂ → <b>18</b>."
+    },
+    h7: {
+      fouten: {
+        C8H18O3: "Vergeet het water niet: bij estervorming gaat er één H₂O af.",
+        C8H14O2: "Er gaat één molecuul water af: dat is 2 H-atomen en 1 O-atoom."
+      },
+      zo: "hexaanzuur C₆H₁₂O₂ + ethanol C₂H₆O = C₈H₁₈O₃; min H₂O: <b>C₈H₁₆O₂</b> (ethylhexanoaat)."
+    },
+    p7: {
+      fouten: {
+        C9H20O3: "Vergeet het water niet: bij estervorming gaat er één H₂O af."
+      },
+      zo: "butaanzuur C₄H₈O₂ + pentaan-1-ol C₅H₁₂O = C₉H₂₀O₃; min H₂O: <b>C₉H₁₈O₂</b> (pentylbutanoaat)."
+    },
+    h8: {
+      fouten: {
+        methanol: "Het eerste deel van de naam, hexyl, komt uit het alkanol. Methanoaat komt uit het zuur.",
+        hexanol: "Er bestaan meer hexanolen. Waar zit de OH?",
+        methaanzuur: "Dat is het zuur. Welk alkanol ontstaat er?",
+        hexaanzuur: "Het eerste deel van de naam, hexyl, komt uit het alkanol."
+      },
+      zo: "Hexyl komt uit het alkanol: <b>hexaan-1-ol</b>. Methanoaat komt uit het zuur: methaanzuur."
+    },
+    p8: {
+      fouten: {
+        propaanzuur: "Het eerste deel van de naam, propyl, komt uit het alkanol. Pentanoaat komt uit het zuur.",
+        pentanol: "Dat is een alkanol. Welk zuur ontstaat er?",
+        "pentaan-1-ol": "Dat is een alkanol. Welk zuur ontstaat er?",
+        "propaan-1-ol": "Dat is het alkanol. Welk zuur ontstaat er?"
+      },
+      goedMaar: {
+        "pentaan-1-zuur": "Goed! Het plaatsnummer 1 is niet nodig: bij een carbonzuur zit de COOH altijd aan C-atoom 1."
+      },
+      zo: "Pentanoaat komt uit het zuur: <b>pentaanzuur</b>. Propyl komt uit het alkanol: propaan-1-ol."
+    },
+    oQ: {
+      fouten: {
+        C3H8O3: "Vergeet het water niet: bij estervorming gaat er één H₂O af."
+      },
+      zo: "C₂H₄O₂ + CH₄O − H₂O = <b>C₃H₆O₂</b> (methylethanoaat)."
     }
   },
   // ── Les 9 · De rechtszaak ──────────────────────────────────
@@ -1140,25 +1299,8 @@ window.WL_FEEDBACK = {
     omwegen: {
       S: "Het ging mis bij het stappenplan voor de naam.",
       I: "Het ging mis bij het herkennen van isomeren.",
-      R: "Het ging mis bij het lezen van de hoekpuntnotatie."
-    },
-    h1: {
-      fouten: {
-        "1-chloorbutaan-3-ol": "De OH-groep bepaalt de uitgang: die moet het laagste nummer krijgen.",
-        "4-chloorbutanol": "Aan welk C-atoom zit de OH-groep? Dat nummer hoort in de naam.",
-        "3-hydroxy-1-chloorbutaan": "De OH-groep bepaalt de uitgang -ol; alleen het chloor komt vooraan.",
-        "4-chloorbutaan-2-on": "Is het een C=O of een OH?",
-        "1-chloor-3-butanol": "Het plaatsnummer van de OH staat vlak voor -ol: butaan-…-ol."
-      },
-      zo: "De OH bepaalt de uitgang: <b>-ol</b>. Keten van 4. Van rechts zit de OH op 2 (van links op 3), dus van rechts nummeren. Cl zit dan op 4: <b>4-chloorbutaan-2-ol</b>."
-    },
-    p1: {
-      fouten: {
-        "2-methylhexaan-4-ol": "De OH-groep moet het laagste nummer krijgen, niet de methylgroep.",
-        "5-methylhexanol": "Aan welk C-atoom zit de OH-groep? Dat nummer hoort in de naam.",
-        "5-methylheptaan-3-ol": "Tel de C-atomen in de keten nog eens."
-      },
-      zo: "OH op 3 (van rechts), methyl dan op 5: <b>5-methylhexaan-3-ol</b>."
+      R: "Het ging mis bij het lezen van de hoekpuntnotatie.",
+      Q: "Het Witte Konijn zet alle reacties nog eens op een rij."
     },
     h2: {
       fouten: {
@@ -1179,26 +1321,6 @@ window.WL_FEEDBACK = {
       },
       zo: "Ring: 5 H. Butylgroep: 2 + 2 + 2 + 3 = 9. Samen <b>14</b> (C₁₀H₁₄).",
       zoH: true
-    },
-    h3: {
-      fouten: {
-        "2-ethylpentaan-3-on": "Dat is de naam van de Boer. Zoek de langste keten opnieuw: loopt die door de ethylgroep?",
-        "3-methylhexaan-4-on": "De keten klopt. Nummer zo dat de C=O het laagste nummer krijgt.",
-        "4-methylhexaan-3-ol": "Een C=O is geen OH: welke uitgang hoort bij een keton?",
-        "4-ethylpentaan-3-on": "Zoek de langste keten opnieuw: loopt die door de ethylgroep?"
-      },
-      zo: "De langste keten loopt door de ethylgroep: 6 C-atomen. Van de kant van de C=O genummerd: C=O op 3, methyl op 4 → <b>4-methylhexaan-3-on</b>."
-    },
-    p3: {
-      goedMaar: {
-        "3-methylhexaan-1-zuur": "Goed! Het plaatsnummer 1 is niet nodig: bij een carbonzuur zit de COOH altijd aan C-atoom 1."
-      },
-      fouten: {
-        "3-propylbutaanzuur": "Dat is de naam van de Boer. Zoek de langste keten opnieuw vanaf het C-atoom van de COOH.",
-        "4-methylhexaanzuur": "Tel nog eens vanaf het C-atoom van de COOH: dat is C-atoom 1.",
-        "3-methylpentaanzuur": "Tel de C-atomen in de langste keten nog eens."
-      },
-      zo: "De langste keten vanaf de COOH loopt door de propylgroep: 6 C-atomen → <b>hexaanzuur</b>. Wat overblijft is een methylgroep op 3: <b>3-methylhexaanzuur</b>."
     },
     h4: {
       optieUitleg: {
@@ -1272,6 +1394,32 @@ window.WL_FEEDBACK = {
       },
       zo: "Ring: 4 C-atomen met 2 H en 2 met 1 H = 10. Ethyl 5, methyl 3. Samen <b>18</b>.",
       zoH: true
+    },
+    h7: {
+      rijHints: ["Eén stof valt uiteen in twee kleinere.", "Er ontstaat één stof.", "Er ontstaat ook HCl.", "Er reageert O₂, maar er ontstaat geen CO₂.", "Er ontstaat één stof.", "Er reageert O₂, maar er ontstaat geen CO₂."]
+    },
+    p7: {
+      rijHints: ["Er ontstaat één stof.", "Eén stof valt uiteen in kleinere.", "Er reageert O₂, maar er ontstaat geen CO₂.", "Er ontstaat ook HBr.", "Er reageert O₂, maar er ontstaat geen CO₂.", "Eén stof valt uiteen in twee kleinere."]
+    },
+    h8: {
+      fouten: {
+        "hex-1-een": "Uit hex-1-een kunnen twee alkanolen ontstaan: hexaan-1-ol en hexaan-2-ol.",
+        "hex-2-een": "Uit hex-2-een kunnen twee alkanolen ontstaan: hexaan-2-ol en hexaan-3-ol.",
+        cyclohexaan: "Ontkleurt cyclohexaan broomwater?",
+        "hexaan-3-ol": "Dat is het alkanol. Welke stof is X?"
+      },
+      zo: "Alleen bij hex-3-een geven beide C-atomen van de dubbele binding dezelfde stof: <b>hexaan-3-ol</b>. Dat is een secundair alkanol, en wordt met zuurstof hexaan-3-on. X is <b>hex-3-een</b>."
+    },
+    p8: {
+      fouten: {
+        "oct-1-een": "Uit oct-1-een kunnen twee alkanolen ontstaan.",
+        "oct-2-een": "Uit oct-2-een kunnen twee alkanolen ontstaan.",
+        "oct-3-een": "Uit oct-3-een kunnen twee alkanolen ontstaan."
+      },
+      zo: "Alleen bij oct-4-een zit de dubbele binding precies in het midden: er ontstaat alleen octaan-4-ol. Y is <b>oct-4-een</b>."
+    },
+    oQ: {
+      zo: "Er ontstaat één stof: <b>additie</b> van broom aan propeen."
     }
   }
 };

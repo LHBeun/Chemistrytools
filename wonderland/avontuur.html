@@ -88,6 +88,15 @@
   .optie svg { display: block; max-width: 100%; height: auto; }
   .optie.tekstoptie { min-height: 0; padding: 14px; font: 600 1.35rem var(--body); }
   .optie.tekstoptie b { display: none; }
+  .vergelijking { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 8px; margin: 14px 0 2px; }
+  .vergelijking .term { display: inline-flex; align-items: center; gap: 4px; }
+  .vergelijking .formule { margin: 0; font-size: 1.4rem; padding: 4px 10px; }
+  .vergelijking .plus, .vergelijking .pijl { font-size: 1.4rem; opacity: .8; }
+  .vergelijking .pijl { margin: 0 6px; }
+  .coef { width: 2.6em; font: inherit; font-size: 1.3rem; text-align: center; padding: 4px; border: 2px solid rgba(110,75,25,.35); border-radius: 6px; background: #fffaf0; color: inherit; }
+  .coef::placeholder { color: rgba(110,75,25,.35); }
+  .boekjeverwijzing { text-align: center; font-size: 1.05rem; opacity: .85; margin: 4px 0 10px; }
+  .formulevoorbeeld { font-size: 1.3rem; min-width: 4em; opacity: .85; }
   .indeling { display: grid; gap: 10px; margin: 12px 0 4px; }
   .indrij { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
   .indrij .formule { min-width: 120px; text-align: center; }
@@ -397,7 +406,8 @@ function stand(nr) {
   const h = speler?.h?.[nr];
   if (!h) return "Nog niet begonnen";
   if (h.klaar) return "✓ Door de deur";
-  return `Stap ${Math.min((h.stap || 0) + 1, 6)} van 6`;
+  const n = A[nr].hoofdpad.length;
+  return `Stap ${Math.min((h.stap || 0) + 1, n)} van ${n}`;
 }
 function badgeHTML(h) {
   if (!h) return "";
@@ -447,9 +457,23 @@ const AV = () => A[huidig];
 const FB = () => (window.WL_FEEDBACK || {})[huidig] || {};
 const metFeedback = it => it ? { ...it, ...(FB()[it.id] || {}) } : null;
 const normNaam = v => String(v).trim().toLowerCase().replace(/\s+/g, "").replace(/[‐‑‒–—−]/g, "-");
+// Molecuulformule: hoofd- en kleine letters, spaties en subscripts maken niet uit → "C4H8O2"
+const SUB = "₀₁₂₃₄₅₆₇₈₉";
+function normFormule(v) {
+  let s = String(v).replace(/[₀-₉]/g, c => SUB.indexOf(c)).replace(/\s+/g, "");
+  const tel = {}; let rest = s;
+  rest = rest.replace(/(br|cl|c|h|o|n|f|i)(\d*)/gi, (_, el, n) => {
+    el = el[0].toUpperCase() + el.slice(1).toLowerCase();
+    tel[el] = (tel[el] || 0) + (n === "" ? 1 : parseInt(n, 10)); return "";
+  });
+  if (rest.length || !Object.keys(tel).length) return s.toLowerCase();
+  const volg = ["C", "H", ...Object.keys(tel).filter(e => e !== "C" && e !== "H").sort()];
+  return volg.filter(e => tel[e]).map(e => e + (tel[e] === 1 ? "" : tel[e])).join("");
+}
+const mooiFormule = s => String(s).replace(/\d/g, d => SUB[d]);
 function gerichteFout(it, waarde) {
   if (!it.fouten) return "";
-  const n = it.type === "getal" ? (v => String(parseInt(v, 10))) : normNaam;
+  const n = it.type === "getal" ? (v => String(parseInt(v, 10))) : it.type === "formule" ? normFormule : normNaam;
   const k = Object.keys(it.fouten).find(f => n(f) === waarde);
   return k ? it.fouten[k] : "";
 }
@@ -470,6 +494,13 @@ function inhoudHTML(it) {
   h += `<p class="opdracht">${it.vraag}</p>`;
   if (it.type === "naam") h += `<div class="antwoord"><input class="naam" id="ant" autocomplete="off" spellcheck="false" placeholder="naam"><button class="knop" id="controleer" disabled>Controleer</button></div>`;
   if (it.type === "getal") h += `<div class="antwoord"><input class="getal" id="ant" inputmode="numeric" autocomplete="off" maxlength="3"><button class="knop" id="controleer" disabled>Controleer</button></div>`;
+  if (it.type === "formule") h += `<div class="antwoord"><input class="naam formule-in" id="ant" autocomplete="off" spellcheck="false" placeholder="molecuulformule"><span class="formulevoorbeeld" id="fvb"></span><button class="knop" id="controleer" disabled>Controleer</button></div>`;
+  if (it.type === "vergelijking") {
+    const kant = stoffen => stoffen.map((s, i) => `<span class="term"><input class="coef" inputmode="numeric" autocomplete="off" maxlength="2" placeholder="1" aria-label="getal voor ${s.f}"><span class="formule">${s.f}</span></span>`).join(`<span class="plus">+</span>`);
+    h += `<div class="vergelijking">${kant(it.links)}<span class="pijl">⟶</span>${kant(it.rechts)}</div>
+      <p class="meer">Een leeg vakje telt als 1.</p>
+      <div class="antwoord"><button class="knop" id="controleer">Controleer</button></div>`;
+  }
   if (it.type === "kies") {
     const tekst = it.opties.every(o => o.tekst);
     if (!it.enkel) h += `<p class="meer">Er kunnen er meer goed zijn.</p>`;
@@ -496,6 +527,7 @@ function koppelInvoer(it, onControle) {
   if (ant) {
     ant.addEventListener("input", () => {
       if (it.type === "getal") ant.value = ant.value.replace(/[^0-9]/g, "");
+      if (it.type === "formule") $("fvb").textContent = ant.value.trim() ? mooiFormule(normFormule(ant.value)) : "";
       knop.disabled = !ant.value.trim(); reset();
     });
     ant.addEventListener("keydown", e => { if (e.key === "Enter" && !knop.disabled) knop.click(); });
@@ -518,9 +550,29 @@ function koppelInvoer(it, onControle) {
     k.classList.add("gekozen"); rijen[k.dataset.rij] = k.dataset.k;
     knop.disabled = Object.keys(rijen).length < it.items.length; reset();
   });
+  document.querySelectorAll(".coef").forEach(c => {
+    c.addEventListener("input", () => { c.value = c.value.replace(/[^0-9]/g, ""); reset(); });
+    c.addEventListener("keydown", e => { if (e.key === "Enter") knop.click(); });
+  });
+  if (it.type === "vergelijking") setTimeout(() => document.querySelector(".coef")?.focus(), 60);
   knop.onclick = async () => {
     if (busy) return; busy = true;
     try {
+      // Reactievergelijking: tel de atomen links en rechts
+      if (it.type === "vergelijking") {
+        const coef = [...document.querySelectorAll(".coef")].map(c => c.value === "" ? 1 : parseInt(c.value, 10));
+        const stoffen = [...it.links, ...it.rechts];
+        const tel = kant => { const t = {}; kant.forEach(({ s, k }) => Object.entries(s.a).forEach(([e, n]) => t[e] = (t[e] || 0) + k * n)); return t; };
+        const L = tel(it.links.map((s, i) => ({ s, k: coef[i] }))), R = tel(it.rechts.map((s, i) => ({ s, k: coef[it.links.length + i] })));
+        const els = [...new Set([...Object.keys(L), ...Object.keys(R)])];
+        const scheef = els.filter(e => (L[e] || 0) !== (R[e] || 0));
+        const ggd = (a, b) => b ? ggd(b, a % b) : a;
+        const deler = coef.reduce(ggd);
+        const nul = coef.some(c => !c);
+        const goed = !nul && !scheef.length && deler === 1;
+        await onControle(goed, coef.join(","), { scheef, L, R, deler, nul });
+        return;
+      }
       // Meerdere-antwoorden-kiesvraag: per optie controleren
       if (it.type === "kies" && !it.enkel) {
         const fouteKeuze = [], gemist = [];
@@ -541,6 +593,7 @@ function koppelInvoer(it, onControle) {
       }
       let waarde;
       if (it.type === "naam") waarde = ant.value.trim().toLowerCase().replace(/\s+/g, "").replace(/[‐‑‒–—−]/g, "-");
+      else if (it.type === "formule") waarde = normFormule(ant.value);
       else if (it.type === "getal") waarde = String(parseInt(ant.value, 10));
       else waarde = keuze;
       const hash = await wlHash(huidig, "a-" + it.id, waarde);
@@ -576,7 +629,7 @@ function teken() {
   if (r.fase === "opgave" || r.fase === "parallel" || r.fase === "makkelijk") {
     const it = item();
     const isOmweg = r.fase !== "opgave";
-    const pers = isOmweg ? av.personages[r.om] : null;
+    const pers = isOmweg ? av.personages[av.omwegen[r.om]?.personage || r.om] : null;
     zijkant(pers?.plaat);
     const kop = r.fase === "opgave" ? `Stap ${r.stap + 1} van ${av.hoofdpad.length}` : r.fase === "makkelijk" ? `Omweg · ${pers.naam}` : `Terug op het pad · stap ${r.bron + 1}`;
     p.innerHTML = `<div class="kaart perkament ${r.fase === "makkelijk" ? "omweg" : ""}"><div class="kop">${kop}</div>
@@ -591,10 +644,16 @@ function teken() {
         const noot = it.goedMaar && Object.keys(it.goedMaar).find(k => normNaam(k) === waarde);
         if (noot) tk.insertAdjacentHTML("beforeend", `<p class="noot">${it.goedMaar[noot]}</p>`);
         if (it.zo) tk.insertAdjacentHTML("beforeend", `<details class="zo"><summary>Zo zit het</summary><div>${it.zo}${it.zoH && it.skelet ? `<div class="zoH">${klein(wlSkeletSVG(it.skelet), 1.3)}</div>` : ""}</div></details>`);
-        document.querySelectorAll("#controleer, #ant, .optie, .keuzeknop").forEach(e => { e.disabled = true; e.style.pointerEvents = "none"; });
+        document.querySelectorAll("#controleer, #ant, .optie, .keuzeknop, .coef").forEach(e => { e.disabled = true; e.style.pointerEvents = "none"; });
         $("na").innerHTML = `<button class="knop" id="verder">Verder ▸</button>`;
         $("verder").focus();
         $("verder").onclick = () => volgende();
+        return;
+      }
+      // kloppend, maar niet de kleinste getallen: telt niet als fout
+      if (it.type === "vergelijking" && !detail.nul && !detail.scheef.length && detail.deler > 1) {
+        tk.className = "terugkoppeling fout";
+        tk.textContent = `Alles klopt, maar het kan met kleinere getallen: deel alles door ${detail.deler}.`;
         return;
       }
       noteerFout(it.id, waarde);
@@ -630,7 +689,11 @@ function teken() {
       const n = detail.gemist?.length || 0;
       const extra = detail.fouteKeuze ? [detail.fouteKeuze.length ? (detail.fouteKeuze.length === 1 ? "De rood omlijnde keuze past niet." : "De rood omlijnde keuzes passen niet.") : "", n ? `Je mist er nog ${n}.` : ""].filter(Boolean).join(" ")
         : detail.foutRijen ? `Er ${detail.foutRijen === 1 ? "staat er nog 1" : `staan er nog ${detail.foutRijen}`} verkeerd.` : "";
-      const gericht = detail.spatie ? "Bijna: de naam van een ester schrijf je als één woord, zonder spatie." : gerichteFout(it, waarde);
+      const NAAM = { C: "C-atomen", H: "H-atomen", O: "O-atomen", N: "N-atomen", Cl: "Cl-atomen", Br: "Br-atomen" };
+      const verg = it.type !== "vergelijking" ? "" : detail.nul ? "Een getal 0 kan niet: dan doet die stof niet mee."
+        : detail.scheef.length ? detail.scheef.map(e => `Tel de ${NAAM[e] || e + "-atomen"}: links ${detail.L[e] || 0}, rechts ${detail.R[e] || 0}.`).join(" ")
+        : detail.deler > 1 ? `Alles klopt, maar het kan met kleinere getallen: deel alles door ${detail.deler}.` : "";
+      const gericht = verg || (detail.spatie ? "Bijna: de naam van een ester schrijf je als één woord, zonder spatie." : gerichteFout(it, waarde));
       tk.innerHTML = `✗ Nog niet goed. ${extra ? extra + " " : ""}${gericht || (uitgelegd ? "" : it.hint)}`;
       if (r.fase !== "opgave" && r.pog >= 2) {
         $("na").innerHTML = `<button class="knop donker" id="nogmaals">Bekijk de uitleg nog eens</button>`;
@@ -704,6 +767,7 @@ function teken() {
     zijkant();
     p.innerHTML = `<div class="kaart perkament"><div class="banier"><h2>✦ Je bent door de deur! ✦</h2></div>
       <p class="verhaal" style="text-align:center">${av.einde}</p>
+      ${av.boekje ? `<p class="boekjeverwijzing">✎ ${av.boekje}</p>` : ""}
       <div class="beloning"><div class="${r.edelsteen ? "" : "nog"}">${STEEN}edelsteen</div><div class="${r.sleutel ? "" : "nog"}">${SLEUTEL}gouden sleutel</div></div>
       <div class="knoprij" style="justify-content:center">
         ${r.edelsteen ? "" : `<button class="knop" id="kluis">◆ Naar de schatkist</button>`}

@@ -39,6 +39,7 @@ const tak = (s, op, [dx, dy], n = 1) => {
 window.WL_AVONTUUR = {
   1: {
     titel: "De gang met deuren",
+    boekje: "Structuurformules tekenen oefen je in het boekje: les 1, opgave 3 en 10.",
     plaat: P(3),
     intro: [
       "Plof! Alice ligt op een hoop droge bladeren, in een lange, lage gang. Overal deuren — allemaal op slot.",
@@ -67,23 +68,6 @@ window.WL_AVONTUUR = {
           vraag: "Geef de naam van deze stof.",
           hash: ["1069643449dc45ddf24034b8966ee1f5b6d6e5b908ee8450684e0a67f8ffcc3f"],
           hint: "Tel de C-atomen en zoek de stam op in het rijtje van het Konijn."
-        }
-      },
-      {
-        id: "h2", type: "naam",
-        verhaal: "Op het slot van de eerste deur staat een tekening.",
-        volledig: recht(5),
-        vraag: "Geef de naam van deze stof.",
-        hash: ["66b1ec278b254a4325113e0c38fb5ec34c9c97bbb38a55bc5cac0fad2867564a"],
-        hint: "Tel de C-atomen in de keten. Zijn alle bindingen tussen de C-atomen enkel?",
-        omweg: "A",
-        goed: "Klik. De eerste deur zwaait open — en daarachter zit… nog een deur.",
-        parallel: {
-          verhaal: "Op een kastdeur in de gang staat ook een tekening.",
-          volledig: recht(9),
-          vraag: "Geef de naam van deze stof.",
-          hash: ["27f95d805cbb65048f44937305eea3d6db2dd4c3a52f3ce1ae4fcc523b89ab14"],
-          hint: "Tel de C-atomen nog eens rustig, van links naar rechts."
         }
       },
       {
@@ -134,34 +118,6 @@ window.WL_AVONTUUR = {
         }
       },
       {
-        id: "h5", type: "kies",
-        verhaal: "Aan een flesje hangt een kaartje: “Drink me — maar alleen met een alkyn.” Op de grond liggen zes kaartjes met een tekening.",
-        vraag: "Kies álle kaartjes met een alkyn.",
-        opties: [
-          { label: "A", volledig: recht(5, { 0: 2 }), omweg: "C", k: "017df7e45c49cc5317f6148f0504ae06bd7c5a83c26efe3a33da76c7ccf3c737" },
-          { label: "B", volledig: recht(5, { 1: 3 }), omweg: "C", k: "661abb77f819101c95df9c376a07c4a7b81e754459cb2487cad17ad864107eae" },
-          { label: "C", volledig: recht(5, { 0: 2 }, { 1: 2 }), omweg: "B", k: "279929268934d30bff6aaee1cba84471a0b6860efd78279f01b16cd660b827bf" },
-          { label: "D", volledig: knik(4, 3, { 0: 3 }), omweg: "K", k: "d71a9aa17d79fa63e545da816d3d72deb39b09709167e233b9e6e061f613f755" },
-          { label: "E", volledig: recht(5), omweg: "C", k: "a36d8ee504ed9a51e84aa5cb35fdfeb9cdba27cf977325ef812595d4c8889fb3" },
-          { label: "F", volledig: knik(4, 3, { 1: 2 }), omweg: "C", k: "63e3b7076191a5d89387b77df406e40d920a6e0a74e1f1e10ddc9de42bf470e6" }
-        ],
-        hint: "Waaraan herken je een alkyn in een structuurformule? Tel daarna bij elk C-atoom de bindingen.",
-        goed: "Alice drinkt. Ze krimpt en krimpt… tot ze precies klein genoeg is.",
-        parallel: {
-          verhaal: "Er staat nog een flesje: “Drink me — maar alleen met een alkeen.”",
-          vraag: "Kies álle kaartjes met een alkeen.",
-          opties: [
-            { label: "A", volledig: recht(4, {}, { 1: 1 }), k: "3800da108699ddf693aa31b90b35422c22927cc536a3c6899c5e2677700266e6" },
-            { label: "B", volledig: knik(5, 3, { 0: 2 }), k: "6ec18957262d92b780a163f87d083447546495eba1e531d876724658aaf31ba7" },
-            { label: "C", volledig: recht(4, { 0: 3 }), k: "926b85633d6b0983616202a7ce791e90b093126a1bf9cd36a6d6cd5442c19bae" },
-            { label: "D", volledig: recht(4), k: "904949bf18ba87dd5eb174eb75bcfbc8924c65e42cf279f24b7b6826be3dd0f1" },
-            { label: "E", volledig: recht(4, { 1: 2 }), k: "1933aa2bfa02f08a404d1444a4569367994da20446e4ca8f8a81f1d8c614f2c8" },
-            { label: "F", volledig: knik(5, 3), k: "2d75bbaa31cea213f9d8d788c40e21fa6b2be0de129395be3af2b49a70136954" }
-          ],
-          hint: "Waaraan herken je een alkeen? En klopt het aantal bindingen bij elk C-atoom?"
-        }
-      },
-      {
         id: "h6", type: "getal",
         verhaal: "Achter een gordijn zit een piepklein deurtje. Op het slot is een molecuul getekend — maar zónder H-atomen.",
         keten: { atomen: ["C", "C", "C", "C", "C", "C"], bindingen: [1, 1, 1, 1, 1] },
@@ -176,6 +132,98 @@ window.WL_AVONTUUR = {
           vraag: "Hoeveel H-atomen heeft dit molecuul?",
           hash: ["15a543eb28418300aaf1304482d07e0c6746bce2a2c98353817cb93b4dad2d46"],
           hint: "Tel per C-atoom: hoeveel bindingen naar C, en hoeveel H zijn er dan nog nodig om op 4 te komen?"
+        }
+      },
+      {
+        id: "h7",
+        type: "vergelijking",
+        verhaal: "Aan de muur hangt een lamp die brandt op pentaan. Op het glas staat de reactie, maar de getallen zijn weggevaagd.",
+        vraag: "Maak de vergelijking van de volledige verbranding van pentaan kloppend.",
+        links: [
+          {
+            f: "C₅H₁₂",
+            a: {
+              C: 5,
+              H: 12
+            }
+          },
+          {
+            f: "O₂",
+            a: {
+              O: 2
+            }
+          }
+        ],
+        rechts: [
+          {
+            f: "CO₂",
+            a: {
+              C: 1,
+              O: 2
+            }
+          },
+          {
+            f: "H₂O",
+            a: {
+              H: 2,
+              O: 1
+            }
+          }
+        ],
+        hint: "Begin bij C, dan H, en als laatste O.",
+        omweg: "V",
+        goed: "De lamp springt aan en verlicht de hele gang.",
+        parallel: {
+          verhaal: "Verderop hangt nog een lamp. Deze brandt op heptaan.",
+          vraag: "Maak de vergelijking van de volledige verbranding van heptaan kloppend.",
+          links: [
+            {
+              f: "C₇H₁₆",
+              a: {
+                C: 7,
+                H: 16
+              }
+            },
+            {
+              f: "O₂",
+              a: {
+                O: 2
+              }
+            }
+          ],
+          rechts: [
+            {
+              f: "CO₂",
+              a: {
+                C: 1,
+                O: 2
+              }
+            },
+            {
+              f: "H₂O",
+              a: {
+                H: 2,
+                O: 1
+              }
+            }
+          ],
+          hint: "Begin bij C, dan H, en als laatste O."
+        }
+      },
+      {
+        id: "h8",
+        type: "formule",
+        verhaal: "Onder de lamp ligt een briefje van het Konijn: “Eén molecuul van mijn lampolie gaf bij volledige verbranding 6 moleculen CO₂ en 6 moleculen H₂O.”",
+        vraag: "Geef de molecuulformule van de lampolie.",
+        hash: ["7c07159994441053707847c3ce0de017128822653b31c1e7a4cc27d50b6fb3b6"],
+        hint: "Elk C-atoom komt in één molecuul CO₂. Hoeveel H-atomen zitten er in één molecuul H₂O?",
+        omweg: "V",
+        goed: "Het Konijn knikt. “Precies mijn olie.”",
+        parallel: {
+          verhaal: "Op de achterkant staat nog iets: “De reserve-olie gaf per molecuul 7 moleculen CO₂ en 8 moleculen H₂O.”",
+          vraag: "Geef de molecuulformule van de reserve-olie.",
+          hash: ["a0ada22601e1077861af90fd1abed955b73476fc2de394c9661af596c7156cef"],
+          hint: "Elk C-atoom komt in één molecuul CO₂. Hoeveel H-atomen zitten er in één molecuul H₂O?"
         }
       }
     ],
@@ -259,6 +307,52 @@ window.WL_AVONTUUR = {
           hash: ["0735791ddab542362f668aba2a57d5cdb0eeee1296fcdcacbe9d7daf02e48b85"],
           hint: "Begin bij een uiteinde en volg de bindingen, ook om de hoeken."
         }
+      },
+      V: {
+        personage: "B",
+        verhaal: "De Kolderkat grijnst in het licht van de lamp. “Branden is tellen,” spint hij. “Wat erin gaat, komt er ook weer uit.”",
+        voorbeeld: {
+          tekst: "Bij een <b>volledige verbranding</b> komen alle C-atomen in CO₂ en alle H-atomen in H₂O. Maak de vergelijking kloppend in de volgorde <b>C → H → O</b>.",
+          uitwerking: "CH₄ + O₂ ⟶ CO₂ + H₂O. C: 1 → <b>1</b> CO₂. H: 4 → <b>2</b> H₂O. O rechts: 2 + 2 = 4 → <b>2</b> O₂. Dus: CH₄ + 2 O₂ ⟶ CO₂ + 2 H₂O."
+        },
+        makkelijk: {
+          id: "oV",
+          type: "vergelijking",
+          verhaal: "“Nu jij,” zegt de Kat. Hij wijst naar een fakkel op propyn.",
+          vraag: "Maak de vergelijking van de volledige verbranding van propyn kloppend.",
+          hint: "Begin bij C, dan H, en als laatste O.",
+          links: [
+            {
+              f: "C₃H₄",
+              a: {
+                C: 3,
+                H: 4
+              }
+            },
+            {
+              f: "O₂",
+              a: {
+                O: 2
+              }
+            }
+          ],
+          rechts: [
+            {
+              f: "CO₂",
+              a: {
+                C: 1,
+                O: 2
+              }
+            },
+            {
+              f: "H₂O",
+              a: {
+                H: 2,
+                O: 1
+              }
+            }
+          ]
+        }
       }
     },
     kluis: {
@@ -280,6 +374,7 @@ window.WL_AVONTUUR = {
   },
   2: {
     titel: "Het huis van het Witte Konijn",
+    boekje: "Structuurformules tekenen oefen je in het boekje: les 2, opgave 2, 4 en 8, en de gouden sleutel.",
     plaat: P(2),
     intro: [
       "Het Witte Konijn ziet Alice voor zijn dienstmeid aan. “Mary Ann! Haal mijn handschoentjes en mijn waaier, vlug!”",
@@ -338,23 +433,6 @@ window.WL_AVONTUUR = {
         }
       },
       {
-        id: "h3", type: "naam",
-        verhaal: "Halverwege de trap hangt een lijstje met een vreemd gekronkeld molecuul. Het bordje eronder is onleesbaar geworden.",
-        volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [1, 1], [1, 2]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [1, 6, 1], [6, 7, 1]] },
-        vraag: "Geef de systematische naam van deze stof.",
-        hash: ["ad5dc8e9bd16dfc20f5e2687bc52e93eee84d7757de6dc025781503a10d2599e"],
-        hint: "Hoe lang is de langste keten echt? Probeer alle routes van uiteinde tot uiteinde, ook om de hoek.",
-        omweg: "D",
-        goed: "Alice verbetert het bordje. Het lijstje hangt ineens recht.",
-        parallel: {
-          verhaal: "Op de overloop hangt nog een lijstje, ook zonder leesbaar bordje.",
-          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [1, 1], [1, 2], [1, 3]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [1, 6, 1], [6, 7, 1], [7, 8, 1]] },
-          vraag: "Geef de systematische naam van deze stof.",
-          hash: ["b66c011c62268040cfdd192f0bdd5dffc71b5ee9cd41bd9759d3cf6fc3c74c75"],
-          hint: "De langste keten hoeft niet recht te lopen. Tel alle routes van uiteinde tot uiteinde."
-        }
-      },
-      {
         id: "h4", type: "naam",
         verhaal: "In de slaapkamer van het Konijn staat een flesje met twee verschillende zijtakken. Het etiket is half afgescheurd.",
         volledig: tak(tak(recht(5), 1, [0, -1]), 2, [0, 1], 2),
@@ -369,23 +447,6 @@ window.WL_AVONTUUR = {
           vraag: "Geef de systematische naam van deze stof.",
           hash: ["4fef6bd2ba7d12f82a7b2a516bae811c690db007deb18ccd35029c9e452998a4"],
           hint: "Nummer de keten eerst vanaf beide kanten: welke kant geeft de laagste plaatsnummers? Pas daarna kies je de volgorde in de naam."
-        }
-      },
-      {
-        id: "h5", type: "naam",
-        verhaal: "Op het nachtkastje ligt een doosje met een tekening op het deksel. Het etiket is eraf gevallen.",
-        volledig: recht(7, { 3: 2 }),
-        vraag: "Geef de systematische naam van deze stof.",
-        hash: ["d64eaa21186e6adb9cfbe502231cfb0b01c017d6b6bbd7c476aa1772292d54c8"],
-        hint: "Nummer vanaf beide kanten. Bij welk nummer begint de dubbele binding dan?",
-        omweg: "E",
-        goed: "Het doosje springt open. Er zitten waaiertjes en witte handschoentjes in.",
-        parallel: {
-          verhaal: "Onder het doosje ligt nog een doosje, ook met een tekening op het deksel.",
-          volledig: knik(8, 5, { 5: 2 }),
-          vraag: "Geef de systematische naam van deze stof.",
-          hash: ["0a7830bbec6103799ccc91aea1bf1db0394c693e1f6d3ff7a545d8420f173681"],
-          hint: "Volg de keten van uiteinde tot uiteinde. Vanaf welk uiteinde krijgt de dubbele binding het laagste nummer?"
         }
       },
       {
@@ -414,6 +475,40 @@ window.WL_AVONTUUR = {
             { label: "F", volledig: tak(recht(7, { 1: 2 }), 4, [0, 1]), k: "94286ae53290d2c2677677150dc8de1d3b8238cf9d15591b85a3929b74f1641b" }
           ],
           hint: "Zoek de langste keten, nummer vanaf de kant die het dichtst bij de dubbele binding zit, en kijk dan waar de zijtak zit."
+        }
+      },
+      {
+        id: "h7",
+        type: "formule",
+        verhaal: "In de kelder van het Konijn staat een kraakinstallatie: een lange buis waarin olie in stukken breekt. Op de meter staat:",
+        formule: "C₁₂H₂₆ ⟶ C₉H₂₀ + ?",
+        vraag: "Geef de molecuulformule van de stof op de plaats van het vraagteken.",
+        hash: ["59ee78867298a6aab185b85259a9dff38486d76b53084569ce00629412618a3d"],
+        hint: "Er verdwijnen geen atomen. Hoeveel C- en H-atomen blijven er over?",
+        omweg: "W",
+        goed: "De meter tikt goedkeurend.",
+        parallel: {
+          verhaal: "Op een tweede meter staat:",
+          formule: "C₁₁H₂₄ ⟶ C₇H₁₆ + ?",
+          vraag: "Geef de molecuulformule van de stof op de plaats van het vraagteken.",
+          hash: ["8419826a8bc35b5a31a4b432a2b2e3360e3649b54dc1eff5fcbfec099f562c05"],
+          hint: "Er verdwijnen geen atomen. Hoeveel C- en H-atomen blijven er over?"
+        }
+      },
+      {
+        id: "h8",
+        type: "naam",
+        verhaal: "Op een etiket: “Decaan, gekraakt tot heptaan en één alkeen.”",
+        vraag: "Geef de naam van het alkeen.",
+        hash: ["91ee88a592769ef5c94adbb0e27daa91bfe0cca831999a765694747df360c61e", "283a9857adfc19ae79a2dd1227723e20c599bf3b1acda3d22054cf11346a14bd"],
+        hint: "Bepaal eerst de molecuulformule van het alkeen. Hoeveel C-atomen heeft het?",
+        omweg: "W",
+        goed: "Het Konijn plakt het etiket recht. “Eindelijk een goede naam!”",
+        parallel: {
+          verhaal: "Op een ander etiket: “Dodecaan, gekraakt tot octaan en één onvertakt alkeen met de dubbele binding aan het uiteinde.”",
+          vraag: "Geef de naam van het alkeen.",
+          hash: ["0573776a72ed5645ad2fc2b0d880f42966e4c591c06918da077e2841a092c52f"],
+          hint: "Bepaal eerst de molecuulformule van het alkeen. Hoeveel C-atomen heeft het?"
         }
       }
     ],
@@ -471,6 +566,23 @@ window.WL_AVONTUUR = {
           hash: ["808bb189280efe76a1399a464c9470302e2d2c94255a234e49e32159f0bdfc31"],
           hint: "Twee zijtakken van dezelfde soort: welk voorvoegsel hoort daarbij? Vergeet de komma en het streepje niet."
         }
+      },
+      W: {
+        personage: "E",
+        verhaal: "Bill de hagedis komt de schoorsteen uit, onder het roet. “Kraken? Dat is gewoon breken. En er raakt niks kwijt!”",
+        voorbeeld: {
+          tekst: "Bij <b>kraken</b> breekt een lang alkaan in een korter alkaan en een alkeen. Er verdwijnen <b>geen atomen</b>: links en rechts staan evenveel C- en H-atomen.",
+          uitwerking: "C₈H₁₈ ⟶ C₆H₁₄ + ?. C: 8 − 6 = 2. H: 18 − 14 = 4. De stof is <b>C₂H₄</b>: dat past bij CₙH₂ₙ, een alkeen: <b>etheen</b>."
+        },
+        makkelijk: {
+          id: "oW",
+          type: "formule",
+          verhaal: "“Nu jij,” zegt Bill.",
+          formule: "C₇H₁₆ ⟶ C₅H₁₂ + ?",
+          vraag: "Geef de molecuulformule van de stof op de plaats van het vraagteken.",
+          hint: "Trek de C- en H-atomen van elkaar af.",
+          hash: ["b5bcb97f3fa8208e46cc7ab5f448909537b769ac0007f5dce5074e1c4bcf298d"]
+        }
       }
     },
     kluis: {
@@ -483,6 +595,7 @@ window.WL_AVONTUUR = {
   },
   3: {
     titel: "De Rups",
+    boekje: "Structuurformules tekenen oefen je in het boekje: les 3, opgave 2, 4, 7, 8, 12 en 13, en de gouden sleutel.",
     plaat: P(15),
     intro: [
       "Alice is nu zo klein als een duim. Ze kijkt over de rand van een paddenstoel — recht in de ogen van een grote blauwe Rups met een waterpijp.",
@@ -579,20 +692,19 @@ window.WL_AVONTUUR = {
         }
       },
       {
-        id: "h5", type: "naam",
-        verhaal: "Op een blaadje heeft de Rups een naam gekrabbeld. “Dat ben ik,” zegt hij. “Toch?” Alice tekent de stof — en schudt haar hoofd. Het is de goede stof, maar niet de goede naam.",
-        formule: "4-methylhex-5-een",
-        vraag: "Geef de juiste systematische naam van deze stof.",
-        hash: ["53d92b4e392bb37daaab1be536deaf97848f077d1824cb6a18df0a896441446e"],
-        hint: "Teken de stof zoals de naam zegt. Nummer daarna opnieuw volgens de regels: wat krijgt het laagste plaatsnummer?",
-        omweg: "K",
-        goed: "De Rups kijkt lang naar het blaadje. “Dezelfde stof,” zegt hij. “Een andere naam. Interessant.”",
+        id: "h7",
+        type: "getal",
+        verhaal: "De Rups blaast een kringetje rook. “Ik kraak heptaan,” zegt hij. “Telkens in precies één alkaan en één alkeen.”",
+        vraag: "Hoeveel verschillende combinaties van molecuulformules zijn er mogelijk?",
+        hash: ["89d2f14d16afd6b2701b796eb3149fbf2229af648d68c25e1ed97ed344a2cfb7"],
+        hint: "Begin met het kleinste alkaan en schrijf de combinaties op een rij.",
+        omweg: "W",
+        goed: "De Rups knikt langzaam. “Jij denkt in rijtjes. Goed zo.”",
         parallel: {
-          verhaal: "Op de achterkant van het blaadje staat nog een naam.",
-          formule: "3-methyl-2-propylpentaan",
-          vraag: "Geef de juiste systematische naam van deze stof.",
-          hash: ["994cd52095ee2a53552ba5e7167db32ba62f274635c650901ff54dbe64112785"],
-          hint: "Teken de stof en zoek opnieuw de langste keten: loopt die misschien door de zijtak?"
+          verhaal: "“En nu octaan,” zegt de Rups. “Weer in precies één alkaan en één alkeen.”",
+          vraag: "Hoeveel verschillende combinaties van molecuulformules zijn er mogelijk?",
+          hash: ["51c450334b5572e47675eb6eb4206156d2ccf2669c7f21c66f2176bad4150c1a"],
+          hint: "Begin met het kleinste alkaan en schrijf de combinaties op een rij."
         }
       },
       {
@@ -687,6 +799,22 @@ window.WL_AVONTUUR = {
           hash: ["b995afe936d4f2ad088db6e80ff3b6a4fc7f2764d8e6d7f88b1d8b8ee53ca872"],
           hint: "Zoek eerst de langste keten: probeer ook de route naar beneden."
         }
+      },
+      W: {
+        personage: "G",
+        verhaal: "De duif fladdert op. “Kraken, kraken! Alles in stukjes, maar niks kwijt!”",
+        voorbeeld: {
+          tekst: "Bij kraken breekt een alkaan in een korter <b>alkaan</b> en een <b>alkeen</b>. Een alkeen heeft minstens <b>2</b> C-atomen, een alkaan minstens <b>1</b>.",
+          uitwerking: "Pentaan, C₅H₁₂: CH₄ + C₄H₈, C₂H₆ + C₃H₆ en C₃H₈ + C₂H₄. Dat zijn <b>3</b> combinaties. C₄H₁₀ + ‘CH₂’ kan niet: een alkeen met 1 C-atoom bestaat niet."
+        },
+        makkelijk: {
+          id: "oW",
+          type: "getal",
+          verhaal: "“Nu jij,” koert de duif. “Hexaan, in één alkaan en één alkeen.”",
+          vraag: "Hoeveel verschillende combinaties van molecuulformules zijn er mogelijk?",
+          hint: "Het alkaan heeft 1, 2, 3, … C-atomen. Hoeveel blijven er over voor het alkeen?",
+          hash: ["22679c432c620810bb98aa6d30ac62f7c10924655081da95e6b965887d4062e1"]
+        }
       }
     },
     kluis: {
@@ -699,12 +827,13 @@ window.WL_AVONTUUR = {
   },
   4: {
     titel: "De Cheshire Kat",
+    boekje: "Structuurformules tekenen oefen je in het boekje: les 4, opgave 3, 9 en 14, en de gouden sleutel.",
     plaat: P(23),
     intro: [
       "Op een tak zit een kat, met een grijns van oor tot oor. “Wilt u me alstublieft zeggen welke kant ik op moet?” vraagt Alice.",
       "“Dat hangt er nogal van af waar je naartoe wilt,” zegt de Kat. “In mijn wereld tekenen we trouwens niet wat iedereen allang weet. Maar dat betekent niet dat het er niet is.”"
     ],
-    duur: "Ongeveer 20 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
+    duur: "Ongeveer 25 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
     personages: {
       R: { naam: "De Kolderkat", plaat: P(23) },
       B: { naam: "De Rups", plaat: P(15) },
@@ -845,6 +974,151 @@ window.WL_AVONTUUR = {
           ],
           hint: "Tel de C-atomen en de H-atomen. Een ring en een dubbele binding kosten allebei twee H ten opzichte van het alkaan."
         }
+      },
+      {
+        id: "h7",
+        type: "vergelijking",
+        verhaal: "De Kat verschijnt op een tak, eerst alleen zijn grijns. “Methylbenzeen met waterstof,” zegt hij, “wordt methylcyclohexaan.”",
+        vraag: "Maak de reactievergelijking kloppend.",
+        links: [
+          {
+            f: "C₇H₈",
+            a: {
+              C: 7,
+              H: 8
+            }
+          },
+          {
+            f: "H₂",
+            a: {
+              H: 2
+            }
+          }
+        ],
+        rechts: [
+          {
+            f: "C₇H₁₄",
+            a: {
+              C: 7,
+              H: 14
+            }
+          }
+        ],
+        hint: "Tel de H-atomen links en rechts. Hoeveel moleculen H₂ zijn er nodig?",
+        omweg: "Q",
+        goed: "De grijns wordt nog breder.",
+        parallel: {
+          verhaal: "“En 1,2-dimethylbenzeen met waterstof,” zegt de grijns, “wordt 1,2-dimethylcyclohexaan.”",
+          vraag: "Maak de reactievergelijking kloppend.",
+          links: [
+            {
+              f: "C₈H₁₀",
+              a: {
+                C: 8,
+                H: 10
+              }
+            },
+            {
+              f: "H₂",
+              a: {
+                H: 2
+              }
+            }
+          ],
+          rechts: [
+            {
+              f: "C₈H₁₆",
+              a: {
+                C: 8,
+                H: 16
+              }
+            }
+          ],
+          hint: "Tel de H-atomen links en rechts. Hoeveel moleculen H₂ zijn er nodig?"
+        }
+      },
+      {
+        id: "h8",
+        type: "kies",
+        verhaal: "Op een bordje aan de boom staat: “Hier woont 2-methylpentaan. Gemaakt door waterstof aan een alkeen te koppelen.”",
+        vraag: "Kies álle alkenen die met waterstof 2-methylpentaan geven.",
+        opties: [
+          {
+            label: "A",
+            volledig: methyl(5, 1, { 0: 2 }),
+            k: "10df376280aed3a721afa37a50afde0eaae726c6b07028b8a5f222727d482691"
+          },
+          {
+            label: "B",
+            volledig: recht(6, { 0: 2 }),
+            k: "e47884996fde0e009186abab43e7bc529ea3b28f8bca4d0d9c40531b1fcd23e5"
+          },
+          {
+            label: "C",
+            volledig: methyl(5, 3, { 1: 2 }),
+            k: "80d3bd3d4f3ff8206305e9792c88921a8e406280837a9f582f7a9de64026eda2"
+          },
+          {
+            label: "D",
+            volledig: methyl(5, 2, { 1: 2 }),
+            k: "1f23352e48f0ba688a831f8d2fb4ad7b8ce27e80c589e05f556ff650d739bf30"
+          },
+          {
+            label: "E",
+            volledig: methyl(5, 3, { 0: 2 }),
+            k: "d48cd5cc43c1733f1ed0145e224546a22e77b978f274a627c0471afb0059d439"
+          },
+          {
+            label: "F",
+            volledig: tak(methyl(4, 1, { 0: 2 }), 2, [0, -1]),
+            k: "f148a196ba9f1b6b3c785902703e64cf172531ffadf012b640f2101d2c951c14"
+          },
+          {
+            label: "G",
+            volledig: methyl(5, 1, { 1: 2 }),
+            k: "4c7248349435dc60181fa4f187bf2da3f073d0ab3d1c14750a801d9810c0e211"
+          }
+        ],
+        hint: "Bij additie van waterstof blijft het koolstofskelet hetzelfde. Kijk alleen naar de C-atomen.",
+        omweg: "Q",
+        goed: "“Zie je wel,” zegt de Kat. “Het skelet verandert niet.”",
+        parallel: {
+          verhaal: "Op een tweede bordje: “Hier woont 3-methylpentaan.”",
+          vraag: "Kies álle alkenen die met waterstof 3-methylpentaan geven.",
+          opties: [
+            {
+              label: "A",
+              volledig: methyl(5, 2, { 0: 2 }),
+              k: "cd0705dcfb6c747b12681694306631e33cc8add579ec597797759c78b60fe8d6"
+            },
+            {
+              label: "B",
+              volledig: methyl(5, 1, { 0: 2 }),
+              k: "403be39cfc7deecfa4442fda814e776281e6df493de2c37b401963698b3da257"
+            },
+            {
+              label: "C",
+              volledig: tak(recht(4, { 0: 2 }), 1, [0, 1], 2),
+              k: "13c8945639226b5eef1779c1b16eac60ae3a7a61fa97bbe0841555ad9f2bdcb8"
+            },
+            {
+              label: "D",
+              volledig: recht(6, { 1: 2 }),
+              k: "f34e29804f7cc4774bff0a353641400c10b87fab948bcd33696f9664f2870a56"
+            },
+            {
+              label: "E",
+              volledig: methyl(5, 2, { 1: 2 }),
+              k: "fc891d4a14665b1290327ec361199a03870d3023ef389f9d2daa05587501c8d6"
+            },
+            {
+              label: "F",
+              volledig: tak(methyl(4, 2, { 0: 2 }), 2, [0, -1]),
+              k: "ff9d7997fbb6345cc6bbd6bc435ba236f590e2077208f40cd4cb3e9c6a7d24de"
+            }
+          ],
+          hint: "Bij additie van waterstof blijft het koolstofskelet hetzelfde. Kijk alleen naar de C-atomen."
+        }
       }
     ],
     omwegen: {
@@ -908,6 +1182,22 @@ window.WL_AVONTUUR = {
           hash: ["c31a8061c007568c377ae93dff21c9240df2f3ec370241088e1e2ad914fec789"],
           hint: "Welke zijtakken zie je, en hoeveel? Tel rond de ring van de ene naar de andere."
         }
+      },
+      Q: {
+        personage: "B",
+        verhaal: "“Waterstof erbij?” De Kat lost op tot alleen zijn grijns. “Dan verdwijnt de dubbele binding, net als ik.”",
+        voorbeeld: {
+          tekst: "Bij <b>additie van waterstof</b> wordt een dubbele binding een enkele binding. Aan beide C-atomen komt een H-atoom. Het koolstofskelet blijft precies hetzelfde. Per dubbele binding reageert één H₂.",
+          uitwerking: "propeen + H₂ ⟶ propaan, oftewel C₃H₆ + H₂ ⟶ C₃H₈."
+        },
+        makkelijk: {
+          id: "oQ",
+          type: "naam",
+          verhaal: "“Probeer maar,” fluistert de grijns. “Pent-2-een met waterstof.”",
+          vraag: "Geef de naam van de stof die ontstaat.",
+          hint: "De dubbele binding verdwijnt, het skelet blijft.",
+          hash: ["1de0dd6dae61348dd809accc597f2f60a560ba24d4faf6cce5a205610f354ebe"]
+        }
       }
     },
     kluis: {
@@ -920,9 +1210,10 @@ window.WL_AVONTUUR = {
   },
   5: {
     titel: "De tuinmannen van de Koningin",
+    boekje: "Structuurformules tekenen oefen je in het boekje: les 5, opgave 2, 4, 5 en 12, en de gouden sleutel.",
     plaat: P(28),
     intro: ["Achter een poortje in een hoge muur ligt een tuin vol rozenstruiken. Drie tuinmannen, plat als speelkaarten, schilderen witte rozen razendsnel rood.", "“Als de Koningin ziet dat we een witte struik hebben geplant…” fluistert Twee. Overal staan potjes en flesjes — maar de etiketten zijn van de regen uitgelopen."],
-    duur: "Ongeveer 20 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
+    duur: "Ongeveer 25 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
     personages: {
       X: { naam: "Tuinman Twee", plaat: P(28) },
       Y: { naam: "De Hoedenmaker", plaat: P(25) },
@@ -1043,6 +1334,42 @@ window.WL_AVONTUUR = {
           rijHash: ["e10a3b3192b62059bc542db3eb7840ab5cbc5cf62761e0e71dbf3fabe1a4235a", "9404108b794bf8ad18e1ad5713e1b40371dc016b03182e6b616a40bd6443e5a7", "36b41874330a7ca29c8f3e2004d767a418dec120e724be930bc9e8e0b72343da", "f729ec4c6fb765e37e9dd0a64bfe85945b6809fe36d69618e114c07a7f7c972f", "28d259c9bd0c7d293efd8cf8656e09bef9d23d5bec94310a0b943dfa8e977c43", "0a4b860063591e4b1707830679c3a23ed029d6a910e02419b4ed83995da251fd"],
           hint: "Waar zit de O: tussen twee C-atomen (ether) of tussen een C-atoom en een H-atoom (alkanol)?"
         }
+      },
+      {
+        id: "h7",
+        type: "indeling",
+        verhaal: "De tuinmannen hebben hun verfpotten verwisseld. Op elk potje staat een reactie.",
+        vraag: "Wat voor reactie staat er op elk potje?",
+        items: ["C₃H₆ + Cl₂ ⟶ C₃H₆Cl₂", "C₄H₁₀ + Cl₂ ⟶ C₄H₉Cl + HCl", "C₂H₄ + H₂O ⟶ C₂H₆O", "C₅H₁₂ + Br₂ ⟶ C₅H₁₁Br + HBr", "C₂H₆O + 3 O₂ ⟶ 2 CO₂ + 3 H₂O", "C₆H₁₂ + Br₂ ⟶ C₆H₁₂Br₂"],
+        keuzes: ["additie", "substitutie", "verbranding"],
+        rijHash: ["667315859f7343b3d3e3b3f5b4cd816843ea3749b2a612d77aaa225f0658d776", "040f2e7cc2ef8f777eeeef49677e84ef1bf37da43afbbb08773d113b1d07a628", "8bc2bf2e05c6da49f576a5eb072f38a3bae94677559d595200d9fa08d2536194", "a3ce8ecc5eea1bd2fd41e4a4f6a6c20830184620b464cf8e83e6f339a199891c", "662945dea5041a2914f245b236e4f04337838beea7f2b001bdc9b5412dcbc940", "22977920bb8eb339035f4d1ae7a241b62cf0539a524c0acde247dd5e39a5ebd6"],
+        hint: "Ontstaat er één stof (additie), twee stoffen waarvan één HCl of HBr (substitutie), of CO₂ en H₂O (verbranding)?",
+        omweg: "Q",
+        goed: "De tuinmannen zetten de potjes opgelucht op de goede plank.",
+        parallel: {
+          verhaal: "Nog een rij potjes.",
+          vraag: "Wat voor reactie staat er op elk potje?",
+          items: ["C₂H₆ + Br₂ ⟶ C₂H₅Br + HBr", "C₄H₈ + H₂O ⟶ C₄H₁₀O", "C₃H₈ + 5 O₂ ⟶ 3 CO₂ + 4 H₂O", "C₅H₁₀ + Cl₂ ⟶ C₅H₁₀Cl₂", "CH₄ + Cl₂ ⟶ CH₃Cl + HCl", "C₃H₆ + H₂ ⟶ C₃H₈"],
+          keuzes: ["additie", "substitutie", "verbranding"],
+          rijHash: ["1b5000cdb884b8bc54d78cf4c1adc7c60660275382f9ab1c0e3b710ddebe4244", "dd7aa2c1091f01980b368ace913afb846e15c975c6cfac4913b83e1c5cef0603", "c7178cd63b555ba885e5f6e32cc16a2a593deff5b80a538ecb42455a9c45fc34", "991927d4c49a50377029fa034bf3042e44587ede423fb31b4037ad87906c3775", "bbfdf12f99e9fc2752d169281841b825799cbf0c3846b51ec46937ba1684c645", "48f5b84eb2e1ad05a90f97c784a83111cef884894e5f2dfc25308777125c80f8"],
+          hint: "Ontstaat er één stof (additie), twee stoffen waarvan één HCl of HBr (substitutie), of CO₂ en H₂O (verbranding)?"
+        }
+      },
+      {
+        id: "h8",
+        type: "naam",
+        verhaal: "Een tuinman giet broomwater over een emmer met pent-2-een. De oranje kleur verdwijnt meteen.",
+        vraag: "Geef de naam van de stof die ontstaat.",
+        hash: ["4b9904a88b8ea6dc91e6ff7391b620e6a611ffd08095bebfe747f6d4abbda664"],
+        hint: "Op welke twee C-atomen zat de dubbele binding? Daar komen de Br-atomen.",
+        omweg: "Q",
+        goed: "“Weer een witte roos minder,” zucht de tuinman tevreden.",
+        parallel: {
+          verhaal: "Een tweede emmer bevat but-1-een. Ook daar verdwijnt de kleur van het broomwater.",
+          vraag: "Geef de naam van de stof die ontstaat.",
+          hash: ["fdac9b9a38f9b8ea0292ffecab8a5180f361524322494b9437e130c6ef5835cc"],
+          hint: "Op welke twee C-atomen zat de dubbele binding? Daar komen de Br-atomen."
+        }
       }
     ],
     omwegen: {
@@ -1102,6 +1429,22 @@ window.WL_AVONTUUR = {
           hash: ["026ec2a5c788a6333c90e0a1e5644e5792681748f329f454cbe5ed7524fcb4f5"],
           hint: "Tel de C-atomen aan beide kanten van het O-atoom."
         }
+      },
+      Q: {
+        personage: "X",
+        verhaal: "Tuinman Twee houdt een emmer omhoog. “Komt er iets bij, of wordt er iets vervangen? Dat is de hele vraag!”",
+        voorbeeld: {
+          tekst: "<b>Additie</b>: een molecuul koppelt aan een dubbele binding. Er ontstaat één stof. <b>Substitutie</b>: een H-atoom wordt vervangen door Cl of Br. Er ontstaan twee stoffen, waarvan één HCl of HBr.",
+          uitwerking: "Additie: etheen + Br₂ ⟶ 1,2-dibroomethaan (C₂H₄ + Br₂ ⟶ C₂H₄Br₂).<br>Substitutie: methaan + Br₂ ⟶ broommethaan + HBr (CH₄ + Br₂ ⟶ CH₃Br + HBr)."
+        },
+        makkelijk: {
+          id: "oQ",
+          type: "naam",
+          verhaal: "“Probeer jij het,” zegt Twee. “Propeen en broom.”",
+          vraag: "Geef de naam van de stof die ontstaat.",
+          hint: "De Br-atomen komen op de twee C-atomen van de dubbele binding.",
+          hash: ["e27a9b7473fe08ea200e2097f65201f6d2366654312f4fa80fdddcd518efecf4"]
+        }
       }
     },
     kluis: {
@@ -1114,9 +1457,10 @@ window.WL_AVONTUUR = {
   },
   6: {
     titel: "Het theekransje",
+    boekje: "Structuurformules tekenen oefen je in het boekje: les 6, opgave 3, 6, 11 en 12, en de gouden sleutel.",
     plaat: P(25),
     intro: ["Achter het deurtje van de Kolderkat staat een lange tafel onder een boom, gedekt voor heel veel gasten. Maar er zitten er maar drie: de Hoedenmaker, de Maartse Haas en een slapende Hazelmuis.", "Het is altijd zes uur, dus het is altijd theetijd. En steeds als hun kopjes vuil zijn, schuiven ze een plaats op."],
-    duur: "Ongeveer 20 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
+    duur: "Ongeveer 25 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
     personages: {
       K: { naam: "De Maartse Haas", plaat: P(25) },
       N: { naam: "De Hoedenmaker", plaat: P(25) },
@@ -1246,6 +1590,102 @@ window.WL_AVONTUUR = {
           hash: ["aeca3bc0d28c45740853e8f43524694d526e152082db13e3c053d2511a5ab9f2"],
           hint: "Een keton heeft de C=O midden in de keten. Welke plaatsen geven verschillende namen?"
         }
+      },
+      {
+        id: "h7",
+        type: "naam",
+        verhaal: "De Hoedenmaker laat een druppel hexaan-2-ol in zijn thee vallen. “Met wat zuurstof wordt dit iets heel anders!”",
+        vraag: "Geef de naam van de stof die ontstaat als hexaan-2-ol reageert met zuurstof.",
+        hash: ["b325562224ba1552564d2cb7208079ae81ce67554a4b838c3f7a57d1ed013521"],
+        hint: "Zit de OH aan het uiteinde of midden in de keten?",
+        omweg: "O",
+        goed: "“Een keton!” roept de Hoedenmaker. “Schuif op, schuif op!”",
+        parallel: {
+          verhaal: "De Haas gooit heptaan-1-ol in de suikerpot. “Ook met zuurstof!”",
+          vraag: "Geef de naam van de stof die ontstaat als heptaan-1-ol reageert met zuurstof.",
+          hash: ["f8d30e052b88f8ad88a165ee32b012a1bfb5a6a0c7360ec82e3e2b8ddb47c1a4", "a73fcd16400dbf1f69bdaeb31c26229e2631a693ffb9a58b791a3032e24b19f6"],
+          hint: "Zit de OH aan het uiteinde of midden in de keten?"
+        }
+      },
+      {
+        id: "h8",
+        type: "vergelijking",
+        verhaal: "Op het tafelkleed staat de reactie van hexaan-3-ol met zuurstof. De getallen zijn weggeveegd met een theelepeltje.",
+        vraag: "Maak de reactievergelijking kloppend.",
+        links: [
+          {
+            f: "C₆H₁₄O",
+            a: {
+              C: 6,
+              H: 14,
+              O: 1
+            }
+          },
+          {
+            f: "O₂",
+            a: {
+              O: 2
+            }
+          }
+        ],
+        rechts: [
+          {
+            f: "C₆H₁₂O",
+            a: {
+              C: 6,
+              H: 12,
+              O: 1
+            }
+          },
+          {
+            f: "H₂O",
+            a: {
+              H: 2,
+              O: 1
+            }
+          }
+        ],
+        hint: "Per molecuul alkanol gaan er 2 H-atomen af. Hoeveel O₂ is er nodig voor twee moleculen?",
+        omweg: "O",
+        goed: "De Slaapmuis wordt even wakker en knikt.",
+        parallel: {
+          verhaal: "Op het servet staat de reactie van pentaan-3-ol met zuurstof.",
+          vraag: "Maak de reactievergelijking kloppend.",
+          links: [
+            {
+              f: "C₅H₁₂O",
+              a: {
+                C: 5,
+                H: 12,
+                O: 1
+              }
+            },
+            {
+              f: "O₂",
+              a: {
+                O: 2
+              }
+            }
+          ],
+          rechts: [
+            {
+              f: "C₅H₁₀O",
+              a: {
+                C: 5,
+                H: 10,
+                O: 1
+              }
+            },
+            {
+              f: "H₂O",
+              a: {
+                H: 2,
+                O: 1
+              }
+            }
+          ],
+          hint: "Per molecuul alkanol gaan er 2 H-atomen af. Hoeveel O₂ is er nodig voor twee moleculen?"
+        }
       }
     ],
     omwegen: {
@@ -1311,6 +1751,22 @@ window.WL_AVONTUUR = {
           hash: ["558aad6002212f809a32ae30b3e402098ea90b86dceb78b4090a525fee1e1675"],
           hint: "Schuif de C=O vanaf C-atoom 2 naar het midden en geef elke stof een naam."
         }
+      },
+      O: {
+        personage: "T",
+        verhaal: "De Slaapmuis opent één oog. “Uiteinde... aldehyde,” mompelt hij. “Midden... keton. Zzz.”",
+        voorbeeld: {
+          tekst: "Een alkanol reageert met zuurstof: de H van de OH-groep en een H van het C-atoom met de OH gaan eraf. Zo ontstaat een C=O.<br>OH aan het <b>uiteinde</b> (primair alkanol) → <b>aldehyde</b>. OH <b>midden</b> in de keten (secundair) → <b>keton</b>. Geen H aan dat C-atoom (tertiair) → geen reactie.",
+          uitwerking: "pentaan-1-ol → pentanal. pentaan-2-ol → pentaan-2-on.<br>2 C₅H₁₂O + O₂ ⟶ 2 C₅H₁₀O + 2 H₂O"
+        },
+        makkelijk: {
+          id: "oO",
+          type: "naam",
+          verhaal: "“Jij,” mompelt de Slaapmuis. “Propaan-1-ol. Met zuurstof.”",
+          vraag: "Geef de naam van de stof die ontstaat.",
+          hint: "Zit de OH aan het uiteinde of in het midden?",
+          hash: ["7a8cf1a364ca7f007f8901fa8f32654c6e446a608c099c0bc2e14257e49c1e55", "925718f9533dacaa691997d4e64a586ac27bcbb35440373d178d2af41b674ada"]
+        }
       }
     },
     kluis: {
@@ -1323,9 +1779,10 @@ window.WL_AVONTUUR = {
   },
   7: {
     titel: "De keuken van de Hertogin",
+    boekje: "Structuurformules tekenen oefen je in het boekje: les 7, opgave 3, 13 en 15, en de gouden sleutel.",
     plaat: P(21),
     intro: ["Midden in het bos staat een huisje. Een lakei met een vissenkop overhandigt een enorme brief aan een lakei met een kikkerkop: “Voor de Hertogin. Een uitnodiging van de Koningin.”", "Alice glipt naar binnen. De keuken staat vol rook. Een kokkin roert in een ketel soep, en het ruikt naar azijn, peper en… vis."],
-    duur: "Ongeveer 20 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
+    duur: "Ongeveer 25 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
     personages: {
       Z: { naam: "De kokkin", plaat: P(21) },
       A: { naam: "De Kolderkat", plaat: P(23) },
@@ -1455,6 +1912,150 @@ window.WL_AVONTUUR = {
           hash: ["8ec0a11430f41b46b65f7d4b62417fca5628eebde3ee7ab98b48826a0e90701a"],
           hint: "Schuif de NH₂-groep van C-atoom 1 naar het midden. Welke plaatsen geven verschillende namen?"
         }
+      },
+      {
+        id: "h7",
+        type: "kies",
+        verhaal: "De kokkin zet potjes op het vuur. “Wat zuur wordt, mag in de soep,” bromt ze.",
+        vraag: "Kies álle stoffen die met zuurstof uiteindelijk een carbonzuur kunnen worden.",
+        opties: [
+          {
+            label: "A",
+            tekst: "propanal",
+            k: "a340c07d0baec45bb49fcaf4857f6c9a67e4e2b577c6025ffe198056eeafc76c"
+          },
+          {
+            label: "B",
+            tekst: "butanon",
+            k: "9816707e5ce15deb003426301d30dc9bb7198a74b912a08a7b19d0bea2675219"
+          },
+          {
+            label: "C",
+            tekst: "pentaan-1-ol",
+            k: "3c338baf1e5dc9005f9e7980e053c18ef0f30632ce3b48b27ea83a2e9e620288"
+          },
+          {
+            label: "D",
+            tekst: "pentaan-3-ol",
+            k: "103cf0b0e7a2e1ced44dce021253ee2a556d6e5dc7d72d65c65ff96812d4168d"
+          },
+          {
+            label: "E",
+            tekst: "methylpropaan-2-ol",
+            k: "6c2fcb51accdbd1db76672bb8feb58dc18aa81fb84c877b531c7561b9ceaf3a2"
+          },
+          {
+            label: "F",
+            tekst: "hexanal",
+            k: "85f1b9c3f18c29a0a4ffa2433022bdf69fdab254877528057eb6ad3c8f49c484"
+          }
+        ],
+        hint: "Alleen een aldehyde reageert verder tot een carbonzuur. Welke stoffen zijn een aldehyde, of kunnen er een worden?",
+        omweg: "O",
+        goed: "“Zuur genoeg,” zegt de kokkin, en gooit er peper bij.",
+        parallel: {
+          verhaal: "Een tweede rij potjes.",
+          vraag: "Kies álle stoffen die met zuurstof uiteindelijk een carbonzuur kunnen worden.",
+          opties: [
+            {
+              label: "A",
+              tekst: "ethanal",
+              k: "2d0976e729cbf0951cadd38358d8097b7ee26158ec9a485f61d173d300d0d271"
+            },
+            {
+              label: "B",
+              tekst: "propanon",
+              k: "ac147c204b0055177a4b529c28c602ca23734e1db188c50105d85aa852fb50db"
+            },
+            {
+              label: "C",
+              tekst: "butaan-1-ol",
+              k: "8dbc73dd453458236c217a84ae03b4923f23c8411eebc0335805ae5aa589b98f"
+            },
+            {
+              label: "D",
+              tekst: "butaan-2-ol",
+              k: "7760e0f0e7c8f72c5bd4b08215fbf73c75fee09bdedb4835f28a459e91cc3821"
+            },
+            {
+              label: "E",
+              tekst: "heptanal",
+              k: "74138f4a1b2438bb998567508d8259b30a8da675be4264ffd8e34bbc5d5db0bd"
+            },
+            {
+              label: "F",
+              tekst: "2-methylbutaan-2-ol",
+              k: "5c098e64b204f0406b0c9cd5da03584cebab792754c24f18943afea3fa5fff1d"
+            }
+          ],
+          hint: "Alleen een aldehyde reageert verder tot een carbonzuur. Welke stoffen zijn een aldehyde, of kunnen er een worden?"
+        }
+      },
+      {
+        id: "h8",
+        type: "vergelijking",
+        verhaal: "Op de pan staat de reactie van pentanal met zuurstof. De getallen zijn in de soep gevallen.",
+        vraag: "Maak de reactievergelijking kloppend.",
+        links: [
+          {
+            f: "C₅H₁₀O",
+            a: {
+              C: 5,
+              H: 10,
+              O: 1
+            }
+          },
+          {
+            f: "O₂",
+            a: {
+              O: 2
+            }
+          }
+        ],
+        rechts: [
+          {
+            f: "C₅H₁₀O₂",
+            a: {
+              C: 5,
+              H: 10,
+              O: 2
+            }
+          }
+        ],
+        hint: "Per molecuul aldehyde komt er één O-atoom bij. Een molecuul O₂ heeft er twee.",
+        omweg: "O",
+        goed: "De Hertogin niest instemmend.",
+        parallel: {
+          verhaal: "Op het deksel staat de reactie van heptanal met zuurstof.",
+          vraag: "Maak de reactievergelijking kloppend.",
+          links: [
+            {
+              f: "C₇H₁₄O",
+              a: {
+                C: 7,
+                H: 14,
+                O: 1
+              }
+            },
+            {
+              f: "O₂",
+              a: {
+                O: 2
+              }
+            }
+          ],
+          rechts: [
+            {
+              f: "C₇H₁₄O₂",
+              a: {
+                C: 7,
+                H: 14,
+                O: 2
+              }
+            }
+          ],
+          hint: "Per molecuul aldehyde komt er één O-atoom bij. Een molecuul O₂ heeft er twee."
+        }
       }
     ],
     omwegen: {
@@ -1517,6 +2118,22 @@ window.WL_AVONTUUR = {
           hash: ["423e9e15f78983843ab55e2bb2f3b2a4cd4a8e8564edd5835cdcb683e3188814"],
           hint: "Schuif de NH₂ van C-atoom 1 naar het midden en geef elke stof een naam."
         }
+      },
+      O: {
+        personage: "A",
+        verhaal: "De Hertogin wiegt haar baby, die verdacht veel op een biggetje lijkt. “Moraal van het verhaal: wie een H heeft aan de C=O, wordt zuur!”",
+        voorbeeld: {
+          tekst: "Een <b>aldehyde</b> reageert met zuurstof tot een <b>carbonzuur</b>: de H aan de C=O wordt een OH. Een <b>keton</b> heeft geen H aan de C=O en reageert niet verder. Een primair alkanol wordt eerst een aldehyde en daarna een carbonzuur.",
+          uitwerking: "ethanal → ethaanzuur: 2 C₂H₄O + O₂ ⟶ 2 C₂H₄O₂.<br>ethanol → ethanal → ethaanzuur. Zo wordt wijn azijn."
+        },
+        makkelijk: {
+          id: "oO",
+          type: "naam",
+          verhaal: "“Jij,” zegt de Hertogin. “Butanal, met zuurstof.”",
+          vraag: "Geef de naam van de stof die ontstaat.",
+          hint: "De H aan de C=O wordt een OH.",
+          hash: ["b2c334b799e4da04ee34099d016140b9f7d888572a7782c8274e5369c54bdfbc", "b8925ffd0ae9ef7888ab545eac1256137066f1ff50446fb6e7ea88b37f2d9729"]
+        }
       }
     },
     kluis: {
@@ -1529,9 +2146,10 @@ window.WL_AVONTUUR = {
   },
   8: {
     titel: "De taartjes van de Koningin",
+    boekje: "Structuurformules tekenen oefen je in het boekje: les 8, opgave 15, en de gouden sleutel.",
     plaat: P(29),
     intro: ["Achter het theekransje ligt de tuin van het paleis. Uit de keuken komt een heerlijke geur: aardbeien, peren, ananas, banaan.", "De Koningin van Harten heeft taartjes laten bakken. Maar die geur komt niet van fruit — die komt uit flesjes."],
-    duur: "Ongeveer 20 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
+    duur: "Ongeveer 25 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
     personages: {
       E: { naam: "De Koningin van Harten", plaat: P(29) },
       N: { naam: "De Hoedenmaker", plaat: P(25) },
@@ -1674,6 +2292,38 @@ window.WL_AVONTUUR = {
           ],
           hint: "Tel de atomen. Een ester en een carbonzuur met evenveel C-atomen zijn isomeren."
         }
+      },
+      {
+        id: "h7",
+        type: "formule",
+        verhaal: "De Koningin wil een taart die naar fruit ruikt. De bakker mengt hexaanzuur en ethanol.",
+        vraag: "Geef de molecuulformule van de ester die ontstaat.",
+        hash: ["b3a07ec61d0e23c2a9d7ac6444cf2ea6441aee262130a991247c4da0b86bd022"],
+        hint: "Tel de formules van het zuur en het alkanol op. Wat gaat er bij estervorming af?",
+        omweg: "Q",
+        goed: "De taart ruikt heerlijk. De Koningin glimlacht (heel even).",
+        parallel: {
+          verhaal: "Voor de tweede taart mengt de bakker butaanzuur en pentaan-1-ol.",
+          vraag: "Geef de molecuulformule van de ester die ontstaat.",
+          hash: ["0a2846d569aded3c3308b54a083a031b16527b50e735c3da79cdb5c687fd0ff9"],
+          hint: "Tel de formules van het zuur en het alkanol op. Wat gaat er bij estervorming af?"
+        }
+      },
+      {
+        id: "h8",
+        type: "naam",
+        verhaal: "Een oude taart ruikt niet meer naar fruit. De ester hexylmethanoaat heeft met water gereageerd tot een zuur en een alkanol.",
+        vraag: "Geef de naam van het alkanol dat ontstaat.",
+        hash: ["e1793393d61fb80bf03672a341e504e6e2750e1f28a350c1ea947f810a0b592c"],
+        hint: "Het eerste deel van de esternaam (alkyl-) komt uit het alkanol, het tweede deel (-oaat) uit het zuur.",
+        omweg: "Q",
+        goed: "“Wie heeft deze taart te lang laten staan?” brult de Koningin.",
+        parallel: {
+          verhaal: "Een tweede oude taart: de ester propylpentanoaat heeft met water gereageerd.",
+          vraag: "Geef de naam van het zuur dat ontstaat.",
+          hash: ["1f3c2cc0a4a2d5193cde120a4ce92ba438d6bf49adbbea19f50f15ca2d0f40e4", "e23d65e1f9481d8bccdad4547f7074e7b8dd8d32e6c81223de0fd48f28fdd680"],
+          hint: "Het eerste deel van de esternaam (alkyl-) komt uit het alkanol, het tweede deel (-oaat) uit het zuur."
+        }
       }
     ],
     omwegen: {
@@ -1733,6 +2383,22 @@ window.WL_AVONTUUR = {
           hash: ["e6afa6f9b6283c181ea9c1c43289fe8e87459141e3314c0b4dba533e1457d83c"],
           hint: "Tel de H-atomen van het alkanol en het zuur op en haal er 2 af (het water)."
         }
+      },
+      Q: {
+        personage: "N",
+        verhaal: "De Boer van Harten likt stiekem aan een taartje. “Zuur plus alkanol wordt ester plus water,” fluistert hij. “En met water kan het weer terug.”",
+        voorbeeld: {
+          tekst: "<b>Estervorming</b>: zuur + alkanol ⟶ ester + water. De formule van de ester is zuur + alkanol − H₂O.<br><b>Hydrolyse</b>: ester + water ⟶ zuur + alkanol. Het alkyl-deel van de naam komt uit het alkanol, het alkanoaat-deel uit het zuur.",
+          uitwerking: "propaanzuur C₃H₆O₂ + ethanol C₂H₆O ⟶ ethylpropanoaat C₅H₁₀O₂ + H₂O."
+        },
+        makkelijk: {
+          id: "oQ",
+          type: "formule",
+          verhaal: "“Jij,” fluistert de Boer. “Ethaanzuur en methanol.”",
+          vraag: "Geef de molecuulformule van de ester die ontstaat.",
+          hint: "Ethaanzuur is C₂H₄O₂, methanol is CH₄O. Er gaat één H₂O af.",
+          hash: ["b00af28bb1e68a174ef78368ae1817ac7b3315a08ef29db5bd58a2ef1cf54296"]
+        }
       }
     },
     kluis: {
@@ -1745,6 +2411,7 @@ window.WL_AVONTUUR = {
   },
   9: {
     titel: "De rechtszaak",
+    boekje: "Structuurformules tekenen oefen je in het boekje: les 9, opgave 2, en de gouden sleutel.",
     plaat: P(38),
     intro: ["In de rechtszaal is het een drukte van belang. De Koning en de Koningin van Harten zitten op hun troon. Op tafel staat een schaal taartjes.", "De Hartenboer staat in ketens. “Hij heeft de taartjes gestolen!” roept de Koningin. Het Witte Konijn ontrolt een perkament: “Laat de bewijsstukken binnenkomen!”"],
     duur: "Ongeveer 20 minuten. Wat je in de les niet af krijgt, maak je thuis af.",
@@ -1755,20 +2422,23 @@ window.WL_AVONTUUR = {
     },
     hoofdpad: [
       {
-        id: "h1", type: "naam",
-        verhaal: "In de rechtszaal zitten de Koning en de Koningin van Harten op hun troon. De Hartenboer staat in ketens: hij zou de taartjes hebben gestolen. “Bewijsstuk A!” roept het Witte Konijn, en hij houdt een tekening omhoog.",
-        volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [2, -1, "O"], [0, 1, "Cl"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [2, 4, 1], [0, 5, 1]] },
-        vraag: "Geef de systematische naam van deze stof.",
-        hash: ["b5698a8f8f7b03815791bf5249c1790990c2945dcee617482f81e08871f3dadf"],
-        hint: "Welke groep bepaalt de uitgang van de naam? Nummer zo dat díe groep het laagste nummer krijgt. De andere groep komt ervoor.",
-        omweg: "S",
-        goed: "“Genoteerd,” zegt de Koning, en hij zet zijn bril recht over zijn kroon.",
+        id: "h7",
+        type: "indeling",
+        verhaal: "De Koning legt zes bewijsstukken op tafel. Op elk stuk staat een reactie.",
+        vraag: "Welk soort reactie is elk bewijsstuk?",
+        items: ["C₈H₁₈ ⟶ C₅H₁₂ + C₃H₆", "C₄H₈ + H₂ ⟶ C₄H₁₀", "C₃H₈ + Cl₂ ⟶ C₃H₇Cl + HCl", "2 C₃H₆O + O₂ ⟶ 2 C₃H₆O₂", "C₅H₁₀ + H₂O ⟶ C₅H₁₂O", "2 C₄H₁₀O + O₂ ⟶ 2 C₄H₈O + 2 H₂O"],
+        keuzes: ["kraken", "additie", "substitutie", "oxidatie"],
+        rijHash: ["b5b7aac0ffe0a2dd6f2cd8ec99421f74f455c101ec614b28c796d782f984ec8e", "e86a41b63202310270c5e32b47f167c4bb255356016e45f15458659ea3ad7918", "1d0cc7def03cbda919ec3e882cf894e320e787e5568598998ce6a2aa1bd8612e", "c562d9766b495eff587cc5159b39e97d8fa40204f6fbe87c5d68e356b49f2d85", "c7f22510024d3d498c7d107ecdc17b567c99102f482edbc2f8e08f2fec7f1083", "f74f5971d8a88d00f04d8eb48b3bdaa033e3eaa45c6901c2e6b95b713f843a75"],
+        hint: "Kraken: één stof valt uiteen. Additie: één product. Substitutie: ook HCl of HBr. Oxidatie: er reageert O₂ zonder dat er CO₂ ontstaat.",
+        omweg: "Q",
+        goed: "“Bewijsstuk geaccepteerd,” zegt de Koning plechtig.",
         parallel: {
-          verhaal: "“Bewijsstuk A, tweede blad!”",
-          volledig: { atomen: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [1, 1], [3, -1, "O"]], bindingen: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [1, 6, 1], [3, 7, 1]] },
-          vraag: "Geef de systematische naam van deze stof.",
-          hash: ["e35c4ab3bb68ecf329308a06fc8a2cf1ad9806820a1477ee85598e44551e3645"],
-          hint: "Nummer zo dat de OH-groep het laagste nummer krijgt. Zet de methylgroep met zijn nummer vooraan."
+          verhaal: "Nog zes bewijsstukken.",
+          vraag: "Welk soort reactie is elk bewijsstuk?",
+          items: ["C₂H₄ + Br₂ ⟶ C₂H₄Br₂", "C₁₀H₂₂ ⟶ C₆H₁₄ + 2 C₂H₄", "2 C₂H₆O + O₂ ⟶ 2 C₂H₄O + 2 H₂O", "C₂H₆ + Br₂ ⟶ C₂H₅Br + HBr", "2 CH₂O + O₂ ⟶ 2 CH₂O₂", "C₉H₂₀ ⟶ C₇H₁₆ + C₂H₄"],
+          keuzes: ["kraken", "additie", "substitutie", "oxidatie"],
+          rijHash: ["4f0325392cf5f6e17a6b17421799fb83646e9d8e98e314a40be757cd60ab7fbe", "7cf859e3323e93e26210067c42da137acaaed1f9ed5346fb6da1fc700849b7cc", "8b5cf9f3ef240dd1d72ce943e825923d4281266063cffd10905b044ccddd5a37", "769afd85400b9b6e84d463219201f8ccb7fa8b3b0b75b87a13057a6ba2fdbad0", "1e549f4a480c2384ef86b4ae467c881be926eb34a14523d9333e7f37a2f83251", "a97ecc64f72306f7207d22eac587999c44fef1769f30f61c910c0a185f135f4f"],
+          hint: "Kraken: één stof valt uiteen. Additie: één product. Substitutie: ook HCl of HBr. Oxidatie: er reageert O₂ zonder dat er CO₂ ontstaat."
         }
       },
       {
@@ -1786,23 +2456,6 @@ window.WL_AVONTUUR = {
           vraag: "Hoeveel H-atomen heeft dit molecuul?",
           hash: ["9ace246f84b6b81c6fa312db755c0ffc8aa9225278b5dc4930ae3ea894d14d37"],
           hint: "In een benzeenring heeft elk C-atoom hoogstens één H. Op het C-atoom met de zijtak zit er geen."
-        }
-      },
-      {
-        id: "h3", type: "naam",
-        verhaal: "“Bewijsstuk C!” roept het Konijn. Op een etiket heeft de Boer geschreven: ‘2-ethylpentaan-3-on’. “Dat is geen goede naam!” roept Alice.",
-        formule: "2-ethylpentaan-3-on",
-        vraag: "Geef de juiste systematische naam van deze stof.",
-        hash: ["97c277d430c194764efc0f94d32dfa74072b369f962f66a1d838b4c4d6a35cc5"],
-        hint: "Teken de stof zoals de naam zegt. Zoek dan opnieuw de langste keten, en nummer zo dat de C=O het laagste nummer krijgt.",
-        omweg: "S",
-        goed: "Een gemompel gaat door de zaal. “Ze heeft gelijk,” fluistert de Hazelmuis.",
-        parallel: {
-          verhaal: "“Nog een etiket van de Boer!” Er staat: ‘3-propylbutaanzuur’.",
-          formule: "3-propylbutaanzuur",
-          vraag: "Geef de juiste systematische naam van deze stof.",
-          hash: ["a4ec10d58a333462ca551c670d292c8da88d48c9221c244b9a1dd200690248a2", "26643e68d0be55ff151078d0131fe215381a16ea709a62ce82943243d7c7fc62"],
-          hint: "Teken de stof en zoek opnieuw de langste keten vanaf het C-atoom van de COOH."
         }
       },
       {
@@ -1877,6 +2530,22 @@ window.WL_AVONTUUR = {
           hash: ["0be8ceb2d8ea1bb13673358cd6e8e4d9edb50e8df2c9d5432a203b7cc0af6575"],
           hint: "Zet het O-atoom tussen twee C-atomen en schuif het door de keten. Geef elke ether een naam (alkoxyalkaan)."
         }
+      },
+      {
+        id: "h8",
+        type: "naam",
+        verhaal: "Het laatste bewijsstuk. Stof X is onvertakt en heeft de formule C₆H₁₂. X ontkleurt broomwater. Bij additie van water aan X ontstaat maar één alkanol, en dat alkanol reageert met zuurstof tot een keton.",
+        vraag: "Geef de naam van stof X.",
+        hash: ["294f577c1673a0d2805049f19aec73477fda00699a68a68e7cbec87edd1e9e05"],
+        hint: "Waar moet de dubbele binding zitten, zodat de OH maar op één plek terecht kan komen?",
+        omweg: "Q",
+        goed: "“Schuldig!” roept de Koningin. “Eh, ik bedoel: opgelost.”",
+        parallel: {
+          verhaal: "Een tweede verdachte. Stof Y is onvertakt en heeft de formule C₈H₁₆. Y ontkleurt broomwater. Bij additie van water aan Y ontstaat maar één alkanol, en dat reageert met zuurstof tot een keton.",
+          vraag: "Geef de naam van stof Y.",
+          hash: ["31cf26fc904ed3f0430e4ab7716c9935b0992bfdb35883497c881cb3b1dbfe7c"],
+          hint: "Waar moet de dubbele binding zitten, zodat de OH maar op één plek terecht kan komen?"
+        }
       }
     ],
     omwegen: {
@@ -1936,6 +2605,42 @@ window.WL_AVONTUUR = {
           vraag: "Hoeveel H-atomen heeft dit molecuul?",
           hash: ["19ee704f8894437cfb40266beec669a4570215e736e1ff9034bc9869da6f8b41"],
           hint: "Ga elk hoekpunt en elk uiteinde langs."
+        }
+      },
+      Q: {
+        personage: "S",
+        verhaal: "Het Witte Konijn rolt een perkamentrol uit en leest voor: “De reacties, in volgorde van het hof!”",
+        voorbeeld: {
+          tekst: "<b>Kraken</b>: een lang alkaan ⟶ een korter alkaan + een alkeen. <b>Additie</b>: H₂, Br₂ of H₂O koppelt aan een C=C; er ontstaat één stof. <b>Substitutie</b>: een H wordt vervangen door Cl of Br; er ontstaat ook HCl of HBr. <b>Oxidatie</b>: alkanol ⟶ aldehyde of keton, aldehyde ⟶ carbonzuur.",
+          uitwerking: "Bij additie van water aan een alkeen komt de OH op één van de twee C-atomen van de dubbele binding. Zit de dubbele binding precies in het midden van een onvertakte keten, dan geven beide plekken dezelfde stof."
+        },
+        makkelijk: {
+          id: "oQ",
+          type: "kies",
+          enkel: true,
+          verhaal: "“Eén vraag maar,” zegt het Konijn.",
+          formule: "C₃H₆ + Br₂ ⟶ C₃H₆Br₂",
+          vraag: "Welk soort reactie is dit?",
+          hint: "Hoeveel stoffen ontstaan er?",
+          opties: [
+            {
+              label: "Additie",
+              tekst: "Additie"
+            },
+            {
+              label: "Substitutie",
+              tekst: "Substitutie"
+            },
+            {
+              label: "Kraken",
+              tekst: "Kraken"
+            },
+            {
+              label: "Oxidatie",
+              tekst: "Oxidatie"
+            }
+          ],
+          hash: ["e515956ca3324d0002415ceed0fa6edfe83853a9e3295de3014ca3e8ad7f0ae5"]
         }
       }
     },
