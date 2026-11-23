@@ -181,6 +181,46 @@
   #btnView{display:none}
   body.lewis #btnView.vrij{display:flex}
   .mono{font-family:Consolas,'Courier New',monospace;background:#eef1f6;border-radius:4px;padding:0 4px}
+
+  /* ===== Tussen moleculen ===== */
+  #tmWrap{display:none;position:absolute;inset:0;background:#fff;z-index:5}
+  body.tm #tmWrap{display:block}
+  body.tm #palette, body.tm #infoPanel{display:none !important}
+  #tmCanvas{display:block;width:100%;height:100%;cursor:grab}
+  #tmToolbar{position:absolute;top:10px;left:10px;display:flex;gap:7px;flex-wrap:wrap;max-width:62%}
+  #tmToolbar button,#tmToolbar label{background:rgba(255,255,255,.94);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:5px;user-select:none;font-family:inherit}
+  #tmToolbar button:hover{border-color:var(--accent)}
+  #tmToolbar button.aan{background:var(--soft);border-color:var(--accent);color:#174a96;font-weight:600}
+  #tmToolbar button.prim{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:650}
+  #tmToolbar input[type=range]{width:80px}
+  #tmLegend{position:absolute;left:10px;bottom:10px;background:rgba(255,255,255,.95);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;line-height:1.75;max-width:340px}
+  #tmLegend .lg{display:flex;align-items:center;gap:7px}
+  #tmLegend .wolk{display:inline-block;width:30px;height:12px;border-radius:6px;background:radial-gradient(closest-side,rgba(125,143,179,.6),rgba(125,143,179,0))}
+  #tmLegend .flitsrood,#tmLegend .flitsgroen{display:inline-block;width:26px;height:5px;border-radius:3px;background:#C62828;opacity:.75}
+  #tmLegend .flitsgroen{background:#1A7F37}
+  #tmTeller{display:none;position:absolute;right:10px;top:10px;background:rgba(255,255,255,.97);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;max-width:480px}
+  #tmTeller .tt{font-weight:650;margin-bottom:5px} #tmTeller .tt span{font-weight:400;color:var(--textdim);font-size:11.5px;margin-left:6px}
+  #tmTeller table{border-collapse:collapse} #tmTeller th{font-weight:600;font-size:11px;color:var(--textdim);padding:2px 6px;text-align:left;vertical-align:bottom;line-height:1.25}
+  #tmTeller td{padding:3px 6px;border-top:1px solid #eef1f6;white-space:nowrap;font-variant-numeric:tabular-nums}
+  #tmTeller .sw{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+  #tmTeller b.plus{color:var(--good)} #tmTeller b.min{color:var(--accent2)}
+  #tmNote{position:absolute;right:10px;bottom:10px;max-width:270px;font-size:10.5px;color:var(--textdim);background:rgba(255,255,255,.92);border:1px solid var(--border);border-radius:6px;padding:7px 10px;line-height:1.4}
+  #tmVrijPanel{display:none;width:250px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);padding:14px 12px;overflow-y:auto}
+  body.tm:not(.opd-modus) #tmVrijPanel{display:block}
+  #tmVrijPanel h3,#palette .vrkop{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--textdim);margin:0 0 8px 2px}
+  .vrijSoort,#tmVrijPanel select{width:100%;font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:#fff;margin-bottom:10px}
+  #tmVrijPanel .vl{display:block;font-size:12px;color:var(--textdim);margin:4px 0 3px}
+  #tmVrijPanel .vtxt{font-size:12.5px;line-height:1.5;color:var(--text);background:var(--panel2);border-radius:6px;padding:8px 10px;margin:0 0 10px}
+  #tmVrijPanel .acties{flex-direction:column}
+  .meer .opt.aan{background:var(--soft);border-color:var(--accent);color:#174a96;font-weight:600}
+  .brow{display:flex;flex-wrap:wrap;gap:5px;align-items:center;padding:7px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;background:#fff}
+  .brow.ok{border-color:var(--good);background:var(--ok-soft)} .brow.fout{border-color:var(--accent2);background:var(--err-soft)}
+  .brow select{font:inherit;font-size:13px;padding:4px 5px;border:1px solid var(--border);border-radius:6px;background:#fff;max-width:100%}
+  .brow .bdir{font-weight:650;font-size:13px} .brow .bt{font-size:13px;color:var(--textdim)}
+  .brow .bdel{margin-left:auto;border:none;background:none;font-size:17px;color:var(--textdim);cursor:pointer;padding:0 4px}
+  .brow .bdel:hover{color:var(--accent2)}
+  .bmsg{flex-basis:100%;font-size:12.5px;color:var(--accent2)} .bmsg:empty{display:none}
+  .balans .inrow{margin-top:4px}
 </style>
 </head>
 <body class="opd-modus">
@@ -190,8 +230,9 @@
     <span style="flex:1"></span><button id="beamer" type="button" onclick="document.body.classList.toggle('hs-beamer')">Beamerstand</button></div></header>
   <main>
     <div id="builderView">
-      <div id="opdPanel"><h2>Opdrachten</h2><div class="leerlijn"><button class="llbtn" data-ll="dipool">4V · Polariteit en dipolen<small>ΔEN, δ+ en δ−, dipool, oplosbaarheid</small></button><button class="llbtn" data-ll="lewis">5V · Lewis en VSEPR<small>Lewisstructuur, formele lading, vorm, mesomerie</small></button></div><div class="top"><span class="level" id="llLabel">4V</span><div class="dots" id="dots"></div><span class="score" id="score"></span></div><div id="opdBody"></div></div>
+      <div id="opdPanel"><h2>Opdrachten</h2><div class="leerlijn"><button class="llbtn" data-ll="dipool">4V · Polariteit en dipolen<small>ΔEN, δ+ en δ−, dipool, oplosbaarheid</small></button><button class="llbtn" data-ll="lewis">5V · Lewis en VSEPR<small>Lewisstructuur, formele lading, vorm, mesomerie</small></button></div><div class="leerlijn"><button class="llbtn" data-ll="tussen">4V · Tussen moleculen<small>vanderwaals, dipool-dipool, H-brug, mengen</small></button><button class="llbtn" data-ll="zout">4V · Zouten oplossen<small>ionrooster, ion-dipool, oplossen, indampen</small></button></div><div class="top"><span class="level" id="llLabel">4V</span><div class="dots" id="dots"></div><span class="score" id="score"></span></div><div id="opdBody"></div></div>
       <div id="palette">
+        <div class="vrij-only"><h3 class="vrkop">Weergave</h3><select class="vrijSoort"><option value="bouw">Eén molecuul bouwen</option><option value="samen">Moleculen samen</option><option value="bak">Mengbak</option><option value="zout">Zout in water</option></select></div>
         <h3>Atomen</h3>
         <div id="elList"></div>
         <h3 style="margin-top:16px">Bindingsorde</h3>
@@ -209,8 +250,10 @@
           Elementen met een <span style="color:var(--warn);font-weight:700">gele rand</span> (P, S, Cl, Br) kunnen een <b>uitgebreid octet</b> vormen: meer bindingen dan hun normale valentie toestaat (bijv. P normaal 3, maar tot 5 in PCl₅). Dit kan <b>alleen</b> voor elementen uit periode 3 en hoger — H, B, C, N, O en F kunnen het octet nooit uitbreiden.
         </div>
       </div>
+      <div id="tmVrijPanel"><h3>Weergave</h3><select class="vrijSoort"><option value="bouw">Eén molecuul bouwen</option><option value="samen">Moleculen samen</option><option value="bak">Mengbak</option><option value="zout">Zout in water</option></select><div id="tmVrijInhoud"></div></div>
       <div id="sceneWrap">
         <canvas id="scene"></canvas>
+        <div id="tmWrap"><canvas id="tmCanvas"></canvas><div id="tmToolbar"></div><div id="tmTeller"></div><div id="tmLegend"></div><div id="tmNote"></div></div>
         <div id="sceneToolbar">
           <button id="btnReset">⟲ Nieuw molecuul</button>
           <label class="vrij-only geen-lewis" title="Eerst zelf voorspellen; δ's, ladingscentra en conclusie verschijnen pas na je voorspelling"><input type="checkbox" id="chkVoorspel" checked> voorspelmodus</label>
@@ -1115,7 +1158,7 @@ function zetModus(opd){
   document.getElementById('tbOpd').classList.toggle('active', opd);
   document.getElementById('tbVrij').classList.toggle('active', !opd);
   document.body.classList.toggle('opd-modus', opd);
-  if(!opd){ zetLewis(false); document.getElementById('btnReset').click(); }
+  if(!opd){ zetLewis(false); document.getElementById('btnReset').click(); tmAan(vrijSoort!=='bouw'); if(vrijSoort!=='bouw') vrijPaneel(); }
   resizeCanvas(); updateAll();
 }
 document.getElementById('tbOpd').onclick = () => { zetModus(true); renderSerie(); };
@@ -1603,11 +1646,1451 @@ function lewis6(){
 const NIVEAUS_LEWIS = [lewis1, lewis2, lewis3, lewis4, lewis5, lewis6];
 
 
+// ===================== TUSSEN MOLECULEN: ENGINE =====================
+// Vaste moleculen (starre lichamen) met 3D-geometrie uit dezelfde VSEPR-regels als de bouwer,
+// detectie van bindingen tússen deeltjes en een eenvoudige Monte-Carlo-simulatie (mengbak).
+// Eenheden: tool-eenheden (atoombinding = 1,25 ≈ 1 Å), energie in kT (kamertemperatuur).
+const TM_Z = {H:1,B:5,C:6,N:7,O:8,F:9,Na:11,Mg:12,Si:14,P:15,S:16,Cl:17,K:19,Ca:20,Br:35};
+const TM_R = {H:1.0, C:1.85, N:1.6, O:1.5, F:1.4, S:1.85, Cl:1.75, Br:1.85, P:1.85, Si:1.9};
+const TM_ION = {
+  'Na+': {sym:'Na', q:1,  r:1.05, rTeken:0.55, kleur:'#b58cf0', naam:'natriumion'},
+  'K+':  {sym:'K',  q:1,  r:1.35, rTeken:0.66, kleur:'#8a5bd6', naam:'kaliumion'},
+  'Ca2+':{sym:'Ca', q:2,  r:1.05, rTeken:0.58, kleur:'#4fae6a', naam:'calciumion'},
+  'Mg2+':{sym:'Mg', q:2,  r:0.85, rTeken:0.48, kleur:'#83c96b', naam:'magnesiumion'},
+  'Cl-': {sym:'Cl', q:-1, r:1.65, rTeken:0.82, kleur:'#5de05d', naam:'chloride-ion'},
+  'Br-': {sym:'Br', q:-1, r:1.8,  rTeken:0.9,  kleur:'#a6473a', naam:'bromide-ion'}
+};
+
+// ---------- bibliotheek ----------
+// atomen: [symbool, ouder-index, bindingsorde]; index 0 is de wortel.
+function tmKeten(n, metOH){
+  // CnH2n+2 of CnH2n+1OH (OH aan C1)
+  const a = [['C',-1,1]];
+  for(let i=1;i<n;i++) a.push(['C',i-1,1]);
+  if(metOH){ a.push(['O',0,1]); a.push(['H',a.length-1,1]); }
+  for(let i=0;i<n;i++){
+    const nh = (n===1 ? 4 : (i===0||i===n-1 ? 3 : 2)) - (metOH && i===0 ? 1 : 0);
+    for(let k=0;k<nh;k++) a.push(['H',i,1]);
+  }
+  return a;
+}
+const TM_LIB = {
+  water:      {naam:'water', mv:'watermoleculen', f:'H2O', atomen:[['O',-1],['H',0],['H',0]]},
+  ammoniak:   {naam:'ammoniak', mv:'ammoniakmoleculen', f:'NH3', atomen:[['N',-1],['H',0],['H',0],['H',0]]},
+  methaan:    {naam:'methaan', mv:'methaanmoleculen', f:'CH4', atomen:tmKeten(1)},
+  ethaan:     {naam:'ethaan', mv:'ethaanmoleculen', f:'C2H6', atomen:tmKeten(2)},
+  propaan:    {naam:'propaan', mv:'propaanmoleculen', f:'C3H8', atomen:tmKeten(3)},
+  butaan:     {naam:'butaan', mv:'butaanmoleculen', f:'C4H10', atomen:tmKeten(4)},
+  hexaan:     {naam:'hexaan', mv:'hexaanmoleculen', f:'C6H14', atomen:tmKeten(6)},
+  methanol:   {naam:'methanol', mv:'methanolmoleculen', f:'CH3OH', atomen:tmKeten(1,true)},
+  ethanol:    {naam:'ethanol', mv:'ethanolmoleculen', f:'C2H5OH', atomen:tmKeten(2,true)},
+  propanol:   {naam:'propaan-1-ol', mv:'propaan-1-olmoleculen', f:'C3H7OH', atomen:tmKeten(3,true)},
+  butanol:    {naam:'butaan-1-ol', mv:'butaan-1-olmoleculen', f:'C4H9OH', atomen:tmKeten(4,true)},
+  hexanol:    {naam:'hexaan-1-ol', mv:'hexaan-1-olmoleculen', f:'C6H13OH', atomen:tmKeten(6,true)},
+  ether:      {naam:'dimethylether', mv:'dimethylethermoleculen', f:'CH3OCH3', atomen:[['C',-1],['O',0],['C',1],['H',0],['H',0],['H',0],['H',2],['H',2],['H',2]]},
+  propanon:   {naam:'propanon', mv:'propanonmoleculen', f:'C3H6O', atomen:[['C',-1],['O',0,2],['C',0],['C',0],['H',2],['H',2],['H',2],['H',3],['H',3],['H',3]]},
+  chloormethaan:{naam:'chloormethaan', mv:'chloormethaanmoleculen', f:'CH3Cl', atomen:[['C',-1],['Cl',0],['H',0],['H',0],['H',0]]},
+  methylamine:{naam:'methaanamine', mv:'methaanaminemoleculen', f:'CH3NH2', atomen:[['C',-1],['N',0],['H',1],['H',1],['H',0],['H',0],['H',0]]},
+  tetra:      {naam:'tetrachloormethaan', mv:'tetrachloormethaanmoleculen', f:'CCl4', atomen:[['C',-1],['Cl',0],['Cl',0],['Cl',0],['Cl',0]]},
+  diol:       {naam:'ethaan-1,2-diol', mv:'ethaan-1,2-diolmoleculen', f:'C2H6O2', atomen:[['C',-1],['C',0],['O',0],['H',2],['O',1],['H',4],['H',0],['H',0],['H',1],['H',1]]},
+  waterstofchloride:{naam:'waterstofchloride', mv:'waterstofchloridemoleculen', f:'HCl', atomen:[['Cl',-1],['H',0]]},
+  waterstofbromide:{naam:'waterstofbromide', mv:'waterstofbromidemoleculen', f:'HBr', atomen:[['Br',-1],['H',0]]},
+  waterstofsulfide:{naam:'waterstofsulfide', mv:'waterstofsulfidemoleculen', f:'H2S', atomen:[['S',-1],['H',0],['H',0]]},
+  fluor:      {naam:'fluor', mv:'fluormoleculen', f:'F2', atomen:[['F',-1],['F',0]]},
+  chloor:     {naam:'chloor', mv:'chloormoleculen', f:'Cl2', atomen:[['Cl',-1],['Cl',0]]},
+  broom:      {naam:'broom', mv:'broommoleculen', f:'Br2', atomen:[['Br',-1],['Br',0]]},
+  sulfaat:    {naam:'sulfaation', mv:'sulfaationen', f:'SO4', lading:-2, atomen:[['S',-1],['O',0],['O',0],['O',0],['O',0]]}
+};
+
+// ---------- geometrie ----------
+function tmBouw(key){
+  const spec = TM_LIB[key];
+  if(spec._sp) return spec._sp;
+  const at = spec.atomen.map(([s,p,o],i)=>({i, s, p:(p===undefined?-1:p), o:o||1, kids:[], pos:null, lp:[]}));
+  at.forEach(a=>{ if(a.p>=0) at[a.p].kids.push(a.i); });
+  const bos = i => (at[i].p>=0?at[i].o:0) + at[i].kids.reduce((t,k)=>t+at[k].o,0);
+  at[0].pos=[0,0,0];
+  const plaatsen = [];   // alle reeds geplaatste punten (atomen + vrije paren) voor afstoting
+  plaatsen.push(at[0].pos);
+  const sulfaat = key==='sulfaat';
+  (function plaats(i, back){
+    const a = at[i];
+    const lp = sulfaat ? 0 : lonePairsFor(a.s, bos(i));
+    const nb = a.kids.length + (a.p>=0?1:0);
+    const T = domainVectors(Math.max(nb+lp,1));
+    let beste=null, besteScore=Infinity;
+    const stappen = back ? 24 : 1;
+    for(let s=0;s<stappen;s++){
+      const tw = s*Math.PI*2/stappen;
+      const rot = back ? T.map(v=>rotateAroundAxis(rotateAtoB(v,T[0],back), back, tw)) : T;
+      const start = back ? 1 : 0;
+      let score = 0;
+      a.kids.forEach((k,j)=>{
+        const d = rot[start+j]; const q=[a.pos[0]+d[0]*BOND_LEN, a.pos[1]+d[1]*BOND_LEN, a.pos[2]+d[2]*BOND_LEN];
+        const w = at[k].s==='H' ? 1 : 3;
+        plaatsen.forEach(p=>{ if(p===a.pos) return; const dd=Math.hypot(q[0]-p[0],q[1]-p[1],q[2]-p[2]); score += w/(dd*dd+0.01); });
+      });
+      if(score<besteScore-1e-9){ besteScore=score; beste=rot; }
+    }
+    const start = back ? 1 : 0;
+    a.kids.forEach((k,j)=>{
+      const d = norm(beste[start+j]);
+      at[k].pos = [a.pos[0]+d[0]*BOND_LEN, a.pos[1]+d[1]*BOND_LEN, a.pos[2]+d[2]*BOND_LEN];
+      plaatsen.push(at[k].pos);
+    });
+    for(let k=0;k<lp;k++) a.lp.push(norm(beste[start+a.kids.length+k]));
+    a.kids.forEach(k=>{ const d=at[k].pos; plaats(k, norm([a.pos[0]-d[0],a.pos[1]-d[1],a.pos[2]-d[2]])); });
+  })(0, null);
+  // partiële ladingen (zelfde regel als de bouwer: alleen polaire bindingen, ΔEN > 0,4)
+  const q = at.map(()=>0);
+  if(!sulfaat) at.forEach(a=>{ if(a.p<0) return; const b=at[a.p]; const d=dEN(a.s,b.s); if(Math.abs(d)<=POLAIR_GRENS) return; q[b.i]+=a.o*d; q[a.i]-=a.o*d; });
+  // zwaartepunt (zware atomen) naar de oorsprong
+  let c=[0,0,0], n=0; at.forEach(a=>{ const w = a.s==='H'?0.3:1; c[0]+=a.pos[0]*w; c[1]+=a.pos[1]*w; c[2]+=a.pos[2]*w; n+=w; });
+  c=c.map(v=>v/n); at.forEach(a=>{ a.pos=[a.pos[0]-c[0],a.pos[1]-c[1],a.pos[2]-c[2]]; });
+  // dipool: middens van δ+ en δ−
+  let pS=[0,0,0],pW=0,mS=[0,0,0],mW=0;
+  at.forEach((a,i)=>{ if(q[i]>0.01){ for(let k=0;k<3;k++) pS[k]+=a.pos[k]*q[i]; pW+=q[i]; } else if(q[i]<-0.01){ for(let k=0;k<3;k++) mS[k]+=a.pos[k]*-q[i]; mW+=-q[i]; } });
+  const plus = pW>0 ? pS.map(v=>v/pW) : null, minus = mW>0 ? mS.map(v=>v/mW) : null;
+  const dip = plus&&minus ? [minus[0]-plus[0], minus[1]-plus[1], minus[2]-plus[2]] : [0,0,0];
+  const dipool = Math.hypot(...dip) >= 0.05;
+  // H-bruggen: H aan N of O (donor), N/O met vrij paar (acceptor)
+  const donors = at.filter(a=>a.s==='H' && a.p>=0 && (at[a.p].s==='N'||at[a.p].s==='O')).map(a=>a.i);
+  const acceptors = sulfaat ? [] : at.filter(a=>(a.s==='N'||a.s==='O') && a.lp.length>0).map(a=>a.i);
+  // elektronen per zwaar atoom inclusief de H's eraan (voor vanderwaals)
+  const zwaar = at.filter(a=>a.s!=='H').map(a=>a.i);
+  const ne = at.map(a=> a.s==='H' ? 1 : TM_Z[a.s] + a.kids.filter(k=>at[k].s==='H').length + (a.p>=0 && at[a.p].s==='H' ? 1 : 0));
+  const elektronen = at.reduce((t,a)=>t+TM_Z[a.s],0) - (spec.lading||0);
+  let ext = 0; at.forEach(a=>{ ext=Math.max(ext, Math.hypot(...a.pos)+(TM_R[a.s]||1)); });
+  const sp = { key, naam:spec.naam, mv:spec.mv, f:spec.f, lading:spec.lading||0,
+    atomen: at.map((a,i)=>({s:a.s, p:a.p, o:a.o, pos:a.pos, lp:a.lp, q:q[i], ne:ne[i], r:TM_R[a.s]||1.5})),
+    bonds: at.filter(a=>a.p>=0).map(a=>[a.p,a.i,a.o]),
+    plus, minus, dip, dipool, donors, acceptors, zwaar, elektronen, ext, ion:false };
+  spec._sp = sp;
+  return sp;
+}
+function tmIonSp(key){
+  const I = TM_ION[key];
+  if(I._sp) return I._sp;
+  I._sp = { key, naam:I.naam, mv:I.naam.replace(/ion$/,'ionen').replace(/-ion$/,'-ionen'), f:key, lading:I.q, ion:true, ionKey:key,
+    atomen:[{s:I.sym, p:-1, o:1, pos:[0,0,0], lp:[], q:0, ne:TM_Z[I.sym]-I.q, r:I.r, rTeken:I.rTeken, kleur:I.kleur}],
+    bonds:[], plus:null, minus:null, dip:[0,0,0], dipool:false, donors:[], acceptors:[], zwaar:[0],
+    elektronen: TM_Z[I.sym]-I.q, ext:I.r };
+  return I._sp;
+}
+function tmSp(key){ return TM_ION[key] ? tmIonSp(key) : tmBouw(key); }
+
+// ---------- starre lichamen ----------
+const I3 = () => [[1,0,0],[0,1,0],[0,0,1]];
+function matMul(A,B){ const C=[[0,0,0],[0,0,0],[0,0,0]]; for(let i=0;i<3;i++)for(let j=0;j<3;j++)for(let k=0;k<3;k++)C[i][j]+=A[i][k]*B[k][j]; return C; }
+function matVec(A,v){ return [A[0][0]*v[0]+A[0][1]*v[1]+A[0][2]*v[2], A[1][0]*v[0]+A[1][1]*v[1]+A[1][2]*v[2], A[2][0]*v[0]+A[2][1]*v[1]+A[2][2]*v[2]]; }
+function rotMat(axis, ang){
+  const [x,y,z]=norm(axis), c=Math.cos(ang), s=Math.sin(ang), t=1-c;
+  return [[t*x*x+c, t*x*y-s*z, t*x*z+s*y],[t*x*y+s*z, t*y*y+c, t*y*z-s*x],[t*x*z-s*y, t*y*z+s*x, t*z*z+c]];
+}
+function randRot(){ const u=norm([Math.random()-0.5,Math.random()-0.5,Math.random()-0.5]); return rotMat(u, Math.random()*Math.PI*2); }
+let tmUid = 1;
+function tmMol(key, t, R){
+  const m = { id:tmUid++, sp:tmSp(key), t:t||[0,0,0], R:R||I3(), w:null, lpw:null, groep:0 };
+  tmUpdate(m); return m;
+}
+function tmUpdate(m){
+  m.w = m.sp.atomen.map(a=>{ const p=matVec(m.R,a.pos); return [p[0]+m.t[0], p[1]+m.t[1], p[2]+m.t[2]]; });
+  m.lpw = m.sp.atomen.map(a=>a.lp.map(d=>matVec(m.R,d)));
+  m.dipw = matVec(m.R, m.sp.dip);
+  m.plusw = m.sp.plus ? (p=>[p[0]+m.t[0],p[1]+m.t[1],p[2]+m.t[2]])(matVec(m.R,m.sp.plus)) : null;
+  m.minw  = m.sp.minus ? (p=>[p[0]+m.t[0],p[1]+m.t[1],p[2]+m.t[2]])(matVec(m.R,m.sp.minus)) : null;
+}
+const d3 = (a,b) => Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
+
+// ---------- detectie van bindingen tussen twee deeltjes ----------
+// Geeft { vdw, dd, hb:[{d:mol,h,a:mol,x,lp}], id:{ion,mol,atoom}, botst }
+function tmTussen(A, B, opts){
+  const o = opts||{};
+  const res = { vdw:false, dd:false, hb:[], id:null, ionion:false, botst:false, contact:0 };
+  if(d3(A.t,B.t) > A.sp.ext + B.sp.ext + 3.5) return res;
+  // botsing (harde kern) + vanderwaals-contact
+  const fC = o.contactF || 1.3;
+  for(let i=0;i<A.w.length;i++){
+    const ai=A.sp.atomen[i];
+    for(let j=0;j<B.w.length;j++){
+      const bj=B.sp.atomen[j];
+      const d = d3(A.w[i],B.w[j]);
+      const hbPaar = (ai.s==='H' && (bj.s==='O'||bj.s==='N')) || (bj.s==='H' && (ai.s==='O'||ai.s==='N'));
+      const ionPaar = A.sp.ion || B.sp.ion;
+      const kern = (ai.r+bj.r) * (hbPaar||ionPaar ? 0.62 : 0.72);
+      if(d < kern) res.botst = true;
+      if(ai.s!=='H' && bj.s!=='H' && d < (ai.r+bj.r)*fC){ res.contact++; }
+    }
+  }
+  if(A.sp.ion && B.sp.ion){ res.ionion = res.contact>0; return res; }
+  if(A.sp.ion || B.sp.ion){
+    const ion = A.sp.ion ? A : B, mol = A.sp.ion ? B : A;
+    if(mol.sp.ion) return res;
+    const q = ion.sp.lading;
+    // het meest geladen atoom aan de juiste kant moet dicht bij het ion zitten
+    let best=null;
+    mol.sp.atomen.forEach((a,k)=>{
+      if(q>0 ? a.q < -0.5 : a.q > 0.5){
+        const d = d3(ion.w[0], mol.w[k]);
+        const lim = ion.sp.atomen[0].r + (q>0 ? 1.45 : 1.15);
+        if(d < lim && (!best || d<best.d)) best={k,d};
+      }
+    });
+    if(best && mol.sp.dipool){
+      const naar = norm([ion.w[0][0]-mol.t[0], ion.w[0][1]-mol.t[1], ion.w[0][2]-mol.t[2]]);
+      const dd = dot(norm(mol.dipw), naar) * (q>0?1:-1);
+      if(dd > 0.35) res.id = {ion, mol, atoom:best.k};
+    }
+    if(o.ionVdw) res.vdw = res.contact>0;
+    return res;
+  }
+  res.vdw = res.contact>0;
+  // waterstofbruggen in beide richtingen
+  [[A,B],[B,A]].forEach(([D,X])=>{
+    D.sp.donors.forEach(h=>{
+      const dAt = D.sp.atomen[h].p;
+      X.sp.acceptors.forEach(x=>{
+        const d = d3(D.w[h], X.w[x]);
+        if(d < 1.45 || d > 2.6) return;
+        const v1 = norm([D.w[dAt][0]-D.w[h][0], D.w[dAt][1]-D.w[h][1], D.w[dAt][2]-D.w[h][2]]);
+        const v2 = norm([X.w[x][0]-D.w[h][0], X.w[x][1]-D.w[h][1], X.w[x][2]-D.w[h][2]]);
+        if(dot(v1,v2) > -0.75) return;       // hoek D–H···X minstens ~140°
+        const naarH = norm([D.w[h][0]-X.w[x][0], D.w[h][1]-X.w[x][1], D.w[h][2]-X.w[x][2]]);
+        let bl=-1, bd=-2; X.lpw[x].forEach((l,li)=>{ const t=dot(l,naarH); if(t>bd){bd=t;bl=li;} });
+        if(bd < 0.65) return;                 // H moet naar een vrij elektronenpaar wijzen
+        res.hb.push({d:D, h, a:X, x, lp:bl, sterk:bd});
+      });
+    });
+  });
+  // één H-brug per H-atoom en per vrij paar
+  if(res.hb.length>1){
+    res.hb.sort((p,q)=>q.sterk-p.sterk);
+    const zh=new Set(), zl=new Set(), keep=[];
+    res.hb.forEach(b=>{ const kh=b.d.id+':'+b.h, kl=b.a.id+':'+b.x+':'+b.lp; if(zh.has(kh)||zl.has(kl)) return; zh.add(kh); zl.add(kl); keep.push(b); });
+    res.hb = keep;
+  }
+  // dipool-dipoolbinding: beide dipolen, in contact en aantrekkend georiënteerd
+  if(A.sp.dipool && B.sp.dipool && (res.contact>0 || res.hb.length)){
+    let E=0;
+    A.sp.atomen.forEach((a,i)=>{ if(!a.q) return; B.sp.atomen.forEach((b,j)=>{ if(!b.q) return; E += a.q*b.q/Math.max(d3(A.w[i],B.w[j]),1); }); });
+    res.ddE = E;
+    // δ+ van het ene molecuul dichter bij δ− van het andere dan bij δ+ (en δ− niet bij δ−)
+    const aantr = d3(A.plusw,B.minw) + d3(A.minw,B.plusw), afst = d3(A.plusw,B.plusw) + d3(A.minw,B.minw);
+    if(aantr < afst - 0.08 && E < 0.1) res.dd = true;
+  }
+  return res;
+}
+
+
+// ---------- mengbak en zoutoplossing: roostermodel ----------
+// Elk vakje bevat één deeltje (of is leeg). Buren (boven/onder/links/rechts) trekken elkaar aan
+// volgens de soorten binding die tussen die deeltjes mogelijk zijn: vanderwaals (sterker bij meer
+// elektronen), waterstofbruggen, dipool-dipool, ion-dipool en ionbinding. Twee buren wisselen van
+// plaats volgens het Metropolis-criterium (kT = 1). Zo volgt mengen/ontmengen uit de bindingen.
+const TM_MENG = { // [donor, acceptor, dipool] als fractie per contact
+  water:[1,1,1], methanol:[.6,.8,.9], ethanol:[.5,.7,.8], propanol:[.4,.55,.7], butanol:[.28,.4,.6], hexanol:[.15,.22,.5],
+  propanon:[0,.8,1.2], ether:[0,.6,.6], hexaan:[0,0,0], tetra:[0,0,0], methaan:[0,0,0], propaan:[0,0,0], butaan:[0,0,0]
+};
+const RM = { Eh:2.8, cv:0.022, cd:0.25, Eii:3.5, Erep:2.5, Eid:4.5, g:0.7 };
+const _rmEps = {};
+function rmEps(a, b){
+  if(a==='leeg' || b==='leeg') return 0;
+  const k = a<b ? a+'|'+b : b+'|'+a;
+  if(k in _rmEps) return _rmEps[k];
+  const A = tmSp(a), B = tmSp(b);
+  let e;
+  if(A.lading && B.lading) e = A.lading*B.lading>0 ? RM.Erep*A.lading*B.lading : -RM.Eii*Math.abs(A.lading*B.lading);
+  else if(A.lading || B.lading){ const ion = A.lading?A:B, mol = A.lading?B:A; e = -RM.Eid*Math.abs(ion.lading)*((TM_MENG[mol.key]||[0,0,0])[2]); }
+  else {
+    const pa = TM_MENG[a]||[0,0,0], pb = TM_MENG[b]||[0,0,0];
+    e = -(RM.cv*Math.sqrt(A.elektronen*B.elektronen) + RM.Eh*(pa[0]*pb[1]+pb[0]*pa[1])/2 + RM.cd*pa[2]*pb[2]);
+  }
+  return (_rmEps[k] = e);
+}
+// Molecuul plat leggen: grootste afmeting langs x, op één na grootste langs y (hoofdassen).
+function rmPlat(sp){
+  if(sp._plat) return sp._plat;
+  const P = sp.atomen.map(a=>a.pos);
+  const C = [[0,0,0],[0,0,0],[0,0,0]];
+  P.forEach(p=>{ for(let i=0;i<3;i++) for(let j=0;j<3;j++) C[i][j]+=p[i]*p[j]; });
+  // Jacobi-eigenwaarden
+  let A = C.map(r=>r.slice()), V = I3();
+  for(let it=0;it<40;it++){
+    let p=0,q=1; if(Math.abs(A[0][2])>Math.abs(A[p][q])){p=0;q=2;} if(Math.abs(A[1][2])>Math.abs(A[p][q])){p=1;q=2;}
+    if(Math.abs(A[p][q])<1e-10) break;
+    const th = 0.5*Math.atan2(2*A[p][q], A[q][q]-A[p][p]), c=Math.cos(th), s=Math.sin(th);
+    const J = I3(); J[p][p]=c; J[q][q]=c; J[p][q]=s; J[q][p]=-s;
+    const Jt = [[J[0][0],J[1][0],J[2][0]],[J[0][1],J[1][1],J[2][1]],[J[0][2],J[1][2],J[2][2]]];
+    A = matMul(matMul(Jt,A),J); V = matMul(V,J);
+  }
+  const idx = [0,1,2].sort((i,j)=>A[j][j]-A[i][i]);
+  let ex = [V[0][idx[0]],V[1][idx[0]],V[2][idx[0]]], ey = [V[0][idx[1]],V[1][idx[1]],V[2][idx[1]]];
+  const ez = cross(ex,ey);
+  sp._plat = [ex,ey,ez];   // rijen: nieuwe assen
+  return sp._plat;
+}
+function rmBak(cfg){
+  const B = { C:cfg.C, R:cfg.R, cel:new Array(cfg.C*cfg.R).fill(-1), parts:[], flits:[], stappen:0, keys:[], s:cfg.s||4 };
+  return B;
+}
+function rmZet(B, key, c, r){
+  const sp = tmSp(key);
+  const p = { key, sp, c, r, x:c, y:r, th:Math.random()*Math.PI*2, thDoel:0, ri:[1,0,0] };
+  p.thDoel = p.th;
+  B.cel[r*B.C+c] = B.parts.length; B.parts.push(p);
+  if(!B.keys.includes(key)) B.keys.push(key);
+  return p;
+}
+function rmKey(B, c, r){ if(c<0||r<0||c>=B.C||r>=B.R) return null; const i=B.cel[r*B.C+c]; return i<0 ? 'leeg' : B.parts[i].key; }
+const RM_BUREN = [[1,0],[-1,0],[0,1],[0,-1]];
+function rmLagen(keyBoven, keyOnder, C, R){
+  const sz = Math.max(tmSp(keyBoven).ext, tmSp(keyOnder).ext);
+  const B = rmBak({C, R, s: Math.max(3.6, sz*1.7)});
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++) rmZet(B, r < R/2 ? keyBoven : keyOnder, c, r);
+  B.boven = keyBoven; B.onder = keyOnder;
+  rmOrienteerAlles(B);
+  return B;
+}
+// Zout als blokje in water. ionen: [[key, aantal], ...] in de verhouding van de formule.
+function rmZoutBak(kation, anion, nK, nA, C, R){
+  const B = rmBak({C, R, s:4.2});
+  const n = nK+nA; let w = Math.ceil(Math.sqrt(n)); while(n%w && w<n) w++; if(w>C-2) w=Math.ceil(Math.sqrt(n)); const h = Math.ceil(n/w);
+  const c0 = Math.floor((C-w)/2), r0 = Math.floor((R-h)/2)+1;
+  // dambordpatroon; bij een andere verhouding worden de overgebleven plaatsen met het meest voorkomende ion gevuld
+  const plekken = [];
+  for(let r=0;r<h;r++) for(let c=0;c<w;c++) plekken.push([c0+c, r0+r, (c+r)%2]);
+  let k=nK, a=nA;
+  const bezet = new Set();
+  plekken.sort((p,q)=>(p[2]-q[2]) || (Math.hypot(p[0]-C/2,p[1]-R/2)-Math.hypot(q[0]-C/2,q[1]-R/2)));
+  // eerst dambord-kationplekken voor kationen, rest voor anionen
+  plekken.forEach(p=>{
+    if(bezet.size>=n) return;
+    let key=null;
+    if(p[2]===0 && k>0){ key=kation; k--; } else if(p[2]===1 && a>0){ key=anion; a--; }
+    else if(a>0){ key=anion; a--; } else if(k>0){ key=kation; k--; }
+    if(key){ rmZet(B, key, p[0], p[1]); bezet.add(p[0]+','+p[1]); }
+  });
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++) if(!bezet.has(c+','+r)) rmZet(B,'water',c,r);
+  rmOrienteerAlles(B);
+  return B;
+}
+function rmLokaalE(B, key, c, r, zonder){
+  let E=0;
+  RM_BUREN.forEach(([dc,dr])=>{ const cc=c+dc, rr=r+dr; if(zonder && cc===zonder[0] && rr===zonder[1]) return; const k=rmKey(B,cc,rr); if(k) E+=rmEps(key,k); });
+  return E;
+}
+function rmZwaar(k){ return k==='leeg' ? 0 : 1; }
+// Eén poging: willekeurig vakje en willekeurige buur ruilen.
+function rmPoging(B){
+  const c = Math.floor(Math.random()*B.C), r = Math.floor(Math.random()*B.R);
+  const [dc,dr] = RM_BUREN[Math.floor(Math.random()*4)];
+  const c2=c+dc, r2=r+dr;
+  if(c2<0||r2<0||c2>=B.C||r2>=B.R) return null;
+  const a = rmKey(B,c,r), b = rmKey(B,c2,r2);
+  if(a===b) return null;
+  let dE = rmLokaalE(B,b,c,r,[c2,r2]) - rmLokaalE(B,a,c,r,[c2,r2]) + rmLokaalE(B,a,c2,r2,[c,r]) - rmLokaalE(B,b,c2,r2,[c,r]);
+  // zwaartekracht alleen voor lege plekken (damp boven, vloeistof onder): r groter = lager in beeld
+  dE += RM.g * (rmZwaar(a)-rmZwaar(b)) * (r - r2);
+  if(dE>0 && Math.random() >= Math.exp(-dE)) return null;
+  const i1 = B.cel[r*B.C+c], i2 = B.cel[r2*B.C+c2];
+  const voor = rmContacten(B, [[c,r],[c2,r2]]);
+  B.cel[r*B.C+c] = i2; B.cel[r2*B.C+c2] = i1;
+  if(i1>=0){ B.parts[i1].c=c2; B.parts[i1].r=r2; }
+  if(i2>=0){ B.parts[i2].c=c; B.parts[i2].r=r; }
+  const na = rmContacten(B, [[c,r],[c2,r2]]);
+  [[c,r],[c2,r2]].forEach(([cc,rr])=>{ rmOrienteer(B,cc,rr); RM_BUREN.forEach(([x,y])=>rmOrienteer(B,cc+x,rr+y)); });
+  return {voor, na};
+}
+// contactparen rond de gegeven vakjes (als sleutels "i-j" van deeltjesindexen)
+function rmContacten(B, vakjes){
+  const s = new Set();
+  vakjes.forEach(([c,r])=>{
+    const i = B.cel[r*B.C+c]; if(i===undefined||i<0) return;
+    RM_BUREN.forEach(([dc,dr])=>{ const cc=c+dc, rr=r+dr; if(cc<0||rr<0||cc>=B.C||rr>=B.R) return; const j=B.cel[rr*B.C+cc]; if(j>=0) s.add(Math.min(i,j)+'-'+Math.max(i,j)); });
+  });
+  return s;
+}
+function rmStap(B, maxAcc, maxTry){
+  let acc=0;
+  for(let t=0;t<maxTry && acc<maxAcc;t++){
+    const res = rmPoging(B);
+    if(res){ acc++;
+      res.voor.forEach(k=>{ if(!res.na.has(k)) B.flits.push({k, soort:'weg', t:0}); });
+      res.na.forEach(k=>{ if(!res.voor.has(k)) B.flits.push({k, soort:'nieuw', t:0}); });
+    }
+  }
+  B.stappen += acc;
+  return acc;
+}
+// ---------- weergave-oriëntatie: polaire kant naar polaire buren, apolaire kant naar apolaire ----------
+function rmAtoomXY(p, th){
+  const [ex,ey] = rmPlat(p.sp), c=Math.cos(th), s=Math.sin(th);
+  return p.sp.atomen.map(a=>{ const x=dot(a.pos,ex), y=dot(a.pos,ey); return [x*c-y*s, x*s+y*c, dot(a.pos,cross(ex,ey))]; });
+}
+function rmDip(p, th){
+  const [ex,ey] = rmPlat(p.sp), c=Math.cos(th), s=Math.sin(th);
+  const x=dot(p.sp.dip,ex), y=dot(p.sp.dip,ey); return [x*c-y*s, x*s+y*c];
+}
+function rmOrienteer(B, c, r){
+  if(c<0||r<0||c>=B.C||r>=B.R) return;
+  const i = B.cel[r*B.C+c]; if(i<0) return;
+  const p = B.parts[i];
+  if(p.sp.lading || p.sp.atomen.length<2){ p.thDoel = p.th; return; }
+  const sp = p.sp;
+  const buren = RM_BUREN.map(([dc,dr])=>{ const k=rmKey(B,c+dc,r+dr); return k && k!=='leeg' ? {u:[dc,-dr], sp:tmSp(k)} : null; }).filter(Boolean);
+  let best=p.thDoel, bs=-Infinity;
+  for(let k=0;k<24;k++){
+    const th = k*Math.PI/12;
+    const xy = rmAtoomXY(p, th);
+    const dir = idx => { const v=xy[idx]; const l=Math.hypot(v[0],v[1])||1; return [v[0]/l, v[1]/l, l]; };
+    let sc = 0;
+    buren.forEach(({u,sp:q})=>{
+      if(q.lading){
+        if(sp.dipool){ const d=rmDip(p,th), l=Math.hypot(d[0],d[1])||1; sc += 4*Math.sign(q.lading)*(d[0]*u[0]+d[1]*u[1])/l; }
+        return;
+      }
+      let m = -1;
+      if(q.acceptors.length) sp.donors.forEach(h=>{ const d=dir(h); m=Math.max(m,(d[0]*u[0]+d[1]*u[1])); });
+      if(q.donors.length) sp.acceptors.forEach(x=>{ const d=dir(x); m=Math.max(m,(d[0]*u[0]+d[1]*u[1])); });
+      const polairMogelijk = (q.acceptors.length && sp.donors.length) || (q.donors.length && sp.acceptors.length);
+      if(polairMogelijk) sc += 2*m;
+      else if(sp.donors.length||sp.acceptors.length){
+        let pm=-1; sp.donors.concat(sp.acceptors).forEach(x=>{ const d=dir(x); pm=Math.max(pm,(d[0]*u[0]+d[1]*u[1])); });
+        sc -= 0.8*pm;
+      }
+    });
+    sc += 0.15*Math.cos(th - p.thDoel);   // niet onnodig omdraaien
+    if(sc>bs){ bs=sc; best=th; }
+  }
+  p.thDoel = best;
+}
+function rmOrienteerAlles(B){ for(let it=0;it<2;it++) for(let r=0;r<B.R;r++) for(let c=0;c<B.C;c++) rmOrienteer(B,c,r); B.parts.forEach(p=>p.th=p.thDoel); }
+// ---------- bindingen tellen (op de doelposities/-oriëntaties) ----------
+function rmBindingen(B){
+  const s = B.s, uit = { hb:[], id:[], ii:[], vdw:[], dd:[] };
+  const pos = p => [p.c*s, -p.r*s];
+  const kand = [];
+  for(let r=0;r<B.R;r++) for(let c=0;c<B.C;c++){
+    const i = B.cel[r*B.C+c]; if(i<0) continue;
+    [[1,0],[0,1]].forEach(([dc,dr])=>{
+      const cc=c+dc, rr=r+dr; if(cc>=B.C||rr>=B.R) return;
+      const j = B.cel[rr*B.C+cc]; if(j<0) return;
+      const P=B.parts[i], Q=B.parts[j];
+      if(P.sp.lading && Q.sp.lading){ if(P.sp.lading*Q.sp.lading<0) uit.ii.push([i,j]); return; }
+      if(P.sp.lading || Q.sp.lading){
+        const ion = P.sp.lading?P:Q, mol = P.sp.lading?Q:P, ii = P.sp.lading?i:j, mi = P.sp.lading?j:i;
+        if(!mol.sp.dipool) return;
+        const u = [ion.c-mol.c, -(ion.r-mol.r)], d = rmDip(mol, mol.thDoel), l=Math.hypot(d[0],d[1])||1;
+        if(Math.sign(ion.sp.lading)*(d[0]*u[0]+d[1]*u[1])/l > 0.5){
+          const xy = rmAtoomXY(mol, mol.thDoel);
+          let best=-1, bd=Infinity; const pi=pos(ion), pm=pos(mol);
+          mol.sp.atomen.forEach((a,k)=>{ if(ion.sp.lading>0 ? a.q<-0.5 : a.q>0.5){ const dd=Math.hypot(pm[0]+xy[k][0]-pi[0], pm[1]+xy[k][1]-pi[1]); if(dd<bd){bd=dd;best=k;} } });
+          if(best>=0) uit.id.push({ion:ii, mol:mi, atoom:best});
+        }
+        return;
+      }
+      uit.vdw.push([i,j]);
+      if(P.sp.dipool && Q.sp.dipool) uit.dd.push([i,j]);
+      [[P,Q,i,j],[Q,P,j,i]].forEach(([D,X,di,xi])=>{
+        if(!D.sp.donors.length || !X.sp.acceptors.length) return;
+        const xd = rmAtoomXY(D, D.thDoel), xx = rmAtoomXY(X, X.thDoel), pd=pos(D), px=pos(X);
+        D.sp.donors.forEach(h=>X.sp.acceptors.forEach(x=>{
+          const dd = Math.hypot(pd[0]+xd[h][0]-px[0]-xx[x][0], pd[1]+xd[h][1]-px[1]-xx[x][1]);
+          // H wijst naar de buur en het N/O-atoom van de buur zit niet aan de verkeerde kant
+          if(s - dd > 0.85) kand.push({d:di, h, a:xi, x, dd});
+        }));
+      });
+    });
+  }
+  // elk H-atoom één H-brug, elk N/O-atoom zoveel als het vrije paren heeft, één per buurpaar
+  kand.sort((p,q)=>p.dd-q.dd);
+  const zh=new Set(), zx={}, zp=new Set();
+  kand.forEach(k=>{
+    const kh=k.d+':'+k.h, kx=k.a+':'+k.x, kp=Math.min(k.d,k.a)+'-'+Math.max(k.d,k.a);
+    const cap = B.parts[k.a].sp.atomen[k.x].lp.length;
+    if(zh.has(kh) || (zx[kx]||0)>=cap || zp.has(kp)) return;
+    zh.add(kh); zx[kx]=(zx[kx]||0)+1; zp.add(kp); uit.hb.push(k);
+  });
+  return uit;
+}
+// telling per paarsoort, bijv. 'ethanol|water'
+function rmTelling(B){
+  const b = rmBindingen(B), t = {};
+  const sl = (i,j) => { const a=B.parts[i].key, c=B.parts[j].key; return a===c ? a+'|'+a : [a,c].sort().join('|'); };
+  const add = (k,v) => { t[k]=t[k]||{vdw:0,dd:0,hb:0,id:0,ii:0}; t[k][v]++; };
+  b.vdw.forEach(([i,j])=>add(sl(i,j),'vdw'));
+  b.dd.forEach(([i,j])=>add(sl(i,j),'dd'));
+  b.hb.forEach(k=>add(sl(k.d,k.a),'hb'));
+  b.id.forEach(k=>add(sl(k.ion,k.mol),'id'));
+  b.ii.forEach(([i,j])=>add(sl(i,j),'ii'));
+  return {t, b};
+}
+function rmMenging(B){
+  let anders=0, tot=0;
+  for(let r=0;r<B.R;r++) for(let c=0;c<B.C;c++){ const a=rmKey(B,c,r); if(a==='leeg') continue;
+    [[1,0],[0,1]].forEach(([dc,dr])=>{ const b=rmKey(B,c+dc,r+dr); if(!b||b==='leeg') return; tot++; if(a!==b) anders++; }); }
+  return tot?anders/tot:0;
+}
+
+// ===================== TUSSEN MOLECULEN: WEERGAVE =====================
+const tmCanvas = document.getElementById('tmCanvas');
+const tctx = tmCanvas.getContext('2d');
+const TM = { aan:false, soort:'scene', mols:[], labels:[], cam:{yaw:0.35, pitch:-0.28, zoom:1}, centrum:[0,0,0], span:8,
+  sel:null, actie:'verplaats', alleenDraaien:false, klik:null, gekozen:new Set(), verborgen:false, markeer:null,
+  toon:{bind:true, delta:true, lp:true, vdwBak:false, flits:true}, bak:null, loopt:false, snel:3, verdampen:false,
+  start:null, telTik:0, vrij:false, onVerander:null, extraNoot:'' };
+const v3 = { add:(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]], min:(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], sc:(a,k)=>[a[0]*k,a[1]*k,a[2]*k] };
+const KLEUR = { hb:'#7B3FBF', dd:'#D9822B', vdw:'#7d8fb3', id:'#0E8A8A', ii:'#8a8f99', weg:'#C62828', nieuw:'#1A7F37' };
+const SOORTNAAM = { vdw:'vanderwaalsbinding', dd:'dipool-dipoolbinding', hb:'waterstofbrug', id:'ion-dipoolbinding', ii:'ionbinding' };
+function tmResize(){ const r=tmCanvas.getBoundingClientRect(); tmCanvas.width=Math.max(10,r.width*devicePixelRatio); tmCanvas.height=Math.max(10,r.height*devicePixelRatio); }
+window.addEventListener('resize', ()=>{ if(TM.aan){ tmResize(); tmRender(); } });
+function tmAan(aan){
+  TM.aan = aan;
+  document.body.classList.toggle('tm', aan);
+  if(aan){ tmResize(); tmRender(); }
+  else { TM.loopt=false; TM.verdampen=false; }
+}
+function tmFormule(f){ return f.replace(/(\d+)/g,'<sub>$1</sub>'); }
+function tmIonTekst(key){ const I=TM_ION[key]; if(I) return I.sym+'<sup>'+(Math.abs(I.q)>1?Math.abs(I.q):'')+(I.q>0?'+':'−')+'</sup>'; if(key==='sulfaat') return 'SO<sub>4</sub><sup>2−</sup>'; return key; }
+
+// ---------- scène met losse deeltjes ----------
+function tmScene(mols, o){
+  o = o||{};
+  TM.soort='scene'; TM.mols=mols; TM.labels=o.labels||[]; TM.bak=null; TM.loopt=false; TM.verdampen=false;
+  TM.verborgen=!!o.verborgen; TM.klik=o.klik||null; TM.gekozen=new Set(); TM.sel=null; TM.markeer=o.markeer||null;
+  TM.actie=o.actie||'verplaats'; TM.alleenDraaien=!!o.alleenDraaien; TM.vast=new Set(o.vast||[]);
+  TM.toon.delta = o.delta!==undefined ? o.delta : true; TM.toon.lp = o.lp!==undefined ? o.lp : true;
+  TM.extraNoot = o.noot||'';
+  if(o.cam) Object.assign(TM.cam, o.cam); else Object.assign(TM.cam, {yaw:0.35, pitch:-0.28, zoom:1});
+  tmCentreer(o.span);
+  tmToolbar(); tmTellerUpdate(); tmRender();
+}
+function tmCentreer(span){
+  if(!TM.mols.length){ TM.centrum=[0,0,0]; TM.span=6; return; }
+  let mn=[Infinity,Infinity,Infinity], mx=[-Infinity,-Infinity,-Infinity];
+  TM.mols.forEach(m=>m.w.forEach(p=>{ for(let k=0;k<3;k++){ mn[k]=Math.min(mn[k],p[k]); mx[k]=Math.max(mx[k],p[k]); } }));
+  TM.centrum = [(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2];
+  const dx=mx[0]-mn[0], dy=mx[1]-mn[1];
+  let R3=0; TM.mols.forEach(m=>m.w.forEach(p=>{ R3=Math.max(R3, d3(p,TM.centrum)); }));
+  TM.spanX = span || Math.max(4, Math.max(dx/2, R3*0.75) + 1.9);
+  TM.spanY = span || Math.max(4, Math.max(dy/2, R3*0.75) + 2.2);
+  TM.span = Math.max(TM.spanX, TM.spanY);
+}
+function tmProj(p){
+  const c=TM.centrum, x=p[0]-c[0], y=p[1]-c[1], z=p[2]-c[2], yaw=TM.cam.yaw, pi=TM.cam.pitch;
+  const x1=x*Math.cos(yaw)+z*Math.sin(yaw), z1=-x*Math.sin(yaw)+z*Math.cos(yaw);
+  const y2=y*Math.cos(pi)-z1*Math.sin(pi), z2=y*Math.sin(pi)+z1*Math.cos(pi);
+  const D=TM.span*3.2, f=D/(D-z2);
+  const W=tmCanvas.width, H=tmCanvas.height, sc=Math.min(W/(TM.spanX*2.15), (H-60*devicePixelRatio)/(TM.spanY*2.15))*TM.cam.zoom;
+  return {sx:W/2+x1*sc*f, sy:H/2-y2*sc*f, depth:z2, f, sc:sc*f};
+}
+function tmAssen(){ const y=TM.cam.yaw, p=TM.cam.pitch;
+  return { rechts:[Math.cos(y),0,Math.sin(y)], op:[Math.sin(p)*Math.sin(y), Math.cos(p), -Math.sin(p)*Math.cos(y)] }; }
+function tmAtoomR(m,k){ const a=m.sp.atomen[k]; return m.sp.ion ? a.rTeken : (a.s==='H'?0.27:0.34); }
+function tmAlleBindingen(){
+  const L = { hb:[], dd:[], vdw:[], id:[], ii:[] };
+  for(let i=0;i<TM.mols.length;i++) for(let j=i+1;j<TM.mols.length;j++){
+    const A=TM.mols[i], B=TM.mols[j];
+    const r = tmTussen(A,B);
+    r.hb.forEach(h=>L.hb.push(h));
+    if(r.dd) L.dd.push([A,B]);
+    if(r.vdw) L.vdw.push([A,B]);
+    if(r.id) L.id.push(r.id);
+    if(A.sp.ion && B.sp.ion && A.sp.lading*B.sp.lading<0 && d3(A.t,B.t) < (A.sp.atomen[0].r+B.sp.atomen[0].r)*1.15) L.ii.push([A,B]);
+  }
+  return L;
+}
+function tmBol(p, r, kleur, mist, rand, dik){
+  tctx.beginPath(); tctx.arc(p.sx,p.sy,r,0,Math.PI*2);
+  const g = tctx.createRadialGradient(p.sx-r*0.35, p.sy-r*0.4, r*0.08, p.sx, p.sy, r*1.05);
+  g.addColorStop(0, mixWit(mixKleur(kleur,'#ffffff',0.6),mist)); g.addColorStop(0.5, mixWit(kleur,mist)); g.addColorStop(1, mixWit(mixKleur(kleur,'#000000',0.22),mist));
+  tctx.fillStyle=g; tctx.fill(); tctx.lineWidth=(dik||1.4)*devicePixelRatio; tctx.strokeStyle=rand||mixWit('#3a4250',mist); tctx.stroke();
+}
+function tmLijn(a, b, kleur, stijl, dikte, alpha){
+  tctx.save(); tctx.globalAlpha = alpha===undefined?1:alpha;
+  tctx.strokeStyle=kleur; tctx.lineWidth=(dikte||2.2)*devicePixelRatio; tctx.lineCap='round';
+  const d=devicePixelRatio;
+  if(stijl==='stip') tctx.setLineDash([0.1, 5*d]); else if(stijl==='streep') tctx.setLineDash([7*d,5*d]);
+  if(stijl==='stip') tctx.lineWidth=(dikte||3.4)*d;
+  tctx.beginPath(); tctx.moveTo(a.sx,a.sy); tctx.lineTo(b.sx,b.sy); tctx.stroke(); tctx.restore();
+}
+function tmChargeTekst(q){ return (Math.abs(q)>1?Math.abs(q):'')+(q>0?'+':'−'); }
+function tmRender(){
+  if(!TM.aan) return;
+  tctx.clearRect(0,0,tmCanvas.width,tmCanvas.height);
+  if(TM.soort==='bak'){ tmRenderBak(); return; }
+  const dpr=devicePixelRatio, items=[], labels=[];
+  const P = TM.mols.map(m=>m.w.map(p=>tmProj(p)));
+  let dMax=0.5; P.forEach(ps=>ps.forEach(p=>dMax=Math.max(dMax,Math.abs(p.depth))));
+  const mist = d => 0.38*(1-Math.max(-1,Math.min(1,d/dMax)))/2;
+  const toonB = TM.toon.bind && !TM.verborgen;
+  const L = toonB ? tmAlleBindingen() : null;
+  // vanderwaals: zachte wolk tussen zware atomen die elkaar raken (sterker bij meer elektronen)
+  if(L) L.vdw.forEach(([A,B])=>{
+    const sterk = Math.min(1, Math.sqrt(A.sp.elektronen*B.sp.elektronen)/70);
+    A.sp.zwaar.forEach(i=>B.sp.zwaar.forEach(j=>{
+      const a=A.sp.atomen[i], b=B.sp.atomen[j], d=d3(A.w[i],B.w[j]);
+      if(d >= (a.r+b.r)*1.3) return;
+      const m = v3.sc(v3.add(A.w[i],B.w[j]),0.5), pm=tmProj(m), pa=P[TM.mols.indexOf(A)][i], pb=P[TM.mols.indexOf(B)][j];
+      const r = Math.max(10*dpr, Math.hypot(pa.sx-pb.sx,pa.sy-pb.sy)*0.55);
+      items.push({depth:pm.depth-0.5, draw:()=>{
+        const g=tctx.createRadialGradient(pm.sx,pm.sy,0,pm.sx,pm.sy,r);
+        g.addColorStop(0,'rgba(125,143,179,'+(0.18+0.42*sterk).toFixed(2)+')'); g.addColorStop(1,'rgba(125,143,179,0)');
+        tctx.fillStyle=g; tctx.beginPath(); tctx.arc(pm.sx,pm.sy,r,0,Math.PI*2); tctx.fill();
+      }});
+    }));
+  });
+  // atoombindingen binnen deeltjes
+  TM.mols.forEach((m,mi)=>{
+    m.sp.bonds.forEach(([a,b,o])=>{
+      const pa=P[mi][a], pb=P[mi][b], mid=tmProj(v3.sc(v3.add(m.w[a],m.w[b]),0.5));
+      [[a,b,pa],[b,a,pb]].forEach(([f,t,pf])=>{
+        const dir=norm(v3.min(m.w[t],m.w[f])), rr=tmAtoomR(m,f)*0.85, ps=tmProj(v3.add(m.w[f],v3.sc(dir,rr)));
+        const depth=(pf.depth+mid.depth)/2;
+        items.push({depth, draw:()=>drawBondTm(ps, mid, o, mist(depth), (ps.f+mid.f)/2, pa, pb)});
+      });
+    });
+    // vrije elektronenparen
+    if(TM.toon.lp) m.sp.atomen.forEach((a,k)=>{
+      if(m.sp.ion || m.sp.key==='sulfaat') return;
+      m.lpw[k].forEach(d=>{
+        const pl=tmProj(v3.add(m.w[k], v3.sc(d,0.62))), pa=P[mi][k];
+        items.push({depth:pl.depth, draw:()=>{
+          const r=0.34*pl.sc*0.6, kk=mist(pl.depth);
+          tctx.beginPath(); tctx.ellipse(pl.sx,pl.sy,r*1.3,r*0.85,Math.atan2(pl.sy-pa.sy,pl.sx-pa.sx),0,Math.PI*2);
+          tctx.fillStyle='rgba(120,105,40,.10)'; tctx.fill(); tctx.lineWidth=dpr; tctx.strokeStyle=mixWit('#b3a873',kk); tctx.stroke();
+          tctx.font=`700 ${r*0.9}px Georgia, serif`; tctx.fillStyle=mixWit('#5a4b14',kk); tctx.textAlign='center'; tctx.textBaseline='middle'; tctx.fillText('··',pl.sx,pl.sy+r*0.05);
+        }});
+      });
+    });
+    // atomen
+    m.sp.atomen.forEach((a,k)=>{
+      const p=P[mi][k];
+      items.push({depth:p.depth, draw:()=>{
+        const r=tmAtoomR(m,k)*p.sc, kk=mist(p.depth);
+        const kleur = m.sp.ion ? a.kleur : ELEMENTS[a.s].color;
+        const gk = TM.gekozen.has(m.id+':'+k);
+        tmBol(p, r, kleur, kk, gk ? getCss('--accent') : (TM.sel===m ? '#1F5FBF' : null), gk ? 4 : (TM.sel===m?2.4:1.4));
+        if(gk){ tctx.beginPath(); tctx.arc(p.sx,p.sy,r+5*dpr,0,Math.PI*2); tctx.lineWidth=3*dpr; tctx.strokeStyle='rgba(31,95,191,.55)'; tctx.stroke(); }
+        tctx.font=`700 ${r*0.85}px Segoe UI`; tctx.fillStyle=mixWit('#10131a',kk); tctx.textAlign='center'; tctx.textBaseline='middle';
+        tctx.fillText(a.s, p.sx, p.sy+r*0.02);
+        if(m.sp.ion){
+          const t=tmChargeTekst(m.sp.lading), fs=Math.max(12*dpr, r*0.6);
+          tctx.font=`700 ${fs}px Segoe UI`; tctx.lineWidth=3*dpr; tctx.strokeStyle='#fff'; tctx.lineJoin='round';
+          tctx.strokeText(t, p.sx+r*0.78, p.sy-r*0.72); tctx.fillStyle = m.sp.lading>0?getCss('--plus'):getCss('--minus'); tctx.fillText(t, p.sx+r*0.78, p.sy-r*0.72);
+        }
+        if(TM.markeer===m){ tctx.beginPath(); tctx.arc(p.sx,p.sy,r+7*dpr,0,Math.PI*2); tctx.lineWidth=3.5*dpr; tctx.strokeStyle='#e0a400'; tctx.setLineDash([6*dpr,4*dpr]); tctx.stroke(); tctx.setLineDash([]); }
+        if(TM.toon.delta && !m.sp.ion && Math.abs(a.q)>0.02) labels.push(()=>{
+          const mag=Math.min(Math.abs(a.q),3.5), fs=(11+mag*5)*dpr*Math.min(1.25,Math.max(0.75,p.sc/(Math.min(tmCanvas.width,tmCanvas.height)/18)));
+          tctx.font=`700 ${fs}px Georgia, serif`; tctx.textAlign='center'; tctx.textBaseline='middle';
+          tctx.lineWidth=4*dpr; tctx.strokeStyle='rgba(255,255,255,.9)'; tctx.lineJoin='round';
+          const t=a.q>0?'δ+':'δ−'; tctx.strokeText(t,p.sx,p.sy-r-fs*0.5); tctx.fillStyle=a.q>0?getCss('--plus'):getCss('--minus'); tctx.fillText(t,p.sx,p.sy-r-fs*0.5);
+        });
+      }});
+    });
+  });
+  // bindingen tussen deeltjes
+  if(L){
+    L.hb.forEach(h=>{
+      const ph=tmProj(h.d.w[h.h]), lpPos=v3.add(h.a.w[h.x], v3.sc(h.a.lpw[h.x][h.lp], 0.62)), pl=tmProj(lpPos);
+      items.push({depth:Math.max(ph.depth,pl.depth)+0.01, draw:()=>tmLijn(ph,pl,KLEUR.hb,'stip')});
+    });
+    L.dd.forEach(([A,B])=>{
+      const c1=[A.plusw,B.minw], c2=[B.plusw,A.minw];
+      const [a,b] = d3(c1[0],c1[1]) < d3(c2[0],c2[1]) ? c1 : c2;
+      const pa=tmProj(a), pb=tmProj(b);
+      items.push({depth:Math.max(pa.depth,pb.depth)+0.02, draw:()=>{ tmLijn(pa,pb,KLEUR.dd,'streep',2.4);
+        [[pa,getCss('--plus')],[pb,getCss('--minus')]].forEach(([q,c])=>{ tctx.beginPath(); tctx.arc(q.sx,q.sy,5*dpr,0,Math.PI*2); tctx.fillStyle=c; tctx.fill(); tctx.lineWidth=1.5*dpr; tctx.strokeStyle='#fff'; tctx.stroke(); }); }});
+    });
+    L.id.forEach(r=>{
+      const pa=tmProj(r.ion.w[0]), pb=tmProj(r.mol.w[r.atoom]);
+      items.push({depth:Math.max(pa.depth,pb.depth)+0.01, draw:()=>tmLijn(pa,pb,KLEUR.id,'streep',2.6)});
+    });
+    L.ii.forEach(([A,B])=>{
+      const pa=tmProj(A.w[0]), pb=tmProj(B.w[0]);
+      items.push({depth:Math.min(pa.depth,pb.depth)-0.3, draw:()=>tmLijn(pa,pb,KLEUR.ii,null,2.2,0.7)});
+    });
+  }
+  items.sort((x,y)=>x.depth-y.depth).forEach(it=>it.draw());
+  labels.forEach(l=>l());
+  TM.labels.forEach(l=>{
+    const p=tmProj(l.pos); tctx.font=`600 ${13*dpr}px Segoe UI`; tctx.textAlign='center'; tctx.textBaseline='middle';
+    tctx.lineWidth=4*dpr; tctx.strokeStyle='#fff'; tctx.strokeText(l.tekst,p.sx,p.sy); tctx.fillStyle='#174a96'; tctx.fillText(l.tekst,p.sx,p.sy);
+  });
+}
+function drawBondTm(pa,pb,order,mistK,f,dirA,dirB){
+  const dx=dirB.sx-dirA.sx, dy=dirB.sy-dirA.sy, len=Math.hypot(dx,dy)||1, px=-dy/len, py=dx/len;
+  const gap=4*devicePixelRatio*f, offs=order===1?[0]:order===2?[-gap/2,gap/2]:[-gap,0,gap];
+  tctx.lineWidth=2.4*devicePixelRatio*f; tctx.strokeStyle=mixWit('#55606e',mistK);
+  offs.forEach(o=>{ tctx.beginPath(); tctx.moveTo(pa.sx+px*o,pa.sy+py*o); tctx.lineTo(pb.sx+px*o,pb.sy+py*o); tctx.stroke(); });
+}
+
+// ---------- muis in de scène ----------
+let tmDrag=null;
+function tmHit(mx,my){
+  let best=null, bd=Infinity;
+  // het atoom waarvan je het dichtst bij het midden klikt (relatief aan de straal); bij gelijkspel het voorste
+  TM.mols.forEach(m=>m.w.forEach((w,k)=>{ const p=tmProj(w), r=Math.max(9*devicePixelRatio, tmAtoomR(m,k)*p.sc*1.1), d=Math.hypot(p.sx-mx,p.sy-my)/r - p.depth*0.02; if(Math.hypot(p.sx-mx,p.sy-my)<r && d<bd){ bd=d; best={m,k,depth:p.depth}; } }));
+  return best;
+}
+tmCanvas.addEventListener('mousedown', e=>{
+  const rc=tmCanvas.getBoundingClientRect(), mx=(e.clientX-rc.left)*devicePixelRatio, my=(e.clientY-rc.top)*devicePixelRatio;
+  if(TM.soort!=='scene'){ tmDrag={cam:true,x:e.clientX,y:e.clientY,moved:false,bak:true}; return; }
+  const h = tmHit(mx,my);
+  tmDrag = { x:e.clientX, y:e.clientY, moved:false, hit:h, cam:!h, shift:e.shiftKey };
+  if(h && !TM.klik){ TM.sel=h.m; tmRender(); }
+});
+window.addEventListener('mousemove', e=>{
+  if(!tmDrag || !TM.aan) return;
+  const dx=e.clientX-tmDrag.x, dy=e.clientY-tmDrag.y;
+  if(!tmDrag.moved && Math.hypot(dx,dy)<3) return;
+  tmDrag.moved=true; tmDrag.x=e.clientX; tmDrag.y=e.clientY;
+  if(tmDrag.bak) return;
+  if(tmDrag.cam){ TM.cam.yaw+=dx*0.008; TM.cam.pitch=Math.max(-1.45,Math.min(1.45,TM.cam.pitch+dy*0.008)); tmRender(); return; }
+  const m = tmDrag.hit.m; if(TM.vast.has(m.id)) return;
+  const A = tmAssen();
+  const draai = TM.alleenDraaien || tmDrag.shift || e.shiftKey || TM.actie==='draai';
+  if(draai){
+    m.R = matMul(rotMat(A.op, dx*0.012), matMul(rotMat(A.rechts, dy*0.012), m.R));
+  } else {
+    const sc = tmProj(m.t).sc;
+    m.t = v3.add(m.t, v3.add(v3.sc(A.rechts, dx*devicePixelRatio/sc), v3.sc(A.op, -dy*devicePixelRatio/sc)));
+  }
+  tmUpdate(m); tmRender(); if(TM.onVerander) TM.onVerander();
+});
+window.addEventListener('mouseup', e=>{
+  if(!tmDrag) return;
+  const d=tmDrag; tmDrag=null;
+  if(!d.moved && d.hit && TM.klik) TM.klik(d.hit.m, d.hit.k);
+  else if(!d.moved && !d.hit && !d.bak && TM.sel){ TM.sel=null; tmRender(); }
+});
+tmCanvas.addEventListener('wheel', e=>{ e.preventDefault(); if(TM.soort==='bak') return; TM.cam.zoom=Math.max(0.45,Math.min(3,TM.cam.zoom*(e.deltaY>0?0.92:1.08))); tmRender(); }, {passive:false});
+
+// ---------- plaatsen van deeltjes ----------
+function tmRotNaar(a,b){
+  a=norm(a); b=norm(b); const v=cross(a,b), s=Math.hypot(v[0],v[1],v[2]), c=dot(a,b);
+  if(s<1e-8) return c>0 ? I3() : rotMat(Math.abs(a[0])<0.9?cross(a,[1,0,0]):cross(a,[0,1,0]), Math.PI);
+  return rotMat(v, Math.atan2(s,c));
+}
+// molecuul met zijn platte kant naar de kijker (hoofdassen), plus een kleine kanteling
+function tmVlak(key, kantel){ const [ex,ey,ez]=rmPlat(tmSp(key)); return matMul(rotMat([0.2,1,0], kantel===undefined?0.35:kantel), [ex,ey,ez]); }
+function tmBotst(m, andere){ return andere.some(q=>q!==m && tmTussen(m,q).botst); }
+// een molecuul (key) neemt met een vrij paar een H-brug aan van H-atoom h van molecuul C
+function tmDockOpH(C, h, key, andere){
+  const D=C.sp.atomen[h].p, u=norm(v3.min(C.w[h],C.w[D])), sp=tmSp(key), x=sp.acceptors[0], lp=sp.atomen[x].lp[0];
+  let best=null;
+  for(let t=0;t<12;t++){
+    let R = matMul(rotMat(u, t*Math.PI/6 + Math.random()*0.2), tmRotNaar(lp, v3.sc(u,-1)));
+    const Xw = v3.add(C.w[h], v3.sc(u,1.95)), t3 = v3.min(Xw, matVec(R, sp.atomen[x].pos));
+    const m = tmMol(key, t3, R);
+    if(!tmBotst(m, [C].concat(andere||[]))){ best=m; if(Math.random()<0.6) break; }
+  }
+  return best;
+}
+// een molecuul (key) geeft een H aan vrij paar li van atoom x van molecuul C
+function tmDockOpLp(C, x, li, key, andere){
+  const l=C.lpw[x][li], sp=tmSp(key), h=sp.donors[0], Db=sp.atomen[sp.atomen[h].p].pos, Hb=sp.atomen[h].pos;
+  let best=null;
+  for(let t=0;t<12;t++){
+    const R = matMul(rotMat(l, t*Math.PI/6 + Math.random()*0.2), tmRotNaar(norm(v3.min(Hb,Db)), v3.sc(l,-1)));
+    const Hw = v3.add(C.w[x], v3.sc(l,1.95)), t3 = v3.min(Hw, matVec(R,Hb));
+    const m = tmMol(key, t3, R);
+    if(!tmBotst(m, [C].concat(andere||[]))){ best=m; if(Math.random()<0.6) break; }
+  }
+  return best;
+}
+// naast elkaar leggen; antiparallel = dipolen tegengesteld (aantrekkend), anders parallel
+function tmNaast(A, key, antiparallel){
+  const sp=tmSp(key);
+  let as = Math.hypot(...A.dipw)>0.01 ? norm(A.dipw) : [1,0,0];
+  let off = norm(cross(as, [0,0,1])); if(Math.hypot(...cross(as,[0,0,1]))<0.2) off=norm(cross(as,[0,1,0]));
+  let R = antiparallel ? matMul(rotMat(off, Math.PI), A.R) : A.R.map(r=>r.slice());
+  if(key!==A.sp.key && Math.hypot(...sp.dip)>0.01 && Math.hypot(...A.dipw)>0.01) R = tmRotNaar(sp.dip, antiparallel ? v3.sc(as,-1) : as);
+  let m=null;
+  for(let d=2; d<14; d+=0.15){
+    m = tmMol(key, v3.add(A.t, v3.sc(off,d)), R);
+    const r = tmTussen(A,m);
+    if(!r.botst && r.contact>0) return m;
+  }
+  return m;
+}
+function tmPaar(keyA, keyB){
+  // twee moleculen in een gunstige stand: H-brug als dat kan, anders dipolen tegengesteld
+  const A = tmMol(keyA, [0,0,0], tmVlak(keyA, 0.5));
+  const a=A.sp, b=tmSp(keyB);
+  let B=null;
+  if(a.donors.length && b.acceptors.length) B = tmDockOpH(A, a.donors[0], keyB);
+  else if(b.donors.length && a.acceptors.length) B = tmDockOpLp(A, a.acceptors[0], 0, keyB);
+  if(!B) B = tmNaast(A, keyB, true);
+  return [A,B];
+}
+
+// ---------- mengbak en zout-in-water ----------
+function tmBakZet(B, o){
+  o=o||{};
+  TM.soort='bak'; TM.bak=B; TM.mols=[]; TM.loopt=false; TM.verdampen=false; TM.verborgen=false; TM.klik=null;
+  TM.extraNoot = o.noot||'';
+  B.flits=[]; B.parts.forEach(p=>{ p.x=p.c; p.y=p.r; p.th=p.thDoel; });
+  TM.start = rmTelling(B).t; TM.telTik=0;
+  TM.bakOpties = o;
+  tmTellerUpdate(); tmToolbar(); tmRender();
+}
+function tmBakXY(B){
+  const W=tmCanvas.width, H=tmCanvas.height, s=B.s, d=devicePixelRatio;
+  const tb=document.getElementById('tmToolbar'), te=document.getElementById('tmTeller'), lg=document.getElementById('tmLegend');
+  const top=(tb.offsetTop+tb.offsetHeight+22)*d, right=(te.style.display==='none'?24:te.offsetWidth+34)*d, bottom=(lg.offsetHeight+30)*d, left=28*d;
+  const w=W-left-right, h=H-top-bottom;
+  const sc = Math.min(w/(B.C*s), h/(B.R*s));
+  return { sc, x0: left + (w - (B.C-1)*s*sc)/2, y0: top + (h - (B.R-1)*s*sc)/2 };
+}
+function tmRenderBak(){
+  const B=TM.bak, dpr=devicePixelRatio, s=B.s, {sc,x0,y0}=tmBakXY(B), items=[];
+  // bak
+  tctx.save(); tctx.strokeStyle='#9aa5b8'; tctx.lineWidth=3*dpr; tctx.fillStyle='rgba(232,240,252,.45)';
+  const bx=x0-s*sc*0.6, by=y0-s*sc*0.6, bw=B.C*s*sc, bh=B.R*s*sc;
+  tctx.beginPath(); tctx.moveTo(bx,by-10*dpr); tctx.lineTo(bx,by+bh-14*dpr); tctx.quadraticCurveTo(bx,by+bh,bx+14*dpr,by+bh); tctx.lineTo(bx+bw-14*dpr,by+bh); tctx.quadraticCurveTo(bx+bw,by+bh,bx+bw,by+bh-14*dpr); tctx.lineTo(bx+bw,by-10*dpr);
+  tctx.fill(); tctx.stroke(); tctx.restore();
+  const xy = B.parts.map(p=>{ if(p.weg) return null; const at=rmAtoomXY(p,p.th); return at.map(a=>({sx:x0+(p.x*s+a[0])*sc, sy:y0+(p.y*s-a[1])*sc, depth:a[2]})); });
+  const cen = p => ({sx:x0+p.x*s*sc, sy:y0+p.y*s*sc});
+  const L = rmBindingen(B);
+  // lijnen tussen deeltjes eerst (achter de atomen)
+  if(TM.toon.vdwBak) L.vdw.forEach(([i,j])=>tmLijn(cen(B.parts[i]),cen(B.parts[j]),KLEUR.vdw,null,6,0.22));
+  L.ii.forEach(([i,j])=>tmLijn(cen(B.parts[i]),cen(B.parts[j]),KLEUR.ii,null,2.4,0.75));
+  // flitsen: rood = contact verdwenen, groen = nieuw contact
+  if(TM.toon.flits) B.flits.forEach(f=>{
+    const [i,j]=f.k.split('-').map(Number), P1=B.parts[i], P2=B.parts[j]; if(!P1||!P2) return;
+    const a=cen(P1), b=cen(P2), m={sx:(a.sx+b.sx)/2, sy:(a.sy+b.sy)/2}, k=0.22;
+    tmLijn({sx:m.sx+(a.sx-m.sx)*k*2, sy:m.sy+(a.sy-m.sy)*k*2}, {sx:m.sx+(b.sx-m.sx)*k*2, sy:m.sy+(b.sy-m.sy)*k*2}, f.soort==='weg'?KLEUR.weg:KLEUR.nieuw, null, 5, Math.max(0,1-f.t/30)*0.85);
+  });
+  B.parts.forEach((p,pi)=>{
+    if(p.weg) return;
+    const P=xy[pi];
+    p.sp.bonds.forEach(([a,b,o])=>{ items.push({depth:(P[a].depth+P[b].depth)/2-0.01, draw:()=>{
+      const ra=(p.sp.atomen[a].s==='H'?0.25:0.3)*sc, dx=P[b].sx-P[a].sx, dy=P[b].sy-P[a].sy, l=Math.hypot(dx,dy)||1;
+      drawBondTm({sx:P[a].sx+dx/l*ra*0.8, sy:P[a].sy+dy/l*ra*0.8}, {sx:P[b].sx-dx/l*ra*0.8, sy:P[b].sy-dy/l*ra*0.8}, o, 0, Math.max(0.55,sc/22), P[a], P[b]); }}); });
+    p.sp.atomen.forEach((a,k)=>{ items.push({depth:P[k].depth, draw:()=>{
+      const r = p.sp.ion ? a.rTeken*sc*1.45 : (a.s==='H'?0.25:0.31)*sc;
+      tmBol(P[k], r, p.sp.ion ? a.kleur : ELEMENTS[a.s].color, 0, null, 1.1);
+      if(r>7*dpr){ tctx.font=`700 ${r*0.85}px Segoe UI`; tctx.fillStyle='#10131a'; tctx.textAlign='center'; tctx.textBaseline='middle'; tctx.fillText(a.s,P[k].sx,P[k].sy+r*0.02); }
+      if(p.sp.lading && k===0){ const t=tmChargeTekst(p.sp.lading), fs=Math.max(11*dpr,r*0.62); const rr = p.sp.ion ? r : r*2.4;
+        tctx.font=`700 ${fs}px Segoe UI`; tctx.lineWidth=3*dpr; tctx.strokeStyle='#fff'; tctx.strokeText(t,P[k].sx+rr*0.8,P[k].sy-rr*0.75); tctx.fillStyle=p.sp.lading>0?getCss('--plus'):getCss('--minus'); tctx.fillText(t,P[k].sx+rr*0.8,P[k].sy-rr*0.75); }
+    }}); });
+  });
+  items.sort((a,b)=>a.depth-b.depth).forEach(it=>it.draw());
+  if(TM.toon.bind){
+    L.hb.forEach(k=>{ const a=xy[k.d], b=xy[k.a]; if(a&&b) tmLijn(a[k.h], b[k.x], KLEUR.hb, 'stip', 3); });
+    L.id.forEach(k=>{ const a=xy[k.ion], b=xy[k.mol]; if(a&&b) tmLijn(a[0], b[k.atoom], KLEUR.id, 'streep', 2.4); });
+  }
+}
+function tmTick(){
+  requestAnimationFrame(tmTick);
+  if(!TM.aan || TM.soort!=='bak' || !TM.bak) return;
+  const B=TM.bak;
+  if(TM.loopt){
+    TM.tegoed = (TM.tegoed||0) + [0.15,0.4,1,2.5,6][TM.snel-1];
+    const n = Math.floor(TM.tegoed); TM.tegoed -= n;
+    if(n) rmStap(B, n, n*500);
+    if(TM.verdampen){
+      TM.verdampTik = (TM.verdampTik||0) + [0.04,0.08,0.15,0.3,0.6][TM.snel-1];
+      if(TM.verdampTik>=1){ TM.verdampTik-=1; tmVerdampEen(B); }
+    }
+  }
+  let beweegt=false;
+  B.parts.forEach(p=>{ if(p.weg) return;
+    const dx=p.c-p.x, dy=p.r-p.y; if(Math.abs(dx)>0.002||Math.abs(dy)>0.002){ p.x+=dx*0.22; p.y+=dy*0.22; beweegt=true; }
+    let dt=p.thDoel-p.th; while(dt>Math.PI) dt-=2*Math.PI; while(dt<-Math.PI) dt+=2*Math.PI; if(Math.abs(dt)>0.01){ p.th+=dt*0.15; beweegt=true; } });
+  B.flits.forEach(f=>f.t++); B.flits = B.flits.filter(f=>f.t<30);
+  if(beweegt || TM.loopt || B.flits.length) tmRender();
+  if(++TM.telTik % 12 === 0) tmTellerUpdate();
+}
+function tmVerdampEen(B){
+  // het bovenste watermolecuul verdampt
+  for(let r=0;r<B.R;r++){
+    const kand=[]; for(let c=0;c<B.C;c++){ const i=B.cel[r*B.C+c]; if(i>=0 && B.parts[i].key==='water') kand.push(i); }
+    if(kand.length){ const i=pick(kand), p=B.parts[i]; B.cel[p.r*B.C+p.c]=-1; p.weg=true;
+      RM_BUREN.forEach(([dc,dr])=>{ const cc=p.c+dc, rr=p.r+dr; if(cc<0||rr<0||cc>=B.C||rr>=B.R) return; const j=B.cel[rr*B.C+cc]; if(j>=0) B.flits.push({k:Math.min(i,j)+'-'+Math.max(i,j), soort:'weg', t:0}); });
+      return true; }
+  }
+  TM.verdampen=false; return false;
+}
+requestAnimationFrame(tmTick);
+
+// ---------- teller ----------
+function tmPaarNaam(k){
+  return k.split('|').map(x=>{ if(TM_ION[x]) return tmIonTekst(x); if(x==='sulfaat') return tmIonTekst(x); return tmSp(x).naam; }).join(' – ');
+}
+function tmTellerUpdate(){
+  const el=document.getElementById('tmTeller');
+  if(!TM.aan || TM.soort!=='bak' || !TM.bak){ el.style.display='none'; return; }
+  const nu=rmTelling(TM.bak).t, st=TM.start||{};
+  const keys=[...new Set(Object.keys(st).concat(Object.keys(nu)))];
+  const zelf=k=>{ const [a,b]=k.split('|'); return a===b; };
+  keys.sort((a,b)=>(zelf(b)-zelf(a)) || a.localeCompare(b));
+  const hbKan = k => { const [a,b]=k.split('|'); return paarSoorten(a,b).v.includes('waterstofbrug'); };
+  keys.forEach(k=>{ if(hbKan(k)){ if(st[k]) st[k]=Object.assign({},st[k],{dd:0}); if(nu[k]) nu[k]=Object.assign({},nu[k],{dd:0}); } });
+  const kol=['vdw','dd','hb','id','ii'].filter(v=>keys.some(k=>(st[k]&&st[k][v])||(nu[k]&&nu[k][v])));
+  const kn={vdw:'vanderwaals',dd:'dipool-dipool',hb:'H-brug',id:'ion-dipool',ii:'ionbinding'};
+  let h='<div class="tt">Bindingen tussen buren <span>begin → nu</span></div><table><tr><th></th>'+kol.map(v=>'<th><span class="sw" style="background:'+KLEUR[v]+'"></span>'+kn[v]+'</th>').join('')+'</tr>';
+  keys.forEach(k=>{
+    h+='<tr><td>'+tmPaarNaam(k)+'</td>'+kol.map(v=>{ const a=(st[k]&&st[k][v])||0, b=(nu[k]&&nu[k][v])||0, d=b-a;
+      return '<td>'+(a||b ? a+' → '+b+(d?' <b class="'+(d>0?'plus':'min')+'">('+(d>0?'+':'−')+Math.abs(d)+')</b>':'') : '–')+'</td>'; }).join('')+'</tr>';
+  });
+  el.innerHTML=h+'</table>'; el.style.display='block';
+}
+
+// ---------- werkbalk, legenda, noot ----------
+function tmToolbar(){
+  const tb=document.getElementById('tmToolbar'); let h='';
+  if(TM.soort==='scene'){
+    const beweegbaar = TM.mols.some(m=>!TM.vast.has(m.id));
+    if(beweegbaar && !TM.alleenDraaien) h+='<button data-a="verplaats" class="'+(TM.actie==='verplaats'?'aan':'')+'">✋ verschuiven</button><button data-a="draai" class="'+(TM.actie==='draai'?'aan':'')+'">⟳ draaien</button>';
+    h+='<label><input type="checkbox" data-t="delta" '+(TM.toon.delta?'checked':'')+'> δ-letters</label><label><input type="checkbox" data-t="lp" '+(TM.toon.lp?'checked':'')+'> vrije paren</label>';
+    if(!TM.verborgen) h+='<label><input type="checkbox" data-t="bind" '+(TM.toon.bind?'checked':'')+'> bindingen tussen deeltjes</label>';
+  } else {
+    h+='<button data-b="start" class="prim">'+(TM.loopt?'⏸ Pauze':(TM.bakOpties&&TM.bakOpties.startTekst)||'▶ Start')+'</button>';
+    if(TM.bakOpties && TM.bakOpties.indampen) h+='<button data-b="indampen" class="'+(TM.verdampen?'aan':'')+'">♨ Indampen</button>';
+    h+='<button data-b="reset">↺ Opnieuw</button><label>snelheid <input type="range" min="1" max="5" value="'+TM.snel+'" data-b="snel"></label>';
+    h+='<label><input type="checkbox" data-t="bind" '+(TM.toon.bind?'checked':'')+'> H-bruggen'+(TM.bak&&TM.bak.parts.some(p=>p.sp.lading)?' en ion-dipool':'')+'</label>';
+    h+='<label><input type="checkbox" data-t="vdwBak" '+(TM.toon.vdwBak?'checked':'')+'> vanderwaalscontacten</label>';
+    h+='<label><input type="checkbox" data-t="flits" '+(TM.toon.flits?'checked':'')+'> verbroken/gevormd</label>';
+  }
+  tb.innerHTML=h;
+  tb.style.maxWidth = TM.soort==='bak' ? 'calc(100% - '+((document.getElementById('tmTeller').offsetWidth||380)+40)+'px)' : '62%';
+  tb.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{ TM.actie=b.dataset.a; tmToolbar(); });
+  tb.querySelectorAll('input[data-t]').forEach(c=>c.onchange=()=>{ TM.toon[c.dataset.t]=c.checked; tmRender(); });
+  tb.querySelectorAll('button[data-b]').forEach(b=>b.onclick=()=>{
+    const a=b.dataset.b;
+    if(a==='start'){ TM.loopt=!TM.loopt; if(TM.bakOpties&&TM.bakOpties.opStart) TM.bakOpties.opStart(); }
+    if(a==='indampen'){ TM.verdampen=!TM.verdampen; if(TM.verdampen) TM.loopt=true; }
+    if(a==='reset' && TM.bakOpties && TM.bakOpties.opnieuw){ TM.bakOpties.opnieuw(); return; }
+    tmToolbar();
+  });
+  const sl=tb.querySelector('input[data-b="snel"]'); if(sl) sl.oninput=()=>{ TM.snel=+sl.value; };
+  tmLegenda();
+}
+function tmLegenda(){
+  const el=document.getElementById('tmLegend');
+  const r=(k,stijl,t)=>'<div class="lg"><svg width="34" height="10"><line x1="2" y1="5" x2="32" y2="5" stroke="'+KLEUR[k]+'" stroke-width="'+(stijl==='stip'?4:2.6)+'" stroke-linecap="round" '+(stijl==='stip'?'stroke-dasharray="0.1 6"':stijl==='streep'?'stroke-dasharray="7 5"':'')+'/></svg>'+t+'</div>';
+  let h='';
+  if(TM.soort==='scene'){
+    if(TM.verborgen) h='<div class="lg" style="color:var(--textdim)">De bindingen tussen de deeltjes worden getoond na je antwoord.</div>';
+    else { const ion=TM.mols.some(m=>m.sp.ion), mol=TM.mols.some(m=>!m.sp.ion);
+      h=(mol?'<div class="lg"><span class="wolk"></span>vanderwaalsbinding (donkerder = sterker)</div>'+r('dd','streep','dipool-dipoolbinding (δ+ → δ−)')+r('hb','stip','waterstofbrug (H → vrij paar)'):'')+(ion&&mol?r('id','streep','ion-dipoolbinding'):'')+(ion?r('ii',null,'ionbinding'):''); }
+  } else {
+    h=r('hb','stip','waterstofbrug')+(TM.bak&&TM.bak.parts.some(p=>p.sp.lading)?r('id','streep','ion-dipoolbinding')+r('ii',null,'ionbinding'):'')+'<div class="lg"><span class="flitsrood"></span>contact verbroken <span class="flitsgroen" style="margin-left:8px"></span>contact gevormd</div>';
+  }
+  el.innerHTML=h;
+  const n=document.getElementById('tmNote');
+  n.innerHTML = TM.soort==='bak'
+    ? 'Vereenvoudigd model: elk vakje is één deeltje. Buren trekken elkaar aan volgens de bindingen die tussen die deeltjes mogelijk zijn (vanderwaals sterker bij meer elektronen, waterstofbruggen, dipool-dipool, ion-dipool, ionbinding). Deeltjes wisselen van plaats als dat gunstig is, met wat toeval (warmtebeweging). Afstanden en afmetingen zijn niet op schaal.'+(TM.extraNoot?'<br>'+TM.extraNoot:'')
+    : 'Sleep een deeltje om het te '+(TM.alleenDraaien?'draaien':'verschuiven (Shift + slepen = draaien)')+'. Sleep in het lege veld om alles te draaien, scroll om te zoomen. Geïdealiseerde VSEPR-hoeken.'+(TM.extraNoot?'<br>'+TM.extraNoot:'');
+}
+
+// ===================== BINDINGENBALANS =====================
+const BSOORTEN = ['vanderwaalsbinding','dipool-dipoolbinding','waterstofbrug','ion-dipoolbinding','ionbinding','atoombinding'];
+function deeltjesNaam(key){ if(TM_ION[key]) return TM_ION[key].naam.replace(/ion$/,'ionen'); if(key==='sulfaat') return 'sulfaationen'; return tmSp(key).mv; }
+function paarLabel(a,b){ return a===b ? deeltjesNaam(a)+' onderling' : deeltjesNaam(a)+' en '+deeltjesNaam(b); }
+function binnenLabel(key){ return key==='sulfaat' ? 'atomen binnen een sulfaation' : 'atomen binnen een '+tmSp(key).naam.replace(/-/g,'')+'molecuul'; }
+function binnenLabelNet(key){ const n=tmSp(key).naam; return 'atomen binnen een '+(n.includes('-')||n.includes(',') ? n+'-molecuul' : n+'molecuul'); }
+// welke bindingen zijn er tussen deeltjes a en b (vereist / mag ook)
+function paarSoorten(a, b){
+  const A=tmSp(a), B=tmSp(b);
+  if(A.lading && B.lading) return {v: A.lading*B.lading<0 ? ['ionbinding'] : [], o:[]};
+  if(A.lading || B.lading){ const mol = A.lading?B:A; return mol.dipool ? {v:['ion-dipoolbinding'], o:['vanderwaalsbinding']} : {v:['vanderwaalsbinding'], o:[]}; }
+  const hb = (A.donors.length && B.acceptors.length) || (B.donors.length && A.acceptors.length);
+  const v=['vanderwaalsbinding'], o=[];
+  if(hb) v.push('waterstofbrug');
+  if(A.dipool && B.dipool) (hb?o:v).push('dipool-dipoolbinding');
+  return {v, o};
+}
+// proces: lijst van {dir, a, b}; extra: losse deeltjes(paren) als afleiders
+function maakBalans(stappen, keys, proces, alleenVerbroken){
+  const vereist=[], opt=[], mogelijk={};
+  stappen.forEach(({dir,a,b})=>{ const ps=paarSoorten(a,b), lab=paarLabel(a,b);
+    ps.v.forEach(s=>vereist.push({dir,soort:s,paar:lab})); ps.o.forEach(s=>opt.push({dir,soort:s,paar:lab})); });
+  const paren=[];
+  for(let i=0;i<keys.length;i++) for(let j=i;j<keys.length;j++){
+    const a=keys[i], b=keys[j];
+    if(TM_ION[a] && a===b) { paren.push(paarLabel(a,b)); mogelijk[paarLabel(a,b)]=[]; continue; }
+    const lab=paarLabel(a,b), ps=paarSoorten(a,b); paren.push(lab); mogelijk[lab]=ps.v.concat(ps.o);
+  }
+  keys.forEach(k=>{ if(!TM_ION[k]){ const l=binnenLabelNet(k).replace('atomen binnen een sulfaation-molecuul','atomen binnen een sulfaation'); paren.push(k==='sulfaat'?'atomen binnen een sulfaation':l); } });
+  return { soort:'balans', vereist, opt, paren, mogelijk, proces, alleenVerbroken:!!alleenVerbroken };
+}
+const bKey = e => e.dir+'|'+e.soort+'|'+e.paar;
+function balansRij(p, w){
+  w=w||{};
+  const div=document.createElement('div'); div.className='brow';
+  const sel=(cls,opts,ph,val)=>'<select class="'+cls+'"><option value="">'+ph+'</option>'+opts.map(o=>'<option'+(o===val?' selected':'')+'>'+o+'</option>').join('')+'</select>';
+  div.innerHTML=(p.alleenVerbroken?'<span class="bdir">verbroken:</span>':sel('bdir',['verbroken','gevormd'],'verbroken/gevormd',w.dir))+
+    sel('bsoort',BSOORTEN,'soort binding',w.soort)+'<span class="bt">tussen</span>'+sel('bpaar',p.paren,'welke deeltjes?',w.paar)+
+    '<button class="bdel" title="regel weghalen">×</button><div class="bmsg"></div>';
+  div.querySelector('.bdel').onclick=()=>{ div.remove(); };
+  div.querySelectorAll('select').forEach(s=>s.onchange=()=>{ div.classList.remove('ok','fout'); div.querySelector('.bmsg').textContent=''; });
+  return div;
+}
+function balansLees(p, el){
+  return [...el.querySelectorAll('.brow')].map(r=>({ r, dir: p.alleenVerbroken?'verbroken':r.querySelector('.bdir').value, soort:r.querySelector('.bsoort').value, paar:r.querySelector('.bpaar').value }));
+}
+function balansWaarom(p, e){
+  if(e.soort==='atoombinding' || e.paar.startsWith('atomen binnen'))
+    return 'Bij '+p.proces+' blijven de moleculen'+(p.paren.some(x=>x.includes('sulfaat'))?' en de sulfaationen':'')+' heel: er worden geen atoombindingen verbroken of gevormd.';
+  const ander = e.dir==='verbroken'?'gevormd':'verbroken';
+  const alle = p.vereist.concat(p.opt);
+  if(alle.some(x=>x.dir===ander && x.soort===e.soort && x.paar===e.paar)) return 'Wordt deze binding verbroken of juist gevormd? Kijk nog eens.';
+  if(!(p.mogelijk[e.paar]||[]).includes(e.soort)) return 'Tussen '+e.paar+' is geen '+e.soort+' mogelijk.';
+  return 'Deze binding hoort niet bij '+p.proces+'.';
+}
+
+// ===================== NIVEAUS: TUSSEN MOLECULEN =====================
+const TM_KOOKPUNT = { methaan:112, ethaan:184, propaan:231, butaan:273, hexaan:342, fluor:85, chloor:239, broom:332, waterstofchloride:188,
+  ethanol:351, ether:249, methanol:338, propanon:329, chloormethaan:249, diol:470, propanol:370, water:373 };
+function elekUitleg(key){
+  const sp=tmSp(key), n={}; sp.atomen.forEach(a=>n[a.s]=(n[a.s]||0)+1);
+  const delen=Object.keys(n).sort((a,b)=>({C:0,H:1}[a]??2)-({C:0,H:1}[b]??2)).map(s=>(n[s]>1?n[s]+' × ':'')+TM_Z[s]);
+  return tmFormule(sp.f)+': '+delen.join(' + ')+' = '+sp.elektronen+' elektronen';
+}
+const NAAM = k => tmSp(k).naam;
+function tmQ(cfg){ return Object.assign({tm:true, parts:[], hint:''}, cfg); }
+function partMeer(vraag, opties, uitleg){
+  return { soort:'meer', vraag, opties, uitleg,
+    check: sel => { const fout=opties.filter((o,i)=>sel.has(i) && !o.goed && !o.mag), mist=opties.filter((o,i)=>o.goed && !sel.has(i));
+      if(fout.length) return fout.map(o=>o.fout||('Klopt '+o.html+' wel?')).join(' ');
+      if(mist.length) return 'Je mist er nog '+(mist.length===1?'één':mist.length)+'.';
+      return null; } };
+}
+const OPT_BINDING = (goed, mag, fouten) => ['vanderwaalsbinding','dipool-dipoolbinding','waterstofbrug','ion-dipoolbinding','ionbinding','atoombinding'].map(s=>({
+  html:s, goed:goed.includes(s), mag:(mag||[]).includes(s), fout:(fouten||{})[s] || (s==='atoombinding'?'Een atoombinding zit binnen een molecuul, niet tussen twee moleculen.':undefined) }));
+
+function tmn1(){
+  const pool=[['methaan','propaan'],['ethaan','butaan'],['fluor','chloor'],['chloor','broom'],['methaan','tetra'],['propaan','hexaan']];
+  const pr=pick(pool), vbp=pick(pool.filter(p=>!p.some(x=>pr.includes(x)))), [x,y]=Math.random()<0.5?pr:[pr[1],pr[0]];
+  const sx=tmSp(x), sy=tmSp(y), sterk = sx.elektronen>sy.elektronen ? x : y;
+  const vbSterk = tmSp(vbp[0]).elektronen>tmSp(vbp[1]).elektronen ? vbp[0] : vbp[1];
+  return tmQ({ titel:'Vanderwaalsbinding',
+    instr:{ titel:'Nieuw: vanderwaalsbinding', html:'Tussen <b>alle</b> moleculen werkt een aantrekkende kracht: de <b>vanderwaalsbinding</b>. Hoe sterk die is, hangt af van het <b>aantal elektronen</b> in het molecuul: hoe meer elektronen, hoe sterker de vanderwaalsbinding.<br>'+
+      'Het aantal elektronen in een molecuul is gelijk aan het aantal protonen: tel de atoomnummers op (periodiek systeem, Binas tabel 99). De molecuulmassa is hier een maat voor: een molecuul met meer elektronen heeft ook meer protonen en ongeveer evenveel neutronen.'+
+      vb(elekUitleg(vbp[0])+'<br>'+elekUitleg(vbp[1])+'<br>De vanderwaalsbinding is dus het sterkst tussen '+deeltjesNaam(vbSterk)+'.') },
+    vraag:'In het venster liggen twee '+deeltjesNaam(x)+' en twee '+deeltjesNaam(y)+'.',
+    setup:()=>{
+      const A1=tmMol(x,[-3.6,0,0],tmVlak(x)), A2=tmNaast(A1,x,false);
+      const B1=tmMol(y,[3.6,0,0],tmVlak(y)), B2=tmNaast(B1,y,false);
+      tmScene([A1,A2,B1,B2],{verborgen:true, delta:false, lp:false, labels:[{pos:v3.add(v3.sc(v3.add(A1.t,A2.t),0.5),[0,-3.2,0]),tekst:NAAM(x)},{pos:v3.add(v3.sc(v3.add(B1.t,B2.t),0.5),[0,-3.2,0]),tekst:NAAM(y)}]});
+    },
+    parts:[
+      { soort:'num', vraag:'Hoeveel elektronen heeft één '+NAAM(x)+'molecuul ('+tmFormule(sx.f)+')?', label:'aantal =', juist:sx.elektronen, diag:()=>'Tel de atoomnummers van alle atomen in het molecuul op.' },
+      { soort:'num', vraag:'Hoeveel elektronen heeft één '+NAAM(y)+'molecuul ('+tmFormule(sy.f)+')?', label:'aantal =', juist:sy.elektronen, diag:()=>'Tel de atoomnummers van alle atomen in het molecuul op.' },
+      { soort:'mc', vraag:'Tussen welke moleculen is de vanderwaalsbinding het sterkst?', opties:[{html:deeltjesNaam(x)+' onderling',goed:sterk===x},{html:deeltjesNaam(y)+' onderling',goed:sterk===y}],
+        uitleg:'Een '+NAAM(sterk)+'molecuul heeft meer elektronen.', na:()=>{ TM.verborgen=false; tmToolbar(); tmRender(); } }
+    ],
+    hint:'Het atoomnummer van een element is het aantal protonen, en in een ongeladen atoom ook het aantal elektronen.',
+    uitw:()=>elekUitleg(x)+'<br>'+elekUitleg(y)+'<br>Meer elektronen → sterkere vanderwaalsbinding: het sterkst tussen '+deeltjesNaam(sterk)+'. In het venster is de vanderwaalsbinding als wolk tussen de moleculen getekend: hoe donkerder, hoe sterker.' });
+}
+
+function tmn2(){
+  const pool=['chloormethaan','waterstofchloride','waterstofbromide','waterstofsulfide','propanon'];
+  const k=pick(pool), vbk=pick(pool.filter(x=>x!==k));
+  let A,B;
+  return tmQ({ titel:'Dipool-dipoolbinding',
+    instr:{ titel:'Nieuw: dipool-dipoolbinding', html:'Een dipoolmolecuul heeft een δ+-kant en een δ−-kant. Twee dipoolmoleculen trekken elkaar extra aan als de δ+-kant van het ene molecuul naar de δ−-kant van het andere wijst. Die aantrekking heet de <b>dipool-dipoolbinding</b>. Daarnaast werkt er, zoals tussen alle moleculen, ook de vanderwaalsbinding.<br>'+
+      '<b>Zo werkt het venster:</b> sleep een molecuul om het te verschuiven. Kies ⟳ draaien (of houd Shift ingedrukt) om het te draaien.'+
+      vb('Twee '+deeltjesNaam(vbk)+': het molecuul is een dipool. Ligt de δ+-kant van het ene molecuul bij de δ−-kant van het andere, dan is er een dipool-dipoolbinding.') },
+    vraag:'Bekijk de twee '+deeltjesNaam(k)+' ('+tmFormule(tmSp(k).f)+').',
+    setup:()=>{ A=tmMol(k,[0,0,0],tmVlak(k)); B=tmNaast(A,k,false); B.t=v3.add(B.t, v3.sc(norm(v3.min(B.t,A.t)),0.8)); tmUpdate(B);
+      tmScene([A,B],{verborgen:true, vast:[A.id], actie:'draai'}); },
+    parts:[
+      { soort:'orient', vraag:'Verschuif en draai het tweede molecuul zo dat er een dipool-dipoolbinding ontstaat. Klik dan op Controleer.',
+        check:()=>{ const r=tmTussen(A,B); if(r.botst) return 'De moleculen overlappen: schuif ze iets uit elkaar.'; if(!r.contact) return 'De moleculen raken elkaar nog niet: schuif ze dichter naar elkaar toe.'; if(!r.dd) return 'Wijst de δ+-kant van het ene molecuul naar de δ−-kant van het andere?'; return null; },
+        toonAntwoord:()=>{ const C=tmNaast(A,k,true); B.t=C.t; B.R=C.R; tmUpdate(B); return 'Zo wijst de δ+-kant van het ene molecuul naar de δ−-kant van het andere.'; },
+        na:()=>{ TM.verborgen=false; tmToolbar(); tmRender(); } },
+      partMeer('Welke soorten binding zijn er nu tussen deze twee moleculen? Kies alles wat klopt.', OPT_BINDING(['vanderwaalsbinding','dipool-dipoolbinding'],[],{
+        waterstofbrug:'Een waterstofbrug kan alleen met een H-atoom dat aan N of O vastzit.', 'ion-dipoolbinding':'Er zijn hier geen ionen.', ionbinding:'Er zijn hier geen ionen.'}),
+        'Vanderwaalsbinding (tussen alle moleculen) én dipool-dipoolbinding (twee dipolen, δ+ bij δ−).')
+    ],
+    hint:'Kijk naar de δ-letters. De δ+-kant van het ene molecuul moet bij de δ−-kant van het andere komen.',
+    uitw:()=>'Tussen twee '+deeltjesNaam(k)+' werken de vanderwaalsbinding en de dipool-dipoolbinding. De oranje stippellijn loopt van het midden van de δ+ van het ene molecuul naar het midden van de δ− van het andere.' });
+}
+
+function tmn3(){
+  const pool=['methanol','methylamine','ether','propanon','chloormethaan','ammoniak','propanol'];
+  const k=pick(pool); let M;
+  const H_ok = () => new Set(M.sp.donors.map(i=>M.id+':'+i)), X_ok = () => new Set(M.sp.acceptors.map(i=>M.id+':'+i));
+  const gelijk=(a,b)=>a.size===b.size && [...a].every(x=>b.has(x));
+  const klikToggle=(m,i)=>{ const s=m.id+':'+i; TM.gekozen.has(s)?TM.gekozen.delete(s):TM.gekozen.add(s); tmRender(); };
+  return tmQ({ titel:'Waterstofbrug herkennen',
+    instr:{ titel:'Nieuw: waterstofbrug', html:'Een <b>waterstofbrug</b> is een sterke binding tussen moleculen. Er zijn twee dingen voor nodig:<br>• een H-atoom dat vastzit aan een <b>N- of O-atoom</b> (zo\'n H is sterk δ+), en<br>• een <b>vrij elektronenpaar van een N- of O-atoom</b> van een ander molecuul.<br>Een H-atoom dat aan een C-atoom vastzit, kan geen waterstofbrug vormen.'+
+      vb('In een ethanolmolecuul (C<sub>2</sub>H<sub>5</sub>OH) kan alleen de H van de O–H-groep een waterstofbrug vormen. Het O-atoom heeft twee vrije elektronenparen: daarmee kan het ook waterstofbruggen aannemen van andere moleculen.') },
+    vraag:'Bekijk het molecuul '+NAAM(k)+' ('+tmFormule(tmSp(k).f)+'). Klik in het venster op een atoom om het te kiezen (nog een keer klikken = weer weg).',
+    setup:()=>{ M=tmMol(k,[0,0,0],tmVlak(k)); tmScene([M],{vast:[M.id], klik:klikToggle, delta:true, lp:true}); },
+    parts:[
+      { soort:'klik', vraag:'Klik alle H-atomen aan die een waterstofbrug kunnen vormen. Kan geen enkel H-atoom dat, klik dan meteen op Controleer.',
+        check:()=>{ const s=TM.gekozen; if([...s].some(x=>M.sp.atomen[+x.split(':')[1]].s!=='H')) return 'Je hebt ook een atoom gekozen dat geen H is.';
+          if(gelijk(s,H_ok())) return null; return [...s].some(x=>!H_ok().has(x)) ? 'Je hebt een H-atoom gekozen dat aan een C-atoom vastzit.' : 'Er kan nog een H-atoom een waterstofbrug vormen.'; },
+        toonAntwoord:()=>{ TM.gekozen=H_ok(); tmRender(); return M.sp.donors.length ? 'De gemarkeerde H-atomen zitten aan een N- of O-atoom.' : 'Geen enkel H-atoom zit aan een N- of O-atoom.'; },
+        na:()=>{ TM.gekozen=new Set(); tmRender(); } },
+      { soort:'klik', vraag:'Klik nu alle atomen aan met een vrij elektronenpaar waarmee dit molecuul een waterstofbrug kan aannemen. Is er geen, klik dan meteen op Controleer.',
+        check:()=>{ const s=TM.gekozen, ok=X_ok();
+          const cl=[...s].find(x=>['Cl','Br','S','F'].includes(M.sp.atomen[+x.split(':')[1]].s));
+          if(cl) return 'Dat atoom heeft wel vrije elektronenparen, maar een waterstofbrug ontstaat alleen met een vrij paar van een N- of O-atoom.';
+          if(gelijk(s,ok)) return null; return [...s].some(x=>!ok.has(x)) ? 'Je hebt een atoom gekozen zonder vrij elektronenpaar.' : 'Er is nog een atoom met een geschikt vrij elektronenpaar.'; },
+        toonAntwoord:()=>{ TM.gekozen=X_ok(); tmRender(); return M.sp.acceptors.length ? 'De gemarkeerde N- of O-atomen hebben vrije elektronenparen.' : 'Er is geen N- of O-atoom met een vrij elektronenpaar.'; } }
+    ],
+    hint:'Zoek eerst de N- en O-atomen in het molecuul.',
+    uitw:()=>{ const s=M.sp; return (s.donors.length ? s.donors.length+' H-atoom'+(s.donors.length>1?'en':'')+' aan N of O: dit molecuul kan zelf een H geven.' : 'Geen H aan N of O: dit molecuul kan zelf geen H geven voor een waterstofbrug.')+'<br>'+
+      (s.acceptors.length ? 'Wel '+s.acceptors.map(i=>s.atomen[i].s+' (met '+s.atomen[i].lp.length+' vrij'+(s.atomen[i].lp.length>1?'e paren':' paar')+')').join(' en ')+': daarmee neemt het waterstofbruggen aan.' : 'Ook geen N- of O-atoom met een vrij paar.'); } });
+}
+
+function tmn4(){
+  const pool=['methanol','ammoniak','methylamine','ether','propanon','ethanol'];
+  const k=pick(pool); let M, docks=[], bezet;
+  const tel = () => { const sp=tmSp(k); return { h:sp.donors.length, lp:sp.acceptors.reduce((t,i)=>t+sp.atomen[i].lp.length,0) }; };
+  const vrijeLp = x => [...Array(M.sp.atomen[x].lp.length).keys()].filter(l=>!bezet.has('lp'+x+':'+l));
+  function klik(m, i){
+    const fb=document.querySelector('#opdBody .part:not([style*="none"]) .fb');
+    const zeg = t => { if(fb){ fb.className='fb show info'; fb.innerHTML=t; } };
+    if(m!==M){ // watermolecuul weer weghalen
+      const d=docks.find(x=>x.m===m); if(d){ bezet.delete(d.plek); docks=docks.filter(x=>x!==d); TM.mols=[M].concat(docks.map(x=>x.m)); tmRender(); } return; }
+    const a=M.sp.atomen[i];
+    if(M.sp.donors.includes(i)){
+      if(bezet.has('h'+i)) return zeg('Dit H-atoom vormt al een waterstofbrug.');
+      const w=tmDockOpH(M,i,'water',docks.map(x=>x.m)); if(!w) return zeg('Hier is geen ruimte meer.');
+      bezet.add('h'+i); docks.push({m:w, plek:'h'+i});
+    } else if(M.sp.acceptors.includes(i)){
+      const v=vrijeLp(i); if(!v.length) return zeg('Elk vrij elektronenpaar van dit atoom vormt al een waterstofbrug.');
+      const w=tmDockOpLp(M,i,v[0],'water',docks.map(x=>x.m)); if(!w) return zeg('Hier is geen ruimte meer.');
+      bezet.add('lp'+i+':'+v[0]); docks.push({m:w, plek:'lp'+i+':'+v[0]});
+    } else if(a.s==='H') return zeg('Dit H-atoom zit aan een C-atoom: daarmee kan geen waterstofbrug ontstaan.');
+    else if(a.s==='C') return zeg('Een C-atoom heeft hier geen vrij elektronenpaar en geen H die een waterstofbrug kan vormen.');
+    else return zeg('Hiermee kan geen waterstofbrug ontstaan.');
+    TM.mols=[M].concat(docks.map(x=>x.m)); if(fb) fb.className='fb'; tmRender();
+  }
+  return tmQ({ titel:'Waterstofbruggen tellen',
+    instr:{ titel:'Nieuw: hoeveel waterstofbruggen?', html:'Elk H-atoom aan N of O kan <b>één</b> waterstofbrug vormen. Elk vrij elektronenpaar van een N- of O-atoom kan ook <b>één</b> waterstofbrug aannemen.<br>Klik in het venster op een atoom van het molecuul: als daar een waterstofbrug mogelijk is, komt er een watermolecuul bij. Klik op een watermolecuul om het weer weg te halen.'+
+      vb('Een watermolecuul heeft twee H-atomen aan O (2 waterstofbruggen) en twee vrije elektronenparen op O (nog 2 waterstofbruggen). Eén watermolecuul kan dus maximaal 4 waterstofbruggen vormen.') },
+    vraag:'Bekijk het molecuul '+NAAM(k)+' ('+tmFormule(tmSp(k).f)+').',
+    setup:()=>{ M=tmMol(k,[0,0,0],tmVlak(k)); docks=[]; bezet=new Set(); tmScene([M],{vast:[M.id], klik, span:tmSp(k).ext+3.4}); },
+    parts:[
+      { soort:'dock', vraag:'Zet watermoleculen bij '+NAAM(k)+' tot er geen waterstofbrug meer bij kan. Klik dan op Controleer.',
+        check:()=>{ const t=tel(); if(docks.length < t.h+t.lp) return 'Er kan nog minstens één waterstofbrug bij.'; return null; },
+        toonAntwoord:()=>{ M.sp.donors.forEach(i=>{ if(!bezet.has('h'+i)) klik(M,i); }); M.sp.acceptors.forEach(i=>{ while(vrijeLp(i).length) { const n=docks.length; klik(M,i); if(docks.length===n) break; } }); return 'Zo vormt '+NAAM(k)+' het maximale aantal waterstofbruggen.'; } },
+      { soort:'num', vraag:'Hoeveel waterstofbruggen kan één '+NAAM(k)+'molecuul maximaal vormen met watermoleculen?', label:'aantal =', juist:tel().h+tel().lp, diag:()=>'Tel de watermoleculen in het venster.' },
+      { soort:'num', vraag:'Bij hoeveel van deze waterstofbruggen levert het '+NAAM(k)+'molecuul zelf het H-atoom?', label:'aantal =', juist:tel().h,
+        diag:v=>v===tel().lp?'Dit zijn de waterstofbruggen waarbij '+NAAM(k)+' een vrij elektronenpaar levert.':'Tel de H-atomen die aan een N- of O-atoom vastzitten.' }
+    ],
+    hint:'Tel de H-atomen aan N of O, en de vrije elektronenparen op N en O.',
+    uitw:()=>{ const t=tel(); return t.h+' H-atoom'+(t.h===1?'':'en')+' aan N of O + '+t.lp+' vrij'+(t.lp===1?' paar':'e paren')+' op N/O = maximaal '+(t.h+t.lp)+' waterstofbruggen.'; } });
+}
+
+function tmn5(){
+  const pool=[['propanon','propanon'],['water','ether'],['ether','ether'],['chloormethaan','water'],['methanol','methanol'],['ethanol','hexaan'],['propanon','water'],['ammoniak','water'],['methaan','methaan'],['chloormethaan','chloormethaan']];
+  const [a,b]=pick(pool), ps=paarSoorten(a,b);
+  let A,B;
+  const fouten={ waterstofbrug:'Voor een waterstofbrug is een H aan N of O nodig in het ene molecuul, en een N of O met een vrij paar in het andere.', 'dipool-dipoolbinding':'Zijn beide moleculen een dipool?',
+    'ion-dipoolbinding':'Er zijn hier geen ionen.', ionbinding:'Er zijn hier geen ionen.', vanderwaalsbinding:'' };
+  return tmQ({ titel:'Alle bindingen tussen moleculen',
+    instr:{ titel:'Alles samen', html:'Tussen twee moleculen kunnen meerdere soorten binding tegelijk werken:<br>• de <b>vanderwaalsbinding</b>: altijd;<br>• de <b>dipool-dipoolbinding</b>: als beide moleculen een dipool zijn;<br>• de <b>waterstofbrug</b>: als het ene molecuul een H aan N of O heeft en het andere een N- of O-atoom met een vrij elektronenpaar.<br>Is er een waterstofbrug, dan hoef je de dipool-dipoolbinding niet apart te noemen.'+
+      vb('Tussen twee watermoleculen: vanderwaalsbinding en waterstofbruggen.') },
+    vraag:'Bekijk een '+NAAM(a)+'molecuul ('+tmFormule(tmSp(a).f)+') en een '+NAAM(b)+'molecuul ('+tmFormule(tmSp(b).f)+').',
+    setup:()=>{ [A,B]=tmPaar(a,b); tmScene([A,B],{verborgen:true}); },
+    parts:[ Object.assign(partMeer('Welke soorten binding zijn er tussen deze twee moleculen? Kies alles wat klopt.', OPT_BINDING(ps.v, ps.o, fouten), ''),
+      { na:()=>{ TM.verborgen=false; tmToolbar(); tmRender(); } }) ],
+    hint:'Begin met wat er altijd is. Zijn beide moleculen een dipool? Heeft één van beide een H aan N of O?',
+    uitw:()=>'Tussen '+paarLabel(a,b).replace(' onderling','')+': '+ps.v.join(' en ')+(ps.o.length?' (de dipool-dipoolbinding mag je noemen, maar hoeft niet naast de waterstofbrug)':'')+'.' });
+}
+
+function tmn6(){
+  const pool=[['methaan','ethaan','e'],['chloor','broom','e'],['fluor','waterstofchloride','dd'],['propaan','ether','dd'],['ether','ethanol','hb'],['methanol','ethanol','e'],['propaan','chloormethaan','dd']];
+  const pr=pick(pool), [x,y]=Math.random()<0.5?[pr[0],pr[1]]:[pr[1],pr[0]], reden=pr[2];
+  const hoog = TM_KOOKPUNT[x]>TM_KOOKPUNT[y] ? x : y, laag = hoog===x?y:x;
+  const vbp = pick(pool.filter(p=>!p.slice(0,2).some(z=>[x,y].includes(z))));
+  const vbH = TM_KOOKPUNT[vbp[0]]>TM_KOOKPUNT[vbp[1]]?vbp[0]:vbp[1], vbL = vbH===vbp[0]?vbp[1]:vbp[0];
+  const RED = { e:'meer elektronen per molecuul, dus een sterkere vanderwaalsbinding', dd:'de moleculen zijn een dipool, dus er is ook een dipool-dipoolbinding', hb:'de moleculen kunnen waterstofbruggen vormen' };
+  const opties = [
+    {html:'Het molecuul heeft '+RED.e, goed:reden==='e'}, {html:'De moleculen zijn een dipool: er is ook een dipool-dipoolbinding', goed:reden==='dd'},
+    {html:'De moleculen kunnen waterstofbruggen vormen', goed:reden==='hb'}, {html:'Het molecuul heeft een grotere massa', goed:false},
+    {html:'De atoombindingen in het molecuul zijn sterker', goed:false} ];
+  const bal = maakBalans([{dir:'verbroken',a:hoog,b:hoog}], [hoog], 'koken', true);
+  bal.vraag = 'Geef aan welke bindingen verbroken worden als '+NAAM(hoog)+' kookt. Zet elke binding op een eigen regel (+ regel).';
+  return tmQ({ titel:'Kookpunten vergelijken',
+    instr:{ titel:'Nieuw: kookpunt en bindingen', html:'Bij koken gaan de moleculen los van elkaar: de bindingen <b>tussen</b> de moleculen worden verbroken. De moleculen zelf blijven heel. Hoe sterker de bindingen tussen de moleculen, hoe hoger het kookpunt.<br>Vergelijk je twee stoffen, kijk dan wat er verschilt: het aantal elektronen, of de moleculen een dipool zijn, en of ze waterstofbruggen kunnen vormen.<br>'+
+      'In een <b>bindingenbalans</b> zet je per regel welke binding verbroken wordt, en tussen welke deeltjes.'+
+      vb(NAAM(vbH)+' heeft een hoger kookpunt dan '+NAAM(vbL)+': '+(vbp[2]==='e'?'een '+NAAM(vbH)+'molecuul heeft '+RED.e+'.':vbp[2]==='dd'?NAAM(vbH)+'moleculen zijn een dipool, dus er is ook een dipool-dipoolbinding.':NAAM(vbH)+'moleculen kunnen waterstofbruggen vormen.')+
+        '<br>Bij het koken van '+NAAM(vbH)+' worden verbroken: '+paarSoorten(vbH,vbH).v.map(s=>'<i>'+s+'</i>').join(', ')+' tussen '+deeltjesNaam(vbH)+' onderling.') },
+    vraag:'Vergelijk '+NAAM(x)+' ('+tmFormule(tmSp(x).f)+') en '+NAAM(y)+' ('+tmFormule(tmSp(y).f)+').',
+    setup:()=>{ const [A1,A2]=tmPaar(x,x), [B1,B2]=tmPaar(y,y); const sh=(m,d)=>{ m.t=v3.add(m.t,d); tmUpdate(m); };
+      [A1,A2].forEach(m=>sh(m,[-4.6,0,0])); [B1,B2].forEach(m=>sh(m,[4.6,0,0]));
+      tmScene([A1,A2,B1,B2],{verborgen:true, lp:false, labels:[{pos:v3.add(v3.sc(v3.add(A1.t,A2.t),0.5),[0,-3.4,0]),tekst:NAAM(x)},{pos:v3.add(v3.sc(v3.add(B1.t,B2.t),0.5),[0,-3.4,0]),tekst:NAAM(y)}]}); },
+    parts:[
+      { soort:'mc', vraag:'Welke stof heeft het hoogste kookpunt?', opties:[{html:NAAM(x),goed:hoog===x},{html:NAAM(y),goed:hoog===y}], uitleg:'' },
+      { soort:'mc', vraag:'Wat is daarvan de reden?', opties, uitleg:'De massa is alleen een maat voor het aantal elektronen, en de atoombindingen worden bij koken niet verbroken.',
+        na:()=>{ TM.verborgen=false; tmToolbar(); tmRender(); } },
+      bal
+    ],
+    hint:'Wat verschilt er tussen de twee moleculen: het aantal elektronen, dipool of niet, waterstofbruggen of niet?',
+    uitw:()=>'Kookpunten (bij standaarddruk): '+NAAM(x)+' '+TM_KOOKPUNT[x]+' K, '+NAAM(y)+' '+TM_KOOKPUNT[y]+' K.<br>'+NAAM(hoog)+': '+RED[reden]+'.<br>Bij koken van '+NAAM(hoog)+' verbroken: '+paarSoorten(hoog,hoog).v.join(', ')+' tussen '+deeltjesNaam(hoog)+' onderling.' });
+}
+
+// mengbak in een opdracht
+function tmMengbakQ(keyBoven, keyOnder, noot){
+  const maak = () => { const B=rmLagen(keyBoven, keyOnder, 10, 8); tmBakZet(B,{noot, startTekst:'▶ Giet bij elkaar', opnieuw:maak, opStart:()=>{}}); };
+  return maak;
+}
+function bakGedraaid(n){ return () => TM.bak && TM.bak.stappen >= n; }
+function tmn7(){
+  const pool=[['ethanol','water'],['propanon','water'],['hexaan','water'],['tetra','hexaan']];
+  const [a,b]=pick(pool), mengt = rmEps(a,b)*4 - 2*(rmEps(a,a)+rmEps(b,b)) < 3.5;
+  const bal = maakBalans([{dir:'verbroken',a,b:a},{dir:'verbroken',a:b,b},{dir:'gevormd',a,b}], [a,b], 'mengen');
+  bal.vraag = 'Stel de bindingenbalans op voor het mengen van '+NAAM(a)+' en '+NAAM(b)+'. Zet elke binding op een eigen regel.';
+  return tmQ({ titel:'Mengen',
+    instr:{ titel:'Nieuw: mengen op deeltjesniveau', html:'Als twee stoffen mengen, komen de moleculen van de ene stof tussen de moleculen van de andere stof. Daarvoor worden <b>verbroken</b>: de bindingen tussen de moleculen van stof A onderling en tussen de moleculen van stof B onderling. Er worden <b>gevormd</b>: bindingen tussen moleculen van A en moleculen van B.<br>'+
+      'Twee stoffen mengen goed als de nieuwe bindingen ongeveer even sterk zijn als de verbroken bindingen. Gaan er sterke bindingen verloren (bijvoorbeeld waterstofbruggen) die niet terugkomen, dan mengen ze slecht.'+
+      vb('<b>Methanol en water</b><br>verbroken: vanderwaalsbinding en waterstofbruggen tussen methanolmoleculen onderling<br>verbroken: vanderwaalsbinding en waterstofbruggen tussen watermoleculen onderling<br>gevormd: vanderwaalsbinding en waterstofbruggen tussen methanolmoleculen en watermoleculen<br>De verbroken waterstofbruggen komen terug: methanol en water mengen goed.') },
+    vraag:'In de bak ligt een laag '+NAAM(a)+' op een laag '+NAAM(b)+'.',
+    setup: tmMengbakQ(a,b),
+    parts:[ bal,
+      { soort:'mc', vraag:'Mengen '+NAAM(a)+' en '+NAAM(b)+'?', opties:[{html:'Ja, ze mengen',goed:mengt},{html:'Nee, er blijven twee lagen',goed:!mengt}],
+        uitleg: mengt ? 'De nieuwe bindingen zijn ongeveer even sterk als de verbroken bindingen.' : 'Er gaan sterke bindingen verloren die niet terugkomen.' },
+      { soort:'actie', vraag:'Klik in het venster op ▶ Giet bij elkaar en volg de teller rechtsboven. Klik op Verder als de bak een tijdje heeft gelopen.', klaar:bakGedraaid(450),
+        uitleg:'De teller laat zien hoeveel bindingen tussen buren er verdwenen zijn (verbroken) en bijgekomen zijn (gevormd).' }
+    ],
+    hint:'Welke bindingen zijn er tussen de moleculen van elke stof apart? En welke kunnen er tussen een molecuul van de ene en een molecuul van de andere stof ontstaan?',
+    uitw:()=>{ const s=(x,y)=>paarSoorten(x,y).v.join(' en '); return 'verbroken: '+s(a,a)+' tussen '+paarLabel(a,a)+'<br>verbroken: '+s(b,b)+' tussen '+paarLabel(b,b)+'<br>gevormd: '+s(a,b)+' tussen '+paarLabel(a,b)+'<br>'+(mengt?'De nieuwe bindingen zijn ongeveer even sterk: de stoffen mengen.':'Er gaan '+(paarSoorten(b,b).v.includes('waterstofbrug')&&!paarSoorten(a,b).v.includes('waterstofbrug')?'waterstofbruggen':'sterke bindingen')+' verloren die niet terugkomen: de stoffen mengen niet.'); } });
+}
+
+function tmn8(){
+  let M, docks=[];
+  return tmQ({ titel:'Hydrofiel en hydrofoob deel',
+    instr:{ titel:'Nieuw: hydrofiel en hydrofoob deel', html:'Een molecuul kan een deel hebben dat waterstofbruggen kan vormen met water (de O–H-groep): dat deel is <b>hydrofiel</b>. Een koolwaterstofketen kan dat niet: dat deel is <b>hydrofoob</b>.<br>Hoe langer de hydrofobe keten, hoe slechter de stof mengt met water: de keten neemt plaats in tussen de watermoleculen, en daarvoor moeten waterstofbruggen tussen watermoleculen verbroken worden die niet terugkomen.<br>Klik in het venster op een C-atoom: dan kies je meteen ook de H-atomen die eraan zitten.'+
+      vb('Ethanol (C<sub>2</sub>H<sub>5</sub>OH) heeft een korte hydrofobe keten van 2 C-atomen en mengt goed met water.') },
+    vraag:'Bekijk een molecuul hexaan-1-ol (C<sub>6</sub>H<sub>13</sub>OH) met een paar watermoleculen.',
+    setup:()=>{ M=tmMol('hexanol',[0,0,0],tmVlak('hexanol',0.15)); docks=[];
+      const o=M.sp.acceptors[0]; const w1=tmDockOpH(M,M.sp.donors[0],'water',[]); if(w1) docks.push(w1);
+      M.sp.atomen[o].lp.forEach((l,li)=>{ const w=tmDockOpLp(M,o,li,'water',docks); if(w) docks.push(w); });
+      tmScene([M].concat(docks),{vast:[M.id].concat(docks.map(d=>d.id)), lp:false, klik:(m,i)=>{ if(m!==M) return;
+        const groep=[i].concat(M.sp.atomen.map((a,k)=>k).filter(k=>M.sp.atomen[k].p===i && M.sp.atomen[k].s==='H'));
+        if(M.sp.atomen[i].s==='H'){ const pa=M.sp.atomen[i].p; groep.length=0; groep.push(pa); M.sp.atomen.forEach((a,k)=>{ if(a.p===pa && a.s==='H') groep.push(k); }); }
+        const aan = TM.gekozen.has(M.id+':'+groep[0]); groep.forEach(k=>aan?TM.gekozen.delete(M.id+':'+k):TM.gekozen.add(M.id+':'+k)); tmRender(); }}); },
+    parts:[
+      { soort:'klik', vraag:'Klik het hydrofobe deel van het hexaan-1-olmolecuul aan. Klik dan op Controleer.',
+        check:()=>{ const goed=new Set(); M.sp.atomen.forEach((a,k)=>{ if(a.s==='C' || (a.s==='H' && M.sp.atomen[a.p].s==='C')) goed.add(M.id+':'+k); });
+          const s=TM.gekozen; if([...s].some(x=>!goed.has(x))) return 'De O–H-groep kan waterstofbruggen vormen met water: die hoort bij het hydrofiele deel.';
+          if(s.size<goed.size) return 'Het hydrofobe deel is groter: alle C-atomen met de H-atomen eraan.'; return null; },
+        toonAntwoord:()=>{ TM.gekozen=new Set(); M.sp.atomen.forEach((a,k)=>{ if(a.s==='C' || (a.s==='H' && M.sp.atomen[a.p].s==='C')) TM.gekozen.add(M.id+':'+k); }); tmRender(); return 'De hele koolwaterstofketen (C<sub>6</sub>H<sub>13</sub>) is hydrofoob.'; } },
+      { soort:'mc', vraag:'Ethanol mengt goed met water, hexaan-1-ol slecht. Wat is de reden?', opties:[
+        {html:'De lange koolwaterstofketen kan geen waterstofbruggen vormen: voor die keten worden waterstofbruggen tussen watermoleculen verbroken die niet terugkomen', goed:true},
+        {html:'Hexaan-1-ol kan helemaal geen waterstofbruggen vormen', goed:false},
+        {html:'Water stoot de koolwaterstofketen af', goed:false},
+        {html:'Een hexaan-1-olmolecuul heeft een grotere massa', goed:false} ],
+        uitleg:'Tussen de keten en water werkt alleen de vanderwaalsbinding, en die is veel zwakker dan de waterstofbruggen die tussen watermoleculen verloren gaan. Water stoot de keten dus niet af: de watermoleculen houden elkaar vast.' },
+      { soort:'actie', vraag:'In de bak liggen nu hexaan-1-ol en water. Klik op ▶ Giet bij elkaar. Let op hoe de moleculen aan het grensvlak liggen. Klik op Verder als de bak een tijdje heeft gelopen.',
+        start: tmMengbakQ('hexanol','water','Hexaan-1-ol: de O–H-groep wijst naar het water, de keten naar de andere hexaan-1-olmoleculen.'), klaar:bakGedraaid(400),
+        uitleg:'Hexaan-1-ol en water blijven grotendeels gescheiden. Aan het grensvlak wijzen de O–H-groepen naar het water.' }
+    ],
+    hint:'Welke atomen kunnen geen waterstofbrug vormen met water?',
+    uitw:()=>'Het hydrofobe deel is de keten C<sub>6</sub>H<sub>13</sub>; alleen de O–H-groep is hydrofiel. Hoe langer de keten, hoe meer waterstofbruggen tussen watermoleculen er verbroken worden zonder dat ze terugkomen: de stof mengt slechter met water.' });
+}
+
+function tmster(){
+  let A1,A2,B1,B2;
+  return tmQ({ titel:'★ Twee OH-groepen', ster:true,
+    vraag:'Ethaan-1,2-diol (C<sub>2</sub>H<sub>6</sub>O<sub>2</sub>, twee O–H-groepen) en propaan-1-ol (C<sub>3</sub>H<sub>7</sub>OH, één O–H-groep) hebben evenveel elektronen per molecuul.',
+    setup:()=>{ [A1,A2]=tmPaar('diol','diol'); [B1,B2]=tmPaar('propanol','propanol'); [A1,A2].forEach(m=>{m.t=v3.add(m.t,[-4.8,0,0]);tmUpdate(m);}); [B1,B2].forEach(m=>{m.t=v3.add(m.t,[4.8,0,0]);tmUpdate(m);});
+      tmScene([A1,A2,B1,B2],{verborgen:true, lp:false, labels:[{pos:v3.add(A1.t,[0,-4,0]),tekst:'ethaan-1,2-diol'},{pos:v3.add(B1.t,[0,-4,0]),tekst:'propaan-1-ol'}]}); },
+    parts:[
+      { soort:'num', vraag:'Laat zien dat ze evenveel elektronen hebben: hoeveel elektronen heeft één molecuul ethaan-1,2-diol?', label:'aantal =', juist:34, diag:()=>'Tel de atoomnummers op: 2 C, 6 H en 2 O.' },
+      { soort:'mc', vraag:'Welke stof heeft het hoogste kookpunt?', opties:[{html:'ethaan-1,2-diol',goed:true},{html:'propaan-1-ol',goed:false},{html:'ze hebben (bijna) hetzelfde kookpunt',goed:false}], uitleg:'' },
+      { soort:'num', vraag:'Hoeveel waterstofbruggen kan één molecuul ethaan-1,2-diol maximaal vormen?', label:'aantal =', juist:6, diag:v=>v===2?'Tel ook de vrije elektronenparen op de O-atomen mee.':'2 H-atomen aan O, en elk O-atoom heeft 2 vrije elektronenparen.',
+        na:()=>{ TM.verborgen=false; tmToolbar(); tmRender(); } }
+    ],
+    hint:'Wat is hetzelfde, en wat is er anders tussen de twee moleculen?',
+    uitw:()=>'Beide 34 elektronen, dus de vanderwaalsbinding is ongeveer even sterk. Ethaan-1,2-diol kan per molecuul veel meer waterstofbruggen vormen (2 H aan O + 4 vrije paren = 6, tegen 3 bij propaan-1-ol). Kookpunten: ethaan-1,2-diol 470 K, propaan-1-ol 370 K.' });
+}
+const NIVEAUS_TUSSEN = [tmn1, tmn2, tmn3, tmn4, tmn5, tmn6, tmn7, tmn8, tmster];
+
+// ===================== NIVEAUS: ZOUTEN OPLOSSEN =====================
+const ZOUTEN = {
+  NaCl:{f:'NaCl', naam:'natriumchloride', k:'Na+', a:'Cl-', nk:6, na:6, rk:1, ra:1},
+  KBr:{f:'KBr', naam:'kaliumbromide', k:'K+', a:'Br-', nk:6, na:6, rk:1, ra:1},
+  KCl:{f:'KCl', naam:'kaliumchloride', k:'K+', a:'Cl-', nk:6, na:6, rk:1, ra:1},
+  CaCl2:{f:'CaCl2', naam:'calciumchloride', k:'Ca2+', a:'Cl-', nk:4, na:8, rk:1, ra:2},
+  MgCl2:{f:'MgCl2', naam:'magnesiumchloride', k:'Mg2+', a:'Cl-', nk:4, na:8, rk:1, ra:2},
+  Na2SO4:{f:'Na2SO4', naam:'natriumsulfaat', k:'Na+', a:'sulfaat', nk:6, na:3, rk:2, ra:1}
+};
+const ionF = key => tmIonTekst(key);
+function oplosVgl(z, terug){
+  const Z=ZOUTEN[z], l=(z===undefined?'':tmFormule(Z.f)+'(s)'), r=(Z.rk>1?Z.rk+' ':'')+ionF(Z.k)+'(aq) + '+(Z.ra>1?Z.ra+' ':'')+ionF(Z.a)+'(aq)';
+  return terug ? r+' → '+l : l+' → '+r;
+}
+function oplosOpties(z, terug){
+  const Z=ZOUTEN[z], s=tmFormule(Z.f)+'(s)', aq=tmFormule(Z.f)+'(aq)';
+  const fout1 = Z.k==='Na+'&&Z.rk===2 ? 'Na<sub>2</sub><sup>+</sup>(aq) + '+ionF(Z.a)+'(aq)' : (Z.ra>1 ? ionF(Z.k)+'(aq) + Cl<sub>2</sub><sup>−</sup>(aq)' : TM_ION[Z.k].sym+'(aq) + '+TM_ION[Z.a].sym+'(aq)');
+  const fout2 = aq;
+  const fout3 = Z.ra>1||Z.rk>1 ? ionF(Z.k)+'(aq) + '+ionF(Z.a)+'(aq)' : ionF(Z.k)+'(aq) + '+ionF(Z.a)+'(aq) + H<sub>2</sub>O(l)';
+  const goed = (Z.rk>1?Z.rk+' ':'')+ionF(Z.k)+'(aq) + '+(Z.ra>1?Z.ra+' ':'')+ionF(Z.a)+'(aq)';
+  const pijl = (x)=> terug ? x+' → '+s : s+' → '+x;
+  return [{html:pijl(goed),goed:true},{html:pijl(fout1),goed:false},{html:pijl(fout2),goed:false},{html:pijl(fout3),goed:false}].sort(()=>Math.random()-0.5);
+}
+function zoutBakMaker(z, opgelost, noot){
+  const Z=ZOUTEN[z];
+  const maak = () => {
+    const B=rmZoutBak(Z.k, Z.a, Z.nk, Z.na, 12, 9);
+    if(opgelost){ for(let i=0;i<40;i++) rmStap(B, 400, 4000); rmOrienteerAlles(B); B.stappen=0; }
+    tmBakZet(B,{noot, startTekst: opgelost?'▶ Start':'▶ Start oplossen', indampen:!!opgelost, opnieuw:maak});
+  };
+  return maak;
+}
+function zn1(){
+  const zk=pick(['NaCl','KCl','KBr']), Z=ZOUTEN[zk];
+  let midden;
+  return tmQ({ titel:'Ionrooster',
+    instr:{ titel:'Nieuw: een zout is een ionrooster', html:'Een zout is opgebouwd uit <b>ionen</b>: positieve en negatieve ionen. In een vast zout zitten de ionen in een regelmatig <b>ionrooster</b>. Elk ion wordt omringd door ionen met de tegengestelde lading. De aantrekking tussen positieve en negatieve ionen heet de <b>ionbinding</b>.'+
+      vb('Vast magnesiumoxide (MgO) is een rooster van Mg<sup>2+</sup>-ionen en O<sup>2−</sup>-ionen. Elk Mg<sup>2+</sup>-ion wordt omringd door O<sup>2−</sup>-ionen, en elk O<sup>2−</sup>-ion door Mg<sup>2+</sup>-ionen.') },
+    vraag:'In het venster zie je een stukje van het ionrooster van vast '+Z.naam+' ('+tmFormule(Z.f)+'). Draai het rooster door te slepen.',
+    setup:()=>{ const a=3.1, ms=[];
+      for(let i=-1;i<=1;i++) for(let j=-1;j<=1;j++) for(let k=-1;k<=1;k++){ const m=tmMol(((i+j+k)%2===0)?Z.k:Z.a,[i*a,j*a,k*a]); ms.push(m); if(!i&&!j&&!k) midden=m; }
+      tmScene(ms,{vast:ms.map(m=>m.id), markeer:midden, cam:{yaw:0.55,pitch:-0.4,zoom:1}}); },
+    parts:[
+      { soort:'num', vraag:'Door hoeveel '+ionF(Z.a)+'-ionen wordt het gemarkeerde '+ionF(Z.k)+'-ion in het midden omringd?', label:'aantal =', juist:6, diag:()=>'Tel ook de ionen erboven, eronder, ervoor en erachter: draai het rooster.' },
+      { soort:'mc', vraag:'Welke binding is er tussen de ionen in het rooster?', opties:[{html:'ionbinding',goed:true},{html:'atoombinding',goed:false},{html:'vanderwaalsbinding',goed:false},{html:'waterstofbrug',goed:false},{html:'ion-dipoolbinding',goed:false}],
+        uitleg:'Positieve en negatieve ionen trekken elkaar aan: de ionbinding.' },
+      { soort:'mc', vraag:'Bevat vast '+Z.naam+' moleculen?', opties:[{html:'Ja',goed:false},{html:'Nee',goed:true}], uitleg:'Een zout is opgebouwd uit ionen in een rooster, niet uit moleculen. De formule '+tmFormule(Z.f)+' geeft alleen de verhouding van de ionen.' }
+    ],
+    hint:'Elk ion heeft buren boven, onder, links, rechts, voor en achter.',
+    uitw:()=>'Elk '+ionF(Z.k)+'-ion heeft 6 '+ionF(Z.a)+'-ionen als buren (en omgekeerd). Tussen de ionen werkt de ionbinding. Een zout bevat geen moleculen.' });
+}
+function zn2(){
+  const ik=pick(['Cl-','Ca2+','Br-','Mg2+']), I=TM_ION[ik];
+  let ion, ws=[];
+  return tmQ({ titel:'Hydratatie',
+    instr:{ titel:'Nieuw: ion-dipoolbinding', html:'Een ion trekt aan de geladen kant van een dipoolmolecuul, zoals water. Die aantrekking heet de <b>ion-dipoolbinding</b>.<br>• Bij een <b>positief</b> ion wijst de δ−-kant van het watermolecuul (het O-atoom) naar het ion.<br>• Bij een <b>negatief</b> ion wijst de δ+-kant (een H-atoom) naar het ion.<br>Een ion met watermoleculen eromheen heet een <b>gehydrateerd</b> ion. Je noteert dat met (aq).<br><b>Zo werkt het venster:</b> sleep een watermolecuul om het te draaien.'+
+      vb('Rond een Na<sup>+</sup>-ion wijzen de O-atomen van de watermoleculen naar het ion: Na<sup>+</sup>(aq).') },
+    vraag:'In het venster zie je een '+ionF(ik)+'-ion ('+I.naam+') met watermoleculen eromheen.',
+    setup:()=>{ ion=tmMol(ik,[0,0,0]); ws=[];
+      const dirs=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]; const d=I.r + (I.q>0?1.5:1.35);
+      dirs.forEach((u,i)=>{ let m, t=0; do{ m=tmMol('water', v3.sc(u,d), randRot()); t++; } while(t<30 && tmTussen(ion,m).id); ws.push(m); });
+      tmScene([ion].concat(ws),{verborgen:true, alleenDraaien:true, vast:[ion.id], cam:{yaw:0.45,pitch:-0.35,zoom:1.05}}); },
+    parts:[
+      { soort:'orient', vraag:'Draai alle watermoleculen zo dat ze een ion-dipoolbinding vormen met het '+ionF(ik)+'-ion. Klik dan op Controleer.',
+        check:()=>{ const n=ws.filter(w=>!tmTussen(ion,w).id).length; return n ? (n===1?'Eén watermolecuul staat':n+' watermoleculen staan')+' nog niet goed. Welke kant van het watermolecuul hoort bij een '+(I.q>0?'positief':'negatief')+' ion?' : null; },
+        toonAntwoord:()=>{ ws.forEach(w=>{ const naar=norm(v3.min(ion.t,w.t)); const dw=norm(w.sp.dip); w.R=tmRotNaar(dw, I.q>0?naar:v3.sc(naar,-1)); tmUpdate(w);
+          if(I.q<0){ // één H precies naar het ion
+            const h=w.sp.donors[0], hb=norm(v3.min(w.sp.atomen[h].pos, w.sp.atomen[0].pos)); w.R=tmRotNaar(hb, naar); tmUpdate(w); } }); tmRender();
+          return I.q>0 ? 'De O-atomen (δ−) wijzen naar het positieve ion.' : 'Een H-atoom (δ+) van elk watermolecuul wijst naar het negatieve ion.'; },
+        na:()=>{ TM.verborgen=false; tmToolbar(); tmRender(); } },
+      partMeer('Welke binding is er tussen het ion en de watermoleculen? Kies alles wat klopt.', OPT_BINDING(['ion-dipoolbinding'],['vanderwaalsbinding'],{ionbinding:'Een ionbinding is er tussen twee ionen. Water is geen ion.', waterstofbrug:'Een waterstofbrug is er tussen een H aan N/O en een vrij paar van N/O.', 'dipool-dipoolbinding':'Een ion is geen dipool: het heeft één lading.'}), '')
+    ],
+    hint:'Kijk naar de δ-letters op de watermoleculen en naar de lading van het ion.',
+    uitw:()=>'Rond een '+(I.q>0?'positief':'negatief')+' ion wijzen '+(I.q>0?'de O-atomen (δ−)':'H-atomen (δ+)')+' van de watermoleculen naar het ion. Die aantrekking is de ion-dipoolbinding: '+ionF(ik)+'(aq).' });
+}
+function zoutBalans(z, terug){
+  const Z=ZOUTEN[z], ks=[Z.k, Z.a, 'water'];
+  const st = terug
+    ? [{dir:'verbroken',a:Z.k,b:'water'},{dir:'verbroken',a:Z.a,b:'water'},{dir:'verbroken',a:'water',b:'water'},{dir:'gevormd',a:Z.k,b:Z.a}]
+    : [{dir:'verbroken',a:Z.k,b:Z.a},{dir:'verbroken',a:'water',b:'water'},{dir:'gevormd',a:Z.k,b:'water'},{dir:'gevormd',a:Z.a,b:'water'}];
+  const b = maakBalans(st, ks, terug?'indampen':'oplossen');
+  return b;
+}
+function zn3(){
+  const z=pick(['CaCl2','KBr','MgCl2']), Z=ZOUTEN[z];
+  const bal=zoutBalans(z,false); bal.vraag='Stel de bindingenbalans op voor het oplossen van '+Z.naam+' in water. Zet elke binding op een eigen regel.';
+  return tmQ({ titel:'Een zout oplossen',
+    instr:{ titel:'Nieuw: oplossen op deeltjesniveau', html:'Bij het oplossen van een zout in water gaan de ionen los uit het rooster en worden ze omringd door watermoleculen.<br><b>Verbroken:</b> de ionbindingen tussen de ionen, en waterstofbruggen (en vanderwaalsbindingen) tussen watermoleculen, want er moet plaats komen voor de ionen.<br><b>Gevormd:</b> ion-dipoolbindingen tussen de ionen en de watermoleculen.'+
+      vb('<b>Natriumchloride oplossen</b><br>verbroken: ionbinding tussen natriumionen en chloride-ionen<br>verbroken: vanderwaalsbinding en waterstofbruggen tussen watermoleculen onderling<br>gevormd: ion-dipoolbinding tussen natriumionen en watermoleculen<br>gevormd: ion-dipoolbinding tussen chloride-ionen en watermoleculen<br>Oplosvergelijking: NaCl(s) → Na<sup>+</sup>(aq) + Cl<sup>−</sup>(aq)') },
+    vraag:'In de bak ligt een korrel '+Z.naam+' ('+tmFormule(Z.f)+') in water.',
+    setup: zoutBakMaker(z,false),
+    parts:[ bal,
+      { soort:'mc', vraag:'Wat is de oplosvergelijking van '+Z.naam+'?', opties:oplosOpties(z,false), uitleg:'Het rooster valt uiteen in losse, gehydrateerde ionen: '+oplosVgl(z,false)+'.' },
+      { soort:'actie', vraag:'Klik in het venster op ▶ Start oplossen en volg de teller. Klik op Verder als het zout is opgelost.', klaar:bakGedraaid(350), uitleg:'De ionbindingen verdwijnen, er komen ion-dipoolbindingen bij en er gaan waterstofbruggen tussen watermoleculen verloren.' }
+    ],
+    hint:'Welke bindingen zijn er in het vaste zout, welke in water, en welke in de oplossing?',
+    uitw:()=>bal.vereist.map(e=>e.dir+': '+e.soort+' tussen '+e.paar).join('<br>')+'<br>'+oplosVgl(z,false) });
+}
+function zn4(){
+  const z=pick(['KCl','CaCl2','KBr']), Z=ZOUTEN[z];
+  const bal=zoutBalans(z,true); bal.vraag='Stel de bindingenbalans op voor het indampen van een oplossing van '+Z.naam+'. Zet elke binding op een eigen regel.';
+  return tmQ({ titel:'Indampen',
+    instr:{ titel:'Nieuw: indampen', html:'Bij <b>indampen</b> verdampt het water uit een zoutoplossing. Dan gebeurt het omgekeerde van oplossen: de watermoleculen gaan weg van de ionen, en de ionen vormen weer een rooster.'+
+      vb('Indampen van een natriumchloride-oplossing: Na<sup>+</sup>(aq) + Cl<sup>−</sup>(aq) → NaCl(s)') },
+    vraag:'In de bak zit een oplossing van '+Z.naam+' ('+tmFormule(Z.f)+').',
+    setup: zoutBakMaker(z,true,'Bij indampen verdwijnen watermoleculen bovenaan uit de bak.'),
+    parts:[ bal,
+      { soort:'mc', vraag:'Welke vergelijking hoort bij het indampen?', opties:oplosOpties(z,true), uitleg:'Bij indampen vormen de ionen weer een vast zout: '+oplosVgl(z,true)+'.' },
+      { soort:'actie', vraag:'Klik in het venster op ♨ Indampen en volg de teller. Klik op Verder als het meeste water verdampt is.', klaar:()=>TM.bak && TM.bak.parts.filter(p=>p.key==='water'&&!p.weg).length < TM.bak.parts.filter(p=>p.key==='water').length*0.35,
+        uitleg:'De ion-dipoolbindingen en de waterstofbruggen verdwijnen, er komen weer ionbindingen.' }
+    ],
+    hint:'Draai de balans van het oplossen om. Denk ook aan het water dat verdampt.',
+    uitw:()=>bal.vereist.map(e=>e.dir+': '+e.soort+' tussen '+e.paar).join('<br>')+'<br>'+oplosVgl(z,true) });
+}
+function zster(){
+  const z='Na2SO4', Z=ZOUTEN[z];
+  const bal=zoutBalans(z,false); bal.vraag='Stel de bindingenbalans op voor het oplossen van natriumsulfaat in water.';
+  return tmQ({ titel:'★ Samengesteld ion', ster:true,
+    vraag:'Natriumsulfaat (Na<sub>2</sub>SO<sub>4</sub>) is opgebouwd uit Na<sup>+</sup>-ionen en sulfaationen SO<sub>4</sub><sup>2−</sup>. Een sulfaation is een <b>samengesteld ion</b>: één S-atoom en vier O-atomen, met atoombindingen.',
+    setup: zoutBakMaker(z,false),
+    parts:[ bal,
+      { soort:'mc', vraag:'Welke bindingen worden bij het oplossen van natriumsulfaat <b>niet</b> verbroken?', opties:[
+        {html:'de atoombindingen in de sulfaationen',goed:true},{html:'de ionbindingen',goed:false},{html:'de waterstofbruggen tussen watermoleculen',goed:false},{html:'geen: alle bindingen worden verbroken',goed:false}],
+        uitleg:'Een samengesteld ion blijft bij oplossen heel: SO<sub>4</sub><sup>2−</sup>(aq).' },
+      { soort:'mc', vraag:'Wat is de oplosvergelijking van natriumsulfaat?', opties:[
+        {html:'Na<sub>2</sub>SO<sub>4</sub>(s) → 2 Na<sup>+</sup>(aq) + SO<sub>4</sub><sup>2−</sup>(aq)',goed:true},
+        {html:'Na<sub>2</sub>SO<sub>4</sub>(s) → Na<sub>2</sub><sup>+</sup>(aq) + SO<sub>4</sub><sup>2−</sup>(aq)',goed:false},
+        {html:'Na<sub>2</sub>SO<sub>4</sub>(s) → 2 Na<sup>+</sup>(aq) + S<sup>2−</sup>(aq) + 4 O(aq)',goed:false},
+        {html:'Na<sub>2</sub>SO<sub>4</sub>(s) → 2 Na<sup>+</sup>(aq) + SO<sub>4</sub><sup>−</sup>(aq)',goed:false}].sort(()=>Math.random()-0.5),
+        uitleg:'Twee Na<sup>+</sup>-ionen per sulfaation, en het sulfaation blijft heel.' }
+    ],
+    hint:'Wat gebeurt er met het sulfaation zelf als het zout oplost?',
+    uitw:()=>bal.vereist.map(e=>e.dir+': '+e.soort+' tussen '+e.paar).join('<br>')+'<br>De atoombindingen binnen SO<sub>4</sub><sup>2−</sup> blijven: Na<sub>2</sub>SO<sub>4</sub>(s) → 2 Na<sup>+</sup>(aq) + SO<sub>4</sub><sup>2−</sup>(aq)' });
+}
+const NIVEAUS_ZOUT = [zn1, zn2, zn3, zn4, zster];
+
+// ===================== VRIJ VERKENNEN =====================
+let vrijSoort = 'bouw';
+function zetVrijSoort(s){
+  vrijSoort = s;
+  document.querySelectorAll('.vrijSoort').forEach(x=>x.value=s);
+  if(opdModus) return;
+  tmAan(s!=='bouw');
+  vrijPaneel();
+}
+function vrijPaneel(){
+  const el=document.getElementById('tmVrijInhoud'); if(!el) return;
+  const mols=Object.keys(TM_LIB).filter(k=>k!=='sulfaat');
+  const opt=(lijst,sel)=>lijst.map(k=>'<option value="'+k+'"'+(k===sel?' selected':'')+'>'+(TM_LIB[k]?TM_LIB[k].naam:TM_ION[k]?TM_ION[k].naam+' ('+k+')':ZOUTEN[k]?ZOUTEN[k].naam:k)+'</option>').join('');
+  if(vrijSoort==='samen'){
+    el.innerHTML='<p class="vtxt">Zet moleculen of ionen bij elkaar en verschuif en draai ze. De tool laat zien welke bindingen er tussen de deeltjes ontstaan.</p>'+
+      '<label class="vl">Deeltje</label><select id="vMol">'+opt(mols,'water')+'<optgroup label="ionen">'+opt(Object.keys(TM_ION),'')+'</optgroup></select>'+
+      '<div class="acties"><button class="btn" id="vAdd">+ Voeg toe</button><button class="btn ghost" id="vDel">Weg: gekozen deeltje</button><button class="btn ghost" id="vWis">Alles wissen</button></div>';
+    if(TM.soort!=='scene' || !TM.vrij){ const A=tmMol('water',[0,0,0]); const B2=tmDockOpH(A,A.sp.donors[0],'water'); tmScene([A,B2].filter(Boolean),{}); TM.vrij=true; }
+    document.getElementById('vAdd').onclick=()=>{ const k=document.getElementById('vMol').value, sp=tmSp(k);
+      let mx=-Infinity; TM.mols.forEach(m=>m.w.forEach(p=>mx=Math.max(mx,p[0])));
+      const t = TM.mols.length ? [mx + sp.ext + 2.2, TM.centrum[1] + (Math.random()-0.5)*2, TM.centrum[2]] : [0,0,0];
+      const m=tmMol(k,t,randRot()); TM.mols.push(m); TM.sel=m; tmCentreer(); tmToolbar(); tmRender(); };
+    document.getElementById('vDel').onclick=()=>{ if(TM.sel){ TM.mols=TM.mols.filter(m=>m!==TM.sel); TM.sel=null; tmRender(); } };
+    document.getElementById('vWis').onclick=()=>{ TM.mols=[]; TM.sel=null; tmRender(); };
+  } else if(vrijSoort==='bak'){
+    const st=Object.keys(TM_MENG);
+    el.innerHTML='<p class="vtxt">Kies twee stoffen. Ze beginnen als twee lagen; klik op ▶ om ze bij elkaar te gieten.</p><label class="vl">Bovenste laag</label><select id="vA">'+opt(st,'ethanol')+'</select><label class="vl">Onderste laag</label><select id="vB">'+opt(st,'water')+'</select><div class="acties"><button class="btn" id="vMaak">Vul de bak</button></div>';
+    const maak=()=>{ const a=document.getElementById('vA').value, b=document.getElementById('vB').value; const f=()=>tmBakZet(rmLagen(a,b,10,8),{startTekst:'▶ Giet bij elkaar', opnieuw:f}); f(); TM.vrij=true; };
+    document.getElementById('vMaak').onclick=maak; maak();
+  } else if(vrijSoort==='zout'){
+    el.innerHTML='<p class="vtxt">Kies een zout. Los het op met ▶, of kies een oplossing en damp in met ♨.</p><label class="vl">Zout</label><select id="vZ">'+opt(Object.keys(ZOUTEN),'NaCl')+'</select>'+
+      '<div class="acties"><button class="btn" id="vKorrel">Korrel in water</button><button class="btn ghost" id="vOpl">Oplossing</button><button class="btn ghost" id="vRooster">Rooster in 3D</button></div>';
+    document.getElementById('vKorrel').onclick=()=>zoutBakMaker(document.getElementById('vZ').value,false)();
+    document.getElementById('vOpl').onclick=()=>zoutBakMaker(document.getElementById('vZ').value,true)();
+    document.getElementById('vRooster').onclick=()=>{ const Z=ZOUTEN[document.getElementById('vZ').value]; const a=3.1, ms=[];
+      if(Z.rk===1&&Z.ra===1){ for(let i=-1;i<=1;i++) for(let j=-1;j<=1;j++) for(let k=-1;k<=1;k++) ms.push(tmMol(((i+j+k)%2===0)?Z.k:Z.a,[i*a,j*a,k*a])); tmScene(ms,{vast:ms.map(m=>m.id)}); }
+      else { const B=rmZoutBak(Z.k,Z.a,Z.nk,Z.na,8,6); tmBakZet(B,{startTekst:'▶ Start oplossen'}); } };
+    zoutBakMaker('NaCl',false)(); TM.vrij=true;
+  }
+}
+document.querySelectorAll('.vrijSoort').forEach(s=>s.onchange=()=>zetVrijSoort(s.value));
+
+
 // ===================== WEERGAVE =====================
 let serie;
 let leerlijn = 'dipool';
-try { const ll = new URLSearchParams(location.search).get('leerlijn'); if(ll==='lewis') leerlijn='lewis'; } catch(e){}
-function NIVEAUS_NU(){ return leerlijn==='lewis' ? NIVEAUS_LEWIS : NIVEAUS; }
+try { const ll = new URLSearchParams(location.search).get('leerlijn'); if(['lewis','tussen','zout'].includes(ll)) leerlijn=ll; } catch(e){}
+function NIVEAUS_NU(){ return leerlijn==='lewis' ? NIVEAUS_LEWIS : leerlijn==='tussen' ? NIVEAUS_TUSSEN : leerlijn==='zout' ? NIVEAUS_ZOUT : NIVEAUS; }
 function zetLeerlijn(ll){ leerlijn = ll; nieuweSerie(); }
 document.querySelectorAll('.llbtn').forEach(b=>b.onclick=()=>zetLeerlijn(b.dataset.ll));
 function nieuweSerie(){
@@ -1624,10 +3107,12 @@ function renderSerie(){
   const q0 = serie.einde ? null : serie.items[serie.i];
   zetLewis(!!(q0 && q0.lewis));
   leegBouwer();
+  tmAan(!!(q0 && q0.tm));
   if(serie.einde){
     el.innerHTML = '<div class="eind"><p><b>Klaar!</b> Je had '+goed+' van de '+serie.items.length+' opdrachten goed zonder het antwoord te bekijken.</p><button class="btn" onclick="nieuweSerie()">Nieuwe serie ➜</button></div>';
     return;
   }
+  if(q0.tm && q0.setup) q0.setup();
   renderVraag(el, serie.items[serie.i]);
 }
 
@@ -1642,6 +3127,10 @@ function renderVraag(el, q){
     if(p.soort==='mc') h += '<div class="mc">'+p.opties.map((o,k)=>'<button class="opt" data-k="'+k+'">'+o.html+'</button>').join('')+'</div>';
     else if(p.soort==='num') h += '<div class="inrow"><label>'+p.label+'</label><input type="text" autocomplete="off"><button class="btn chk">Controleer</button></div>';
     else if(p.soort==='lewis') h += '<div class="inrow"><button class="btn chk">Controleer mijn Lewisstructuur</button></div>';
+    else if(p.soort==='meer') h += '<div class="mc meer">'+p.opties.map((o,k)=>'<button class="opt" data-k="'+k+'">'+o.html+'</button>').join('')+'</div><div class="inrow" style="margin-top:8px"><button class="btn chk">Controleer</button></div>';
+    else if(p.soort==='balans') h += '<div class="balans"><div class="brows"></div><div class="inrow"><button class="btn ghost addrow">+ regel</button><button class="btn chk">Controleer</button></div></div>';
+    else if(p.soort==='klik'||p.soort==='orient'||p.soort==='dock') h += '<div class="inrow"><button class="btn chk">Controleer</button>'+(p.soort==='klik'?'<button class="btn ghost wis">Wis keuze</button>':'')+'</div>';
+    else if(p.soort==='actie') h += '<div class="inrow"><button class="btn chk" disabled>Verder ➜</button></div>';
     else h += '<div class="inrow"><button class="btn chk">Controleer mijn molecuul</button></div>';
     h += '<div class="fb"></div></div>';
   });
@@ -1664,11 +3153,12 @@ function renderVraag(el, q){
     const p = P();
     pe().querySelectorAll('input,button').forEach(x=>x.disabled=true);
     if(p.toon){ onthuld = true; laatsteVoorspelling = null; updateInfoPanel(); render(); }
+    if(p.na) p.na();
     if(lewisModus && p.toon3d) zetView(false);
     st.deel++; st.tries = 0;
     if(lewisModus && q.parts[st.deel] && q.parts[st.deel].soort==='lewis') zetView(true);
     $('.toonb').style.display = 'none';
-    if(st.deel < q.parts.length){ pe().style.display=''; const inp=pe().querySelector('input'); if(inp) inp.focus(); }
+    if(st.deel < q.parts.length){ pe().style.display=''; const inp=pe().querySelector('input'); if(inp) inp.focus(); if(P().start) P().start(); }
     else {
       $('.hintb').style.display='none';
       const u=$('.uitw'); u.style.display='block'; u.innerHTML='<div class="kop">Uitleg</div>'+q.uitw();
@@ -1695,9 +3185,20 @@ function renderVraag(el, q){
     } else if(p.soort==='lewis'){
       laadDoel(p.doelen[0]);
       fb('info','<b>Zo hoort de Lewisstructuur eruit te zien.</b> '+(p.noot||''));
+    } else if(p.soort==='meer'){
+      pe().querySelectorAll('.opt').forEach((bt,k)=>{ bt.classList.remove('aan','fout'); if(p.opties[k].goed) bt.classList.add('goed'); });
+      fb('info','<b>Antwoord:</b> '+p.opties.filter(o=>o.goed).map(o=>o.html).join(' en ')+'. '+(p.uitleg||''));
+    } else if(p.soort==='balans'){
+      const rows=pe().querySelector('.brows'); rows.innerHTML='';
+      p.vereist.forEach(v=>{ const r=balansRij(p,v); r.classList.add('ok'); rows.appendChild(r); });
+      pe().querySelectorAll('select,.bdel,.addrow').forEach(x=>x.disabled=true);
+      fb('info','<b>Zo hoort de balans eruit te zien.</b>');
+    } else if(p.toonAntwoord){
+      fb('info','<b>Antwoord:</b> '+p.toonAntwoord());
     } else return;
     volgend(false);
   };
+  if(q.parts[0] && q.parts[0].start) q.parts[0].start();
   q.parts.forEach((p,i)=>{
     const e = el.querySelector('#part'+i);
     if(p.soort==='mc'){
@@ -1728,6 +3229,36 @@ function renderVraag(el, q){
         if(m){ fout(m); return; }
         fb('correct','<b>Goed getekend!</b> '+(p.noot||'')); volgend(st.tries===0);
       };
+    } else if(p.soort==='meer'){
+      const sel=new Set();
+      e.querySelectorAll('.opt').forEach(bt=>bt.onclick=()=>{ if(st.deel!==i) return; const k=+bt.dataset.k; bt.classList.remove('fout'); if(sel.has(k)){ sel.delete(k); bt.classList.remove('aan'); } else { sel.add(k); bt.classList.add('aan'); } });
+      e.querySelector('.chk').onclick=()=>{ if(st.deel!==i) return; const m=p.check(sel); if(m){ fout(m); return; }
+        e.querySelectorAll('.opt').forEach((bt,k)=>{ if(sel.has(k)){ bt.classList.remove('aan'); bt.classList.add('goed'); } });
+        fb('correct','<b>Goed!</b> '+(p.uitleg||'')); volgend(st.tries===0); };
+    } else if(p.soort==='balans'){
+      const rows=e.querySelector('.brows'); rows.appendChild(balansRij(p));
+      e.querySelector('.addrow').onclick=()=>{ if(st.deel===i) rows.appendChild(balansRij(p)); };
+      e.querySelector('.chk').onclick=()=>{ if(st.deel!==i) return;
+        const L=balansLees(p,rows); let leeg=false, fouten=0; const seen=new Set();
+        L.forEach(x=>{ x.r.classList.remove('ok','fout'); const msg=x.r.querySelector('.bmsg'); msg.textContent='';
+          if(!x.dir||!x.soort||!x.paar){ leeg=true; x.r.classList.add('fout'); msg.textContent='Vul deze regel helemaal in, of haal hem weg met ×.'; return; }
+          const k=bKey(x); if(seen.has(k)){ x.r.classList.add('fout'); msg.textContent='Deze regel staat er al.'; fouten++; return; } seen.add(k);
+          if(p.vereist.some(v=>bKey(v)===k)||p.opt.some(v=>bKey(v)===k)) x.r.classList.add('ok');
+          else { x.r.classList.add('fout'); msg.textContent=balansWaarom(p,x); fouten++; } });
+        if(leeg && !fouten){ fb('info','Vul eerst alle regels helemaal in.'); return; }
+        if(fouten){ fout('Niet alle regels kloppen: kijk naar de rode regels.'); return; }
+        const mist=p.vereist.filter(v=>!seen.has(bKey(v)));
+        if(mist.length){ const paren=[...new Set(mist.map(v=>v.paar))]; fout('Wat er staat klopt, maar er ontbreekt nog '+(mist.length===1?'één regel':mist.length+' regels')+'.'+(st.tries>=1?' Kijk nog eens naar: '+paren.join('; ')+'.':'')); return; }
+        e.querySelectorAll('select,.bdel,.addrow').forEach(x=>x.disabled=true);
+        fb('correct','<b>Goed!</b> De balans klopt.'+(p.opt.some(o=>o.soort==='dipool-dipoolbinding'&&!seen.has(bKey(o)))?' (Een dipool-dipoolbinding naast een waterstofbrug mocht je ook noemen.)':''));
+        volgend(st.tries===0); };
+    } else if(p.soort==='klik'||p.soort==='orient'||p.soort==='dock'){
+      const w=e.querySelector('.wis'); if(w) w.onclick=()=>{ if(st.deel!==i) return; TM.gekozen=new Set(); tmRender(); };
+      e.querySelector('.chk').onclick=()=>{ if(st.deel!==i) return; const m=p.check(); if(m){ fout(m); return; } fb('correct','<b>Goed!</b>'); volgend(st.tries===0); };
+    } else if(p.soort==='actie'){
+      const bt=e.querySelector('.chk');
+      const iv=setInterval(()=>{ if(!document.body.contains(bt)){ clearInterval(iv); return; } if(st.deel===i && p.klaar()){ bt.disabled=false; clearInterval(iv); } }, 300);
+      bt.onclick=()=>{ if(st.deel!==i) return; fb('correct',p.uitleg||''); volgend(true); };
     } else {
       e.querySelector('.chk').onclick = () => {
         if(st.deel!==i) return;
