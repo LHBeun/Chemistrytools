@@ -2763,19 +2763,34 @@ function tmn1(){
 function tmn2(){
   const pool=['chloormethaan','waterstofchloride','waterstofbromide','waterstofsulfide','propanon'];
   const k=pick(pool), vbk=pick(pool.filter(x=>x!==k));
-  let A,B;
+  let A,B, stand=0;
+  // vier vaste standen van het tweede molecuul t.o.v. het eerste
+  // 0 naast elkaar, zelfde richting (fout) · 1 naast elkaar, omgekeerd (goed) · 2 in één lijn, kop-staart (goed) · 3 in één lijn, kop-kop (fout)
+  function inLijn(omgekeerd){
+    const as = norm(A.dipw); let off = norm(cross(as,[0,0,1])); if(Math.hypot(...cross(as,[0,0,1]))<0.2) off=norm(cross(as,[0,1,0]));
+    const R = omgekeerd ? matMul(rotMat(off, Math.PI), A.R) : A.R.map(r=>r.slice());
+    let m=null;
+    for(let d=1.5; d<14; d+=0.1){ m=tmMol(k, v3.add(A.t, v3.sc(as,d)), R); const r=tmTussen(A,m); if(!r.botst && r.contact>0) return m; }
+    return m;
+  }
+  function zetStand(){
+    const C = stand===0 ? tmNaast(A,k,false) : stand===1 ? tmNaast(A,k,true) : inLijn(stand===3);
+    B.t=C.t; B.R=C.R; tmUpdate(B);
+    TM.centrum=A.t.slice(); TM.spanX=TM.spanY=TM.span=A.sp.ext*1.5+2.2; tmRender();
+  }
   return tmQ({ titel:'Dipool-dipoolbinding',
     instr:{ titel:'Nieuw: dipool-dipoolbinding', html:'Een dipoolmolecuul heeft een δ+-kant en een δ−-kant. Twee dipoolmoleculen trekken elkaar extra aan als de δ+-kant van het ene molecuul naar de δ−-kant van het andere wijst. Die aantrekking heet de <b>dipool-dipoolbinding</b>. Daarnaast werkt er, zoals tussen alle moleculen, ook de vanderwaalsbinding.<br>'+
-      '<b>Zo werkt het venster:</b> klik op een atoom van het ene molecuul en dan op een atoom van het andere molecuul: de tool legt die twee atomen tegen elkaar. Je kunt een molecuul ook slepen, en met ↻ en ⇄ draaien.'+
+      '<b>Zo werkt het venster:</b> klik op het gemarkeerde molecuul om het een andere stand te geven.'+
       vb('Twee '+deeltjesNaam(vbk)+': het molecuul is een dipool. Ligt de δ+-kant van het ene molecuul bij de δ−-kant van het andere, dan is er een dipool-dipoolbinding.') },
     vraag:'Bekijk de twee '+deeltjesNaam(k)+' ('+tmFormule(tmSp(k).f)+').',
-    setup:()=>{ A=tmMol(k,[0,0,0],tmVlak(k)); B=tmNaast(A,k,false); B.t=v3.add(B.t, v3.sc(norm(v3.min(B.t,A.t)),0.8)); tmUpdate(B);
-      tmScene([A,B],{verborgen:true, vast:[A.id]}); },
+    setup:()=>{ A=tmMol(k,[0,0,0],tmVlak(k)); B=tmMol(k,[0,4,0]); stand=pick([0,3]);
+      tmScene([A,B],{verborgen:true, vast:[A.id,B.id], markeer:B, klik:(m)=>{ if(m!==B) return; stand=(stand+1)%4; zetStand(); }});
+      zetStand(); },
     parts:[
-      { soort:'orient', vraag:'Leg het tweede molecuul zo tegen het eerste dat er een dipool-dipoolbinding ontstaat. Klik dan op Controleer.',
-        check:()=>{ const r=tmTussen(A,B); if(r.botst) return 'De moleculen overlappen: schuif ze iets uit elkaar.'; if(!r.contact) return 'De moleculen raken elkaar nog niet: schuif ze dichter naar elkaar toe.'; if(!r.dd) return 'Wijst de δ+-kant van het ene molecuul naar de δ−-kant van het andere?'; return null; },
-        toonAntwoord:()=>{ const C=tmNaast(A,k,true); B.t=C.t; B.R=C.R; tmUpdate(B); return 'Zo wijst de δ+-kant van het ene molecuul naar de δ−-kant van het andere.'; },
-        na:()=>{ TM.verborgen=false; tmToolbar(); tmRender(); } },
+      { soort:'orient', vraag:'Zet het gemarkeerde molecuul in een stand waarin er een dipool-dipoolbinding is. Klik dan op Controleer.',
+        check:()=>{ const r=tmTussen(A,B); if(!r.dd) return 'Kijk naar de δ-letters: wat ligt er nu tegen elkaar aan?'; return null; },
+        toonAntwoord:()=>{ stand=1; zetStand(); return 'Zo ligt de δ+-kant van het ene molecuul bij de δ−-kant van het andere. Ook in één lijn (δ+ tegen δ−) is er een dipool-dipoolbinding.'; },
+        na:()=>{ TM.verborgen=false; TM.markeer=null; tmToolbar(); tmRender(); } },
       partMeer('Welke soorten binding zijn er nu tussen deze twee moleculen? Kies alles wat klopt.', OPT_BINDING(['vanderwaalsbinding','dipool-dipoolbinding'],[],{
         waterstofbrug:'Een waterstofbrug kan alleen met een H-atoom dat aan N of O vastzit.', 'ion-dipoolbinding':'Er zijn hier geen ionen.', ionbinding:'Er zijn hier geen ionen.'}),
         'Vanderwaalsbinding (tussen alle moleculen) én dipool-dipoolbinding (twee dipolen, δ+ bij δ−).')
