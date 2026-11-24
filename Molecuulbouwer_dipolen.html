@@ -190,6 +190,8 @@
   #tmToolbar{position:absolute;top:10px;left:10px;display:flex;gap:7px;flex-wrap:wrap;max-width:62%}
   #tmToolbar button,#tmToolbar label{background:rgba(255,255,255,.94);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:5px;user-select:none;font-family:inherit}
   #tmToolbar button:hover{border-color:var(--accent)}
+  #tmToolbar button:disabled{opacity:.45;cursor:default}
+  #tmHint{display:none;position:absolute;left:50%;transform:translateX(-50%);top:58px;background:#FFF4E0;border:1px solid #E07B00;color:#7a4300;border-radius:8px;padding:7px 14px;font-size:13px;max-width:70%;text-align:center;z-index:2}
   #tmToolbar button.aan{background:var(--soft);border-color:var(--accent);color:#174a96;font-weight:600}
   #tmToolbar button.prim{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:650}
   #tmToolbar input[type=range]{width:80px}
@@ -253,7 +255,7 @@
       <div id="tmVrijPanel"><h3>Weergave</h3><select class="vrijSoort"><option value="bouw">Eén molecuul bouwen</option><option value="samen">Moleculen samen</option><option value="bak">Mengbak</option><option value="zout">Zout in water</option></select><div id="tmVrijInhoud"></div></div>
       <div id="sceneWrap">
         <canvas id="scene"></canvas>
-        <div id="tmWrap"><canvas id="tmCanvas"></canvas><div id="tmToolbar"></div><div id="tmTeller"></div><div id="tmLegend"></div><div id="tmNote"></div></div>
+        <div id="tmWrap"><canvas id="tmCanvas"></canvas><div id="tmHint"></div><div id="tmToolbar"></div><div id="tmTeller"></div><div id="tmLegend"></div><div id="tmNote"></div></div>
         <div id="sceneToolbar">
           <button id="btnReset">⟲ Nieuw molecuul</button>
           <label class="vrij-only geen-lewis" title="Eerst zelf voorspellen; δ's, ladingscentra en conclusie verschijnen pas na je voorspelling"><input type="checkbox" id="chkVoorspel" checked> voorspelmodus</label>
@@ -1875,8 +1877,10 @@ function tmTussen(A, B, opts){
     A.sp.atomen.forEach((a,i)=>{ if(!a.q) return; B.sp.atomen.forEach((b,j)=>{ if(!b.q) return; E += a.q*b.q/Math.max(d3(A.w[i],B.w[j]),1); }); });
     res.ddE = E;
     // δ+ van het ene molecuul dichter bij δ− van het andere dan bij δ+ (en δ− niet bij δ−)
-    const aantr = d3(A.plusw,B.minw) + d3(A.minw,B.plusw), afst = d3(A.plusw,B.plusw) + d3(A.minw,B.minw);
-    if(aantr < afst - 0.08 && E < 0.1) res.dd = true;
+    // de middens van δ+ en δ− als puntladingen: netto aantrekkend?
+    const Ec = 1/d3(A.plusw,B.plusw) + 1/d3(A.minw,B.minw) - 1/d3(A.plusw,B.minw) - 1/d3(A.minw,B.plusw);
+    res.ddEc = Ec;
+    if(Ec < -0.004 && E < 0.1) res.dd = true;
   }
   return res;
 }
@@ -2158,7 +2162,7 @@ function tmScene(mols, o){
   o = o||{};
   TM.soort='scene'; TM.mols=mols; TM.labels=o.labels||[]; TM.bak=null; TM.loopt=false; TM.verdampen=false;
   TM.verborgen=!!o.verborgen; TM.klik=o.klik||null; TM.gekozen=new Set(); TM.sel=null; TM.markeer=o.markeer||null;
-  TM.actie=o.actie||'verplaats'; TM.alleenDraaien=!!o.alleenDraaien; TM.vast=new Set(o.vast||[]);
+  TM.actie=o.actie||'verplaats'; TM.alleenDraaien=!!o.alleenDraaien; TM.vast=new Set(o.vast||[]); TM.koppelVan=null; tmHint('');
   TM.toon.delta = o.delta!==undefined ? o.delta : true; TM.toon.lp = o.lp!==undefined ? o.lp : true;
   TM.extraNoot = o.noot||'';
   if(o.cam) Object.assign(TM.cam, o.cam); else Object.assign(TM.cam, {yaw:0.35, pitch:-0.28, zoom:1});
@@ -2272,6 +2276,7 @@ function tmRender(){
         const gk = TM.gekozen.has(m.id+':'+k);
         tmBol(p, r, kleur, kk, gk ? getCss('--accent') : (TM.sel===m ? '#1F5FBF' : null), gk ? 4 : (TM.sel===m?2.4:1.4));
         if(gk){ tctx.beginPath(); tctx.arc(p.sx,p.sy,r+5*dpr,0,Math.PI*2); tctx.lineWidth=3*dpr; tctx.strokeStyle='rgba(31,95,191,.55)'; tctx.stroke(); }
+        if(TM.koppelVan && TM.koppelVan.m===m && TM.koppelVan.k===k){ tctx.beginPath(); tctx.arc(p.sx,p.sy,r+6*dpr,0,Math.PI*2); tctx.lineWidth=3.5*dpr; tctx.strokeStyle='#E07B00'; tctx.setLineDash([5*dpr,4*dpr]); tctx.stroke(); tctx.setLineDash([]); }
         tctx.font=`700 ${r*0.85}px Segoe UI`; tctx.fillStyle=mixWit('#10131a',kk); tctx.textAlign='center'; tctx.textBaseline='middle';
         tctx.fillText(a.s, p.sx, p.sy+r*0.02);
         if(m.sp.ion){
@@ -2333,12 +2338,61 @@ function tmHit(mx,my){
   TM.mols.forEach(m=>m.w.forEach((w,k)=>{ const p=tmProj(w), r=Math.max(9*devicePixelRatio, tmAtoomR(m,k)*p.sc*1.1), d=Math.hypot(p.sx-mx,p.sy-my)/r - p.depth*0.02; if(Math.hypot(p.sx-mx,p.sy-my)<r && d<bd){ bd=d; best={m,k,depth:p.depth}; } }));
   return best;
 }
+// richting waarin een atoom 'naar buiten' wijst: weg van zijn buren (of weg van het midden)
+function tmNaarBuiten(m, k){
+  const sp=m.sp, bur=[];
+  if(sp.atomen[k].p>=0) bur.push(sp.atomen[k].p);
+  sp.atomen.forEach((a,i)=>{ if(a.p===k) bur.push(i); });
+  let v=[0,0,0];
+  bur.forEach(i=>{ v=v3.add(v, norm(v3.min(m.w[k], m.w[i]))); });
+  if(Math.hypot(...v)<0.3) v=v3.min(m.w[k], m.t);
+  if(Math.hypot(...v)<0.3){ const l=m.lpw[k]; v = l.length ? l.reduce((t,d)=>v3.add(t,d),[0,0,0]) : [1,0,0]; }
+  if(Math.hypot(...v)<0.3) v=[1,0,0];
+  return norm(v);
+}
+// molecuul M zo neerleggen dat atoom i van M tegen atoom j van F ligt (contactafstand, zonder overlap)
+function tmKoppel(M, i, F, j){
+  let u = tmNaarBuiten(F, j);
+  const R0 = M.R, t0 = M.t;
+  let bodyUit = tmNaarBuiten({sp:M.sp, w:M.sp.atomen.map(a=>a.pos), t:[0,0,0], lpw:M.sp.atomen.map(a=>a.lp)}, i);
+  const andere = TM.mols.filter(q=>q!==M);
+  const ai=M.sp.atomen[i], aj=F.sp.atomen[j];
+  const hb = (ai.s==='H' && (aj.s==='O'||aj.s==='N')) || (aj.s==='H' && (ai.s==='O'||ai.s==='N'));
+  // bij een H aan een N/O-atoom: richt op een vrij elektronenpaar (het paar dat het dichtst bij ligt)
+  if(hb && aj.s!=='H' && F.lpw[j].length){ const naar=norm(v3.min(M.t,F.w[j])); u = F.lpw[j].reduce((b,l)=>dot(l,naar)>dot(b,naar)?l:b); }
+  if(hb && ai.s!=='H' && ai.lp.length) bodyUit = ai.lp[0];
+  let best=null, bs=Infinity;
+  for(let tw=0; tw<12; tw++){
+    const R = matMul(rotMat(u, tw*Math.PI/6), tmRotNaar(bodyUit, v3.sc(u,-1)));
+    for(let d = hb ? 1.95 : (ai.r+aj.r)*0.78; d < 8; d += 0.1){
+      M.R=R; M.t=v3.min(v3.add(F.w[j], v3.sc(u,d)), matVec(R, ai.pos)); tmUpdate(M);
+      if(!andere.some(q=>tmTussen(M,q).botst)){ if(d<bs-1e-6){ bs=d; best={R:M.R, t:M.t}; } break; }
+    }
+  }
+  if(best){ M.R=best.R; M.t=best.t; } else { M.R=R0; M.t=t0; }
+  tmUpdate(M);
+}
+function tmHint(t){ const el=document.getElementById('tmHint'); if(!el) return; el.innerHTML=t||''; el.style.display=t?'block':'none'; }
+function tmKoppelKlik(m, k){
+  if(!TM.mols.some(q=>!TM.vast.has(q.id))) return;
+  if(!TM.koppelVan || TM.koppelVan.m===m){
+    if(TM.koppelVan && TM.koppelVan.m===m && TM.koppelVan.k===k){ TM.koppelVan=null; tmHint(''); tmRender(); return; }
+    TM.koppelVan={m,k}; TM.sel=m;
+    tmHint('Gekozen: '+m.sp.atomen[k].s+' van '+(m.sp.ion?tmIonTekst(m.sp.key):m.sp.naam)+'. Klik nu op het atoom van een ander deeltje waar dit tegenaan moet.');
+    tmToolbar(); tmRender(); return;
+  }
+  const A=TM.koppelVan; TM.koppelVan=null; tmHint('');
+  // het eerst gekozen deeltje beweegt; ligt dat vast, dan het tweede
+  if(!TM.vast.has(A.m.id)) tmKoppel(A.m, A.k, m, k);
+  else if(!TM.vast.has(m.id)) tmKoppel(m, k, A.m, A.k);
+  TM.sel = TM.vast.has(A.m.id) ? m : A.m;
+  tmToolbar(); tmRender(); if(TM.onVerander) TM.onVerander();
+}
 tmCanvas.addEventListener('mousedown', e=>{
   const rc=tmCanvas.getBoundingClientRect(), mx=(e.clientX-rc.left)*devicePixelRatio, my=(e.clientY-rc.top)*devicePixelRatio;
   if(TM.soort!=='scene'){ tmDrag={cam:true,x:e.clientX,y:e.clientY,moved:false,bak:true}; return; }
   const h = tmHit(mx,my);
   tmDrag = { x:e.clientX, y:e.clientY, moved:false, hit:h, cam:!h, shift:e.shiftKey };
-  if(h && !TM.klik){ TM.sel=h.m; tmRender(); }
 });
 window.addEventListener('mousemove', e=>{
   if(!tmDrag || !TM.aan) return;
@@ -2347,22 +2401,30 @@ window.addEventListener('mousemove', e=>{
   tmDrag.moved=true; tmDrag.x=e.clientX; tmDrag.y=e.clientY;
   if(tmDrag.bak) return;
   if(tmDrag.cam){ TM.cam.yaw+=dx*0.008; TM.cam.pitch=Math.max(-1.45,Math.min(1.45,TM.cam.pitch+dy*0.008)); tmRender(); return; }
-  const m = tmDrag.hit.m; if(TM.vast.has(m.id)) return;
+  const m = tmDrag.hit.m; if(TM.vast.has(m.id) || TM.klik) return;
+  if(TM.sel!==m){ TM.sel=m; tmToolbar(); }
+  if(TM.koppelVan){ TM.koppelVan=null; tmHint(''); }
   const A = tmAssen();
-  const draai = TM.alleenDraaien || tmDrag.shift || e.shiftKey || TM.actie==='draai';
+  const draai = tmDrag.shift || e.shiftKey;
+  const R0=m.R, t0=m.t;
   if(draai){
     m.R = matMul(rotMat(A.op, dx*0.012), matMul(rotMat(A.rechts, dy*0.012), m.R));
   } else {
+    // verschuiven in het vlak van het scherm
     const sc = tmProj(m.t).sc;
     m.t = v3.add(m.t, v3.add(v3.sc(A.rechts, dx*devicePixelRatio/sc), v3.sc(A.op, -dy*devicePixelRatio/sc)));
   }
-  tmUpdate(m); tmRender(); if(TM.onVerander) TM.onVerander();
+  tmUpdate(m);
+  // niet door een ander deeltje heen: stop bij contact
+  if(TM.mols.some(q=>q!==m && tmTussen(m,q).botst)){ m.R=R0; m.t=t0; tmUpdate(m); }
+  tmRender(); if(TM.onVerander) TM.onVerander();
 });
 window.addEventListener('mouseup', e=>{
   if(!tmDrag) return;
   const d=tmDrag; tmDrag=null;
   if(!d.moved && d.hit && TM.klik) TM.klik(d.hit.m, d.hit.k);
-  else if(!d.moved && !d.hit && !d.bak && TM.sel){ TM.sel=null; tmRender(); }
+  else if(!d.moved && d.hit && TM.soort==='scene') tmKoppelKlik(d.hit.m, d.hit.k);
+  else if(!d.moved && !d.hit && !d.bak){ if(TM.koppelVan){ TM.koppelVan=null; tmHint(''); } if(TM.sel){ TM.sel=null; tmToolbar(); } tmRender(); }
 });
 tmCanvas.addEventListener('wheel', e=>{ e.preventDefault(); if(TM.soort==='bak') return; TM.cam.zoom=Math.max(0.45,Math.min(3,TM.cam.zoom*(e.deltaY>0?0.92:1.08))); tmRender(); }, {passive:false});
 
@@ -2427,7 +2489,7 @@ function tmPaar(keyA, keyB){
 
 // ---------- mengbak en zout-in-water ----------
 function tmBakZet(B, o){
-  o=o||{};
+  o=o||{}; TM.koppelVan=null; tmHint('');
   TM.soort='bak'; TM.bak=B; TM.mols=[]; TM.loopt=false; TM.verdampen=false; TM.verborgen=false; TM.klik=null;
   TM.extraNoot = o.noot||'';
   B.flits=[]; B.parts.forEach(p=>{ p.x=p.c; p.y=p.r; p.th=p.thDoel; });
@@ -2539,11 +2601,22 @@ function tmTellerUpdate(){
 }
 
 // ---------- werkbalk, legenda, noot ----------
+function tmDraaiSel(soort){
+  const m=TM.sel; if(!m || TM.vast.has(m.id)) return;
+  const A=tmAssen(), kijk=norm(cross(A.rechts, A.op));
+  if(soort==='kwart') m.R = matMul(rotMat(kijk, -Math.PI/2), m.R);
+  else m.R = matMul(rotMat(A.op, Math.PI), m.R);
+  tmUpdate(m);
+  // overlapt het nu, dan een stukje wegschuiven van de buur
+  for(let s=0;s<60;s++){ const q=TM.mols.find(q=>q!==m && tmTussen(m,q).botst); if(!q) break; m.t=v3.add(m.t, v3.sc(norm(v3.min(m.t,q.t)),0.15)); tmUpdate(m); }
+  tmRender(); if(TM.onVerander) TM.onVerander();
+}
 function tmToolbar(){
   const tb=document.getElementById('tmToolbar'); let h='';
   if(TM.soort==='scene'){
     const beweegbaar = TM.mols.some(m=>!TM.vast.has(m.id));
-    if(beweegbaar && !TM.alleenDraaien) h+='<button data-a="verplaats" class="'+(TM.actie==='verplaats'?'aan':'')+'">✋ verschuiven</button><button data-a="draai" class="'+(TM.actie==='draai'?'aan':'')+'">⟳ draaien</button>';
+    if(beweegbaar && !TM.klik){ const ok = TM.sel && !TM.vast.has(TM.sel.id);
+      h+='<button data-r="kwart" '+(ok?'':'disabled')+' title="gekozen deeltje een kwartslag draaien">↻ kwartslag</button><button data-r="om" '+(ok?'':'disabled')+' title="gekozen deeltje omdraaien">⇄ omdraaien</button>'; }
     h+='<label><input type="checkbox" data-t="delta" '+(TM.toon.delta?'checked':'')+'> δ-letters</label><label><input type="checkbox" data-t="lp" '+(TM.toon.lp?'checked':'')+'> vrije paren</label>';
     if(!TM.verborgen) h+='<label><input type="checkbox" data-t="bind" '+(TM.toon.bind?'checked':'')+'> bindingen tussen deeltjes</label>';
   } else {
@@ -2556,7 +2629,7 @@ function tmToolbar(){
   }
   tb.innerHTML=h;
   tb.style.maxWidth = TM.soort==='bak' ? 'calc(100% - '+((document.getElementById('tmTeller').offsetWidth||380)+40)+'px)' : '62%';
-  tb.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{ TM.actie=b.dataset.a; tmToolbar(); });
+  tb.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>tmDraaiSel(b.dataset.r));
   tb.querySelectorAll('input[data-t]').forEach(c=>c.onchange=()=>{ TM.toon[c.dataset.t]=c.checked; tmRender(); });
   tb.querySelectorAll('button[data-b]').forEach(b=>b.onclick=()=>{
     const a=b.dataset.b;
@@ -2583,7 +2656,7 @@ function tmLegenda(){
   const n=document.getElementById('tmNote');
   n.innerHTML = TM.soort==='bak'
     ? 'Vereenvoudigd model: elk vakje is één deeltje. Buren trekken elkaar aan volgens de bindingen die tussen die deeltjes mogelijk zijn (vanderwaals sterker bij meer elektronen, waterstofbruggen, dipool-dipool, ion-dipool, ionbinding). Deeltjes wisselen van plaats als dat gunstig is, met wat toeval (warmtebeweging). Afstanden en afmetingen zijn niet op schaal.'+(TM.extraNoot?'<br>'+TM.extraNoot:'')
-    : 'Sleep een deeltje om het te '+(TM.alleenDraaien?'draaien':'verschuiven (Shift + slepen = draaien)')+'. Sleep in het lege veld om alles te draaien, scroll om te zoomen. Geïdealiseerde VSEPR-hoeken.'+(TM.extraNoot?'<br>'+TM.extraNoot:'');
+    : (TM.klik ? 'Klik op een deeltje. ' : TM.mols.some(m=>!TM.vast.has(m.id)) ? '<b>Aankoppelen:</b> klik op een atoom van het ene deeltje en dan op een atoom van het andere: ze worden tegen elkaar gelegd. Slepen = verschuiven, Shift + slepen = draaien. ' : '')+'Sleep in het lege veld om alles te draaien, scroll om te zoomen. Geïdealiseerde VSEPR-hoeken.'+(TM.extraNoot?'<br>'+TM.extraNoot:'');
 }
 
 // ===================== BINDINGENBALANS =====================
@@ -2690,19 +2763,34 @@ function tmn1(){
 function tmn2(){
   const pool=['chloormethaan','waterstofchloride','waterstofbromide','waterstofsulfide','propanon'];
   const k=pick(pool), vbk=pick(pool.filter(x=>x!==k));
-  let A,B;
+  let A,B, stand=0;
+  // vier vaste standen van het tweede molecuul t.o.v. het eerste
+  // 0 naast elkaar, zelfde richting (fout) · 1 naast elkaar, omgekeerd (goed) · 2 in één lijn, kop-staart (goed) · 3 in één lijn, kop-kop (fout)
+  function inLijn(omgekeerd){
+    const as = norm(A.dipw); let off = norm(cross(as,[0,0,1])); if(Math.hypot(...cross(as,[0,0,1]))<0.2) off=norm(cross(as,[0,1,0]));
+    const R = omgekeerd ? matMul(rotMat(off, Math.PI), A.R) : A.R.map(r=>r.slice());
+    let m=null;
+    for(let d=1.5; d<14; d+=0.1){ m=tmMol(k, v3.add(A.t, v3.sc(as,d)), R); const r=tmTussen(A,m); if(!r.botst && r.contact>0) return m; }
+    return m;
+  }
+  function zetStand(){
+    const C = stand===0 ? tmNaast(A,k,false) : stand===1 ? tmNaast(A,k,true) : inLijn(stand===3);
+    B.t=C.t; B.R=C.R; tmUpdate(B);
+    TM.centrum=A.t.slice(); TM.spanX=TM.spanY=TM.span=A.sp.ext*1.5+2.2; tmRender();
+  }
   return tmQ({ titel:'Dipool-dipoolbinding',
     instr:{ titel:'Nieuw: dipool-dipoolbinding', html:'Een dipoolmolecuul heeft een δ+-kant en een δ−-kant. Twee dipoolmoleculen trekken elkaar extra aan als de δ+-kant van het ene molecuul naar de δ−-kant van het andere wijst. Die aantrekking heet de <b>dipool-dipoolbinding</b>. Daarnaast werkt er, zoals tussen alle moleculen, ook de vanderwaalsbinding.<br>'+
-      '<b>Zo werkt het venster:</b> sleep een molecuul om het te verschuiven. Kies ⟳ draaien (of houd Shift ingedrukt) om het te draaien.'+
+      '<b>Zo werkt het venster:</b> klik op het gemarkeerde molecuul om het een andere stand te geven.'+
       vb('Twee '+deeltjesNaam(vbk)+': het molecuul is een dipool. Ligt de δ+-kant van het ene molecuul bij de δ−-kant van het andere, dan is er een dipool-dipoolbinding.') },
     vraag:'Bekijk de twee '+deeltjesNaam(k)+' ('+tmFormule(tmSp(k).f)+').',
-    setup:()=>{ A=tmMol(k,[0,0,0],tmVlak(k)); B=tmNaast(A,k,false); B.t=v3.add(B.t, v3.sc(norm(v3.min(B.t,A.t)),0.8)); tmUpdate(B);
-      tmScene([A,B],{verborgen:true, vast:[A.id], actie:'draai'}); },
+    setup:()=>{ A=tmMol(k,[0,0,0],tmVlak(k)); B=tmMol(k,[0,4,0]); stand=pick([0,3]);
+      tmScene([A,B],{verborgen:true, vast:[A.id,B.id], markeer:B, klik:(m)=>{ if(m!==B) return; stand=(stand+1)%4; zetStand(); }});
+      zetStand(); },
     parts:[
-      { soort:'orient', vraag:'Verschuif en draai het tweede molecuul zo dat er een dipool-dipoolbinding ontstaat. Klik dan op Controleer.',
-        check:()=>{ const r=tmTussen(A,B); if(r.botst) return 'De moleculen overlappen: schuif ze iets uit elkaar.'; if(!r.contact) return 'De moleculen raken elkaar nog niet: schuif ze dichter naar elkaar toe.'; if(!r.dd) return 'Wijst de δ+-kant van het ene molecuul naar de δ−-kant van het andere?'; return null; },
-        toonAntwoord:()=>{ const C=tmNaast(A,k,true); B.t=C.t; B.R=C.R; tmUpdate(B); return 'Zo wijst de δ+-kant van het ene molecuul naar de δ−-kant van het andere.'; },
-        na:()=>{ TM.verborgen=false; tmToolbar(); tmRender(); } },
+      { soort:'orient', vraag:'Zet het gemarkeerde molecuul in een stand waarin er een dipool-dipoolbinding is. Klik dan op Controleer.',
+        check:()=>{ const r=tmTussen(A,B); if(!r.dd) return 'Kijk naar de δ-letters: wat ligt er nu tegen elkaar aan?'; return null; },
+        toonAntwoord:()=>{ stand=1; zetStand(); return 'Zo ligt de δ+-kant van het ene molecuul bij de δ−-kant van het andere. Ook in één lijn (δ+ tegen δ−) is er een dipool-dipoolbinding.'; },
+        na:()=>{ TM.verborgen=false; TM.markeer=null; tmToolbar(); tmRender(); } },
       partMeer('Welke soorten binding zijn er nu tussen deze twee moleculen? Kies alles wat klopt.', OPT_BINDING(['vanderwaalsbinding','dipool-dipoolbinding'],[],{
         waterstofbrug:'Een waterstofbrug kan alleen met een H-atoom dat aan N of O vastzit.', 'ion-dipoolbinding':'Er zijn hier geen ionen.', ionbinding:'Er zijn hier geen ionen.'}),
         'Vanderwaalsbinding (tussen alle moleculen) én dipool-dipoolbinding (twee dipolen, δ+ bij δ−).')
@@ -2961,20 +3049,29 @@ function zn1(){
 function zn2(){
   const ik=pick(['Cl-','Ca2+','Br-','Mg2+']), I=TM_ION[ik];
   let ion, ws=[];
+  // stand 0: O naar het ion, 1: een H naar het ion, 2: zijwaarts
+  function zetStand(w){
+    const naar=norm(v3.min(ion.t,w.t)), sp=w.sp;
+    let R;
+    if(w.stand===0) R=tmRotNaar(norm(sp.dip), naar);
+    else if(w.stand===1){ const h=sp.donors[0]; R=tmRotNaar(norm(v3.min(sp.atomen[h].pos, sp.atomen[0].pos)), naar); }
+    else { let zij=cross(naar,[0,1,0]); if(Math.hypot(...zij)<0.3) zij=cross(naar,[1,0,0]); R=tmRotNaar(norm(sp.dip), norm(zij)); }
+    w.R = matMul(rotMat(naar, w.tw||0), R); tmUpdate(w);
+  }
   return tmQ({ titel:'Hydratatie',
-    instr:{ titel:'Nieuw: ion-dipoolbinding', html:'Een ion trekt aan de geladen kant van een dipoolmolecuul, zoals water. Die aantrekking heet de <b>ion-dipoolbinding</b>.<br>• Bij een <b>positief</b> ion wijst de δ−-kant van het watermolecuul (het O-atoom) naar het ion.<br>• Bij een <b>negatief</b> ion wijst de δ+-kant (een H-atoom) naar het ion.<br>Een ion met watermoleculen eromheen heet een <b>gehydrateerd</b> ion. Je noteert dat met (aq).<br><b>Zo werkt het venster:</b> sleep een watermolecuul om het te draaien.'+
+    instr:{ titel:'Nieuw: ion-dipoolbinding', html:'Een ion trekt aan de geladen kant van een dipoolmolecuul, zoals water. Die aantrekking heet de <b>ion-dipoolbinding</b>.<br>• Bij een <b>positief</b> ion wijst de δ−-kant van het watermolecuul (het O-atoom) naar het ion.<br>• Bij een <b>negatief</b> ion wijst de δ+-kant (een H-atoom) naar het ion.<br>Een ion met watermoleculen eromheen heet een <b>gehydrateerd</b> ion. Je noteert dat met (aq).<br><b>Zo werkt het venster:</b> klik op een watermolecuul om het een andere stand te geven.'+
       vb('Rond een Na<sup>+</sup>-ion wijzen de O-atomen van de watermoleculen naar het ion: Na<sup>+</sup>(aq).') },
     vraag:'In het venster zie je een '+ionF(ik)+'-ion ('+I.naam+') met watermoleculen eromheen.',
     setup:()=>{ ion=tmMol(ik,[0,0,0]); ws=[];
       const dirs=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]; const d=I.r + (I.q>0?1.5:1.35);
-      dirs.forEach((u,i)=>{ let m, t=0; do{ m=tmMol('water', v3.sc(u,d), randRot()); t++; } while(t<30 && tmTussen(ion,m).id); ws.push(m); });
-      tmScene([ion].concat(ws),{verborgen:true, alleenDraaien:true, vast:[ion.id], cam:{yaw:0.45,pitch:-0.35,zoom:1.05}}); },
+      const goedeStand = I.q>0 ? 0 : 1;
+      dirs.forEach(u=>{ const m=tmMol('water', v3.sc(u,d)); m.tw=Math.random()*Math.PI*2; m.stand=pick([0,1,2].filter(x=>x!==goedeStand)); zetStand(m); ws.push(m); });
+      tmScene([ion].concat(ws),{verborgen:true, vast:[ion.id].concat(ws.map(w=>w.id)), cam:{yaw:0.45,pitch:-0.35,zoom:1.05},
+        klik:(m)=>{ if(m===ion) return; m.stand=(m.stand+1)%3; zetStand(m); tmRender(); }}); },
     parts:[
-      { soort:'orient', vraag:'Draai alle watermoleculen zo dat ze een ion-dipoolbinding vormen met het '+ionF(ik)+'-ion. Klik dan op Controleer.',
+      { soort:'orient', vraag:'Zet alle watermoleculen zo dat ze een ion-dipoolbinding vormen met het '+ionF(ik)+'-ion. Klik dan op Controleer.',
         check:()=>{ const n=ws.filter(w=>!tmTussen(ion,w).id).length; return n ? (n===1?'Eén watermolecuul staat':n+' watermoleculen staan')+' nog niet goed. Welke kant van het watermolecuul hoort bij een '+(I.q>0?'positief':'negatief')+' ion?' : null; },
-        toonAntwoord:()=>{ ws.forEach(w=>{ const naar=norm(v3.min(ion.t,w.t)); const dw=norm(w.sp.dip); w.R=tmRotNaar(dw, I.q>0?naar:v3.sc(naar,-1)); tmUpdate(w);
-          if(I.q<0){ // één H precies naar het ion
-            const h=w.sp.donors[0], hb=norm(v3.min(w.sp.atomen[h].pos, w.sp.atomen[0].pos)); w.R=tmRotNaar(hb, naar); tmUpdate(w); } }); tmRender();
+        toonAntwoord:()=>{ ws.forEach(w=>{ w.stand = I.q>0 ? 0 : 1; zetStand(w); }); tmRender();
           return I.q>0 ? 'De O-atomen (δ−) wijzen naar het positieve ion.' : 'Een H-atoom (δ+) van elk watermolecuul wijst naar het negatieve ion.'; },
         na:()=>{ TM.verborgen=false; tmToolbar(); tmRender(); } },
       partMeer('Welke binding is er tussen het ion en de watermoleculen? Kies alles wat klopt.', OPT_BINDING(['ion-dipoolbinding'],['vanderwaalsbinding'],{ionbinding:'Een ionbinding is er tussen twee ionen. Water is geen ion.', waterstofbrug:'Een waterstofbrug is er tussen een H aan N/O en een vrij paar van N/O.', 'dipool-dipoolbinding':'Een ion is geen dipool: het heeft één lading.'}), '')
