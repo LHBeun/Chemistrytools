@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schillen en het periodiek systeem · Bohr</title>
+<style>
+:root{
+  --bg:#0e161d; --panel:#16222c; --panel2:#1c2b37; --line:#2a3d4b;
+  --ink:#e7eef3; --muted:#93a8b6; --accent:#3fb2a6; --accent2:#2a7f77;
+  --good:#5fd38d; --bad:#ff7a6b; --e:#7cc4ff;
+  --metaal:#3a5368; --half:#5b5a36; --niet:#2f5a49; --edel:#4b3d66;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif}
+header{padding:18px 26px 10px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+header h1{margin:0;font-size:24px;font-weight:600}
+header .sub{color:var(--muted);font-size:14px}
+.tabs{display:flex;gap:6px;padding:14px 26px 0;max-width:1440px;margin:0 auto}
+.tabs button{border:1px solid var(--line);border-bottom:0;background:var(--panel2);color:var(--muted);padding:10px 20px;border-radius:10px 10px 0 0;font-size:15px;cursor:pointer;font-family:inherit}
+.tabs button.on{background:var(--panel);color:var(--ink)}
+.view{max-width:1440px;margin:0 auto;padding:0 26px 26px}
+.hidden{display:none !important}
+.box{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;background:var(--panel);border:1px solid var(--line);border-radius:0 12px 12px 12px;padding:16px}
+@media (max-width:1100px){.box{grid-template-columns:1fr}}
+.stage{display:grid;grid-template-columns:minmax(0,0.85fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:1300px){.stage{grid-template-columns:1fr}}
+canvas{width:100%;display:block;border-radius:10px;background:#0a1117}
+.small{font-size:12.5px;color:var(--muted);line-height:1.45}
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--ink);padding:10px 14px;border-radius:9px;font-size:14px;cursor:pointer;font-family:inherit}
+.btn:hover{background:#25394a}
+.btn.primary{background:var(--accent2);border-color:var(--accent2);color:#fff}
+.btn.primary:hover{background:var(--accent)}
+.btn:disabled{opacity:.35;cursor:default}
+.btn.on{background:#1f3a3f;border-color:var(--accent)}
+.stepno{font-size:13px;color:var(--muted);margin-bottom:4px}
+h3.t{margin:0 0 10px;font-size:22px;font-weight:600}
+.ttext{font-size:15.5px;line-height:1.55}
+.ttext p{margin:0 0 10px}
+.q{margin-top:14px;padding:14px;border-radius:10px;background:var(--panel2);border:1px solid var(--line)}
+.q .prompt{font-weight:600;font-size:15.5px;margin-bottom:10px}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:#14202a;color:var(--ink);font-size:14.5px;cursor:pointer;font-family:inherit}
+.opt:hover:not(:disabled){background:#1d2f3c}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--good);background:#16352a}
+.opt.wrong{border-color:var(--bad);background:#3a1e1e}
+.expl{margin-top:10px;font-size:14.5px;line-height:1.5}
+.expl b.g{color:var(--good)} .expl b.b{color:var(--bad)}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:8px}
+.dots{display:flex;gap:5px;flex-wrap:wrap}
+.dots span{width:9px;height:9px;border-radius:50%;background:#2d4150}
+.dots span.done{background:var(--accent2)} .dots span.cur{background:var(--accent)}
+.addrow{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
+
+/* periodiek systeem */
+.ps{display:grid;grid-template-columns:28px repeat(2,minmax(0,1fr)) 18px repeat(6,minmax(0,1fr));gap:5px;align-items:stretch}
+.ps .hd{font-size:12px;color:var(--muted);text-align:center;align-self:end;padding-bottom:2px}
+.ps .rl{font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.ps .gap{display:flex;align-items:center;justify-content:center;color:#4d6575;font-size:12px}
+.cell{aspect-ratio:1/1.05;border-radius:8px;border:1px solid var(--line);background:#111b23;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;transition:transform .2s, box-shadow .2s, background .3s;user-select:none}
+.cell .z{position:absolute;top:4px;left:6px;font-size:11px;color:#b9c8d2}
+.cell .s{font-size:22px;font-weight:600}
+.cell .n{font-size:10px;color:#cfdbe3;margin-top:1px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cell.empty{background:#0f171e !important;border-style:dashed;border-color:#253744}
+.cell.empty *{visibility:hidden}
+.cell.metaal{background:var(--metaal)} .cell.half{background:var(--half)} .cell.niet{background:var(--niet)} .cell.edel{background:var(--edel)}
+.cell.hl{box-shadow:0 0 0 3px var(--accent);transform:scale(1.04)}
+.cell.cur{box-shadow:0 0 0 3px #ffcf5a;transform:scale(1.06)}
+.cell.click{cursor:pointer}
+.cell.click:hover{filter:brightness(1.2)}
+.noz .cell .z{visibility:hidden}
+.cell.ok{box-shadow:0 0 0 3px var(--good)} .cell.no{box-shadow:0 0 0 3px var(--bad)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.info{margin-top:10px;font-size:15px;line-height:1.6}
+.info b{color:#fff}
+.seg{display:flex;background:var(--panel2);border-radius:10px;padding:4px;gap:4px;margin-bottom:12px}
+.seg button{flex:1;border:0;background:transparent;color:var(--muted);padding:9px 6px;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit}
+.seg button.on{background:var(--accent2);color:#fff}
+.shellctl{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.shellctl div{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px;text-align:center;font-size:13px}
+.shellctl .cnt{font-size:22px;font-weight:600;margin:4px 0}
+.shellctl button{border:1px solid var(--line);background:#14202a;color:var(--ink);border-radius:6px;width:34px;height:30px;font-size:18px;cursor:pointer}
+.task{font-size:17px;margin:4px 0 6px}
+.fb{font-size:15px;margin-top:10px;min-height:24px}
+.fb.good{color:var(--good)} .fb.bad{color:var(--bad)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Schillen en het periodiek systeem</h1>
+  <div class="sub">Het schillenmodel van Bohr · Kopenhagen, 1913 · bij §2.7</div>
+</header>
+<div class="tabs">
+  <button data-tab="tour" class="on">1 · Rondleiding</button>
+  <button data-tab="lab">2 · Lab</button>
+</div>
+
+<!-- ================= RONDLEIDING ================= -->
+<div class="view" id="vTour">
+  <div class="box">
+    <div>
+      <div class="stage">
+        <div><canvas id="atomT" width="800" height="800"></canvas></div>
+        <div>
+          <div id="psT"></div>
+          <div class="legend"><span><i style="background:var(--metaal)"></i>metaal</span><span><i style="background:var(--half)"></i>halfmetaal</span><span><i style="background:var(--niet)"></i>niet-metaal</span><span><i style="background:var(--edel)"></i>edelgas</span></div>
+        </div>
+      </div>
+      <canvas id="waterC" class="hidden" width="1200" height="430" style="margin-top:14px"></canvas>
+    </div>
+    <div>
+      <div class="stepno" id="stepNo"></div>
+      <h3 class="t" id="stepTitle"></h3>
+      <div class="ttext" id="stepText"></div>
+      <div class="addrow hidden" id="addRow">
+        <button class="btn primary" id="addBtn">+1 proton en elektron</button>
+        <span class="small" id="addInfo"></span>
+      </div>
+      <div class="q hidden" id="qBox">
+        <div class="prompt" id="qPrompt"></div>
+        <div id="qOpts"></div>
+        <div class="expl" id="qExpl"></div>
+      </div>
+      <div class="nav">
+        <button class="btn" id="prevBtn">← Vorige</button>
+        <div class="dots" id="dots"></div>
+        <button class="btn primary" id="nextBtn">Volgende →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= LAB ================= -->
+<div class="view hidden" id="vLab">
+  <div class="box" style="border-radius:12px">
+    <div class="stage">
+      <div><canvas id="atomL" width="800" height="800"></canvas></div>
+      <div>
+        <div id="psL"></div>
+        <div class="legend"><span><i style="background:var(--metaal)"></i>metaal</span><span><i style="background:var(--half)"></i>halfmetaal</span><span><i style="background:var(--niet)"></i>niet-metaal</span><span><i style="background:var(--edel)"></i>edelgas</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="seg" id="labSeg">
+        <button data-m="ontdek" class="on">Ontdekken</button>
+        <button data-m="waar">Waar staat het?</button>
+        <button data-m="bouw">Bouw het atoom</button>
+      </div>
+      <div id="mOntdek">
+        <p class="small" style="margin-top:0">Klik op een element in het periodiek systeem.</p>
+        <div class="info" id="infoL">Nog geen element gekozen.</div>
+      </div>
+      <div id="mWaar" class="hidden">
+        <p class="small" style="margin-top:0">Links zie je een atoom. Gebruik het aantal schillen en het aantal elektronen in de buitenste schil. Klik in het periodiek systeem op de plek van dit element.</p>
+        <div class="task" id="waarTask"></div>
+        <div class="fb" id="waarFb"></div>
+        <div class="addrow"><button class="btn primary" id="waarNext">Volgende atoom</button><span class="small" id="waarScore"></span></div>
+      </div>
+      <div id="mBouw" class="hidden">
+        <p class="small" style="margin-top:0">Zet de elektronen in de juiste schillen. Klik daarna op <i>Controleer</i>.</p>
+        <div class="task" id="bouwTask"></div>
+        <div class="shellctl" id="shellCtl"></div>
+        <div class="addrow"><button class="btn primary" id="bouwCheck">Controleer</button><button class="btn" id="bouwNext">Volgende element</button><span class="small" id="bouwScore"></span></div>
+        <div class="fb" id="bouwFb"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+const TAU=Math.PI*2;
+/* ---------- gegevens: de eerste 20 elementen ---------- */
+const EL = [null,
+ ["H","waterstof",1,1,"niet"],["He","helium",1,18,"edel"],
+ ["Li","lithium",2,1,"metaal"],["Be","beryllium",2,2,"metaal"],["B","boor",2,13,"half"],["C","koolstof",2,14,"niet"],["N","stikstof",2,15,"niet"],["O","zuurstof",2,16,"niet"],["F","fluor",2,17,"niet"],["Ne","neon",2,18,"edel"],
+ ["Na","natrium",3,1,"metaal"],["Mg","magnesium",3,2,"metaal"],["Al","aluminium",3,13,"metaal"],["Si","silicium",3,14,"half"],["P","fosfor",3,15,"niet"],["S","zwavel",3,16,"niet"],["Cl","chloor",3,17,"niet"],["Ar","argon",3,18,"edel"],
+ ["K","kalium",4,1,"metaal"],["Ca","calcium",4,2,"metaal"]
+].map((e,i)=> e && ({Z:i, s:e[0], naam:e[1], per:e[2], grp:e[3], soort:e[4]}));
+function config(Z){ const c=[]; let left=Z; for(const cap of [2,8,8,2]){ if(left<=0) break; const n=Math.min(cap,left); c.push(n); left-=n; } return c; }
+const fmtConf = c => c.join(", ");
+const sch = n => n+(n===1?" schil":" schillen");
+const GCOL = {1:0,2:1,13:2,14:3,15:4,16:5,17:6,18:7};
+
+/* ---------- periodiek systeem (HTML) ---------- */
+function buildPS(container, opts={}){
+  const el = document.getElementById(container); el.innerHTML=""; el.className="ps";
+  const cells = {};
+  el.appendChild(Object.assign(document.createElement("div"),{className:"hd",textContent:""}));
+  ["1","2"].forEach(g=>el.appendChild(Object.assign(document.createElement("div"),{className:"hd",textContent:g})));
+  el.appendChild(Object.assign(document.createElement("div"),{className:"hd",textContent:""}));
+  ["13","14","15","16","17","18"].forEach(g=>el.appendChild(Object.assign(document.createElement("div"),{className:"hd",textContent:g})));
+  for(let per=1; per<=4; per++){
+    el.appendChild(Object.assign(document.createElement("div"),{className:"rl",textContent:per}));
+    for(let col=0; col<8; col++){
+      if(col===2){ const g=document.createElement("div"); g.className="gap"; g.textContent = per===4? "…" : ""; g.title = per===4 ? "Na calcium wordt het periodiek systeem breder." : ""; el.appendChild(g); }
+      const Z = EL.findIndex(e=>e && e.per===per && GCOL[e.grp]===col);
+      const c=document.createElement("div");
+      if(Z>0){
+        const e=EL[Z]; c.className="cell "+e.soort; c.dataset.z=Z;
+        c.innerHTML=`<span class="z">${Z}</span><span class="s">${e.s}</span><span class="n">${e.naam}</span>`;
+        cells[Z]=c;
+        if(opts.onClick){ c.classList.add("click"); c.onclick=()=>opts.onClick(Z,c); }
+      } else { c.className="cell empty"; c.style.visibility="hidden"; }
+      el.appendChild(c);
+    }
+  }
+  return cells;
+}
+
+/* ---------- atoom tekenen (schillenmodel van Bohr) ---------- */
+function drawAtom(cv, conf, Z, state){
+  const g=cv.getContext("2d"), W=cv.width, H=cv.height, cx=W/2, cy=H/2-10;
+  g.clearRect(0,0,W,H);
+  const radii=[95,170,245,320];
+  // schillen
+  for(let i=0;i<4;i++){
+    const used = i<conf.length;
+    g.strokeStyle = used? "rgba(124,196,255,.45)" : "rgba(124,196,255,.10)"; g.lineWidth = used?2:1.5;
+    g.setLineDash(used?[]:[6,8]); g.beginPath(); g.arc(cx,cy,radii[i],0,TAU); g.stroke(); g.setLineDash([]);
+    if(state.labels!==false){ g.fillStyle = used? "#8fb3c9" : "#3b5262"; g.font="20px Segoe UI, sans-serif"; g.textAlign="left"; g.textBaseline="middle";
+      g.fillText((i+1)+"e schil", cx+radii[i]*Math.cos(-0.62)+8, cy+radii[i]*Math.sin(-0.62)-14); }
+  }
+  // kern
+  if(Z>0){
+    const rk = 30+Math.min(Z,20)*1.3;
+    const gr=g.createRadialGradient(cx-rk*.3,cy-rk*.3,2,cx,cy,rk); gr.addColorStop(0,"#ffa184"); gr.addColorStop(1,"#c2412a");
+    g.fillStyle=gr; g.beginPath(); g.arc(cx,cy,rk,0,TAU); g.fill();
+    g.fillStyle="#fff"; g.font="600 26px Segoe UI, sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(state.hideZ? "?" : Z+"+",cx,cy);
+  }
+  // elektronen
+  const t=performance.now()/1000;
+  conf.forEach((n,i)=>{
+    for(let k=0;k<n;k++){
+      let a = -Math.PI/2 + k*TAU/n + t*0.15/(i+1);
+      let r = radii[i];
+      if(state.newE && i===state.newE.shell && k===n-1){
+        const p=Math.min(1,(t-state.newE.t0)/0.7), r0=radii[3]+120;
+        r = r0+(radii[i]-r0)*(1-Math.pow(1-p,3));
+      }
+      const x=cx+Math.cos(a)*r, y=cy+Math.sin(a)*r;
+      const outer = i===conf.length-1 && state.hlOuter;
+      g.fillStyle = outer ? "#ffcf5a" : "#7cc4ff";
+      g.beginPath(); g.arc(x,y,10,0,TAU); g.fill();
+      g.fillStyle="#0a1117"; g.font="bold 15px Segoe UI, sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText("−",x,y-1);
+    }
+  });
+  // onderschrift
+  if(Z>0 && state.caption!==false){
+    const e=EL[Z];
+    g.fillStyle="#e7eef3"; g.font="600 30px Segoe UI, sans-serif"; g.textAlign="center"; g.textBaseline="alphabetic";
+    g.fillText(state.hideName ? "?" : `${e.naam} (${e.s})`, cx, H-48);
+    g.fillStyle="#9fb3c1"; g.font="24px Segoe UI, sans-serif";
+    g.fillText("elektronenverdeling: "+fmtConf(conf), cx, H-16);
+  }
+}
+
+/* ==================================================================
+   RONDLEIDING
+================================================================== */
+const STEPS = [
+ { title:"De vorm van het periodiek systeem", ps:"full", Z:0,
+   text:`<p>Mendelejev zette de elementen in rijen en kolommen. Maar de rijen zijn niet even lang.</p>
+         <p>Hiernaast zie je de eerste 20 elementen. Een rij heet een <b>periode</b>, een kolom een <b>groep</b>.</p>`,
+   q:{prompt:"Hoeveel elementen staan er in periode 1, 2 en 3?", opts:["8, 8 en 8","2, 8 en 8","2, 8 en 18"], ok:1,
+      ex:"Periode 1 heeft 2 elementen, periode 2 en 3 hebben er elk 8. In deze rondleiding ontdek je waarom."}},
+ { title:"Waterstof en helium", ps:"build", Z:0, limit:2,
+   text:`<p>We bouwen de atomen op, één proton en één elektron tegelijk. Elk nieuw atoom krijgt zijn plek in het periodiek systeem.</p>
+         <p>Klik op <b>+1 proton en elektron</b> tot je bij helium bent.</p>`,
+   q:{prompt:"De 1e schil van helium is vol. Waar komt het volgende elektron?", opts:["Ook in de 1e schil.","Nergens: een atoom kan niet meer dan 2 elektronen hebben.","In een nieuwe schil: de 2e schil."], ok:2,
+      ex:"De 1e schil is vol, dus het volgende elektron komt in de 2e schil. En kijk naar het periodiek systeem: met de nieuwe schil begint ook een nieuwe periode."}},
+ { title:"Lithium tot en met neon", ps:"build", Z:2, limit:10,
+   text:`<p>Bij lithium begint de 2e schil, en meteen ook periode 2.</p>
+         <p>Bouw verder tot je bij neon bent. Let op wat er gebeurt in het periodiek systeem.</p>`,
+   q:{prompt:"Hoeveel elementen passen er in periode 2, en waarom?", opts:["8, omdat de 2e schil vol is met 8 elektronen.","8, omdat Mendelejev dat zo had bedacht.","10, omdat neon 10 elektronen heeft."], ok:0,
+      ex:"Van lithium tot en met neon wordt de 2e schil gevuld. Na 8 elektronen is die vol, en is periode 2 ook vol."}},
+ { title:"Natrium tot en met argon", ps:"build", Z:10, limit:18,
+   text:`<p>Bij natrium begint de 3e schil, en dus periode 3.</p>
+         <p>Bouw verder tot je bij argon bent.</p>`,
+   q:{prompt:"Hoeveel elektronen heeft argon in de 3e schil?", opts:["2","8","18"], ok:1,
+      ex:"Argon heeft 2, 8, 8. De 3e schil heeft plek voor 18 elektronen, maar bij de eerste 20 elementen komen er maar 8 in. Dat zie je bij de volgende stap."}},
+ { title:"Kalium en calcium", ps:"build", Z:18, limit:20,
+   text:`<p>Bouw verder tot calcium.</p>
+         <p>De elektronen stoten elkaar af. Hoe meer elektronen er in een schil zitten, hoe meer afstoting ze voelen. Bij argon zitten er al 8 elektronen in de 3e schil.</p>`,
+   q:{prompt:"Waar komt het 19e elektron, bij kalium?", opts:["In de 4e schil.","In de 3e schil, want daar is nog plek.","In de 1e schil."], ok:0,
+      ex:"Met 8 elektronen in de 3e schil is de afstoting daar al zo groot, dat het 19e elektron liever in de 4e schil gaat zitten. Kalium begint dus periode 4. Na calcium wordt het periodiek systeem breder. Hoe dat zit, leer je later."}},
+ { title:"De kolommen", ps:"group1", Z:11, hlOuter:true,
+   text:`<p>Lithium, natrium en kalium staan in dezelfde groep: groep 1.</p>
+         <p>Links zie je natrium. De elektronen in de <b>buitenste schil</b> zijn geel.</p>`,
+   q:{prompt:"Lithium is 2, 1. Natrium is 2, 8, 1. Kalium is 2, 8, 8, 1. Wat hebben ze gemeen?", opts:["Ze hebben evenveel schillen.","Ze hebben evenveel elektronen in totaal.","Ze hebben evenveel elektronen in de buitenste schil."], ok:2,
+      ex:"Alle drie hebben ze 1 elektron in de buitenste schil. Dat geldt voor elke groep: elementen in dezelfde groep hebben evenveel elektronen in hun buitenste schil."}},
+ { title:"Gedrag in een groep", ps:"group1", Z:19, hlOuter:true, water:true,
+   text:`<p>Lithium, natrium en kalium reageren alle drie met water. Er ontstaat waterstofgas.</p>
+         <p>Kijk naar de animatie onder het atoom.</p>`,
+   q:{prompt:"Natrium en kalium reageren op dezelfde manier met water. Hoe komt dat volgens het schillenmodel van Bohr?", opts:["Ze hebben evenveel elektronen in de buitenste schil.","Ze hebben evenveel schillen.","Ze hebben ongeveer dezelfde massa."], ok:0,
+      ex:"Het chemisch gedrag van een element hangt vooral af van de elektronen in de buitenste schil. Daarom lijken elementen in één groep op elkaar."}},
+ { title:"Op elkaar lijken is niet hetzelfde ★", ps:"group1", Z:19, hlOuter:true, water:true, compare:true,
+   text:`<p><b>Verdieping.</b> Kijk nog eens goed: kalium reageert heftiger dan natrium, en natrium heftiger dan lithium.</p>
+         <p>Als alleen het aantal elektronen in de buitenste schil telde, zouden ze precies hetzelfde reageren. Er speelt dus nog iets mee.</p>`,
+   q:{prompt:"Wat is het verschil tussen een natriumatoom en een kaliumatoom?", opts:["Kalium heeft minder schillen.","Kalium heeft meer elektronen in de buitenste schil.","Bij kalium ligt de buitenste schil verder van de kern."], ok:2,
+      ex:"Kalium heeft één schil meer. Het buitenste elektron zit daardoor verder van de kern, en de kern trekt het minder sterk aan. Daardoor reageert kalium heftiger dan natrium."}},
+ { title:"De edelgassen", ps:"group18", Z:18, hlOuter:true,
+   text:`<p>Helium, neon en argon staan in groep 18: de edelgassen. Ze reageren bijna nergens mee.</p>
+         <p>Helium gebruik je in ballonnen, neon in rode reclamelampen.</p>`,
+   q:{prompt:"Wat is bijzonder aan de buitenste schil van neon en argon?", opts:["Die is leeg.","Daar zitten 8 elektronen in.","Die heeft 1 elektron."], ok:1,
+      ex:"Edelgassen hebben 8 elektronen in hun buitenste schil. Helium is een uitzondering: dat heeft er 2, en daarmee is zijn enige schil vol. Zo'n buitenste schil met 8 elektronen (of 2 bij helium) is heel stabiel. Dat heet een edelgasconfiguratie. Daarom reageren edelgassen bijna nergens mee."}},
+ { title:"Samengevat", ps:"full", Z:20, last:true,
+   text:`<p><b>Periode</b> = het aantal schillen.</p>
+         <p><b>Groep</b> = hoeveel elektronen er in de buitenste schil zitten. Daardoor lijken elementen in een groep op elkaar.</p>
+         <p>De vorm van het periodiek systeem volgt dus uit de schillen van Bohr.</p>
+         <p>Ga nu naar het <b>lab</b> en oefen zelf.</p>`}
+];
+let step=0, answered=false, curZ=0, newE=null;
+const answers={};
+let cellsT = buildPS("psT");
+const atomT=document.getElementById("atomT");
+
+function setPS(mode){
+  Object.entries(cellsT).forEach(([z,c])=>{
+    z=+z; c.classList.remove("hl","cur","empty");
+    if(mode==="build" && z>curZ) c.classList.add("empty");
+    if(mode==="build" && z===curZ) c.classList.add("cur");
+    if(mode==="group1" && EL[z].grp===1 && z>1) c.classList.add("hl");
+    if(mode==="group18" && EL[z].grp===18) c.classList.add("hl");
+  });
+}
+function renderStep(){
+  const s=STEPS[step];
+  document.getElementById("stepNo").textContent=`Stap ${step+1} van ${STEPS.length}`;
+  document.getElementById("stepTitle").textContent=s.title;
+  document.getElementById("stepText").innerHTML=s.text;
+  curZ = s.Z; newE=null;
+  const building = s.ps==="build";
+  if(building && answers[step]!==undefined) curZ=s.limit;
+  document.getElementById("addRow").classList.toggle("hidden",!building);
+  document.getElementById("waterC").classList.toggle("hidden",!s.water);
+  water.t=0;
+  setPS(s.ps); updateAdd();
+  const qb=document.getElementById("qBox");
+  if(s.q){
+    qb.classList.toggle("hidden", building && curZ<s.limit);
+    document.getElementById("qPrompt").textContent=s.q.prompt;
+    const box=document.getElementById("qOpts"); box.innerHTML="";
+    s.q.opts.forEach((o,i)=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=o; b.onclick=()=>choose(i); box.appendChild(b); });
+    document.getElementById("qExpl").innerHTML="";
+    if(answers[step]!==undefined) showAnswer(answers[step]);
+  } else qb.classList.add("hidden");
+  answered = answers[step]!==undefined || !s.q;
+  document.getElementById("prevBtn").disabled = step===0;
+  const nb=document.getElementById("nextBtn"); nb.textContent = s.last? "Naar het lab →" : "Volgende →"; nb.disabled=!answered;
+  const d=document.getElementById("dots"); d.innerHTML="";
+  STEPS.forEach((_,i)=>{ const sp=document.createElement("span"); if(i<step) sp.className="done"; if(i===step) sp.className="cur"; d.appendChild(sp); });
+}
+function updateAdd(){
+  const s=STEPS[step]; if(s.ps!=="build") return;
+  const b=document.getElementById("addBtn"); b.disabled = curZ>=s.limit;
+  document.getElementById("addInfo").textContent = curZ>=s.limit ? "Klaar! Beantwoord nu de vraag." : (curZ>0? `Nu: ${EL[curZ].naam}` : "");
+}
+document.getElementById("addBtn").onclick=()=>{
+  const s=STEPS[step]; if(curZ>=s.limit) return;
+  curZ++; const c=config(curZ); newE={shell:c.length-1, t0:performance.now()/1000};
+  setPS("build"); updateAdd();
+  if(curZ>=s.limit) document.getElementById("qBox").classList.remove("hidden");
+};
+function choose(i){ if(answers[step]!==undefined) return; answers[step]=i; showAnswer(i); answered=true; document.getElementById("nextBtn").disabled=false; }
+function showAnswer(i){
+  const s=STEPS[step]; const opts=[...document.querySelectorAll("#qOpts .opt")];
+  opts.forEach((b,j)=>{ b.disabled=true; if(j===s.q.ok) b.classList.add("right"); if(j===i && i!==s.q.ok) b.classList.add("wrong"); });
+  document.getElementById("qExpl").innerHTML=(i===s.q.ok?'<b class="g">Goed!</b> ':'<b class="b">Niet helemaal.</b> ')+s.q.ex;
+}
+document.getElementById("prevBtn").onclick=()=>{ if(step>0){ step--; renderStep(); } };
+document.getElementById("nextBtn").onclick=()=>{ if(STEPS[step].last){ switchTab("lab"); return; } if(step<STEPS.length-1){ step++; renderStep(); } };
+
+/* ---------- animatie: alkalimetalen in water ---------- */
+const water={t:0};
+const wc=document.getElementById("waterC"), wg=wc.getContext("2d");
+const bubbles=[[],[],[]];
+function drawWater(dt){
+  const W=wc.width,H=wc.height; wg.clearRect(0,0,W,H); water.t+=dt;
+  const names=[["lithium","Li"],["natrium","Na"],["kalium","K"]], rate=[3,10,26], speed=[12,55,120];
+  for(let i=0;i<3;i++){
+    const x0=60+i*380, bw=320, top=110, bot=H-50, wl=top+50;
+    // bak
+    wg.fillStyle="rgba(90,150,210,.18)"; wg.fillRect(x0,wl,bw,bot-wl);
+    wg.strokeStyle="#7f97a6"; wg.lineWidth=3; wg.beginPath(); wg.moveTo(x0,top); wg.lineTo(x0,bot); wg.lineTo(x0+bw,bot); wg.lineTo(x0+bw,top); wg.stroke();
+    wg.strokeStyle="rgba(150,200,240,.6)"; wg.lineWidth=2; wg.beginPath(); wg.moveTo(x0,wl); wg.lineTo(x0+bw,wl); wg.stroke();
+    // stukje metaal dat over het water schiet
+    const tt=water.t, amp = (bw/2-30);
+    const mx = x0+bw/2 + Math.sin(tt*speed[i]/60)*amp*(i===0?0.15:(i===1?0.6:0.85)) + (i===2?Math.sin(tt*9)*6:0);
+    const ms = i===0?14:(i===1?12:11);
+    wg.fillStyle = i===0? "#c9cdd2" : "#e9eef2";
+    wg.beginPath(); wg.arc(mx,wl-2,ms,0,TAU); wg.fill();
+    // belletjes
+    if(Math.random()<rate[i]*dt) bubbles[i].push({x:mx+(Math.random()-.5)*ms*2,y:wl,v:30+Math.random()*50,r:2+Math.random()*3});
+    for(let j=bubbles[i].length-1;j>=0;j--){ const b=bubbles[i][j]; b.y-=b.v*dt; if(b.y<top-40){ bubbles[i].splice(j,1); continue; }
+      wg.strokeStyle="rgba(220,240,255,.7)"; wg.lineWidth=1.3; wg.beginPath(); wg.arc(b.x,b.y,b.r,0,TAU); wg.stroke(); }
+    // kalium: lila vlammetje
+    if(i===2){ const fl=0.6+0.4*Math.sin(tt*17);
+      const gr=wg.createRadialGradient(mx,wl-22,2,mx,wl-22,30*fl); gr.addColorStop(0,"rgba(220,180,255,.9)"); gr.addColorStop(1,"rgba(180,120,255,0)");
+      wg.fillStyle=gr; wg.beginPath(); wg.arc(mx,wl-22,30*fl,0,TAU); wg.fill(); }
+    wg.fillStyle="#e7eef3"; wg.font="600 28px Segoe UI, sans-serif"; wg.textAlign="center"; wg.fillText(`${names[i][0]} (${names[i][1]})`, x0+bw/2, 50);
+    wg.fillStyle="#9fb3c1"; wg.font="22px Segoe UI, sans-serif"; wg.fillText(fmtConf(config(EL.findIndex(e=>e&&e.s===names[i][1]))), x0+bw/2, 82);
+  }
+  wg.fillStyle="#93a8b6"; wg.font="20px Segoe UI, sans-serif"; wg.textAlign="right"; wg.fillText("schematisch · niet op schaal",W-20,H-14);
+}
+
+/* ==================================================================
+   LAB
+================================================================== */
+const atomL=document.getElementById("atomL");
+let labMode="ontdek", labZ=0, waarZ=0, waarDone=false, waarScore=[0,0], bouwZ=0, bouwConf=[0,0,0,0], bouwScore=[0,0];
+const cellsL = buildPS("psL",{onClick:(Z,c)=>labClick(Z,c)});
+function clearL(){ Object.values(cellsL).forEach(c=>c.classList.remove("hl","cur","ok","no")); }
+function labClick(Z,c){
+  if(labMode==="ontdek"){
+    clearL(); c.classList.add("cur"); labZ=Z; const e=EL[Z], conf=config(Z);
+    document.getElementById("infoL").innerHTML =
+      `<b>${e.naam} (${e.s})</b><br>atoomnummer ${Z}: ${Z} protonen en ${Z} elektronen<br>elektronenverdeling: <b>${fmtConf(conf)}</b><br>`+
+      `periode ${e.per} → <b>${conf.length}</b> ${conf.length===1?"schil":"schillen"}<br>`+
+      `groep ${e.grp} → <b>${conf[conf.length-1]}</b> ${conf[conf.length-1]===1?"elektron":"elektronen"} in de buitenste schil`+
+      (e.grp===18?`<br><span class="small">Edelgas: 8 elektronen in de buitenste schil (helium: 2).</span>`:"");
+  } else if(labMode==="waar" && !waarDone){
+    waarDone=true; waarScore[1]++;
+    const ok = Z===waarZ; if(ok) waarScore[0]++;
+    c.classList.add(ok?"ok":"no"); if(!ok) cellsL[waarZ].classList.add("ok");
+    const e=EL[waarZ], conf=config(waarZ);
+    document.getElementById("waarFb").className="fb "+(ok?"good":"bad");
+    document.getElementById("waarFb").innerHTML = ok ? `Goed! Dit is ${e.naam}: ${sch(conf.length)} → periode ${e.per}; ${conf[conf.length-1]} in de buitenste schil → groep ${e.grp}.`
+      : `Niet goed. Het is ${e.naam} (groen omrand). ${sch(conf.length)} → periode ${e.per}; ${conf[conf.length-1]} in de buitenste schil → groep ${e.grp}.`;
+    document.getElementById("waarScore").textContent=`${waarScore[0]} van de ${waarScore[1]} goed`;
+  }
+}
+function rndZ(prev){ let z; do{ z=1+Math.floor(Math.random()*20); }while(z===prev); return z; }
+function newWaar(){ clearL(); waarZ=rndZ(waarZ); waarDone=false;
+  document.getElementById("waarTask").innerHTML=`Elektronenverdeling: <b>${fmtConf(config(waarZ))}</b>`;
+  document.getElementById("waarFb").textContent=""; document.getElementById("waarFb").className="fb"; }
+document.getElementById("waarNext").onclick=newWaar;
+function buildShellCtl(){
+  const box=document.getElementById("shellCtl"); box.innerHTML="";
+  for(let i=0;i<4;i++){
+    const d=document.createElement("div");
+    d.innerHTML=`${i+1}e schil<div class="cnt">${bouwConf[i]}</div><button data-i="${i}" data-d="-1">−</button> <button data-i="${i}" data-d="1">+</button>`;
+    box.appendChild(d);
+  }
+  box.querySelectorAll("button").forEach(b=>b.onclick=()=>{ const i=+b.dataset.i, d=+b.dataset.d; bouwConf[i]=Math.max(0,Math.min(18,bouwConf[i]+d)); buildShellCtl(); document.getElementById("bouwFb").textContent=""; });
+}
+function newBouw(){ clearL(); bouwZ=rndZ(bouwZ); bouwConf=[0,0,0,0]; buildShellCtl();
+  const e=EL[bouwZ]; document.getElementById("bouwTask").innerHTML=`Bouw het atoom van <b>${e.naam} (${e.s})</b>, atoomnummer ${bouwZ}.`;
+  document.getElementById("bouwFb").textContent=""; document.getElementById("bouwFb").className="fb"; }
+document.getElementById("bouwNext").onclick=newBouw;
+document.getElementById("bouwCheck").onclick=()=>{
+  const want=config(bouwZ), got=bouwConf.slice(); while(got.length && got[got.length-1]===0) got.pop();
+  const total=bouwConf.reduce((a,b)=>a+b,0), ok = want.join(",")===got.join(",");
+  bouwScore[1]++; if(ok) bouwScore[0]++;
+  const fb=document.getElementById("bouwFb"); fb.className="fb "+(ok?"good":"bad");
+  let tip="";
+  if(!ok){
+    if(total!==bouwZ) tip=`Tel eerst: ${EL[bouwZ].naam} heeft ${bouwZ} elektronen, jij hebt er ${total} gezet.`;
+    else if(bouwConf[0]>2||bouwConf[1]>8) tip="Er past maar een beperkt aantal elektronen in een schil: 2 in de 1e, 8 in de 2e.";
+    else if(bouwConf[2]>8) tip="Bij de eerste 20 elementen komen er maar 8 in de 3e schil; daarna gaat het naar de 4e.";
+    else tip="Vul de schillen van binnen naar buiten.";
+  }
+  fb.innerHTML = ok ? `Goed! ${EL[bouwZ].naam}: ${fmtConf(want)}.` : `Nog niet goed. ${tip}`;
+  document.getElementById("bouwScore").textContent=`${bouwScore[0]} van de ${bouwScore[1]} goed`;
+};
+document.querySelectorAll("#labSeg button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("#labSeg button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+  labMode=b.dataset.m;
+  ["Ontdek","Waar","Bouw"].forEach(k=>document.getElementById("m"+k).classList.toggle("hidden", labMode!==k.toLowerCase()));
+  clearL();
+  document.getElementById("psL").classList.toggle("noz", labMode==="waar");
+  if(labMode==="waar") newWaar();
+  if(labMode==="bouw") newBouw();
+  if(labMode==="ontdek"){ labZ=0; document.getElementById("infoL").textContent="Nog geen element gekozen."; }
+});
+
+/* ---------- tabs en lus ---------- */
+function switchTab(k){
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===k));
+  document.getElementById("vTour").classList.toggle("hidden",k!=="tour");
+  document.getElementById("vLab").classList.toggle("hidden",k!=="lab");
+  window.scrollTo({top:0});
+}
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(.05,(now-last)/1000); last=now;
+  if(!document.getElementById("vTour").classList.contains("hidden")){
+    const s=STEPS[step];
+    drawAtom(atomT, config(curZ), curZ, {newE, hlOuter:!!s.hlOuter});
+    if(s.water) drawWater(dt);
+  } else {
+    if(labMode==="ontdek") drawAtom(atomL, config(labZ), labZ, {});
+    else if(labMode==="waar") drawAtom(atomL, config(waarZ), waarZ, {hideName:true, hideZ:true});
+    else { const c=bouwConf.slice(); while(c.length && c[c.length-1]===0) c.pop(); drawAtom(atomL, c, bouwZ, {caption:false}); }
+  }
+  requestAnimationFrame(loop);
+}
+renderStep();
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
