@@ -217,6 +217,32 @@ body.zonder-sb .sidebar{display:none}
 .kop{font-weight:650}
 .eind{padding:18px;background:var(--blb);border-radius:8px;font-size:15px}
 .note{margin-top:16px;font-size:13px;color:var(--mu)}
+.enz-info{margin-bottom:14px}
+.enz-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.enz-name{font-size:16px;font-weight:700}
+.enz-chips{display:flex;gap:6px;flex-wrap:wrap}
+.enz-chip{font-size:11px;background:var(--bg);border:1px solid var(--bd);border-radius:5px;padding:2px 8px;color:var(--mu)}
+.enz-chip.ph{background:var(--gnb);border-color:var(--gn);color:var(--gnd);font-weight:600}
+.enz-txt{font-size:13px;line-height:1.6;max-width:820px}
+.res-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+.res-table th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--fa);padding:4px 8px;border-bottom:1px solid var(--bd)}
+.res-table td{padding:7px 8px;border-bottom:1px solid var(--bd);vertical-align:top}
+.res-table td.ok{color:var(--gn);font-weight:600}
+.res-table td.nok{color:var(--rd);font-weight:600}
+.res-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.res-rol{font-size:11px;color:var(--mu);font-weight:400;margin-top:2px;max-width:420px}
+.res-pct{font-size:10px;font-weight:400;color:var(--fa)}
+.res-note{font-size:10px;color:var(--fa);margin-top:8px;line-height:1.5}
+.lac-panel{border-color:var(--am);margin-bottom:14px}
+.lac-kop{font-size:15px;font-weight:700;color:var(--amd);margin-bottom:6px}
+.lac-panel h4{font-size:12px;font-weight:700;color:var(--am);margin:14px 0 5px;text-transform:uppercase;letter-spacing:.04em}
+.lac-txt{font-size:13px;line-height:1.6;max-width:820px;margin-bottom:6px}
+.lac-list{font-size:13px;line-height:1.6;max-width:820px;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.lac-bronnen a{color:var(--bl)}
+.lac-bron{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.lac-bron button{font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid var(--bd);background:var(--sf);color:var(--mu);cursor:pointer}
+.lac-bron button.active{background:var(--amb);border-color:var(--am);color:var(--amd);font-weight:600}
+#res-card,#ctg-card{margin-bottom:14px}
 </style>
 </head>
 <body>
@@ -240,12 +266,21 @@ body.zonder-sb .sidebar{display:none}
     <div class="panel" id="tab-mutaties"><div id="mut-content"></div></div>
     <div class="panel" id="tab-activiteit">
       <div class="ptitle" style="margin-bottom:4px">Enzymactiviteit</div>
-      <div class="psub2">Hoe beïnvloeden pH en temperatuur de activiteit van een enzym? Vereenvoudigd model: de curves geven de vorm weer, niet exacte meetwaarden.</div>
+      <div class="psub2">Waarom werkt pepsine in de maag en trypsine in de darm? Kies een enzym en verschuif de pH: bekijk welke aminozuurresten in het actieve centrum in de goede vorm zitten. Vereenvoudigd model: de curves geven de vorm weer, geen exacte meetwaarden.</div>
       <div style="margin-bottom:14px">
         <label style="font-size:11px;color:var(--mu);display:block;margin-bottom:5px">Kies een enzym</label>
         <select class="psel" id="act-sel" onchange="updateActivity()"></select>
       </div>
+      <div class="scard enz-info" id="enz-info"></div>
       <div class="act-grid">
+        <div class="scard">
+          <h3>⚗ pH</h3>
+          <div class="sl-row"><label>pH</label><input type="range" min="0" max="14" step="0.1" value="7" id="ph-sl" oninput="updateActivity()"><span class="sl-val" id="ph-val">pH 7,0</span></div>
+          <div style="font-size:10px;color:var(--fa);margin-bottom:2px">Relatieve activiteit</div>
+          <div class="act-bar"><div class="act-inner" id="ph-bar" style="background:var(--gn)"><span class="act-lbl" id="ph-bar-lbl"></span></div></div>
+          <canvas class="chart-canvas" id="ph-chart"></canvas>
+          <div class="leg" id="ph-leg"></div>
+        </div>
         <div class="scard">
           <h3>🌡 Temperatuur</h3>
           <div class="sl-row"><label>T</label><input type="range" min="0" max="100" value="37" id="t-sl" oninput="updateActivity()"><span class="sl-val" id="t-val">37 °C</span></div>
@@ -256,22 +291,70 @@ body.zonder-sb .sidebar{display:none}
           <canvas class="chart-canvas" id="t-chart"></canvas>
           <div class="leg"><div class="leg-i"><div class="leg-dot" style="background:#185FA5"></div>Arrhenius</div><div class="leg-i"><div class="leg-dot" style="background:#E24B4A"></div>Denaturatie</div><div class="leg-i"><div class="leg-dot" style="background:#639922"></div>Netto</div></div>
         </div>
-        <div class="scard">
-          <h3>⚗ pH</h3>
-          <div class="sl-row"><label>pH</label><input type="range" min="0" max="14" step="0.1" value="7" id="ph-sl" oninput="updateActivity()"><span class="sl-val" id="ph-val">pH 7.0</span></div>
-          <div style="font-size:10px;color:var(--fa);margin-bottom:2px">Relatieve activiteit</div>
-          <div class="act-bar"><div class="act-inner" id="ph-bar" style="background:var(--gn)"><span class="act-lbl" id="ph-bar-lbl"></span></div></div>
-          <canvas class="chart-canvas" id="ph-chart"></canvas>
-          <div class="leg"><div class="leg-i"><div class="leg-dot" style="background:var(--gn)"></div>Activiteit</div><div class="leg-i"><div class="leg-dot" style="background:var(--bl)"></div>Huidige pH</div></div>
-        </div>
       </div>
-      <div class="scard">
+      <div class="scard" id="res-card"></div>
+
+      <div class="scard lac-panel" id="lac-panel" hidden>
+        <div class="lac-kop">🥛 Lactase — verdieping (ook bruikbaar voor een profielwerkstuk)</div>
+        <h4>1. Lactase uit verschillende bronnen</h4>
+        <div class="lac-bron">
+          <button data-b="mens" class="active" onclick="setLacBron('mens')">Mens (darm)</button>
+          <button data-b="klactis" onclick="setLacBron('klactis')">Gist: K. lactis</button>
+          <button data-b="aoryzae" onclick="setLacBron('aoryzae')">Schimmel: A. oryzae</button>
+        </div>
+        <p class="lac-txt" id="lac-bron-txt"></p>
+        <p class="lac-txt">De grafieken hierboven passen zich aan de gekozen bron aan. Alle drie zijn β-galactosidasen: ze knippen dezelfde binding, maar zijn aangepast aan een ander milieu.</p>
+
+        <h4>2. De reactie</h4>
+        <p class="lac-txt"><b>lactose + H₂O → glucose + galactose</b><br>Lactase hydrolyseert de glycosidische binding tussen de galactose-eenheid en de glucose-eenheid van lactose (melksuiker). Melk bevat ongeveer 4–5 massaprocent lactose. In het actieve centrum van menselijk lactase spelen twee Glu-resten de hoofdrol: de ene valt de binding aan, de andere geeft een H⁺ af.</p>
+
+        <h4>3. Lactose-intolerantie en lactasepersistentie</h4>
+        <p class="lac-txt">Baby's maken veel lactase. Bij de meeste mensen wereldwijd daalt de productie na de kindertijd. Onverteerde lactose komt dan in de dikke darm, waar bacteriën het vergisten: dat geeft gasvorming en buikklachten (lactose-intolerantie).</p>
+        <p class="lac-txt">Een deel van de mensen blijft lactase maken: <b>lactasepersistentie</b>. In Europa komt dat vooral door één DNA-variant: een C→T-verandering op positie −13910, ruim 13 900 baseparen vóór het lactasegen (LCT). Die plek ligt in een buurgen (MCM6) en werkt als "versterker" (enhancer) die het lactasegen aan laat staan. In Noordwest-Europa, ook in Nederland, is de grote meerderheid van de volwassenen lactasepersistent; elders in de wereld is dat veel minder.</p>
+
+        <h4>4. Lactase in de praktijk</h4>
+        <ul class="lac-list">
+          <li><b>Lactosevrije melk:</b> de fabrikant voegt microbieel lactase toe (bijv. uit de gist K. lactis), dat bij de pH van melk werkt. De melk smaakt daarna iets zoeter: glucose en galactose smaken zoeter dan lactose.</li>
+          <li><b>Lactasetabletten:</b> bevatten microbieel lactase dat je bij een zuivelmaaltijd inneemt. Zo'n enzym moet de zure maag "overleven".</li>
+          <li><b>Productremming:</b> galactose remt lactase uit A. oryzae competitief. Hoe meer lactose al is omgezet, hoe trager de reactie gaat.</li>
+        </ul>
+
+        <h4>5. Hoe meet je lactase-activiteit?</h4>
+        <ul class="lac-list">
+          <li><b>Glucoseteststrips:</b> lactose geeft geen signaal, glucose wel. Meng melk met lactase en meet op vaste tijden het glucosegehalte.</li>
+          <li><b>ONPG-methode (colorimeter):</b> ONPG (o-nitrofenyl-β-D-galactopyranoside) lijkt op lactose en wordt door lactase geknipt. Het product o-nitrofenol kleurt de oplossing geel en absorbeert licht bij 420 nm. Stop de reactie met een natriumcarbonaatoplossing: die maakt de oplossing basisch, legt het enzym stil en maakt de gele kleur sterker. Meet de extinctie met de colorimeter (blauw licht).</li>
+          <li><b>Reactiesnelheid:</b> meet de extinctie of het glucosegehalte op meerdere tijdstippen; de helling aan het begin is een maat voor de activiteit. Met verschillende substraatconcentraties kun je Michaelis-Menten onderzoeken (zie de tool Enzymkinetiek).</li>
+        </ul>
+
+        <h4>6. Ideeën voor onderzoeksvragen</h4>
+        <ul class="lac-list">
+          <li>Wat is het pH-optimum van lactase uit een lactasetablet? (bufferoplossingen pH 3–8)</li>
+          <li>Wat is het temperatuuroptimum, en vanaf welke temperatuur denatureert het enzym?</li>
+          <li>Verschillen lactasetabletten van verschillende merken in activiteit per tablet?</li>
+          <li>Hoe hangt de reactiesnelheid af van de lactoseconcentratie (volle melk, halfvol, lactose-oplossing)?</li>
+          <li>Hoe sterk remt galactose de reactie?</li>
+          <li>Blijft lactase werken als je het vastlegt in calciumalginaatbolletjes, en kun je die bolletjes opnieuw gebruiken?</li>
+        </ul>
+        <p class="lac-txt" style="color:var(--mu)">Veiligheid: draag een veiligheidsbril; natriumcarbonaatoplossing is irriterend voor de ogen. Overleg vooraf met je begeleider welke stoffen je gebruikt.</p>
+
+        <h4>Bronnen om verder te lezen</h4>
+        <ul class="lac-list lac-bronnen">
+          <li><a href="https://en.wikipedia.org/wiki/Lactase" target="_blank" rel="noopener">Wikipedia — Lactase</a> (pH- en temperatuuroptimum menselijk lactase)</li>
+          <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5429307" target="_blank" rel="noopener">Overzichtsartikel over microbiële β-galactosidasen (PMC5429307)</a> (optima gist- en schimmellactase)</li>
+          <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4271221/figure/F5" target="_blank" rel="noopener">Actieve centra van menselijk lactase (PMC4271221)</a></li>
+          <li><a href="https://pubmed.ncbi.nlm.nih.gov/19034520/" target="_blank" rel="noopener">Lactose digestion and the evolutionary genetics of lactase persistence (PubMed 19034520)</a></li>
+          <li><a href="https://rothlab.ucdavis.edu/protocols/beta-galactosidase-3.shtml" target="_blank" rel="noopener">β-galactosidase-bepaling met ONPG (protocol, UC Davis)</a></li>
+        </ul>
+      </div>
+
+      <div class="scard" id="ctg-card">
         <h3 style="margin-bottom:10px">Ladingsverdeling als functie van pH — volledig eiwit</h3>
         <div style="overflow-x:auto"><table class="ctg-table" id="ctg-table"></table></div>
         <div style="margin-top:9px">
           <div style="font-size:10px;color:var(--fa);margin-bottom:3px">Netto lading (getoonde residuen)</div>
           <div class="cbar" id="cbar"></div>
           <div style="font-size:13px;font-weight:600" id="total-ch"></div>
+          <div style="font-size:10px;color:var(--fa);margin-top:4px" id="ctg-bron"></div>
         </div>
       </div>
     </div>
@@ -771,26 +854,187 @@ function selMut(i){mSt[curP].selMut=i;renderMut();}
 
 // ── ACTIVITEIT ────────────────────────────────────────────────────────────────
 let actP=0;
+// ── ENZYMACTIVITEIT ─────────────────────────────────────────────────────────
+// Model: een enzym werkt alleen als de sleutelresten in het actieve centrum in de
+// goede vorm zitten (geprotoneerd of ongeprotoneerd). Activiteit = product van de
+// fracties in de goede vorm, genormeerd op het maximum. De pKa's zijn geschatte
+// waarden IN het actieve centrum: die wijken vaak sterk af van de pKa van het losse
+// aminozuur (Binas 67H1), door de omgeving in het eiwit.
+const ENZ=[
+ {key:'pepsine',groep:'zuur',name:'Pepsine',plek:'Maag (maagsap, pH 1,5–2)',opt:'± 2',
+  act:{Topt:37,Tw:10,Td:55},
+  res:[{naam:'Asp32',aa:'Asp',pKa:1.0,vorm:'ongeprotoneerd',rol:'neemt een H⁺ op van het watermolecuul dat de peptidebinding aanvalt'},
+       {naam:'Asp215',aa:'Asp',pKa:3.2,vorm:'geprotoneerd',rol:'geeft een H⁺ af aan het substraat'}],
+  uitleg:'Pepsine knipt eiwitten in de maag. In het actieve centrum zitten twee Asp-resten: de ene moet geprotoneerd zijn, de andere juist niet. Dat lukt alleen bij een lage pH. Bijzonder: pepsine heeft heel weinig basische aminozuurresten (in menselijk pepsine A geen enkele Lys), waardoor het eiwit ook bij pH 2 niet sterk positief geladen raakt.',
+  ch:[['Asp',21],['Glu',14],['Arg',3],['Lys',0],['His',1]],chBron:'menselijk pepsine A (rijp eiwit, 326 aminozuren)'},
+ {key:'zfos',groep:'zuur',name:'Zure fosfatase',plek:'Lysosomen en prostaat',opt:'± 5',
+  act:{Topt:37,Tw:10,Td:55},
+  res:[{naam:'His12',aa:'His',pKa:3.0,vorm:'ongeprotoneerd',rol:'valt het fosfaat aan (nucleofiel); wordt neutraal gehouden door de vele Arg eromheen'},
+       {naam:'Asp258',aa:'Asp',pKa:7.0,vorm:'geprotoneerd',rol:'geeft een H⁺ af aan de vertrekkende groep van het substraat'}],
+  uitleg:'Zure fosfatase knipt fosfaatgroepen van moleculen af. Het werkt in het zure milieu van lysosomen, de "afvalverwerkers" van de cel. Let op de pKa\'s: de His is hier al bij pH 3 ongeprotoneerd en de Asp pas boven pH 7 ongeprotoneerd. De omgeving in het eiwit verschuift de pKa\'s flink.'},
+ {key:'lyz',groep:'zuur',name:'Lysozym',plek:'Traanvocht, speeksel, eiwit van een kippenei',opt:'± 5',protAbbr:'LYZ',
+  act:{Topt:50,Tw:15,Td:72},
+  res:[{naam:'Asp52',aa:'Asp',pKa:3.5,vorm:'ongeprotoneerd',rol:'stabiliseert het tussenproduct (negatieve lading nodig)'},
+       {naam:'Glu35',aa:'Glu',pKa:6.3,vorm:'geprotoneerd',rol:'geeft een H⁺ af aan de glycosidische binding die geknipt wordt'}],
+  uitleg:'Lysozym knipt de celwand van bacteriën (een polysacharide) en beschermt zo ogen en mond. Het klassieke voorbeeld van een enzym met twee zure resten: Glu35 zit in een waterafstotende holte, waardoor zijn pKa omhoog gaat naar ± 6,3.'},
+ {key:'amylase',groep:'neutraal',name:'Speekselamylase',plek:'Mond (speeksel)',opt:'± 7',
+  act:{Topt:37,Tw:10,Td:52},
+  res:[{naam:'Asp197',aa:'Asp',pKa:5.2,vorm:'ongeprotoneerd',rol:'valt de glycosidische binding aan (nucleofiel)'},
+       {naam:'Glu233',aa:'Glu',pKa:8.4,vorm:'geprotoneerd',rol:'geeft een H⁺ af aan het zetmeel (zuur/base)'}],
+  uitleg:'Speekselamylase knipt zetmeel tot kleinere suikers (maltose). Het werkt bij de neutrale pH van de mond. In de maag stopt het grotendeels: bij pH 2 is ook Asp197 geprotoneerd. Een chloride-ion in het enzym helpt Glu233 geprotoneerd te houden.'},
+ {key:'bromelaine',groep:'neutraal',name:'Bromelaïne',plek:'Ananas (stengel en vrucht)',opt:'± 6–7',
+  act:{Topt:55,Tw:12,Td:68},
+  res:[{naam:'Cys (actief centrum)',aa:'Cys',pKa:4.0,vorm:'ongeprotoneerd',rol:'thiolaat (–S⁻) valt de peptidebinding aan'},
+       {naam:'His (actief centrum)',aa:'His',pKa:8.5,vorm:'geprotoneerd',rol:'vormt een ionpaar met de Cys (–S⁻ ··· H–His⁺)'}],
+  uitleg:'Bromelaïne is een cysteïneprotease uit ananas (zie het ananaspracticum: gelatine wordt niet stijf met verse ananas). Vergelijk met trypsine: hier moet de His juist wél geprotoneerd zijn. De pKa\'s van Cys en His zijn hier sterk verschoven door het ionpaar. Gemeten optima verschillen per bron en methode (ongeveer pH 5–8).'},
+ {key:'trypsine',groep:'basisch',name:'Trypsine',plek:'Dunne darm (alvleessap, pH ± 8)',opt:'± 8',
+  act:{Topt:37,Tw:10,Td:55},
+  res:[{naam:'His57',aa:'His',pKa:6.8,vorm:'ongeprotoneerd',rol:'neemt een H⁺ op van Ser195, zodat die de peptidebinding kan aanvallen'},
+       {naam:'Ile16 (–NH₃⁺)',aa:'Ile',pKa:9.6,vorm:'geprotoneerd',rol:'de N-terminale aminogroep vormt een zoutbrug met Asp194 en houdt het actieve centrum in vorm'}],
+  uitleg:'Trypsine knipt eiwitten in de dunne darm. Het actieve centrum is een "katalytische triade" (Ser195, His57, Asp102). His57 moet ongeprotoneerd zijn: daarom werkt trypsine niet in de maag. Boven pH ± 10 verliest de N-terminale aminogroep zijn H⁺, valt de zoutbrug weg en verandert de vorm van het actieve centrum.'},
+ {key:'alp',groep:'basisch',name:'Alkalische fosfatase',plek:'Botten, lever, darm',opt:'± 10',
+  act:{Topt:37,Tw:10,Td:58},
+  res:[{naam:'Ser102 (–O⁻)',aa:'Ser',pKa:8.5,vorm:'ongeprotoneerd',rol:'valt als alkoxide (–O⁻) het fosfaat aan; twee Zn²⁺-ionen helpen daarbij'},
+       {naam:'eiwitstructuur',aa:'–',pKa:11.5,vorm:'geprotoneerd',rol:'bij zeer hoge pH verliest het eiwit zijn vorm (vereenvoudigd als één groep)'}],
+  uitleg:'Alkalische fosfatase knipt fosfaatgroepen af, net als zure fosfatase, maar werkt het best bij hoge pH. Een Ser-rest moet zijn H⁺ kwijt zijn; zinkionen in het actieve centrum maken dat makkelijker. In het ziekenhuis wordt ALP in bloed gemeten als maat voor bot- en leverproblemen.'},
+ {key:'subtilisine',groep:'basisch',name:'Subtilisine (wasmiddel)',plek:'Bacillus-bacteriën → waspoeder',opt:'± 9–11',
+  act:{Topt:55,Tw:10,Td:65},
+  res:[{naam:'His64',aa:'His',pKa:7.0,vorm:'ongeprotoneerd',rol:'neemt een H⁺ op van Ser221 (katalytische triade Asp32–His64–Ser221)'},
+       {naam:'eiwitstructuur',aa:'–',pKa:12.3,vorm:'geprotoneerd',rol:'pas bij pH > 12 verliest dit eiwit zijn vorm (vereenvoudigd als één groep)'}],
+  uitleg:'Subtilisine-achtige enzymen (bijv. Savinase) zitten in wasmiddel om eiwitvlekken (bloed, ei, gras) los te knippen. Een wasmiddeloplossing is basisch, dus is gezocht naar enzymen die bij pH 9–11 goed werken. Dezelfde katalytische triade als trypsine, maar een heel ander eiwit: een voorbeeld van convergente evolutie.'},
+ {key:'lactase',groep:'neutraal',name:'Lactase',plek:'Dunne darm (borstelzoom)',opt:'± 6',protAbbr:'LCT',lactase:true,
+  act:{Topt:37,Tw:10,Td:52},
+  res:[{naam:'Glu1749',aa:'Glu',pKa:4.5,vorm:'ongeprotoneerd',rol:'valt de glycosidische binding aan (nucleofiel)'},
+       {naam:'Glu1538',aa:'Glu',pKa:7.5,vorm:'geprotoneerd',rol:'geeft een H⁺ af aan de binding die geknipt wordt (zuur/base, voorspeld)'}],
+  uitleg:'Lactase knipt lactose (melksuiker) in glucose en galactose. Bij de meeste mensen daalt de hoeveelheid lactase na de kindertijd. Zie het verdiepingspaneel hieronder.'}
+];
+// Bestaande eiwitten uit het mutatiedeel zonder ingevoerde sleutelresten: klokvorm.
+const ENZ_OUD=['PAH','ADH1B','ADA','G6PD','ALT/GPT'];
+
+const LACT_BRON={
+ mens:{label:'Mens (darm)',opt:'± 6',Topt:'± 37 °C',act:{Topt:37,Tw:10,Td:52},pKa:[4.5,7.5],
+   tekst:'Menselijk lactase zit vast in de membraan van de darmcellen (borstelzoom van de dunne darm). Het werkt bij de pH van de darm en bij lichaamstemperatuur.'},
+ klactis:{label:'Gist (Kluyveromyces lactis)',opt:'± 6,5–7',Topt:'± 35 °C',act:{Topt:37,Tw:8,Td:45},pKa:[5.3,8.3],
+   tekst:'Lactase uit de gist K. lactis werkt bij de pH van melk (± 6,7) en wordt gebruikt voor lactosevrije melk. Het is minder hittebestendig en heeft ionen zoals Mg²⁺ nodig.'},
+ aoryzae:{label:'Schimmel (Aspergillus oryzae)',opt:'± 4,5–5',Topt:'± 55 °C',act:{Topt:55,Tw:12,Td:66},pKa:[3.2,6.2],
+   tekst:'Lactase uit de schimmel A. oryzae werkt in zuur milieu en bij hogere temperatuur; geschikt voor zure zuivel (yoghurt, wei). Galactose (een van de producten) remt dit enzym competitief.'}
+};
+let lacBron='mens';
+
+function curEnz(){
+  const v=document.getElementById('act-sel')?.value||'e0';
+  if(v[0]==='e'){
+    const e=ENZ[+v.slice(1)];
+    if(e.lactase){
+      const b=LACT_BRON[lacBron];
+      return {...e,act:b.act,opt:b.opt,res:e.res.map((r,k)=>({...r,pKa:b.pKa[k],naam:lacBron==='mens'?r.naam:['Glu (nucleofiel)','Glu (zuur/base)'][k]})),
+        ch:(PROTEINS.find(p=>p.abbr==='LCT')||{}).ch,chBron:'menselijk lactase (fragment zoals in de rest van deze tool)'};
+    }
+    if(e.protAbbr&&!e.ch){const p=PROTEINS.find(p=>p.abbr===e.protAbbr); if(p) return {...e,ch:p.ch};}
+    return e;
+  }
+  const p=PROTEINS[+v.slice(1)];
+  return {name:p.name,plek:'—',opt:'± '+String(p.act.pH).replace('.',','),act:p.act,gauss:true,ch:p.ch,
+    uitleg:'Voor dit eiwit zijn (nog) geen sleutelresten ingevoerd. De pH-curve is daarom een eenvoudige klokvorm rond het optimum.'};
+}
+function fracGoed(r,pH){
+  const ongeprot=1/(1+Math.pow(10,r.pKa-pH));
+  return r.vorm==='ongeprotoneerd'?ongeprot:1-ongeprot;
+}
+function rawAct(e,pH){
+  if(e.gauss) return phAct({act:e.act},pH);
+  return e.res.reduce((a,r)=>a*fracGoed(r,pH),1);
+}
+function enzAct(e,pH){
+  if(e.gauss) return rawAct(e,pH);
+  let m=0; for(let x=0;x<=14;x+=0.05) m=Math.max(m,rawAct(e,x));
+  return m>0?rawAct(e,pH)/m:0;
+}
+
 function initAct(){
   const sel=document.getElementById('act-sel');
-  if(sel&&!sel.children.length) PROTEINS.forEach((p,i)=>{if(!['LYZ','PAH','ADH1B','ADA','G6PD','ALT/GPT','LCT'].includes(p.abbr))return;const o=document.createElement('option');o.value=i;o.textContent=p.name+' ('+p.abbr+')';sel.appendChild(o);});
-  drawTC(); drawPH(); updateActivity();
+  if(sel&&!sel.children.length){
+    const grp=(lbl,items)=>{const g=document.createElement('optgroup');g.label=lbl;items.forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;g.appendChild(o);});sel.appendChild(g);};
+    const per=gr=>ENZ.map((e,i)=>[e,i]).filter(([e])=>e.groep===gr).map(([e,i])=>['e'+i,e.name+' — pH '+e.opt.replace('± ','')]);
+    grp('Werkt in zuur milieu',per('zuur'));
+    grp('Werkt rond neutraal',per('neutraal'));
+    grp('Werkt in basisch milieu',per('basisch'));
+    grp('Uit het mutatiedeel (klokvorm)',PROTEINS.map((p,i)=>[p,i]).filter(([p])=>ENZ_OUD.includes(p.abbr)).map(([p,i])=>['p'+i,p.name+' ('+p.abbr+')']));
+    const s=LACT_BRON[lacBron];
+    document.getElementById('lac-bron-txt').innerHTML=`<b>${s.label}</b> · pH-optimum ${s.opt} · temperatuuroptimum ${s.Topt}<br>${s.tekst}`;
+  }
+  updateActivity();
 }
 function updateActivity(){
-  const sel=document.getElementById('act-sel'); if(sel) actP=parseInt(sel.value)||PROTEINS.findIndex(p=>p.abbr==='LYZ');
-  const p=PROTEINS[actP];
+  const e=curEnz();
   const T=parseInt(document.getElementById('t-sl')?.value||37);
   const pH=parseFloat(document.getElementById('ph-sl')?.value||7);
   document.getElementById('t-val').textContent=T+' °C';
-  document.getElementById('ph-val').textContent='pH '+pH.toFixed(1);
-  const {net,den}=tAct(p,T);
-  setBar('t-bar',Math.round(net*100)); setBar('ph-bar',Math.round(phAct(p,pH)*100));
+  document.getElementById('ph-val').textContent='pH '+pH.toFixed(1).replace('.',',');
+  const {net,den}=tAct(e,T);
+  const a=enzAct(e,pH);
+  setBar('t-bar',Math.round(net*100)); setBar('ph-bar',Math.round(a*100));
   document.getElementById('t-bar-lbl').textContent=Math.round(net*100)+'%';
-  document.getElementById('ph-bar-lbl').textContent=Math.round(phAct(p,pH)*100)+'%';
+  document.getElementById('ph-bar-lbl').textContent=Math.round(a*100)+'%';
   const fd=document.getElementById('fold-bar'); const fl=document.getElementById('fold-lbl');
   if(fd) fd.style.width=Math.round(den*100)+'%'; if(fl) fl.textContent=Math.round(den*100)+'% gevouwen';
-  drawTC(p,T); drawPH(p,pH); updCTG(p,pH);
+  renderEnzInfo(e); renderResTable(e,pH);
+  drawTC(e,T); drawPH(e,pH);
+  const cc=document.getElementById('ctg-card');
+  if(e.ch){cc.hidden=false; document.getElementById('ctg-bron').textContent=e.chBron?'Aantallen: '+e.chBron+'.':''; updCTG(e,pH);} else cc.hidden=true;
+  document.getElementById('lac-panel').hidden=!e.lactase;
 }
+function renderEnzInfo(e){
+  document.getElementById('enz-info').innerHTML=`
+    <div class="enz-head"><div class="enz-name">${e.name}</div>
+      <div class="enz-chips"><span class="enz-chip">📍 ${e.plek}</span><span class="enz-chip ph">pH-optimum ${e.opt}</span></div></div>
+    <p class="enz-txt">${e.uitleg}</p>`;
+}
+const RES_KLEUR=['#a32d2d','#534AB7','#0F6E56'];
+function renderResTable(e,pH){
+  const box=document.getElementById('res-card');
+  if(e.gauss){box.innerHTML='<h3>Actief centrum</h3><p class="enz-txt" style="color:var(--mu)">Voor dit eiwit zijn geen sleutelresten ingevoerd.</p>';return;}
+  const rows=e.res.map((r,k)=>{
+    const f=fracGoed(r,pH), ok=f>=0.5;
+    const nu=r.aa==='–'?(ok?'intact':'ontvouwen'):(fracGoed({...r,vorm:'ongeprotoneerd'},pH)>=0.5?'ongeprotoneerd':'geprotoneerd');
+    return `<tr><td><span class="res-dot" style="background:${RES_KLEUR[k]}"></span><b>${r.naam}</b><div class="res-rol">${r.rol}</div></td>
+      <td>${(r.aa==='–'?'± ':'')+r.pKa.toFixed(1).replace('.',',')}</td>
+      <td>${r.aa==='–'?'intact':r.vorm}</td>
+      <td class="${ok?'ok':'nok'}">${nu}<div class="res-pct">${Math.round(f*100)}% in de goede vorm</div></td>
+      <td class="${ok?'ok':'nok'}" style="font-size:16px">${ok?'✓':'✗'}</td></tr>`;}).join('');
+  box.innerHTML=`<h3>Actief centrum bij pH ${pH.toFixed(1).replace('.',',')}</h3>
+    <table class="res-table"><thead><tr><th>Sleutelrest en rol</th><th>pKa*</th><th>Moet zijn</th><th>Is nu</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="res-note">* Geschatte pKa ín het actieve centrum. Die wijkt vaak sterk af van de pKa van het losse aminozuur (Binas 67H1), door de omgeving in het eiwit. Activiteit = product van de fracties in de goede vorm (genormeerd op het maximum).</p>`;
+}
+function drawPH(e,curPH){
+  e=e||curEnz();
+  drawChart('ph-chart',(ctx,pad,pw,ph,W,H)=>{
+    const X=v=>pad.l+(v/14)*pw, Y=v=>pad.t+ph*(1-v);
+    if(!e.gauss){
+      e.res.forEach((r,k)=>{ctx.beginPath();ctx.setLineDash([4,3]);ctx.strokeStyle=RES_KLEUR[k];ctx.lineWidth=1.2;
+        for(let x=0;x<=14;x+=0.1){const y=Y(fracGoed(r,x));x===0?ctx.moveTo(X(x),y):ctx.lineTo(X(x),y);}ctx.stroke();});
+      ctx.setLineDash([]);
+    }
+    ctx.beginPath();ctx.strokeStyle='#639922';ctx.lineWidth=2;
+    for(let x=0;x<=14;x+=0.1){const y=Y(enzAct(e,x));x===0?ctx.moveTo(X(x),y):ctx.lineTo(X(x),y);}ctx.stroke();
+    if(curPH!==undefined){const x=X(curPH),y=Y(enzAct(e,curPH));ctx.strokeStyle='#185FA5';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+ph);ctx.stroke();ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle='#185FA5';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();}
+    ctx.fillStyle='#6b6860';ctx.font='9px sans-serif';ctx.textAlign='center';
+    [0,2,4,6,7,8,10,12,14].forEach(v=>ctx.fillText(v,X(v),H-4));
+    ctx.textAlign='right';[0,.5,1].forEach(v=>ctx.fillText(Math.round(v*100)+'%',pad.l-2,Y(v)+3));
+  });
+  const leg=document.getElementById('ph-leg');
+  if(leg) leg.innerHTML=`<div class="leg-i"><div class="leg-dot" style="background:#639922"></div>Activiteit</div>`+
+    (e.gauss?'':e.res.map((r,k)=>`<div class="leg-i"><div class="leg-dot" style="background:${RES_KLEUR[k]}"></div>${r.naam} in goede vorm</div>`).join(''))+
+    `<div class="leg-i"><div class="leg-dot" style="background:var(--bl)"></div>Huidige pH</div>`;
+}
+function setLacBron(b){
+  lacBron=b;
+  document.querySelectorAll('.lac-bron button').forEach(x=>x.classList.toggle('active',x.dataset.b===b));
+  const s=LACT_BRON[b];
+  document.getElementById('lac-bron-txt').innerHTML=`<b>${s.label}</b> · pH-optimum ${s.opt} · temperatuuroptimum ${s.Topt}<br>${s.tekst}`;
+  updateActivity();
+}
+
 function setBar(id,pct){const b=document.getElementById(id); if(b) b.style.width=pct+'%';}
 function tAct(p,T){const{Topt,Tw,Td}=p.act;const arr=1/(1+Math.exp(-(T-(Topt-Tw*1.5))/(Tw*0.5)));const den=1/(1+Math.exp((T-Td)/(Tw*0.4)));return{arr,den,net:arr*den};}
 function phAct(p,pH){const{pH:po,phw}=p.act;return Math.exp(-Math.pow(pH-po,2)/(2*phw*phw));}
@@ -817,18 +1061,6 @@ function drawTC(p,curT){
     if(curT!==undefined){const{net}=tAct(p,curT);const x=pad.l+(curT/100)*pw,y=pad.t+ph*(1-net);ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle='#1c1b18';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();}
     ctx.fillStyle='#6b6860';ctx.font='9px sans-serif';ctx.textAlign='center';
     [0,20,40,60,80,100].forEach(T=>ctx.fillText(T+'°',pad.l+(T/100)*pw,H-4));
-    ctx.textAlign='right';[0,.5,1].forEach(v=>ctx.fillText(Math.round(v*100)+'%',pad.l-2,pad.t+ph*(1-v)+3));
-  });
-}
-function drawPH(p,curPH){
-  p=p||PROTEINS[actP];
-  drawChart('ph-chart',(ctx,pad,pw,ph,W,H)=>{
-    ctx.beginPath();ctx.strokeStyle='#639922';ctx.lineWidth=1.5;
-    for(let pH=0;pH<=14;pH+=0.1){const x=pad.l+(pH/14)*pw,v=phAct(p,pH),y=pad.t+ph*(1-v);pH===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
-    ctx.stroke();
-    if(curPH!==undefined){const x=pad.l+(curPH/14)*pw,v=phAct(p,curPH),y=pad.t+ph*(1-v);ctx.strokeStyle='#185FA5';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+ph);ctx.stroke();ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle='#185FA5';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();}
-    ctx.fillStyle='#6b6860';ctx.font='9px sans-serif';ctx.textAlign='center';
-    [0,2,4,6,7,8,10,12,14].forEach(v=>ctx.fillText(v,pad.l+(v/14)*pw,H-4));
     ctx.textAlign='right';[0,.5,1].forEach(v=>ctx.fillText(Math.round(v*100)+'%',pad.l-2,pad.t+ph*(1-v)+3));
   });
 }
