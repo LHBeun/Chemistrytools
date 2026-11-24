@@ -809,7 +809,7 @@ function renderShellStage(content, mode){
     shellCount = raw==='' ? null : n;
     const wrap = el('shell-inputs');
     wrap.innerHTML = '';
-    const shellNames = ['K (schil 1)', 'L (schil 2)', 'M (schil 3)', 'N (schil 4)'];
+    const shellNames = ['1e schil (K)', '2e schil (L)', '3e schil (M)', '4e schil (N)'];
     for(let i=0;i<n;i++){
       const row = document.createElement('div');
       row.className = 'shell-row';
@@ -1239,7 +1239,7 @@ const OPD_UITLEG = {
     html:()=>'<b>Isotopen</b> zijn atomen van hetzelfde element (hetzelfde atoomnummer) met een verschillend aantal neutronen, en dus een verschillend massagetal.'+
       opdVb(opdNotation('C',12,6,0)+' en '+opdNotation('C',13,6,0)+' zijn isotopen: allebei 6 protonen, maar 6 en 7 neutronen.') },
   t4:{ titel:'Nieuw: elektronen in schillen', niet:t=>/atoomnummer 16\)/.test(t.prompt),
-    html:()=>'Elektronen zitten in schillen rond de kern. Vul de schillen van binnen naar buiten: de K-schil maximaal 2, de L-schil maximaal 8, de M-schil (tot calcium) maximaal 8. Bij een ion tel je eerst hoeveel elektronen er zijn.'+
+    html:()=>'Elektronen zitten in schillen rond de kern. Vul de schillen van binnen naar buiten: de 1e schil maximaal 2, de 2e schil maximaal 8, de 3e schil (tot calcium) maximaal 8. Bij een ion tel je eerst hoeveel elektronen er zijn.'+
       opdVb('Zwavel (atoomnummer 16): 16 elektronen → 2, 8, 6.<br>Het ion S²⁻ heeft 18 elektronen → 2, 8, 8.') },
   t5:{ titel:'Nieuw: welk ion vormt een element?', niet:t=>/atoomnummer 13\)/.test(t.prompt),
     html:()=>'Een atoom staat elektronen af of neemt elektronen op tot de buitenste schil vol is, wat het snelst lukt. Elektronen afstaan geeft een <b>positief</b> ion, elektronen opnemen een <b>negatief</b> ion.'+
@@ -1307,7 +1307,7 @@ const OPD_GEN = {
   },
   t2(level){
     const p=opdPickParticle(level); const e=p.z-p.q;
-    return { type:'t2', prompt:`Een deeltje bestaat uit ${p.z} protonen, ${p.A-p.z} neutronen en ${e} elektronen. Geef de notatie.`,
+    return { type:'t2', prompt:`Een deeltje is opgebouwd uit ${p.z} protonen, ${p.A-p.z} neutronen en ${e} elektronen. Geef de notatie.`,
       show:'',
       fields:[{k:'sym',label:'Symbool',ans:p.sym,kind:'text'},{k:'A',label:'Massagetal',ans:p.A},{k:'Z',label:'Atoomnummer',ans:p.z},{k:'q',label:'Lading (0 als neutraal)',ans:p.q,kind:'charge'}],
       hint: level==='3V' ? 'Het aantal protonen bepaalt welk element het is. Gebruik je periodiek systeem.' : 'Het aantal protonen bepaalt welk element het is (Binas tabel 99).',
@@ -1343,8 +1343,8 @@ const OPD_GEN = {
     const sym=ELEMENT_SYMBOLS[String(z)];
     return { type:'t4', prompt:`Geef de elektronenverdeling over de schillen van ${q?'het ion':'een atoom'} ${sym}${q?opdChargeStr(q):''} (atoomnummer ${z}).`,
       show:'', shells:true,
-      fields:['K','L','M','N'].map((s,i)=>({k:s,label:`${s}-schil`,ans:cfg[i],blank0:true})),
-      hint:'Tel eerst het aantal elektronen. Vul daarna de schillen van binnen naar buiten: K max 2, L max 8, M (tot calcium) max 8.',
+      fields:['K','L','M','N'].map((s,i)=>({k:s,label:`${i+1}e schil (${s})`,ans:cfg[i],blank0:true})),
+      hint:'Tel eerst het aantal elektronen. Vul daarna de schillen van binnen naar buiten: 1e schil max 2, 2e schil max 8, 3e schil (tot calcium) max 8.',
       explain:`${e} elektronen: ${cfg.filter((x,i)=>x||i===0).join(', ')}.`,
       diagnose(v){ const tot=['K','L','M','N'].reduce((s,k)=>s+(v[k]||0),0); if(q && tot===z) return 'Je hebt het aantal elektronen van het atoom gebruikt; dit is een ion.'; return null; } };
   },
