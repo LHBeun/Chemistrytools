@@ -223,6 +223,34 @@
   .brow .bdel:hover{color:var(--accent2)}
   .bmsg{flex-basis:100%;font-size:12.5px;color:var(--accent2)} .bmsg:empty{display:none}
   .balans .inrow{margin-top:4px}
+
+  /* ---------- 3V-leerlijn: tekenen in 2D ---------- */
+  #v3Wrap{display:none;flex:1;position:relative;min-width:0;background:#fff;flex-direction:column}
+  body.v3.opd-modus #v3Wrap{display:flex}
+  body.v3.opd-modus #palette, body.v3.opd-modus #sceneWrap, body.v3.opd-modus #infoPanel, body.v3.opd-modus #tmVrijPanel{display:none !important}
+  #v3Bar{display:flex;flex-wrap:wrap;gap:5px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--panel)}
+  #v3Bar.slot{opacity:.45;pointer-events:none}
+  .v3el{min-width:36px;height:34px;padding:0 8px;border:1.5px solid var(--border);border-radius:7px;background:#fff;font:inherit;font-weight:700;font-size:14px;color:var(--text);cursor:pointer}
+  .v3el.active{border-color:var(--accent);background:var(--soft);color:#174a96}
+  .v3el.v3gum{font-weight:600;font-size:13px}
+  .v3sep{width:10px}
+  .v3act{height:34px;padding:0 10px;border:1.5px solid var(--border);border-radius:7px;background:var(--panel2);font:inherit;font-size:13px;cursor:pointer;color:var(--text)}
+  #v3Bar #v3Undo{margin-left:auto}
+  #v3Canvas{flex:1;width:100%;min-height:0;touch-action:none;cursor:crosshair}
+  #v3Formule{position:absolute;right:14px;top:62px;background:rgba(255,255,255,.95);border:1px solid var(--border);border-radius:7px;padding:6px 11px;font-size:14px}
+  #v3Msg{display:none;position:absolute;left:50%;transform:translateX(-50%);bottom:44px;max-width:80%;background:#fff8e1;border:1px solid #e0c84a;border-radius:8px;padding:8px 12px;font-size:13.5px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+  #v3Slot,#v3Kladblok{display:none;position:absolute;left:14px;top:62px;font-size:12.5px;color:var(--textdim);background:rgba(255,255,255,.95);border:1px solid var(--border);border-radius:7px;padding:5px 10px}
+  #v3Help{font-size:12px;color:var(--textdim);padding:6px 12px;border-top:1px solid var(--border)}
+  .v3lijst{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+  .v3item{position:relative;border:1.5px solid var(--border);border-radius:8px;padding:6px;background:#fff}
+  .v3item.ok{border-color:var(--good);background:var(--ok-soft)} .v3item.fout{border-color:var(--accent2);background:var(--err-soft)}
+  .v3item .v3th{cursor:pointer;display:flex;justify-content:center}
+  .v3nr{position:absolute;left:7px;top:4px;font-size:12px;font-weight:700;color:var(--textdim)}
+  .v3del{position:absolute;right:4px;top:2px;border:none;background:none;font-size:17px;color:var(--textdim);cursor:pointer}
+  .v3item input.v3naam{width:100%;box-sizing:border-box;margin-top:4px}
+  input.v3naam{font:inherit;font-size:14.5px;padding:6px 9px;width:230px;border:1px solid var(--border);border-radius:6px}
+  .v3msg{font-size:12px;line-height:1.35;margin-top:3px} .v3msg:empty{display:none}
+  .llbtn.v3b{flex:1}
 </style>
 </head>
 <body class="opd-modus">
@@ -232,7 +260,7 @@
     <span style="flex:1"></span><button id="beamer" type="button" onclick="document.body.classList.toggle('hs-beamer')">Beamerstand</button></div></header>
   <main>
     <div id="builderView">
-      <div id="opdPanel"><h2>Opdrachten</h2><div class="leerlijn"><button class="llbtn" data-ll="dipool">4V · Polariteit en dipolen<small>ΔEN, δ+ en δ−, dipool, oplosbaarheid</small></button><button class="llbtn" data-ll="lewis">5V · Lewis en VSEPR<small>Lewisstructuur, formele lading, vorm, mesomerie</small></button></div><div class="leerlijn"><button class="llbtn" data-ll="tussen">4V · Tussen moleculen<small>vanderwaals, dipool-dipool, H-brug, mengen</small></button><button class="llbtn" data-ll="zout">4V · Zouten oplossen<small>ionrooster, ion-dipool, oplossen, indampen</small></button></div><div class="top"><span class="level" id="llLabel">4V</span><div class="dots" id="dots"></div><span class="score" id="score"></span></div><div id="opdBody"></div></div>
+      <div id="opdPanel"><h2>Opdrachten</h2><div class="leerlijn"><button class="llbtn v3b" data-ll="3v1">3V · 1 Moleculen bouwen<small>bindingen, formules</small></button><button class="llbtn v3b" data-ll="3v2">3V · 2 Isomeren<small>alkanen, alkenen, namen</small></button><button class="llbtn v3b" data-ll="3v3">3V · 3 Karakteristieke groepen<small>halogeen, OH, COOH</small></button></div><div class="leerlijn"><button class="llbtn" data-ll="dipool">4V · Polariteit en dipolen<small>ΔEN, δ+ en δ−, dipool, oplosbaarheid</small></button><button class="llbtn" data-ll="lewis">5V · Lewis en VSEPR<small>Lewisstructuur, formele lading, vorm, mesomerie</small></button></div><div class="leerlijn"><button class="llbtn" data-ll="tussen">4V · Tussen moleculen<small>vanderwaals, dipool-dipool, H-brug, mengen</small></button><button class="llbtn" data-ll="zout">4V · Zouten oplossen<small>ionrooster, ion-dipool, oplossen, indampen</small></button></div><div class="top"><span class="level" id="llLabel">4V</span><div class="dots" id="dots"></div><span class="score" id="score"></span></div><div id="opdBody"></div></div>
       <div id="palette">
         <div class="vrij-only"><h3 class="vrkop">Weergave</h3><select class="vrijSoort"><option value="bouw">Eén molecuul bouwen</option><option value="samen">Moleculen samen</option><option value="bak">Mengbak</option><option value="zout">Zout in water</option></select></div>
         <h3>Atomen</h3>
@@ -276,6 +304,8 @@
         <div id="conclBadge"></div>
         <div id="limitNote" class="geen-lewis">Geïdealiseerde VSEPR-hoeken (vrije paren maken hoeken in werkelijkheid iets kleiner, bv. H2O 104,5° i.p.v. 109,5°). Vrije elektronenparen worden automatisch berekend via de octetregel op basis van bindingsorde. Sleep om te draaien, scroll om te zoomen.</div>
       </div>
+      <div id="v3Wrap"><div id="v3Bar"></div><canvas id="v3Canvas"></canvas><div id="v3Formule"></div><div id="v3Slot">Deze tekening kun je niet aanpassen.</div><div id="v3Kladblok">Kladblok: teken hier als je wilt.</div><div id="v3Msg"></div>
+        <div id="v3Help">Klik: atoom plaatsen · sleep naar een buurpunt: binding · klik op een binding: enkel, dubbel of drievoudig · rechtermuisknop: weghalen</div></div>
       <div id="infoPanel">
         <h3>Atomen &amp; ladingen</h3>
         <div id="atomList"><p class="empty-msg">Nog geen atomen geplaatst.</p></div>
@@ -3373,6 +3403,775 @@ resizeCanvas();
 nieuweSerie();
 updateAll();
 render();
+
+</script>
+<script>
+// ===================== 3V-LEERLIJN: REKENKERN =====================
+// Een molecuul g = {atoms:[{sym,h,x,y}], bonds:[{a,b,o}]}; H-atomen zijn geen knopen maar een aantal per atoom (h).
+const V3_VAL = {H:1,C:4,N:3,O:2,S:2,P:3,F:1,Cl:1,Br:1,I:1};
+const V3_STEM = ['','meth','eth','prop','but','pent','hex','hept','oct','non','dec'];
+const V3_HAL = {F:'fluor',Cl:'chloor',Br:'broom',I:'jood'};
+const V3_ALK = ['','methyl','ethyl','propyl','butyl'];
+const V3_MULT = ['','','di','tri','tetra'];
+
+function v3Adj(g){ const adj=g.atoms.map(()=>[]); g.bonds.forEach(b=>{ adj[b.a].push([b.b,b.o]); adj[b.b].push([b.a,b.o]); }); return adj; }
+function v3Clone(g){ return {atoms:g.atoms.map(a=>({...a})), bonds:g.bonds.map(b=>({...b}))}; }
+
+// SMILES-achtige invoer zonder ringen: CC(C)C, C=C, C#N, ClC(Cl)Cl, CC(=O)O
+function v3Parse(sm){
+  const atoms=[], bonds=[], stack=[]; let prev=-1, ord=1, i=0;
+  while(i<sm.length){
+    const c=sm[i];
+    if(c==='('){ stack.push(prev); i++; continue; }
+    if(c===')'){ prev=stack.pop(); i++; continue; }
+    if(c==='='){ ord=2; i++; continue; }
+    if(c==='#'){ ord=3; i++; continue; }
+    let sym=sm.substr(i,2);
+    if(sym==='Cl'||sym==='Br') i+=2; else { sym=c; i++; }
+    const id=atoms.length; atoms.push({sym,h:0});
+    if(prev>=0) bonds.push({a:prev,b:id,o:ord});
+    ord=1; prev=id;
+  }
+  const g={atoms,bonds}; v3VulH(g); return g;
+}
+function v3BindSom(g, adj){ adj=adj||v3Adj(g); return g.atoms.map((a,i)=>adj[i].reduce((t,[,o])=>t+o,0)); }
+function v3VulH(g){ const s=v3BindSom(g); g.atoms.forEach((a,i)=>{ a.h=Math.max(0,(V3_VAL[a.sym]||0)-s[i]); }); return g; }
+
+function v3Counts(g){ const c={}; g.atoms.forEach(a=>{ c[a.sym]=(c[a.sym]||0)+1; if(a.h) c.H=(c.H||0)+a.h; }); return c; }
+function v3CountsEq(a,b){ const k=new Set([...Object.keys(a),...Object.keys(b)]); for(const x of k) if((a[x]||0)!==(b[x]||0)) return false; return true; }
+function v3FormuleVolgorde(c){
+  if(c.C){ return ['C','H',...Object.keys(c).filter(s=>s!=='C'&&s!=='H').sort()].filter(s=>c[s]); }
+  const v=['N','P','H','S','O','F','Cl','Br','I']; return v.filter(s=>c[s]);
+}
+function v3FormuleHTML(c){ const o=v3FormuleVolgorde(c); if(!o.length) return '—'; return o.map(s=>s+(c[s]>1?'<sub>'+c[s]+'</sub>':'')).join(''); }
+function v3FormuleTekst(f){ return f.replace(/(\d+)/g,'<sub>$1</sub>'); }
+function v3CountsVan(f){ const c={}; f.replace(/(Cl|Br|[A-Z])(\d*)/g,(m,s,n)=>{ c[s]=(c[s]||0)+(n?+n:1); }); return c; }
+
+function v3Canon(g){
+  const n=g.atoms.length; if(!n) return '';
+  const adj=v3Adj(g), lab=i=>g.atoms[i].sym+g.atoms[i].h;
+  const rooted=(i,p)=>lab(i)+'('+adj[i].filter(([j])=>j!==p).map(([j,o])=>o+rooted(j,i)).sort().join(',')+')';
+  let best=null; for(let r=0;r<n;r++){ const s=rooted(r,-1); if(best===null||s<best) best=s; }
+  return best;
+}
+function v3Samenhang(g){
+  const n=g.atoms.length; if(!n) return true;
+  const adj=v3Adj(g), seen=new Set([0]), st=[0];
+  while(st.length){ const i=st.pop(); adj[i].forEach(([j])=>{ if(!seen.has(j)){ seen.add(j); st.push(j); } }); }
+  return seen.size===n;
+}
+function v3Verbonden(g, a, b){
+  const adj=v3Adj(g), seen=new Set([a]), st=[a];
+  while(st.length){ const i=st.pop(); if(i===b) return true; adj[i].forEach(([j])=>{ if(!seen.has(j)){ seen.add(j); st.push(j); } }); }
+  return false;
+}
+// controle: welke atomen hebben niet het juiste aantal bindingen (H-atomen tellen mee als binding)
+function v3Fouten(g){ const s=v3BindSom(g); return g.atoms.map((a,i)=>(s[i]+a.h)!==V3_VAL[a.sym]?i:-1).filter(i=>i>=0); }
+function v3Geldig(g){ return g.atoms.length>0 && v3Samenhang(g) && v3Fouten(g).length===0; }
+
+// ---------- naamgeving ----------
+function v3Analyse(g){
+  const A=g.atoms, adj=v3Adj(g);
+  if(!A.some(a=>a.sym==='C')) return null;
+  let acid=-1, ol=-1, bad=false, ether=false; const skip=new Set();
+  A.forEach((a,i)=>{
+    if(a.sym==='C') return;
+    if(V3_HAL[a.sym]){ if(adj[i].length!==1||A[adj[i][0][0]].sym!=='C'||adj[i][0][1]!==1) bad=true; return; }
+    if(a.sym==='O'){
+      const cs=adj[i].filter(([j])=>A[j].sym==='C');
+      if(cs.length!==adj[i].length){ bad=true; return; }
+      if(cs.length===2){ ether=true; bad=true; return; }
+      if(cs.length===1 && cs[0][1]===1 && a.h===1){
+        const c=cs[0][0], dO=adj[c].some(([j,o])=>A[j].sym==='O'&&o===2);
+        if(dO){ if(acid>=0) bad=true; acid=c; } else { if(ol>=0) bad=true; ol=c; }
+        skip.add(i); return;
+      }
+      if(cs.length===1 && cs[0][1]===2 && a.h===0){
+        const c=cs[0][0], oh=adj[c].some(([j,o])=>A[j].sym==='O'&&o===1&&A[j].h===1);
+        if(!oh) bad=true; skip.add(i); return;
+      }
+      bad=true; return;
+    }
+    bad=true;
+  });
+  const dbl=[];
+  g.bonds.forEach(b=>{ if(A[b.a].sym==='C'&&A[b.b].sym==='C'&&b.o>1){ if(b.o===3) bad=true; dbl.push([b.a,b.b]); } });
+  if(bad||dbl.length>1) return ether?{ether:true}:null;
+  if((acid>=0)+(ol>=0)+(dbl.length>0)>1) return null;
+  return {adj, acid, ol, dbl:dbl[0]||null, skip};
+}
+function v3Pad(adj, A, s, t){ // pad tussen twee C-atomen via C-atomen
+  const prev=new Map([[s,-1]]), q=[s];
+  while(q.length){ const i=q.shift(); if(i===t) break; adj[i].forEach(([j])=>{ if(A[j].sym==='C' && !prev.has(j)){ prev.set(j,i); q.push(j); } }); }
+  if(!prev.has(t)) return null; const p=[]; for(let x=t;x!==-1;x=prev.get(x)) p.unshift(x); return p;
+}
+function v3Alkyl(adj, A, from, start){ // ongetakte alkylgroep? → lengte, anders 0
+  let prev=from, cur=start, len=1;
+  if(adj[from].find(([j])=>j===start)[1]!==1) return 0;
+  while(true){
+    if(A[cur].sym!=='C') return 0;
+    const ver=adj[cur].filter(([j])=>j!==prev);
+    if(ver.some(([j,o])=>A[j].sym!=='C'||o!==1)) return 0;
+    if(ver.length===0) return len;
+    if(ver.length>1) return 0;
+    prev=cur; cur=ver[0][0]; len++;
+  }
+}
+function v3Info(g){
+  const an=v3Analyse(g); if(!an||an.ether) return an;
+  const A=g.atoms, adj=an.adj, C=A.map((a,i)=>a.sym==='C'?i:-1).filter(i=>i>=0);
+  const kand=[];
+  for(const s of C) for(const t of C){
+    const p=v3Pad(adj,A,s,t); if(!p) continue;
+    if(an.acid>=0 && p[0]!==an.acid) continue;
+    if(an.ol>=0 && !p.includes(an.ol)) continue;
+    if(an.dbl && !(p.includes(an.dbl[0])&&p.includes(an.dbl[1]))) continue;
+    const inP=new Set(p), subs=[]; let ok=true;
+    p.forEach((c,k)=>{
+      adj[c].forEach(([j])=>{
+        if(inP.has(j)||an.skip.has(j)) return;
+        if(V3_HAL[A[j].sym]) subs.push({name:V3_HAL[A[j].sym],loc:k+1});
+        else if(A[j].sym==='C'){ const L=v3Alkyl(adj,A,c,j); if(L>=1&&L<=4) subs.push({name:V3_ALK[L],loc:k+1}); else { ok=false; subs.push({name:'?',loc:k+1}); } }
+        else ok=false;
+      });
+    });
+    const olLoc = an.ol>=0 ? p.indexOf(an.ol)+1 : 0;
+    const dbLoc = an.dbl ? Math.min(p.indexOf(an.dbl[0]),p.indexOf(an.dbl[1]))+1 : 0;
+    const locs = subs.map(x=>x.loc).sort((a,b)=>a-b);
+    const alf = subs.slice().sort((a,b)=>a.name.localeCompare(b.name,'nl')||a.loc-b.loc).map(x=>x.loc);
+    kand.push({p, subs, ok, len:p.length, olLoc, dbLoc, locs, alf});
+  }
+  if(!kand.length) return null;
+  const cmpL=(a,b)=>{ for(let i=0;i<Math.min(a.length,b.length);i++) if(a[i]!==b[i]) return a[i]-b[i]; return a.length-b.length; };
+  kand.sort((a,b)=> b.len-a.len || b.subs.length-a.subs.length || a.olLoc-b.olLoc || a.dbLoc-b.dbLoc || cmpL(a.locs,b.locs) || cmpL(a.alf,b.alf));
+  const k=kand[0]; if(!k.ok || k.len>10) return null;
+  const groep=new Map(); k.subs.forEach(x=>{ if(!groep.has(x.name)) groep.set(x.name,[]); groep.get(x.name).push(x.loc); });
+  if([...groep.values()].some(l=>l.length>4)) return null;
+  const pre=[...groep.entries()].sort((a,b)=>a[0].localeCompare(b[0],'nl')).map(([name,locs])=>({name,locs:locs.sort((a,b)=>a-b)}));
+  const cls = an.acid>=0?'acid' : an.ol>=0?'ol' : an.dbl?'een' : 'aan';
+  if(cls==='een' && k.len<2) return null;
+  return {n:k.len, cls, suf: cls==='ol'?k.olLoc : cls==='een'?k.dbLoc : 0, pre};
+}
+function v3NParts(info){ return info.pre.length + ((info.cls==='ol'||info.cls==='een')?1:0); }
+function v3Fmt(info, strip){
+  strip=strip||new Set(); let s='';
+  info.pre.forEach((p,k)=>{ const t=(strip.has(k)?'':p.locs.join(',')+'-')+V3_MULT[p.locs.length]+p.name; if(s && /^\d/.test(t)) s+='-'; s+=t; });
+  const st=V3_STEM[info.n], ks=info.pre.length;
+  if(info.cls==='acid') s+=st+'aanzuur';
+  else if(info.cls==='ol') s+= strip.has(ks) ? st+'anol' : st+'aan-'+info.suf+'-ol';
+  else if(info.cls==='een') s+= strip.has(ks) ? st+'een' : st+'-'+info.suf+'-een';
+  else s+=st+'aan';
+  return s;
+}
+// alle plaatsingen van dezelfde groepen op een keten van dezelfde lengte
+function v3Varianten(info){
+  const n=info.n, out=[];
+  const lijst=[]; info.pre.forEach(p=>p.locs.forEach(()=>lijst.push(p.name)));
+  const sufPos = info.cls==='ol' ? [...Array(n).keys()].map(i=>i+1) : info.cls==='een' ? [...Array(n-1).keys()].map(i=>i+1) : [0];
+  const halSym = Object.fromEntries(Object.entries(V3_HAL).map(([k,v])=>[v,k]));
+  const pos=new Array(lijst.length).fill(1);
+  const rec=(i)=>{
+    if(i===lijst.length){
+      for(const sp of sufPos){
+        const atoms=[], bonds=[];
+        for(let c=0;c<n;c++){ atoms.push({sym:'C',h:0}); if(c) bonds.push({a:c-1,b:c,o:(info.cls==='een'&&c===sp)?2:1}); }
+        if(info.cls==='acid'){ atoms.push({sym:'O',h:0}); bonds.push({a:0,b:atoms.length-1,o:2}); atoms.push({sym:'O',h:0}); bonds.push({a:0,b:atoms.length-1,o:1}); }
+        if(info.cls==='ol'){ atoms.push({sym:'O',h:0}); bonds.push({a:sp-1,b:atoms.length-1,o:1}); }
+        lijst.forEach((nm,k)=>{
+          const c=pos[k]-1;
+          if(halSym[nm]){ atoms.push({sym:halSym[nm],h:0}); bonds.push({a:c,b:atoms.length-1,o:1}); }
+          else { const L=V3_ALK.indexOf(nm); let prev=c; for(let q=0;q<L;q++){ atoms.push({sym:'C',h:0}); bonds.push({a:prev,b:atoms.length-1,o:1}); prev=atoms.length-1; } }
+        });
+        const g={atoms,bonds}; const s=v3BindSom(g);
+        if(atoms.some((a,q)=>s[q]>V3_VAL[a.sym])) continue;
+        v3VulH(g);
+        const inf=v3Info(g); if(inf && !inf.ether) out.push({canon:v3Canon(g), info:inf});
+      }
+      return;
+    }
+    const min = (i>0 && lijst[i]===lijst[i-1]) ? pos[i-1] : 1;
+    for(let p=min;p<=n;p++){ pos[i]=p; rec(i+1); }
+  };
+  rec(0);
+  return out;
+}
+const V3_NAAMCACHE = new Map();
+function v3Naam(g){
+  const canon=v3Canon(g);
+  if(V3_NAAMCACHE.has(canon)) return V3_NAAMCACHE.get(canon);
+  let res=null;
+  if(v3Geldig(g)){
+    const info=v3Info(g);
+    if(info && info.ether) res={ether:true};
+    else if(info){
+      const vars=v3Varianten(info), np=v3NParts(info); let strip=new Set();
+      // voorvoegsels alleen samen weglaten (dimethylpropaan, ethylpent-2-een), de uitgang apart
+      const groepen=[info.pre.map((_,k)=>k)]; if(np>info.pre.length) groepen.push([info.pre.length]);
+      for(const gr of groepen){
+        if(!gr.length) continue;
+        const S=new Set([...strip,...gr]), doel=v3Fmt(info,S);
+        const cs=new Set(vars.filter(v=>v3Fmt(v.info,S)===doel).map(v=>v.canon));
+        if(cs.size===1) strip=S;
+      }
+      const sl=[...strip], ok=new Set();
+      for(let m=0;m<(1<<sl.length);m++){ ok.add(v3Fmt(info,new Set(sl.filter((_,i)=>m&(1<<i))))); }
+      if(info.cls==='acid') [...ok].forEach(x=>ok.add(x.replace(/aanzuur$/,'aan-1-zuur')));
+      res={info, min:v3Fmt(info,strip), vol:v3Fmt(info), ok:[...ok]};
+    }
+  }
+  V3_NAAMCACHE.set(canon,res); return res;
+}
+function v3Norm(t){ return (t||'').toLowerCase().replace(/\s+/g,'').replace(/[‐‑‒–—−]/g,'-').replace(/ë/g,'e'); }
+// beoordeel een getypte naam bij molecuul g → {goed, tekst}
+function v3BeoordeelNaam(g, getypt){
+  const N=v3Naam(g), t=v3Norm(getypt);
+  if(!N||N.ether) return {goed:true, geen:true, tekst:'Voor dit molecuul hoef je in 3V geen naam te geven.'};
+  if(!t) return {goed:false, tekst:'Je hebt nog geen naam ingevuld.'};
+  if(t===N.min) return {goed:true, tekst:''};
+  if(N.ok.includes(t)) return {goed:true, tekst:'Goed, maar niet elk plaatsnummer is nodig: <b>'+N.min+'</b>.'};
+  const letters=s=>s.replace(/[\d,\-]/g,'').replace(/aanol$/,'anol');
+  if(letters(t)===letters(N.vol)) return {goed:false, tekst:'Bijna: de plaatsnummers kloppen nog niet. Nummer de keten vanaf de kant die de laagste nummers geeft.'};
+  const st=V3_STEM[N.info.n];
+  const stamOk = new RegExp(st+'(aan|een|-|anol|aanzuur)').test(t) && !new RegExp('(meth|eth|prop|but|pent|hex|hept|oct|non)'+'(aan|een|-|anol|aanzuur)').test(t.replace(new RegExp(st+'(aan|een|-|anol|aanzuur)'),''));
+  if(!stamOk) return {goed:false, tekst:'Kijk nog eens naar de langste keten: hoeveel C-atomen heeft die?'};
+  const woorden=s=>(letters(s).match(/(di|tri|tetra)?(fluor|chloor|broom|jood|methyl|ethyl|propyl|butyl)/g)||[]);
+  const a=woorden(t), b=woorden(N.vol);
+  if(a.slice().sort().join()===b.slice().sort().join() && a.join()!==b.join()) return {goed:false, tekst:'De zijtakken zijn goed, maar zet ze op alfabet.'};
+  if(a.slice().sort().join()!==b.slice().sort().join()) return {goed:false, tekst:'Kijk nog eens naar de zijtakken en de halogeenatomen: welke zijn het, en hoeveel van elk?'};
+  return {goed:false, tekst:'Kijk nog eens naar de uitgang van de naam: wat voor stof is dit?'};
+}
+
+// ---------- plaatsing op het raster ----------
+function v3Layout(g){
+  const n=g.atoms.length, adj=v3Adj(g);
+  if(!n) return g;
+  const bfs=s=>{ const d=new Array(n).fill(-1), pr=new Array(n).fill(-1); d[s]=0; const q=[s]; while(q.length){ const i=q.shift(); adj[i].forEach(([j])=>{ if(d[j]<0){ d[j]=d[i]+1; pr[j]=i; q.push(j); } }); } let f=s; d.forEach((x,i)=>{ if(x>d[f]) f=i; }); return {f,pr}; };
+  // langste pad, bij voorkeur met C-atomen aan beide kanten
+  const a=bfs(0).f, r=bfs(a); const pad=[]; for(let x=r.f;x!==-1;x=r.pr[x]) pad.push(x);
+  const pos=new Map(), bezet=new Set(), K=(x,y)=>x+','+y;
+  const zet=(i,x,y)=>{ pos.set(i,[x,y]); bezet.add(K(x,y)); };
+  pad.forEach((i,k)=>zet(i,k,0));
+  const inPad=new Set(pad);
+  const plaats=(i,par,x,y,dir)=>{
+    zet(i,x,y);
+    const kids=adj[i].map(([j])=>j).filter(j=>j!==par);
+    const dirs=[dir,[dir[1],dir[0]],[-dir[1],-dir[0]]];
+    kids.forEach((j,k)=>{
+      let d=dirs[k]||dirs[0];
+      for(const dd of [d,...dirs]) if(!bezet.has(K(x+dd[0],y+dd[1]))){ d=dd; break; }
+      plaats(j,i,x+d[0],y+d[1],d);
+    });
+  };
+  let vorigeOmhoog=false;
+  pad.forEach((i,k)=>{
+    const tak=adj[i].map(([j])=>j).filter(j=>!inPad.has(j));
+    const dirs = vorigeOmhoog ? [[0,1],[0,-1]] : [[0,-1],[0,1]];
+    if(k===0) dirs.push([-1,0]); if(k===pad.length-1) dirs.push([1,0]);
+    let omhoog=false;
+    tak.forEach((j,q)=>{ const d=dirs[q]||dirs[0]; if(d[1]===-1) omhoog=true; plaats(j,i,k+d[0],d[1],d); });
+    vorigeOmhoog=omhoog;
+  });
+  g.atoms.forEach((at,i)=>{ const p=pos.get(i)||[0,0]; at.x=p[0]; at.y=p[1]; });
+  return g;
+}
+// structuur met eigen rastercoördinaten: atomen [sym,x,y,(h)], bindingen [i,j,orde]
+function v3G(atomen, bindingen){
+  const g={atoms:atomen.map(([sym,x,y])=>({sym,h:0,x,y})), bonds:(bindingen||[]).map(([a,b,o])=>({a,b,o:o||1}))};
+  v3VulH(g); atomen.forEach((at,i)=>{ if(at.length>3) g.atoms[i].h=at[3]; }); return g;
+}
+// keten van punten → bindingen tussen opeenvolgende
+function v3Keten(pts, extra){ const at=pts.map(p=>['C',p[0],p[1]]); const b=[]; for(let i=1;i<pts.length;i++) b.push([i-1,i,1]); (extra||[]).forEach(e=>{ at.push(['C',e[1],e[2]]); b.push([e[0],at.length-1,1]); }); return v3G(at,b); }
+
+// ===================== 3V-LEERLIJN: TEKENEN =====================
+const V3_EL = ['C','H','O','N','S','P','F','Cl','Br','I'];
+const V3_GX = 14, V3_GY = 9;
+const V3 = { g:{atoms:[],bonds:[]}, tool:'C', fout:new Set(), undo:[], slot:false, hAanvul:false, drag:null, hpos:[], cel:50, ox:0, oy:0, niveau:1 };
+let v3Canvas, v3Ctx;
+
+function v3Init(){
+  v3Canvas=document.getElementById('v3Canvas'); v3Ctx=v3Canvas.getContext('2d');
+  const bar=document.getElementById('v3Bar');
+  bar.innerHTML = V3_EL.map(s=>'<button class="v3el" data-t="'+s+'">'+s+'</button>').join('')+
+    '<span class="v3sep"></span><button class="v3el v3gum" data-t="gum" title="Klik op een atoom, H-atoom of binding om het weg te halen">⌫ gum</button>'+
+    '<button class="v3act" id="v3Hvul" title="Vul elk atoom aan met H-atomen tot het juiste aantal bindingen">+H aanvullen</button>'+
+    '<button class="v3act" id="v3Undo">↶ terug</button><button class="v3act" id="v3Wis">wis alles</button>';
+  bar.querySelectorAll('.v3el').forEach(b=>b.onclick=()=>{ V3.tool=b.dataset.t; v3Bar(); });
+  document.getElementById('v3Undo').onclick=()=>{ if(V3.slot||!V3.undo.length) return; V3.g=V3.undo.pop(); v3Na(false); };
+  document.getElementById('v3Wis').onclick=()=>{ if(V3.slot||!V3.g.atoms.length) return; v3Bewaar(); V3.g={atoms:[],bonds:[]}; v3Na(false); };
+  document.getElementById('v3Hvul').onclick=()=>{ if(V3.slot) return; v3Bewaar(); const s=v3BindSom(V3.g); V3.g.atoms.forEach((a,i)=>{ a.h=Math.max(0,V3_VAL[a.sym]-s[i]); }); v3Na(false); };
+  v3Canvas.addEventListener('pointerdown', v3Down);
+  v3Canvas.addEventListener('pointermove', v3Move);
+  v3Canvas.addEventListener('pointerup', v3Up);
+  v3Canvas.addEventListener('pointerleave', ()=>{ if(V3.drag){ V3.drag=null; v3Teken(); } });
+  v3Canvas.addEventListener('contextmenu', e=>{ e.preventDefault(); if(V3.slot) return; const t=v3Hit(e); if(t) v3Gum(t); });
+  window.addEventListener('resize', ()=>{ if(document.body.classList.contains('v3')) v3Resize(); });
+  v3Bar();
+}
+function v3Bar(){
+  document.querySelectorAll('#v3Bar .v3el').forEach(b=>b.classList.toggle('active', b.dataset.t===V3.tool));
+  document.getElementById('v3Hvul').style.display = V3.hAanvul ? '' : 'none';
+  document.getElementById('v3Bar').classList.toggle('slot', V3.slot);
+}
+function v3Bewaar(){ V3.undo.push(v3Clone(V3.g)); if(V3.undo.length>60) V3.undo.shift(); }
+function v3Na(bewaard){ V3.fout=new Set(); v3Formule(); v3Teken(); if(V3.opWijziging) V3.opWijziging(); }
+function v3Formule(){ document.getElementById('v3Formule').innerHTML = 'Molecuulformule: <b>'+v3FormuleHTML(v3Counts(V3.g))+'</b>'; }
+function v3Flits(t){ const el=document.getElementById('v3Msg'); el.innerHTML=t; el.style.display='block'; clearTimeout(V3.flT); V3.flT=setTimeout(()=>el.style.display='none', 5200); }
+function v3Laad(g, slot){
+  V3.g = g ? v3Clone(g) : {atoms:[],bonds:[]}; V3.undo=[]; V3.slot=!!slot;
+  if(g) v3Centreer(V3.g);
+  document.getElementById('v3Slot').style.display = slot ? 'block' : 'none';
+  v3Bar(); v3Na();
+}
+function v3Centreer(g){
+  if(!g.atoms.length) return;
+  const xs=g.atoms.map(a=>a.x), ys=g.atoms.map(a=>a.y);
+  const dx=Math.round((V3_GX-1-(Math.max(...xs)+Math.min(...xs)))/2), dy=Math.round((V3_GY-1-(Math.max(...ys)+Math.min(...ys)))/2);
+  g.atoms.forEach(a=>{ a.x+=dx; a.y+=dy; });
+}
+function v3Resize(){
+  const r=v3Canvas.getBoundingClientRect(); if(!r.width) return;
+  v3Canvas.width=r.width*devicePixelRatio; v3Canvas.height=r.height*devicePixelRatio;
+  V3.cel=Math.min(r.width/(V3_GX+0.6), (r.height-20)/(V3_GY+0.6));
+  V3.ox=(r.width-V3.cel*(V3_GX-1))/2; V3.oy=(r.height-V3.cel*(V3_GY-1))/2+8;
+  v3Teken();
+}
+const v3P = (x,y)=>[V3.ox+x*V3.cel, V3.oy+y*V3.cel];
+
+// posities van de H-atomen rond elk atoom
+function v3HPos(g, cel){
+  const out=[], adj=v3Adj(g);
+  const dirs=[[1,0],[-1,0],[0,-1],[0,1],[1,-1],[-1,-1],[1,1],[-1,1]];
+  const punten=g.atoms.map(a=>[a.x,a.y]);
+  g.bonds.forEach(b=>{ const A=g.atoms[b.a],B=g.atoms[b.b]; punten.push([(A.x+B.x)/2,(A.y+B.y)/2]); });
+  g.atoms.forEach((a,i)=>{
+    const bezet=adj[i].map(([j])=>{ const B=g.atoms[j]; return [Math.sign(B.x-a.x),Math.sign(B.y-a.y)]; });
+    const gekozen=[];
+    for(let k=0;k<a.h;k++){
+      let best=null, bs=-1;
+      dirs.forEach(d=>{
+        if(bezet.some(b=>b[0]===d[0]&&b[1]===d[1])) return;
+        if(gekozen.some(c=>c.d===d)) return;
+        const L=(d[0]&&d[1])?0.5:0.62, P=[a.x+d[0]*L, a.y+d[1]*L];
+        let m=9; punten.forEach((q,qi)=>{ if(qi===i) return; m=Math.min(m,Math.hypot(P[0]-q[0],P[1]-q[1])); });
+        out.forEach(h=>{ m=Math.min(m,Math.hypot(P[0]-h.x,P[1]-h.y)); });
+        gekozen.forEach(h=>{ m=Math.min(m,Math.hypot(P[0]-h.x,P[1]-h.y)); });
+        const s=Math.min(m,0.75)+((d[0]&&d[1])?0:0.12);
+        if(s>bs){ bs=s; best={d,x:P[0],y:P[1],a:i}; }
+      });
+      if(!best){ const d=[0.4*Math.cos(k),0.4*Math.sin(k)]; best={d,x:a.x+d[0],y:a.y+d[1],a:i}; }
+      gekozen.push(best); out.push(best);
+    }
+  });
+  return out;
+}
+function v3TekenMol(ctx, g, P, cel, opts){
+  opts=opts||{};
+  const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim()||'#1d2330';
+  const tekst=css('--text'), rood='#C62828';
+  const rA=0.2*cel, rH=0.15*cel;
+  const lijn=(x1,y1,x2,y2,r1,r2,orde)=>{
+    const dx=x2-x1, dy=y2-y1, L=Math.hypot(dx,dy)||1, ux=dx/L, uy=dy/L;
+    const ax=x1+ux*r1, ay=y1+uy*r1, bx=x2-ux*r2, by=y2-uy*r2, nx=-uy, ny=ux, off=Math.max(2.5,0.075*cel);
+    const offs = orde===1?[0] : orde===2?[-off/2,off/2] : [-off,0,off];
+    offs.forEach(o=>{ ctx.beginPath(); ctx.moveTo(ax+nx*o,ay+ny*o); ctx.lineTo(bx+nx*o,by+ny*o); ctx.stroke(); });
+  };
+  ctx.lineCap='round'; ctx.strokeStyle=tekst; ctx.lineWidth=Math.max(1.4,cel*0.04);
+  g.bonds.forEach(b=>{ const A=g.atoms[b.a], B=g.atoms[b.b]; const [x1,y1]=P(A.x,A.y), [x2,y2]=P(B.x,B.y); lijn(x1,y1,x2,y2,rA,rA,b.o); });
+  const hp=v3HPos(g,cel);
+  hp.forEach(h=>{ const A=g.atoms[h.a]; const [x1,y1]=P(A.x,A.y), [x2,y2]=P(h.x,h.y); lijn(x1,y1,x2,y2,rA,rH,1); });
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle=tekst;
+  ctx.font='700 '+Math.round(cel*0.34)+'px system-ui,Arial';
+  g.atoms.forEach(a=>{ const [x,y]=P(a.x,a.y); ctx.fillText(a.sym,x,y+1); });
+  ctx.font='600 '+Math.round(cel*0.27)+'px system-ui,Arial';
+  hp.forEach(h=>{ const [x,y]=P(h.x,h.y); ctx.fillText('H',x,y+1); });
+  if(opts.fout) opts.fout.forEach(i=>{ const a=g.atoms[i]; if(!a) return; const [x,y]=P(a.x,a.y); ctx.strokeStyle=rood; ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(x,y,cel*0.3,0,Math.PI*2); ctx.stroke(); });
+  return hp;
+}
+function v3Teken(){
+  if(!v3Ctx) return;
+  const ctx=v3Ctx, c=V3.cel; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  ctx.clearRect(0,0,v3Canvas.width,v3Canvas.height);
+  ctx.fillStyle='#c9d2e0';
+  for(let x=0;x<V3_GX;x++) for(let y=0;y<V3_GY;y++){ const [px,py]=v3P(x,y); ctx.beginPath(); ctx.arc(px,py,1.6,0,Math.PI*2); ctx.fill(); }
+  if(V3.drag && V3.drag.doel){ const A=V3.g.atoms[V3.drag.i]; const [x1,y1]=v3P(A.x,A.y), [x2,y2]=v3P(V3.drag.doel[0],V3.drag.doel[1]); ctx.save(); ctx.setLineDash([5,5]); ctx.strokeStyle='#1F5FBF'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); ctx.restore(); }
+  V3.hpos = v3TekenMol(ctx, V3.g, v3P, c, {fout:V3.fout});
+}
+function v3ThumbCanvas(g, w, h){
+  const cv=document.createElement('canvas'); cv.width=w*devicePixelRatio; cv.height=h*devicePixelRatio; cv.style.width=w+'px'; cv.style.height=h+'px';
+  const ctx=cv.getContext('2d'); ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  if(!g.atoms.length) return cv;
+  const hp=v3HPos(g,1); const xs=[...g.atoms.map(a=>a.x),...hp.map(p=>p.x)], ys=[...g.atoms.map(a=>a.y),...hp.map(p=>p.y)];
+  const x0=Math.min(...xs), x1=Math.max(...xs), y0=Math.min(...ys), y1=Math.max(...ys);
+  const cel=Math.min(42, (w-24)/Math.max(0.8,x1-x0), (h-20)/Math.max(0.8,y1-y0));
+  const ox=w/2-cel*(x0+x1)/2, oy=h/2-cel*(y0+y1)/2;
+  v3TekenMol(ctx, g, (x,y)=>[ox+x*cel, oy+y*cel], cel, {});
+  return cv;
+}
+
+// ---------- muis ----------
+function v3Muis(e){ const r=v3Canvas.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; }
+function v3Hit(e){
+  const [mx,my]=v3Muis(e), c=V3.cel, gx=(mx-V3.ox)/c, gy=(my-V3.oy)/c;
+  for(const h of V3.hpos){ if(Math.hypot(gx-h.x,gy-h.y)<0.17) return {soort:'H', i:h.a}; }
+  const rx=Math.round(gx), ry=Math.round(gy);
+  const ai=V3.g.atoms.findIndex(a=>a.x===rx&&a.y===ry);
+  if(ai>=0 && Math.hypot(gx-rx,gy-ry)<0.33) return {soort:'atoom', i:ai};
+  let best=null, bd=0.16;
+  V3.g.bonds.forEach((b,k)=>{ const A=V3.g.atoms[b.a],B=V3.g.atoms[b.b]; const mxp=(A.x+B.x)/2, myp=(A.y+B.y)/2; const d=Math.hypot(gx-mxp,gy-myp); if(d<0.3 && Math.abs(A.x===B.x?gx-A.x:gy-A.y)<bd){ bd=Math.abs(A.x===B.x?gx-A.x:gy-A.y); best={soort:'binding', k}; } });
+  if(best) return best;
+  if(rx>=0&&ry>=0&&rx<V3_GX&&ry<V3_GY && Math.hypot(gx-rx,gy-ry)<0.4 && ai<0) return {soort:'leeg', x:rx, y:ry};
+  return null;
+}
+function v3Down(e){
+  if(V3.slot){ v3Flits('Deze tekening kun je niet aanpassen.'); return; }
+  if(e.button===2) return;
+  const t=v3Hit(e); V3.down={t, xy:v3Muis(e)};
+  if(t && t.soort==='atoom' && V3.tool!=='gum'){ V3.drag={i:t.i, doel:null}; v3Canvas.setPointerCapture(e.pointerId); }
+}
+function v3Move(e){
+  if(!V3.drag) return;
+  const [mx,my]=v3Muis(e), A=V3.g.atoms[V3.drag.i];
+  const gx=Math.round((mx-V3.ox)/V3.cel), gy=Math.round((my-V3.oy)/V3.cel);
+  const doel = (Math.abs(gx-A.x)+Math.abs(gy-A.y)===1 && gx>=0&&gy>=0&&gx<V3_GX&&gy<V3_GY) ? [gx,gy] : null;
+  const oud=V3.drag.doel; V3.drag.doel=doel;
+  if(String(oud)!==String(doel)) v3Teken();
+}
+function v3Up(e){
+  if(V3.slot || !V3.down) return;
+  const d=V3.drag, t0=V3.down.t; V3.drag=null; V3.down=null;
+  if(d && d.doel){ v3Sleep(d.i, d.doel[0], d.doel[1]); return; }
+  if(d) v3Teken();
+  if(!t0) return;
+  if(V3.tool==='gum'){ v3Gum(t0); return; }
+  v3Klik(t0);
+}
+function v3Klik(t){
+  const g=V3.g, sym=V3.tool;
+  if(t.soort==='leeg'){
+    if(sym==='H'){ v3Flits('Een H-atoom zit altijd vast aan een ander atoom. Kies <b>H</b> en klik op dat atoom.'); return; }
+    v3Bewaar(); g.atoms.push({sym,h:0,x:t.x,y:t.y}); v3Na(); return;
+  }
+  if(t.soort==='atoom'){
+    const a=g.atoms[t.i];
+    if(sym==='H'){ if(a.h>=6){ v3Flits('Hier past geen H-atoom meer bij.'); return; } v3Bewaar(); a.h++; v3Na(); return; }
+    if(a.sym!==sym){ v3Bewaar(); a.sym=sym; v3Na(); return; }
+    v3Flits('Sleep vanaf dit atoom naar een punt ernaast om een binding te tekenen.'); return;
+  }
+  if(t.soort==='binding'){ v3Bewaar(); const b=g.bonds[t.k]; b.o=b.o%3+1; v3Na(); return; }
+}
+function v3Sleep(i, x, y){
+  const g=V3.g, sym=V3.tool;
+  const j=g.atoms.findIndex(a=>a.x===x&&a.y===y);
+  if(j<0){
+    v3Bewaar();
+    if(sym==='H'){ g.atoms[i].h++; v3Na(); return; }
+    g.atoms.push({sym,h:0,x,y}); g.bonds.push({a:i,b:g.atoms.length-1,o:1}); v3Na(); return;
+  }
+  const b=g.bonds.find(b=>(b.a===i&&b.b===j)||(b.a===j&&b.b===i));
+  if(b){ v3Bewaar(); b.o=b.o%3+1; v3Na(); return; }
+  if(v3Verbonden(g,i,j)){ v3Flits('Hiermee zou je een <b>ring</b> maken. Ringen bouw je in 3V niet, maar ze bestaan wel: in cyclohexaan zitten zes C-atomen in een ring.'); v3Teken(); return; }
+  v3Bewaar(); g.bonds.push({a:i,b:j,o:1}); v3Na();
+}
+function v3Gum(t){
+  const g=V3.g; v3Bewaar();
+  if(t.soort==='H'){ g.atoms[t.i].h=Math.max(0,g.atoms[t.i].h-1); }
+  else if(t.soort==='binding'){ g.bonds.splice(t.k,1); }
+  else if(t.soort==='atoom'){
+    g.bonds=g.bonds.filter(b=>b.a!==t.i&&b.b!==t.i).map(b=>({a:b.a>t.i?b.a-1:b.a, b:b.b>t.i?b.b-1:b.b, o:b.o}));
+    g.atoms.splice(t.i,1);
+  } else { V3.undo.pop(); return; }
+  v3Na();
+}
+// ===================== 3V-LEERLIJN: OPDRACHTEN =====================
+const V3_TEKEN_UITLEG = '<b>Zo teken je</b><ul style="margin:4px 0 8px;padding-left:20px">'+
+  '<li>Kies een atoomsoort en klik op een punt in het raster.</li>'+
+  '<li>Sleep vanaf een atoom naar een punt ernaast: daar komt een atoom, met een binding.</li>'+
+  '<li>Sleep nog eens tussen twee atomen, of klik op een binding: enkel, dubbel of drievoudig.</li>'+
+  '<li>Kies <b>H</b> en klik op een atoom: er komt een H-atoom bij.</li>'+
+  '<li>Met de gum of de rechtermuisknop haal je iets weg.</li></ul>';
+const V3_HINT_BIND = 'H, F, Cl, Br en I vormen 1 binding. O en S vormen 2 bindingen, N en P 3, en C 4.';
+const V3_HV = 'Met <b>+H aanvullen</b> zet de tool alle H-atomen er in één keer bij. Controleer daarna zelf of het klopt.';
+
+const V3_NIV = {
+ 1: { titel:'Moleculen bouwen', hvul:false,
+  instr: V3_TEKEN_UITLEG+'<b>Werkwijze</b><ol style="margin:4px 0 0;padding-left:20px"><li>Zoek per atoomsoort het aantal atoombindingen op.</li><li>Zet het atoom met de meeste bindingen in het midden.</li><li>Verbind de atomen zo, dat elk atoom precies zijn aantal bindingen heeft.</li><li>Controleer: tel bij elk atoom de streepjes.</li></ol>',
+  items: ()=>{
+   const B=(f,vb,uitw,hint)=>({type:'bouw', titel:'Bouwen bij een formule', formule:f, vb, uitw, hint:hint||V3_HINT_BIND});
+   const R=(f,start,vb,uitw)=>({type:'repareer', titel:'Overhoren door LUMEN', formule:f, start, vb, uitw, hint:'Controleer eerst of de molecuulformule klopt. Tel daarna bij elk atoom de bindingen. '+V3_HINT_BIND,
+     intro:'LUMEN: <i>‘Hier zijn vier structuurformules van Avo. In elke tekening zit één fout.’</i>'});
+   return [
+    B('H2O2','OO','Elk O-atoom heeft twee bindingen: één met het andere O-atoom en één met een H-atoom.'),
+    B('PH3','P','P vormt 3 bindingen, net als N. Het P-atoom heeft drie H-atomen.', 'Fosfor staat in het periodiek systeem in dezelfde groep als stikstof.'),
+    B('CCl4','ClC(Cl)(Cl)Cl','C vormt 4 bindingen en staat in het midden. Elk Cl-atoom vormt 1 binding.'),
+    B('C3H8','CCC','De drie C-atomen vormen een keten. Elk C-atoom vult zijn vier bindingen aan met H-atomen: 3 + 2 + 3 = 8.'),
+    B('CH5N','CN','C en N zitten aan elkaar vast. C heeft daarna nog 3 bindingen over voor H, N nog 2: samen 5 H-atomen.'),
+    B('CH2O','C=O','Met alleen enkele bindingen houden C en O allebei een binding over. Een dubbele binding tussen C en O lost dat op: C heeft dan 2 + 2 = 4 bindingen, O heeft er 2.','Tel de bindingen bij C en bij O. Komt het met enkele bindingen niet uit? Een binding kan ook dubbel zijn.'),
+    B('CO2','O=C=O','C staat in het midden, met een dubbele binding naar elk O-atoom: O=C=O. C heeft 4 bindingen, elk O-atoom 2.','Het C-atoom staat in het midden. Hoeveel bindingen moet elk O-atoom met C maken?'),
+    B('C2H2','C#C','Elk C-atoom heeft één H-atoom en houdt dan 3 bindingen over: een drievoudige binding tussen de C-atomen.','Hoeveel bindingen houdt een C-atoom over als er één H-atoom aan zit?'),
+    B('N2','N#N','Elk N-atoom vormt 3 bindingen. Met maar twee atomen kan dat alleen met een drievoudige binding.'),
+    R('CH4O', v3G([['C',0,0,4],['O',1,0,0]],[[0,1,1]]), 'CO','Avo zette vier H-atomen aan C. Dan heeft C vijf bindingen en O maar één. Eén H-atoom hoort aan het O-atoom.'),
+    R('C3H6', v3G([['C',0,0,3],['C',1,0,1],['C',2,0,2]],[[0,1,1],[1,2,1]]), 'CC=C','In de tekening van Avo hebben de twee rechter C-atomen maar 3 bindingen. Met een dubbele binding tussen die twee C-atomen klopt het: propeen.'),
+    R('N2H4', v3G([['N',0,0,2],['N',1,0,2]],[[0,1,2]]), 'NN','Met een dubbele binding heeft elk N-atoom 4 bindingen, maar N vormt er 3. Met een enkele binding klopt het. Deze stof is hydrazine, raketbrandstof uit deel III.'),
+    R('C4H10', v3G([['C',0,0,3],['C',1,0,2],['C',2,0,2],['C',3,0,2]],[[0,1,1],[1,2,1],[2,3,1]]), 'CCCC','Avo vergat een H-atoom. Het laatste C-atoom had maar 3 bindingen, en de formule was C₄H₉ in plaats van C₄H₁₀.'),
+    Object.assign(B('C2H3Cl','C=CCl','De twee C-atomen hebben samen maar drie H-atomen en één Cl-atoom. Daarom zit er een dubbele binding tussen de C-atomen. Dit is chlooretheen, de grondstof van pvc.'),{ster:true, titel:'★ Bouwen bij een formule'}),
+    {type:'iso', ster:true, titel:'★ Kan het ook anders?', formule:'C2H6O', set:['CCO','COC'], namen:false,
+     vraag:'Bouw een molecuul met de molecuulformule C<sub>2</sub>H<sub>6</sub>O en zet het in de lijst. Kan het ook anders?',
+     hint:'Het O-atoom kan op meer dan één plek zitten.', uitw:'Er zijn twee moleculen met C₂H₆O. In het ene zit het O-atoom aan het eind van de keten, met een H-atoom eraan (ethanol). In het andere zit het O-atoom tussen de twee C-atomen. Dezelfde molecuulformule, een andere structuurformule: dat zijn isomeren (§4.6).'}
+   ];
+  }},
+ 2: { titel:'Isomeren', hvul:true,
+  instr: V3_TEKEN_UITLEG+'<b>Naam van een alkaan of alkeen</b><ol style="margin:4px 0 8px;padding-left:20px"><li>Zoek de langste keten. Die mag een knik hebben. Bij een alkeen zit de dubbele binding in de keten.</li><li>Benoem de zijtakken: methyl, ethyl.</li><li>Nummer de keten vanaf de kant met de laagste nummers. Bij een alkeen krijgt de dubbele binding het laagste nummer.</li><li>Zet voor een zijtak het nummer van het C-atoom waar hij aan vastzit. Meer dezelfde zijtakken: di, tri. Verschillende zijtakken op alfabet.</li><li>Is een plaatsnummer niet nodig? Laat het weg.</li></ol>'+
+   '<b>Alle isomeren vinden</b><ol style="margin:4px 0 8px;padding-left:20px"><li>Teken de onvertakte keten.</li><li>Maak de keten één C-atoom korter en zet dat C-atoom als zijtak op elke mogelijke plek.</li><li>Maak de keten nog één C-atoom korter en verdeel de twee overgebleven C-atomen.</li><li>Geef elke structuur een naam: twee tekeningen met dezelfde naam zijn dezelfde stof.</li></ol>'+V3_HV,
+  items: ()=>{
+   const BN=(naam,sm,uitw,hint)=>({type:'bouwNaam', titel:'Bouwen bij een naam', naam, sm, uitw, hint:hint||'Begin met de keten die de stamnaam aangeeft. Nummer de C-atomen en zet daarna de zijtakken of de dubbele binding op hun plek.'});
+   const N=(start,uitw,hint)=>({type:'naam', titel:'Naam geven', start, uitw, hint:hint||'Zoek eerst de langste keten. Die mag een knik hebben, en kan ook door een ‘zijtak’ lopen.'});
+   return [
+    BN('2,2-dimethylpentaan','CCCC(C)(C)C','Een keten van 5 C-atomen (pentaan), met twee methylgroepen aan C2.'),
+    BN('2,3-dimethylbutaan','CC(C)C(C)C','Een keten van 4 C-atomen, met een methylgroep aan C2 en een aan C3.'),
+    BN('pent-2-een','CC=CCC','Een keten van 5 C-atomen, met een dubbele binding tussen C2 en C3.'),
+    BN('hex-1-een','C=CCCCC','Een keten van 6 C-atomen, met een dubbele binding tussen C1 en C2. Hexaan en hex-1-een zijn geen isomeren: hex-1-een heeft twee H-atomen minder.'),
+    N(v3Keten([[1,0],[2,0],[3,0],[3,1],[4,1],[5,1]]),'Alle zes C-atomen zitten in één keten. Een knik is geen vertakking: dit is hexaan.'),
+    N(v3G([['C',0,0],['C',1,0],['C',2,0],['C',3,0],['C',4,0],['C',1,-1],['C',1,-2]],[[0,1],[1,2],[2,3],[3,4],[1,5],[5,6]]),
+      'De langste keten loopt door de ‘zijtak’ omhoog: 6 C-atomen. Het overgebleven C-atoom is een methylgroep aan C3. De naam is dus 3-methylhexaan, niet 2-ethylpentaan.'),
+    N(v3G([['C',0,0],['C',1,0],['C',2,0],['C',3,0],['C',4,0],['C',3,-1]],[[0,1],[1,2],[2,3,2],[3,4],[3,5]]),'Nummer vanaf de rechterkant: dan zit de dubbele binding tussen C2 en C3, en de methylgroep aan C2.','Bij een alkeen krijgt de dubbele binding het laagste nummer.'),
+    N(v3G([['C',0,0],['C',1,0],['C',2,0],['C',3,0],['C',4,0],['C',1,-1],['C',1,1],['C',3,-1]],[[0,1],[1,2],[2,3],[3,4],[1,5],[1,6],[3,7]]),'Een keten van 5 C-atomen, met twee methylgroepen aan C2 en één aan C4. Deze stof heet ook wel iso-octaan: de maat voor de kwaliteit van benzine.'),
+    {type:'lumen', titel:'De oefening van LUMEN', vraag:'LUMEN: <i>‘Ik laat jullie vijf tekeningen zien. Zoek zelf uit hoeveel verschillende stoffen het zijn.’</i> Geef elke tekening een naam. Vul daarna in hoeveel verschillende stoffen het zijn.',
+     tekeningen:[ v3G([['C',0,0],['C',1,0],['C',2,0],['C',3,0],['C',4,0]],[[0,1],[1,2],[2,3],[3,4]]),
+       v3G([['C',0,0],['C',1,0],['C',2,0],['C',3,0],['C',1,-1]],[[0,1],[1,2],[2,3],[1,4]]),
+       v3G([['C',0,0],['C',1,0],['C',2,0],['C',2,1],['C',2,2]],[[0,1],[1,2],[2,3],[3,4]]),
+       v3G([['C',0,0],['C',1,0],['C',2,0],['C',1,-1],['C',1,1]],[[0,1],[1,2],[1,3],[1,4]]),
+       v3G([['C',0,0],['C',1,0],['C',2,0],['C',3,0],['C',2,1]],[[0,1],[1,2],[2,3],[2,4]]) ],
+     hint:'Twee tekeningen met dezelfde naam zijn dezelfde stof.',
+     uitw:'Tekening 1 en 3 zijn allebei pentaan: een knik is geen vertakking. Tekening 2 en 5 zijn allebei methylbutaan: nummer je tekening 5 vanaf de andere kant, dan zit de methylgroep ook aan C2. Tekening 4 is dimethylpropaan. Dat zijn 3 verschillende stoffen: de drie isomeren van C₅H₁₂.'},
+    {type:'iso', titel:'Zelf zoeken', formule:'C6H14', set:['CCCCCC','CC(C)CCC','CCC(C)CC','CC(C)(C)CC','CC(C)C(C)C'], namen:true,
+     vraag:'Bouw alle isomeren van C<sub>6</sub>H<sub>14</sub>. Zet elk isomeer in de lijst en geef het een naam.',
+     hint:'Gebruik de werkwijze: eerst de onvertakte keten, dan steeds één C-atoom korter. Geef elk isomeer meteen een naam.',
+     uitw:'C₆H₁₄ heeft vijf isomeren: hexaan, 2-methylpentaan, 3-methylpentaan, 2,2-dimethylbutaan en 2,3-dimethylbutaan.'},
+    {type:'iso', ster:true, open:true, titel:'★ Hoeveel?', formule:'C7H16', set:['CCCCCCC','CC(C)CCCC','CCC(C)CCC','CC(C)(C)CCC','CCC(C)(C)CC','CC(C)C(C)CC','CC(C)CC(C)C','CCC(CC)CC','CC(C)(C)C(C)C'], namen:false,
+     vraag:'Bouw zoveel isomeren van C<sub>7</sub>H<sub>16</sub> als je kunt in tien minuten. Zet ze in de lijst en klik op <b>Klaar</b> als je stopt.',
+     hint:'Werk systematisch: keten van 7, van 6, van 5 en van 4 C-atomen.',
+     uitw:'C₇H₁₆ heeft negen isomeren. Hoe meer C-atomen, hoe meer manieren om ze te verdelen: C₁₀H₂₂ heeft er al 75.'}
+   ];
+  }},
+ 3: { titel:'Karakteristieke groepen', hvul:true,
+  instr: V3_TEKEN_UITLEG+'<b>Namen met een karakteristieke groep</b><ul style="margin:4px 0 8px;padding-left:20px"><li>Halogeenalkaan: plaatsnummer + fluor, chloor, broom of jood + alkaan, bijvoorbeeld 2-broompropaan.</li><li>Alkanol: alkaan + plaatsnummer + -ol, bijvoorbeeld propaan-2-ol. De OH-groep krijgt het laagste nummer.</li><li>Alkaanzuur: stamnaam + -aanzuur. Het C-atoom van de carboxylgroep telt mee in de keten; een nummer is nooit nodig.</li><li>Is een plaatsnummer niet nodig? Laat het weg.</li></ul>'+V3_HV,
+  items: ()=>{
+   const BN=(naam,sm,uitw)=>({type:'bouwNaam', titel:'Bouwen bij een naam', naam, sm, uitw, hint:'Begin met de keten die de stamnaam aangeeft. Zet daarna de karakteristieke groep op de goede plek.'});
+   const K=(naam,sm,uitw)=>({type:'klopt', titel:'Overhoren door LUMEN', naam, sm, uitw, hint:'Teken het molecuul in het kladblok. Nummer de keten daarna opnieuw, vanaf beide kanten.',
+     intro:'LUMEN: <i>‘Hier zijn vier namen. In een paar heb ik expres een fout gestopt.’</i>'});
+   const N=(sm,uitw)=>({type:'naam', titel:'Naam geven', start:v3Layout(v3Parse(sm)), uitw, hint:'Zoek de langste keten met de karakteristieke groep erin. Geef de groep het laagste nummer.'});
+   return [
+    BN('2-chloorpropaan','CC(Cl)C','Een keten van 3 C-atomen, met een Cl-atoom aan het middelste C-atoom.'),
+    BN('hexaan-3-ol','CCCC(O)CC','Een keten van 6 C-atomen, met een OH-groep aan C3.'),
+    BN('propaanzuur','CCC(=O)O','Een keten van 3 C-atomen. Het laatste C-atoom is het C-atoom van de carboxylgroep: het heeft een dubbele binding met een O-atoom en een OH-groep.'),
+    BN('dibroommethaan','BrCBr','Eén C-atoom met twee Br-atomen en twee H-atomen. Een plaatsnummer is niet nodig: er is maar één C-atoom.'),
+    K('butaan-1-zuur','CCCC(=O)O','Het C-atoom van de carboxylgroep is altijd C1. Het nummer is dus niet nodig: butaanzuur.'),
+    K('chloormethaan','CCl','De naam klopt: er is maar één C-atoom, dus een nummer is niet nodig.'),
+    K('butaan-3-ol','CCC(O)C','Nummer vanaf de andere kant: dan krijgt de OH-groep nummer 2. De naam is butaan-2-ol.'),
+    K('pentaan-2-ol','CCCC(O)C','De naam klopt: vanaf de andere kant zou de OH-groep nummer 4 krijgen.'),
+    N('ClCCCl','Aan elk C-atoom zit één Cl-atoom: 1,2-dichloorethaan. Zitten ze aan hetzelfde C-atoom, dan is het 1,1-dichloorethaan.'),
+    N('CC(C)(C)O','Een keten van 3 C-atomen, met de OH-groep aan C2. De methylgroep kan alleen aan C2 zitten (aan C1 wordt de keten langer), dus dat nummer mag weg. 2-methylpropaan-2-ol is ook goed.'),
+    N('CC(=O)O','Twee C-atomen, waarvan één het C-atoom van de carboxylgroep is: ethaanzuur, het zuur in azijn.'),
+    N('CCC(O)CC','Een keten van 5 C-atomen, met de OH-groep in het midden: vanaf beide kanten nummer 3.'),
+    {type:'iso', titel:'Isomeren', formule:'C3H8O', set:['CCCO','CC(C)O','COCC'], namen:true,
+     vraag:'Bouw zoveel mogelijk verschillende moleculen met de molecuulformule C<sub>3</sub>H<sub>8</sub>O. Zet ze in de lijst en geef de alkanolen een naam.',
+     hint:'Het O-atoom kan op verschillende plekken zitten: ook tussen twee C-atomen.',
+     uitw:'Er zijn drie moleculen met C₃H₈O. Twee ervan zijn alkanolen: propaan-1-ol en propaan-2-ol.'},
+    {type:'iso', ster:true, titel:'★ Alle alkanolen', formule:'C4H10O', set:['CCCCO','CCC(C)O','CC(C)CO','CC(C)(C)O'], namen:true, filter:'ol',
+     vraag:'Bouw alle alkanolen met de molecuulformule C<sub>4</sub>H<sub>10</sub>O en geef ze een naam.',
+     hint:'Combineer: een keten van 4 of van 3 C-atomen, en de OH-groep op elke mogelijke plek.',
+     uitw:'Er zijn vier: butaan-1-ol, butaan-2-ol, methylpropaan-1-ol en methylpropaan-2-ol.'}
+   ];
+  }}
+};
+
+// ---------- weergave van de opdrachten ----------
+let v3Serie=null;
+function v3Start(niv){
+  V3.niveau=niv; V3.hAanvul=V3_NIV[niv].hvul;
+  v3Serie={ i:0, items:V3_NIV[niv].items(), status:[] , einde:false};
+  v3Render();
+}
+function v3Dots(){
+  const S=v3Serie;
+  document.getElementById('dots').innerHTML = S.items.map((q,i)=>'<span class="dot '+(i===S.i&&!S.einde?'cur ':'')+(S.status[i]||'')+'" data-i="'+i+'">'+(q.ster?'★':i+1)+'</span>').join('');
+  document.querySelectorAll('#dots .dot').forEach(d=>d.onclick=()=>{ S.i=+d.dataset.i; S.einde=false; v3Render(); });
+  document.getElementById('score').textContent='Score: '+S.status.filter(s=>s==='ok').length+' / '+S.items.length;
+}
+function v3Render(){
+  const S=v3Serie, el=document.getElementById('opdBody');
+  document.getElementById('llLabel').textContent='3V · niveau '+V3.niveau;
+  v3Dots(); V3.opWijziging=null;
+  if(S.einde){
+    v3Laad(null,false);
+    el.innerHTML='<div class="eind"><p><b>Klaar met niveau '+V3.niveau+'!</b> Je had '+S.status.filter(s=>s==='ok').length+' van de '+S.items.length+' opdrachten goed zonder het antwoord te bekijken.</p><button class="btn" id="v3Opn">Opnieuw ➜</button></div>';
+    document.getElementById('v3Opn').onclick=()=>v3Start(V3.niveau); return;
+  }
+  const q=S.items[S.i], st={tries:0, fout:false, getoond:false, klaar:S.status[S.i]==='ok'||S.status[S.i]==='done'};
+  const laatste=S.i===S.items.length-1;
+  let h='<details class="instr"'+(S.i===0?' open':'')+'><summary>Uitleg: '+V3_NIV[V3.niveau].titel+'</summary><div class="in">'+V3_NIV[V3.niveau].instr+'</div></details>';
+  if(q.intro) h+='<p style="margin:0 0 10px;font-size:14.5px">'+q.intro+'</p>';
+  const vraag = q.vraag || ( q.type==='bouw' ? 'Bouw een molecuul met de molecuulformule '+v3FormuleTekst(q.formule)+'.'
+    : q.type==='repareer' ? 'Avo wilde een molecuul tekenen met de molecuulformule '+v3FormuleTekst(q.formule)+'. Verbeter zijn tekening.'
+    : q.type==='bouwNaam' ? 'Bouw het molecuul <b>'+q.naam+'</b>.'
+    : q.type==='naam' ? 'Geef de naam van deze stof.'
+    : q.type==='klopt' ? 'Klopt de naam <b>'+q.naam+'</b>? Klik op <b>De naam klopt</b>, of typ de goede naam.' : '');
+  h+='<div class="task"><div class="lbl">Opdracht '+(S.i+1)+' van '+S.items.length+' · '+q.titel+'</div><div class="desc">'+vraag+'</div></div>';
+  h+='<div id="v3Ctl"></div><div class="fb"></div>';
+  h+='<div class="acties"><button class="btn ghost hintb">Hint</button><button class="btn ghost toonb" style="display:none">Toon antwoord</button>'+
+     '<button class="btn volg" style="display:none">'+(laatste?'Afronden ➜':'Volgende opdracht ➜')+'</button></div>'+
+     '<div class="hint" style="display:none"></div><div class="uitw" style="display:none"></div>';
+  el.innerHTML=h; el.scrollTop=0;
+  const $=s=>el.querySelector(s), ctl=$('#v3Ctl');
+  const fb=(cls,html)=>{ const f=$('.fb'); f.className='fb show '+cls; f.innerHTML=html; };
+  $('.hintb').onclick=()=>{ const x=$('.hint'); x.style.display='block'; x.innerHTML='<b>Hint:</b> '+q.hint; };
+  $('.volg').onclick=()=>{ if(S.i>=S.items.length-1) S.einde=true; else S.i++; v3Render(); };
+  const klaar=(extra)=>{
+    st.klaar=true; S.status[S.i]=(st.fout||st.getoond)?'done':'ok'; v3Dots();
+    $('.hintb').style.display='none'; $('.toonb').style.display='none'; $('.volg').style.display='';
+    const u=$('.uitw'); u.style.display='block'; u.innerHTML='<div class="kop">Uitleg</div>'+q.uitw+(extra||'');
+    ctl.querySelectorAll('button:not(.v3keep),input').forEach(x=>x.disabled=true);
+  };
+  const mis=(msg)=>{ st.tries++; st.fout=true; fb('incorrect','<b>Nog niet goed.</b> '+msg); if(st.tries>=2) $('.toonb').style.display=''; };
+
+  // tekenvlak klaarzetten
+  if(q.type==='naam') v3Laad(q.start,true);
+  else if(q.type==='repareer') v3Laad(q.start,false);
+  else v3Laad(null,false);
+  document.getElementById('v3Kladblok').style.display = (q.type==='klopt'||q.type==='lumen') ? 'block':'none';
+
+  if(q.type==='bouw'||q.type==='bouwNaam'||q.type==='repareer'){
+    ctl.innerHTML='<div class="inrow"><button class="btn chk">Controleer mijn molecuul</button></div>';
+    ctl.querySelector('.chk').onclick=()=>{
+      const g=V3.g, m=v3Basis(g);
+      if(m){ V3.fout=new Set(v3Fouten(g)); v3Teken(); mis(m); return; }
+      const want = q.type==='bouwNaam' ? v3Counts(v3Parse(q.sm)) : v3CountsVan(q.formule);
+      if(!v3CountsEq(v3Counts(g),want)){
+        if(q.type==='bouwNaam') return mis('Je molecuul past niet bij de naam: het heeft niet de goede molecuulformule. Tel de C-atomen in de stamnaam en in de zijtakken nog eens.');
+        return mis('Jouw molecuul is '+v3FormuleHTML(v3Counts(g))+'. Gevraagd is '+v3FormuleTekst(q.formule)+'.');
+      }
+      if(q.type==='bouwNaam' && v3Canon(g)!==v3Canon(v3Parse(q.sm))) return mis('Je molecuul heeft de goede molecuulformule, maar het is een isomeer van de gevraagde stof. Lees de naam nog eens stap voor stap: stamnaam, plaatsnummers, zijtakken.');
+      fb('correct','<b>Goed!</b>'); klaar();
+    };
+    $('.toonb').onclick=()=>{ st.getoond=true; v3Laad(v3Layout(v3Parse(q.vb||q.sm)),false); fb('info','<b>Zo kan het.</b> Het antwoord staat nu in het tekenvlak.'); klaar(); };
+  }
+  else if(q.type==='naam'){
+    ctl.innerHTML='<div class="inrow"><input type="text" class="v3naam" placeholder="naam" autocomplete="off" spellcheck="false"><button class="btn chk">Controleer</button></div>';
+    const inp=ctl.querySelector('input'); inp.focus();
+    const chk=()=>{ const r=v3BeoordeelNaam(q.start, inp.value); if(!r.goed) return mis(r.tekst); fb('correct','<b>Goed!</b> '+r.tekst); klaar(); };
+    ctl.querySelector('.chk').onclick=chk; inp.onkeydown=e=>{ if(e.key==='Enter') chk(); };
+    $('.toonb').onclick=()=>{ st.getoond=true; fb('info','<b>Antwoord:</b> '+v3Naam(q.start).min); klaar(); };
+  }
+  else if(q.type==='klopt'){
+    const g=v3Layout(v3Parse(q.sm)), N=v3Naam(g), gegeven=v3Norm(q.naam), isOk=N.ok.includes(gegeven);
+    ctl.innerHTML='<div class="inrow"><button class="btn ghost klopt">De naam klopt</button></div><div class="inrow" style="margin-top:8px"><input type="text" class="v3naam" placeholder="verbeterde naam" autocomplete="off" spellcheck="false"><button class="btn chk">Controleer</button></div>';
+    const inp=ctl.querySelector('input');
+    ctl.querySelector('.klopt').onclick=()=>{
+      if(!isOk) return mis('Deze naam klopt niet. Teken het molecuul in het kladblok en nummer de keten opnieuw.');
+      fb('correct','<b>Goed!</b> '+(gegeven!==N.min?'De naam is niet fout, maar het nummer is niet nodig: <b>'+N.min+'</b>.':'')); klaar();
+    };
+    const chk=()=>{ const r=v3BeoordeelNaam(g, inp.value); if(!r.goed) return mis(r.tekst); fb('correct','<b>Goed!</b> '+r.tekst); klaar(); };
+    ctl.querySelector('.chk').onclick=chk; inp.onkeydown=e=>{ if(e.key==='Enter') chk(); };
+    $('.toonb').onclick=()=>{ st.getoond=true; fb('info','<b>Antwoord:</b> '+(isOk?'de naam klopt'+(gegeven!==N.min?' (korter: '+N.min+')':''):'de goede naam is '+N.min)+'.'); klaar(); };
+  }
+  else if(q.type==='lumen'){
+    v3Laad(null,false);
+    ctl.innerHTML='<div class="v3lijst">'+q.tekeningen.map((t,k)=>'<div class="v3item" data-k="'+k+'"><div class="v3nr">'+(k+1)+'</div><div class="v3th"></div><input type="text" class="v3naam" placeholder="naam" autocomplete="off" spellcheck="false"><div class="v3msg"></div></div>').join('')+'</div>'+
+      '<div class="inrow" style="margin-top:8px"><label>Aantal verschillende stoffen:</label><input type="text" class="v3aantal" style="width:60px" autocomplete="off"><button class="btn chk">Controleer</button></div>';
+    ctl.querySelectorAll('.v3item').forEach((d,k)=>d.querySelector('.v3th').appendChild(v3ThumbCanvas(q.tekeningen[k],170,110)));
+    const juist=new Set(q.tekeningen.map(v3Canon)).size;
+    ctl.querySelector('.chk').onclick=()=>{
+      let alles=true;
+      ctl.querySelectorAll('.v3item').forEach((d,k)=>{ const r=v3BeoordeelNaam(q.tekeningen[k], d.querySelector('input').value); d.classList.toggle('ok',r.goed); d.classList.toggle('fout',!r.goed); d.querySelector('.v3msg').innerHTML=r.goed?(r.tekst||''):r.tekst; if(!r.goed) alles=false; });
+      const n=parseInt(ctl.querySelector('.v3aantal').value,10);
+      if(!alles) return mis('Niet alle namen kloppen. Bekijk de rode tekeningen nog eens.');
+      if(n!==juist) return mis('De namen kloppen, maar het aantal verschillende stoffen nog niet. Twee tekeningen met dezelfde naam zijn dezelfde stof.');
+      fb('correct','<b>Goed!</b>'); klaar();
+    };
+    $('.toonb').onclick=()=>{ st.getoond=true; ctl.querySelectorAll('.v3item').forEach((d,k)=>{ d.querySelector('input').value=v3Naam(q.tekeningen[k]).min; }); ctl.querySelector('.v3aantal').value=juist; fb('info','<b>De antwoorden staan nu ingevuld.</b>'); klaar(); };
+  }
+  else if(q.type==='iso'){
+    const setC=new Set(q.set.map(s=>v3Canon(v3Parse(s)))), want=v3CountsVan(q.formule);
+    const lijst=[];
+    ctl.innerHTML='<div class="inrow"><button class="btn ghost add v3keep">+ Zet mijn molecuul in de lijst</button></div><div class="v3lijst"></div>'+
+      '<div class="inrow" style="margin-top:8px"><button class="btn chk">Controleer de lijst</button>'+(q.open?'<button class="btn ghost klaarb">Klaar</button>':'')+'</div>';
+    const box=ctl.querySelector('.v3lijst');
+    const teken=()=>{
+      box.innerHTML='';
+      lijst.forEach((e,k)=>{
+        const d=document.createElement('div'); d.className='v3item'+(e.st?' '+e.st:'');
+        d.innerHTML='<div class="v3nr">'+(k+1)+'</div><button class="v3del v3keep" title="uit de lijst halen">×</button><div class="v3th"></div>'+(q.namen?'<input type="text" class="v3naam" placeholder="naam" autocomplete="off" spellcheck="false">':'')+'<div class="v3msg">'+(e.msg||'')+'</div>';
+        d.querySelector('.v3th').appendChild(v3ThumbCanvas(e.g,170,110));
+        const inp=d.querySelector('input'); if(inp){ inp.value=e.naam; inp.oninput=()=>{ e.naam=inp.value; }; if(st.klaar) inp.disabled=true; }
+        d.querySelector('.v3del').onclick=()=>{ if(st.klaar) return; lijst.splice(k,1); lijst.forEach(x=>{ x.st=''; x.msg=''; }); teken(); };
+        d.querySelector('.v3th').onclick=()=>{ if(!st.klaar){ v3Laad(e.g,false); } };
+        box.appendChild(d);
+      });
+    };
+    ctl.querySelector('.add').onclick=()=>{
+      if(st.klaar) return;
+      if(!V3.g.atoms.length){ fb('info','Teken eerst een molecuul.'); return; }
+      lijst.push({g:v3Clone(V3.g), naam:'', st:'', msg:''}); lijst.forEach(x=>{ x.st=''; x.msg=''; }); teken();
+      fb('info','Molecuul '+lijst.length+' staat in de lijst. Pas je tekening aan voor het volgende molecuul.');
+    };
+    const controle=()=>{
+      const gezien=new Map(); let fouten=0, goed=0;
+      lijst.forEach((e,k)=>{
+        e.st='fout'; e.msg='';
+        if(!v3Geldig(e.g)){ e.msg='Het aantal bindingen klopt niet bij alle atomen.'; fouten++; return; }
+        if(!v3CountsEq(v3Counts(e.g),want)){ e.msg='Dit molecuul heeft een andere molecuulformule.'; fouten++; return; }
+        const c=v3Canon(e.g);
+        if(q.filter==='ol'){ const inf=v3Info(e.g); if(!inf||inf.ether||inf.cls!=='ol'){ e.msg='Dit is geen alkanol.'; fouten++; return; } }
+        if(gezien.has(c)){ e.msg='Dit is dezelfde stof als nummer '+(gezien.get(c)+1)+'.'; fouten++; return; }
+        gezien.set(c,k);
+        if(q.namen){ const r=v3BeoordeelNaam(e.g,e.naam); if(!r.goed){ e.msg=r.tekst; fouten++; return; } e.msg=r.geen?'':r.tekst; }
+        if(setC.has(c)){ e.st='ok'; goed++; } else { e.msg='Dit molecuul hoort hier niet bij.'; fouten++; }
+      });
+      teken();
+      return {fouten, goed};
+    };
+    ctl.querySelector('.chk').onclick=()=>{
+      if(!lijst.length) return fb('info','Zet eerst een molecuul in de lijst.');
+      const r=controle();
+      if(q.open){
+        if(r.goed===setC.size && !r.fouten){ fb('correct','<b>Knap!</b> Je hebt ze alle '+setC.size+' gevonden.'); klaar(); return; }
+        st.tries++; fb(r.fouten?'incorrect':'info','Je hebt nu <b>'+r.goed+'</b> verschillende isomeren gevonden.'+(r.fouten?' Bij de rode moleculen klopt iets nog niet.':'')); return;
+      }
+      if(r.fouten) return mis('Bij de rode moleculen klopt iets nog niet.');
+      if(r.goed<setC.size) return mis('Alles in je lijst klopt, maar er ontbreken nog moleculen.');
+      fb('correct','<b>Goed!</b> Je hebt ze allemaal gevonden.'); klaar();
+    };
+    if(q.open) ctl.querySelector('.klaarb').onclick=()=>{ const r=controle(); fb('info','Je hebt <b>'+r.goed+'</b> van de '+setC.size+' isomeren gevonden.'); st.getoond = r.goed<setC.size; klaar(); };
+    $('.toonb').onclick=()=>{
+      st.getoond=true; lijst.length=0;
+      q.set.forEach(s=>{ const g=v3Layout(v3Parse(s)); const N=v3Naam(g); lijst.push({g, naam:(N&&N.min)||'', st:'ok', msg:''}); });
+      teken(); fb('info','<b>Zo ziet de volledige lijst eruit.</b>'); klaar();
+    };
+    teken();
+  }
+}
+function v3Basis(g){
+  if(!g.atoms.length) return 'Je hebt nog niets getekend.';
+  if(!v3Samenhang(g)) return 'Je tekening heeft losse stukken. In een molecuul zitten alle atomen via bindingen aan elkaar vast.';
+  if(v3Fouten(g).length) return 'Bij de rood omcirkelde atomen klopt het aantal bindingen nog niet. Een binding met een H-atoom telt ook mee.';
+  return null;
+}
+
+// ---------- koppeling met de rest van de Molecuulbouwer ----------
+const v3OudLeerlijn = zetLeerlijn;
+zetLeerlijn = function(ll){
+  if(/^3v[123]$/.test(ll)){
+    leerlijn = ll; document.body.classList.add('v3'); tmAan(false);
+    document.querySelectorAll('.llbtn').forEach(b=>b.classList.toggle('active', b.dataset.ll===ll));
+    v3Resize(); v3Start(+ll[2]); setTimeout(v3Resize, 30); return;
+  }
+  document.body.classList.remove('v3'); v3OudLeerlijn(ll); resizeCanvas(); render();
+};
+document.querySelectorAll('.llbtn').forEach(b=>b.onclick=()=>zetLeerlijn(b.dataset.ll));
+document.getElementById('tbVrij').onclick = () => { document.body.classList.remove('v3'); zetModus(false); };
+document.getElementById('tbOpd').onclick = () => { zetModus(true); if(/^3v/.test(leerlijn)) zetLeerlijn(leerlijn); else renderSerie(); };
+v3Init();
+try { const ll = new URLSearchParams(location.search).get('leerlijn'); if(/^3v[123]$/.test(ll)) zetLeerlijn(ll); } catch(e){}
 
 </script>
 </body>
