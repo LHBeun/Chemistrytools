@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Het goudfolie-experiment · Rutherford</title>
+<style>
+:root{
+  --bg:#0e161d; --panel:#16222c; --panel2:#1c2b37; --line:#2a3d4b;
+  --ink:#e7eef3; --muted:#93a8b6; --accent:#3fb2a6; --accent2:#2a7f77;
+  --gold:#d9ab4c; --alpha:#ffcf5a; --flash:#7dffb0; --warn:#ff8a65; --good:#5fd38d; --bad:#ff7a6b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif}
+header{padding:18px 26px 10px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+header h1{margin:0;font-size:24px;font-weight:600;letter-spacing:.3px}
+header .sub{color:var(--muted);font-size:14px}
+.tabs{display:flex;gap:6px;padding:14px 26px 0;max-width:1440px;margin:0 auto}
+.tabs button{border:1px solid var(--line);border-bottom:0;background:var(--panel2);color:var(--muted);padding:10px 20px;border-radius:10px 10px 0 0;font-size:15px;cursor:pointer;font-family:inherit}
+.tabs button.on{background:var(--panel);color:var(--ink)}
+.view{max-width:1440px;margin:0 auto;padding:0 26px 26px}
+.hidden{display:none !important}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h2{margin:0 0 10px;font-size:15px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:1px}
+canvas{width:100%;display:block;border-radius:10px;background:#0a1117}
+.small{font-size:12.5px;color:var(--muted);line-height:1.45}
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--ink);padding:10px 14px;border-radius:9px;font-size:14px;cursor:pointer;font-family:inherit;transition:background .15s}
+.btn:hover{background:#25394a}
+.btn.primary{background:var(--accent2);border-color:var(--accent2);color:#fff}
+.btn.primary:hover{background:var(--accent)}
+.btn:disabled{opacity:.35;cursor:default}
+.btn.on{background:#1f3a3f;border-color:var(--accent)}
+
+/* rondleiding */
+.tour{display:grid;grid-template-columns:1fr 400px;gap:18px;background:var(--panel);border:1px solid var(--line);border-radius:0 12px 12px 12px;padding:16px}
+@media (max-width:1100px){.tour{grid-template-columns:1fr}}
+.stepno{font-size:13px;color:var(--muted);margin-bottom:4px}
+.tour h3{margin:0 0 10px;font-size:22px;font-weight:600}
+.ttext{font-size:15.5px;line-height:1.55}
+.ttext p{margin:0 0 10px}
+.q{margin-top:14px;padding:14px;border-radius:10px;background:var(--panel2);border:1px solid var(--line)}
+.q .prompt{font-weight:600;font-size:15.5px;margin-bottom:10px}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:#14202a;color:var(--ink);font-size:14.5px;cursor:pointer;font-family:inherit}
+.opt:hover:not(:disabled){background:#1d2f3c}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--good);background:#16352a}
+.opt.wrong{border-color:var(--bad);background:#3a1e1e}
+.expl{margin-top:10px;font-size:14.5px;line-height:1.5}
+.expl b.g{color:var(--good)} .expl b.b{color:var(--bad)}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:8px}
+.dots{display:flex;gap:5px;flex-wrap:wrap}
+.dots span{width:9px;height:9px;border-radius:50%;background:#2d4150}
+.dots span.done{background:var(--accent2)} .dots span.cur{background:var(--accent)}
+.models{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.models .btn{padding:10px 6px;font-size:13.5px;text-align:center}
+.mdesc{font-size:14px;margin-top:8px;min-height:40px;color:var(--ink)}
+
+/* lab */
+.lab{display:grid;grid-template-columns:300px 1fr;gap:18px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+@media (max-width:1000px){.lab{grid-template-columns:1fr}}
+.seg{display:flex;background:var(--panel2);border-radius:10px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:transparent;color:var(--muted);padding:9px 6px;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit}
+.seg button.on{background:var(--accent2);color:#fff}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+label.sl{display:block;font-size:14px;margin:6px 0 4px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.badge{display:inline-block;font-size:11px;background:#3a2a1a;color:var(--warn);border:1px solid #6b4528;border-radius:20px;padding:2px 8px;margin-left:6px;vertical-align:middle}
+table{width:100%;border-collapse:collapse;font-size:15px}
+td{padding:7px 4px;border-bottom:1px solid var(--line)}
+td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+tr.tot td{border-bottom:0;color:var(--muted)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle}
+.stage{display:grid;grid-template-columns:1.2fr 1fr;gap:18px}
+@media (max-width:1250px){.stage{grid-template-columns:1fr}}
+.cap{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.cap h3{margin:0;font-size:15px;font-weight:600}
+.cap span{font-size:12.5px;color:var(--muted)}
+.stack>*+*{margin-top:14px}
+.panel2{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Het goudfolie-experiment</h1>
+  <div class="sub">Manchester, 1909 · Geiger, Marsden en Rutherford · bij §2.6 en module 2.6</div>
+</header>
+<div class="tabs">
+  <button data-tab="tour" class="on">1 · Rondleiding</button>
+  <button data-tab="lab">2 · Lab</button>
+</div>
+
+<!-- ================= RONDLEIDING ================= -->
+<div class="view" id="vTour">
+  <div class="tour">
+    <div><canvas id="tour" width="1000" height="640"></canvas></div>
+    <div>
+      <div class="stepno" id="stepNo"></div>
+      <h3 id="stepTitle"></h3>
+      <div class="ttext" id="stepText"></div>
+      <div id="modelBox" class="hidden">
+        <div class="models">
+          <button class="btn" data-model="A">A · Massieve bol</button>
+          <button class="btn" data-model="B">B · Grote kern</button>
+          <button class="btn" data-model="C">C · Kleine kern</button>
+        </div>
+        <div class="mdesc" id="mdesc">Kies een model om het te testen.</div>
+      </div>
+      <div class="q hidden" id="qBox">
+        <div class="prompt" id="qPrompt"></div>
+        <div id="qOpts"></div>
+        <div class="expl" id="qExpl"></div>
+      </div>
+      <div class="nav">
+        <button class="btn" id="prevBtn">← Vorige</button>
+        <div class="dots" id="dots"></div>
+        <button class="btn primary" id="nextBtn">Volgende →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= LAB ================= -->
+<div class="view hidden" id="vLab">
+  <div class="lab">
+    <div class="stack">
+      <div class="panel2">
+        <h2 style="margin:0 0 10px;font-size:15px;color:var(--accent);text-transform:uppercase;letter-spacing:1px">Atoommodel</h2>
+        <div class="seg" id="modelSeg">
+          <button data-m="thomson" class="on">Krentenbolmodel<br><span style="font-size:12px;opacity:.8">van Thomson</span></button>
+          <button data-m="kern">Kernmodel<br><span style="font-size:12px;opacity:.8">van Rutherford</span></button>
+        </div>
+        <div id="kernBox" style="margin-top:14px;opacity:.4">
+          <label class="sl">Grootte van de kern <span class="badge">niet op schaal</span></label>
+          <input type="range" id="kernSlider" min="0" max="1000" value="800" disabled>
+          <div class="small" id="kernTxt"></div>
+        </div>
+      </div>
+      <div class="panel2">
+        <h2 style="margin:0 0 10px;font-size:15px;color:var(--accent);text-transform:uppercase;letter-spacing:1px">Alfadeeltjes afschieten</h2>
+        <div class="btns">
+          <button class="btn primary" data-n="1">1 deeltje</button>
+          <button class="btn primary" data-n="100">100</button>
+          <button class="btn primary" data-n="1000">1000</button>
+          <button class="btn primary" data-n="10000">10 000</button>
+        </div>
+        <div class="btns" style="margin-top:8px">
+          <button class="btn" id="resetBtn">Metingen wissen</button>
+          <button class="btn" id="ballBtn">Botsing met elektron</button>
+        </div>
+      </div>
+      <div class="panel2">
+        <h2 style="margin:0 0 10px;font-size:15px;color:var(--accent);text-transform:uppercase;letter-spacing:1px">Telling</h2>
+        <table>
+          <tr><td><span class="dot" style="background:#5d7a8c"></span>rechtdoor <span class="small">(minder dan 5°)</span></td><td class="n" id="cS">0</td></tr>
+          <tr><td><span class="dot" style="background:var(--alpha)"></span>afgebogen <span class="small">(5° tot 90°)</span></td><td class="n" id="cD">0</td></tr>
+          <tr><td><span class="dot" style="background:var(--warn)"></span>teruggekaatst <span class="small">(meer dan 90°)</span></td><td class="n" id="cB">0</td></tr>
+          <tr class="tot"><td>totaal afgeschoten</td><td class="n" id="cT">0</td></tr>
+        </table>
+        <p class="small" style="margin:10px 0 0">Wissel je van model of kerngrootte, dan begint de telling opnieuw.</p>
+      </div>
+    </div>
+    <div class="stage">
+      <div class="panel2">
+        <div class="cap"><h3>De opstelling</h3><span>bovenaanzicht</span></div>
+        <canvas id="setup" width="900" height="720"></canvas>
+      </div>
+      <div class="panel2">
+        <div class="cap"><h3>Ingezoomd: één goudatoom</h3><span id="zoomInfo">krentenbolmodel van Thomson</span></div>
+        <canvas id="zoom" width="760" height="720"></canvas>
+        <div class="small" id="zoomCap" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+const TAU = Math.PI*2, DEG = Math.PI/180;
+const rnd = (a,b)=>a+Math.random()*(b-a);
+function gauss(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(TAU*v); }
+
+/* ------------------------------------------------------------------
+   Gedeeld: baan van een alfadeeltje rond een kern (vloeiende boog).
+   Kern in (ox,oy). Deeltje komt van links op hoogte oy - b (b>0 = boven).
+   theta = afbuighoek (rad). D = afstand van kern tot hoekpunt van de asymptoten.
+   Geeft een lijst punten: van xStart tot ver weg.
+------------------------------------------------------------------ */
+function arcPath(ox, oy, side, th, D, xStart, far){
+  // asymptoot-snijpunt P op afstand D van de kern; inkomend op hoogte b = D cos(th/2)
+  const b = D*Math.cos(th/2), k = D*Math.sin(th/2);
+  const Px = ox - k, Py = oy - side*b;
+  const vx = Math.cos(th), vy = -side*Math.sin(th);
+  const L = Math.max(18, D*1.3);
+  const A = [Px - L, Py], B = [Px + vx*L, Py + vy*L];
+  const pts = [[xStart, Py], A];
+  for(let i=1;i<=14;i++){ const t=i/14, a=(1-t)*(1-t), c=2*(1-t)*t, d=t*t;
+    pts.push([a*A[0]+c*Px+d*B[0], a*A[1]+c*Py+d*B[1]]); }
+  pts.push([B[0]+vx*far, B[1]+vy*far]);
+  return pts;
+}
+function polyLen(pts){ const L=[0]; for(let i=1;i<pts.length;i++) L.push(L[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1])); return L; }
+function polyAt(pts, L, s){
+  let i=1; while(i<L.length-1 && L[i]<s) i++;
+  const seg=L[i]-L[i-1]||1, f=Math.max(0,Math.min(1,(s-L[i-1])/seg));
+  return [pts[i-1][0]+(pts[i][0]-pts[i-1][0])*f, pts[i-1][1]+(pts[i][1]-pts[i-1][1])*f];
+}
+
+/* Scherm (ring) tekenen met flitsjes. ang: afbuighoek met teken (rad), 0 = rechtdoor */
+function drawRing(g, cx, cy, R, flashes, marks, dt, opts={}){
+  g.lineWidth = opts.thin?10:14; g.strokeStyle="#173027";
+  g.beginPath(); g.arc(cx,cy,R,0,TAU); g.stroke();
+  g.lineWidth=1; g.strokeStyle="#2c5a48";
+  g.beginPath(); g.arc(cx,cy,R-(opts.thin?5:7),0,TAU); g.stroke();
+  g.beginPath(); g.arc(cx,cy,R+(opts.thin?5:7),0,TAU); g.stroke();
+  if(marks) marks.forEach(m=>{ const x=cx+Math.cos(m.ang)*R, y=cy-Math.sin(m.ang)*R;
+    g.fillStyle = Math.abs(m.ang)>Math.PI/2 ? "rgba(255,138,101,.65)" : (Math.abs(m.ang)>5*DEG ? "rgba(255,207,90,.5)" : "rgba(125,255,176,.35)");
+    g.fillRect(x-1.6,y-1.6,3.2,3.2); });
+  for(let i=flashes.length-1;i>=0;i--){
+    const f=flashes[i]; f.t+=dt; const life=1.2; if(f.t>life){ flashes.splice(i,1); continue; }
+    const x=cx+Math.cos(f.ang)*R, y=cy-Math.sin(f.ang)*R, k=1-f.t/life, r=(opts.thin?3:4)+7*k;
+    const gr=g.createRadialGradient(x,y,0,x,y,r*2.2);
+    gr.addColorStop(0,`rgba(190,255,215,${0.95*k})`); gr.addColorStop(.4,`rgba(125,255,176,${0.55*k})`); gr.addColorStop(1,"rgba(125,255,176,0)");
+    g.fillStyle=gr; g.beginPath(); g.arc(x,y,r*2.2,0,TAU); g.fill();
+  }
+}
+function label(g, txt, x, y, opts={}){
+  g.font = (opts.bold?"600 ":"") + (opts.size||20) + "px Segoe UI, sans-serif";
+  g.textAlign = opts.align||"left"; g.textBaseline="middle";
+  g.fillStyle = opts.color||"#dbe6ee"; g.fillText(txt,x,y);
+}
+
+/* ==================================================================
+   RONDLEIDING
+================================================================== */
+const STEPS = [
+ { title:"Het lab · Manchester, 1909", scene:"lab",
+   text:`<p>Geiger en Marsden schoten met alfadeeltjes op een heel dun goudfolie.</p>
+         <p>Achter het folie stond een klein schermpje. Waar een alfadeeltje het schermpje raakte, gaf het een piepklein lichtflitsje. Met een microscoop telden ze de flitsjes.</p>
+         <p>Het schermpje en de microscoop konden ze rond het folie draaien. Zo telden ze de flitsjes in elke richting.</p>`,
+   q:{prompt:"Waarom deden ze dit experiment in een donkere kamer?",
+      opts:["Alfadeeltjes worden door licht tegengehouden.","In het licht geeft het goudfolie zelf ook flitsjes.","De flitsjes zijn zo zwak dat je ze alleen in het donker ziet."], ok:2,
+      ex:"De flitsjes zijn zo zwak dat Geiger eerst een tijd in het donker moest zitten, voordat zijn ogen ze konden zien."}},
+ { title:"Het alfadeeltje", scene:"alfa",
+   text:`<p>Een alfadeeltje komt uit radium. Het is heel klein, positief geladen en zwaar: <b>4 u</b>.</p>
+         <p>Een elektron is negatief geladen en heeft een massa van maar <b>1/1800 u</b>.</p>`,
+   q:{prompt:"Hoeveel keer zo zwaar is een alfadeeltje als een elektron?",
+      opts:["4 keer","450 keer","1800 keer","7200 keer"], ok:3,
+      ex:"4 × 1800 = 7200. Een alfadeeltje is dus 7200 keer zo zwaar als een elektron."}},
+ { title:"Zwaar tegen licht", scene:"ballen",
+   text:`<p>Wat gebeurt er als iets zwaars tegen iets lichts botst? Kijk naar een basketbal die tegen een pingpongbal botst.</p>`,
+   q:{prompt:"Een alfadeeltje botst tegen een elektron. Wat gebeurt er?",
+      opts:["Het elektron vliegt weg, en het alfadeeltje gaat gewoon door.","Het alfadeeltje kaatst terug.","Ze blijven allebei stilstaan."], ok:0,
+      ex:"Het elektron is veel te licht om het alfadeeltje tegen te houden. Om een alfadeeltje flink af te buigen, moet iets ongeveer even zwaar of zwaarder zijn. Om het te laten terugkaatsen, moet het zwaarder zijn."}},
+ { title:"Inzoomen op het folie", scene:"folie",
+   text:`<p>Het goudfolie is maar 0,0004 mm dik. Toch liggen er ongeveer duizend lagen goudatomen achter elkaar.</p>
+         <p>Rechts zie je een paar van die lagen, heel sterk vergroot.</p>`,
+   q:{prompt:"Kon Geiger met zijn microscoop de atomen in het folie zien?",
+      opts:["Ja, als hij de microscoop goed scherp stelde.","Nee, hij zag alleen de flitsjes op het schermpje.","Ja, maar alleen de grootste atomen."], ok:1,
+      ex:"Atomen zijn veel te klein voor een microscoop. Alles wat Rutherford over het atoom ontdekte, haalde hij uit die flitsjes."}},
+ { title:"Het krentenbolmodel van Thomson", scene:"thomsonStil",
+   text:`<p>Volgens Thomson is een atoom een bol van <b>positieve lading</b>. Die lading is gelijkmatig over de hele bol <b>uitgesmeerd</b>, zoals het deeg van een krentenbol.</p>
+         <p>De negatieve <b>elektronen</b> zitten erin als krenten. Daarom heet dit het <b>krentenbolmodel</b>.</p>`,
+   q:{prompt:"Een atoom is neutraal. Wat betekent dat?",
+      opts:["Er is meer positieve dan negatieve lading.","Er is evenveel positieve als negatieve lading.","Er is helemaal geen lading."], ok:1,
+      ex:"De positieve en de negatieve lading heffen elkaar precies op."}},
+ { title:"Wat voorspelt het krentenbolmodel van Thomson?", scene:"thomson", waitForAnswer:true,
+   text:`<p>Links staan de lagen goudatomen volgens het krentenbolmodel van Thomson. Rechts staat het scherm, van bovenaf gezien.</p>
+         <p>In het krentenbolmodel van Thomson is alles <b>uitgesmeerd</b>: nergens zit iets kleins en zwaars.</p>`,
+   q:{prompt:"Waar verwacht je de flitsjes op het scherm?",
+      opts:["Allemaal recht achter het folie.","Overal rondom het folie.","De meeste vóór het folie, omdat ze terugkaatsen."], ok:0,
+      ex:"De elektronen zijn te licht, en de positieve lading is te dun uitgesmeerd. De alfadeeltjes gaan er dus bijna recht doorheen. Kijk maar naar de animatie."}},
+ { title:"Wat Geiger en Marsden zagen", scene:"echt",
+   text:`<p>Dit is wat Geiger en Marsden echt zagen. Kijk een tijdje naar het scherm.</p>`,
+   q:{prompt:"Welke waarneming past niet bij het krentenbolmodel van Thomson?",
+      opts:["Bijna alle alfadeeltjes gaan rechtdoor.","De alfadeeltjes gaan door het folie heen.","Sommige alfadeeltjes kaatsen terug."], ok:2,
+      ex:"Volgens het krentenbolmodel van Thomson kan niets in het atoom een alfadeeltje laten terugkaatsen. Toch gebeurde het, ongeveer 1 op de 20 000 keer. Rutherford zei later dat het was alsof je met een kanonskogel op een vel papier schiet, en de kogel terugkomt."}},
+ { title:"Welk model past wél?", scene:"modellen", models:true,
+   text:`<p>Rutherford zocht een nieuw model. Test hieronder drie ideeën. Kies een model en kijk naar het scherm.</p>`,
+   q:{prompt:"Welk model past bij wat Geiger en Marsden zagen?",
+      opts:["A · Massieve bol","B · Grote kern","C · Kleine kern"], ok:2,
+      ex:"Bij A kaatst bijna alles terug. Bij B kaatst veel te vaak iets terug. Alleen bij C gaat bijna alles rechtdoor, en kaatst heel soms iets terug."}},
+ { title:"Het kernmodel van Rutherford", scene:"rutherford",
+   text:`<p>Rutherford concludeerde: bijna alle massa van een atoom zit <b>samengebald</b> in een piepkleine <b>kern</b> in het midden. Daarom heet dit het <b>kernmodel</b>.</p>
+         <p>De kern is positief, net als het alfadeeltje. Daarom duwt de kern een alfadeeltje dat te dichtbij komt weg, zonder dat ze elkaar raken.</p>
+         <p>De rest van het atoom is bijna leeg. Daar bewegen alleen de lichte elektronen.</p>
+         <p class="small">In deze animatie is de kern veel groter getekend, en kaatst er vaker iets terug dan in het echt.</p>`,
+   q:{prompt:"Waarom kaatsen er zo weinig alfadeeltjes terug?",
+      opts:["De kern is heel licht.","De kern is heel klein, dus een alfadeeltje komt er bijna nooit vlak langs.","De elektronen houden de meeste alfadeeltjes tegen."], ok:1,
+      ex:"De kern is zo klein dat bijna alle alfadeeltjes er ver vandaan blijven. Alleen een alfadeeltje dat toevallig vlak langs de kern komt, wordt sterk afgebogen of teruggeduwd."}},
+ { title:"Uitgesmeerd of samengebald", scene:"vergelijk", last:true,
+   text:`<p><b>Krentenbolmodel van Thomson:</b> alles in het atoom is uitgesmeerd. Nergens zit iets kleins en zwaars.</p>
+         <p><b>Kernmodel van Rutherford:</b> bijna alles zit samengebald in één piepkleine, zware kern. De rest is leeg.</p>
+         <p>Ga nu naar het <b>lab</b>. Daar schiet je zelf duizenden alfadeeltjes af en tel je wat er gebeurt.</p>`}
+];
+let step=0, stepT=0, answered=false, curModel=null;
+const answers = {};   // per stap gekozen optie
+
+const cT=document.getElementById("tour"), gT=cT.getContext("2d");
+const tour = { flashes:[], marks:[], parts:[], spawnT:0 };
+
+function renderStep(){
+  const s=STEPS[step];
+  document.getElementById("stepNo").textContent=`Stap ${step+1} van ${STEPS.length}`;
+  document.getElementById("stepTitle").textContent=s.title;
+  document.getElementById("stepText").innerHTML=s.text;
+  document.getElementById("modelBox").classList.toggle("hidden",!s.models);
+  const qb=document.getElementById("qBox");
+  answered = answers[step]!==undefined || !s.q;
+  if(s.q){
+    qb.classList.remove("hidden");
+    document.getElementById("qPrompt").textContent=s.q.prompt;
+    const box=document.getElementById("qOpts"); box.innerHTML="";
+    s.q.opts.forEach((o,i)=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=o; b.onclick=()=>choose(i); box.appendChild(b); });
+    document.getElementById("qExpl").innerHTML="";
+    if(answers[step]!==undefined) showAnswer(answers[step]);
+  } else qb.classList.add("hidden");
+  document.getElementById("prevBtn").disabled = step===0;
+  const nb=document.getElementById("nextBtn");
+  nb.textContent = s.last ? "Naar het lab →" : "Volgende →";
+  nb.disabled = !answered;
+  const d=document.getElementById("dots"); d.innerHTML="";
+  STEPS.forEach((_,i)=>{ const sp=document.createElement("span"); if(i<step) sp.className="done"; if(i===step) sp.className="cur"; d.appendChild(sp); });
+  // scène resetten
+  stepT=0; tour.flashes.length=0; tour.marks.length=0; tour.parts.length=0; tour.spawnT=0;
+  if(s.models){ curModel=null; document.querySelectorAll("[data-model]").forEach(x=>x.classList.remove("on")); document.getElementById("mdesc").textContent="Kies een model om het te testen."; }
+}
+function choose(i){ if(answers[step]!==undefined) return; answers[step]=i; showAnswer(i); answered=true; document.getElementById("nextBtn").disabled=false; }
+function showAnswer(i){
+  const s=STEPS[step]; const opts=[...document.querySelectorAll("#qOpts .opt")];
+  opts.forEach((b,j)=>{ b.disabled=true; if(j===s.q.ok) b.classList.add("right"); if(j===i && i!==s.q.ok) b.classList.add("wrong"); });
+  document.getElementById("qExpl").innerHTML = (i===s.q.ok? '<b class="g">Goed!</b> ' : '<b class="b">Niet helemaal.</b> ') + s.q.ex;
+}
+document.getElementById("prevBtn").onclick=()=>{ if(step>0){ step--; renderStep(); } };
+document.getElementById("nextBtn").onclick=()=>{ if(STEPS[step].last){ switchTab("lab"); return; } if(step<STEPS.length-1){ step++; renderStep(); } };
+const MDESC = {
+  A:"Massieve bol: het atoom zit helemaal vol met zware, positieve stof.",
+  B:"Grote kern: in het midden zit een zware, positieve kern, half zo groot als het atoom.",
+  C:"Kleine kern: in het midden zit een piepkleine, zware, positieve kern. De rest is leeg."
+};
+document.querySelectorAll("[data-model]").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("[data-model]").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+  curModel=b.dataset.model; document.getElementById("mdesc").textContent=MDESC[curModel];
+  tour.flashes.length=0; tour.marks.length=0; tour.parts.length=0; tour.spawnT=0;
+});
+
+/* ---------- roosters van atomen ---------- */
+const LAT = { x0:120, cols:6, sp:62, R:30 };   // kolommen = lagen in het folie
+function latticeRows(H){ const rows=[]; for(let y=LAT.sp/2+4; y<H; y+=LAT.sp) rows.push(y); return rows; }
+const seed=(x,y)=>{ const v=Math.sin(x*12.9898+y*78.233)*43758.5453; return (v-Math.floor(v))*TAU; };
+const ELEC = []; for(let i=0;i<5;i++) ELEC.push({r:rnd(.3,.85), a:rnd(0,TAU), w:(Math.random()<.5?-1:1)*rnd(.4,1)});
+function drawAtomThomson(g,x,y,R,t){
+  const gr=g.createRadialGradient(x-R*.3,y-R*.3,R*.1,x,y,R);
+  gr.addColorStop(0,"rgba(245,160,180,.75)"); gr.addColorStop(1,"rgba(190,80,110,.55)");
+  g.fillStyle=gr; g.beginPath(); g.arc(x,y,R,0,TAU); g.fill();
+  g.fillStyle="rgba(255,255,255,.55)"; g.font="bold 11px Segoe UI, sans-serif"; g.textAlign="center"; g.textBaseline="middle";
+  for(let i=0;i<7;i++){ const a=i*2.4+.5, r=R*.62*Math.sqrt((i+.5)/7); g.fillText("+",x+Math.cos(a)*r,y+Math.sin(a)*r); }
+  const sd=seed(x,y);
+  ELEC.forEach((e,i)=>{ const a=e.a+(i*1.3)+sd*(i+1); g.fillStyle="#2b6fd6"; g.beginPath(); g.arc(x+Math.cos(a)*e.r*R*.85,y+Math.sin(a)*e.r*R*.85,3.2,0,TAU); g.fill(); });
+}
+function drawAtomKern(g,x,y,R,rk,t,opt={}){
+  g.setLineDash([4,5]); g.strokeStyle="rgba(147,168,182,.35)"; g.lineWidth=1;
+  g.beginPath(); g.arc(x,y,R,0,TAU); g.stroke(); g.setLineDash([]);
+  const gr=g.createRadialGradient(x-rk*.3,y-rk*.3,0,x,y,rk);
+  gr.addColorStop(0,"#ffa184"); gr.addColorStop(1,"#c2412a");
+  g.fillStyle=gr; g.beginPath(); g.arc(x,y,rk,0,TAU); g.fill();
+  if(rk>9){ g.fillStyle="#fff"; g.font="bold 12px Segoe UI, sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText("+",x,y); }
+  const sd=seed(x,y);
+  ELEC.forEach((e,i)=>{ const a=e.a+e.w*t*.8+i*1.3+sd*(i+1); g.fillStyle="#7cc4ff"; g.beginPath(); g.arc(x+Math.cos(a)*e.r*R,y+Math.sin(a)*e.r*R,2.4,0,TAU); g.fill(); });
+}
+function drawAtomSolid(g,x,y,R){
+  const gr=g.createRadialGradient(x-R*.35,y-R*.35,R*.1,x,y,R);
+  gr.addColorStop(0,"#e8c977"); gr.addColorStop(1,"#8a6a22");
+  g.fillStyle=gr; g.beginPath(); g.arc(x,y,R,0,TAU); g.fill();
+  g.fillStyle="rgba(255,255,255,.7)"; g.font="bold 12px Segoe UI, sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText("+",x,y);
+}
+
+/* ---------- deeltjes in het rooster ----------
+   Elk deeltje krijgt eerst een uitkomst (rechtdoor / afgebogen / terug),
+   daarna een baan die daarbij past.                                   */
+const MODELS = {
+  thomson:{ p:[1,0,0],       rk:0,  D:0 },
+  A:      { p:[0,0.05,0.95], rk:30, D:30 },
+  B:      { p:[0.35,0.35,0.30], rk:15, D:24 },
+  C:      { p:[0.86,0.11,0.03], rk:4, D:12 },
+  rutherford:{ p:[0.86,0.11,0.03], rk:4, D:12 }
+};
+function spawnParticle(mkey, H, xEnd){
+  const M=MODELS[mkey], rows=latticeRows(H);
+  const u=Math.random(); const kind = u<M.p[0] ? "S" : (u<M.p[0]+M.p[1] ? "D" : "B");
+  const side = Math.random()<.5?1:-1;
+  let pts, th=0;
+  if(kind==="S"){
+    // ver van alle kernen: tussen twee rijen in (bij uitgesmeerd model: willekeurig)
+    let y;
+    if(mkey==="thomson"){ y=rnd(20,H-20); th=Math.abs(gauss())*1.2*DEG; }
+    else { const r=rows[Math.floor(Math.random()*(rows.length-1))]; y = r + LAT.sp/2 + rnd(-6,6); th=Math.abs(gauss())*1.5*DEG; }
+    if(mkey==="thomson"){
+      // kleine slingertjes door de krentenbollen
+      pts=[[-10,y]]; let yy=y;
+      for(let c=0;c<LAT.cols;c++){ const x=LAT.x0+c*LAT.sp; yy+=gauss()*1.2; pts.push([x,yy]); }
+      pts.push([xEnd+400, yy + side*Math.tan(th)*400]);
+    } else pts=[[-10,y],[xEnd+400, y - side*Math.tan(th)*(xEnd+400)]];
+  } else {
+    const col=Math.floor(Math.random()*(mkey==="A"?1:LAT.cols));
+    const row=rows[1+Math.floor(Math.random()*(rows.length-2))];
+    const ox=LAT.x0+col*LAT.sp, oy=row;
+    th = kind==="D" ? rnd(12,80)*DEG : rnd(100,175)*DEG;
+    if(mkey==="A"){ th=rnd(110,178)*DEG; }
+    const D = M.D + rnd(0,4);
+    pts = arcPath(ox, oy, side, th, D, -10, 1400);
+  }
+  const L=polyLen(pts);
+  return {pts, L, s:0, kind, ang: side*th, done:false};
+}
+function drawParticles(g, dt, speed, xScreen){
+  const ps=tour.parts;
+  for(let i=ps.length-1;i>=0;i--){
+    const p=ps[i]; p.s+=dt*speed;
+    const [x,y]=polyAt(p.pts,p.L,p.s);
+    // spoor
+    const [tx,ty]=polyAt(p.pts,p.L,Math.max(0,p.s-34));
+    g.strokeStyle = p.kind==="B"?"rgba(255,138,101,.7)":p.kind==="D"?"rgba(255,207,90,.6)":"rgba(255,207,90,.35)";
+    g.lineWidth=2; g.beginPath(); g.moveTo(tx,ty);
+    // tussenpunten voor de boog
+    for(let s=Math.max(0,p.s-34); s<p.s; s+=4){ const q=polyAt(p.pts,p.L,s); g.lineTo(q[0],q[1]); }
+    g.lineTo(x,y); g.stroke();
+    g.fillStyle="#ffcf5a"; g.beginPath(); g.arc(x,y,4.2,0,TAU); g.fill();
+    if(!p.done && (x>xScreen || x<-5 || y<-5 || y>cT.height+5)){
+      p.done=true; tour.flashes.push({ang:p.ang,t:0});
+      if(p.kind!=="S"||Math.random()<.4){ tour.marks.push({ang:p.ang}); if(tour.marks.length>400) tour.marks.shift(); }
+    }
+    if(x<-30||y<-30||y>cT.height+30||x>xScreen+40) ps.splice(i,1);
+  }
+}
+
+/* ---------- scènes ---------- */
+function sceneLab(g,W,H,t,dt){
+  // bovenaanzicht van de echte opstelling, onderdelen verschijnen één voor één
+  const cx=W*0.58, cy=H*0.52, R=210;
+  const show = n => t > 0.6 + n*1.1;
+  const hl = n => (t > 0.6+n*1.1 && t < 0.6+(n+1)*1.1);
+  // bron
+  if(show(0)){
+    g.fillStyle="#4a5560"; g.fillRect(70,cy-40,70,80); g.fillStyle="#22292f"; g.fillRect(134,cy-7,22,14);
+    g.fillStyle="#b84"; g.beginPath(); g.arc(105,cy,7,0,TAU); g.fill();
+    label(g,"bron: radium",105,cy+66,{align:"center",color:hl(0)?"#ffe39a":"#cfdbe3"});
+    label(g,"in een loodblok",105,cy+90,{align:"center",size:17,color:"#93a8b6"});
+  }
+  // bundel
+  if(show(1)){
+    const gr=g.createLinearGradient(156,0,cx,0); gr.addColorStop(0,"rgba(255,207,90,.7)"); gr.addColorStop(1,"rgba(255,207,90,.25)");
+    g.fillStyle=gr; g.fillRect(156,cy-3,cx-156,6);
+    // bewegende deeltjes
+    for(let i=0;i<6;i++){ const x=156+((t*260+i*70)%(cx-156)); g.fillStyle="#ffcf5a"; g.beginPath(); g.arc(x,cy,3.5,0,TAU); g.fill(); }
+    label(g,"bundel alfadeeltjes",(156+cx)/2,cy-28,{align:"center",color:hl(1)?"#ffe39a":"#cfdbe3"});
+  }
+  // folie
+  if(show(2)){
+    g.fillStyle="#d9ab4c"; g.fillRect(cx-3,cy-50,6,100);
+    label(g,"goudfolie",cx,cy+76,{align:"center",color:hl(2)?"#ffe39a":"#e2c47f"});
+  }
+  // draaicirkel + schermpje + microscoop
+  if(show(3)){
+    g.setLineDash([6,8]); g.strokeStyle="rgba(147,168,182,.4)"; g.lineWidth=1.5;
+    g.beginPath(); g.arc(cx,cy,R,0,TAU); g.stroke(); g.setLineDash([]);
+    const a = -0.5 + 0.35*Math.sin(t*0.5);     // schermpje draait langzaam heen en weer
+    const sx=cx+Math.cos(a)*R, sy=cy-Math.sin(a)*R;
+    g.save(); g.translate(sx,sy); g.rotate(-a);
+    g.fillStyle="#2c5a48"; g.fillRect(-5,-22,10,44);
+    if(show(4)){ g.fillStyle="#6b7c88"; g.fillRect(5,-9,70,18); g.fillStyle="#9fb0bb"; g.fillRect(75,-12,16,24); }
+    g.restore();
+    // af en toe een flitsje op het schermpje
+    if(Math.random()<dt*2.5){ tour.flashes.push({ang:a,t:0}); }
+    tour.flashes.forEach(f=>{ f.t+=dt; }); for(let i=tour.flashes.length-1;i>=0;i--) if(tour.flashes[i].t>.6) tour.flashes.splice(i,1);
+    tour.flashes.forEach(f=>{ const k=1-f.t/.6, x=cx+Math.cos(f.ang)*(R-6), y=cy-Math.sin(f.ang)*(R-6);
+      const gr=g.createRadialGradient(x,y,0,x,y,12); gr.addColorStop(0,`rgba(190,255,215,${k})`); gr.addColorStop(1,"rgba(125,255,176,0)"); g.fillStyle=gr; g.beginPath(); g.arc(x,y,12,0,TAU); g.fill(); });
+    label(g,"schermpje",sx-Math.cos(a)*24-8,sy+Math.sin(a)*24+8,{align:"right",color:hl(3)?"#ffe39a":"#9fd3bd"});
+    label(g,"draait rond het folie",cx,cy-R-24,{align:"center",size:17,color:"#93a8b6"});
+    if(show(4)) label(g,"microscoop",sx+Math.cos(a)*100+12,sy-Math.sin(a)*100+34,{color:hl(4)?"#ffe39a":"#cfdbe3"});
+  }
+  label(g,"bovenaanzicht · niet op schaal",W-20,H-22,{align:"right",size:15,color:"#6f8796"});
+}
+function sceneAlfa(g,W,H,t){
+  const y=H*0.45;
+  const pulse=1+0.03*Math.sin(t*3);
+  const gr=g.createRadialGradient(W*0.32-20,y-20,5,W*0.32,y,80*pulse);
+  gr.addColorStop(0,"#ffe6a0"); gr.addColorStop(1,"#d99a1a");
+  g.fillStyle=gr; g.beginPath(); g.arc(W*0.32,y,80*pulse,0,TAU); g.fill();
+  label(g,"+",W*0.32,y,{align:"center",size:54,bold:true,color:"#5a3b00"});
+  label(g,"alfadeeltje",W*0.32,y+125,{align:"center",bold:true,size:24});
+  label(g,"positief · 4 u",W*0.32,y+157,{align:"center",color:"#cfdbe3"});
+  g.fillStyle="#3b8de0"; g.beginPath(); g.arc(W*0.72,y,9,0,TAU); g.fill();
+  label(g,"−",W*0.72,y-1,{align:"center",size:16,bold:true,color:"#fff"});
+  label(g,"elektron",W*0.72,y+125,{align:"center",bold:true,size:24});
+  label(g,"negatief · 1/1800 u",W*0.72,y+157,{align:"center",color:"#cfdbe3"});
+  label(g,"niet op schaal",W-20,H-22,{align:"right",size:15,color:"#6f8796"});
+}
+function sceneBallen(g,W,H,t){
+  const T=3.6, tt=t%T, y=H*0.5;
+  const R1=60, r2=12, xHit=W*0.48;
+  const v1=250;            // px/s basketbal
+  const tHit=(xHit-R1-r2-60)/v1;
+  let x1, x2=xHit, y2=y, v1after=v1*0.997;
+  if(tt<tHit){ x1=60+tt*v1; }
+  else { const d=tt-tHit; x1=60+tHit*v1+d*v1after; x2=xHit + d*v1*1.95; y2=y - d*60; }
+  // pingpongbal
+  g.fillStyle="#f4f1e8"; g.beginPath(); g.arc(x2,y2,r2,0,TAU); g.fill();
+  // basketbal
+  const gr=g.createRadialGradient(x1-20,y-20,5,x1,y,R1); gr.addColorStop(0,"#ffa556"); gr.addColorStop(1,"#c35a12");
+  g.fillStyle=gr; g.beginPath(); g.arc(x1,y,R1,0,TAU); g.fill();
+  g.strokeStyle="#5a2a08"; g.lineWidth=2.5; g.beginPath(); g.arc(x1,y,R1,0,TAU); g.moveTo(x1-R1,y); g.lineTo(x1+R1,y); g.moveTo(x1,y-R1); g.lineTo(x1,y+R1); g.stroke();
+  label(g,"basketbal (zwaar)",60,H*0.2,{size:22,color:"#ffbd84"});
+  label(g,"pingpongbal (licht)",xHit-20,H*0.2+34,{size:22,color:"#f4f1e8"});
+  label(g,"De pingpongbal vliegt weg. De basketbal gaat gewoon door.",W/2,H*0.85,{align:"center",size:20,color:"#cfdbe3"});
+}
+function sceneFolie(g,W,H,t){
+  // links: folie met vergrootglas, rechts: rooster
+  g.fillStyle="#d9ab4c"; g.fillRect(150,120,10,H-240);
+  label(g,"goudfolie",155,H-90,{align:"center",color:"#e2c47f"});
+  const k=Math.min(1,t/1.2);
+  g.strokeStyle="#7fb7c9"; g.lineWidth=2; g.strokeRect(145,H/2-14,20,28);
+  g.beginPath(); g.moveTo(165,H/2-14); g.lineTo(300,80); g.moveTo(165,H/2+14); g.lineTo(300,H-80); g.stroke();
+  g.strokeRect(300,80,W-340,H-160);
+  g.save(); g.beginPath(); g.rect(300,80,W-340,H-160); g.clip();
+  const sp=58, R=27*k;
+  for(let c=0;c<11;c++) for(let r=0;r<9;r++){
+    const x=330+c*sp, y=100+r*sp + (c%2?sp/2:0);
+    const gr=g.createRadialGradient(x-R*.3,y-R*.3,1,x,y,Math.max(1,R)); gr.addColorStop(0,"#e8c977"); gr.addColorStop(1,"#8a6a22");
+    g.fillStyle=gr; g.globalAlpha=k; g.beginPath(); g.arc(x,y,Math.max(1,R),0,TAU); g.fill();
+  }
+  g.restore(); g.globalAlpha=1;
+  label(g,"goudatomen, heel sterk vergroot",W-50,H-55,{align:"right",size:17,color:"#93a8b6"});
+}
+function sceneLattice(g,W,H,t,dt,mkey,run){
+  const rows=latticeRows(H), xScreen=W*0.62;
+  // rooster
+  for(let c=0;c<LAT.cols;c++) rows.forEach(y=>{
+    const x=LAT.x0+c*LAT.sp;
+    if(mkey==="thomson") drawAtomThomson(g,x,y,LAT.R,t);
+    else if(mkey==="A") drawAtomSolid(g,x,y,LAT.R);
+    else drawAtomKern(g,x,y,LAT.R,MODELS[mkey].rk,t);
+  });
+  label(g,"goudfolie (een paar lagen atomen)",LAT.x0+LAT.sp*(LAT.cols-1)/2,H-14,{align:"center",size:15,color:"#93a8b6"});
+  // scheidslijn + scherm
+  g.strokeStyle="#22323e"; g.lineWidth=1; g.beginPath(); g.moveTo(xScreen,0); g.lineTo(xScreen,H); g.stroke();
+  const cx=W*0.81, cy=H*0.47, R=140;
+  g.fillStyle="#d9ab4c"; g.fillRect(cx-2,cy-24,4,48);
+  g.fillStyle="rgba(255,207,90,.5)"; g.fillRect(cx-R-26,cy-1.5,R+24,3);
+  label(g,"→",cx-R-40,cy,{align:"center",size:20,color:"#ffcf5a"});
+  drawRing(g,cx,cy,R,tour.flashes,tour.marks,dt,{thin:true});
+  label(g,"het scherm",cx,cy+R+36,{align:"center",size:17,color:"#9fd3bd"});
+  label(g,"(bovenaanzicht)",cx,cy+R+58,{align:"center",size:15,color:"#6f8796"});
+  // deeltjes
+  if(run){
+    g.save(); g.beginPath(); g.rect(0,0,xScreen,H); g.clip();
+    tour.spawnT+=dt; const rate = mkey==="thomson"?7:6;
+    while(tour.spawnT>1/rate){ tour.spawnT-=1/rate; tour.parts.push(spawnParticle(mkey,H,xScreen)); }
+    drawParticles(g,dt,420,xScreen);
+    g.restore();
+  } else if(run===false) {
+    label(g,"Beantwoord eerst de vraag.",xScreen/2,40,{align:"center",size:20,color:"#ffe39a"});
+  }
+}
+function sceneEcht(g,W,H,t,dt){
+  const cx=W*0.55, cy=H*0.5, R=230;
+  g.fillStyle="#4a5560"; g.fillRect(40,cy-34,56,68);
+  const gr=g.createLinearGradient(96,0,cx,0); gr.addColorStop(0,"rgba(255,207,90,.6)"); gr.addColorStop(1,"rgba(255,207,90,.2)"); g.fillStyle=gr; g.fillRect(96,cy-3,cx-96,6);
+  g.fillStyle="#d9ab4c"; g.fillRect(cx-3,cy-46,6,92);
+  // waarnemingen: vooral rechtdoor, soms schuin, heel soms terug (vaker dan echt)
+  tour.spawnT+=dt;
+  while(tour.spawnT>1/14){ tour.spawnT-=1/14;
+    const u=Math.random(); let th;
+    if(u<0.9) th=Math.abs(gauss())*2*DEG; else if(u<0.985) th=rnd(8,80)*DEG; else th=rnd(100,178)*DEG;
+    const a=(Math.random()<.5?1:-1)*th; tour.flashes.push({ang:a,t:0}); if(th>5*DEG){ tour.marks.push({ang:a}); }
+  }
+  drawRing(g,cx,cy,R,tour.flashes,tour.marks,dt);
+  label(g,"0°",cx+R+34,cy,{align:"center",size:18,color:"#7f97a6"});
+  label(g,"180°",cx-R-36,cy-22,{align:"center",size:18,color:"#7f97a6"});
+  label(g,"90°",cx,cy-R-30,{align:"center",size:18,color:"#7f97a6"});
+  label(g,"Gekleurde stipjes: waar een flitsje opzij of naar achteren was.",20,H-22,{size:16,color:"#93a8b6"});
+}
+function sceneModellen(g,W,H,t,dt){
+  if(!curModel){ label(g,"Kies rechts een model: A, B of C.",W/2,H/2,{align:"center",size:22,color:"#93a8b6"}); return; }
+  sceneLattice(g,W,H,t,dt,curModel,true);
+}
+function sceneVergelijk(g,W,H,t){
+  const half=W/2, rows=[128,190,252,314,376,438,500];
+  for(let c=0;c<4;c++) rows.forEach(y=>{ drawAtomThomson(g,90+c*LAT.sp,y,LAT.R,t); drawAtomKern(g,half+90+c*LAT.sp,y,LAT.R,4,t); });
+  label(g,"Krentenbolmodel",90+LAT.sp*1.5,40,{align:"center",bold:true,size:24}); label(g,"van Thomson",90+LAT.sp*1.5,68,{align:"center",size:19,color:"#cfdbe3"});
+  label(g,"alles uitgesmeerd",90+LAT.sp*1.5,H-80,{align:"center",color:"#cfdbe3"});
+  label(g,"Kernmodel",half+90+LAT.sp*1.5,40,{align:"center",bold:true,size:24}); label(g,"van Rutherford",half+90+LAT.sp*1.5,68,{align:"center",size:19,color:"#cfdbe3"});
+  label(g,"bijna alles samengebald in de kern",half+90+LAT.sp*1.5,H-80,{align:"center",color:"#cfdbe3"});
+  g.strokeStyle="#22323e"; g.beginPath(); g.moveTo(half-20,30); g.lineTo(half-20,H-30); g.stroke();
+}
+
+let lastTour=performance.now();
+function tourLoop(now){
+  const dt=Math.min(.05,(now-lastTour)/1000); lastTour=now; stepT+=dt;
+  if(!document.getElementById("vTour").classList.contains("hidden")){
+    const W=cT.width,H=cT.height; gT.clearRect(0,0,W,H);
+    const s=STEPS[step];
+    switch(s.scene){
+      case "lab": sceneLab(gT,W,H,stepT,dt); break;
+      case "alfa": sceneAlfa(gT,W,H,stepT); break;
+      case "ballen": sceneBallen(gT,W,H,stepT); break;
+      case "folie": sceneFolie(gT,W,H,stepT); break;
+      case "thomsonStil": sceneLattice(gT,W,H,stepT,dt,"thomson",null); gT.clearRect(W*0.62+1,0,W,H); break;
+      case "thomson": sceneLattice(gT,W,H,stepT,dt,"thomson",answered); break;
+      case "echt": sceneEcht(gT,W,H,stepT,dt); break;
+      case "modellen": sceneModellen(gT,W,H,stepT,dt); break;
+      case "rutherford": sceneLattice(gT,W,H,stepT,dt,"rutherford",true); break;
+      case "vergelijk": sceneVergelijk(gT,W,H,stepT); break;
+    }
+  }
+  requestAnimationFrame(tourLoop);
+}
+
+/* ==================================================================
+   LAB
+================================================================== */
+let model="thomson", kernR=0.15;
+const K_COUL=0.004;
+const counts={S:0,D:0,B:0,T:0}, flashes=[], marks=[], traces=[]; let queue=[], ballAnim=null, lastLab=performance.now();
+const RMIN=0.004, RMAX=0.25, slider=document.getElementById("kernSlider");
+const sliderToR=v=>RMIN*Math.pow(RMAX/RMIN,v/1000);
+const fmtPct=x=>{const p=x*100; return (p>=1?p.toFixed(1):p.toPrecision(2)).replace(".",",");};
+function updateKernTxt(){ document.getElementById("kernTxt").innerHTML="De kern is nu <b>"+fmtPct(kernR)+"%</b> van de doorsnede van het atoom.<br>In het echt is de kern nog veel kleiner: tienduizenden keren zo klein als het atoom."; }
+kernR=sliderToR(+slider.value); updateKernTxt();
+slider.addEventListener("input",()=>{ kernR=sliderToR(+slider.value); updateKernTxt(); resetCounts(); });
+document.querySelectorAll("#modelSeg button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("#modelSeg button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+  model=b.dataset.m; document.getElementById("kernBox").style.opacity=model==="kern"?1:.4; slider.disabled=model!=="kern";
+  document.getElementById("zoomInfo").textContent=model==="kern"?"kernmodel van Rutherford":"krentenbolmodel van Thomson"; setZoomCap(); resetCounts();
+}));
+function setZoomCap(){ document.getElementById("zoomCap").textContent = model==="kern"
+  ? "Kernmodel van Rutherford: een heel kleine, zware, positieve kern in het midden. De kern duwt een alfadeeltje dat te dichtbij komt weg. Daaromheen bewegen de lichte elektronen; de rest is leeg."
+  : "Krentenbolmodel van Thomson: een bol met uitgesmeerde positieve lading, met de lichte elektronen erin als krenten."; }
+setZoomCap();
+function sample(){
+  const b=Math.sqrt(Math.random())*(Math.random()<.5?-1:1), ab=Math.abs(b); let th;
+  if(model==="thomson") th=Math.min(Math.abs(gauss())*0.9,4.5);
+  else if(ab<kernR) th=180-2*Math.asin(ab/kernR)*180/Math.PI;
+  else th=2*Math.atan(K_COUL/ab)*180/Math.PI;
+  return {b, th, kind: th<5?"S":(th<=90?"D":"B")};
+}
+function shoot(n){
+  const animN=n===1?1:(n===100?100:60), res=[];
+  for(let i=0;i<n;i++){ const p=sample(); res.push(p); counts[p.kind]++; counts.T++; if(p.kind!=="S"||i<animN) addMark(p); }
+  const special=res.filter(p=>p.kind!=="S"), plain=res.filter(p=>p.kind==="S");
+  let anim = n<=100 ? res : special.slice(0,40).concat(plain.slice(0,Math.max(0,animN-Math.min(40,special.length))));
+  if(n>100) anim.sort(()=>Math.random()-.5);
+  const gap=n===1?0:(n===100?0.035:0.05), base=performance.now()/1000;
+  anim.forEach((p,i)=>queue.push({...p,start:base+i*gap})); updateTable();
+}
+function addMark(p){ const side=p.b>=0?1:-1, ang=side*p.th*DEG; flashes.push({ang,t:0}); if(p.kind!=="S"){ marks.push({ang}); if(marks.length>4000) marks.shift(); } }
+document.querySelectorAll("[data-n]").forEach(b=>b.addEventListener("click",()=>shoot(+b.dataset.n)));
+function resetCounts(){ counts.S=counts.D=counts.B=counts.T=0; marks.length=0; flashes.length=0; traces.length=0; queue.length=0; updateTable(); }
+document.getElementById("resetBtn").addEventListener("click",resetCounts);
+const fmt=n=>n.toLocaleString("nl-NL");
+function updateTable(){ ["S","D","B","T"].forEach(k=>document.getElementById("c"+k).textContent=fmt(counts[k])); }
+document.getElementById("ballBtn").addEventListener("click",()=>{
+  ballAnim={t:0}; queue.length=0; traces.length=0;
+  document.getElementById("zoomCap").innerHTML="<b>Botsing met een elektron.</b> Een alfadeeltje (4 u) is 4 × 1800 = 7200 keer zo zwaar als een elektron (1/1800 u). Net als een basketbal tegen een pingpongbal: het elektron vliegt weg, het alfadeeltje gaat gewoon door.";
+});
+const cS=document.getElementById("setup"), gS=cS.getContext("2d");
+function drawSetup(dt){
+  const W=cS.width,H=cS.height,cx=W*0.57,cy=H/2,R=Math.min(W,H)*0.39;
+  gS.clearRect(0,0,W,H);
+  drawRing(gS,cx,cy,R,flashes,marks,dt);
+  [0,45,90,135,180].forEach(d=>[1,-1].forEach(s=>{ if((d===0||d===180)&&s<0) return;
+    const a=s*d*DEG; label(gS,d+"°",cx+Math.cos(a)*(R+38),cy-Math.sin(a)*(R+38)-(d===180?26:0),{align:"center",size:20,color:"#7f97a6"}); }));
+  const bx=W*0.08;
+  gS.fillStyle="#3b4650"; gS.fillRect(bx-26,cy-34,52,68); gS.fillStyle="#22292f"; gS.fillRect(bx+20,cy-6,18,12);
+  label(gS,"bron",bx,cy+56,{align:"center",size:19}); label(gS,"(radium)",bx,cy+78,{align:"center",size:17,color:"#93a8b6"});
+  const grd=gS.createLinearGradient(bx+38,0,cx,0); grd.addColorStop(0,"rgba(255,207,90,.55)"); grd.addColorStop(1,"rgba(255,207,90,.15)");
+  gS.fillStyle=grd; gS.fillRect(bx+38,cy-3,cx-bx-40,6);
+  gS.fillStyle="#d9ab4c"; gS.fillRect(cx-3,cy-46,6,92);
+  label(gS,"goudfolie",cx,cy+72,{align:"center",size:19,color:"#e2c47f"});
+  label(gS,"scherm",cx+R*0.62,cy-R*0.93,{size:19,color:"#7fa596"});
+}
+const cZ=document.getElementById("zoom"), gZ=cZ.getContext("2d");
+const electrons=[]; for(let i=0;i<22;i++){ electrons.push({r:0.25+0.7*Math.sqrt(Math.random()),a:Math.random()*TAU,w:(Math.random()<.5?-1:1)*(0.15+Math.random()*0.35)}); }
+function labPath(p,A,cx,cy,W){
+  const side=p.b>=0?1:-1, th=Math.max(p.th,0.01)*DEG, ab=Math.abs(p.b);
+  // afstand kern–hoekpunt: bij de kern zelf de kerngrens, verder weg de impactparameter
+  let D;
+  if(model==="kern"){ const k = ab<kernR ? ab*Math.tan(th/2) : K_COUL; D = Math.hypot(k,ab)*A; }
+  else D = ab*A/Math.cos(th/2);
+  return arcPath(cx,cy,side,th,Math.max(D,1),cx-W/2-20,W*1.2);
+}
+function drawZoom(dt,now){
+  const W=cZ.width,H=cZ.height,cx=W/2,cy=H/2,A=Math.min(W,H)*0.40;
+  gZ.clearRect(0,0,W,H);
+  if(model==="thomson"){
+    const g=gZ.createRadialGradient(cx-A*.3,cy-A*.3,A*.1,cx,cy,A); g.addColorStop(0,"rgba(240,150,170,.55)"); g.addColorStop(1,"rgba(190,80,110,.30)");
+    gZ.fillStyle=g; gZ.beginPath(); gZ.arc(cx,cy,A,0,TAU); gZ.fill();
+    gZ.fillStyle="rgba(255,255,255,.7)"; gZ.font="bold 15px Segoe UI, sans-serif"; gZ.textAlign="center"; gZ.textBaseline="middle";
+    for(let i=0;i<16;i++){ const a=i*2.4, r=A*0.75*Math.sqrt((i+.5)/16); gZ.fillText("+",cx+Math.cos(a)*r,cy+Math.sin(a)*r); }
+  } else {
+    gZ.setLineDash([6,6]); gZ.strokeStyle="rgba(147,168,182,.45)"; gZ.lineWidth=1.2; gZ.beginPath(); gZ.arc(cx,cy,A,0,TAU); gZ.stroke(); gZ.setLineDash([]);
+    const rk=Math.max(kernR*A*0.6,2.5), g=gZ.createRadialGradient(cx-rk*.3,cy-rk*.3,0,cx,cy,rk); g.addColorStop(0,"#ff9a7a"); g.addColorStop(1,"#c2412a");
+    gZ.fillStyle=g; gZ.beginPath(); gZ.arc(cx,cy,rk,0,TAU); gZ.fill();
+    if(rk>14) label(gZ,"+",cx,cy,{align:"center",size:16,bold:true,color:"#fff"});
+  }
+  electrons.forEach(e=>{ e.a+=e.w*dt*0.6; gZ.fillStyle="#7cc4ff"; gZ.beginPath(); gZ.arc(cx+Math.cos(e.a)*e.r*A,cy+Math.sin(e.a)*e.r*A,3.2,0,TAU); gZ.fill(); });
+  for(let i=traces.length-1;i>=0;i--){ const t=traces[i]; t.age+=dt; if(t.age>2.5){ traces.splice(i,1); continue; } const k=1-t.age/2.5;
+    gZ.strokeStyle=t.kind==="B"?`rgba(255,138,101,${.75*k})`:t.kind==="D"?`rgba(255,207,90,${.75*k})`:`rgba(160,185,200,${.3*k})`;
+    gZ.lineWidth=1.4; gZ.beginPath(); gZ.moveTo(t.pts[0][0],t.pts[0][1]); t.pts.forEach(q=>gZ.lineTo(q[0],q[1])); gZ.stroke(); }
+  const speed=900;
+  for(let i=queue.length-1;i>=0;i--){
+    const p=queue[i]; if(now<p.start) continue;
+    if(!p.pts){ p.pts=labPath(p,A,cx,cy,W); p.L=polyLen(p.pts); }
+    const s=(now-p.start)*speed;
+    if(s>p.L||s>W*2.2){ traces.push({pts:p.pts,kind:p.kind,age:0}); queue.splice(i,1); continue; }
+    const [x,y]=polyAt(p.pts,p.L,s);
+    gZ.strokeStyle="rgba(255,207,90,.5)"; gZ.lineWidth=2; gZ.beginPath();
+    const s0=Math.max(0,s-30), q0=polyAt(p.pts,p.L,s0); gZ.moveTo(q0[0],q0[1]);
+    for(let ss=s0; ss<s; ss+=4){ const q=polyAt(p.pts,p.L,ss); gZ.lineTo(q[0],q[1]); } gZ.lineTo(x,y); gZ.stroke();
+    gZ.fillStyle="#ffcf5a"; gZ.beginPath(); gZ.arc(x,y,4.5,0,TAU); gZ.fill();
+  }
+  if(ballAnim){
+    ballAnim.t+=dt; const t=ballAnim.t, ex0=cx, ey0=cy-A*0.45, ax=cx-W/2+t*420, ay=ey0, tc=(ex0-(cx-W/2))/420;
+    let ex=ex0, ey=ey0; if(t>tc){ ex=ex0+(t-tc)*520*0.55; ey=ey0-(t-tc)*520*0.8; }
+    gZ.fillStyle="#7cc4ff"; gZ.beginPath(); gZ.arc(ex,ey,5,0,TAU); gZ.fill();
+    gZ.fillStyle="#ffcf5a"; gZ.beginPath(); gZ.arc(ax,ay,9,0,TAU); gZ.fill();
+    label(gZ,"alfadeeltje (4 u)",Math.min(ax+14,W-170),ay+22,{size:19});
+    if(t<tc+0.05) label(gZ,"elektron (1/1800 u)",ex0+10,ey0-14,{size:19});
+    if(t>tc+2.2){ ballAnim=null; setZoomCap(); }
+  }
+}
+function labLoop(now){
+  const dt=Math.min(0.05,(now-lastLab)/1000); lastLab=now;
+  if(!document.getElementById("vLab").classList.contains("hidden")){ drawSetup(dt); drawZoom(dt,now/1000); }
+  requestAnimationFrame(labLoop);
+}
+
+/* ---------- tabs ---------- */
+function switchTab(k){
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===k));
+  document.getElementById("vTour").classList.toggle("hidden",k!=="tour");
+  document.getElementById("vLab").classList.toggle("hidden",k!=="lab");
+  window.scrollTo({top:0});
+}
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+
+renderStep();
+requestAnimationFrame(tourLoop);
+requestAnimationFrame(labLoop);
+})();
+</script>
+</body>
+</html>
