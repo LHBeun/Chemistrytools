@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dossiers – onderzoeken onder de loep</title>
+<style>
+:root{
+  --bureau:#1c2128; --bureau2:#232a33; --rand:#343d49; --tekst:#e7ebf0; --zacht:#9aa6b4;
+  --papier:#f7f1e3; --papier2:#efe6d2; --inkt:#2b2620; --inkt-zacht:#6b6255;
+  --accent:#e0a83a; --accent2:#c98a1a; --goed:#2f9e62; --goed-l:#d9f2e3; --fout:#c8413b; --fout-l:#f8dcda;
+  --deels:#d08a1d; --marker:#ffe066;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+html{background:var(--bureau)}
+body{background:radial-gradient(circle at 20% 0%,#27303b 0,var(--bureau) 55%) fixed;color:var(--tekst);
+  font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;line-height:1.5;min-height:100vh}
+button{font:inherit;cursor:pointer}
+.wrap{max-width:1280px;margin:0 auto;padding:22px 22px 60px}
+header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+header.top h1{font-size:1.35rem;margin:0;letter-spacing:.02em}
+header.top h1 span{color:var(--accent)}
+header.top .spacer{flex:1}
+.knop{background:var(--bureau2);border:1px solid var(--rand);color:var(--tekst);padding:8px 14px;border-radius:8px;transition:.15s}
+.knop:hover{border-color:var(--accent);color:#fff}
+.knop.primair{background:var(--accent);border-color:var(--accent);color:#1d1606;font-weight:600}
+.knop.primair:hover{background:#f0b94a}
+.knop:disabled{opacity:.45;cursor:not-allowed}
+.wie{color:var(--zacht);font-size:.9rem}
+
+/* start */
+.start{max-width:760px;margin:30px auto;background:var(--bureau2);border:1px solid var(--rand);border-radius:14px;padding:30px 34px}
+.start h2{margin-top:0;font-size:1.6rem}
+.start p{color:#cfd6de}
+.start ol{color:#cfd6de;padding-left:1.2em}
+.start li{margin:4px 0}
+.velden{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}
+.velden label{display:flex;flex-direction:column;font-size:.85rem;color:var(--zacht);gap:4px;flex:1;min-width:180px}
+input[type=text],textarea{background:#151a20;border:1px solid var(--rand);color:var(--tekst);border-radius:8px;padding:9px 11px;font:inherit;width:100%}
+input[type=text]:focus,textarea:focus{outline:none;border-color:var(--accent)}
+
+/* overzicht */
+.raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.kaart{position:relative;background:var(--papier);color:var(--inkt);border-radius:6px;padding:18px 18px 16px;
+  box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;transition:transform .15s;min-height:150px;text-align:left;border:none}
+.kaart:hover{transform:translateY(-3px) rotate(-.3deg)}
+.kaart::before{content:"";position:absolute;top:-9px;left:22px;width:70px;height:18px;background:var(--papier2);border-radius:5px 5px 0 0}
+.kaart .nr{font-family:"Courier New",monospace;font-size:.8rem;color:var(--inkt-zacht);letter-spacing:.12em}
+.kaart h3{margin:4px 0 6px;font-family:Georgia,"Times New Roman",serif;font-size:1.25rem}
+.kaart .sub{font-size:.85rem;color:var(--inkt-zacht)}
+.stempel{position:absolute;right:12px;bottom:12px;font-family:"Courier New",monospace;font-weight:700;font-size:.8rem;letter-spacing:.12em;
+  border:2px solid currentColor;padding:2px 8px;border-radius:4px;transform:rotate(-8deg);opacity:.85}
+.stempel.opgelost{color:var(--goed)} .stempel.deels{color:var(--deels)} .stempel.niet{color:var(--fout)}
+.niveau{display:inline-block;font-size:.72rem;padding:1px 8px;border-radius:20px;background:#e6dcc4;color:#5a4f3e;margin-top:8px}
+.overzicht-kop{display:flex;align-items:end;gap:14px;flex-wrap:wrap;margin:6px 0 16px}
+.overzicht-kop h2{margin:0}
+.overzicht-kop .spacer{flex:1}
+
+/* dossier */
+.dossier-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:980px){.dossier-grid{grid-template-columns:1fr}}
+.papier{background:var(--papier);color:var(--inkt);border-radius:4px;padding:30px 34px 34px;box-shadow:0 10px 30px rgba(0,0,0,.4);position:relative;
+  font-family:Georgia,"Times New Roman",serif;font-size:1.02rem}
+.papier .kopregel{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--inkt);padding-bottom:8px;margin-bottom:16px}
+.papier .kopregel .nr{font-family:"Courier New",monospace;letter-spacing:.15em;font-size:.85rem;color:var(--inkt-zacht)}
+.papier h2{margin:0;font-size:1.5rem}
+.papier h4{font-family:"Segoe UI",system-ui,sans-serif;font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;color:var(--inkt-zacht);margin:18px 0 4px}
+.papier p{margin:0}
+.seg{border-radius:3px;padding:1px 1px;transition:background .12s;cursor:pointer;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.seg:hover{background:rgba(224,168,58,.25)}
+.seg.gemarkeerd{background:var(--marker)}
+.vergrendeld .seg{cursor:default}
+.vergrendeld .seg:hover{background:transparent}
+.vergrendeld .seg.gemarkeerd{background:var(--marker)}
+.seg.hot-raak{background:#bfe8cf;outline:2px solid var(--goed)}
+.seg.hot-gemist{outline:2px dashed var(--goed);background:transparent}
+.seg.mis{background:#f3d3cf;text-decoration:line-through;text-decoration-color:rgba(200,65,59,.6)}
+.tabelblok{display:inline-block;margin-top:6px;border-radius:4px;padding:4px;cursor:pointer;max-width:100%;overflow-x:auto}
+.tabelblok:hover{background:rgba(224,168,58,.25)}
+.tabelblok.gemarkeerd{background:var(--marker)}
+.vergrendeld .tabelblok{cursor:default}
+.vergrendeld .tabelblok:hover{background:transparent}
+.tabelblok.hot-raak{background:#bfe8cf;outline:2px solid var(--goed)}
+.tabelblok.hot-gemist{outline:2px dashed var(--goed);background:transparent}
+.tabelblok.mis{background:#f3d3cf}
+table.data{border-collapse:collapse;font-family:"Segoe UI",system-ui,sans-serif;font-size:.9rem;background:#fffaf0}
+table.data th,table.data td{border:1px solid #cbbfa5;padding:5px 10px;text-align:center}
+table.data th{background:#ece1c8}
+table.data td:first-child,table.data th:first-child{text-align:left}
+.hint-papier{font-family:"Segoe UI",system-ui,sans-serif;font-size:.8rem;color:var(--inkt-zacht);margin-top:22px;border-top:1px dashed #cbbfa5;padding-top:10px}
+
+.werk{background:var(--bureau2);border:1px solid var(--rand);border-radius:12px;padding:20px 22px;position:sticky;top:14px}
+.werk h3{margin:0 0 4px;font-size:1.05rem}
+.stap{margin:16px 0 0}
+.stap .stapkop{display:flex;gap:10px;align-items:center;font-weight:600}
+.stap .bol{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#1d1606;display:grid;place-items:center;font-size:.8rem;font-weight:700;flex:none}
+.stap .uitleg{color:var(--zacht);font-size:.86rem;margin:4px 0 8px 34px}
+.stap .inhoud{margin-left:34px}
+.teller{font-size:.85rem;color:var(--zacht)}
+.typen{display:flex;flex-direction:column;gap:6px}
+.typen label{display:flex;gap:9px;align-items:flex-start;padding:7px 10px;border:1px solid var(--rand);border-radius:8px;cursor:pointer;font-size:.92rem;background:#1a2027}
+.typen label:hover{border-color:#566273}
+.typen input{margin-top:4px;accent-color:var(--accent)}
+.typen label.aan{border-color:var(--accent);background:#2a2618}
+.typen label.r-goed{border-color:var(--goed);background:#17301f}
+.typen label.r-ook{border-color:#5b9c74;background:#18291f}
+.typen label.r-fout{border-color:var(--fout);background:#3a1c1b}
+.typen label.r-gemist{border-color:var(--goed);border-style:dashed}
+.typen .tag{margin-left:auto;font-size:.72rem;font-weight:700;white-space:nowrap;padding-left:8px}
+.typen .geen{margin-top:4px}
+textarea{min-height:78px;resize:vertical}
+.acties{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;align-items:center}
+.melding{font-size:.84rem;color:var(--zacht)}
+
+.feedback{margin-top:18px;border-top:1px solid var(--rand);padding-top:16px}
+.oordeel{display:flex;align-items:center;gap:12px;font-weight:700;font-size:1.05rem;margin-bottom:8px}
+.oordeel .stempel{position:static;transform:rotate(-4deg);font-size:.9rem}
+.fbregel{font-size:.9rem;color:#d4dbe3;margin:4px 0}
+.uitwerking{background:var(--papier);color:var(--inkt);border-radius:8px;padding:16px 18px;margin-top:14px;font-size:.93rem}
+.uitwerking h4{margin:0 0 8px;font-size:.95rem}
+.uitwerking .fout{border-left:4px solid var(--accent2);padding:4px 0 4px 12px;margin:10px 0}
+.uitwerking .fout b{display:inline-block;min-width:82px}
+.uitwerking .wg{border-left:4px solid var(--goed);padding:4px 0 4px 12px;margin-top:10px}
+.vergelijk{margin-top:12px;font-size:.88rem;color:var(--zacht)}
+.vergelijk div{background:#151a20;border:1px solid var(--rand);border-radius:8px;padding:8px 10px;margin:4px 0 10px;color:var(--tekst);white-space:pre-wrap}
+
+/* modal */
+.modal-achter{position:fixed;inset:0;background:rgba(8,10,14,.72);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;z-index:50}
+.modal-achter.open{display:flex}
+.modal{background:var(--bureau2);border:1px solid var(--rand);border-radius:14px;max-width:820px;width:100%;padding:24px 28px}
+.modal h2{margin-top:0}
+.ft{border:1px solid var(--rand);border-radius:10px;padding:12px 14px;margin:10px 0;background:#1a2027}
+.ft h3{margin:0 0 4px;font-size:1rem;color:var(--accent)}
+.ft p{margin:4px 0;font-size:.92rem;color:#d4dbe3}
+.ft .vb{color:var(--zacht);font-style:italic}
+
+/* samenvatting */
+.samen{background:var(--bureau2);border:1px solid var(--rand);border-radius:12px;padding:18px 22px;margin-top:22px}
+.samen table{width:100%;border-collapse:collapse;font-size:.9rem}
+.samen th,.samen td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--rand)}
+.samen th{color:var(--zacht);font-weight:600}
+.status-goed{color:#6fd69c}.status-deels{color:#f0b24a}.status-niet{color:#f07d77}.status-open{color:var(--zacht)}
+
+.printversie{display:none}
+@page{size:A4;margin:15mm 14mm}
+@media print{
+  html,body{background:#fff!important;color:#111}
+  #app,.modal-achter{display:none!important}
+  .printversie{display:block!important}
+}
+.pv{font-family:"Segoe UI",system-ui,Arial,sans-serif;color:#111;font-size:10pt;line-height:1.4}
+.pv h1{font-size:16pt;margin:0 0 2px}
+.pv .pvsub{color:#555;font-size:9pt;margin-bottom:10px}
+.pv .pvkop{display:grid;grid-template-columns:auto 1fr auto 1fr auto 1fr;gap:4px 10px;border:1px solid #bbb;border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:10pt}
+.pv .pvkop b{color:#444;font-weight:600}
+.pv .score{font-size:12pt;font-weight:700;margin:4px 0 8px}
+.pv table{border-collapse:collapse;width:100%;font-size:9pt}
+.pv th,.pv td{border:1px solid #c8c8c8;padding:4px 6px;text-align:left;vertical-align:top}
+.pv th{background:#f0f0f0}
+.pv .blok{border:1px solid #bbb;border-radius:6px;padding:9px 12px;margin:10px 0;break-inside:avoid;page-break-inside:avoid}
+.pv .blokkop{display:flex;align-items:baseline;gap:10px;border-bottom:1px solid #ddd;padding-bottom:4px;margin-bottom:6px}
+.pv .blokkop h2{font-size:12pt;margin:0;flex:1}
+.pv .st{white-space:nowrap;font-weight:700;font-size:9pt;border:1.5px solid currentColor;border-radius:3px;padding:0 6px;letter-spacing:.05em}
+.pv .st.opgelost{color:#1f7a4a}.pv .st.deels{color:#a8680c}.pv .st.niet{color:#b3302a}
+.pv .rij{display:grid;grid-template-columns:118px 1fr;gap:8px;margin:3px 0}
+.pv .rij>span:first-child{color:#555;font-weight:600}
+.pv .lijst{margin:0;padding:0;list-style:none}
+.pv .lijst li{margin:1px 0}
+.pv .ok{color:#1f7a4a;font-weight:700}.pv .ookok{color:#3f8a5f;font-weight:700}.pv .nok{color:#b3302a;font-weight:700}
+.pv .tekstvak{border:1px solid #ccc;background:#fafafa;border-radius:4px;padding:5px 8px;white-space:pre-wrap;min-height:1.6em}
+.pv .sleutel{background:#f4f1e8;border-left:3px solid #c98a1a;padding:5px 9px;margin-top:6px;font-size:9pt;color:#333}
+.pv .beoordeling{display:flex;gap:18px;flex-wrap:wrap;margin-top:7px;font-size:9pt;color:#333;border-top:1px dashed #ccc;padding-top:5px}
+.pv .beoordeling span.vak{display:inline-block;width:10px;height:10px;border:1px solid #555;margin:0 3px 0 8px;vertical-align:-1px}
+.pv .voet{margin-top:10px;font-size:8.5pt;color:#666}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div class="printversie pv" id="printvak"></div>
+
+<div class="modal-achter" id="modalFout" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1;margin:0">Fouttypes</h2><button class="knop" data-sluit>Sluiten</button></div>
+    <p style="color:var(--zacht)">Deze fouten kom je tegen in de dossiers. Elk voorbeeld hieronder gaat over iets anders dan de dossiers.</p>
+    <div id="ftLijst"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ====================== DATA ====================== */
+const TYPES = [
+  {id:"factor", naam:"Meer dan één factor tegelijk veranderd",
+   uitleg:"Je wilt weten wat het effect is van één factor, maar tussen de metingen verandert nog iets anders. Dan weet je niet welke factor het verschil veroorzaakt.",
+   vb:"Een groepje vergelijkt hoe goed twee afwasmiddelen vet oplossen, maar test het ene middel in warm water en het andere in koud water."},
+  {id:"controle", naam:"Geen controle of blanco",
+   uitleg:"Er is geen vergelijkingsmeting zonder de behandeling. Dan weet je niet of het effect door de behandeling komt of ook zonder was gebeurd.",
+   vb:"Planten met plantenvoeding groeien 5 cm in een week. Maar hoeveel groeien dezelfde planten zonder plantenvoeding in die week?"},
+  {id:"meet", naam:"Meet iets anders dan de vraag",
+   uitleg:"De vraag gaat over het ene begrip, maar de meting gaat over iets anders. De meting zegt dan weinig over je vraag.",
+   vb:"De vraag is hoe sterk een lijm is, maar het groepje meet hoe lang de lijm erover doet om droog te worden."},
+  {id:"herhaling", naam:"Te weinig herhalingen of spreiding genegeerd",
+   uitleg:"Elke meting heeft toevallige variatie. Met één meting, of met verschillen die kleiner zijn dan de spreiding, weet je niet of een verschil echt is.",
+   vb:"Een groepje meet één keer met een stopwatch hoe lang een knikker over twee hellingen rolt en vindt 1,4 s en 1,5 s."},
+  {id:"anders", naam:"Een andere verklaring niet uitgesloten",
+   uitleg:"Het gemeten effect kan ook een andere oorzaak hebben die de opzet niet uitsluit, bijvoorbeeld wat proefpersonen verwachten, oefenen of de tijd die verstrijkt.",
+   vb:"Na een week met nieuwe hardloopschoenen loopt iemand sneller. Maar diegene heeft die week ook getraind."},
+  {id:"teVer", naam:"Conclusie gaat verder dan de data",
+   uitleg:"De conclusie zegt meer dan er gemeten is: over andere omstandigheden, andere stoffen of organismen, of met getallen die niet gemeten zijn.",
+   vb:"Gemeten tussen 20 °C en 40 °C, maar de conclusie zegt ook iets over wat er bij 80 °C gebeurt."},
+  {id:"hypothese", naam:"Hypothese niet onderbouwd",
+   uitleg:"Een hypothese is een verwachting met een verklaring uit de achtergrond (theorie). \"We denken dat …\" zonder reden is geen hypothese.",
+   vb:"\"We denken dat suiker sneller oplost in thee dan in water, omdat dat logisch is.\""},
+  {id:"kwal", naam:"Kwalitatief waargenomen waar een kwantitatieve meting nodig is",
+   uitleg:"De vraag gaat over een hoeveelheid (hoeveel, hoe snel), maar er is alleen in woorden waargenomen (\"meer\", \"erg\", \"een beetje\"). Of de conclusie noemt getallen die nooit gemeten zijn.",
+   vb:"De vraag is hoeveel schuim verschillende shampoos geven, en het groepje noteert \"veel\", \"gemiddeld\" en \"weinig\"."},
+  {id:"geen", naam:"Geen fout: deze conclusie mag je trekken",
+   uitleg:"Soms klopt een onderzoek gewoon. Kies dit alleen als je kunt uitleggen waarom de opzet eerlijk is en de conclusie uit de data volgt.", vb:""}
+];
+const TYPE = Object.fromEntries(TYPES.map(t=>[t.id,t]));
+
+/* segments: {t:text, hot:bool}; tabel-sectie: {kop, tabel:{h:[], r:[[]]}, hot} */
+const DOSSIERS = [
+{id:"bruis", titel:"Bruistabletten", niveau:"Instap",
+ secties:[
+  {kop:"Hoofdvraag", segs:[{t:"Wat is de invloed van de watertemperatuur op hoe snel een bruistablet oplost?"}]},
+  {kop:"Hypothese", segs:[{t:"In warm water bewegen de waterdeeltjes sneller en botsen ze vaker en harder tegen de tablet."},{t:"Daarom verwachten we dat een tablet in warm water sneller oplost dan in koud water."}]},
+  {kop:"Methode", segs:[
+    {t:"We deden steeds 200 mL water in dezelfde glazen beker."},
+    {t:"Koud water haalden we uit de koelkast (8 °C), warm water maakten we met de waterkoker en lieten we afkoelen tot 60 °C."},
+    {t:"We gooiden er één tablet in en maten met een stopwatch de tijd tot er geen vaste stof meer over was."},
+    {t:"Per temperatuur deden we drie metingen."},
+    {t:"Voor de metingen in koud water gebruikten we de tabletten uit de verpakking die we thuis hadden.",hot:true},
+    {t:"Toen die op waren, hebben we voor de metingen in warm water een verpakking van een andere winkel gekocht.",hot:true}]},
+  {kop:"Resultaten", tabel:{h:["Temperatuur","Meting 1","Meting 2","Meting 3","Gemiddeld"],r:[["8 °C","92 s","95 s","90 s","92 s"],["60 °C","31 s","34 s","29 s","31 s"]]}},
+  {kop:"Conclusie", segs:[{t:"In water van 60 °C lost een bruistablet ongeveer drie keer zo snel op als in water van 8 °C."},{t:"Onze hypothese klopt."}]}
+ ],
+ goed:["factor"], ook:[],
+ uitwerking:{fouten:[{type:"factor", waar:"De laatste twee zinnen van de methode.",
+   uitleg:"De tabletten van de andere winkel kunnen een andere samenstelling of grootte hebben. Het verschil in oplostijd kan dus ook door de tablet komen: je weet niet welk deel van het verschil door de temperatuur komt.",
+   reparatie:"Gebruik bij alle metingen tabletten uit dezelfde verpakking. Of gebruik beide soorten tabletten bij beide temperaturen, dan kun je ook het effect van de soort tablet vergelijken."}],
+  goed:"De hypothese is onderbouwd, er zijn drie herhalingen, de spreiding is klein vergeleken met het verschil, en de conclusie gaat niet verder dan de twee gemeten temperaturen."}
+},
+{id:"munt", titel:"Koperen munten", niveau:"Instap",
+ secties:[
+  {kop:"Hoofdvraag", segs:[{t:"Hoe goed maakt cola doffe koperen munten schoon, en waardoor komt dat?"}]},
+  {kop:"Hypothese", segs:[{t:"Cola is zuur door het fosforzuur dat erin zit."},{t:"Een zuur kan de doffe laag koperoxide oplossen."},{t:"Daarom verwachten we dat de munten in cola weer gaan glanzen."}]},
+  {kop:"Methode", segs:[
+    {t:"We legden vijf doffe munten van 5 cent 30 minuten in een bekerglas met 100 mL cola.",hot:true},
+    {t:"Daarna spoelden we ze af met water en droogden we ze met een doek.",hot:true},
+    {t:"Drie personen gaven elke munt voor en na de behandeling een score met een kleurenkaart (1 = dof bruin, 5 = glanzend koperkleurig)."}]},
+  {kop:"Resultaten", segs:[{t:"De gemiddelde score was voor de behandeling 1,4 en na de behandeling 4,2."}]},
+  {kop:"Conclusie", segs:[{t:"Cola maakt doffe munten goed schoon."},{t:"Dat komt door het fosforzuur in cola, dat het koperoxide oplost.",hot:true}]}
+ ],
+ goed:["controle"], ook:["kwal","teVer","anders"],
+ uitwerking:{fouten:[{type:"controle", waar:"De methode (er is maar één behandeling) en de tweede zin van de conclusie.",
+   uitleg:"Je weet niet wat de munten schoon maakte. Misschien deed afspoelen en droogwrijven met een doek al veel. Ook zit er meer in cola dan fosforzuur: dat het fosforzuur was, is niet getest.",
+   reparatie:"Behandel tegelijk munten die 30 minuten in water liggen en op dezelfde manier worden afgespoeld en gedroogd. Wil je het fosforzuur aantonen, gebruik dan ook een fosforzuuroplossing met dezelfde pH als cola, en een frisdrank zonder fosforzuur."}],
+  goed:"De hypothese is onderbouwd en er zijn meerdere munten en beoordelaars gebruikt.",
+  ookNoot:"Ook goed gerekend: de score met een kleurenkaart is maar half kwantitatief (mensen kijken verschillend), het afspoelen en droogwrijven is een andere verklaring die niet is uitgesloten, en de conclusie over fosforzuur gaat verder dan de data. Het grootste probleem is wel de ontbrekende controle."}
+},
+{id:"water", titel:"Kraanwater of flessenwater", niveau:"Instap",
+ secties:[
+  {kop:"Hoofdvraag", segs:[{t:"Welk water vinden leerlingen van onze school lekkerder, kraanwater of flessenwater, en hoe groot is het verschil?"}]},
+  {kop:"Hypothese", segs:[{t:"Flessenwater is bronwater met andere opgeloste mineralen dan kraanwater."},{t:"Daardoor smaakt het anders."},{t:"We verwachten dat de meeste leerlingen flessenwater lekkerder vinden."}]},
+  {kop:"Methode", segs:[
+    {t:"Tijdens de pauze vroegen we 20 leerlingen om twee bekers water te proeven."},
+    {t:"Eén beker vulden we waar de proefpersoon bij was uit een fles bronwater, de andere uit de kraan in het lokaal.",hot:true},
+    {t:"Beide waren op kamertemperatuur."},
+    {t:"De proefpersoon wees aan welke beker het lekkerst was."}]},
+  {kop:"Resultaten", segs:[{t:"15 van de 20 leerlingen kozen het flessenwater, 5 kozen het kraanwater."}]},
+  {kop:"Conclusie", segs:[{t:"Flessenwater smaakt lekkerder dan kraanwater: driekwart van de leerlingen koos het flessenwater."}]}
+ ],
+ goed:["anders"], ook:[],
+ uitwerking:{fouten:[{type:"anders", waar:"\"waar de proefpersoon bij was\" in de methode.",
+   uitleg:"De proefpersonen wisten welk water welk was. Hun keuze kan komen door wat ze verwachten (\"flessenwater is beter\") en niet door de smaak. De meting zegt dus niet per se iets over hoe het water smaakt.",
+   reparatie:"Vul de bekers buiten het zicht van de proefpersoon, geef ze een code, en wissel per proefpersoon welke beker eerst geproefd wordt."}],
+  goed:"De hypothese is onderbouwd, het water heeft dezelfde temperatuur en er zijn 20 proefpersonen."}
+},
+{id:"thee", titel:"Thee warm houden", niveau:"Gemiddeld",
+ secties:[
+  {kop:"Hoofdvraag", segs:[{t:"Met welk materiaal kun je een mok thee het langst warm houden: aluminiumfolie, wol of krantenpapier?"}]},
+  {kop:"Hypothese", segs:[{t:"Wol heeft veel luchtgaatjes en lucht geleidt warmte slecht."},{t:"Daarom verwachten we dat wol het best isoleert."}]},
+  {kop:"Methode", segs:[
+    {t:"We vulden vier dezelfde mokken met 250 mL water van 90 °C."},
+    {t:"Drie mokken wikkelden we in één laag van een materiaal, de vierde mok lieten we onverpakt."},
+    {t:"Alle mokken stonden tegelijk op dezelfde tafel."},
+    {t:"Na 20 minuten maten we de temperatuur met een digitale thermometer."},
+    {t:"Per materiaal deden we één meting.",hot:true}]},
+  {kop:"Resultaten", tabel:{h:["Mok","Temperatuur na 20 min"],r:[["Aluminiumfolie","52,1 °C"],["Wol","51,4 °C"],["Krantenpapier","50,8 °C"],["Onverpakt","41,0 °C"]]}, hot:true},
+  {kop:"Conclusie", segs:[{t:"Aluminiumfolie houdt thee het langst warm, krantenpapier het kortst."},{t:"Onze hypothese klopt niet."}]}
+ ],
+ goed:["herhaling"], ook:["teVer"],
+ uitwerking:{fouten:[{type:"herhaling", waar:"De methode (één meting per materiaal) en de tabel.",
+   uitleg:"De verschillen tussen de drie materialen zijn kleiner dan 1,5 °C. Bij één meting per materiaal weet je niet of zo'n verschil echt is of door toeval komt, bijvoorbeeld door hoe strak de laag om de mok zat. Het verschil met de onverpakte mok is wel groot.",
+   reparatie:"Herhaal de proef een paar keer per materiaal en vergelijk het verschil tussen de materialen met de spreiding binnen één materiaal. Een eerlijke conclusie is nu alleen: alle drie isoleren beter dan niets; tussen de drie is geen duidelijk verschil."}],
+  goed:"Er is een controle (de onverpakte mok), alle mokken staan tegelijk op dezelfde plek en de hypothese is onderbouwd.",
+  ookNoot:"Ook goed gerekend: de conclusie gaat verder dan de data, want de volgorde van de drie materialen is met deze metingen niet vast te stellen."}
+},
+{id:"appel", titel:"Bruine appels", niveau:"Gemiddeld",
+ secties:[
+  {kop:"Hoofdvraag", segs:[{t:"Wat is de invloed van citroensap op hoe snel aangesneden appel bruin wordt?"}]},
+  {kop:"Hypothese", segs:[{t:"Appel wordt bruin doordat een enzym stoffen in de appel laat reageren met zuurstof uit de lucht."},{t:"Citroensap is zuur, en enzymen werken minder goed in een zure omgeving."},{t:"Daarom verwachten we dat appel met citroensap langzamer bruin wordt."}]},
+  {kop:"Methode", segs:[
+    {t:"We sneden een appel in acht even dikke partjes."},
+    {t:"Vier partjes bestreken we met citroensap, vier niet."},
+    {t:"Alle partjes lagen naast elkaar op een bord op dezelfde tafel."},
+    {t:"Elke 10 minuten, een uur lang, schreven we op hoe de partjes eruitzagen.",hot:true}]},
+  {kop:"Resultaten", tabel:{h:["Tijd","Zonder citroensap","Met citroensap"],r:[["10 min","lichtbruine randjes","wit"],["30 min","bruin","lichtbruine randjes"],["60 min","erg bruin","een beetje bruin"]]}, hot:true},
+  {kop:"Conclusie", segs:[{t:"Citroensap maakt het bruin worden ongeveer 60 % langzamer.",hot:true},{t:"Onze hypothese klopt."}]}
+ ],
+ goed:["kwal"], ook:["teVer"],
+ uitwerking:{fouten:[{type:"kwal", waar:"De laatste zin van de methode, de tabel, en \"60 %\" in de conclusie.",
+   uitleg:"\"Bruin\" en \"erg bruin\" zijn woorden, geen metingen, en ze hangen af van wie er kijkt. Je kunt zeggen dat de partjes met citroensap later bruin werden, maar niet hoeveel langzamer. De 60 % komt nergens vandaan, dus daardoor gaat ook de conclusie verder dan de data.",
+   reparatie:"Maak de waarneming meetbaar: bijvoorbeeld een kleurenkaart met genummerde tinten, gescoord door iemand die niet weet welk partje welk is, en meet de tijd tot een vaste tint bereikt is. Of maak op vaste tijden een foto onder dezelfde belichting en vergelijk de kleur."}],
+  goed:"De hypothese is onderbouwd, er is een controle, er zijn herhalingen, en alle partjes liggen op dezelfde plek."}
+},
+{id:"ijs", titel:"Smeltend ijs", niveau:"Gemiddeld",
+ secties:[
+  {kop:"Hoofdvraag", segs:[{t:"Wat is de invloed van de hoeveelheid zout op hoe snel ijs smelt?"}]},
+  {kop:"Hypothese", segs:[{t:"Zout verlaagt het smeltpunt van ijs (vriespuntsdaling)."},{t:"Hoe meer zout, hoe lager het smeltpunt en hoe groter het verschil met de temperatuur van de omgeving."},{t:"We verwachten daarom dat er meer ijs smelt naarmate er meer zout op ligt."}]},
+  {kop:"Methode", segs:[
+    {t:"We gebruikten ijsblokjes uit dezelfde vriezer en wogen ze af tot elk 20,0 g."},
+    {t:"Elk ijsblokje legden we in een eigen, identiek bekerglas op dezelfde tafel, en we strooiden er 0,0 g, 1,0 g of 2,0 g keukenzout op."},
+    {t:"Per hoeveelheid zout deden we drie ijsblokjes, allemaal tegelijk."},
+    {t:"Na 10 minuten haalden we het ijs eruit, depten het droog en wogen het."},
+    {t:"Hoeveel ijs gesmolten was, rekenden we uit door de massa van het overgebleven ijs van 20,0 g af te trekken."}]},
+  {kop:"Resultaten", tabel:{h:["Zout","Gesmolten ijs 1","Gesmolten ijs 2","Gesmolten ijs 3","Gemiddeld"],r:[["0,0 g","5,9 g","5,6 g","6,1 g","5,9 g"],["1,0 g","8,8 g","9,0 g","8,5 g","8,8 g"],["2,0 g","11,4 g","11,1 g","11,6 g","11,4 g"]]}},
+  {kop:"Conclusie", segs:[{t:"Hoe meer zout, hoe meer ijs er in 10 minuten smolt."},{t:"Met 2,0 g zout smolt bijna twee keer zoveel ijs als zonder zout."},{t:"Dat klopt met onze hypothese."},{t:"We hebben alleen hoeveelheden tot 2,0 g zout onderzocht."}]}
+ ],
+ goed:["geen"], ook:[],
+ uitwerking:{fouten:[],
+  geenUitleg:"Er verandert maar één factor, er is een blanco (0,0 g zout), er zijn drie herhalingen met een kleine spreiding vergeleken met de verschillen, de hypothese is onderbouwd en de conclusie blijft binnen het gemeten bereik.",
+  goed:""}
+},
+{id:"gist", titel:"Gist en temperatuur", niveau:"Gemiddeld",
+ secties:[
+  {kop:"Hoofdvraag", segs:[{t:"Wat is de invloed van de temperatuur op hoe snel gist suiker omzet?"}]},
+  {kop:"Hypothese", segs:[{t:"We denken dat de gist bij 40 °C het snelst werkt, omdat het dan lekker warm is maar niet te heet.",hot:true}]},
+  {kop:"Methode", segs:[
+    {t:"We deden in drie flessen elk 250 mL water, 10 g suiker en 5 g gist."},
+    {t:"Over elke flessenhals trokken we een ballon."},
+    {t:"De flessen zetten we in een waterbad van 20 °C, 40 °C of 60 °C."},
+    {t:"Na 30 minuten maten we met een meetlint hoeveel de omtrek van de ballon was toegenomen."},
+    {t:"Per temperatuur deden we de proef drie keer."}]},
+  {kop:"Resultaten", tabel:{h:["Temperatuur","Toename omtrek 1","Toename omtrek 2","Toename omtrek 3","Gemiddeld"],r:[["20 °C","8,1 cm","8,5 cm","7,9 cm","8,2 cm"],["40 °C","24,0 cm","25,2 cm","24,6 cm","24,6 cm"],["60 °C","0,2 cm","0,0 cm","0,3 cm","0,2 cm"]]}},
+  {kop:"Conclusie", segs:[{t:"Bij 40 °C ontstond het meeste gas, dus daar zet gist suiker het snelst om."},{t:"Onze hypothese klopt.",hot:true}]}
+ ],
+ goed:["hypothese"], ook:[],
+ uitwerking:{fouten:[{type:"hypothese", waar:"De hypothese, en daardoor ook \"Onze hypothese klopt.\"",
+   uitleg:"\"Lekker warm maar niet te heet\" is een gevoel, geen verklaring. Daardoor weet je ook niet waarom de hypothese klopt, en kun je niet verklaren wat er bij 60 °C gebeurt. De metingen zelf zijn goed.",
+   reparatie:"Onderbouw de hypothese met de achtergrond: gist bestaat uit levende cellen, en de omzetting van suiker wordt versneld door enzymen. Bij hogere temperatuur gaan reacties sneller, maar boven een bepaalde temperatuur raken enzymen hun vorm kwijt en gaan gistcellen dood. Dan verwacht je een optimum en bijna niets bij 60 °C."}],
+  goed:"Er verandert maar één factor, er zijn drie herhalingen met kleine spreiding, en er is kwantitatief gemeten."}
+},
+{id:"kers", titel:"Tuinkers en zout", niveau:"Uitdaging: twee fouten",
+ secties:[
+  {kop:"Hoofdvraag", segs:[{t:"Wat is de invloed van zout in het gietwater op de groei van tuinkers?"}]},
+  {kop:"Hypothese", segs:[{t:"Zout water trekt water uit de cellen van de plant (osmose)."},{t:"Daarom verwachten we dat tuinkers minder goed groeit naarmate er meer zout in het water zit."}]},
+  {kop:"Methode", segs:[
+    {t:"We maakten zoutoplossingen met 0, 5, 10 en 20 gram keukenzout per liter water."},
+    {t:"Per concentratie gebruikten we drie bakjes met een laagje watten, met in elk bakje 50 zaadjes."},
+    {t:"Elk bakje kreeg 20 mL van de oplossing."},
+    {t:"Alle bakjes stonden op dezelfde vensterbank."},
+    {t:"Na twee dagen telden we per bakje hoeveel zaadjes ontkiemd waren.",hot:true}]},
+  {kop:"Resultaten", tabel:{h:["Zout (g per liter)","Bakje 1","Bakje 2","Bakje 3","Gemiddeld ontkiemd (van 50)"],r:[["0","47","45","46","46"],["5","42","40","41","41"],["10","24","20","22","22"],["20","4","2","3","3"]]}},
+  {kop:"Conclusie", segs:[{t:"Zout remt de groei van tuinkers sterk: bij 20 gram per liter groeit tuinkers bijna niet.",hot:true},{t:"Dit verklaart waarom planten langs wegen die in de winter gestrooid worden slecht groeien.",hot:true}]}
+ ],
+ goed:["meet","teVer"], ook:[],
+ uitwerking:{fouten:[
+  {type:"meet", waar:"De laatste zin van de methode, plus de tabel.",
+   uitleg:"De vraag gaat over groei, maar er is gemeten hoeveel zaadjes ontkiemen. Een zaadje dat ontkiemt, kan daarna nog steeds slecht groeien, en andersom. Over groei zegt deze meting niets.",
+   reparatie:"Pas de vraag aan naar kieming, of meet echt groei: bijvoorbeeld de lengte of de massa van de plantjes na een vaste tijd, bij dezelfde concentraties."},
+  {type:"teVer", waar:"De laatste zin van de conclusie.",
+   uitleg:"Er is alleen tuinkers op watten onderzocht, gedurende twee dagen. Bermplanten zijn andere soorten en staan in grond, die zout kan opnemen of wegspoelen. Of de zoutconcentraties langs de weg in de buurt van de gemeten concentraties komen, is ook niet bekend.",
+   reparatie:"Houd de conclusie bij wat gemeten is. De wegberm kan als idee voor vervolgonderzoek in de discussie."}],
+  goed:"De hypothese is onderbouwd met osmose, er zijn herhalingen, en de resultaten staan er zonder conclusies in."}
+}
+];
+
+/* ====================== STATE ====================== */
+const KEY = "pws-dossiers-v1";
+let S = laad() || {naam:"", klas:"", antw:{}};
+function laad(){ try{ const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
+function bewaar(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function antw(id){ if(!S.antw[id]) S.antw[id] = {marks:[], types:[], uitleg:"", rep:"", klaar:false}; return S.antw[id]; }
+
+/* ====================== HELPERS ====================== */
+const $ = (s,el=document)=>el.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function hotIds(d){ const h=[]; d.secties.forEach((s,i)=>{ if(s.tabel){ if(s.hot) h.push(i+"-t"); } else s.segs.forEach((g,j)=>{ if(g.hot) h.push(i+"-"+j); }); }); return h; }
+function segTekst(d,id){ const [i,j]=id.split("-"); const s=d.secties[+i]; return j==="t" ? "["+s.kop+": tabel]" : s.segs[+j].t; }
+function beoordeel(d,a){
+  const C=new Set(a.types), R=new Set(d.goed), A=new Set(d.ook);
+  const gevonden=[...R].filter(x=>C.has(x)), gemist=[...R].filter(x=>!C.has(x));
+  const fout=[...C].filter(x=>!R.has(x)&&!A.has(x)), ookOk=[...C].filter(x=>A.has(x));
+  let status = (gemist.length===0 && fout.length===0) ? "opgelost" : ((gevonden.length>0||ookOk.length>0) ? "deels" : "niet");
+  const H=new Set(hotIds(d)), M=new Set(a.marks);
+  return {gevonden,gemist,fout,ookOk,status, raak:[...M].filter(x=>H.has(x)), mis:[...M].filter(x=>!H.has(x)), hotGemist:[...H].filter(x=>!M.has(x)), nHot:H.size};
+}
+const STATUSTEKST = {opgelost:"OPGELOST", deels:"DEELS OPGELOST", niet:"NIET OPGELOST"};
+
+/* ====================== VIEWS ====================== */
+let huidige = null;
+function render(){
+  const app = $("#app");
+  if(!S.naam){ app.innerHTML = startView(); bindStart(); return; }
+  if(huidige===null){ app.innerHTML = kop()+overzichtView(); bindOverzicht(); }
+  else { app.innerHTML = kop()+dossierView(DOSSIERS[huidige]); bindDossier(DOSSIERS[huidige]); }
+  bindKop();
+  window.scrollTo(0,0);
+}
+function kop(){
+  return `<header class="top noprint"><h1>Dossiers <span>· onderzoeken onder de loep</span></h1><div class="spacer"></div>
+  <span class="wie">${esc(S.naam)}${S.klas?" · "+esc(S.klas):""}</span>
+  ${huidige!==null?'<button class="knop" id="naarOverzicht">← Alle dossiers</button>':''}
+  <button class="knop" id="openFout">Fouttypes</button></header>`;
+}
+function startView(){
+  return `<div class="start">
+  <h2>Dossiers: onderzoeken onder de loep</h2>
+  <p>Je bent reviewer. In elk dossier staat een stuk uit het verslag van een groepje dat een onderzoek heeft gedaan: hoofdvraag, hypothese, methode, resultaten en conclusie. Het groepje is tevreden met de conclusie. Jij beoordeelt of ze die conclusie mogen trekken.</p>
+  <p>Per dossier doe je vier dingen:</p>
+  <ol>
+    <li><b>Aanwijzen</b>: klik op de zinnen (of de tabel) waar het probleem zit.</li>
+    <li><b>Benoemen</b>: kies welk soort fout het is. Soms zijn het er twee, soms is er geen fout.</li>
+    <li><b>Uitleggen</b>: waarom kun je deze conclusie niet trekken?</li>
+    <li><b>Repareren</b>: hoe had het groepje het moeten aanpakken?</li>
+  </ol>
+  <p>Daarna zie je de uitwerking en vergelijk je die met je eigen antwoord. Bekijk eerst de <b>fouttypes</b> rechtsboven.</p>
+  <div class="velden">
+    <label>Naam<input type="text" id="inNaam" autocomplete="off"></label>
+    <label>Klas<input type="text" id="inKlas" autocomplete="off"></label>
+  </div>
+  <div class="acties"><button class="knop" id="openFout">Fouttypes bekijken</button><button class="knop primair" id="beginKnop">Begin</button><span class="melding" id="startMelding"></span></div>
+  </div>`;
+}
+function overzichtView(){
+  const kaarten = DOSSIERS.map((d,i)=>{
+    const a=S.antw[d.id]; let st="";
+    if(a&&a.klaar){ const b=beoordeel(d,a); st=`<span class="stempel ${b.status}">${STATUSTEKST[b.status]}</span>`; }
+    return `<button class="kaart" data-i="${i}"><div class="nr">DOSSIER ${String(i+1).padStart(2,"0")}</div><h3>${esc(d.titel)}</h3><span class="niveau">${esc(d.niveau)}</span>${st}</button>`;
+  }).join("");
+  return `<div class="overzicht-kop"><h2>Alle dossiers</h2><span class="melding">Werk ze bij voorkeur in volgorde af: ze worden steeds moeilijker.</span><div class="spacer"></div></div>
+  <div class="raster">${kaarten}</div>${samenvatting()}`;
+}
+function samenvatting(){
+  const rijen = DOSSIERS.map((d,i)=>{
+    const a=S.antw[d.id];
+    if(!a||!a.klaar) return `<tr><td>${i+1}. ${esc(d.titel)}</td><td class="status-open">nog niet gedaan</td><td></td></tr>`;
+    const b=beoordeel(d,a);
+    const cls={opgelost:"status-goed",deels:"status-deels",niet:"status-niet"}[b.status];
+    return `<tr><td>${i+1}. ${esc(d.titel)}</td><td class="${cls}">${STATUSTEKST[b.status].toLowerCase()}</td><td>${a.types.map(t=>esc(TYPE[t].naam)).join("; ")}</td></tr>`;
+  }).join("");
+  const n = DOSSIERS.filter(d=>S.antw[d.id]&&S.antw[d.id].klaar).length;
+  const ok = DOSSIERS.filter(d=>S.antw[d.id]&&S.antw[d.id].klaar&&beoordeel(d,S.antw[d.id]).status==="opgelost").length;
+  return `<div class="samen noprint"><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><h3 style="margin:0;flex:1">Jouw overzicht · ${ok} van ${DOSSIERS.length} opgelost (${n} gedaan)</h3>
+   <button class="knop primair" id="dlKnop">Exporteer voor je docent (PDF)</button><button class="knop" id="wisKnop">Alles wissen</button></div>
+   <div class="melding" style="margin-top:6px">Klaar? Klik op "Exporteer voor je docent" en kies bij <i>Bestemming</i> voor <b>Opslaan als PDF</b>. Lever die PDF in.</div>
+   <table style="margin-top:10px"><tr><th>Dossier</th><th>Resultaat</th><th>Jouw fouttypes</th></tr>${rijen}</table></div>`;
+}
+function papierHTML(d,i,a,b){
+  const M=new Set(a.marks), H=new Set(hotIds(d));
+  const klasse = id => {
+    let c = M.has(id) ? " gemarkeerd" : "";
+    if(b){ if(H.has(id)&&M.has(id)) c=" hot-raak"; else if(H.has(id)) c=" hot-gemist"; else if(M.has(id)) c=" mis"; }
+    return c;
+  };
+  const sec = d.secties.map((s,si)=>{
+    if(s.tabel){
+      const id=si+"-t";
+      const th="<tr>"+s.tabel.h.map(h=>`<th>${esc(h)}</th>`).join("")+"</tr>";
+      const tr=s.tabel.r.map(r=>"<tr>"+r.map(c=>`<td>${esc(c)}</td>`).join("")+"</tr>").join("");
+      return `<h4>${esc(s.kop)}</h4><div class="tabelblok${klasse(id)}" data-seg="${id}"><table class="data">${th}${tr}</table></div>`;
+    }
+    return `<h4>${esc(s.kop)}</h4><p>${s.segs.map((g,gi)=>`<span class="seg${klasse(si+"-"+gi)}" data-seg="${si}-${gi}">${esc(g.t)}</span>`).join(" ")}</p>`;
+  }).join("");
+  return `<div class="papier${a.klaar?" vergrendeld":""}" id="papier"><div class="kopregel"><h2>${esc(d.titel)}</h2><span class="nr">DOSSIER ${String(i+1).padStart(2,"0")}</span></div>${sec}
+  <div class="hint-papier">${a.klaar ? "Groen omlijnd: hier zit het probleem. Gestreept: dit had je aangewezen, maar hier zit het probleem niet." : "Klik op een zin of op de tabel om die te markeren. Klik nog een keer om de markering weg te halen."}</div></div>`;
+}
+function dossierView(d){
+  const i=DOSSIERS.indexOf(d), a=antw(d.id), b=a.klaar?beoordeel(d,a):null;
+  const typenHTML = TYPES.map(t=>{
+    let cls = a.types.includes(t.id) ? " aan" : "", tag="";
+    if(b){
+      cls="";
+      if(b.gevonden.includes(t.id)){cls=" r-goed";tag='<span class="tag" style="color:#6fd69c">goed</span>';}
+      else if(b.ookOk.includes(t.id)){cls=" r-ook";tag='<span class="tag" style="color:#8fcaa5">ook goed</span>';}
+      else if(b.fout.includes(t.id)){cls=" r-fout";tag='<span class="tag" style="color:#f07d77">niet goed</span>';}
+      else if(b.gemist.includes(t.id)){cls=" r-gemist";tag='<span class="tag" style="color:#6fd69c">gemist</span>';}
+    }
+    return `<label class="${cls.trim()}${t.id==="geen"?" geen":""}"><input type="checkbox" value="${t.id}" ${a.types.includes(t.id)?"checked":""} ${a.klaar?"disabled":""}><span>${esc(t.naam)}</span>${tag}</label>`;
+  }).join("");
+  const geenGekozen = a.types.includes("geen");
+  const werk = `<div class="werk noprint">
+   <h3>Jouw review</h3>
+   <div class="stap"><div class="stapkop"><span class="bol">1</span>Aanwijzen</div>
+     <div class="uitleg">Markeer in het dossier waar het probleem zit. Zit er geen fout in, markeer dan niets.</div>
+     <div class="inhoud teller" id="teller">${a.marks.length} ${a.marks.length===1?"markering":"markeringen"}</div></div>
+   <div class="stap"><div class="stapkop"><span class="bol">2</span>Benoemen</div>
+     <div class="uitleg">Welk soort fout is het? Kies er één of twee, of "geen fout".</div>
+     <div class="inhoud typen" id="typen">${typenHTML}</div></div>
+   <div class="stap"><div class="stapkop"><span class="bol">3</span>Uitleggen</div>
+     <div class="uitleg" id="uitlegLabel">${geenGekozen?"Leg uit waarom het groepje deze conclusie mag trekken.":"Leg uit waarom het groepje deze conclusie niet mag trekken."}</div>
+     <div class="inhoud"><textarea id="taUitleg" ${a.klaar?"disabled":""}>${esc(a.uitleg)}</textarea></div></div>
+   <div class="stap" id="stapRep" ${geenGekozen?'style="display:none"':''}><div class="stapkop"><span class="bol">4</span>Repareren</div>
+     <div class="uitleg">Wat had het groepje anders moeten doen?</div>
+     <div class="inhoud"><textarea id="taRep" ${a.klaar?"disabled":""}>${esc(a.rep)}</textarea></div></div>
+   ${a.klaar ? feedbackHTML(d,a,b) : `<div class="acties"><button class="knop primair" id="checkKnop">Controleer en toon uitwerking</button><span class="melding" id="checkMelding"></span></div>`}
+  </div>`;
+  return `<div class="dossier-grid">${papierHTML(d,i,a,b)}${werk}</div>`;
+}
+function feedbackHTML(d,a,b){
+  const i=DOSSIERS.indexOf(d);
+  const regels=[];
+  if(d.goed[0]==="geen"){
+    regels.push(b.status==="opgelost" ? "Goed gezien: in dit dossier zit geen fout." : "In dit dossier zit geen fout: deze conclusie mag het groepje trekken.");
+    if(a.marks.length) regels.push("Je hebt iets gemarkeerd, maar er zit hier geen probleem.");
+  } else {
+    regels.push(`Fouttypes: ${b.gevonden.length} van ${d.goed.length} gevonden${b.ookOk.length?`, ${b.ookOk.length} ook goed`:""}${b.fout.length?`, ${b.fout.length} niet goed gekozen`:""}.`);
+    regels.push((b.raak.length ? "Aanwijzen: je hebt het probleem (of een deel ervan) gevonden." : "Aanwijzen: je hebt de plek van het probleem niet gevonden.") + (b.mis.length ? ` ${b.mis.length} ${b.mis.length===1?"markering staat":"markeringen staan"} op een plek zonder probleem.` : "") + " In het dossier zie je groen omlijnd waar het zit.");
+  }
+  const u=d.uitwerking;
+  let uit="";
+  if(d.goed[0]==="geen"){
+    uit=`<div class="uitwerking"><h4>Uitwerking</h4><div class="wg"><b>Geen fout.</b> ${esc(u.geenUitleg)}</div></div>`;
+  } else {
+    uit=`<div class="uitwerking"><h4>Uitwerking</h4>${u.fouten.map((f,k)=>`<div class="fout">${u.fouten.length>1?`<div style="font-weight:700;margin-bottom:4px">Fout ${k+1}</div>`:""}
+      <div><b>Fouttype</b> ${esc(TYPE[f.type].naam)}</div><div><b>Waar</b> ${esc(f.waar)}</div><div><b>Uitleg</b> ${esc(f.uitleg)}</div><div><b>Reparatie</b> ${esc(f.reparatie)}</div></div>`).join("")}
+      ${u.ookNoot?`<div class="wg" style="border-color:#8fcaa5">${esc(u.ookNoot)}</div>`:""}
+      ${u.goed?`<div class="wg"><b>Wat wel goed is:</b> ${esc(u.goed)}</div>`:""}</div>`;
+  }
+  const volgende = i<DOSSIERS.length-1 ? `<button class="knop primair" id="volgendeKnop">Volgend dossier →</button>` : `<button class="knop primair" id="naarOverzicht2">Naar het overzicht</button>`;
+  return `<div class="feedback"><div class="oordeel"><span class="stempel ${b.status}">${STATUSTEKST[b.status]}</span></div>
+   ${regels.map(r=>`<div class="fbregel">${esc(r)}</div>`).join("")}${uit}
+   <div class="vergelijk">Vergelijk je eigen uitleg en reparatie met de uitwerking. Wat had je gemist?</div>
+   <div class="acties">${volgende}</div></div>`;
+}
+
+/* ====================== BINDINGS ====================== */
+function bindKop(){
+  document.querySelectorAll("#openFout").forEach(b=>b.onclick=openFout);
+  const t=$("#naarOverzicht"); if(t) t.onclick=()=>{huidige=null;render();};
+}
+function bindStart(){
+  bindKop();
+  $("#beginKnop").onclick=()=>{
+    const n=$("#inNaam").value.trim(), k=$("#inKlas").value.trim();
+    if(!n){ $("#startMelding").textContent="Vul je naam in."; return; }
+    S.naam=n; S.klas=k; bewaar(); huidige=null; render();
+  };
+}
+function bindOverzicht(){
+  document.querySelectorAll(".kaart").forEach(k=>k.onclick=()=>{huidige=+k.dataset.i;render();});
+  $("#dlKnop").onclick=exporteer;
+  const w=$("#wisKnop");
+  w.onclick=()=>{
+    if(w.dataset.zeker){ S={naam:"",klas:"",antw:{}}; bewaar(); huidige=null; render(); }
+    else { w.dataset.zeker="1"; w.textContent="Weet je het zeker? Klik nogmaals"; w.style.borderColor="var(--fout)"; setTimeout(()=>{ if(w.isConnected){ delete w.dataset.zeker; w.textContent="Alles wissen"; w.style.borderColor=""; } },4000); }
+  };
+}
+function bindDossier(d){
+  const a=antw(d.id);
+  const naar2=$("#naarOverzicht2"); if(naar2) naar2.onclick=()=>{huidige=null;render();};
+  const volg=$("#volgendeKnop"); if(volg) volg.onclick=()=>{huidige++;render();};
+  if(a.klaar) return;
+  document.querySelectorAll("#papier [data-seg]").forEach(el=>{
+    el.onclick=()=>{
+      const id=el.dataset.seg, k=a.marks.indexOf(id);
+      if(k>=0) a.marks.splice(k,1); else a.marks.push(id);
+      el.classList.toggle("gemarkeerd");
+      $("#teller").textContent=`${a.marks.length} ${a.marks.length===1?"markering":"markeringen"}`;
+      bewaar();
+    };
+  });
+  document.querySelectorAll("#typen input").forEach(inp=>{
+    inp.onchange=()=>{
+      const v=inp.value;
+      if(inp.checked){
+        if(v==="geen") a.types=["geen"]; else { a.types=a.types.filter(t=>t!=="geen"); a.types.push(v); }
+      } else a.types=a.types.filter(t=>t!==v);
+      document.querySelectorAll("#typen input").forEach(x=>{ x.checked=a.types.includes(x.value); x.parentElement.classList.toggle("aan",x.checked); });
+      const geen=a.types.includes("geen");
+      $("#stapRep").style.display=geen?"none":"";
+      $("#uitlegLabel").textContent=geen?"Leg uit waarom het groepje deze conclusie mag trekken.":"Leg uit waarom het groepje deze conclusie niet mag trekken.";
+      bewaar();
+    };
+  });
+  $("#taUitleg").oninput=e=>{a.uitleg=e.target.value;bewaar();};
+  $("#taRep").oninput=e=>{a.rep=e.target.value;bewaar();};
+  $("#checkKnop").onclick=()=>{
+    const m=$("#checkMelding");
+    const geen=a.types.includes("geen");
+    if(!a.types.length){ m.textContent="Kies eerst een fouttype (of \"geen fout\")."; return; }
+    if(a.uitleg.trim().length<20){ m.textContent="Schrijf eerst een uitleg van minstens één goede zin."; return; }
+    if(!geen && a.rep.trim().length<20){ m.textContent="Schrijf eerst op hoe het groepje het had moeten aanpakken."; return; }
+    if(!geen && !a.marks.length){ m.textContent="Wijs eerst in het dossier aan waar het probleem zit."; return; }
+    if(geen) a.rep="";
+    a.klaar=true; bewaar(); render();
+  };
+}
+
+/* ====================== MODAL ====================== */
+function openFout(){
+  $("#ftLijst").innerHTML = TYPES.filter(t=>t.id!=="geen").map((t,k)=>`<div class="ft"><h3>${k+1}. ${esc(t.naam)}</h3><p>${esc(t.uitleg)}</p><p class="vb">Voorbeeld: ${esc(t.vb)}</p></div>`).join("")
+    + `<div class="ft"><h3>${esc(TYPE.geen.naam)}</h3><p>${esc(TYPE.geen.uitleg)}</p></div>`;
+  $("#modalFout").classList.add("open");
+}
+$("#modalFout").addEventListener("click",e=>{ if(e.target.id==="modalFout"||e.target.hasAttribute("data-sluit")) $("#modalFout").classList.remove("open"); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") $("#modalFout").classList.remove("open"); });
+
+/* ====================== EXPORT ====================== */
+function exporteer(){
+  const klaar = DOSSIERS.filter(d=>S.antw[d.id]&&S.antw[d.id].klaar);
+  const st = d => beoordeel(d,S.antw[d.id]).status;
+  const nOk = klaar.filter(d=>st(d)==="opgelost").length, nDeels = klaar.filter(d=>st(d)==="deels").length;
+  const datum = new Date().toLocaleDateString("nl-NL",{day:"numeric",month:"long",year:"numeric"});
+  const tnaam = t => TYPE[t].naam;
+  const rijen = DOSSIERS.map((d,i)=>{
+    const a=S.antw[d.id];
+    const verwacht = d.goed.map(tnaam).join("; ") + (d.ook.length?` <span style="color:#666">(ook goed: ${d.ook.map(tnaam).join("; ")})</span>`:"");
+    if(!a||!a.klaar) return `<tr><td>${i+1}. ${esc(d.titel)}</td><td style="color:#888">niet gedaan</td><td></td><td>${verwacht}</td></tr>`;
+    const b=beoordeel(d,a);
+    return `<tr><td>${i+1}. ${esc(d.titel)}</td><td><span class="st ${b.status}">${STATUSTEKST[b.status].toLowerCase()}</span></td><td>${a.types.map(t=>esc(tnaam(t))).join("; ")}</td><td>${verwacht}</td></tr>`;
+  }).join("");
+  const blokken = DOSSIERS.map((d,i)=>{
+    const a=S.antw[d.id]; if(!a||!a.klaar) return "";
+    const b=beoordeel(d,a), H=new Set(hotIds(d));
+    const marks = a.marks.length ? `<ul class="lijst">${a.marks.map(id=>`<li>${H.has(id)?'<span class="ok">✓</span>':'<span class="nok">✗</span>'} ${esc(segTekst(d,id))}</li>`).join("")}</ul>` : "<i>niets aangewezen</i>";
+    const types = `<ul class="lijst">${a.types.map(t=>{
+       const m = b.gevonden.includes(t)?'<span class="ok">✓ goed</span>':b.ookOk.includes(t)?'<span class="ookok">✓ ook goed</span>':'<span class="nok">✗ niet goed</span>';
+       return `<li>${esc(tnaam(t))} — ${m}</li>`;}).join("")}${b.gemist.map(t=>`<li>${esc(tnaam(t))} — <span class="nok">gemist</span></li>`).join("")}</ul>`;
+    const u=d.uitwerking;
+    const sleutel = d.goed[0]==="geen" ? `<b>Sleutel:</b> geen fout. ${esc(u.geenUitleg)}`
+      : u.fouten.map(f=>`<b>Sleutel – ${esc(tnaam(f.type))}.</b> ${esc(f.uitleg)} <i>Reparatie:</i> ${esc(f.reparatie)}`).join("<br>");
+    const beoord = d.goed[0]==="geen"
+      ? `<span>Beoordeling uitleg:<span class="vak"></span>goed<span class="vak"></span>deels<span class="vak"></span>onvoldoende</span>`
+      : `<span>Uitleg:<span class="vak"></span>goed<span class="vak"></span>deels<span class="vak"></span>onvoldoende</span><span>Reparatie:<span class="vak"></span>goed<span class="vak"></span>deels<span class="vak"></span>onvoldoende</span>`;
+    return `<div class="blok"><div class="blokkop"><h2>Dossier ${i+1}: ${esc(d.titel)}</h2><span class="st ${b.status}">${STATUSTEKST[b.status]}</span></div>
+      <div class="rij"><span>Aangewezen</span><div>${marks}</div></div>
+      <div class="rij"><span>Fouttypes</span><div>${types}</div></div>
+      <div class="rij"><span>Uitleg</span><div class="tekstvak">${esc(a.uitleg.trim())}</div></div>
+      ${d.goed[0]==="geen"?"":`<div class="rij"><span>Reparatie</span><div class="tekstvak">${esc(a.rep.trim())}</div></div>`}
+      <div class="sleutel">${sleutel}</div>
+      <div class="beoordeling">${beoord}</div></div>`;
+  }).join("");
+  $("#printvak").innerHTML = `<h1>Dossiers: onderzoeken onder de loep</h1><div class="pvsub">Antwoorden van de leerling, met automatische controle van aanwijzen en fouttypes. Uitleg en reparatie beoordeelt de docent.</div>
+    <div class="pvkop"><b>Naam</b><span>${esc(S.naam)}</span><b>Klas</b><span>${esc(S.klas||"–")}</span><b>Datum</b><span>${datum}</span></div>
+    <div class="score">${nOk} van ${DOSSIERS.length} opgelost · ${nDeels} deels · ${DOSSIERS.length-klaar.length} niet gedaan</div>
+    <table><tr><th style="width:24%">Dossier</th><th style="width:14%">Resultaat</th><th>Fouttypes leerling</th><th>Verwacht</th></tr>${rijen}</table>
+    ${blokken}
+    <div class="voet">✓ = aangewezen plek bevat het probleem · ✗ = op die plek zit geen probleem.</div>`;
+  const oud=document.title;
+  document.title = ("Dossiers_"+S.naam+(S.klas?"_"+S.klas:"")).replace(/[^\wÀ-ÿ-]+/g,"_");
+  window.print();
+  setTimeout(()=>{document.title=oud;},1000);
+}
+
+render();
+</script>
+</body>
+</html>
