@@ -826,17 +826,25 @@ const CAMPAGNE = [
       'De evenwichtsconversie is het deel van N₂ dat maximaal kan worden omgezet als het evenwicht zich heeft ingesteld.',
       'De kinetiekfactor geeft aan hoe dicht je in de beschikbare tijd bij dat evenwicht komt: hoe sneller de reactie, hoe hoger de factor.',
       'Netto omzet = evenwichtsconversie × kinetiekfactor. Dat is wat de reactor echt oplevert.',
-      'Verander telkens één instelling. Een reeks telt alleen als alle andere instellingen gelijk blijven.',
-      'Temperatuurreeks: meet bij verschillende temperaturen en zoek de temperatuur met de hoogste netto omzet. Sluit dat maximum in: meet er ook vlak onder en vlak boven.',
-      'Blijft de netto omzet stijgen tot de hoogste temperatuur van de schuifregelaar? Dan ligt het maximum buiten het bereik. Kies dan een andere katalysator.',
-      'Volumereeks: meet bij één vaste temperatuur bij verschillende reactorvolumes.',
     ],
-    doel: 'Doe een temperatuurreeks (minstens 5 metingen, alleen de temperatuur verschilt) waarin je het maximum van de netto omzet insluit, en een volumereeks (minstens 3 metingen, alleen het volume verschilt).',
+    doel: 'Voer opdracht A (temperatuur) en opdracht B (volume) uit in de proefreactor.',
+    doelKort: 'Opdracht A (temperatuur) en opdracht B (volume) — zie ‘Uitleg missie’',
+    opdrachten: [
+      { titel: 'Opdracht A: Temperatuur', stappen: [
+        'Stel in: verstevigde ijzerkatalysator, volume 10 m³, doorvoer 100%. Laat die drie instellingen tijdens deze opdracht staan.',
+        'Meet de netto omzet bij 400, 450, 500, 550 en 600 °C. Klik na elke instelling op ‘Meting vastleggen’.',
+        'Zoek de temperatuur met de hoogste netto omzet, tot op 10 °C nauwkeurig. Meet daarvoor in stappen van 10 °C tussen de twee temperaturen met de hoogste netto omzet.',
+      ] },
+      { titel: 'Opdracht B: Volume', stappen: [
+        'Laat de katalysator, de doorvoer en de beste temperatuur uit opdracht A staan.',
+        'Meet de netto omzet bij een volume van 5, 10 en 20 m³.',
+      ] },
+    ],
     lab: (ms) => { const st = labStatusM1(ms); return st.ingesloten && st.vReeks >= 3; },
     voortgang: (t) => {
       const st = t.lab || { tReeks: 0, fase: 'geen', vReeks: 0 };
-      const fase = st.fase === 'ingesloten' ? 'maximum ingesloten ✓' : st.fase === 'grof' ? 'maximum ingesloten, maar meet dichter bij het maximum' : 'maximum nog niet ingesloten';
-      return `temperatuurreeks: ${st.tReeks} metingen · ${fase} · volumereeks: ${Math.min(st.vReeks, 3)} van 3`;
+      const fase = st.fase === 'ingesloten' ? 'beste temperatuur tot op 10 °C bepaald ✓' : 'beste temperatuur nog niet tot op 10 °C bepaald';
+      return `Opdracht A: ${Math.min(st.tReeks, 5)} van 5 metingen · ${fase} · Opdracht B: ${Math.min(st.vReeks, 3)} van 3 metingen`;
     },
     werkblad: [
       'Geef aan wat er met de evenwichtsconversie gebeurt als je de temperatuur verhoogt. Leg je antwoord uit met behulp van de reactievergelijking.',
@@ -3107,7 +3115,7 @@ function MissieBalk({ m, live, onBriefing, onWerkblad }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '7px 16px', borderBottom: '1px solid var(--border)', background: 'rgba(201,129,46,0.08)', flexWrap: 'wrap' }}>
       <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--amber)' }}>🎯 Missie {m.nr} · {m.titel}</span>
-      <span style={{ fontSize: 12, color: 'var(--text)' }}><span style={{ color: 'var(--text-dim)' }}>Doel:</span> {m.doel}</span>
+      <span style={{ fontSize: 12, color: 'var(--text)' }}><span style={{ color: 'var(--text-dim)' }}>Doel:</span> {m.doelKort || m.doel}</span>
       {live && <span className="font-mono-data" style={{ fontSize: 11, color: 'var(--cyan)' }}>{m.voortgang(live)}</span>}
       <span style={{ flex: 1 }} />
       <button onClick={onBriefing} style={{ ...cs.knop('var(--text-dim)'), padding: '4px 10px', fontSize: 12, fontWeight: 400 }}>Uitleg missie</button>
@@ -3147,7 +3155,13 @@ function MissieModal({ m, scherm, reden, onClose, onVolgende, onOpnieuw, onMenu 
       </div>
       <div style={{ ...cs.kaart, padding: '10px 14px', borderColor: 'var(--amber)' }}>
         <div style={{ ...cs.kop, color: 'var(--amber)' }}>🎯 Doel</div>
-        <div style={{ fontSize: 14, marginTop: 4 }}>{m.doel}</div>
+        {!m.opdrachten && <div style={{ fontSize: 14, marginTop: 4 }}>{m.doel}</div>}
+        {m.opdrachten && m.opdrachten.map((o, i) => (
+          <div key={i} style={{ marginTop: 8 }}>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>{o.titel}</div>
+            <ol style={{ margin: '4px 0 0', paddingLeft: 20, lineHeight: 1.55, fontSize: 13, listStyle: 'decimal' }}>{o.stappen.map((st, j) => <li key={j} style={{ marginBottom: 3 }}>{st}</li>)}</ol>
+          </div>
+        ))}
       </div>
     </>);
     knoppen = <button onClick={onClose} style={cs.knop('var(--copper)', true)}>{m.lab ? 'Open de proefreactor' : 'Begin'}</button>;
@@ -3158,7 +3172,7 @@ function MissieModal({ m, scherm, reden, onClose, onVolgende, onOpnieuw, onMenu 
   } else if (scherm === 'geslaagd') {
     kop = `✓ Missie ${m.nr} geslaagd`;
     inhoud = (<>
-      <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55 }}>Doel gehaald: {m.doel}</p>
+      <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55 }}>{m.opdrachten ? `Je hebt ${m.opdrachten.map(x => x.titel.split(':')[0].toLowerCase()).join(' en ')} afgerond.` : `Doel gehaald: ${m.doel}`}</p>
       {werkblad}
       <p style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 10 }}>Maak je werkblad eerst af. Je kunt nog even doorspelen om dingen uit te proberen.</p>
     </>);
@@ -4974,8 +4988,16 @@ const CAMPAGNE = [{
   },
   nieuw: ['Proefreactor: temperatuur, reactorvolume (en dus druk), katalysator en doorvoer instellen en metingen vastleggen.'],
   verhaal: 'Je bent net aangenomen als procestechnoloog bij een nieuwe ammoniakfabriek. Voordat er ook maar één euro wordt uitgegeven, onderzoek je in de proefreactor bij welke omstandigheden de reactie N₂(g) + 3 H₂(g) ⇌ 2 NH₃(g) (ΔH = −92 kJ per mol) het meeste ammoniak oplevert. Je kunt kiezen uit de twee katalysatoren die de fabriek kan kopen.',
-  uitleg: ['De evenwichtsconversie is het deel van N₂ dat maximaal kan worden omgezet als het evenwicht zich heeft ingesteld.', 'De kinetiekfactor geeft aan hoe dicht je in de beschikbare tijd bij dat evenwicht komt: hoe sneller de reactie, hoe hoger de factor.', 'Netto omzet = evenwichtsconversie × kinetiekfactor. Dat is wat de reactor echt oplevert.', 'Verander telkens één instelling. Een reeks telt alleen als alle andere instellingen gelijk blijven.', 'Temperatuurreeks: meet bij verschillende temperaturen en zoek de temperatuur met de hoogste netto omzet. Sluit dat maximum in: meet er ook vlak onder en vlak boven.', 'Blijft de netto omzet stijgen tot de hoogste temperatuur van de schuifregelaar? Dan ligt het maximum buiten het bereik. Kies dan een andere katalysator.', 'Volumereeks: meet bij één vaste temperatuur bij verschillende reactorvolumes.'],
-  doel: 'Doe een temperatuurreeks (minstens 5 metingen, alleen de temperatuur verschilt) waarin je het maximum van de netto omzet insluit, en een volumereeks (minstens 3 metingen, alleen het volume verschilt).',
+  uitleg: ['De evenwichtsconversie is het deel van N₂ dat maximaal kan worden omgezet als het evenwicht zich heeft ingesteld.', 'De kinetiekfactor geeft aan hoe dicht je in de beschikbare tijd bij dat evenwicht komt: hoe sneller de reactie, hoe hoger de factor.', 'Netto omzet = evenwichtsconversie × kinetiekfactor. Dat is wat de reactor echt oplevert.'],
+  doel: 'Voer opdracht A (temperatuur) en opdracht B (volume) uit in de proefreactor.',
+  doelKort: 'Opdracht A (temperatuur) en opdracht B (volume) — zie ‘Uitleg missie’',
+  opdrachten: [{
+    titel: 'Opdracht A: Temperatuur',
+    stappen: ['Stel in: verstevigde ijzerkatalysator, volume 10 m³, doorvoer 100%. Laat die drie instellingen tijdens deze opdracht staan.', 'Meet de netto omzet bij 400, 450, 500, 550 en 600 °C. Klik na elke instelling op ‘Meting vastleggen’.', 'Zoek de temperatuur met de hoogste netto omzet, tot op 10 °C nauwkeurig. Meet daarvoor in stappen van 10 °C tussen de twee temperaturen met de hoogste netto omzet.']
+  }, {
+    titel: 'Opdracht B: Volume',
+    stappen: ['Laat de katalysator, de doorvoer en de beste temperatuur uit opdracht A staan.', 'Meet de netto omzet bij een volume van 5, 10 en 20 m³.']
+  }],
   lab: ms => {
     const st = labStatusM1(ms);
     return st.ingesloten && st.vReeks >= 3;
@@ -4986,8 +5008,8 @@ const CAMPAGNE = [{
       fase: 'geen',
       vReeks: 0
     };
-    const fase = st.fase === 'ingesloten' ? 'maximum ingesloten ✓' : st.fase === 'grof' ? 'maximum ingesloten, maar meet dichter bij het maximum' : 'maximum nog niet ingesloten';
-    return `temperatuurreeks: ${st.tReeks} metingen · ${fase} · volumereeks: ${Math.min(st.vReeks, 3)} van 3`;
+    const fase = st.fase === 'ingesloten' ? 'beste temperatuur tot op 10 °C bepaald ✓' : 'beste temperatuur nog niet tot op 10 °C bepaald';
+    return `Opdracht A: ${Math.min(st.tReeks, 5)} van 5 metingen · ${fase} · Opdracht B: ${Math.min(st.vReeks, 3)} van 3 metingen`;
   },
   werkblad: ['Geef aan wat er met de evenwichtsconversie gebeurt als je de temperatuur verhoogt. Leg je antwoord uit met behulp van de reactievergelijking.', 'Leg uit waarom de netto omzet bij een bepaalde temperatuur een maximum heeft. Gebruik hierbij de begrippen evenwichtsconversie en reactiesnelheid.'],
   ster: ['Leg met behulp van het aantal gasdeeltjes links en rechts van de pijl uit hoe het reactorvolume de evenwichtsconversie beïnvloedt.', {
@@ -9187,7 +9209,7 @@ function MissieBalk({
     style: {
       color: 'var(--text-dim)'
     }
-  }, "Doel:"), " ", m.doel), live && React.createElement("span", {
+  }, "Doel:"), " ", m.doelKort || m.doel), live && React.createElement("span", {
     className: "font-mono-data",
     style: {
       fontSize: 11,
@@ -9330,12 +9352,35 @@ function MissieModal({
         ...cs.kop,
         color: 'var(--amber)'
       }
-    }, "🎯 Doel"), React.createElement("div", {
+    }, "🎯 Doel"), !m.opdrachten && React.createElement("div", {
       style: {
         fontSize: 14,
         marginTop: 4
       }
-    }, m.doel)));
+    }, m.doel), m.opdrachten && m.opdrachten.map((o, i) => React.createElement("div", {
+      key: i,
+      style: {
+        marginTop: 8
+      }
+    }, React.createElement("div", {
+      style: {
+        fontSize: 14,
+        fontWeight: 600
+      }
+    }, o.titel), React.createElement("ol", {
+      style: {
+        margin: '4px 0 0',
+        paddingLeft: 20,
+        lineHeight: 1.55,
+        fontSize: 13,
+        listStyle: 'decimal'
+      }
+    }, o.stappen.map((st, j) => React.createElement("li", {
+      key: j,
+      style: {
+        marginBottom: 3
+      }
+    }, st)))))));
     knoppen = React.createElement("button", {
       onClick: onClose,
       style: cs.knop('var(--copper)', true)
@@ -9360,7 +9405,7 @@ function MissieModal({
         fontSize: 13,
         lineHeight: 1.55
       }
-    }, "Doel gehaald: ", m.doel), werkblad, React.createElement("p", {
+    }, m.opdrachten ? `Je hebt ${m.opdrachten.map(x => x.titel.split(':')[0].toLowerCase()).join(' en ')} afgerond.` : `Doel gehaald: ${m.doel}`), werkblad, React.createElement("p", {
       style: {
         fontSize: 12,
         color: 'var(--text-dim)',
