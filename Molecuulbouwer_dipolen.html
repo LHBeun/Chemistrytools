@@ -175,6 +175,28 @@
   .llbtn.active{border-color:var(--accent);background:var(--soft);color:#174a96}
   #lewisTools{display:none;gap:6px;flex-wrap:wrap}
   body.lewis #lewisTools{display:flex}
+  body.v3 #sceneToolbar label, body.v3 #btnView, body.v3 #limitNote, body.v3 #paletteHint{display:none !important}
+  .llbtn small{white-space:normal}
+  svg.mol3v{display:inline-block;margin:4px 6px;vertical-align:middle;background:#fff;border:1px solid var(--border);border-radius:8px}
+  svg.mol3v.klik .at3v{cursor:pointer}
+  svg.mol3v.klik .at3v:hover .bg{fill:#e8f0fd}
+  svg.mol3v .at3v.sel .bg{fill:#fde2e1;stroke:#d1242f;stroke-width:2}
+  svg.mol3v .at3v.juist .bg{fill:#dcf3e3;stroke:#1a7f37;stroke-width:2}
+  .svgrij{display:flex;flex-wrap:wrap;align-items:flex-end;gap:4px;margin:6px 0}
+  .svgrij figure{margin:0;text-align:center;font-size:12px;color:var(--textdim)}
+  .namen3v{display:flex;flex-direction:column;gap:8px;margin:6px 0}
+  .nitem{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .nitem .nnr{width:22px;height:22px;border-radius:11px;background:var(--soft);color:#174a96;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .nitem input, .isonaam input{padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font:inherit;font-size:14px;width:170px}
+  .nitem input.ok{border-color:var(--good)} .nitem input.bad{border-color:#d1242f}
+  .isolijst{display:flex;flex-direction:column;gap:4px;margin:6px 0}
+  .isoit{display:flex;align-items:center;gap:8px;font-size:13px}
+  .isoit .nr{width:20px;height:20px;border-radius:10px;background:var(--good);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center}
+  table.t3v{border-collapse:collapse;margin:8px 0;font-size:12.5px}
+  table.t3v th, table.t3v td{border:1px solid var(--border);padding:3px 7px;text-align:center}
+  table.t3v th{background:var(--soft);font-weight:600}
+  ol.stap{margin:6px 0 6px 18px;padding:0}
+  .klein{font-size:12px;color:var(--textdim)}
   body.lewis .geen-lewis{display:none !important}
   #lewisTools button.tool{background:rgba(255,255,255,.95);border:1.5px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12.5px;cursor:pointer;font-weight:600;color:var(--text)}
   #lewisTools button.tool.active{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -232,7 +254,7 @@
     <span style="flex:1"></span><button id="beamer" type="button" onclick="document.body.classList.toggle('hs-beamer')">Beamerstand</button></div></header>
   <main>
     <div id="builderView">
-      <div id="opdPanel"><h2>Opdrachten</h2><div class="leerlijn"><button class="llbtn" data-ll="dipool">4V · Polariteit en dipolen<small>ΔEN, δ+ en δ−, dipool, oplosbaarheid</small></button><button class="llbtn" data-ll="lewis">5V · Lewis en VSEPR<small>Lewisstructuur, formele lading, vorm, mesomerie</small></button></div><div class="leerlijn"><button class="llbtn" data-ll="tussen">4V · Tussen moleculen<small>vanderwaals, dipool-dipool, H-brug, mengen</small></button><button class="llbtn" data-ll="zout">4V · Zouten oplossen<small>ionrooster, ion-dipool, oplossen, indampen</small></button></div><div class="top"><span class="level" id="llLabel">4V</span><div class="dots" id="dots"></div><span class="score" id="score"></span></div><div id="opdBody"></div></div>
+      <div id="opdPanel"><h2>Opdrachten</h2><div class="leerlijn"><button class="llbtn" data-ll="v31">3V · 1 Moleculen bouwen<small>aantal bindingen, structuurformule</small></button><button class="llbtn" data-ll="v32">3V · 2 Isomeren<small>alkanen, alkenen, namen, isomeren</small></button><button class="llbtn" data-ll="v33">3V · 3 Karakteristieke groepen<small>halogeen, -ol, -zuur, namen</small></button></div><div class="leerlijn"><button class="llbtn" data-ll="dipool">4V · Polariteit en dipolen<small>ΔEN, δ+ en δ−, dipool, oplosbaarheid</small></button><button class="llbtn" data-ll="lewis">5V · Lewis en VSEPR<small>Lewisstructuur, formele lading, vorm, mesomerie</small></button></div><div class="leerlijn"><button class="llbtn" data-ll="tussen">4V · Tussen moleculen<small>vanderwaals, dipool-dipool, H-brug, mengen</small></button><button class="llbtn" data-ll="zout">4V · Zouten oplossen<small>ionrooster, ion-dipool, oplossen, indampen</small></button></div><div class="top"><span class="level" id="llLabel">4V</span><div class="dots" id="dots"></div><span class="score" id="score"></span></div><div id="opdBody"></div></div>
       <div id="palette">
         <div class="vrij-only"><h3 class="vrkop">Weergave</h3><select class="vrijSoort"><option value="bouw">Eén molecuul bouwen</option><option value="samen">Moleculen samen</option><option value="bak">Mengbak</option><option value="zout">Zout in water</option></select></div>
         <h3>Atomen</h3>
@@ -309,6 +331,7 @@ const ELEMENTS = {
   S:  {name:'Zwavel',    en:2.6, group:6, maxValence:2, color:'#e8d34d', canExpand:true},
   Cl: {name:'Chloor',    en:3.2, group:7, maxValence:1, color:'#5de05d', canExpand:true},
   Br: {name:'Broom',     en:3.0, group:7, maxValence:1, color:'#a6473a', canExpand:true},
+  I:  {name:'Jood',      en:2.7, group:7, maxValence:1, color:'#9b59b6', canExpand:true},
 };
 // Elementen uit periode 3 en hoger (Si, P, S, Cl, Br) kunnen in werkelijkheid een
 // uitgebreid octet vormen: meer bindingen dan hun normale valentie (bijv. PCl5, SF6).
@@ -351,6 +374,7 @@ let camYaw = 0.5, camPitch = -0.35, camDist = 7.5;
 // Lewis-modus: de leerling plaatst zelf vrije paren (node.lp) en formele ladingen (node.fc).
 // view2d: platte Lewistekening; anders de 3D-vorm. De 3D-layout (pos3) wordt altijd berekend,
 // zodat dipool en ladingscentra ook in de Lewistekening op de echte vorm gebaseerd zijn.
+let modus3V = false;
 let lewisModus = false, view2d = false, lewisTool = 'bond', view3dVrij = true;
 let lewisCenter = {x:0, y:0};
 
@@ -416,7 +440,7 @@ function layoutMolecule(){
   const root = atoms[0];
   root.pos3 = {x:0,y:0,z:0};
   recurseLayout(root.id, null, null);
-  if(lewisModus) layout2D();
+  if(typeof modus3V!=='undefined' && modus3V) layout2D3V(); else if(lewisModus) layout2D();
   atoms.forEach(a=>{
     if(view2d && a.pos2){ a.pos = {x:a.pos2.x, y:a.pos2.y, z:0}; a.lonePairDirs = a.lpDirs2 || []; }
     else { a.pos = a.pos3; a.lonePairDirs = a.lpDirs3 || []; }
@@ -438,7 +462,8 @@ function layout2D(){
     }
     kinderen.forEach((b,j)=>{
       const c = findNode(b.id), h = hoeken[j]*Math.PI/180;
-      c.pos2 = {x: node.pos2.x + L*Math.cos(h), y: node.pos2.y + L*Math.sin(h)};
+      const len = (typeof modus3V!=='undefined' && modus3V && c.symbol==='H') ? 1.05 : L;
+      c.pos2 = {x: node.pos2.x + len*Math.cos(h), y: node.pos2.y + len*Math.sin(h)};
       plaats(c, node.id, hoeken[j] + 180);
     });
     // vrije paren in de grootste gaten tussen alle bindingsrichtingen
@@ -465,7 +490,56 @@ function layout2D(){
   let minx=Infinity,maxx=-Infinity,miny=Infinity,maxy=-Infinity;
   atoms.forEach(a=>{ if(!a.pos2) return; minx=Math.min(minx,a.pos2.x); maxx=Math.max(maxx,a.pos2.x); miny=Math.min(miny,a.pos2.y); maxy=Math.max(maxy,a.pos2.y); });
   lewisCenter = {x:(minx+maxx)/2, y:(miny+maxy)/2};
+  lewisExt = {w:maxx-minx, h:maxy-miny};
 }
+let lewisExt = {w:0,h:0};
+// 3V: platte structuurformule op een rooster (haakse hoeken), zonder overlap waar dat kan
+function layout2D3V(){
+  const R=[[1,0],[0,1],[-1,0],[0,-1]], root=atoms[0];
+  const blad = c => c.symbol==='H' && c.bonds.length===1 && c!==root;
+  function probeer(rootVolg, links, omdraaien, stap){
+    const sch = stap===1 ? 1.5 : 0.9, hl = stap===1 ? 1.05 : 0.95;
+    const occ=new Set(), cel={}, P={}; cel[root.id]=[0,0]; P[root.id]=[0,0]; occ.add('0,0');
+    const hTaken=[];
+    (function plaats(node, parentId, dirIn){
+      let kids=node.bonds.filter(b=>b.id!==parentId).map(b=>findNode(b.id));
+      if(omdraaien) kids=kids.slice().reverse();
+      const [nx,ny]=cel[node.id];
+      const used=new Set(); if(parentId!==null) used.add((dirIn+2)%4);
+      const volg = dirIn<0 ? rootVolg : (links ? [dirIn,(dirIn+1)%4,(dirIn+3)%4] : [dirIn,(dirIn+3)%4,(dirIn+1)%4]);
+      const vrij = d => !occ.has((nx+R[d][0]*stap)+','+(ny+R[d][1]*stap));
+      kids.filter(c=>!blad(c)).forEach(c=>{
+        const buren = x => { const tx=nx+R[x][0]*stap, ty=ny+R[x][1]*stap; return R.filter(([u,v])=>!(tx+u*stap===nx&&ty+v*stap===ny) && occ.has((tx+u*stap)+','+(ty+v*stap))).length; };
+        const opties = volg.filter(x=>!used.has(x) && vrij(x));
+        let d = opties.length ? opties.reduce((b,x)=>buren(x)<buren(b)?x:b, opties[0]) : undefined;
+        if(d===undefined) d = volg.find(x=>!used.has(x)); if(d===undefined) d = volg[0];
+        used.add(d); cel[c.id]=[nx+R[d][0]*stap, ny+R[d][1]*stap]; occ.add(cel[c.id][0]+','+cel[c.id][1]);
+        P[c.id]=[cel[c.id][0]*sch, cel[c.id][1]*sch]; plaats(c, node.id, d);
+      });
+      hTaken.push({node, used, hs:kids.filter(blad)});
+    })(root, null, -1);
+    const pts=[...occ].map(k=>k.split(',').map(Number));
+    hTaken.forEach(({node, used, hs})=>{
+      const [nx,ny]=cel[node.id];
+      const r=kiesHRicht(nx, ny, [...used].map(d=>R[d]), hs.length, pts);
+      hs.forEach((c,k)=>{ const [dx,dy]=r[k]||[0.7,0.7]; const f=(Math.abs(dx)===1||Math.abs(dy)===1)?hl:hl*1.15; P[c.id]=[P[node.id][0]+dx*f, P[node.id][1]+dy*f]; });
+    });
+    const L=Object.values(P); let min=Infinity;
+    for(let i=0;i<L.length;i++) for(let j=i+1;j<L.length;j++) min=Math.min(min, Math.hypot(L[i][0]-L[j][0], L[i][1]-L[j][1]));
+    return {P, min};
+  }
+  let best=null;
+  [1,2].forEach(stap=>{ if(stap===2 && best && best.min>=0.9) return;
+    [[0,2,1,3],[1,3,0,2]].forEach(rv=>[true,false].forEach(l=>[false,true].forEach(o=>{
+      const r=probeer(rv,l,o,stap); if(!best || r.min>best.min+0.05) best=r; }))); });
+  atoms.forEach(a=>{ const q=best.P[a.id]; if(q) a.pos2={x:q[0], y:q[1]}; a.lpDirs2=[]; });
+  let minx=Infinity,maxx=-Infinity,miny=Infinity,maxy=-Infinity;
+  atoms.forEach(a=>{ if(!a.pos2) return; minx=Math.min(minx,a.pos2.x); maxx=Math.max(maxx,a.pos2.x); miny=Math.min(miny,a.pos2.y); maxy=Math.max(maxy,a.pos2.y); });
+  lewisCenter = {x:(minx+maxx)/2, y:(miny+maxy)/2};
+  lewisExt = {w:maxx-minx, h:maxy-miny};
+}
+
+function sc2D(){ const w=canvas.width,h=canvas.height, base=Math.min(w,h)*0.085; return Math.min(base, w*0.88/(lewisExt.w+1.6), h*0.80/(lewisExt.h+1.6)); }
 function recurseLayout(nodeId, parentId, backDirWorld){
   const node = findNode(nodeId);
   if(isStub(node)) return;
@@ -533,7 +607,7 @@ function computeCentroids(charge){
 // ===================== RENDER =====================
 function project(p){
   if(view2d){
-    const w=canvas.width,h=canvas.height, sc=Math.min(w,h)*0.085;
+    const w=canvas.width,h=canvas.height, sc=sc2D();
     return {sx:w/2+(p.x-lewisCenter.x)*sc, sy:h/2-(p.y-lewisCenter.y)*sc, depth:0, f:0.8};
   }
   const yaw=camYaw, pitch=camPitch;
@@ -709,7 +783,7 @@ function tekenFL(fc, x, y, r){
 }
 // Platte Lewistekening: atoomsymbolen, streepjes voor bindingen, stipjes voor vrije paren.
 function renderLewis(){
-  const sc = Math.min(canvas.width,canvas.height)*0.085, dpr=devicePixelRatio;
+  const sc = sc2D(), dpr=devicePixelRatio;
   const P = {}; atoms.forEach(a=>P[a.id]=project(a.pos));
   const rAt = sc*0.30, rStub = sc*0.22;
   const seen=new Set();
@@ -739,6 +813,7 @@ function renderLewis(){
       ctx.fillText('+', p.sx, p.sy); return;
     }
     if(a.id===selectedAtomId){ ctx.beginPath(); ctx.arc(p.sx,p.sy,rAt*1.05,0,Math.PI*2); ctx.fillStyle=getCss('--soft'); ctx.fill(); }
+    if(a._fout){ ctx.beginPath(); ctx.arc(p.sx,p.sy,rAt*1.25,0,Math.PI*2); ctx.lineWidth=3*dpr; ctx.strokeStyle='#d1242f'; ctx.stroke(); }
     ctx.font=`700 ${sc*0.46}px Segoe UI`; ctx.fillStyle='#10131a'; ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(a.symbol, p.sx, p.sy+sc*0.02);
     if(document.getElementById('chkLP').checked || lewisModus){
@@ -774,11 +849,12 @@ function drawBond(pa,pb,order,dashed,mistK=0,f=1,dirA=pa,dirB=pb){
 // ===================== PALETTE / TOOLBAR =====================
 function buildPalette(){
   const list=document.getElementById('elList'); list.innerHTML='';
-  Object.entries(ELEMENTS).forEach(([sym,el])=>{
+  const v3 = typeof modus3V!=='undefined' && modus3V;
+  (v3 ? PAL_3V : Object.keys(ELEMENTS).filter(k=>k!=='I')).map(k=>[k,ELEMENTS[k]]).forEach(([sym,el])=>{
     const btn=document.createElement('button');
-    btn.className='elbtn'+(el.canExpand?' expand':''); btn.dataset.sym=sym;
+    btn.className='elbtn'+(el.canExpand&&!v3?' expand':''); btn.dataset.sym=sym;
     const cap = maxBonds(sym);
-    btn.title = el.canExpand
+    btn.title = v3 ? el.name : el.canExpand
       ? `${el.name} — normaal max. ${el.maxValence} binding(en); kan een uitgebreid octet vormen tot ${cap} bindingen`
       : `${el.name} — max. ${el.maxValence} binding(en) (geen uitgebreid octet mogelijk)`;
     btn.innerHTML=`<span class="sym" style="background:${el.color}">${sym}</span>
@@ -884,7 +960,7 @@ window.addEventListener('mousemove',e=>{
   const mx=(e.clientX-rect.left)*devicePixelRatio, my=(e.clientY-rect.top)*devicePixelRatio;
   const atomHit = hitTest(mx,my);
   let next=null;
-  if(!atomHit && !lewisModus){
+  if(!atomHit && !lewisModus && !modus3V){
     const bondHit = hitTestBondFull(mx,my);
     if(bondHit && bondHit.order!==3) next=bondHit;
   }
@@ -915,7 +991,7 @@ function handleClick(e){
 
   if(!hit){
     if(armedElement && atoms.length===0){ addRootAtom(armedElement); return; }
-    const bondHit = lewisModus ? null : hitTestBondFull(mx,my);
+    const bondHit = (lewisModus||modus3V) ? null : hitTestBondFull(mx,my);
     if(bondHit && bondHit.order!==3){
       toggleTwist(bondHit.childId, bondHit.parentId);
       return;
@@ -966,7 +1042,8 @@ function addRootAtom(symbol){
 function addStub(parentAtom, order){
   const sum = bondOrderSum(parentAtom);
   const el = ELEMENTS[parentAtom.symbol];
-  const cap = maxBonds(parentAtom.symbol);
+  const cap = modus3V ? 4 : maxBonds(parentAtom.symbol);
+  if(modus3V && sum+order > cap){ flashWarning('Meer dan 4 bindingen kan geen enkel atoom hier vormen.'); return; }
   if(sum+order > cap){
     const msg = el.canExpand
       ? `${parentAtom.symbol} kan dit er niet meer bij — ook met een uitgebreid octet ligt de grens hier op ${cap} bindingen (nu al ${sum} in gebruik), want dat zijn al zijn valentie-elektronen.`
@@ -993,7 +1070,7 @@ function flashWarning(msg){
   setTimeout(updateChargePanel,1900);
 }
 
-function updateAll(){ onthuld=false; laatsteVoorspelling=null; updateInfoPanel(); updateFormula(); render(); }
+function updateAll(){ atoms.forEach(a=>a._fout=false); onthuld=false; laatsteVoorspelling=null; updateInfoPanel(); updateFormula(); render(); }
 
 function elementCountFormula(){
   const counts={};
@@ -1013,6 +1090,7 @@ function updateFormula(){
   const doel = q && q.lewis ? (q.parts.find(pp=>pp.doelen)||{}).doelen : null;
   if(doel && countsEqual(getCurrentCounts().counts, doel[0].counts)) formule = doel[0].f;
   let h = formule.replace(/(\d+)/g,'<sub>$1</sub>');
+  if(typeof modus3V!=='undefined' && modus3V){ const c=getCurrentCounts().counts; h = Object.keys(c).length ? formule3V(c) : '—'; }
   if(lewisModus){ const q2 = totaleFL(); if(q2) h += '<sup>'+flTekst(q2)+'</sup>'; }
   document.getElementById('formulaBadge').innerHTML = h + rest;
 }
@@ -1160,7 +1238,7 @@ function zetModus(opd){
   document.getElementById('tbOpd').classList.toggle('active', opd);
   document.getElementById('tbVrij').classList.toggle('active', !opd);
   document.body.classList.toggle('opd-modus', opd);
-  if(!opd){ zetLewis(false); document.getElementById('btnReset').click(); tmAan(vrijSoort!=='bouw'); if(vrijSoort!=='bouw') vrijPaneel(); }
+  if(!opd){ zet3V(false); zetLewis(false); document.getElementById('btnReset').click(); tmAan(vrijSoort!=='bouw'); if(vrijSoort!=='bouw') vrijPaneel(); }
   resizeCanvas(); updateAll();
 }
 document.getElementById('tbOpd').onclick = () => { zetModus(true); renderSerie(); };
@@ -3140,6 +3218,413 @@ function zster(){
 }
 const NIVEAUS_ZOUT = [zn1, zn2, zn3, zn4, zster];
 
+
+// ===================== 3V-LEERLIJN: STRUCTUURFORMULES =====================
+// Platte structuurformules (alle atomen, alle H), geen vrije paren, geen δ, geen 3D.
+// Feedback op het aantal bindingen pas na "Controleer". Ringen kunnen in deze bouwer niet.
+const V3 = {H:1,C:4,N:3,O:2,S:2,P:3,F:1,Cl:1,Br:1,I:1};
+const PAL_3V = ['H','C','N','O','S','P','F','Cl','Br','I'];
+function zet3V(aan){
+  const was = modus3V;
+  modus3V = aan;
+  document.body.classList.toggle('v3', aan);
+  if(aan) view2d = true; else if(was && !lewisModus) view2d = false;
+  if(aan!==was) buildPalette();
+  if(aan) setBondOrderMode(1);
+  layoutMolecule(); render();
+}
+
+// --- mini-SMILES (zonder ringen): C, N, O, S, P, F, Cl, Br, I, H, takken (), = en # ---
+function parseSmi(s){
+  const at=[], bd=[], stack=[]; let prev=-1, ord=1, i=0;
+  while(i<s.length){
+    const c=s[i];
+    if(c==='('){ stack.push(prev); i++; continue; }
+    if(c===')'){ prev=stack.pop(); i++; continue; }
+    if(c==='='){ ord=2; i++; continue; }
+    if(c==='#'){ ord=3; i++; continue; }
+    const two=s.substr(i,2), sym=(two==='Cl'||two==='Br')?two:c;
+    i+=sym.length;
+    const k=at.length; at.push(sym);
+    if(prev>=0) bd.push([prev,k,ord]);
+    prev=k; ord=1;
+  }
+  const n=at.length;
+  for(let k=0;k<n;k++){
+    if(at[k]==='H') continue;
+    const som=bd.filter(b=>b[0]===k||b[1]===k).reduce((t,b)=>t+b[2],0);
+    for(let h=som; h<V3[at[k]]; h++){ const j=at.length; at.push('H'); bd.push([k,j,1]); }
+  }
+  return {at, bd};
+}
+function adjVan(at, bd){ const adj=at.map(()=>[]); bd.forEach(([i,j,o])=>{ adj[i].push([j,o]); adj[j].push([i,o]); }); return adj; }
+function canonSmi(s){ const m=parseSmi(s); return canon(m.at, adjVan(m.at,m.bd)); }
+function telSmi(s){ const c={}; parseSmi(s).at.forEach(x=>c[x]=(c[x]||0)+1); return c; }
+function canonBouw(){
+  const real=echteAtomen(), idx={}; real.forEach((a,i)=>idx[a.id]=i);
+  return canon(real.map(a=>a.symbol), real.map(a=>a.bonds.filter(b=>idx[b.id]!==undefined).map(b=>[idx[b.id],b.order])));
+}
+function formule3V(counts){
+  const keys=Object.keys(counts).filter(k=>counts[k]);
+  let volgorde;
+  if(counts.C) volgorde=['C','H',...keys.filter(k=>k!=='C'&&k!=='H').sort()];
+  else volgorde=['N','P','H','S','O','F','Cl','Br','I'].filter(k=>counts[k]);
+  return volgorde.filter(k=>counts[k]).map(k=>k+(counts[k]>1?'<sub>'+counts[k]+'</sub>':'')).join('');
+}
+const fHTML = f => f.replace(/(\d+)/g,'<sub>$1</sub>');
+
+// Laadt een structuur (mini-SMILES) in de bouwer, voor "Toon antwoord"
+function laadSmi(s){
+  const m=parseSmi(s);
+  atoms=[]; selectedAtomId=null; selectedStubId=null; armedElement=null;
+  const ids=m.at.map(sym=>{ const a={id:nextId++, symbol:sym, bonds:[], pos:{x:0,y:0,z:0}, lp:0, fc:0}; atoms.push(a); return a.id; });
+  m.bd.forEach(([i,j,o])=>{ findNode(ids[i]).bonds.push({id:ids[j],order:o,twist:0}); findNode(ids[j]).bonds.push({id:ids[i],order:o,twist:0}); });
+  layoutMolecule(); updateAll();
+}
+
+// Controle van een gebouwd molecuul. Markeert atomen met een verkeerd aantal bindingen.
+function check3V(target, opts){
+  opts = opts||{};
+  const {counts, openStubs} = getCurrentCounts();
+  if(echteAtomen().length===0) return 'Bouw eerst een molecuul in het venster rechts.';
+  if(openStubs>0) return 'Er staan nog '+openStubs+' open binding'+(openStubs>1?'en':'')+'. Kies voor elk open uiteinde een atoom, of haal het weg met de rechtermuisknop.';
+  const fout = echteAtomen().filter(a=>bondOrderSum(a)!==V3[a.symbol]);
+  if(fout.length){
+    fout.forEach(a=>a._fout=true); render();
+    return 'Bij de rood omcirkelde atomen klopt het aantal atoombindingen nog niet.';
+  }
+  if(target && !countsEqual(counts, target))
+    return 'Elk atoom heeft het goede aantal bindingen, maar je hebt nu '+formule3V(counts)+' gebouwd.'+(opts.naam?' Kijk nog eens hoeveel atomen bij deze naam horen.':'');
+  if(opts.canon && canonBouw()!==opts.canon)
+    return 'Elk atoom heeft het goede aantal bindingen, maar dit is een andere stof. Lees de naam nog eens: hoe lang is de keten, welke zijtakken of groepen zijn er, en op welke plaats?';
+  return null;
+}
+
+// --- tekenen als SVG (voor tekeningen van LUMEN en Avo, en voor uitwerkingen) ---
+const RICHT=[[1,0],[0,-1],[-1,0],[0,1]];
+
+// Kiest richtingen voor n H-atomen rond (x,y): zo ver mogelijk van andere atomen, haaks heeft de voorkeur
+function kiesHRicht(x, y, gebruikt, n, pts, hf){
+  hf = hf||0.85;
+  const kand=[[1,0],[0,1],[-1,0],[0,-1],[0.7,-0.7],[-0.7,-0.7],[0.7,0.7],[-0.7,0.7]]
+    .filter(([dx,dy])=>!gebruikt.some(([u,v])=>Math.sign(u)===Math.sign(dx)&&Math.sign(v)===Math.sign(dy)));
+  const gekozen=[];
+  for(let t=0;t<n;t++){
+    let best=null, bs=-Infinity;
+    kand.forEach(r=>{
+      if(gekozen.includes(r)) return;
+      const f=(Math.abs(r[0])===1||Math.abs(r[1])===1)?hf:1, px=x+r[0]*f, py=y+r[1]*f;
+      let d=Infinity; pts.forEach(([qx,qy])=>{ if(qx===x&&qy===y) return; d=Math.min(d, Math.hypot(px-qx,py-qy)); });
+      // te dicht bij een buur-richting die al gekozen is? dan straf
+      gekozen.forEach(g=>{ const ang=Math.abs(Math.atan2(g[1],g[0])-Math.atan2(r[1],r[0])); if(Math.min(ang,2*Math.PI-ang)<0.9) d-=0.6; });
+      const sc=Math.min(d,1.2)+(f===hf && d>0.6?0.35:0);
+      if(sc>bs){ bs=sc; best=r; }
+    });
+    if(!best) best=[0.7,0.7];
+    gekozen.push(best);
+    const f=(Math.abs(best[0])===1||Math.abs(best[1])===1)?hf:1; pts.push([x+best[0]*f, y+best[1]*f]);
+  }
+  return gekozen;
+}
+// Plaatst H-atomen rond zware atomen die een positie hebben. pos: index -> [x,y]
+function plaatsH(at, bd, pos){
+  const adj=adjVan(at,bd), pts=Object.values(pos).map(p=>[p[0],p[1]]);
+  at.forEach((s,k)=>{
+    if(s==='H' || !pos[k]) return;
+    const [x,y]=pos[k];
+    const gebruikt=adj[k].filter(([j])=>pos[j]&&at[j]!=='H').map(([j])=>[Math.sign(pos[j][0]-x),Math.sign(pos[j][1]-y)]);
+    const hs=adj[k].filter(([j])=>at[j]==='H'&&!pos[j]).map(([j])=>j);
+    const r=kiesHRicht(x, y, gebruikt, hs.length, pts, 1);
+    hs.forEach((j,n)=>{ const [dx,dy]=r[n]; pos[j]=[x+dx, y+dy]; });
+  });
+  return pos;
+}
+// Automatische lay-out van een mini-SMILES: langste keten horizontaal, takken haaks
+function layoutSmi(s){
+  const m=parseSmi(s), at=m.at, bd=m.bd, adj=adjVan(at,bd);
+  const zw0=at.map((x,i)=>i).filter(i=>at[i]==='C');
+  const zw=zw0.length?zw0:at.map((x,i)=>i).filter(i=>at[i]!=='H');
+  const inK = v => zw0.length ? at[v]==='C' : at[v]!=='H';
+  const ver=(start)=>{ const d={}, prev={}; d[start]=0; const q=[start]; while(q.length){ const u=q.shift(); adj[u].forEach(([v])=>{ if(inK(v) && d[v]===undefined){ d[v]=d[u]+1; prev[v]=u; q.push(v); } }); }
+    let best=start; zw.forEach(i=>{ if(d[i]>d[best]) best=i; }); return {best,prev}; };
+  const a=ver(zw[0]).best, r=ver(a); let keten=[r.best]; while(keten[keten.length-1]!==a) keten.push(r.prev[keten[keten.length-1]]);
+  const pos={}, bezet=new Set();
+  keten.forEach((k,i)=>{ pos[k]=[i,0]; bezet.add(i+',0'); });
+  function plaats(k, vanaf, dir){
+    adj[k].filter(([j])=>at[j]!=='H' && pos[j]===undefined).forEach(([j])=>{
+      const kand=[dir,(dir+1)%4,(dir+3)%4];
+      let d=kand.find(c=>!bezet.has((pos[k][0]+RICHT[c][0])+','+(pos[k][1]+RICHT[c][1])));
+      if(d===undefined) d=kand[0];
+      pos[j]=[pos[k][0]+RICHT[d][0], pos[k][1]+RICHT[d][1]]; bezet.add(pos[j][0]+','+pos[j][1]);
+      plaats(j, k, d);
+    });
+  }
+  keten.forEach((k,ki)=>{
+    const eind = keten.length===1 ? [0,2] : ki===keten.length-1 ? [0] : ki===0 ? [2] : [];
+    adj[k].filter(([j])=>at[j]!=='H' && pos[j]===undefined).sort((p,q)=>q[1]-p[1]).forEach(([j,o])=>{
+      const volg = o>1 ? [1,3,...eind] : [...eind,1,3];
+      const d=volg.find(c=>!bezet.has((pos[k][0]+RICHT[c][0])+','+(pos[k][1]+RICHT[c][1])));
+      const dd = d===undefined?1:d;
+      pos[j]=[pos[k][0]+RICHT[dd][0], pos[k][1]+RICHT[dd][1]]; bezet.add(pos[j][0]+','+pos[j][1]);
+      plaats(j, k, dd);
+    });
+  });
+  Object.keys(pos).forEach(k=>{ pos[k]=[pos[k][0]*2, pos[k][1]*2]; });
+  plaatsH(at, bd, pos);
+  return {at, bd, pos};
+}
+// Tekening met opgegeven posities van de zware atomen (H wordt automatisch aangevuld)
+function tekeningZwaar(zwaar, bindingen){
+  const at=zwaar.map(z=>z[0]), bd=bindingen.map(b=>b.slice()), pos={};
+  zwaar.forEach((z,i)=>pos[i]=[z[1]*2,z[2]*2]);
+  const n=at.length;
+  for(let k=0;k<n;k++){ const som=bd.filter(b=>b[0]===k||b[1]===k).reduce((t,b)=>t+b[2],0); for(let h=som;h<V3[at[k]];h++){ const j=at.length; at.push('H'); bd.push([k,j,1]); } }
+  plaatsH(at, bd, pos);
+  return {at, bd, pos};
+}
+function svgMol(m, opts){
+  opts=opts||{};
+  const U=Math.max(22,(opts.u||40)/1.35), pad=18;
+  const xs=Object.values(m.pos).map(p=>p[0]), ys=Object.values(m.pos).map(p=>p[1]);
+  const x0=Math.min(...xs), y0=Math.min(...ys), w=(Math.max(...xs)-x0)*U+2*pad, h=(Math.max(...ys)-y0)*U+2*pad;
+  const P=k=>[(m.pos[k][0]-x0)*U+pad, (m.pos[k][1]-y0)*U+pad];
+  let s='<svg class="mol3v'+(opts.klik?' klik':'')+'" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">';
+    const r=Math.max(7,U*0.26), fs=Math.max(12.5,U*0.44);
+  m.bd.forEach(([i,j,o])=>{
+    const [ax,ay]=P(i), [bx,by]=P(j), L=Math.hypot(bx-ax,by-ay)||1, ux=(bx-ax)/L, uy=(by-ay)/L;
+    const offs=o===1?[0]:o===2?[-2.6,2.6]:[-4,0,4];
+    offs.forEach(f=>{ s+='<line x1="'+(ax+ux*r-uy*f)+'" y1="'+(ay+uy*r+ux*f)+'" x2="'+(bx-ux*r-uy*f)+'" y2="'+(by-uy*r+ux*f)+'" stroke="#2b3240" stroke-width="1.6"/>'; });
+  });
+  m.at.forEach((sym,k)=>{
+    const [x,y]=P(k);
+    s+='<g class="at3v" data-k="'+k+'"><circle cx="'+x+'" cy="'+y+'" r="'+(r+1)+'" fill="#fff" class="bg"/><text x="'+x+'" y="'+(y+fs*0.35)+'" text-anchor="middle" font-size="'+fs+'" font-weight="700" font-family="Segoe UI,system-ui,sans-serif" fill="#10131a">'+sym+'</text></g>';
+  });
+  return s+'</svg>';
+}
+const svgSmi = (s,o) => svgMol(layoutSmi(s), o);
+
+// --- namen ---
+// goed: juiste naam; onnodig: goed, maar met een plaatsnummer dat niet nodig is; fout: gerichte feedback
+const STOF = {
+  pentaan:{smi:'CCCCC', goed:['pentaan']},
+  methylbutaan:{smi:'CC(C)CC', goed:['methylbutaan'], onnodig:['2-methylbutaan'], fout:{'3-methylbutaan':'Nummer de keten van de kant waar de zijtak het laagste nummer krijgt.','methylpentaan':'Een knik of gespiegelde tekening verandert niets. Tel de langste keten nog eens.'}},
+  dimethylpropaan:{smi:'CC(C)(C)C', goed:['dimethylpropaan'], onnodig:['2,2-dimethylpropaan']},
+  hexaan:{smi:'CCCCCC', goed:['hexaan']},
+  '2-methylpentaan':{smi:'CC(C)CCC', goed:['2-methylpentaan'], fout:{'4-methylpentaan':'Nummer de keten van de kant waar de zijtak het laagste nummer krijgt.','methylpentaan':'De methylgroep kan hier op twee plekken zitten (C-atoom 2 of 3). Het plaatsnummer is dus nodig.'}},
+  '3-methylpentaan':{smi:'CCC(C)CC', goed:['3-methylpentaan'], fout:{'methylpentaan':'De methylgroep kan hier op twee plekken zitten (C-atoom 2 of 3). Het plaatsnummer is dus nodig.','2-ethylbutaan':'Zoek de langste keten: die loopt door de ethylgroep heen.'}},
+  '2,2-dimethylbutaan':{smi:'CC(C)(C)CC', goed:['2,2-dimethylbutaan'], fout:{'3,3-dimethylbutaan':'Nummer de keten van de kant waar de zijtakken de laagste nummers krijgen.','dimethylbutaan':'Er zijn twee verschillende dimethylbutanen. De plaatsnummers zijn dus nodig.','2-dimethylbutaan':'Bij twee zijtakken horen ook twee plaatsnummers, ook als ze aan hetzelfde C-atoom zitten: 2,2-…'}},
+  '2,3-dimethylbutaan':{smi:'CC(C)C(C)C', goed:['2,3-dimethylbutaan'], fout:{'dimethylbutaan':'Er zijn twee verschillende dimethylbutanen. De plaatsnummers zijn dus nodig.'}},
+  heptaan:{smi:'CCCCCCC', goed:['heptaan']},
+  '2-methylhexaan':{smi:'CC(C)CCCC', goed:['2-methylhexaan']},
+  '3-methylhexaan':{smi:'CCC(C)CCC', goed:['3-methylhexaan']},
+  '2,2-dimethylpentaan':{smi:'CC(C)(C)CCC', goed:['2,2-dimethylpentaan']},
+  '2,3-dimethylpentaan':{smi:'CC(C)C(C)CC', goed:['2,3-dimethylpentaan']},
+  '2,4-dimethylpentaan':{smi:'CC(C)CC(C)C', goed:['2,4-dimethylpentaan']},
+  '3,3-dimethylpentaan':{smi:'CCC(C)(C)CC', goed:['3,3-dimethylpentaan']},
+  ethylpentaan:{smi:'CCC(CC)CC', goed:['ethylpentaan'], onnodig:['3-ethylpentaan']},
+  trimethylbutaan:{smi:'CC(C)(C)C(C)C', goed:['trimethylbutaan'], onnodig:['2,2,3-trimethylbutaan']},
+  'pent-1-een':{smi:'C=CCCC', goed:['pent-1-een'], fout:{'1-penteen':'Zet het plaatsnummer vóór de uitgang -een, zoals in but-2-een.','penteen':'De dubbele binding kan op meer plekken zitten. Het plaatsnummer is dus nodig.'}},
+  'hex-3-een':{smi:'CCC=CCC', goed:['hex-3-een'], fout:{'3-hexeen':'Zet het plaatsnummer vóór de uitgang -een, zoals in but-2-een.'}},
+  '2-broombutaan':{smi:'CC(Br)CC', goed:['2-broombutaan']},
+  '1,1-dichloorethaan':{smi:'CC(Cl)Cl', goed:['1,1-dichloorethaan']},
+  'pentaan-2-ol':{smi:'CC(O)CCC', goed:['pentaan-2-ol']},
+  hexaanzuur:{smi:'CCCCCC(=O)O', goed:['hexaanzuur']},
+  '2-chloorbutaan':{smi:'CC(Cl)CC', goed:['2-chloorbutaan'], fout:{'3-chloorbutaan':'Nummer de keten van de kant waar het chlooratoom het laagste nummer krijgt.','chloorbutaan':'Het chlooratoom kan op twee plekken zitten (C-atoom 1 of 2). Het plaatsnummer is dus nodig.'}},
+  'propaan-1-ol':{smi:'CCCO', goed:['propaan-1-ol'], fout:{'propaan-3-ol':'Nummer de keten van de kant waar de OH-groep het laagste nummer krijgt.','propanol':'De OH-groep kan op twee plekken zitten. Het plaatsnummer is dus nodig.','propaanol':'De OH-groep kan op twee plekken zitten. Het plaatsnummer is dus nodig.'}},
+  'propaan-2-ol':{smi:'CC(O)C', goed:['propaan-2-ol']},
+  pentaanzuur:{smi:'CCCCC(=O)O', goed:['pentaanzuur'], fout:{'butaanzuur':'Het C-atoom van de carboxylgroep hoort bij de keten en telt mee.','pentaan-1-zuur':'De carboxylgroep zit altijd aan het eind van de keten. Een plaatsnummer is nooit nodig.','1-pentaanzuur':'De carboxylgroep zit altijd aan het eind van de keten. Een plaatsnummer is nooit nodig.'}},
+  dichloormethaan:{smi:'ClCCl', goed:['dichloormethaan'], fout:{'chloormethaan':'Tel de chlooratomen: bij meer dezelfde atomen gebruik je di of tri.'}},
+  'butaan-1-ol':{smi:'CCCCO', goed:['butaan-1-ol']},
+  'butaan-2-ol':{smi:'CC(O)CC', goed:['butaan-2-ol']},
+  'methylpropaan-1-ol':{smi:'CC(C)CO', goed:['methylpropaan-1-ol'], onnodig:['2-methylpropaan-1-ol']},
+  'methylpropaan-2-ol':{smi:'CC(C)(C)O', goed:['methylpropaan-2-ol'], onnodig:['2-methylpropaan-2-ol']},
+  ethanol:{smi:'CCO', goed:['ethanol'], onnodig:['ethaan-1-ol']},
+  methoxymethaan:{smi:'COC', goed:['methoxymethaan']},
+  methoxyethaan:{smi:'COCC', goed:['methoxyethaan']}
+};
+Object.values(STOF).forEach(x=>{ x.canon=canonSmi(x.smi); x.tel=telSmi(x.smi); });
+const normNaam = s => String(s).toLowerCase().replace(/\s+/g,'').replace(/[–—−]/g,'-').replace(/\./g,',');
+function soortVan(key){ const n=STOF[key].goed[0]; return /zuur$/.test(n)?'zuur':/ol$/.test(n)?'ol':/een$/.test(n)?'een':/(fluor|chloor|broom|jood)/.test(n)?'halo':'alkaan'; }
+const NAAMTIP = {
+  alkaan:'Zoek eerst de langste keten (die mag een knik hebben). Benoem dan de zijtakken, en nummer zo dat de plaatsnummers zo laag mogelijk zijn.',
+  een:'Tel de C-atomen in de keten en zet het plaatsnummer van de dubbele binding vóór -een. Nummer zo dat dit nummer zo laag mogelijk is.',
+  halo:'Zoek de langste keten. Zet het halogeen met zijn plaatsnummer vóór de naam van het alkaan; nummer zo dat het nummer zo laag mogelijk is.',
+  ol:'Zoek de langste keten met de OH-groep. Naam: alkaan + plaatsnummer + -ol, met een zo laag mogelijk nummer.',
+  zuur:'Tel alle C-atomen, ook het C-atoom van de carboxylgroep. Naam: stamnaam + -aanzuur.'
+};
+// geeft {ok:true, noot} of {ok:false, msg}
+function naamCheck(key, invoer, lumen){
+  const x=normNaam(invoer), S=STOF[key];
+  if(!x) return {ok:false, msg:'Typ eerst een naam.'};
+  if(S.goed.includes(x)) return {ok:true};
+  if((S.onnodig||[]).includes(x)) return {ok:true, noot:'Je naam klopt, maar het plaatsnummer is niet nodig: er is maar één plek mogelijk. Je mag het dus weglaten.'};
+  if(lumen && x===normNaam(lumen)) return {ok:false, msg:'Dat is de naam van LUMEN. Die klopt nu juist niet.'};
+  if(S.fout && S.fout[x]) return {ok:false, msg:S.fout[x]};
+  const ander=Object.keys(STOF).find(k=>k!==key && (STOF[k].goed.includes(x)||(STOF[k].onnodig||[]).includes(x)));
+  if(ander) return {ok:false, msg:'Dat is de naam van een andere stof. '+NAAMTIP[soortVan(key)]};
+  if(/[a-z]-?\d/.test(x) && /\d-[a-z]/.test(x)===false && /een$|ol$/.test(x)===false) return {ok:false, msg:'Let op de schrijfwijze: plaatsnummer, streepje, dan de naam (bijvoorbeeld 2-methylbutaan).'};
+  return {ok:false, msg:NAAMTIP[soortVan(key)]};
+}
+
+// --- extra onderdeelsoorten voor de opdrachten ---
+function deelBouwFormule(f, tel){
+  return { soort:'bouw3v', vraag:'Bouw een molecuul met de molecuulformule <b>'+fHTML(f)+'</b>.', target:tel,
+    toonSmi:null };
+}
+function deelBouwNaam(key){
+  return { soort:'bouw3v', vraag:'Bouw <b>'+STOF[key].goed[0]+'</b>.', target:STOF[key].tel, canon:STOF[key].canon, naam:true, toonSmi:STOF[key].smi };
+}
+
+// ===================== 3V · 1 MOLECULEN BOUWEN =====================
+const TABEL3V = '<table class="t3v"><tr><th>atoom</th><td>H</td><td>F, Cl, Br, I</td><td>O, S</td><td>N, P</td><td>C</td></tr><tr><th>aantal atoombindingen</th><td>1</td><td>1</td><td>2</td><td>3</td><td>4</td></tr></table>';
+const ENKEL = [['PH3','PH₃','P','fosfor'],['CH2Cl2','CH₂Cl₂','ClCCl'],['CH5N','CH₅N','CN'],['C2H5Br','C₂H₅Br','CCBr'],['N2H4','N₂H₄','NN'],['CHCl3','CHCl₃','ClC(Cl)Cl'],['C2H5F','C₂H₅F','CCF'],['CH3I','CH₃I','CI']];
+const MEERVOUD = [['CO2','CO₂','O=C=O'],['CS2','CS₂','S=C=S'],['C2H2','C₂H₂','C#C'],['C3H6','C₃H₆','C=CC'],['C2Cl4','C₂Cl₄','ClC(Cl)=C(Cl)Cl'],['C3H4','C₃H₄','C#CC'],['C2H3Cl','C₂H₃Cl','C=CCl']];
+function telFormule(f){ const c={}; (f.match(/(Cl|Br|[A-Z])(\d*)/g)||[]).forEach(t=>{ const m=t.match(/(Cl|Br|[A-Z])(\d*)/); c[m[1]]=(c[m[1]]||0)+(m[2]?+m[2]:1); }); return c; }
+// eerste keer een vaste keuze (zodat de serie aansluit bij het logboek), daarna willekeurig
+function vastOfWillekeurig(pool, vast){ let eerste=true; return () => { if(eerste){ eerste=false; return pool.find(x=>x[0]===vast); } return pick(pool); }; }
+function bouwItem(titel, instr, kies, hint){
+  return () => { const [f, mooi, smi] = kies();
+    return { titel, instr, vraag:'Bouw het molecuul in het venster rechts. Geef elk atoom precies zijn eigen aantal atoombindingen.',
+      parts:[ Object.assign(deelBouwFormule(f, telFormule(f)), {toonSmi:smi, f:mooi}) ],
+      hint, uitw:()=>'Een mogelijke structuurformule van '+fHTML(f)+':<div class="svgrij">'+svgSmi(smi)+'</div>Controle: tel bij elk atoom de streepjes. Een dubbele binding telt als 2, een drievoudige als 3.' };
+  };
+}
+const INSTR_V31 = { titel:'Nieuw: moleculen bouwen', html:
+  'Een atoom vormt evenveel atoombindingen als het elektronen tekortkomt tot 8 in de buitenste schil. H vormt er 1, want de eerste schil is al vol met 2 elektronen.'+TABEL3V+
+  '<b>Zo bouw je:</b> klik een atoom in de lijst en klik in het lege veld. Klik op een atoom: er komt een open binding. Klik op het open uiteinde en kies het volgende atoom. Rechtermuisklik = weghalen.'+
+  vb('CH₄O: C vormt 4 bindingen, O vormt 2 en H vormt 1. Zet C in het midden met 3 H-atomen, en daaraan de O met 1 H-atoom.<div class="svgrij">'+'§CO§'+'</div>')+
+  '<p class="klein">Moleculen kunnen ook een ring vormen. Die komen in 3V niet aan bod; in deze bouwer kun je ze niet maken.</p>' };
+const INSTR_V31_MV = { titel:'Nieuw: dubbele en drievoudige binding', html:
+  'Twee atomen kunnen ook twee of drie elektronenparen delen: een <b>dubbele</b> of een <b>drievoudige binding</b>. Een dubbele binding telt als 2 atoombindingen, een drievoudige als 3.<br>'+
+  'Kies boven de atomenlijst eerst <b>2×</b> of <b>3×</b> en klik dan op het atoom.'+
+  vb('N₂: elk N-atoom vormt 3 bindingen. Er zijn maar twee atomen, dus ze delen drie paren: N≡N.<div class="svgrij">'+'§N#N§'+'</div>') };
+const INSTR_V31_AVO = { titel:'Nieuw: fouten opsporen', html:
+  'Avo heeft structuurformules getekend, maar zich bij sommige atomen vergist. Tel bij elk atoom de streepjes en vergelijk met de tabel.'+TABEL3V };
+function vulSvg(instr){ return {titel:instr.titel, html:instr.html.replace(/§([^§]+)§/g,(m,s)=>svgSmi(s))}; }
+
+// Avo's tekeningen: atomen [symbool,x,y], bindingen [i,j,orde]; fout = indices met verkeerd aantal bindingen
+const AVO = [
+  { f:'C₂H₄', at:[['C',0,0],['C',1,0],['H',-0.72,0],['H',0,-0.72],['H',1.72,0],['H',1,-0.72]], bd:[[0,1,1],[0,2,1],[0,3,1],[1,4,1],[1,5,1]], fout:[0,1],
+    uitleg:'Beide C-atomen hebben 3 bindingen. Tussen de C-atomen hoort een dubbele binding.' },
+  { f:'CH₅N', at:[['C',0,0],['N',1,0],['H',-0.72,0],['H',0,-0.72],['H',1.72,0],['H',1,-0.72],['H',1,0.72]], bd:[[0,1,1],[0,2,1],[0,3,1],[1,4,1],[1,5,1],[1,6,1]], fout:[0,1],
+    uitleg:'Het C-atoom heeft 3 bindingen en het N-atoom 4. Eén H-atoom hoort aan C te zitten in plaats van aan N.' },
+  { f:'CO₂', at:[['O',0,0],['C',1,0],['O',2,0]], bd:[[0,1,2],[1,2,1]], fout:[1,2],
+    uitleg:'Het C-atoom heeft 3 bindingen en het rechter O-atoom 1. Beide bindingen moeten dubbel zijn: O=C=O.' },
+  { f:'CH₄S', at:[['C',0,0],['H',1,0],['S',2,0],['H',-0.72,0],['H',0,-0.72],['H',0,0.72]], bd:[[0,1,1],[1,2,1],[0,3,1],[0,4,1],[0,5,1]], fout:[1,2],
+    uitleg:'Het middelste H-atoom heeft 2 bindingen, maar H vormt er maar 1. Het S-atoom heeft er maar 1. Goed is: CH₃–S–H.' }
+];
+function avoMol(a){
+  const pos={};
+  a.at.forEach((x,i)=>{ if(x[0]!=='H' || Number.isInteger(x[1])&&Number.isInteger(x[2])) pos[i]=[x[1]*2,x[2]*2]; });
+  a.at.forEach((x,i)=>{ if(pos[i]) return; const b=a.bd.find(q=>q[0]===i||q[1]===i), j=b[0]===i?b[1]:b[0], hx=a.at[j][1], hy=a.at[j][2];
+    pos[i]=[hx*2+(x[1]-hx)/0.72, hy*2+(x[2]-hy)/0.72]; });
+  return {at:a.at.map(x=>x[0]), bd:a.bd, pos};
+}
+
+const NIVEAUS_V31 = [
+  bouwItem('Enkele bindingen', vulSvg(INSTR_V31), vastOfWillekeurig(ENKEL,'PH3'), 'Zoek in de tabel hoeveel bindingen elk atoom vormt. Zet het atoom met de meeste bindingen in het midden.'),
+  bouwItem('Enkele bindingen', null, vastOfWillekeurig(ENKEL,'CH2Cl2'), 'C vormt 4 bindingen; Cl en H elk 1.'),
+  bouwItem('Enkele bindingen', null, vastOfWillekeurig(ENKEL,'CH5N'), 'C vormt 4 bindingen, N vormt 3 en H vormt 1. C en N zitten aan elkaar.'),
+  bouwItem('Enkele bindingen', null, vastOfWillekeurig(ENKEL,'C2H5Br'), 'De twee C-atomen zitten aan elkaar. Br vormt 1 binding, net als H.'),
+  bouwItem('Meervoudige bindingen', vulSvg(INSTR_V31_MV), vastOfWillekeurig(MEERVOUD,'CO2'), 'O vormt 2 bindingen. Met alleen enkele bindingen komt het C-atoom bindingen tekort.'),
+  bouwItem('Meervoudige bindingen', null, vastOfWillekeurig(MEERVOUD,'C2H2'), 'Elk C-atoom heeft één H-atoom. Hoeveel bindingen heeft elk C-atoom dan nog over voor het andere C-atoom?'),
+  bouwItem('Meervoudige bindingen', null, vastOfWillekeurig(MEERVOUD,'C3H6'), 'Teken eerst een keten van 3 C-atomen. Kom je H-atomen tekort of over? Dan zit er ergens een dubbele binding.'),
+  () => ({ titel:'De tekeningen van Avo', instr:INSTR_V31_AVO,
+    vraag:'Bij elke tekening hieronder heeft Avo zich vergist.',
+    parts: AVO.map(a=>({ soort:'klik3v', vraag:'Avo tekende '+a.f+'. Klik op <b>alle</b> atomen met een verkeerd aantal atoombindingen.', mol:avoMol(a), fout:a.fout, uitleg:a.uitleg })),
+    hint:'Tel bij elk atoom de streepjes. Een dubbele binding telt als 2. Vergelijk met de tabel.',
+    uitw:()=>AVO.map(a=>'<b>'+a.f+'</b>: '+a.uitleg).join('<br>') }),
+  () => ({ titel:'Twee moleculen met één formule', ster:true,
+    instr:{ titel:'★ Extra: één formule, twee moleculen', html:'Bij sommige molecuulformules kun je meer dan één structuurformule bouwen. Elk atoom heeft dan wel het goede aantal bindingen, maar de atomen zitten anders aan elkaar.' },
+    vraag:'Bij C₂H₆O kun je twee verschillende moleculen bouwen. Bouw ze allebei.',
+    parts:[{ soort:'iso3v', vraag:'Bouw een molecuul met C₂H₆O en klik op <b>Controleer en bewaar</b>. Doe dat voor beide moleculen.', tel:telSmi('CCO'), doelen:['ethanol','methoxymethaan'], namen:false }],
+    hint:'Het O-atoom kan aan het eind zitten (met een H-atoom eraan), of tussen de twee C-atomen in.',
+    uitw:()=>'<div class="svgrij">'+svgSmi('CCO')+svgSmi('COC')+'</div>Links ethanol: de O zit aan het eind, met een H-atoom eraan. Rechts methoxymethaan: de O zit tussen de twee C-atomen.' })
+];
+
+// ===================== 3V · 2 ISOMEREN =====================
+const LUMEN5 = [
+  { key:'pentaan', m:()=>tekeningZwaar([['C',0,0],['C',1,0],['C',2,0],['C',3,0],['C',4,0]], [[0,1,1],[1,2,1],[2,3,1],[3,4,1]]) },
+  { key:'methylbutaan', m:()=>tekeningZwaar([['C',0,0],['C',1,0],['C',2,0],['C',3,0],['C',1,-1]], [[0,1,1],[1,2,1],[2,3,1],[1,4,1]]) },
+  { key:'pentaan', m:()=>tekeningZwaar([['C',0,0],['C',1,0],['C',2,0],['C',2,1],['C',2,2]], [[0,1,1],[1,2,1],[2,3,1],[3,4,1]]) },
+  { key:'dimethylpropaan', m:()=>tekeningZwaar([['C',0,0],['C',1,0],['C',2,0],['C',1,-1],['C',1,1]], [[0,1,1],[1,2,1],[1,3,1],[1,4,1]]) },
+  { key:'methylbutaan', m:()=>tekeningZwaar([['C',0,0],['C',1,0],['C',1,1],['C',2,1],['C',1,-1]], [[0,1,1],[1,2,1],[2,3,1],[1,4,1]]) }
+];
+const INSTR_V32_NAAM = { titel:'Nieuw: dezelfde stof, een andere tekening', html:
+  'Een structuurformule mag je op verschillende manieren tekenen. Een <b>knik</b> in de keten is geen vertakking, en een <b>gedraaide of gespiegelde</b> tekening is dezelfde stof.<br>'+
+  'Of twee tekeningen dezelfde stof zijn, controleer je met de <b>naam</b>: zelfde naam = zelfde stof.'+
+  vb('Deze twee tekeningen zijn allebei butaan: elk C-atoom zit aan hoogstens twee andere C-atomen vast.<div class="svgrij">'+'§§1§§'+'</div>') };
+const INSTR_V32_ISO = { titel:'Nieuw: alle isomeren vinden', html:
+  '<b>Isomeren</b> hebben dezelfde molecuulformule, maar een andere structuurformule. Zo vind je ze allemaal:'+
+  '<ol class="stap"><li>Bouw de onvertakte keten.</li><li>Maak de keten één C-atoom korter. Zet dat C-atoom als zijtak op elke mogelijke plek.</li><li>Maak de keten nog één C-atoom korter en verdeel de twee overgebleven C-atomen.</li><li>Geef elke structuur een naam. Twee tekeningen met dezelfde naam zijn dezelfde stof.</li></ol>'+
+  'De tool herkent het als je een stof voor de tweede keer bouwt, ook als hij anders getekend is.' };
+const C6 = ['hexaan','2-methylpentaan','3-methylpentaan','2,2-dimethylbutaan','2,3-dimethylbutaan'];
+const C7 = ['heptaan','2-methylhexaan','3-methylhexaan','2,2-dimethylpentaan','2,3-dimethylpentaan','2,4-dimethylpentaan','3,3-dimethylpentaan','ethylpentaan','trimethylbutaan'];
+const NIVEAUS_V32 = [
+  () => { const ins={titel:INSTR_V32_NAAM.titel, html:INSTR_V32_NAAM.html.replace('§§1§§', svgMol(tekeningZwaar([['C',0,0],['C',1,0],['C',2,0],['C',3,0]],[[0,1,1],[1,2,1],[2,3,1]]),{u:34})+svgMol(tekeningZwaar([['C',0,0],['C',1,0],['C',1,1],['C',2,1]],[[0,1,1],[1,2,1],[2,3,1]]),{u:34}))};
+    return { titel:'De vijf tekeningen van LUMEN', instr:ins,
+      vraag:'LUMEN laat vijf tekeningen zien van moleculen met de formule C₅H₁₂.',
+      parts:[
+        { soort:'namen3v', vraag:'Geef bij elke tekening de naam.', items:LUMEN5.map(x=>({key:x.key, mol:x.m()})) },
+        { soort:'num', vraag:'Hoeveel verschillende stoffen staan er in deze vijf tekeningen?', label:'aantal =', juist:3,
+          diag: v => v===5 ? 'Tekeningen met dezelfde naam zijn dezelfde stof.' : 'Tel hoeveel verschillende namen je hebt gegeven.' }
+      ],
+      hint:'Zoek bij elke tekening eerst de langste keten. Die mag een knik hebben.',
+      uitw:()=>'Er zijn drie stoffen: pentaan (tekening 1 en 3), methylbutaan (tekening 2 en 5) en dimethylpropaan (tekening 4). Tekening 3 heeft alleen een knik; tekening 5 is methylbutaan, anders getekend.' }; },
+  () => ({ titel:'Alle isomeren van C₆H₁₄', instr:INSTR_V32_ISO,
+    vraag:'Vind alle isomeren van C₆H₁₄ en geef ze een naam.',
+    parts:[{ soort:'iso3v', vraag:'Bouw een isomeer van C₆H₁₄ en klik op <b>Controleer en bewaar</b>. Geef het daarna een naam.', tel:telSmi('CCCCCC'), doelen:C6, namen:true }],
+    hint:'Werk met het stappenplan: eerst de keten van 6, dan een keten van 5 met één zijtak, dan een keten van 4 met twee zijtakken.',
+    uitw:()=>'<div class="svgrij">'+C6.map(k=>'<figure>'+svgSmi(STOF[k].smi,{u:30})+'<figcaption>'+k+'</figcaption></figure>').join('')+'</div>' }),
+  () => ({ titel:'Bouwen bij een naam', instr:{ titel:'Nieuw: bouwen bij een naam', html:'Lees de naam van achter naar voren: eerst de stamnaam (de keten), dan de zijtakken of de dubbele binding, en dan de plaatsnummers. Geef daarna elk C-atoom zoveel H-atomen dat het vier bindingen heeft.'+
+      vb('2-methylbutaan: een keten van 4 C-atomen (butaan), met een methylgroep aan C-atoom 2.<div class="svgrij">§CC(C)CC§</div>').replace(/§([^§]+)§/g,(m,s)=>svgSmi(s)) },
+    vraag:'Bouw de stoffen één voor één.',
+    parts:['2,2-dimethylbutaan','ethylpentaan','pent-1-een','hex-3-een'].map(deelBouwNaam),
+    hint:'Teken eerst de keten uit de stamnaam. Zet daarna de zijtakken of de dubbele binding op de goede plek, en vul dan de H-atomen aan.',
+    uitw:()=>'<div class="svgrij">'+['2,2-dimethylbutaan','ethylpentaan','pent-1-een','hex-3-een'].map(k=>'<figure>'+svgSmi(STOF[k].smi,{u:30})+'<figcaption>'+k+'</figcaption></figure>').join('')+'</div>Bij ethylpentaan is geen plaatsnummer nodig: op C-atoom 2 zou de ethylgroep de keten langer maken.' }),
+  () => ({ titel:'Alle isomeren van C₇H₁₆', ster:true,
+    instr:{ titel:'★ Extra', html:'Gebruik hetzelfde stappenplan. Ga nu door tot de keten zo kort is dat er geen nieuwe isomeren meer bij komen.' },
+    vraag:'Vind alle isomeren van C₇H₁₆ en geef ze een naam.',
+    parts:[{ soort:'iso3v', vraag:'Bouw een isomeer van C₇H₁₆ en klik op <b>Controleer en bewaar</b>. Geef het daarna een naam.', tel:telSmi('CCCCCCC'), doelen:C7, namen:true }],
+    hint:'Keten van 7, keten van 6 met één methylgroep, keten van 5 met twee methylgroepen of één ethylgroep, en een keten van 4 met drie methylgroepen.',
+    uitw:()=>'<div class="svgrij">'+C7.map(k=>'<figure>'+svgSmi(STOF[k].smi,{u:26})+'<figcaption>'+k+'</figcaption></figure>').join('')+'</div>' })
+];
+
+// ===================== 3V · 3 KARAKTERISTIEKE GROEPEN =====================
+const LUMENFOUT = [ ['2-chloorbutaan','3-chloorbutaan'], ['propaan-1-ol','propaan-3-ol'], ['pentaanzuur','butaanzuur'], ['dichloormethaan','chloormethaan'] ];
+const C3O = ['propaan-1-ol','propaan-2-ol','methoxyethaan'];
+const C4O = ['butaan-1-ol','butaan-2-ol','methylpropaan-1-ol','methylpropaan-2-ol'];
+const INSTR_V33 = { titel:'Nieuw: karakteristieke groepen', html:
+  '<table class="t3v"><tr><th>groep</th><th>soort stof</th><th>naam</th></tr>'+
+  '<tr><td>halogeenatoom (F, Cl, Br, I)</td><td>halogeenalkaan</td><td>plaatsnummer + halogeen + alkaan</td></tr>'+
+  '<tr><td>hydroxylgroep –O–H</td><td>alkanol</td><td>alkaan + plaatsnummer + -ol</td></tr>'+
+  '<tr><td>carboxylgroep –COOH</td><td>alkaanzuur</td><td>stamnaam + -aanzuur</td></tr></table>'+
+  'Het C-atoom van de carboxylgroep hoort bij de keten en telt mee. Die groep zit altijd aan het eind van de keten.'+
+  vb('Propaan-2-ol: een keten van 3 C-atomen, met de OH-groep aan C-atoom 2.<div class="svgrij">§CC(O)C§</div>').replace(/§([^§]+)§/g,(m,s)=>svgSmi(s)) };
+const NIVEAUS_V33 = [
+  () => ({ titel:'Bouwen bij een naam', instr:INSTR_V33,
+    vraag:'Bouw de stoffen één voor één.',
+    parts:['2-broombutaan','1,1-dichloorethaan','pentaan-2-ol','hexaanzuur'].map(deelBouwNaam),
+    hint:'Begin met de keten uit de stamnaam. Zet daarna de karakteristieke groep op de goede plek, en vul dan de H-atomen aan.',
+    uitw:()=>'<div class="svgrij">'+['2-broombutaan','1,1-dichloorethaan','pentaan-2-ol','hexaanzuur'].map(k=>'<figure>'+svgSmi(STOF[k].smi,{u:30})+'<figcaption>'+k+'</figcaption></figure>').join('')+'</div>Bij hexaanzuur telt het C-atoom van de carboxylgroep mee: de keten heeft 6 C-atomen.' }),
+  () => ({ titel:'De namen van LUMEN', instr:{ titel:'Nieuw: foute namen verbeteren', html:'LUMEN overhoort je en geeft bij elke structuurformule expres een foute naam. Zoek de fout en geef de goede naam.' },
+    vraag:'Verbeter de naam die LUMEN geeft.',
+    parts: LUMENFOUT.map(([key,fout])=>({ soort:'naam3v', vraag:'LUMEN noemt deze stof <b>‘'+fout+'’</b>. Geef de goede naam.', key, lumen:fout, mol:layoutSmi(STOF[key].smi) })),
+    hint:'Kijk naar het laagste plaatsnummer, tel alle C-atomen (ook die van de carboxylgroep) en tel de halogeenatomen.',
+    uitw:()=>LUMENFOUT.map(([k,f])=>'‘'+f+'’ wordt <b>'+k+'</b>: '+STOF[k].fout[f]).join('<br>') }),
+  () => ({ titel:'Isomeren van C₃H₈O', instr:{ titel:'Nieuw: isomeren met een karakteristieke groep', html:'Ook bij stoffen met een karakteristieke groep bestaan isomeren. De groep kan op een andere plek zitten, of de atomen zitten heel anders aan elkaar.' },
+    vraag:'Bouw alle moleculen met de formule C₃H₈O. Geef de alkanolen een naam.',
+    parts:[{ soort:'iso3v', vraag:'Bouw een molecuul met C₃H₈O en klik op <b>Controleer en bewaar</b>.', tel:telSmi('CCCO'), doelen:C3O, namen:true, geenNaam:['methoxyethaan'] }],
+    hint:'De OH-groep kan aan het eind of in het midden van de keten zitten. En het O-atoom kan ook tussen twee C-atomen in zitten.',
+    uitw:()=>'<div class="svgrij">'+C3O.map(k=>'<figure>'+svgSmi(STOF[k].smi,{u:30})+'<figcaption>'+(k==='methoxyethaan'?'geen alkanol':k)+'</figcaption></figure>').join('')+'</div>' }),
+  () => ({ titel:'Alle alkanolen met C₄H₁₀O', ster:true,
+    instr:{ titel:'★ Extra', html:'Combineer wat je weet over zijtakken en over de plaats van de OH-groep. Nummer zo dat de OH-groep het laagste nummer krijgt.' },
+    vraag:'Bouw alle <b>alkanolen</b> met de formule C₄H₁₀O en geef ze een naam.',
+    parts:[{ soort:'iso3v', vraag:'Bouw een alkanol met C₄H₁₀O en klik op <b>Controleer en bewaar</b>.', tel:telSmi('CCCCO'), doelen:C4O, namen:true, alleenOH:true }],
+    hint:'Er zijn twee ketens mogelijk: een keten van 4 C-atomen, of een keten van 3 met een methylgroep. Zet de OH-groep op elke mogelijke plek.',
+    uitw:()=>'<div class="svgrij">'+C4O.map(k=>'<figure>'+svgSmi(STOF[k].smi,{u:28})+'<figcaption>'+k+'</figcaption></figure>').join('')+'</div>' })
+];
+
 // ===================== VRIJ VERKENNEN =====================
 let vrijSoort = 'bouw';
 function zetVrijSoort(s){
@@ -3186,13 +3671,13 @@ document.querySelectorAll('.vrijSoort').forEach(s=>s.onchange=()=>zetVrijSoort(s
 // ===================== WEERGAVE =====================
 let serie;
 let leerlijn = 'dipool';
-try { const ll = new URLSearchParams(location.search).get('leerlijn'); if(['lewis','tussen','zout'].includes(ll)) leerlijn=ll; } catch(e){}
-function NIVEAUS_NU(){ return leerlijn==='lewis' ? NIVEAUS_LEWIS : leerlijn==='tussen' ? NIVEAUS_TUSSEN : leerlijn==='zout' ? NIVEAUS_ZOUT : NIVEAUS; }
+try { const ll = new URLSearchParams(location.search).get('leerlijn'); if(['lewis','tussen','zout','v31','v32','v33'].includes(ll)) leerlijn=ll; } catch(e){}
+function NIVEAUS_NU(){ return leerlijn==='v31' ? NIVEAUS_V31 : leerlijn==='v32' ? NIVEAUS_V32 : leerlijn==='v33' ? NIVEAUS_V33 : leerlijn==='lewis' ? NIVEAUS_LEWIS : leerlijn==='tussen' ? NIVEAUS_TUSSEN : leerlijn==='zout' ? NIVEAUS_ZOUT : NIVEAUS; }
 function zetLeerlijn(ll){ leerlijn = ll; nieuweSerie(); }
 document.querySelectorAll('.llbtn').forEach(b=>b.onclick=()=>zetLeerlijn(b.dataset.ll));
 function nieuweSerie(){
   document.querySelectorAll('.llbtn').forEach(b=>b.classList.toggle('active', b.dataset.ll===leerlijn));
-  document.getElementById('llLabel').textContent = leerlijn==='lewis' ? '5V' : '4V';
+  document.getElementById('llLabel').textContent = leerlijn.startsWith('v3') ? '3V' : leerlijn==='lewis' ? '5V' : '4V';
   const N = NIVEAUS_NU();
   serie = { i:0, items:N.map(f=>f()), status:N.map(()=>'') }; renderSerie();
 }
@@ -3203,6 +3688,7 @@ function renderSerie(){
   const el = document.getElementById('opdBody');
   const q0 = serie.einde ? null : serie.items[serie.i];
   zetLewis(!!(q0 && q0.lewis));
+  zet3V(leerlijn.startsWith('v3'));
   leegBouwer();
   tmAan(!!(q0 && q0.tm));
   if(serie.einde){
@@ -3228,6 +3714,10 @@ function renderVraag(el, q){
     else if(p.soort==='balans') h += '<div class="balans"><div class="brows"></div><div class="inrow"><button class="btn ghost addrow">+ regel</button><button class="btn chk">Controleer</button></div></div>';
     else if(p.soort==='klik'||p.soort==='orient'||p.soort==='dock') h += '<div class="inrow"><button class="btn chk">Controleer</button>'+(p.soort==='klik'?'<button class="btn ghost wis">Wis keuze</button>':'')+'</div>';
     else if(p.soort==='actie') h += '<div class="inrow"><button class="btn chk" disabled>Verder ➜</button></div>';
+    else if(p.soort==='klik3v') h += '<div class="svgrij">'+svgMol(p.mol,{klik:true})+'</div><div class="inrow"><button class="btn chk">Controleer</button><button class="btn ghost wis">Wis keuze</button></div>';
+    else if(p.soort==='namen3v') h += '<div class="namen3v">'+p.items.map((it,k)=>'<div class="nitem"><div class="nnr">'+(k+1)+'</div>'+svgMol(it.mol,{u:36})+'<input type="text" autocomplete="off" spellcheck="false" data-k="'+k+'" placeholder="naam"></div>').join('')+'</div><div class="inrow"><button class="btn chk">Controleer</button></div>';
+    else if(p.soort==='naam3v') h += '<div class="svgrij">'+svgMol(p.mol)+'</div><div class="inrow"><label>naam:</label><input type="text" autocomplete="off" spellcheck="false"><button class="btn chk">Controleer</button></div>';
+    else if(p.soort==='iso3v') h += '<div class="isolijst"></div><div class="inrow"><button class="btn chk">Controleer en bewaar</button></div><div class="isonaam" style="display:none"><div class="inrow"><label>naam:</label><input type="text" autocomplete="off" spellcheck="false"><button class="btn nchk">Controleer de naam</button></div></div>';
     else h += '<div class="inrow"><button class="btn chk">Controleer mijn molecuul</button></div>';
     h += '<div class="fb"></div></div>';
   });
@@ -3290,6 +3780,19 @@ function renderVraag(el, q){
       p.vereist.forEach(v=>{ const r=balansRij(p,v); r.classList.add('ok'); rows.appendChild(r); });
       pe().querySelectorAll('select,.bdel,.addrow').forEach(x=>x.disabled=true);
       fb('info','<b>Zo hoort de balans eruit te zien.</b>');
+    } else if(p.soort==='bouw3v'){
+      if(p.toonSmi) laadSmi(p.toonSmi);
+      fb('info','<b>Zo kan het molecuul eruitzien.</b> Tel bij elk atoom de streepjes.');
+    } else if(p.soort==='klik3v'){
+      pe().querySelectorAll('.at3v').forEach(g=>{ g.classList.remove('sel'); if(p.fout.includes(+g.dataset.k)) g.classList.add('juist'); });
+      fb('info','<b>Antwoord:</b> '+p.uitleg);
+    } else if(p.soort==='namen3v'){
+      pe().querySelectorAll('.nitem input').forEach((inp,k)=>{ inp.value=STOF[p.items[k].key].goed[0]; inp.className='ok'; });
+      fb('info','<b>Zo heten de stoffen.</b>');
+    } else if(p.soort==='naam3v'){
+      fb('info','<b>Antwoord:</b> '+STOF[p.key].goed[0]+'. '+((STOF[p.key].fout||{})[p.lumen]||''));
+    } else if(p.soort==='iso3v'){
+      fb('info','<b>Alle stoffen:</b> '+p.doelen.map(k=>(p.geenNaam||[]).includes(k)?k+' (geen alkanol)':k).join(', ')+'.');
     } else if(p.toonAntwoord){
       fb('info','<b>Antwoord:</b> '+p.toonAntwoord());
     } else return;
@@ -3352,6 +3855,73 @@ function renderVraag(el, q){
     } else if(p.soort==='klik'||p.soort==='orient'||p.soort==='dock'){
       const w=e.querySelector('.wis'); if(w) w.onclick=()=>{ if(st.deel!==i) return; TM.gekozen=new Set(); tmRender(); };
       e.querySelector('.chk').onclick=()=>{ if(st.deel!==i) return; const m=p.check(); if(m){ fout(m); return; } fb('correct','<b>Goed!</b>'); volgend(st.tries===0); };
+    } else if(p.soort==='bouw3v'){
+      e.querySelector('.chk').onclick = () => {
+        if(st.deel!==i) return;
+        const m = check3V(p.target, {canon:p.canon, naam:p.naam});
+        if(m){ fout(m); return; }
+        fb('correct','<b>Goed gebouwd!</b> Elk atoom heeft precies zijn eigen aantal atoombindingen.'); volgend(st.tries===0);
+      };
+    } else if(p.soort==='klik3v'){
+      e.querySelectorAll('.at3v').forEach(g=>g.onclick=()=>{ if(st.deel!==i) return; g.classList.toggle('sel'); });
+      e.querySelector('.wis').onclick=()=>{ if(st.deel===i) e.querySelectorAll('.at3v').forEach(g=>g.classList.remove('sel')); };
+      e.querySelector('.chk').onclick=()=>{
+        if(st.deel!==i) return;
+        const sel=[...e.querySelectorAll('.at3v.sel')].map(g=>+g.dataset.k);
+        if(!sel.length){ fb('info','Klik eerst op de atomen die volgens jou fout zijn.'); return; }
+        const goed = sel.length===p.fout.length && p.fout.every(k=>sel.includes(k));
+        if(goed){ e.querySelectorAll('.at3v.sel').forEach(g=>g.classList.add('juist')); fb('correct','<b>Goed!</b> '+p.uitleg); volgend(st.tries===0); return; }
+        const teveel = sel.some(k=>!p.fout.includes(k));
+        fout(teveel ? 'Minstens één atoom dat je koos, heeft wel het goede aantal bindingen. Tel de streepjes nog eens.' : 'Wat je koos klopt, maar er is nog een atoom met een verkeerd aantal bindingen.');
+      };
+    } else if(p.soort==='namen3v'){
+      const ins=[...e.querySelectorAll('.nitem input')];
+      const check=()=>{
+        if(st.deel!==i) return;
+        let eerste=null, noot=''; let alles=true;
+        ins.forEach((inp,k)=>{ const r=naamCheck(p.items[k].key, inp.value); inp.className = r.ok?'ok':'bad'; if(!r.ok){ alles=false; if(!eerste) eerste='Tekening '+(k+1)+': '+r.msg; } else if(r.noot && !noot) noot=r.noot; });
+        if(alles){ fb('correct','<b>Goed!</b> '+noot); volgend(st.tries===0); } else fout(eerste);
+      };
+      e.querySelector('.chk').onclick=check;
+      ins.forEach(inp=>inp.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); check(); } }));
+    } else if(p.soort==='naam3v'){
+      const inp=e.querySelector('input');
+      const check=()=>{ if(st.deel!==i) return; const r=naamCheck(p.key, inp.value, p.lumen);
+        if(r.ok){ fb('correct','<b>Goed!</b> '+(r.noot||'')+' '+((STOF[p.key].fout||{})[p.lumen]||'')); volgend(st.tries===0); } else fout(r.msg); };
+      e.querySelector('.chk').onclick=check;
+      inp.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); check(); } });
+    } else if(p.soort==='iso3v'){
+      const gev=[], lijst=e.querySelector('.isolijst'), nv=e.querySelector('.isonaam'), ninp=nv.querySelector('input');
+      let wacht=null, foutGemaakt=false;
+      const voegToe=(key, noot)=>{
+        gev.push(key); wacht=null; nv.style.display='none'; ninp.value='';
+        const label = (p.geenNaam||[]).includes(key) ? 'geen alkanol (naam niet nodig)' : (p.namen ? key : '');
+        lijst.insertAdjacentHTML('beforeend','<div class="isoit"><span class="nr">'+gev.length+'</span>'+svgSmi(STOF[key].smi,{u:20})+'<span class="nm">'+label+'</span></div>');
+        leegBouwer();
+        if(gev.length===p.doelen.length){ fb('correct','<b>Goed!</b> Je hebt ze allemaal gevonden.'); volgend(!foutGemaakt); }
+        else fb('info',(noot?noot+'<br>':'')+'Bewaard. Gevonden: '+gev.length+'. Bouw de volgende.');
+      };
+      e.querySelector('.chk').onclick=()=>{
+        if(st.deel!==i) return;
+        if(wacht){ fb('info','Geef eerst de naam van de stof die je net hebt gebouwd.'); return; }
+        const m=check3V(p.tel); if(m){ fb('incorrect','<b>Nog niet goed.</b> '+m); return; }
+        const c=canonBouw(), key=p.doelen.find(k=>STOF[k].canon===c);
+        if(!key){
+          if(p.alleenOH) fb('incorrect','<b>Dit is geen alkanol.</b> Het molecuul klopt, maar er zit geen OH-groep in. Zoek een molecuul met een OH-groep.');
+          else fb('incorrect','Dit molecuul klopt, maar deze stof hoort niet bij de opdracht.');
+          return;
+        }
+        if(gev.includes(key)){ fb('incorrect','<b>Deze stof heb je al gevonden</b> (nummer '+(gev.indexOf(key)+1)+'). Hij is alleen anders getekend.'); return; }
+        if(!p.namen || (p.geenNaam||[]).includes(key)){
+          voegToe(key, (p.geenNaam||[]).includes(key) ? 'Goed molecuul! Dit is geen alkanol: de naam hoef je in 3V niet te kennen.' : ''); return;
+        }
+        wacht=key; nv.style.display=''; ninp.focus();
+        fb('info','Goed molecuul, en een nieuwe stof! Geef nu de naam.');
+      };
+      const nchk=()=>{ if(st.deel!==i||!wacht) return; const r=naamCheck(wacht, ninp.value);
+        if(r.ok){ voegToe(wacht, r.noot||''); } else { foutGemaakt=true; fout(r.msg); } };
+      nv.querySelector('.nchk').onclick=nchk;
+      ninp.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); nchk(); } });
     } else if(p.soort==='actie'){
       const bt=e.querySelector('.chk');
       const iv=setInterval(()=>{ if(!document.body.contains(bt)){ clearInterval(iv); return; } if(st.deel===i && p.klaar()){ bt.disabled=false; clearInterval(iv); } }, 300);
