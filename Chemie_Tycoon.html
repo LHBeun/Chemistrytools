@@ -801,6 +801,168 @@ const SCENARIOS = {
   },
 };
 
+
+/* =========================================================================
+   CAMPAGNE — Haber-Bosch (5V/6V)
+   ---------------------------------------------------------------------
+   Zeven missies die stap voor stap één mechaniek aanzetten; daarna vrij spel.
+   CAMP bevat de vlaggen van de actieve missie (null = gewoon spel zonder campagne).
+   Vlaggen: bouw · recycling · energie · co2 · slijtage · vrij (markt, lening, R&D, faillissement)
+            geenGratie = CO₂-rechten al vanaf de eerste maand verplicht
+   ========================================================================= */
+let CAMP = null;
+const campVlag = (k) => !!(CAMP && CAMP[k]);
+const campVerbergt = (k) => !!(CAMP && !CAMP[k]);
+const fmtTon = (kg) => Math.round(kg / 1000).toLocaleString('nl-NL') + ' ton';
+
+const CAMPAGNE = [
+  {
+    nr: 1, titel: 'De proefreactor', kort: 'Evenwicht tegenover snelheid',
+    vlaggen: { bouw: false },
+    nieuw: ['Proefreactor: temperatuur, reactorvolume (en dus druk), katalysator en doorvoer instellen en metingen vastleggen.'],
+    verhaal: 'Je bent net aangenomen als procestechnoloog bij een nieuwe ammoniakfabriek. Voordat er ook maar één euro wordt uitgegeven, onderzoek je in de proefreactor bij welke omstandigheden de reactie N₂(g) + 3 H₂(g) ⇌ 2 NH₃(g) (ΔH = −92 kJ per mol) het meeste ammoniak oplevert.',
+    uitleg: [
+      'De evenwichtsconversie is het deel van N₂ dat maximaal kan worden omgezet als het evenwicht zich heeft ingesteld.',
+      'De kinetiekfactor geeft aan hoe dicht je in de beschikbare tijd bij dat evenwicht komt: hoe sneller de reactie, hoe hoger de factor.',
+      'Netto omzet = evenwichtsconversie × kinetiekfactor. Dat is wat de reactor echt oplevert.',
+      'Werk als een onderzoeker: verander telkens één instelling en leg je meting vast.',
+    ],
+    doel: 'Leg minstens 6 metingen vast en vind een instelling met een netto omzet van minstens 40%.',
+    lab: (ms) => ms.length >= 6 && ms.some(m => m.xNet >= 0.40),
+    voortgang: (t) => `${t.metingen} van 6 metingen · beste netto omzet ${(t.besteOmzet * 100).toFixed(1).replace('.', ',')}%`,
+    werkblad: [
+      'Geef aan wat er met de evenwichtsconversie gebeurt als je de temperatuur verhoogt. Leg je antwoord uit met behulp van de reactievergelijking.',
+      'Leg uit waarom de netto omzet bij een bepaalde temperatuur een maximum heeft. Gebruik hierbij de begrippen evenwichtsconversie en reactiesnelheid.',
+    ],
+    ster: 'Leg met behulp van het aantal gasdeeltjes links en rechts van de pijl uit hoe het reactorvolume de evenwichtsconversie beïnvloedt.',
+  },
+  {
+    nr: 2, titel: 'De eerste fabriek', kort: 'Voeding → reactor → separator',
+    vlaggen: { bouw: true },
+    nieuw: ['Een fabriek bouwen: voeding → reactor → separator → product.', 'Kosten en opbrengsten per maand (in het financieel overzicht onderin).'],
+    verhaal: 'De directie heeft je onderzoek gelezen en geeft groen licht voor een eerste productielijn. De prijzen liggen vast, er is nog geen CO₂-beleid en de installatie slijt (nog) niet. Je mag dit jaar verlies maken: het gaat erom dat de lijn ammoniak levert.',
+    uitleg: [
+      'Plaats een reactor en een separator (links). Trek pijpen van een uitgang (rechts op een blok) naar een ingang (links op het volgende blok): voeding → reactor → separator → product.',
+      'Klik op een blok om het in te stellen. De separator haalt NH₃ uit het gasmengsel; het onomgezette N₂ en H₂ verdwijnt in deze missie nog.',
+      'De goedkoopste reactor (standaard staal + ijzerkatalysator) is ook de minst actieve. Kijk in de keuzelijst bij de reactor welke materialen er zijn.',
+      'Let op de druklimiet van het vat: een te kleine reactor geeft een te hoge druk en dan ontstaat er lekkage.',
+      'Druk op ▶ Hervat om de klok te starten. Een maand duurt 7,5 seconde.',
+    ],
+    doel: 'Produceer in één maand minstens 1.000 ton NH₃.',
+    maand: (m) => m.kg >= 1000000,
+    voortgang: (t) => `deze maand ${fmtTon(t.maandKg)} · vorige maand ${fmtTon(t.vorigeKg)} (doel 1.000 ton)`,
+    werkblad: [
+      'Noteer je instellingen (temperatuur, volume, druk, katalysator, doorvoer) en de productie per maand.',
+      'Bekijk het financieel overzicht. Geef aan welke kostenpost per maand het grootst is.',
+    ],
+    ster: 'Leg uit waarom de fabriek verlies maakt, ook al levert hij elke maand veel ammoniak.',
+  },
+  {
+    nr: 3, titel: 'Niets weggooien', kort: 'Recycling van onomgezet gas',
+    vlaggen: { bouw: true, recycling: true },
+    nieuw: ['Retourlus: de gestreepte uitgang van de separator kan onomgezet N₂ en H₂ terugsturen naar de gestreepte ingang van de reactor.'],
+    verhaal: 'De financiële afdeling slaat alarm: je koopt elke maand veel N₂ en H₂ in, maar het grootste deel verlaat de fabriek onomgezet. Tijd om dat gas opnieuw te gebruiken.',
+    uitleg: [
+      'Trek een pijp van de gestreepte uitgang van de separator naar de gestreepte ingang van de reactor. Het onomgezette gas gaat dan nog een keer door de reactor.',
+      'Met recycling wordt bijna alle ingekochte N₂ en H₂ uiteindelijk omgezet, ook als de omzetting per doorgang laag is.',
+      'Recycling is niet gratis: er stroomt meer gas door de reactor en de separator, en dat kost energie. Kijk in het financieel overzicht wat er verandert.',
+      'Stel de separator in op ongeveer 90%. Daaronder is de NH₃ te onzuiver en krijg je een lage prijs; daarboven gaat er steeds meer NH₃ verloren.',
+      'Met recycling hoeft de omzetting per doorgang niet hoog te zijn. Onderzoek opnieuw welke temperatuur, welk volume en welke doorvoer nu het beste resultaat geven.',
+    ],
+    doel: 'Haal een maand met een positief resultaat (winst in de kolom ‘deze maand’).',
+    maand: (m) => m.resultaat > 0,
+    voortgang: (t) => `resultaat vorige maand: ${fmtEuro(t.vorigResultaat)}`,
+    werkblad: [
+      'Noteer bij dezelfde reactorinstellingen de productie per maand zonder en met recycling.',
+      'Leg uit waarom recycling de grondstofkosten per ton NH₃ verlaagt.',
+    ],
+    ster: 'Leg uit of het met recycling nog steeds gunstig is om de reactor bij de hoogst mogelijke druk te laten werken.',
+  },
+  {
+    nr: 4, titel: 'Warmte en stroom', kort: 'Warmte-integratie en grijze/groene stroom',
+    vlaggen: { bouw: true, recycling: true, energie: true },
+    nieuw: ['Warmte-integratie: een warmtewisselaar op de reactor wint warmte terug uit het hete productmengsel.', 'Keuze tussen grijze en groene stroom.', 'De CO₂-uitstoot per ton NH₃ wordt zichtbaar (het kost nog niets).'],
+    verhaal: 'Je fabriek draait en verdient geld. Maar de gemeente wil weten hoeveel CO₂ de fabriek uitstoot, en de directie wil laten zien dat het ook schoner kan, zonder verlies te maken.',
+    uitleg: [
+      'De CO₂-uitstoot komt uit het energieverbruik: verwarmen, comprimeren, scheiden en rondpompen.',
+      'Zet bij de reactor de warmte-integratie aan. De warmtewisselaar zelf kost ook energie, en dat loopt sterk op bij een hoge terugwinning.',
+      'Groene stroom geeft minder CO₂ per kWh, maar is duurder (knoppen rechtsboven).',
+      'De CO₂-intensiteit (kg CO₂ per kg NH₃) staat bovenin.',
+    ],
+    doel: 'Haal een maand met een positief resultaat én een CO₂-intensiteit onder 0,60 kg CO₂ per kg NH₃.',
+    maand: (m) => m.resultaat > 0 && m.kg > 0 && m.co2 / m.kg < 0.60,
+    voortgang: (t) => `vorige maand: resultaat ${fmtEuro(t.vorigResultaat)} · ${t.vorigeKg > 0 ? (t.vorigCo2 / t.vorigeKg).toFixed(2).replace('.', ',') : '–'} kg CO₂ per kg NH₃`,
+    werkblad: [
+      'Geef aan hoe de CO₂-intensiteit verandert als je de warmteterugwinning stap voor stap verhoogt. Noteer je metingen.',
+      'Leg uit welk effect overstappen op groene stroom heeft op de CO₂-intensiteit en op het resultaat per maand.',
+    ],
+    ster: 'Leg uit waarom de hoogst mogelijke warmteterugwinning niet altijd het beste resultaat geeft.',
+  },
+  {
+    nr: 5, titel: 'De CO₂-rekening', kort: 'CO₂-rechten en het groene certificaat',
+    vlaggen: { bouw: true, recycling: true, energie: true, co2: true, geenGratie: true },
+    nieuw: ['CO₂-rechten: voor elke kg CO₂ die je uitstoot heb je een recht nodig. Rechten koop je op de CO₂-markt (klik op de CO₂-meter bovenin).', 'Bij een tekort aan rechten groeit het protest; loopt het te hoog op, dan volgt een productiestop.', 'Groen certificaat: ligt de CO₂-intensiteit over een heel jaar onder 1,0 kg per kg NH₃, dan krijg je het jaar erna 20% meer voor je ammoniak.'],
+    verhaal: 'Nieuwe wetgeving: vanaf nu betaal je voor elke kg CO₂. De directie wil het groene certificaat halen, zodat de ammoniak volgend jaar meer opbrengt.',
+    uitleg: [
+      'Schat eerst hoeveel CO₂ je fabriek per jaar uitstoot: productie per maand × 12 × CO₂-intensiteit.',
+      'Koop daarna rechten. Dat kan één keer per jaar; hoe meer rechten je in één keer koopt, hoe duurder elk extra recht wordt.',
+      'Kom je later in het jaar toch tekort, dan kan alleen nog een noodaankoop, tegen vier keer de marktprijs.',
+      'Houd het rechtensaldo in de gaten: zakt het onder nul, dan groeit het protest.',
+    ],
+    doel: 'Rond het jaar af zonder productiestop en met een CO₂-intensiteit (over het hele jaar) onder 1,0 kg CO₂ per kg NH₃.',
+    jaar: (j, t) => (t.stops === 0 && j.yearIntensity != null && j.yearIntensity < 1.0) ? 'geslaagd' : 'mislukt',
+    faalReden: (j, t) => t.stops > 0 ? 'Er is een productiestop geweest.' : `De CO₂-intensiteit over het jaar was ${j.yearIntensity != null ? j.yearIntensity.toFixed(2).replace('.', ',') : '–'} kg CO₂ per kg NH₃.`,
+    voortgang: (t) => `productiestops: ${t.stops} · CO₂-intensiteit dit jaar: ${t.jaarKg > 0 ? (t.jaarCo2 / t.jaarKg).toFixed(2).replace('.', ',') : '–'}`,
+    werkblad: [
+      'Bereken hoeveel ton CO₂-rechten je fabriek per jaar nodig heeft. Noteer je berekening.',
+      'Bereken hoeveel extra opbrengst het groene certificaat je fabriek per jaar oplevert.',
+    ],
+    ster: 'Bereken bij welke prijs van CO₂-rechten (in euro per ton CO₂) groene stroom voor jouw fabriek voordeliger wordt dan grijze stroom. Noteer je berekening.',
+  },
+  {
+    nr: 6, titel: 'Slijtage', kort: 'Onderhoud van katalysator en vat',
+    vlaggen: { bouw: true, recycling: true, energie: true, co2: true, slijtage: true, geenGratie: true },
+    nieuw: ['De katalysator slijt, sneller bij een hogere temperatuur (sintering). Een versleten katalysator verlaagt de kinetiekfactor.', 'Het reactorvat slijt, sneller bij een druk boven ongeveer de helft van de druklimiet. Een versleten vat heeft een lagere druklimiet.', 'Onderhoud: katalysator vervangen, onderhoudsbeurt of vat vervangen (bij de reactor).'],
+    verhaal: 'Je fabriek draait nu twee jaar achter elkaar. In het echt slijt alles: de katalysator verliest activiteit en het vat wordt zwakker. Een lekkage is gevaarlijk en duur.',
+    uitleg: [
+      'Klik op de reactor: daar zie je de katalysatorgezondheid en de vatstaat, met de knoppen voor onderhoud.',
+      'Een onderhoudsbeurt herstelt het vat steeds minder en versnelt daarna de slijtage. Alleen een nieuw vat zet dat terug.',
+      'Onder de inspectiegrens (vatstaat 30%) bouwt de lekkagedruk drie keer zo snel op.',
+    ],
+    doel: 'Houd de fabriek twee jaar draaiende zonder lekkage en zonder productiestop, en laat de katalysator nooit onder 25% zakken.',
+    tick: (t) => t.leks > 0 ? 'Er is een lekkage geweest.' : t.stops > 0 ? 'Er is een productiestop geweest.' : t.minKat < 25 ? 'De katalysator is onder 25% gezakt.' : null,
+    jaar: (j) => j.year >= 2 ? 'geslaagd' : null,
+    voortgang: (t) => `jaar ${t.jaar} van 2 · lekkages ${t.leks} · productiestops ${t.stops} · laagste katalysatorgezondheid ${Math.round(t.minKat)}%`,
+    werkblad: [
+      'Geef aan hoe de temperatuur de slijtage van de katalysator beïnvloedt.',
+      'Leg uit waarom het vervangen van het vat op den duur goedkoper kan zijn dan steeds een onderhoudsbeurt.',
+    ],
+    ster: 'Bereken na hoeveel maanden de katalysator bij jouw temperatuur onder 25% zakt. Noteer je berekening.',
+  },
+  {
+    nr: 7, titel: 'Tien jaar directeur', kort: 'Vrij spel met markt, lening en onderzoek',
+    vlaggen: { bouw: true, recycling: true, energie: true, co2: true, slijtage: true, vrij: true },
+    nieuw: ['De marktprijzen (ammoniak, energie, CO₂-rechten) veranderen elk jaar.', 'Je begint met een lening (50% van het startkapitaal, 6% rente per jaar).', 'Onderzoek (R&D): betere katalysatoren, sterkere vaten, zonnepanelen en meer.', 'Het CO₂-maximum kan strenger worden. Bij een negatieve kas ga je failliet (vanaf jaar 2).'],
+    verhaal: 'De directie draagt de fabriek aan jou over. Je hebt tien jaar. Laat zien wat je hebt geleerd.',
+    uitleg: [
+      'Het eerste jaar hoef je nog geen CO₂-rechten te kopen (opstartregeling).',
+      'Aan het eind van elk jaar zie je een jaaroverzicht. Gebruik het om je volgende stap te kiezen.',
+    ],
+    doel: 'Heb na tien jaar zoveel mogelijk kapitaal.',
+    vrijSpel: true,
+    voortgang: () => 'vrij spel — na tien jaar volgt de resultatenkaart',
+    werkblad: [
+      'Noteer aan het eind van elk jaar je kapitaal en je belangrijkste beslissing van dat jaar.',
+      'Leg aan het eind uit welke beslissing het meeste heeft opgeleverd.',
+    ],
+    ster: 'Leg uit welke onderzoeksinvestering voor jouw fabriek het meest heeft opgeleverd, en onderbouw dit met getallen uit je jaaroverzichten.',
+  },
+];
+const CAMP_KEY = 'ecoTycoonCampagne';
+function leesCampagne() { try { return JSON.parse(localStorage.getItem(CAMP_KEY)) || { klaar: [] }; } catch (e) { return { klaar: [] }; } }
+function bewaarCampagne(d) { try { localStorage.setItem(CAMP_KEY, JSON.stringify(d)); } catch (e) {} }
+function alleMissiesOpen() { try { return new URLSearchParams(location.search).get('alles') === '1'; } catch (e) { return false; } }
+
 // Startcode: met dezelfde code krijgt elke groep dezelfde markt- en beleidsontwikkeling.
 // Per jaar en per 'stroom' een eigen generator, zodat spelkeuzes de reeks niet verschuiven.
 function hashString(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
@@ -982,12 +1144,12 @@ function runChainOnce(nodesById, intermediate, recycleIn, recycleTargetsBySepara
         const isPoisoned = material.poisonedByFeedstock && material.poisonedByFeedstock === feedstockId;
         const decay = (GAME.catalystDecayBase + GAME.catalystDecayTempFactor * Math.max(0, node.config.tempC - GAME.catalystDecayRefTempC))
           * (material.decayMult || 1.0) * (isPoisoned ? GAME.catalystPoisoningMultiplier : 1);
-        const newHealth = Math.max(0, health - decay);
+        const newHealth = campVerbergt('slijtage') ? health : Math.max(0, health - decay);
 
         const pressureFrac = node.config.pressureBar / material.maxPressure;
         const vesselDecay = GAME.vesselDecayBase * (1 + serviceCount * GAME.vesselDecayAccelPerService)
           + GAME.vesselDecayPressureFactor * Math.max(0, pressureFrac - 0.5);
-        const newVesselCondition = Math.max(0, vesselCondition - vesselDecay);
+        const newVesselCondition = campVerbergt('slijtage') ? vesselCondition : Math.max(0, vesselCondition - vesselDecay);
 
         let offlineTicks = 0;
         if (stress >= GAME.leakStressThreshold) {
@@ -1434,6 +1596,7 @@ function NodeCard({ node, onHeaderDown, onPortDown, onRemove, selected, shaking,
       {/* poorten */}
       {PORT_DEFS[node.type].map(portDef => {
         const isRecycle = portDef.id === 'recycleIn' || portDef.id === 'recycleOut';
+        if (isRecycle && campVerbergt('recycling')) return null;
         const isInput = portDef.id === 'in' || portDef.id === 'recycleIn';
         const color = isInput ? 'var(--cyan)' : 'var(--copper)';
         const posStyle = portDef.side === 'left' ? { left: -7, top: h * portDef.dy - 7 } : { right: -7, top: h * portDef.dy - 7 };
@@ -1622,7 +1785,7 @@ function HeatIntegrationSection({ node, onChange, context }) {
 }
 
 // Proefreactor: één reactor zonder geld, tijd of slijtage — om variabelen één voor één te onderzoeken.
-function ProefReactor({ process, onClose }) {
+function ProefReactor({ process, onClose, onMetingen }) {
   const isFerm = process.kineticsType === 'fermentation';
   const mats = allMaterialsFor(process);
   const midT = Math.round(((process.tempRange[0] + process.tempRange[1]) / 2) / 5) * 5;
@@ -1635,6 +1798,7 @@ function ProefReactor({ process, onClose }) {
   const [throughput, setThroughput] = useState(1.0);
   const [metingen, setMetingen] = useState([]);
   const [lastChange, setLastChange] = useState(null);
+  useEffect(() => { if (onMetingen) onMetingen(metingen); }, [metingen]);
   const material = mats.find(m => m.id === materialId) || mats[0];
   const T_K = tempC + 273;
   const p = isFerm ? null : pressureFromVolume(volume, process, T_K);
@@ -1790,7 +1954,7 @@ function ReactorConfig({ node, onChange, onReplaceCatalyst, onPerformMaintenance
                 onChange={(v) => onChange(node.id, { pressureBar: v })} />
       )}
 
-      <HeatIntegrationSection node={node} onChange={onChange} context={context} />
+      {!campVerbergt('energie') && <HeatIntegrationSection node={node} onChange={onChange} context={context} />}
 
       <div>
         <div className="text-xs mb-1" style={{ color: 'var(--text-dim)' }}>Materiaal / katalysator</div>
@@ -1834,6 +1998,12 @@ function ReactorConfig({ node, onChange, onReplaceCatalyst, onPerformMaintenance
         )}
       </div>
 
+      {campVerbergt('slijtage') && (
+        <div className="rounded-md border px-3 py-2 text-[11px] font-mono-data" style={{ borderColor: 'var(--border)', background: 'var(--panel-2)', color: 'var(--text-dim)' }}>
+          Druklimiet van dit vat: <span style={{ color: 'var(--text)' }}>{material.maxPressure} bar</span> · in deze missie slijten katalysator en vat nog niet.
+        </div>
+      )}
+      {!campVerbergt('slijtage') && (<>
       <div className="rounded-md border px-3 py-2" style={{ borderColor: 'var(--border)', background: 'var(--panel-2)' }}>
         <div className="flex justify-between text-xs mb-1.5">
           <span style={{ color: 'var(--text-dim)' }}>Katalysatorgezondheid</span>
@@ -1886,6 +2056,7 @@ function ReactorConfig({ node, onChange, onReplaceCatalyst, onPerformMaintenance
           dan de vorige en versnelt daarna de slijtage — alleen vervanging zet dat terug naar nul.
         </p>
       </div>
+      </>)}
 
       {overPressure && (
         <div className="rounded-md border px-3 py-2 text-xs warn-pulse" style={{ borderColor: 'var(--red)', color: 'var(--red)', background: 'rgba(229,72,77,0.08)' }}>
@@ -1998,13 +2169,14 @@ function SeparatorConfig({ node, onChange, context }) {
 }
 function Palette({ onAdd, unlocked, process }) {
   const mats = process.getMaterials(unlocked || {});
-  const items = [
+  const items = campVerbergt('bouw') ? [] : [
     { type: 'reactor', cost: materialTotalCost(mats[0]), desc: `Voert de reactie uit (${process.reactionLabel}). Stel T, druk en katalysator in.` },
     { type: 'separator', cost: GAME.separatorCost, desc: `${process.separatorLabel}: zuivert tot verkoopbaar ${process.speciesLabels.c}. Tweede uitgang (gestreept) voedt een retourlus met onomgezet gas.`, label: process.separatorLabel },
   ];
   return (
     <div className="w-[190px] shrink-0 border-r flex flex-col gap-3 p-3 overflow-y-auto scrollbar-thin" style={{ borderColor: 'var(--border)', background: 'var(--panel)' }}>
       <div className="text-[11px] uppercase tracking-wide mb-1" style={{ color: 'var(--text-dim)' }}>Componenten</div>
+      {campVerbergt('bouw') && <div className="text-[11px] leading-relaxed" style={{ color: 'var(--text-dim)' }}>In deze missie bouw je nog niets. Werk in de 🧪 Proefreactor (knop rechtsboven).</div>}
       {items.map(it => (
         <button key={it.type} onClick={() => onAdd(it.type)}
                 className="text-left rounded-lg border px-3 py-2.5 hover:border-[var(--copper)] transition-colors"
@@ -2044,7 +2216,7 @@ function Header({ running, onToggleRunning, onReset, energySource, onEnergyChang
         <button onClick={onInfo} className="text-xs rounded-md border px-3 py-1.5" style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>ℹ Uitleg</button>
         <button onClick={onLab} className="text-xs rounded-md border px-3 py-1.5" style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>🧪 Proefreactor</button>
 
-        <div className="flex items-center rounded-md border overflow-hidden text-xs" style={{ borderColor: 'var(--border)' }}>
+        {!campVerbergt('energie') && <div className="flex items-center rounded-md border overflow-hidden text-xs" style={{ borderColor: 'var(--border)' }}>
           <button onClick={() => onEnergyChange('grijs')}
                   className="px-2.5 py-1.5"
                   style={{ background: energySource === 'grijs' ? 'var(--panel-2)' : 'transparent', color: energySource === 'grijs' ? 'var(--text)' : 'var(--text-dim)' }}>
@@ -2055,7 +2227,7 @@ function Header({ running, onToggleRunning, onReset, energySource, onEnergyChang
                   style={{ background: energySource === 'groen' ? 'rgba(62,167,107,0.18)' : 'transparent', color: energySource === 'groen' ? 'var(--green)' : 'var(--text-dim)' }}>
             Groene stroom
           </button>
-        </div>
+        </div>}
 
         <button onClick={onToggleRunning} className="text-xs rounded-md border px-3 py-1.5"
                 style={{ borderColor: running ? 'var(--green)' : 'var(--border)', color: running ? 'var(--green)' : 'var(--text-dim)' }}>
@@ -2071,7 +2243,7 @@ function Header({ running, onToggleRunning, onReset, energySource, onEnergyChang
 
 /* ---------- Opstartscherm ---------- */
 
-function SetupScreen({ processKey, setProcessKey, factoryName, setFactoryName, startCode, setStartCode, capitalKey, setCapitalKey, volatilityKey, setVolatilityKey, scenarioKey, applyScenario, gameDurationYears, setGameDurationYears, onStart, onLab, fileInputRef, onImportFile }) {
+function SetupScreen({ processKey, setProcessKey, factoryName, setFactoryName, startCode, setStartCode, capitalKey, setCapitalKey, volatilityKey, setVolatilityKey, scenarioKey, applyScenario, gameDurationYears, setGameDurationYears, onStart, onLab, fileInputRef, onImportFile, campagneData, onStartMissie }) {
   const capitalOptions = [
     { key: 'eigen', label: 'Alleen eigen kapitaal', desc: `${fmtEuro(GAME.startingCapital)} eigen vermogen, geen schuld.` },
     { key: 'helfhelf', label: '50 / 50', desc: `${fmtEuro(GAME.startingCapital/2)} eigen + ${fmtEuro(GAME.startingCapital/2)} lening (6%/jaar rente).` },
@@ -2087,6 +2259,8 @@ function SetupScreen({ processKey, setProcessKey, factoryName, setFactoryName, s
     <div className="h-screen w-screen flex items-start justify-center p-4 overflow-y-auto" style={{ background: 'var(--bg)' }}>
       <div className="max-w-lg w-full rounded-lg border p-6 my-6" style={{ background: 'var(--panel)', borderColor: 'var(--border)' }}>
         <div className="text-xl font-semibold mb-1" style={{ color: 'var(--amber)' }}>⚗ Eco-Chemie Tycoon</div>
+        <CampagneKeuze data={campagneData} onStart={onStartMissie} />
+        <div className="text-xs uppercase tracking-wide mb-1 mt-2" style={{ color: 'var(--text)' }}>Of: zelf een bedrijf samenstellen</div>
         <p className="text-sm mb-5" style={{ color: 'var(--text-dim)' }}>Stel je bedrijf samen voordat je begint. Startkapitaal is altijd {fmtEuro(GAME.startingCapital)}.</p>
 
         <div className="mb-5">
@@ -2328,7 +2502,7 @@ function BottomFinancePanel({ expanded, onToggle, winst, loanBalance, totals, mo
               <span className="text-right" style={{ color: totalProfit >= 0 ? 'var(--green)' : 'var(--red)' }}>{fmtEuro(totalProfit)}</span>
             </div>
           </div>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3" style={{ display: campVerbergt('vrij') ? 'none' : undefined }}>
             <div className="rounded-md border px-3 py-2" style={{ borderColor: 'var(--border)', background: 'var(--panel-2)' }}>
               <div className="text-xs uppercase tracking-wide mb-1.5" style={{ color: 'var(--text)' }}>Lening</div>
               {loanBalance > 0 ? (
@@ -2840,6 +3014,130 @@ const CAPITAL_STRUCTURES = {
   lening:  { label: '100% lening', equityShare: 0.0 },
 };
 
+/* ---------- Campagne: keuzescherm, missiebalk en missievensters ---------- */
+const cs = {
+  kaart: { border: '1px solid var(--border)', background: 'var(--panel-2)', borderRadius: 8 },
+  knop: (kleur, vol) => ({ border: `1px solid ${kleur}`, background: vol ? kleur : 'transparent', color: vol ? '#12181C' : kleur, borderRadius: 6, padding: '7px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }),
+  kop: { fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--text)' },
+};
+
+function CampagneKeuze({ data, onStart }) {
+  const klaar = (data && data.klaar) || [];
+  const alles = alleMissiesOpen();
+  return (
+    <div style={{ ...cs.kaart, padding: 14, marginBottom: 18, borderColor: 'var(--copper)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--amber)' }}>🎯 Campagne — Haber-Bosch</div>
+        <div style={{ fontSize: 11, color: 'var(--text-dim)' }}>5V / 6V</div>
+      </div>
+      <p style={{ fontSize: 12, color: 'var(--text-dim)', margin: '0 0 10px', lineHeight: 1.5 }}>
+        Bouw je ammoniakfabriek stap voor stap op. Elke missie zet één nieuw onderdeel aan en heeft één doel. Daarna speel je vrij.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {CAMPAGNE.map((m, i) => {
+          const isKlaar = klaar.includes(i);
+          const open = alles || i === 0 || klaar.includes(i - 1) || isKlaar;
+          return (
+            <button key={m.nr} disabled={!open} onClick={() => onStart(i)}
+                    style={{ ...cs.kaart, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', textAlign: 'left', cursor: open ? 'pointer' : 'default', opacity: open ? 1 : 0.45, background: 'var(--panel)' }}>
+              <span style={{ width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0,
+                             background: isKlaar ? 'var(--green)' : 'transparent', color: isKlaar ? '#12181C' : (open ? 'var(--amber)' : 'var(--text-dim)'), border: `1px solid ${isKlaar ? 'var(--green)' : (open ? 'var(--amber)' : 'var(--border)')}` }}>
+                {isKlaar ? '✓' : (open ? m.nr : '🔒')}
+              </span>
+              <span style={{ flex: 1 }}>
+                <span style={{ display: 'block', fontSize: 13, color: 'var(--text)', fontWeight: 600 }}>Missie {m.nr} · {m.titel}</span>
+                <span style={{ display: 'block', fontSize: 11, color: 'var(--text-dim)' }}>{m.kort}</span>
+              </span>
+              {open && <span style={{ fontSize: 12, color: 'var(--copper)' }}>{isKlaar ? 'opnieuw' : 'start'} ▶</span>}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function MissieBalk({ m, live, onBriefing, onWerkblad }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '7px 16px', borderBottom: '1px solid var(--border)', background: 'rgba(201,129,46,0.08)', flexWrap: 'wrap' }}>
+      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--amber)' }}>🎯 Missie {m.nr} · {m.titel}</span>
+      <span style={{ fontSize: 12, color: 'var(--text)' }}><span style={{ color: 'var(--text-dim)' }}>Doel:</span> {m.doel}</span>
+      {live && <span className="font-mono-data" style={{ fontSize: 11, color: 'var(--cyan)' }}>{m.voortgang(live)}</span>}
+      <span style={{ flex: 1 }} />
+      <button onClick={onBriefing} style={{ ...cs.knop('var(--text-dim)'), padding: '4px 10px', fontSize: 12, fontWeight: 400 }}>Uitleg missie</button>
+      <button onClick={onWerkblad} style={{ ...cs.knop('var(--copper)'), padding: '4px 10px', fontSize: 12 }}>📝 Werkblad</button>
+    </div>
+  );
+}
+
+function MissieModal({ m, scherm, reden, onClose, onVolgende, onOpnieuw, onMenu }) {
+  const lijst = (items) => <ul style={{ margin: '6px 0 0', paddingLeft: 18, lineHeight: 1.55 }}>{items.map((x, i) => <li key={i} style={{ marginBottom: 3 }}>{x}</li>)}</ul>;
+  const werkblad = (
+    <div style={{ ...cs.kaart, padding: '10px 14px', marginTop: 12 }}>
+      <div style={cs.kop}>📝 Op je werkblad</div>
+      <ol style={{ margin: '6px 0 0', paddingLeft: 20, lineHeight: 1.55, fontSize: 13 }}>
+        {m.werkblad.map((v, i) => <li key={i} style={{ marginBottom: 4 }}>{v}</li>)}
+        <li style={{ listStyle: 'none', marginLeft: -20, marginTop: 6 }}><span style={{ color: 'var(--amber)', fontWeight: 700 }}>★ </span>{m.ster}</li>
+      </ol>
+    </div>
+  );
+  let kop, inhoud, knoppen;
+  if (scherm === 'briefing') {
+    kop = `Missie ${m.nr} · ${m.titel}`;
+    inhoud = (<>
+      <p style={{ margin: '0 0 10px', lineHeight: 1.55, fontSize: 13 }}>{m.verhaal}</p>
+      <div style={{ ...cs.kaart, padding: '10px 14px', marginBottom: 10, borderColor: 'var(--cyan)' }}>
+        <div style={{ ...cs.kop, color: 'var(--cyan)' }}>Nieuw in deze missie</div>
+        <div style={{ fontSize: 13 }}>{lijst(m.nieuw)}</div>
+      </div>
+      <div style={{ ...cs.kaart, padding: '10px 14px', marginBottom: 10 }}>
+        <div style={cs.kop}>Zo werkt het</div>
+        <div style={{ fontSize: 13, color: 'var(--text-dim)' }}>{lijst(m.uitleg)}</div>
+      </div>
+      <div style={{ ...cs.kaart, padding: '10px 14px', borderColor: 'var(--amber)' }}>
+        <div style={{ ...cs.kop, color: 'var(--amber)' }}>🎯 Doel</div>
+        <div style={{ fontSize: 14, marginTop: 4 }}>{m.doel}</div>
+      </div>
+    </>);
+    knoppen = <button onClick={onClose} style={cs.knop('var(--copper)', true)}>{m.lab ? 'Open de proefreactor' : 'Begin'}</button>;
+  } else if (scherm === 'werkblad') {
+    kop = `Werkblad — missie ${m.nr}`;
+    inhoud = (<><div style={{ fontSize: 13, color: 'var(--text-dim)' }}>Beantwoord deze vragen op je werkblad terwijl je speelt.</div>{werkblad}</>);
+    knoppen = <button onClick={onClose} style={cs.knop('var(--copper)', true)}>Verder spelen</button>;
+  } else if (scherm === 'geslaagd') {
+    kop = `✓ Missie ${m.nr} geslaagd`;
+    inhoud = (<>
+      <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55 }}>Doel gehaald: {m.doel}</p>
+      {werkblad}
+      <p style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 10 }}>Maak je werkblad eerst af. Je kunt nog even doorspelen om dingen uit te proberen.</p>
+    </>);
+    knoppen = (<>
+      <button onClick={onClose} style={cs.knop('var(--text-dim)')}>Nog even doorspelen</button>
+      {onVolgende && <button onClick={onVolgende} style={cs.knop('var(--green)', true)}>Naar missie {m.nr + 1} →</button>}
+      {!onVolgende && <button onClick={onMenu} style={cs.knop('var(--green)', true)}>Terug naar het menu</button>}
+    </>);
+  } else {
+    kop = `Missie ${m.nr} niet gehaald`;
+    inhoud = (<>
+      <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.55 }}>{reden}</p>
+      <p style={{ margin: 0, fontSize: 13, color: 'var(--text-dim)' }}>Doel: {m.doel}</p>
+    </>);
+    knoppen = (<>
+      <button onClick={onMenu} style={cs.knop('var(--text-dim)')}>Menu</button>
+      <button onClick={onOpnieuw} style={cs.knop('var(--copper)', true)}>Probeer opnieuw</button>
+    </>);
+  }
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'rgba(8,12,15,0.82)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 16px' }}>
+      <div style={{ width: '100%', maxWidth: 640, background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 10, padding: 22, color: 'var(--text)' }}>
+        <div style={{ fontSize: 18, fontWeight: 600, color: scherm === 'geslaagd' ? 'var(--green)' : scherm === 'mislukt' ? 'var(--red)' : 'var(--amber)', marginBottom: 12 }}>{kop}</div>
+        {inhoud}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>{knoppen}</div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [processKey, setProcessKey] = useState('haberBosch');
@@ -2903,6 +3201,16 @@ function App() {
   const [showYearEnd, setShowYearEnd] = useState(false);
   const [yearEndData, setYearEndData] = useState(null);
   const [resultCard, setResultCard] = useState(null); // { reason: 'years'|'bankrupt', ...stats }
+  // Campagne
+  const [missie, setMissie] = useState(null);             // index in CAMPAGNE, null = geen campagne
+  const [missieScherm, setMissieScherm] = useState(null); // 'briefing' | 'geslaagd' | 'mislukt' | 'werkblad' | null
+  const [missieReden, setMissieReden] = useState('');
+  const [missieLive, setMissieLive] = useState(null);
+  const [campagneData, setCampagneData] = useState(leesCampagne);
+  const missieRef = useRef(null);
+  const missieTrack = useRef(null);
+  const missieUitstel = useRef(null);
+  const nieuweTrack = () => ({ maandKg: 0, maandCo2: 0, vorigeKg: 0, vorigCo2: 0, vorigResultaat: 0, jaarKg: 0, jaarCo2: 0, leks: 0, stops: 0, minKat: 100, jaar: 1, metingen: 0, besteOmzet: 0, klaar: false });
 
   const canvasRef = useRef(null);
   const idCounter = useRef(0);
@@ -3014,6 +3322,16 @@ function App() {
         yr.energyCostHeat += b.energyCostHeat; yr.energyCostComp += b.energyCostComp; yr.energyCostSep += b.energyCostSep; yr.energyCostRecirculation += b.energyCostRecirculation;
         yr.maintenanceCost += b.maintenanceCost; yr.repairCost += b.repairCost;
         yr.nh3Kg += result.product_kg;
+        if (missieTrack.current) {
+          const t = missieTrack.current;
+          t.maandKg += result.product_kg; t.maandCo2 += result.co2Delta;
+          t.jaarKg += result.product_kg; t.jaarCo2 += result.co2Delta;
+          t.leks += result.leakEvents.length;
+          Object.values(result.statusUpdates).forEach(su => { if (su && su.catalystHealth != null) t.minKat = Math.min(t.minKat, su.catalystHealth); });
+          const m = CAMPAGNE[missieRef.current];
+          if (m && m.tick && !t.klaar) { const reden = m.tick(t); if (reden) missieAfgerond('mislukt', reden); }
+          setMissieLive({ ...t });
+        }
 
         setCo2Total(c => c + result.co2Delta);
         setTotalNh3Kg(v => v + result.product_kg);
@@ -3058,8 +3376,8 @@ function App() {
           });
         }
 
-        if (!isShutdown) {
-          const inGracePeriod = currentYear === 1 && (yearTickRef.current < (GAME.ticksPerYear / 12) * GAME.co2GracePeriodMonths);
+        if (!isShutdown && !campVerbergt('co2')) {
+          const inGracePeriod = !campVlag('geenGratie') && currentYear === 1 && (yearTickRef.current < (GAME.ticksPerYear / 12) * GAME.co2GracePeriodMonths);
           const prevBalance = co2RightsRef.current;
           const newBalance = prevBalance - result.co2Delta;
           co2RightsRef.current = newBalance;
@@ -3128,6 +3446,15 @@ function App() {
       const monthLength = GAME.ticksPerYear / 12;
       setCurrentMonth(Math.min(12, Math.floor(yearTickRef.current / monthLength) + 1));
       if (yearTickRef.current % monthLength === 0) {
+        if (missieTrack.current) {
+          const t = missieTrack.current, mr = monthlyRef.current;
+          const resultaat = Object.keys(mr).reduce((som, k) => som + (k === 'revenue' ? mr[k] : -mr[k]), 0);
+          t.vorigeKg = t.maandKg; t.vorigCo2 = t.maandCo2; t.vorigResultaat = resultaat;
+          const m = CAMPAGNE[missieRef.current];
+          if (m && m.maand && !t.klaar && m.maand({ kg: t.maandKg, co2: t.maandCo2, resultaat })) missieAfgerond('geslaagd');
+          t.maandKg = 0; t.maandCo2 = 0;
+          setMissieLive({ ...t });
+        }
         monthlyRef.current = initialCostTotals();
         setMonthlyTotals(initialCostTotals());
       }
@@ -3141,12 +3468,12 @@ function App() {
         const co2ThisYear = yr.co2Heat + yr.co2Comp + yr.co2Sep + (yr.co2Recirculatie || 0) + yr.co2Leak;
         const yearIntensity = yr.nh3Kg > 0 ? (co2ThisYear / yr.nh3Kg) : null;
 
-        const newCertificate = yearIntensity !== null && yearIntensity < proc.greenCertificateThreshold;
+        const newCertificate = !campVerbergt('co2') && yearIntensity !== null && yearIntensity < proc.greenCertificateThreshold;
         if (yearIntensity !== null) { hasGreenCertificateRef.current = newCertificate; setHasGreenCertificate(newCertificate); }
         if (newCertificate) setGreenCertificateYears(v => v + 1);
 
         let heffing = 0;
-        if (yearIntensity !== null && yearIntensity > legislativeCapRef.current) {
+        if (!campVerbergt('co2') && yearIntensity !== null && yearIntensity > legislativeCapRef.current) {
           const excessTonsCo2 = (yearIntensity - legislativeCapRef.current) * (yr.nh3Kg / 1000);
           const heffingRatePerTon = marketRef.current.co2RightsBasePrice * 1000 * GAME.co2EmergencyPriceMultiplier;
           heffing = excessTonsCo2 * heffingRatePerTon;
@@ -3154,7 +3481,7 @@ function App() {
         const co2PriceBeforeTightening = marketRef.current.co2RightsBasePrice;
         let capTightened = false;
         const effectiveTightenChance = Math.min(GAME.legislativeCapTightenChanceMax, legislativeCapTightenChanceRef.current + (currentYear - 1) * GAME.legislativeCapTightenGrowthPerYear);
-        if (seededRandom(startCode, currentYear, 'wet')() < effectiveTightenChance) {
+        if (!campVerbergt('vrij') && seededRandom(startCode, currentYear, 'wet')() < effectiveTightenChance) {
           legislativeCapRef.current = legislativeCapRef.current * GAME.legislativeCapTightenFactor;
           setLegislativeCap(legislativeCapRef.current);
           // Wetgeving verstrakt niet alleen het maximum, maar maakt CO₂-rechten in datzelfde
@@ -3198,7 +3525,9 @@ function App() {
         }
         const projectCompleted = yr.projectCompletedThisYear || null;
 
-        const evolved = evolveMarket(marketRef.current, volatilityKey, seededRandom(startCode, currentYear, 'markt'));
+        const evolvedRaw = evolveMarket(marketRef.current, volatilityKey, seededRandom(startCode, currentYear, 'markt'));
+        // In de campagne liggen de prijzen vast tot het vrije spel.
+        const evolved = campVerbergt('vrij') ? { ...marketRef.current, changes: { grijsChange: 0, groenChange: 0, co2Change: 0, productChange: 0 } } : evolvedRaw;
         // Zorg dat het gerapporteerde percentage de VOLLEDIGE beweging toont (incl. een eventuele
         // verstrakkingssprong), niet alleen de kleinere stap die evolveMarket zelf toevoegde.
         evolved.changes = { ...evolved.changes, co2Change: (evolved.co2RightsBasePrice / co2PriceBeforeTightening) - 1 };
@@ -3233,6 +3562,21 @@ function App() {
             leakRisk: !!(n.status && n.status.leakRisk),
           })),
         });
+        if (missieTrack.current) {
+          const t = missieTrack.current, m = CAMPAGNE[missieRef.current];
+          const jd = { year: finishedYear, yearIntensity };
+          if (m && !t.klaar) {
+            if (m.jaar) {
+              const r = m.jaar(jd, t);
+              if (r === 'geslaagd') missieUitstel.current = { s: 'geslaagd' };
+              else if (r === 'mislukt') missieUitstel.current = { s: 'mislukt', reden: m.faalReden ? m.faalReden(jd, t) : '' };
+            } else if (m.maand) {
+              missieUitstel.current = { s: 'mislukt', reden: 'Het jaar is voorbij en het doel is niet gehaald.' };
+            }
+          }
+          t.jaar = finishedYear + 1; t.jaarKg = 0; t.jaarCo2 = 0;
+          setMissieLive({ ...t });
+        }
         yearlyRef.current = { ...initialCostTotals(), co2Heat: 0, co2Comp: 0, co2Sep: 0, co2Leak: 0, nh3Kg: 0, rdSpent: 0, projectCompletedThisYear: null };
         setCurrentYear(y => y + 1);
         setCurrentMonth(1);
@@ -3242,13 +3586,13 @@ function App() {
       }
 
       /* ---------- faillissement (pas vanaf jaar 2 -- jaar 1 mag altijd afgemaakt worden) ---------- */
-      if (currentYear > 1 && winstRef.current < 0) {
+      if (currentYear > 1 && winstRef.current < 0 && !campVerbergt('vrij')) {
         setResultCard({
           reason: 'bankrupt', year: currentYear, month: currentMonth, capitalNow: winstRef.current,
           co2TotalAll: co2Total, totalNh3Kg, hasGreenCertificate, greenCertificateYears, unlocked, process: proc,
         });
         setRunning(false);
-      } else if (!lowCashWarnedRef.current && winstRef.current < GAME.startingCapital * GAME.lowCashWarningFraction) {
+      } else if (!campVerbergt('vrij') && !lowCashWarnedRef.current && winstRef.current < GAME.startingCapital * GAME.lowCashWarningFraction) {
         lowCashWarnedRef.current = true;
         pushToast('⚠ Je kas raakt krap — vanaf jaar 2 gaat het bedrijf bij een negatief saldo failliet.', 'danger');
       } else if (winstRef.current > GAME.startingCapital * GAME.lowCashWarningFraction * 1.5) {
@@ -3394,6 +3738,7 @@ function App() {
   };
 
   const acceptCo2Shutdown = () => {
+    if (missieTrack.current) missieTrack.current.stops++;
     shutdownRef.current = GAME.shutdownDurationTicks;
     setShutdownTicksRemaining(GAME.shutdownDurationTicks);
     setShowEmergencyCo2(false);
@@ -3487,6 +3832,12 @@ function App() {
 
   const continueAfterYearEnd = () => {
     setShowYearEnd(false);
+    if (missieUitstel.current) {
+      const u = missieUitstel.current; missieUitstel.current = null;
+      missieAfgerond(u.s, u.reden);
+      return;
+    }
+    if (campVerbergt('co2')) { setRunning(true); return; }
     if (yearEndData && yearEndData.isGameOver) {
       setResultCard({
         reason: 'years', year: yearEndData.year, capitalNow: winst,
@@ -3500,6 +3851,8 @@ function App() {
   };
 
   const resetGame = () => {
+    CAMP = null; missieRef.current = null; missieTrack.current = null; missieUitstel.current = null;
+    setMissie(null); setMissieScherm(null); setMissieLive(null); setMissieReden('');
     setGameStarted(false);
     setResultCard(null);
     setNodes(makeInitialNodes());
@@ -3580,6 +3933,8 @@ function App() {
     reader.onload = (e) => {
       try {
         const save = JSON.parse(e.target.result);
+        CAMP = null; missieRef.current = null; missieTrack.current = null; missieUitstel.current = null;
+        setMissie(null); setMissieScherm(null); setMissieLive(null);
         setRunning(false);
         setProcessKey(save.processKey || 'haberBosch');
         setFactoryName(save.factoryName || '');
@@ -3626,6 +3981,59 @@ function App() {
     reader.readAsText(file);
   };
 
+  /* ---------- campagne ---------- */
+  const missieAfgerond = (status, reden = '') => {
+    const t = missieTrack.current;
+    if (!t || t.klaar) return;
+    t.klaar = true;
+    setRunning(false);
+    if (status === 'geslaagd') {
+      setCampagneData(d => { const nd = { ...d, klaar: Array.from(new Set([...(d.klaar || []), missieRef.current])) }; bewaarCampagne(nd); return nd; });
+    }
+    setMissieReden(reden);
+    setMissieScherm(status);
+  };
+  const startMissie = (i, behoudFabriek = false) => {
+    const m = CAMPAGNE[i];
+    const oudeNodes = nodesRef.current, oudeEdges = edgesRef.current, oudeId = idCounter.current;
+    resetGame();
+    if (behoudFabriek && m.vlaggen.bouw) {
+      // De fabriek uit de vorige missie gaat mee (als nieuw: slijtage terug op nul).
+      const ns = oudeNodes.map(n => n.type === 'reactor' ? { ...n, status: { catalystHealth: 100, vesselCondition: 100, serviceCount: 0 } } : { ...n, status: {} });
+      setNodes(ns); nodesRef.current = ns;
+      const es = m.vlaggen.recycling ? oudeEdges : oudeEdges.filter(e => e.fromPort !== 'recycleOut');
+      setEdges(es); edgesRef.current = es;
+      idCounter.current = oudeId;
+    }
+    CAMP = { ...m.vlaggen };
+    const proc = PROCESSES.haberBosch;
+    const kapitaal = m.vlaggen.vrij ? 'helfhelf' : 'eigen';
+    setProcessKey('haberBosch'); processRef.current = proc;
+    setScenarioKey('vrij'); setCapitalKey(kapitaal); setVolatilityKey(m.vlaggen.vrij ? 'gematigd' : 'stabiel');
+    const duur = m.vrijSpel ? 10 : null;
+    setGameDurationYears(duur); gameDurationYearsRef.current = duur;
+    if (!factoryName) setFactoryName('Ammoniakfabriek');
+    setWinst(GAME.startingCapital); winstRef.current = GAME.startingCapital;
+    const lening = GAME.startingCapital * (1 - CAPITAL_STRUCTURES[kapitaal].equityShare);
+    setLoanBalance(lening); loanBalanceRef.current = lening;
+    setLegislativeCap(proc.legislativeCapInitial); legislativeCapRef.current = proc.legislativeCapInitial;
+    legislativeCapTightenChanceRef.current = GAME.legislativeCapTightenChance;
+    const mk = initialMarket(proc); setMarket(mk); marketRef.current = mk;
+    setEnergySource('grijs'); energyRef.current = 'grijs';
+    missieRef.current = i; setMissie(i);
+    missieTrack.current = nieuweTrack(); setMissieLive({ ...missieTrack.current });
+    setMissieScherm('briefing');
+    setRunning(false);
+    setGameStarted(true);
+  };
+  const onLabMetingen = (ms) => {
+    const t = missieTrack.current, m = missieRef.current != null ? CAMPAGNE[missieRef.current] : null;
+    if (!t || !m || !m.lab) return;
+    t.metingen = ms.length; t.besteOmzet = ms.reduce((b, x) => Math.max(b, x.xNet), 0);
+    setMissieLive({ ...t });
+    if (!t.klaar && m.lab(ms)) missieAfgerond('geslaagd');
+  };
+
   const selectedNode = nodes.find(n => n.id === selectedNodeId) || null;
   const feedNode = nodes.find(n => n.id === 'feed');
   const throughputMultiplier = (feedNode && feedNode.config.throughputMultiplier) || 1.0;
@@ -3660,6 +4068,7 @@ function App() {
         gameDurationYears={gameDurationYears} setGameDurationYears={setGameDurationYears}
         onStart={startGame} onLab={() => setShowLab(true)}
         fileInputRef={fileInputRef} onImportFile={(f) => importSave(f)}
+        campagneData={campagneData} onStartMissie={startMissie}
       />
       {showLab && <ProefReactor process={process} onClose={() => setShowLab(false)} />}
       </>
@@ -3678,6 +4087,9 @@ function App() {
         year={currentYear} month={currentMonth} gameDurationYears={gameDurationYears}
         onExport={exportSave} factoryName={factoryName} process={process}
       />
+      {missie != null && (
+        <MissieBalk m={CAMPAGNE[missie]} live={missieLive} onBriefing={() => setMissieScherm('briefing')} onWerkblad={() => setMissieScherm('werkblad')} />
+      )}
 
       {isShutdown && (
         <div className="px-4 py-2 text-sm font-medium text-center warn-pulse" style={{ background: 'rgba(229,72,77,0.15)', color: 'var(--red)', borderBottom: '1px solid var(--red)' }}>
@@ -3687,10 +4099,12 @@ function App() {
 
       <div className="flex gap-3 px-4 py-3 border-b flex-wrap" style={{ borderColor: 'var(--border)', background: 'var(--panel)' }}>
         <DigitalReadout label="In kas" value={fmtEuro(winst)} colorVar={winst >= 0 ? 'var(--green)' : 'var(--red)'} icon="€" />
+        {!campVerbergt('energie') && <>
         <DigitalReadout label="CO₂-uitstoot" value={fmtCO2(co2Total)} colorVar={co2Rights < 0 ? 'var(--red)' : 'var(--text-dim)'} icon="☁"
-          onClick={() => { setShowCo2Market(true); setCo2ModalAutoOpened(false); }}
+          onClick={campVerbergt('co2') ? undefined : () => { setShowCo2Market(true); setCo2ModalAutoOpened(false); }}
           subLabel="Gem. ton/ton (levensduur)" subValue={(totalNh3Kg > 0 ? (co2Total / totalNh3Kg) : 0).toFixed(2)} />
-        <DigitalReadout label={hasGreenCertificate ? `CO₂/ton ${process.speciesLabels.c} ✓ groen` : `CO₂/ton ${process.speciesLabels.c}`} value={co2IntensityLive.toFixed(2)} colorVar={hasGreenCertificate ? 'var(--green)' : (co2IntensityLive > legislativeCap ? 'var(--red)' : 'var(--text-dim)')} icon="🏭" onClick={() => { setShowCo2Market(true); setCo2ModalAutoOpened(false); }} />
+        <DigitalReadout label={hasGreenCertificate ? `CO₂/ton ${process.speciesLabels.c} ✓ groen` : `CO₂/ton ${process.speciesLabels.c}`} value={co2IntensityLive.toFixed(2)} colorVar={hasGreenCertificate ? 'var(--green)' : (co2IntensityLive > legislativeCap ? 'var(--red)' : 'var(--text-dim)')} icon="🏭" onClick={campVerbergt('co2') ? undefined : () => { setShowCo2Market(true); setCo2ModalAutoOpened(false); }} />
+        </>}
         <RingGauge label="Product-zuiverheid" value={purity} unit="%" min={0} max={100} colorVar="var(--cyan)" active={activeChain.length > 0} />
       </div>
 
@@ -3736,14 +4150,21 @@ function App() {
 
       <ToastStack toasts={toasts} />
       {showInfo && <InfoModal onClose={() => setShowInfo(false)} process={process} />}
-      {showLab && <ProefReactor process={process} onClose={() => setShowLab(false)} />}
+      {showLab && <ProefReactor process={process} onClose={() => setShowLab(false)} onMetingen={onLabMetingen} />}
+      {missie != null && missieScherm && (
+        <MissieModal m={CAMPAGNE[missie]} scherm={missieScherm} reden={missieReden}
+          onClose={() => { const wasBriefing = missieScherm === 'briefing'; setMissieScherm(null); if (wasBriefing && CAMPAGNE[missie].lab) setShowLab(true); if (wasBriefing && CAMPAGNE[missie].vlaggen.geenGratie && co2RightsRef.current <= 0) { setShowCo2Market(true); setCo2ModalAutoOpened(false); } }}
+          onVolgende={missie + 1 < CAMPAGNE.length ? () => { setShowLab(false); startMissie(missie + 1, true); } : null}
+          onOpnieuw={() => { setShowLab(false); startMissie(missie, true); }}
+          onMenu={() => { setShowLab(false); resetGame(); }} />
+      )}
       {showCo2Market && (
         <Co2MarketModal
           co2Rights={co2Rights} protestStress={protestStress} co2CatTotals={co2CatTotals}
           co2RightsBasePrice={market.co2RightsBasePrice} purchasedThisYear={co2PurchasedThisYear}
           co2IntensityLive={co2IntensityLive} totalNh3Kg={totalNh3Kg} co2TotalAll={co2Total}
           hasGreenCertificate={hasGreenCertificate} legislativeCap={legislativeCap}
-          inGracePeriod={currentYear === 1 && currentMonth <= GAME.co2GracePeriodMonths}
+          inGracePeriod={!campVlag('geenGratie') && currentYear === 1 && currentMonth <= GAME.co2GracePeriodMonths}
           process={process}
           onBuy={buyCo2Rights} onEmergencyBuy={payEmergencyCo2}
           onClose={() => { setShowCo2Market(false); if (co2ModalAutoOpened) { setRunning(true); setCo2ModalAutoOpened(false); } }}
@@ -4487,6 +4908,159 @@ const SCENARIOS = {
     legislativeCapTightenChance: 0.5
   }
 };
+let CAMP = null;
+const campVlag = k => !!(CAMP && CAMP[k]);
+const campVerbergt = k => !!(CAMP && !CAMP[k]);
+const fmtTon = kg => Math.round(kg / 1000).toLocaleString('nl-NL') + ' ton';
+const CAMPAGNE = [{
+  nr: 1,
+  titel: 'De proefreactor',
+  kort: 'Evenwicht tegenover snelheid',
+  vlaggen: {
+    bouw: false
+  },
+  nieuw: ['Proefreactor: temperatuur, reactorvolume (en dus druk), katalysator en doorvoer instellen en metingen vastleggen.'],
+  verhaal: 'Je bent net aangenomen als procestechnoloog bij een nieuwe ammoniakfabriek. Voordat er ook maar één euro wordt uitgegeven, onderzoek je in de proefreactor bij welke omstandigheden de reactie N₂(g) + 3 H₂(g) ⇌ 2 NH₃(g) (ΔH = −92 kJ per mol) het meeste ammoniak oplevert.',
+  uitleg: ['De evenwichtsconversie is het deel van N₂ dat maximaal kan worden omgezet als het evenwicht zich heeft ingesteld.', 'De kinetiekfactor geeft aan hoe dicht je in de beschikbare tijd bij dat evenwicht komt: hoe sneller de reactie, hoe hoger de factor.', 'Netto omzet = evenwichtsconversie × kinetiekfactor. Dat is wat de reactor echt oplevert.', 'Werk als een onderzoeker: verander telkens één instelling en leg je meting vast.'],
+  doel: 'Leg minstens 6 metingen vast en vind een instelling met een netto omzet van minstens 40%.',
+  lab: ms => ms.length >= 6 && ms.some(m => m.xNet >= 0.40),
+  voortgang: t => `${t.metingen} van 6 metingen · beste netto omzet ${(t.besteOmzet * 100).toFixed(1).replace('.', ',')}%`,
+  werkblad: ['Geef aan wat er met de evenwichtsconversie gebeurt als je de temperatuur verhoogt. Leg je antwoord uit met behulp van de reactievergelijking.', 'Leg uit waarom de netto omzet bij een bepaalde temperatuur een maximum heeft. Gebruik hierbij de begrippen evenwichtsconversie en reactiesnelheid.'],
+  ster: 'Leg met behulp van het aantal gasdeeltjes links en rechts van de pijl uit hoe het reactorvolume de evenwichtsconversie beïnvloedt.'
+}, {
+  nr: 2,
+  titel: 'De eerste fabriek',
+  kort: 'Voeding → reactor → separator',
+  vlaggen: {
+    bouw: true
+  },
+  nieuw: ['Een fabriek bouwen: voeding → reactor → separator → product.', 'Kosten en opbrengsten per maand (in het financieel overzicht onderin).'],
+  verhaal: 'De directie heeft je onderzoek gelezen en geeft groen licht voor een eerste productielijn. De prijzen liggen vast, er is nog geen CO₂-beleid en de installatie slijt (nog) niet. Je mag dit jaar verlies maken: het gaat erom dat de lijn ammoniak levert.',
+  uitleg: ['Plaats een reactor en een separator (links). Trek pijpen van een uitgang (rechts op een blok) naar een ingang (links op het volgende blok): voeding → reactor → separator → product.', 'Klik op een blok om het in te stellen. De separator haalt NH₃ uit het gasmengsel; het onomgezette N₂ en H₂ verdwijnt in deze missie nog.', 'De goedkoopste reactor (standaard staal + ijzerkatalysator) is ook de minst actieve. Kijk in de keuzelijst bij de reactor welke materialen er zijn.', 'Let op de druklimiet van het vat: een te kleine reactor geeft een te hoge druk en dan ontstaat er lekkage.', 'Druk op ▶ Hervat om de klok te starten. Een maand duurt 7,5 seconde.'],
+  doel: 'Produceer in één maand minstens 1.000 ton NH₃.',
+  maand: m => m.kg >= 1000000,
+  voortgang: t => `deze maand ${fmtTon(t.maandKg)} · vorige maand ${fmtTon(t.vorigeKg)} (doel 1.000 ton)`,
+  werkblad: ['Noteer je instellingen (temperatuur, volume, druk, katalysator, doorvoer) en de productie per maand.', 'Bekijk het financieel overzicht. Geef aan welke kostenpost per maand het grootst is.'],
+  ster: 'Leg uit waarom de fabriek verlies maakt, ook al levert hij elke maand veel ammoniak.'
+}, {
+  nr: 3,
+  titel: 'Niets weggooien',
+  kort: 'Recycling van onomgezet gas',
+  vlaggen: {
+    bouw: true,
+    recycling: true
+  },
+  nieuw: ['Retourlus: de gestreepte uitgang van de separator kan onomgezet N₂ en H₂ terugsturen naar de gestreepte ingang van de reactor.'],
+  verhaal: 'De financiële afdeling slaat alarm: je koopt elke maand veel N₂ en H₂ in, maar het grootste deel verlaat de fabriek onomgezet. Tijd om dat gas opnieuw te gebruiken.',
+  uitleg: ['Trek een pijp van de gestreepte uitgang van de separator naar de gestreepte ingang van de reactor. Het onomgezette gas gaat dan nog een keer door de reactor.', 'Met recycling wordt bijna alle ingekochte N₂ en H₂ uiteindelijk omgezet, ook als de omzetting per doorgang laag is.', 'Recycling is niet gratis: er stroomt meer gas door de reactor en de separator, en dat kost energie. Kijk in het financieel overzicht wat er verandert.', 'Stel de separator in op ongeveer 90%. Daaronder is de NH₃ te onzuiver en krijg je een lage prijs; daarboven gaat er steeds meer NH₃ verloren.', 'Met recycling hoeft de omzetting per doorgang niet hoog te zijn. Onderzoek opnieuw welke temperatuur, welk volume en welke doorvoer nu het beste resultaat geven.'],
+  doel: 'Haal een maand met een positief resultaat (winst in de kolom ‘deze maand’).',
+  maand: m => m.resultaat > 0,
+  voortgang: t => `resultaat vorige maand: ${fmtEuro(t.vorigResultaat)}`,
+  werkblad: ['Noteer bij dezelfde reactorinstellingen de productie per maand zonder en met recycling.', 'Leg uit waarom recycling de grondstofkosten per ton NH₃ verlaagt.'],
+  ster: 'Leg uit of het met recycling nog steeds gunstig is om de reactor bij de hoogst mogelijke druk te laten werken.'
+}, {
+  nr: 4,
+  titel: 'Warmte en stroom',
+  kort: 'Warmte-integratie en grijze/groene stroom',
+  vlaggen: {
+    bouw: true,
+    recycling: true,
+    energie: true
+  },
+  nieuw: ['Warmte-integratie: een warmtewisselaar op de reactor wint warmte terug uit het hete productmengsel.', 'Keuze tussen grijze en groene stroom.', 'De CO₂-uitstoot per ton NH₃ wordt zichtbaar (het kost nog niets).'],
+  verhaal: 'Je fabriek draait en verdient geld. Maar de gemeente wil weten hoeveel CO₂ de fabriek uitstoot, en de directie wil laten zien dat het ook schoner kan, zonder verlies te maken.',
+  uitleg: ['De CO₂-uitstoot komt uit het energieverbruik: verwarmen, comprimeren, scheiden en rondpompen.', 'Zet bij de reactor de warmte-integratie aan. De warmtewisselaar zelf kost ook energie, en dat loopt sterk op bij een hoge terugwinning.', 'Groene stroom geeft minder CO₂ per kWh, maar is duurder (knoppen rechtsboven).', 'De CO₂-intensiteit (kg CO₂ per kg NH₃) staat bovenin.'],
+  doel: 'Haal een maand met een positief resultaat én een CO₂-intensiteit onder 0,60 kg CO₂ per kg NH₃.',
+  maand: m => m.resultaat > 0 && m.kg > 0 && m.co2 / m.kg < 0.60,
+  voortgang: t => `vorige maand: resultaat ${fmtEuro(t.vorigResultaat)} · ${t.vorigeKg > 0 ? (t.vorigCo2 / t.vorigeKg).toFixed(2).replace('.', ',') : '–'} kg CO₂ per kg NH₃`,
+  werkblad: ['Geef aan hoe de CO₂-intensiteit verandert als je de warmteterugwinning stap voor stap verhoogt. Noteer je metingen.', 'Leg uit welk effect overstappen op groene stroom heeft op de CO₂-intensiteit en op het resultaat per maand.'],
+  ster: 'Leg uit waarom de hoogst mogelijke warmteterugwinning niet altijd het beste resultaat geeft.'
+}, {
+  nr: 5,
+  titel: 'De CO₂-rekening',
+  kort: 'CO₂-rechten en het groene certificaat',
+  vlaggen: {
+    bouw: true,
+    recycling: true,
+    energie: true,
+    co2: true,
+    geenGratie: true
+  },
+  nieuw: ['CO₂-rechten: voor elke kg CO₂ die je uitstoot heb je een recht nodig. Rechten koop je op de CO₂-markt (klik op de CO₂-meter bovenin).', 'Bij een tekort aan rechten groeit het protest; loopt het te hoog op, dan volgt een productiestop.', 'Groen certificaat: ligt de CO₂-intensiteit over een heel jaar onder 1,0 kg per kg NH₃, dan krijg je het jaar erna 20% meer voor je ammoniak.'],
+  verhaal: 'Nieuwe wetgeving: vanaf nu betaal je voor elke kg CO₂. De directie wil het groene certificaat halen, zodat de ammoniak volgend jaar meer opbrengt.',
+  uitleg: ['Schat eerst hoeveel CO₂ je fabriek per jaar uitstoot: productie per maand × 12 × CO₂-intensiteit.', 'Koop daarna rechten. Dat kan één keer per jaar; hoe meer rechten je in één keer koopt, hoe duurder elk extra recht wordt.', 'Kom je later in het jaar toch tekort, dan kan alleen nog een noodaankoop, tegen vier keer de marktprijs.', 'Houd het rechtensaldo in de gaten: zakt het onder nul, dan groeit het protest.'],
+  doel: 'Rond het jaar af zonder productiestop en met een CO₂-intensiteit (over het hele jaar) onder 1,0 kg CO₂ per kg NH₃.',
+  jaar: (j, t) => t.stops === 0 && j.yearIntensity != null && j.yearIntensity < 1.0 ? 'geslaagd' : 'mislukt',
+  faalReden: (j, t) => t.stops > 0 ? 'Er is een productiestop geweest.' : `De CO₂-intensiteit over het jaar was ${j.yearIntensity != null ? j.yearIntensity.toFixed(2).replace('.', ',') : '–'} kg CO₂ per kg NH₃.`,
+  voortgang: t => `productiestops: ${t.stops} · CO₂-intensiteit dit jaar: ${t.jaarKg > 0 ? (t.jaarCo2 / t.jaarKg).toFixed(2).replace('.', ',') : '–'}`,
+  werkblad: ['Bereken hoeveel ton CO₂-rechten je fabriek per jaar nodig heeft. Noteer je berekening.', 'Bereken hoeveel extra opbrengst het groene certificaat je fabriek per jaar oplevert.'],
+  ster: 'Bereken bij welke prijs van CO₂-rechten (in euro per ton CO₂) groene stroom voor jouw fabriek voordeliger wordt dan grijze stroom. Noteer je berekening.'
+}, {
+  nr: 6,
+  titel: 'Slijtage',
+  kort: 'Onderhoud van katalysator en vat',
+  vlaggen: {
+    bouw: true,
+    recycling: true,
+    energie: true,
+    co2: true,
+    slijtage: true,
+    geenGratie: true
+  },
+  nieuw: ['De katalysator slijt, sneller bij een hogere temperatuur (sintering). Een versleten katalysator verlaagt de kinetiekfactor.', 'Het reactorvat slijt, sneller bij een druk boven ongeveer de helft van de druklimiet. Een versleten vat heeft een lagere druklimiet.', 'Onderhoud: katalysator vervangen, onderhoudsbeurt of vat vervangen (bij de reactor).'],
+  verhaal: 'Je fabriek draait nu twee jaar achter elkaar. In het echt slijt alles: de katalysator verliest activiteit en het vat wordt zwakker. Een lekkage is gevaarlijk en duur.',
+  uitleg: ['Klik op de reactor: daar zie je de katalysatorgezondheid en de vatstaat, met de knoppen voor onderhoud.', 'Een onderhoudsbeurt herstelt het vat steeds minder en versnelt daarna de slijtage. Alleen een nieuw vat zet dat terug.', 'Onder de inspectiegrens (vatstaat 30%) bouwt de lekkagedruk drie keer zo snel op.'],
+  doel: 'Houd de fabriek twee jaar draaiende zonder lekkage en zonder productiestop, en laat de katalysator nooit onder 25% zakken.',
+  tick: t => t.leks > 0 ? 'Er is een lekkage geweest.' : t.stops > 0 ? 'Er is een productiestop geweest.' : t.minKat < 25 ? 'De katalysator is onder 25% gezakt.' : null,
+  jaar: j => j.year >= 2 ? 'geslaagd' : null,
+  voortgang: t => `jaar ${t.jaar} van 2 · lekkages ${t.leks} · productiestops ${t.stops} · laagste katalysatorgezondheid ${Math.round(t.minKat)}%`,
+  werkblad: ['Geef aan hoe de temperatuur de slijtage van de katalysator beïnvloedt.', 'Leg uit waarom het vervangen van het vat op den duur goedkoper kan zijn dan steeds een onderhoudsbeurt.'],
+  ster: 'Bereken na hoeveel maanden de katalysator bij jouw temperatuur onder 25% zakt. Noteer je berekening.'
+}, {
+  nr: 7,
+  titel: 'Tien jaar directeur',
+  kort: 'Vrij spel met markt, lening en onderzoek',
+  vlaggen: {
+    bouw: true,
+    recycling: true,
+    energie: true,
+    co2: true,
+    slijtage: true,
+    vrij: true
+  },
+  nieuw: ['De marktprijzen (ammoniak, energie, CO₂-rechten) veranderen elk jaar.', 'Je begint met een lening (50% van het startkapitaal, 6% rente per jaar).', 'Onderzoek (R&D): betere katalysatoren, sterkere vaten, zonnepanelen en meer.', 'Het CO₂-maximum kan strenger worden. Bij een negatieve kas ga je failliet (vanaf jaar 2).'],
+  verhaal: 'De directie draagt de fabriek aan jou over. Je hebt tien jaar. Laat zien wat je hebt geleerd.',
+  uitleg: ['Het eerste jaar hoef je nog geen CO₂-rechten te kopen (opstartregeling).', 'Aan het eind van elk jaar zie je een jaaroverzicht. Gebruik het om je volgende stap te kiezen.'],
+  doel: 'Heb na tien jaar zoveel mogelijk kapitaal.',
+  vrijSpel: true,
+  voortgang: () => 'vrij spel — na tien jaar volgt de resultatenkaart',
+  werkblad: ['Noteer aan het eind van elk jaar je kapitaal en je belangrijkste beslissing van dat jaar.', 'Leg aan het eind uit welke beslissing het meeste heeft opgeleverd.'],
+  ster: 'Leg uit welke onderzoeksinvestering voor jouw fabriek het meest heeft opgeleverd, en onderbouw dit met getallen uit je jaaroverzichten.'
+}];
+const CAMP_KEY = 'ecoTycoonCampagne';
+function leesCampagne() {
+  try {
+    return JSON.parse(localStorage.getItem(CAMP_KEY)) || {
+      klaar: []
+    };
+  } catch (e) {
+    return {
+      klaar: []
+    };
+  }
+}
+function bewaarCampagne(d) {
+  try {
+    localStorage.setItem(CAMP_KEY, JSON.stringify(d));
+  } catch (e) {}
+}
+function alleMissiesOpen() {
+  try {
+    return new URLSearchParams(location.search).get('alles') === '1';
+  } catch (e) {
+    return false;
+  }
+}
 function hashString(str) {
   let h = 2166136261;
   for (let i = 0; i < str.length; i++) {
@@ -4738,10 +5312,10 @@ function runChainOnce(nodesById, intermediate, recycleIn, recycleTargetsBySepara
         if (result.overPressure) stress += (node.config.pressureBar - effectiveMaxPressure) * effectiveLeakStressRate;else stress = Math.max(0, stress - GAME.leakStressDecay);
         const isPoisoned = material.poisonedByFeedstock && material.poisonedByFeedstock === feedstockId;
         const decay = (GAME.catalystDecayBase + GAME.catalystDecayTempFactor * Math.max(0, node.config.tempC - GAME.catalystDecayRefTempC)) * (material.decayMult || 1.0) * (isPoisoned ? GAME.catalystPoisoningMultiplier : 1);
-        const newHealth = Math.max(0, health - decay);
+        const newHealth = campVerbergt('slijtage') ? health : Math.max(0, health - decay);
         const pressureFrac = node.config.pressureBar / material.maxPressure;
         const vesselDecay = GAME.vesselDecayBase * (1 + serviceCount * GAME.vesselDecayAccelPerService) + GAME.vesselDecayPressureFactor * Math.max(0, pressureFrac - 0.5);
-        const newVesselCondition = Math.max(0, vesselCondition - vesselDecay);
+        const newVesselCondition = campVerbergt('slijtage') ? vesselCondition : Math.max(0, vesselCondition - vesselDecay);
         let offlineTicks = 0;
         if (stress >= GAME.leakStressThreshold) {
           leakEvents.push({
@@ -5391,6 +5965,7 @@ function NodeCard({
     }
   }, "⚠ risico op lekkage")), PORT_DEFS[node.type].map(portDef => {
     const isRecycle = portDef.id === 'recycleIn' || portDef.id === 'recycleOut';
+    if (isRecycle && campVerbergt('recycling')) return null;
     const isInput = portDef.id === 'in' || portDef.id === 'recycleIn';
     const color = isInput ? 'var(--cyan)' : 'var(--copper)';
     const posStyle = portDef.side === 'left' ? {
@@ -5742,7 +6317,8 @@ function HeatIntegrationSection({
 }
 function ProefReactor({
   process,
-  onClose
+  onClose,
+  onMetingen
 }) {
   const isFerm = process.kineticsType === 'fermentation';
   const mats = allMaterialsFor(process);
@@ -5756,6 +6332,9 @@ function ProefReactor({
   const [throughput, setThroughput] = useState(1.0);
   const [metingen, setMetingen] = useState([]);
   const [lastChange, setLastChange] = useState(null);
+  useEffect(() => {
+    if (onMetingen) onMetingen(metingen);
+  }, [metingen]);
   const material = mats.find(m => m.id === materialId) || mats[0];
   const T_K = tempC + 273;
   const p = isFerm ? null : pressureFromVolume(volume, process, T_K);
@@ -6132,7 +6711,7 @@ function ReactorConfig({
     onChange: v => onChange(node.id, {
       pressureBar: v
     })
-  }), React.createElement(HeatIntegrationSection, {
+  }), !campVerbergt('energie') && React.createElement(HeatIntegrationSection, {
     node: node,
     onChange: onChange,
     context: context
@@ -6184,7 +6763,18 @@ function ReactorConfig({
     style: {
       color: 'var(--text-dim)'
     }
-  }, "Dit is een GMO-stam — geen recht op de biologisch-meerprijs, en gevoelig voor een eventueel toekomstig verbod.")), React.createElement("div", {
+  }, "Dit is een GMO-stam — geen recht op de biologisch-meerprijs, en gevoelig voor een eventueel toekomstig verbod.")), campVerbergt('slijtage') && React.createElement("div", {
+    className: "rounded-md border px-3 py-2 text-[11px] font-mono-data",
+    style: {
+      borderColor: 'var(--border)',
+      background: 'var(--panel-2)',
+      color: 'var(--text-dim)'
+    }
+  }, "Druklimiet van dit vat: ", React.createElement("span", {
+    style: {
+      color: 'var(--text)'
+    }
+  }, material.maxPressure, " bar"), " · in deze missie slijten katalysator en vat nog niet."), !campVerbergt('slijtage') && React.createElement(React.Fragment, null, React.createElement("div", {
     className: "rounded-md border px-3 py-2",
     style: {
       borderColor: 'var(--border)',
@@ -6290,7 +6880,7 @@ function ReactorConfig({
     style: {
       color: 'var(--text-dim)'
     }
-  }, "Slijt sneller boven ~50% van de nominale druklimiet. Elke onderhoudsbeurt herstelt minder dan de vorige en versnelt daarna de slijtage — alleen vervanging zet dat terug naar nul.")), overPressure && React.createElement("div", {
+  }, "Slijt sneller boven ~50% van de nominale druklimiet. Elke onderhoudsbeurt herstelt minder dan de vorige en versnelt daarna de slijtage — alleen vervanging zet dat terug naar nul."))), overPressure && React.createElement("div", {
     className: "rounded-md border px-3 py-2 text-xs warn-pulse",
     style: {
       borderColor: 'var(--red)',
@@ -6476,7 +7066,7 @@ function Palette({
   process
 }) {
   const mats = process.getMaterials(unlocked || {});
-  const items = [{
+  const items = campVerbergt('bouw') ? [] : [{
     type: 'reactor',
     cost: materialTotalCost(mats[0]),
     desc: `Voert de reactie uit (${process.reactionLabel}). Stel T, druk en katalysator in.`
@@ -6497,7 +7087,12 @@ function Palette({
     style: {
       color: 'var(--text-dim)'
     }
-  }, "Componenten"), items.map(it => React.createElement("button", {
+  }, "Componenten"), campVerbergt('bouw') && React.createElement("div", {
+    className: "text-[11px] leading-relaxed",
+    style: {
+      color: 'var(--text-dim)'
+    }
+  }, "In deze missie bouw je nog niets. Werk in de 🧪 Proefreactor (knop rechtsboven)."), items.map(it => React.createElement("button", {
     key: it.type,
     onClick: () => onAdd(it.type),
     className: "text-left rounded-lg border px-3 py-2.5 hover:border-[var(--copper)] transition-colors",
@@ -6637,7 +7232,7 @@ function Header({
       borderColor: 'var(--border)',
       color: 'var(--text-dim)'
     }
-  }, "🧪 Proefreactor"), React.createElement("div", {
+  }, "🧪 Proefreactor"), !campVerbergt('energie') && React.createElement("div", {
     className: "flex items-center rounded-md border overflow-hidden text-xs",
     style: {
       borderColor: 'var(--border)'
@@ -6690,7 +7285,9 @@ function SetupScreen({
   onStart,
   onLab,
   fileInputRef,
-  onImportFile
+  onImportFile,
+  campagneData,
+  onStartMissie
 }) {
   const capitalOptions = [{
     key: 'eigen',
@@ -6735,7 +7332,15 @@ function SetupScreen({
     style: {
       color: 'var(--amber)'
     }
-  }, "⚗ Eco-Chemie Tycoon"), React.createElement("p", {
+  }, "⚗ Eco-Chemie Tycoon"), React.createElement(CampagneKeuze, {
+    data: campagneData,
+    onStart: onStartMissie
+  }), React.createElement("div", {
+    className: "text-xs uppercase tracking-wide mb-1 mt-2",
+    style: {
+      color: 'var(--text)'
+    }
+  }, "Of: zelf een bedrijf samenstellen"), React.createElement("p", {
     className: "text-sm mb-5",
     style: {
       color: 'var(--text-dim)'
@@ -7319,7 +7924,10 @@ function BottomFinancePanel({
       color: totalProfit >= 0 ? 'var(--green)' : 'var(--red)'
     }
   }, fmtEuro(totalProfit)))), React.createElement("div", {
-    className: "flex flex-col gap-3"
+    className: "flex flex-col gap-3",
+    style: {
+      display: campVerbergt('vrij') ? 'none' : undefined
+    }
   }, React.createElement("div", {
     className: "rounded-md border px-3 py-2",
     style: {
@@ -8295,6 +8903,399 @@ const CAPITAL_STRUCTURES = {
     equityShare: 0.0
   }
 };
+const cs = {
+  kaart: {
+    border: '1px solid var(--border)',
+    background: 'var(--panel-2)',
+    borderRadius: 8
+  },
+  knop: (kleur, vol) => ({
+    border: `1px solid ${kleur}`,
+    background: vol ? kleur : 'transparent',
+    color: vol ? '#12181C' : kleur,
+    borderRadius: 6,
+    padding: '7px 14px',
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: 'pointer'
+  }),
+  kop: {
+    fontSize: 11,
+    letterSpacing: '.08em',
+    textTransform: 'uppercase',
+    color: 'var(--text)'
+  }
+};
+function CampagneKeuze({
+  data,
+  onStart
+}) {
+  const klaar = data && data.klaar || [];
+  const alles = alleMissiesOpen();
+  return React.createElement("div", {
+    style: {
+      ...cs.kaart,
+      padding: 14,
+      marginBottom: 18,
+      borderColor: 'var(--copper)'
+    }
+  }, React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+      marginBottom: 4
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 600,
+      color: 'var(--amber)'
+    }
+  }, "🎯 Campagne — Haber-Bosch"), React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: 'var(--text-dim)'
+    }
+  }, "5V / 6V")), React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text-dim)',
+      margin: '0 0 10px',
+      lineHeight: 1.5
+    }
+  }, "Bouw je ammoniakfabriek stap voor stap op. Elke missie zet één nieuw onderdeel aan en heeft één doel. Daarna speel je vrij."), React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 6
+    }
+  }, CAMPAGNE.map((m, i) => {
+    const isKlaar = klaar.includes(i);
+    const open = alles || i === 0 || klaar.includes(i - 1) || isKlaar;
+    return React.createElement("button", {
+      key: m.nr,
+      disabled: !open,
+      onClick: () => onStart(i),
+      style: {
+        ...cs.kaart,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '8px 10px',
+        textAlign: 'left',
+        cursor: open ? 'pointer' : 'default',
+        opacity: open ? 1 : 0.45,
+        background: 'var(--panel)'
+      }
+    }, React.createElement("span", {
+      style: {
+        width: 24,
+        height: 24,
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 12,
+        fontWeight: 700,
+        flexShrink: 0,
+        background: isKlaar ? 'var(--green)' : 'transparent',
+        color: isKlaar ? '#12181C' : open ? 'var(--amber)' : 'var(--text-dim)',
+        border: `1px solid ${isKlaar ? 'var(--green)' : open ? 'var(--amber)' : 'var(--border)'}`
+      }
+    }, isKlaar ? '✓' : open ? m.nr : '🔒'), React.createElement("span", {
+      style: {
+        flex: 1
+      }
+    }, React.createElement("span", {
+      style: {
+        display: 'block',
+        fontSize: 13,
+        color: 'var(--text)',
+        fontWeight: 600
+      }
+    }, "Missie ", m.nr, " · ", m.titel), React.createElement("span", {
+      style: {
+        display: 'block',
+        fontSize: 11,
+        color: 'var(--text-dim)'
+      }
+    }, m.kort)), open && React.createElement("span", {
+      style: {
+        fontSize: 12,
+        color: 'var(--copper)'
+      }
+    }, isKlaar ? 'opnieuw' : 'start', " ▶"));
+  })));
+}
+function MissieBalk({
+  m,
+  live,
+  onBriefing,
+  onWerkblad
+}) {
+  return React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
+      padding: '7px 16px',
+      borderBottom: '1px solid var(--border)',
+      background: 'rgba(201,129,46,0.08)',
+      flexWrap: 'wrap'
+    }
+  }, React.createElement("span", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: 'var(--amber)'
+    }
+  }, "🎯 Missie ", m.nr, " · ", m.titel), React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text)'
+    }
+  }, React.createElement("span", {
+    style: {
+      color: 'var(--text-dim)'
+    }
+  }, "Doel:"), " ", m.doel), live && React.createElement("span", {
+    className: "font-mono-data",
+    style: {
+      fontSize: 11,
+      color: 'var(--cyan)'
+    }
+  }, m.voortgang(live)), React.createElement("span", {
+    style: {
+      flex: 1
+    }
+  }), React.createElement("button", {
+    onClick: onBriefing,
+    style: {
+      ...cs.knop('var(--text-dim)'),
+      padding: '4px 10px',
+      fontSize: 12,
+      fontWeight: 400
+    }
+  }, "Uitleg missie"), React.createElement("button", {
+    onClick: onWerkblad,
+    style: {
+      ...cs.knop('var(--copper)'),
+      padding: '4px 10px',
+      fontSize: 12
+    }
+  }, "📝 Werkblad"));
+}
+function MissieModal({
+  m,
+  scherm,
+  reden,
+  onClose,
+  onVolgende,
+  onOpnieuw,
+  onMenu
+}) {
+  const lijst = items => React.createElement("ul", {
+    style: {
+      margin: '6px 0 0',
+      paddingLeft: 18,
+      lineHeight: 1.55
+    }
+  }, items.map((x, i) => React.createElement("li", {
+    key: i,
+    style: {
+      marginBottom: 3
+    }
+  }, x)));
+  const werkblad = React.createElement("div", {
+    style: {
+      ...cs.kaart,
+      padding: '10px 14px',
+      marginTop: 12
+    }
+  }, React.createElement("div", {
+    style: cs.kop
+  }, "📝 Op je werkblad"), React.createElement("ol", {
+    style: {
+      margin: '6px 0 0',
+      paddingLeft: 20,
+      lineHeight: 1.55,
+      fontSize: 13
+    }
+  }, m.werkblad.map((v, i) => React.createElement("li", {
+    key: i,
+    style: {
+      marginBottom: 4
+    }
+  }, v)), React.createElement("li", {
+    style: {
+      listStyle: 'none',
+      marginLeft: -20,
+      marginTop: 6
+    }
+  }, React.createElement("span", {
+    style: {
+      color: 'var(--amber)',
+      fontWeight: 700
+    }
+  }, "★ "), m.ster)));
+  let kop, inhoud, knoppen;
+  if (scherm === 'briefing') {
+    kop = `Missie ${m.nr} · ${m.titel}`;
+    inhoud = React.createElement(React.Fragment, null, React.createElement("p", {
+      style: {
+        margin: '0 0 10px',
+        lineHeight: 1.55,
+        fontSize: 13
+      }
+    }, m.verhaal), React.createElement("div", {
+      style: {
+        ...cs.kaart,
+        padding: '10px 14px',
+        marginBottom: 10,
+        borderColor: 'var(--cyan)'
+      }
+    }, React.createElement("div", {
+      style: {
+        ...cs.kop,
+        color: 'var(--cyan)'
+      }
+    }, "Nieuw in deze missie"), React.createElement("div", {
+      style: {
+        fontSize: 13
+      }
+    }, lijst(m.nieuw))), React.createElement("div", {
+      style: {
+        ...cs.kaart,
+        padding: '10px 14px',
+        marginBottom: 10
+      }
+    }, React.createElement("div", {
+      style: cs.kop
+    }, "Zo werkt het"), React.createElement("div", {
+      style: {
+        fontSize: 13,
+        color: 'var(--text-dim)'
+      }
+    }, lijst(m.uitleg))), React.createElement("div", {
+      style: {
+        ...cs.kaart,
+        padding: '10px 14px',
+        borderColor: 'var(--amber)'
+      }
+    }, React.createElement("div", {
+      style: {
+        ...cs.kop,
+        color: 'var(--amber)'
+      }
+    }, "🎯 Doel"), React.createElement("div", {
+      style: {
+        fontSize: 14,
+        marginTop: 4
+      }
+    }, m.doel)));
+    knoppen = React.createElement("button", {
+      onClick: onClose,
+      style: cs.knop('var(--copper)', true)
+    }, m.lab ? 'Open de proefreactor' : 'Begin');
+  } else if (scherm === 'werkblad') {
+    kop = `Werkblad — missie ${m.nr}`;
+    inhoud = React.createElement(React.Fragment, null, React.createElement("div", {
+      style: {
+        fontSize: 13,
+        color: 'var(--text-dim)'
+      }
+    }, "Beantwoord deze vragen op je werkblad terwijl je speelt."), werkblad);
+    knoppen = React.createElement("button", {
+      onClick: onClose,
+      style: cs.knop('var(--copper)', true)
+    }, "Verder spelen");
+  } else if (scherm === 'geslaagd') {
+    kop = `✓ Missie ${m.nr} geslaagd`;
+    inhoud = React.createElement(React.Fragment, null, React.createElement("p", {
+      style: {
+        margin: 0,
+        fontSize: 13,
+        lineHeight: 1.55
+      }
+    }, "Doel gehaald: ", m.doel), werkblad, React.createElement("p", {
+      style: {
+        fontSize: 12,
+        color: 'var(--text-dim)',
+        marginTop: 10
+      }
+    }, "Maak je werkblad eerst af. Je kunt nog even doorspelen om dingen uit te proberen."));
+    knoppen = React.createElement(React.Fragment, null, React.createElement("button", {
+      onClick: onClose,
+      style: cs.knop('var(--text-dim)')
+    }, "Nog even doorspelen"), onVolgende && React.createElement("button", {
+      onClick: onVolgende,
+      style: cs.knop('var(--green)', true)
+    }, "Naar missie ", m.nr + 1, " →"), !onVolgende && React.createElement("button", {
+      onClick: onMenu,
+      style: cs.knop('var(--green)', true)
+    }, "Terug naar het menu"));
+  } else {
+    kop = `Missie ${m.nr} niet gehaald`;
+    inhoud = React.createElement(React.Fragment, null, React.createElement("p", {
+      style: {
+        margin: '0 0 8px',
+        fontSize: 13,
+        lineHeight: 1.55
+      }
+    }, reden), React.createElement("p", {
+      style: {
+        margin: 0,
+        fontSize: 13,
+        color: 'var(--text-dim)'
+      }
+    }, "Doel: ", m.doel));
+    knoppen = React.createElement(React.Fragment, null, React.createElement("button", {
+      onClick: onMenu,
+      style: cs.knop('var(--text-dim)')
+    }, "Menu"), React.createElement("button", {
+      onClick: onOpnieuw,
+      style: cs.knop('var(--copper)', true)
+    }, "Probeer opnieuw"));
+  }
+  return React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      zIndex: 70,
+      background: 'rgba(8,12,15,0.82)',
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+      overflowY: 'auto',
+      padding: '40px 16px'
+    }
+  }, React.createElement("div", {
+    style: {
+      width: '100%',
+      maxWidth: 640,
+      background: 'var(--panel)',
+      border: '1px solid var(--border)',
+      borderRadius: 10,
+      padding: 22,
+      color: 'var(--text)'
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 18,
+      fontWeight: 600,
+      color: scherm === 'geslaagd' ? 'var(--green)' : scherm === 'mislukt' ? 'var(--red)' : 'var(--amber)',
+      marginBottom: 12
+    }
+  }, kop), inhoud, React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: 8,
+      marginTop: 16
+    }
+  }, knoppen)));
+}
 function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [processKey, setProcessKey] = useState('haberBosch');
@@ -8356,6 +9357,30 @@ function App() {
   const [showYearEnd, setShowYearEnd] = useState(false);
   const [yearEndData, setYearEndData] = useState(null);
   const [resultCard, setResultCard] = useState(null);
+  const [missie, setMissie] = useState(null);
+  const [missieScherm, setMissieScherm] = useState(null);
+  const [missieReden, setMissieReden] = useState('');
+  const [missieLive, setMissieLive] = useState(null);
+  const [campagneData, setCampagneData] = useState(leesCampagne);
+  const missieRef = useRef(null);
+  const missieTrack = useRef(null);
+  const missieUitstel = useRef(null);
+  const nieuweTrack = () => ({
+    maandKg: 0,
+    maandCo2: 0,
+    vorigeKg: 0,
+    vorigCo2: 0,
+    vorigResultaat: 0,
+    jaarKg: 0,
+    jaarCo2: 0,
+    leks: 0,
+    stops: 0,
+    minKat: 100,
+    jaar: 1,
+    metingen: 0,
+    besteOmzet: 0,
+    klaar: false
+  });
   const canvasRef = useRef(null);
   const idCounter = useRef(0);
   const toastCounter = useRef(0);
@@ -8510,6 +9535,25 @@ function App() {
         yr.maintenanceCost += b.maintenanceCost;
         yr.repairCost += b.repairCost;
         yr.nh3Kg += result.product_kg;
+        if (missieTrack.current) {
+          const t = missieTrack.current;
+          t.maandKg += result.product_kg;
+          t.maandCo2 += result.co2Delta;
+          t.jaarKg += result.product_kg;
+          t.jaarCo2 += result.co2Delta;
+          t.leks += result.leakEvents.length;
+          Object.values(result.statusUpdates).forEach(su => {
+            if (su && su.catalystHealth != null) t.minKat = Math.min(t.minKat, su.catalystHealth);
+          });
+          const m = CAMPAGNE[missieRef.current];
+          if (m && m.tick && !t.klaar) {
+            const reden = m.tick(t);
+            if (reden) missieAfgerond('mislukt', reden);
+          }
+          setMissieLive({
+            ...t
+          });
+        }
         setCo2Total(c => c + result.co2Delta);
         setTotalNh3Kg(v => v + result.product_kg);
         setCo2IntensityLive(result.product_kg > 0 ? result.co2Delta / result.product_kg : 0);
@@ -8565,8 +9609,8 @@ function App() {
             })), 450);
           });
         }
-        if (!isShutdown) {
-          const inGracePeriod = currentYear === 1 && yearTickRef.current < GAME.ticksPerYear / 12 * GAME.co2GracePeriodMonths;
+        if (!isShutdown && !campVerbergt('co2')) {
+          const inGracePeriod = !campVlag('geenGratie') && currentYear === 1 && yearTickRef.current < GAME.ticksPerYear / 12 * GAME.co2GracePeriodMonths;
           const prevBalance = co2RightsRef.current;
           const newBalance = prevBalance - result.co2Delta;
           co2RightsRef.current = newBalance;
@@ -8632,6 +9676,25 @@ function App() {
       const monthLength = GAME.ticksPerYear / 12;
       setCurrentMonth(Math.min(12, Math.floor(yearTickRef.current / monthLength) + 1));
       if (yearTickRef.current % monthLength === 0) {
+        if (missieTrack.current) {
+          const t = missieTrack.current,
+            mr = monthlyRef.current;
+          const resultaat = Object.keys(mr).reduce((som, k) => som + (k === 'revenue' ? mr[k] : -mr[k]), 0);
+          t.vorigeKg = t.maandKg;
+          t.vorigCo2 = t.maandCo2;
+          t.vorigResultaat = resultaat;
+          const m = CAMPAGNE[missieRef.current];
+          if (m && m.maand && !t.klaar && m.maand({
+            kg: t.maandKg,
+            co2: t.maandCo2,
+            resultaat
+          })) missieAfgerond('geslaagd');
+          t.maandKg = 0;
+          t.maandCo2 = 0;
+          setMissieLive({
+            ...t
+          });
+        }
         monthlyRef.current = initialCostTotals();
         setMonthlyTotals(initialCostTotals());
       }
@@ -8641,14 +9704,14 @@ function App() {
         const interest = loanBalanceRef.current * GAME.loanInterestRate;
         const co2ThisYear = yr.co2Heat + yr.co2Comp + yr.co2Sep + (yr.co2Recirculatie || 0) + yr.co2Leak;
         const yearIntensity = yr.nh3Kg > 0 ? co2ThisYear / yr.nh3Kg : null;
-        const newCertificate = yearIntensity !== null && yearIntensity < proc.greenCertificateThreshold;
+        const newCertificate = !campVerbergt('co2') && yearIntensity !== null && yearIntensity < proc.greenCertificateThreshold;
         if (yearIntensity !== null) {
           hasGreenCertificateRef.current = newCertificate;
           setHasGreenCertificate(newCertificate);
         }
         if (newCertificate) setGreenCertificateYears(v => v + 1);
         let heffing = 0;
-        if (yearIntensity !== null && yearIntensity > legislativeCapRef.current) {
+        if (!campVerbergt('co2') && yearIntensity !== null && yearIntensity > legislativeCapRef.current) {
           const excessTonsCo2 = (yearIntensity - legislativeCapRef.current) * (yr.nh3Kg / 1000);
           const heffingRatePerTon = marketRef.current.co2RightsBasePrice * 1000 * GAME.co2EmergencyPriceMultiplier;
           heffing = excessTonsCo2 * heffingRatePerTon;
@@ -8656,7 +9719,7 @@ function App() {
         const co2PriceBeforeTightening = marketRef.current.co2RightsBasePrice;
         let capTightened = false;
         const effectiveTightenChance = Math.min(GAME.legislativeCapTightenChanceMax, legislativeCapTightenChanceRef.current + (currentYear - 1) * GAME.legislativeCapTightenGrowthPerYear);
-        if (seededRandom(startCode, currentYear, 'wet')() < effectiveTightenChance) {
+        if (!campVerbergt('vrij') && seededRandom(startCode, currentYear, 'wet')() < effectiveTightenChance) {
           legislativeCapRef.current = legislativeCapRef.current * GAME.legislativeCapTightenFactor;
           setLegislativeCap(legislativeCapRef.current);
           marketRef.current = {
@@ -8706,7 +9769,16 @@ function App() {
           }
         }
         const projectCompleted = yr.projectCompletedThisYear || null;
-        const evolved = evolveMarket(marketRef.current, volatilityKey, seededRandom(startCode, currentYear, 'markt'));
+        const evolvedRaw = evolveMarket(marketRef.current, volatilityKey, seededRandom(startCode, currentYear, 'markt'));
+        const evolved = campVerbergt('vrij') ? {
+          ...marketRef.current,
+          changes: {
+            grijsChange: 0,
+            groenChange: 0,
+            co2Change: 0,
+            productChange: 0
+          }
+        } : evolvedRaw;
         evolved.changes = {
           ...evolved.changes,
           co2Change: evolved.co2RightsBasePrice / co2PriceBeforeTightening - 1
@@ -8748,6 +9820,36 @@ function App() {
             leakRisk: !!(n.status && n.status.leakRisk)
           }))
         });
+        if (missieTrack.current) {
+          const t = missieTrack.current,
+            m = CAMPAGNE[missieRef.current];
+          const jd = {
+            year: finishedYear,
+            yearIntensity
+          };
+          if (m && !t.klaar) {
+            if (m.jaar) {
+              const r = m.jaar(jd, t);
+              if (r === 'geslaagd') missieUitstel.current = {
+                s: 'geslaagd'
+              };else if (r === 'mislukt') missieUitstel.current = {
+                s: 'mislukt',
+                reden: m.faalReden ? m.faalReden(jd, t) : ''
+              };
+            } else if (m.maand) {
+              missieUitstel.current = {
+                s: 'mislukt',
+                reden: 'Het jaar is voorbij en het doel is niet gehaald.'
+              };
+            }
+          }
+          t.jaar = finishedYear + 1;
+          t.jaarKg = 0;
+          t.jaarCo2 = 0;
+          setMissieLive({
+            ...t
+          });
+        }
         yearlyRef.current = {
           ...initialCostTotals(),
           co2Heat: 0,
@@ -8764,7 +9866,7 @@ function App() {
         setShowYearEnd(true);
         setRunning(false);
       }
-      if (currentYear > 1 && winstRef.current < 0) {
+      if (currentYear > 1 && winstRef.current < 0 && !campVerbergt('vrij')) {
         setResultCard({
           reason: 'bankrupt',
           year: currentYear,
@@ -8778,7 +9880,7 @@ function App() {
           process: proc
         });
         setRunning(false);
-      } else if (!lowCashWarnedRef.current && winstRef.current < GAME.startingCapital * GAME.lowCashWarningFraction) {
+      } else if (!campVerbergt('vrij') && !lowCashWarnedRef.current && winstRef.current < GAME.startingCapital * GAME.lowCashWarningFraction) {
         lowCashWarnedRef.current = true;
         pushToast('⚠ Je kas raakt krap — vanaf jaar 2 gaat het bedrijf bij een negatief saldo failliet.', 'danger');
       } else if (winstRef.current > GAME.startingCapital * GAME.lowCashWarningFraction * 1.5) {
@@ -9015,6 +10117,7 @@ function App() {
     pushToast(`Noodaankoop CO₂-rechten tegen ${GAME.co2EmergencyPriceMultiplier}× tarief: ${fmtCO2(amountKg)} voor ${fmtEuro(-cost)}. Productie hervat.`, 'danger');
   };
   const acceptCo2Shutdown = () => {
+    if (missieTrack.current) missieTrack.current.stops++;
     shutdownRef.current = GAME.shutdownDurationTicks;
     setShutdownTicksRemaining(GAME.shutdownDurationTicks);
     setShowEmergencyCo2(false);
@@ -9134,6 +10237,16 @@ function App() {
   const deleteEdge = edgeId => setEdges(es => es.filter(e => e.id !== edgeId));
   const continueAfterYearEnd = () => {
     setShowYearEnd(false);
+    if (missieUitstel.current) {
+      const u = missieUitstel.current;
+      missieUitstel.current = null;
+      missieAfgerond(u.s, u.reden);
+      return;
+    }
+    if (campVerbergt('co2')) {
+      setRunning(true);
+      return;
+    }
     if (yearEndData && yearEndData.isGameOver) {
       setResultCard({
         reason: 'years',
@@ -9152,6 +10265,14 @@ function App() {
     setCo2ModalAutoOpened(true);
   };
   const resetGame = () => {
+    CAMP = null;
+    missieRef.current = null;
+    missieTrack.current = null;
+    missieUitstel.current = null;
+    setMissie(null);
+    setMissieScherm(null);
+    setMissieLive(null);
+    setMissieReden('');
     setGameStarted(false);
     setResultCard(null);
     setNodes(makeInitialNodes());
@@ -9272,6 +10393,13 @@ function App() {
     reader.onload = e => {
       try {
         const save = JSON.parse(e.target.result);
+        CAMP = null;
+        missieRef.current = null;
+        missieTrack.current = null;
+        missieUitstel.current = null;
+        setMissie(null);
+        setMissieScherm(null);
+        setMissieLive(null);
         setRunning(false);
         setProcessKey(save.processKey || 'haberBosch');
         setFactoryName(save.factoryName || '');
@@ -9334,6 +10462,97 @@ function App() {
     };
     reader.readAsText(file);
   };
+  const missieAfgerond = (status, reden = '') => {
+    const t = missieTrack.current;
+    if (!t || t.klaar) return;
+    t.klaar = true;
+    setRunning(false);
+    if (status === 'geslaagd') {
+      setCampagneData(d => {
+        const nd = {
+          ...d,
+          klaar: Array.from(new Set([...(d.klaar || []), missieRef.current]))
+        };
+        bewaarCampagne(nd);
+        return nd;
+      });
+    }
+    setMissieReden(reden);
+    setMissieScherm(status);
+  };
+  const startMissie = (i, behoudFabriek = false) => {
+    const m = CAMPAGNE[i];
+    const oudeNodes = nodesRef.current,
+      oudeEdges = edgesRef.current,
+      oudeId = idCounter.current;
+    resetGame();
+    if (behoudFabriek && m.vlaggen.bouw) {
+      const ns = oudeNodes.map(n => n.type === 'reactor' ? {
+        ...n,
+        status: {
+          catalystHealth: 100,
+          vesselCondition: 100,
+          serviceCount: 0
+        }
+      } : {
+        ...n,
+        status: {}
+      });
+      setNodes(ns);
+      nodesRef.current = ns;
+      const es = m.vlaggen.recycling ? oudeEdges : oudeEdges.filter(e => e.fromPort !== 'recycleOut');
+      setEdges(es);
+      edgesRef.current = es;
+      idCounter.current = oudeId;
+    }
+    CAMP = {
+      ...m.vlaggen
+    };
+    const proc = PROCESSES.haberBosch;
+    const kapitaal = m.vlaggen.vrij ? 'helfhelf' : 'eigen';
+    setProcessKey('haberBosch');
+    processRef.current = proc;
+    setScenarioKey('vrij');
+    setCapitalKey(kapitaal);
+    setVolatilityKey(m.vlaggen.vrij ? 'gematigd' : 'stabiel');
+    const duur = m.vrijSpel ? 10 : null;
+    setGameDurationYears(duur);
+    gameDurationYearsRef.current = duur;
+    if (!factoryName) setFactoryName('Ammoniakfabriek');
+    setWinst(GAME.startingCapital);
+    winstRef.current = GAME.startingCapital;
+    const lening = GAME.startingCapital * (1 - CAPITAL_STRUCTURES[kapitaal].equityShare);
+    setLoanBalance(lening);
+    loanBalanceRef.current = lening;
+    setLegislativeCap(proc.legislativeCapInitial);
+    legislativeCapRef.current = proc.legislativeCapInitial;
+    legislativeCapTightenChanceRef.current = GAME.legislativeCapTightenChance;
+    const mk = initialMarket(proc);
+    setMarket(mk);
+    marketRef.current = mk;
+    setEnergySource('grijs');
+    energyRef.current = 'grijs';
+    missieRef.current = i;
+    setMissie(i);
+    missieTrack.current = nieuweTrack();
+    setMissieLive({
+      ...missieTrack.current
+    });
+    setMissieScherm('briefing');
+    setRunning(false);
+    setGameStarted(true);
+  };
+  const onLabMetingen = ms => {
+    const t = missieTrack.current,
+      m = missieRef.current != null ? CAMPAGNE[missieRef.current] : null;
+    if (!t || !m || !m.lab) return;
+    t.metingen = ms.length;
+    t.besteOmzet = ms.reduce((b, x) => Math.max(b, x.xNet), 0);
+    setMissieLive({
+      ...t
+    });
+    if (!t.klaar && m.lab(ms)) missieAfgerond('geslaagd');
+  };
   const selectedNode = nodes.find(n => n.id === selectedNodeId) || null;
   const feedNode = nodes.find(n => n.id === 'feed');
   const throughputMultiplier = feedNode && feedNode.config.throughputMultiplier || 1.0;
@@ -9392,7 +10611,9 @@ function App() {
       onStart: startGame,
       onLab: () => setShowLab(true),
       fileInputRef: fileInputRef,
-      onImportFile: f => importSave(f)
+      onImportFile: f => importSave(f),
+      campagneData: campagneData,
+      onStartMissie: startMissie
     }), showLab && React.createElement(ProefReactor, {
       process: process,
       onClose: () => setShowLab(false)
@@ -9426,6 +10647,11 @@ function App() {
     onExport: exportSave,
     factoryName: factoryName,
     process: process
+  }), missie != null && React.createElement(MissieBalk, {
+    m: CAMPAGNE[missie],
+    live: missieLive,
+    onBriefing: () => setMissieScherm('briefing'),
+    onWerkblad: () => setMissieScherm('werkblad')
   }), isShutdown && React.createElement("div", {
     className: "px-4 py-2 text-sm font-medium text-center warn-pulse",
     style: {
@@ -9444,12 +10670,12 @@ function App() {
     value: fmtEuro(winst),
     colorVar: winst >= 0 ? 'var(--green)' : 'var(--red)',
     icon: "€"
-  }), React.createElement(DigitalReadout, {
+  }), !campVerbergt('energie') && React.createElement(React.Fragment, null, React.createElement(DigitalReadout, {
     label: "CO₂-uitstoot",
     value: fmtCO2(co2Total),
     colorVar: co2Rights < 0 ? 'var(--red)' : 'var(--text-dim)',
     icon: "☁",
-    onClick: () => {
+    onClick: campVerbergt('co2') ? undefined : () => {
       setShowCo2Market(true);
       setCo2ModalAutoOpened(false);
     },
@@ -9460,11 +10686,11 @@ function App() {
     value: co2IntensityLive.toFixed(2),
     colorVar: hasGreenCertificate ? 'var(--green)' : co2IntensityLive > legislativeCap ? 'var(--red)' : 'var(--text-dim)',
     icon: "🏭",
-    onClick: () => {
+    onClick: campVerbergt('co2') ? undefined : () => {
       setShowCo2Market(true);
       setCo2ModalAutoOpened(false);
     }
-  }), React.createElement(RingGauge, {
+  })), React.createElement(RingGauge, {
     label: "Product-zuiverheid",
     value: purity,
     unit: "%",
@@ -9543,7 +10769,33 @@ function App() {
     process: process
   }), showLab && React.createElement(ProefReactor, {
     process: process,
-    onClose: () => setShowLab(false)
+    onClose: () => setShowLab(false),
+    onMetingen: onLabMetingen
+  }), missie != null && missieScherm && React.createElement(MissieModal, {
+    m: CAMPAGNE[missie],
+    scherm: missieScherm,
+    reden: missieReden,
+    onClose: () => {
+      const wasBriefing = missieScherm === 'briefing';
+      setMissieScherm(null);
+      if (wasBriefing && CAMPAGNE[missie].lab) setShowLab(true);
+      if (wasBriefing && CAMPAGNE[missie].vlaggen.geenGratie && co2RightsRef.current <= 0) {
+        setShowCo2Market(true);
+        setCo2ModalAutoOpened(false);
+      }
+    },
+    onVolgende: missie + 1 < CAMPAGNE.length ? () => {
+      setShowLab(false);
+      startMissie(missie + 1, true);
+    } : null,
+    onOpnieuw: () => {
+      setShowLab(false);
+      startMissie(missie, true);
+    },
+    onMenu: () => {
+      setShowLab(false);
+      resetGame();
+    }
   }), showCo2Market && React.createElement(Co2MarketModal, {
     co2Rights: co2Rights,
     protestStress: protestStress,
@@ -9555,7 +10807,7 @@ function App() {
     co2TotalAll: co2Total,
     hasGreenCertificate: hasGreenCertificate,
     legislativeCap: legislativeCap,
-    inGracePeriod: currentYear === 1 && currentMonth <= GAME.co2GracePeriodMonths,
+    inGracePeriod: !campVlag('geenGratie') && currentYear === 1 && currentMonth <= GAME.co2GracePeriodMonths,
     process: process,
     onBuy: buyCo2Rights,
     onEmergencyBuy: payEmergencyCo2,
