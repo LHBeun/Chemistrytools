@@ -842,7 +842,13 @@ const CAMPAGNE = [
       'Geef aan wat er met de evenwichtsconversie gebeurt als je de temperatuur verhoogt. Leg je antwoord uit met behulp van de reactievergelijking.',
       'Leg uit waarom de netto omzet bij een bepaalde temperatuur een maximum heeft. Gebruik hierbij de begrippen evenwichtsconversie en reactiesnelheid.',
     ],
-    ster: 'Leg met behulp van het aantal gasdeeltjes links en rechts van de pijl uit hoe het reactorvolume de evenwichtsconversie beïnvloedt.',
+    ster: [
+      'Leg met behulp van het aantal gasdeeltjes links en rechts van de pijl uit hoe het reactorvolume de evenwichtsconversie beïnvloedt.',
+      { tekst: 'Voer de volgende opdrachten uit:', punten: [
+        'Doe met de andere katalysator ook een temperatuurreeks, bij hetzelfde volume en dezelfde doorvoer.',
+        'Leg uit waarom de temperatuur met de hoogste netto omzet afhangt van de katalysator. Gebruik hierbij de begrippen activeringsenergie, reactiesnelheid en evenwichtsconversie.',
+      ] },
+    ],
   },
   {
     nr: 2, titel: 'De eerste fabriek', kort: 'Voeding → reactor → separator',
@@ -3111,13 +3117,18 @@ function MissieBalk({ m, live, onBriefing, onWerkblad }) {
 }
 
 function MissieModal({ m, scherm, reden, onClose, onVolgende, onOpnieuw, onMenu }) {
-  const lijst = (items) => <ul style={{ margin: '6px 0 0', paddingLeft: 18, lineHeight: 1.55 }}>{items.map((x, i) => <li key={i} style={{ marginBottom: 3 }}>{x}</li>)}</ul>;
+  const lijst = (items) => <ul style={{ margin: '6px 0 0', paddingLeft: 18, lineHeight: 1.55, listStyle: 'disc' }}>{items.map((x, i) => <li key={i} style={{ marginBottom: 3 }}>{x}</li>)}</ul>;
   const werkblad = (
     <div style={{ ...cs.kaart, padding: '10px 14px', marginTop: 12 }}>
       <div style={cs.kop}>📝 Op je werkblad</div>
-      <ol style={{ margin: '6px 0 0', paddingLeft: 20, lineHeight: 1.55, fontSize: 13 }}>
+      <ol style={{ margin: '6px 0 0', paddingLeft: 20, lineHeight: 1.55, fontSize: 13, listStyle: 'decimal' }}>
         {m.werkblad.map((v, i) => <li key={i} style={{ marginBottom: 4 }}>{v}</li>)}
-        <li style={{ listStyle: 'none', marginLeft: -20, marginTop: 6 }}><span style={{ color: 'var(--amber)', fontWeight: 700 }}>★ </span>{m.ster}</li>
+        {[].concat(m.ster).map((st, i) => (
+          <li key={'ster' + i} style={{ listStyle: 'none', marginLeft: -20, marginTop: 6 }}>
+            <span style={{ color: 'var(--amber)', fontWeight: 700 }}>★ </span>{typeof st === 'string' ? st : st.tekst}
+            {typeof st !== 'string' && <ul style={{ margin: '4px 0 0', paddingLeft: 34, listStyle: 'disc' }}>{st.punten.map((pt, j) => <li key={j} style={{ marginBottom: 3 }}>{pt}</li>)}</ul>}
+          </li>
+        ))}
       </ol>
     </div>
   );
@@ -4979,7 +4990,10 @@ const CAMPAGNE = [{
     return `temperatuurreeks: ${st.tReeks} metingen · ${fase} · volumereeks: ${Math.min(st.vReeks, 3)} van 3`;
   },
   werkblad: ['Geef aan wat er met de evenwichtsconversie gebeurt als je de temperatuur verhoogt. Leg je antwoord uit met behulp van de reactievergelijking.', 'Leg uit waarom de netto omzet bij een bepaalde temperatuur een maximum heeft. Gebruik hierbij de begrippen evenwichtsconversie en reactiesnelheid.'],
-  ster: 'Leg met behulp van het aantal gasdeeltjes links en rechts van de pijl uit hoe het reactorvolume de evenwichtsconversie beïnvloedt.'
+  ster: ['Leg met behulp van het aantal gasdeeltjes links en rechts van de pijl uit hoe het reactorvolume de evenwichtsconversie beïnvloedt.', {
+    tekst: 'Voer de volgende opdrachten uit:',
+    punten: ['Doe met de andere katalysator ook een temperatuurreeks, bij hetzelfde volume en dezelfde doorvoer.', 'Leg uit waarom de temperatuur met de hoogste netto omzet afhangt van de katalysator. Gebruik hierbij de begrippen activeringsenergie, reactiesnelheid en evenwichtsconversie.']
+  }]
 }, {
   nr: 2,
   titel: 'De eerste fabriek',
@@ -9213,7 +9227,8 @@ function MissieModal({
     style: {
       margin: '6px 0 0',
       paddingLeft: 18,
-      lineHeight: 1.55
+      lineHeight: 1.55,
+      listStyle: 'disc'
     }
   }, items.map((x, i) => React.createElement("li", {
     key: i,
@@ -9234,14 +9249,16 @@ function MissieModal({
       margin: '6px 0 0',
       paddingLeft: 20,
       lineHeight: 1.55,
-      fontSize: 13
+      fontSize: 13,
+      listStyle: 'decimal'
     }
   }, m.werkblad.map((v, i) => React.createElement("li", {
     key: i,
     style: {
       marginBottom: 4
     }
-  }, v)), React.createElement("li", {
+  }, v)), [].concat(m.ster).map((st, i) => React.createElement("li", {
+    key: 'ster' + i,
     style: {
       listStyle: 'none',
       marginLeft: -20,
@@ -9252,7 +9269,18 @@ function MissieModal({
       color: 'var(--amber)',
       fontWeight: 700
     }
-  }, "★ "), m.ster)));
+  }, "★ "), typeof st === 'string' ? st : st.tekst, typeof st !== 'string' && React.createElement("ul", {
+    style: {
+      margin: '4px 0 0',
+      paddingLeft: 34,
+      listStyle: 'disc'
+    }
+  }, st.punten.map((pt, j) => React.createElement("li", {
+    key: j,
+    style: {
+      marginBottom: 3
+    }
+  }, pt)))))));
   let kop, inhoud, knoppen;
   if (scherm === 'briefing') {
     kop = `Missie ${m.nr} · ${m.titel}`;
