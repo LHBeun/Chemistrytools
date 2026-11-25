@@ -37,7 +37,8 @@
   .v4{display:none;} body.n4 .v4{display:revert;} body.n4 .v3only{display:none;}
 
   /* kaart met werkplaatsen */
-  nav.kaart{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px;margin-bottom:18px;}
+  nav.kaart{display:grid;grid-template-columns:repeat(auto-fill,minmax(114px,1fr));gap:7px;margin-bottom:18px;}
+  nav.kaart button{font-size:.88rem;}
   nav.kaart button{font-family:var(--serif);text-align:left;background:var(--perkament2);border:1px solid var(--rand);border-radius:5px;padding:7px 9px;cursor:pointer;color:var(--inkt);line-height:1.25;}
   nav.kaart button .nr{font-size:.72rem;color:var(--goud);letter-spacing:.08em;text-transform:uppercase;display:block;}
   nav.kaart button .lat{font-style:italic;color:var(--inkt2);font-size:.8rem;display:block;}
@@ -50,6 +51,7 @@
   .wp-kop{display:flex;align-items:baseline;gap:12px;margin-bottom:10px;flex-wrap:wrap;}
   .wp-kop h2{margin:0;font-size:1.6rem;color:var(--bloed);font-weight:600;}
   .wp-kop .lat{font-style:italic;color:var(--inkt2);}
+  .wp-kop .stad{margin-left:auto;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;color:var(--goud);}
   .wp-grid{display:grid;grid-template-columns:300px minmax(0,1fr) 270px;gap:16px;align-items:start;}
   @media (max-width:1100px){.wp-grid{grid-template-columns:1fr;}}
   .uitleg{font-size:.95rem;}
@@ -181,9 +183,9 @@ const STOFFEN = {
   suiker:     { naam:'suiker', fase:'vast', kleur:'wit', smp:'ontleedt bij ca. 186', kp:'—', rho:'1,59', opWater:'goed', opWb:'nee' },
   kopersulfaat:{ naam:'kopersulfaat', fase:'vast', kleur:'blauw', smp:'ontleedt', kp:'—', rho:'2,28', opWater:'goed (blauwe oplossing)', opWb:'nee' },
   olie:       { naam:'slaolie', fase:'vloeibaar', kleur:'lichtgeel', smp:'ca. −10', kp:'boven 300 (ontleedt)', rho:'0,92', opWater:'nee (mengt niet)', opWb:'goed' },
-  alcohol:    { naam:'alcohol (ethanol)', fase:'vloeibaar', kleur:'kleurloos', smp:'−114', kp:'78', rho:'0,79', opWater:'goed (mengt)', opWb:'goed' },
+  alcohol:    { naam:'ethanol (alcohol)', fase:'vloeibaar', kleur:'kleurloos', smp:'−114', kp:'78', rho:'0,79', opWater:'goed (mengt)', opWb:'goed' },
   wasbenzine: { naam:'wasbenzine', fase:'vloeibaar', kleur:'kleurloos', smp:'—', kp:'60 tot 100 (traject)', rho:'0,70', opWater:'nee (mengt niet)', opWb:'—' },
-  jood:       { naam:'jood', fase:'vast', kleur:'grijszwart', smp:'114', kp:'184', rho:'4,93', opWater:'slecht (geelbruin)', opWb:'goed (paars)' },
+  jood:       { naam:'jodium', fase:'vast', kleur:'grijszwart', smp:'114', kp:'184', rho:'4,93', opWater:'slecht (geelbruin)', opWb:'goed (paars)' },
   kleurstof:  { naam:'rode kleurstof', fase:'vast', kleur:'rood', smp:'ontleedt', kp:'—', rho:'1,4', opWater:'goed (rood)', opWb:'nee' },
   kool:       { naam:'actieve kool', fase:'vast', kleur:'zwart', smp:'—', kp:'—', rho:'ca. 2', opWater:'nee', opWb:'nee' },
 };
@@ -368,11 +370,14 @@ function markeerKlaar(wpId, host){
 
 /* ---------- raamwerk ---------- */
 const WP = [];          // werkplaatsen worden hieronder toegevoegd
+/* koppeling met de route in het boekje Solve et Coagula */
+const STEDEN = { soorten:['Praag','§ 1.5'], bezinken:['Rome','§ 1.6'], filtreren:['Rome','§ 1.6'], indampen:['Montpellier','§ 1.6'], destilleren:['Montpellier','§ 1.6'], extraheren:['Parijs','§ 1.7'], adsorberen:['Parijs','§ 1.7'], chromatografie:['Milaan','§ 1.7'], plan:['Amsterdam','verwerking'] };
+const stadTekst = (id) => STEDEN[id] ? STEDEN[id].join(' · ') : '';
 const klaar = new Set();
 let actief = null, vorigeT = 0, tijd = 0;
 function renderKaart(){
   document.getElementById('kaart').innerHTML = WP.map((w,i) =>
-    `<button data-i="${i}" class="${actief===w?'aan':''} ${klaar.has(w.id)?'klaar':''}"><span class="nr">${w.nr}</span>${w.naam}<span class="lat">${w.lat}</span></button>`).join('');
+    `<button data-i="${i}" class="${actief===w?'aan':''} ${klaar.has(w.id)?'klaar':''}"><span class="nr">${w.nr} · ${STEDEN[w.id] ? STEDEN[w.id][0] : ''}</span>${w.naam}<span class="lat">${w.lat}</span></button>`).join('');
   document.querySelectorAll('#kaart button').forEach(b => b.onclick = () => open(+b.dataset.i));
 }
 function open(i){
@@ -380,7 +385,7 @@ function open(i){
   const h = document.getElementById('hoofd');
   if (w.eigen){ h.innerHTML = ''; w.eigen(h); renderKaart(); return; }
   h.innerHTML = `
-    <div class="wp-kop"><h2>${w.naam}</h2><span class="lat">${w.lat}</span></div>
+    <div class="wp-kop"><h2>${w.naam}</h2><span class="lat">${w.lat}</span><span class="stad">${stadTekst(w.id)}</span></div>
     <div class="wp-grid">
       <div class="uitleg">${w.uitleg()}</div>
       <div class="sim"><canvas id="sim"></canvas><div class="ctrl" id="ctrl"></div><div class="status" id="status"></div></div>
@@ -807,7 +812,7 @@ WP.push({
   vragen: [
     { q:'Op welk verschil in stofeigenschap berust filtreren?', opties:['deeltjesgrootte','dichtheid','kookpunt','oplosbaarheid','aanhechtingsvermogen'], goed:[0] },
     { q:'Je filtreert zout water. Wat is juist?', opties:['Het zout blijft als residu op het filter achter.','In het filtraat zit nog steeds zout.','Het filtraat is één stof: water.','Het filter raakt verstopt door het zout.'], goed:[1], uitleg:'De deeltjes van het opgeloste zout zijn veel kleiner dan de poriën.' },
-    { q:'Je filtreert zand in zout water. Wat is het residu?', opties:['zand','zout','water','zand en zout'], goed:[0] },
+    { q:'Je filtreert krijt in suikerwater. Wat is het residu?', opties:['krijt','suiker','water','krijt en suiker'], goed:[0] },
     { q:'Bij welk soort mengsel kun je filtreren gebruiken om de stoffen te scheiden?', opties:['oplossing','suspensie','emulsie','mengsel van twee gassen'], goed:[1] },
     { ster:true, q:'Waarom kun je een emulsie van olie en water meestal niet scheiden door te filtreren?', opties:['De oliedruppeltjes zijn kleiner dan de poriën van het filtreerpapier.','Olie lost op in water.','Olie heeft een grotere dichtheid dan water.','Olie verdampt in het filter.'], goed:[0] },
   ],
@@ -928,20 +933,20 @@ WP.push({
    Werkplaats 4 — Destilleren (Destillatio)
    ===================================================================== */
 WP.push({
-  id:'destilleren', nr:'Werkplaats V', naam:'Destilleren', lat:'Destillatio',
+  id:'destilleren', nr:'Werkplaats V', naam:'Destilleren', lat:'Distillatio',
   uitleg: () => `
     <div class="kader berust"><b>Berust op:</b> verschil in <b>kookpunt</b>. De stof met het laagste kookpunt verdampt eerst.</div>
-    <p>Je verwarmt het mengsel in een kolf. De damp gaat via de zijbuis naar de <b>koeler</b> en <b>condenseert</b> daar: de damp wordt weer vloeistof. Die vloeistof heet het <b>destillaat</b>. Wat in de kolf achterblijft, is het <b>residu</b>.</p>
+    <p>Je verwarmt het mengsel in een <b>destillatiekolf</b>. De damp gaat via de zijbuis naar de <b>koeler</b> en <b>condenseert</b> daar: de damp wordt weer vloeistof. Die vloeistof heet het <b>destillaat</b>. Wat in de kolf achterblijft, is het <b>residu</b>.</p>
     <p>De thermometer zit ter hoogte van de zijbuis: zo meet je de temperatuur van de damp die naar de koeler gaat.</p>
     <p>Het koelwater stroomt onderin de koeler in en bovenin eruit. Zo blijft de koeler helemaal gevuld met koud water.</p>
     <p>Het verschil met indampen: bij destilleren vang je de verdampte stof weer op.</p>
     <div class="kader v4"><b>4V — twee vloeistoffen.</b> Destilleer je een mengsel van twee vloeistoffen, dan verdampt eerst vooral de stof met het laagste kookpunt. De temperatuur van de damp blijft dan een tijd ongeveer gelijk. Is die stof op, dan stijgt de temperatuur tot het kookpunt van de volgende stof. Wissel op dat moment van opvangglas.</div>
     <div class="kader"><b>Past bij:</b> oplossingen (en mengsels van vloeistoffen met een verschillend kookpunt).
-      <div class="termen"><span class="term">kolf</span><span class="term">koeler</span><span class="term">condenseren</span><span class="term">destillaat</span><span class="term">residu</span></div></div>
-    <p class="meester">Alchemisten noemden het destillaat van wijn <i>aqua vitae</i>, levenswater. In werkelijkheid verdampt er bij het destilleren van alcohol en water ook wat water mee: het destillaat is nooit helemaal één stof. Deze simulatie is daarom vereenvoudigd.</p>`,
+      <div class="termen"><span class="term">destillatiekolf</span><span class="term">koeler</span><span class="term">condenseren</span><span class="term">destillaat</span><span class="term">residu</span></div></div>
+    <p class="meester">Alchemisten noemden het destillaat van wijn <i>aqua vitae</i>, levenswater. In werkelijkheid verdampt er bij het destilleren van ethanol en water ook wat water mee: het destillaat is nooit helemaal één stof. Deze simulatie is daarom vereenvoudigd.</p>`,
   init(){
     this.m = 'zout'; this.nieuw();
-    const opts = `<option value="zout">zout water</option><option value="koper">kopersulfaatoplossing</option>` + (is4() ? `<option value="alcohol">alcohol en water</option>` : '');
+    const opts = `<option value="zout">zout water</option><option value="koper">kopersulfaatoplossing</option>` + (is4() ? `<option value="alcohol">ethanol en water</option>` : '');
     ctrlHTML(`<label>Mengsel: <select id="mon">${opts}</select></label>
       <button class="knop hoofd" id="aan">🔥 Brander aan</button>
       <button class="knop" id="koel">💧 Koelwater aan</button>
@@ -961,7 +966,7 @@ WP.push({
     ['aan','koel'].forEach(id => { if ($('#'+id)) $('#'+id).textContent = id === 'aan' ? '🔥 Brander aan' : '💧 Koelwater aan'; });
     const G = { x0:12, y0:12, x1:248, y1:150 };
     this.lg = []; this.ll = [];
-    loepTekst('Loep in de koeler. Zodra er damp in de koeler komt, zie je hier de deeltjes van de damp: ze bewegen snel en zitten ver uit elkaar. Tegen de koude wand van de koeler bewegen ze langzamer en komen ze dicht bij elkaar: de damp condenseert.', [['water','#6fa8d6'], ...(this.m === 'alcohol' ? [['alcohol','#9fd3a8']] : []), ['koude wand','#7fb2d9']]);
+    loepTekst('Loep in de koeler. Zodra er damp in de koeler komt, zie je hier de deeltjes van de damp: ze bewegen snel en zitten ver uit elkaar. Tegen de koude wand van de koeler bewegen ze langzamer en komen ze dicht bij elkaar: de damp condenseert.', [['water','#6fa8d6'], ...(this.m === 'alcohol' ? [['ethanol','#9fd3a8']] : []), ['koude wand','#7fb2d9']]);
     status('Zet het koelwater en de brander aan.');
   },
   kookpunt(){
@@ -983,7 +988,7 @@ WP.push({
     const kp = this.kookpunt();
     if (this.aan && kp === null){ status(this.T > 120 ? `⚠ De kolf kookt droog (${Math.round(this.T)} °C)! Zet de brander uit. In de kolf ligt het residu: ${this.m === 'koper' ? 'blauw kopersulfaat' : 'wit zout'}.` : 'Er is geen water meer in de kolf. Zet de brander uit.'); }
     else if (this.kookt && !this.koel) status(`Het mengsel kookt, maar het koelwater staat uit: de damp komt ongekoeld uit de koeler en ontsnapt. Zet het koelwater aan.`);
-    else if (this.kookt) status(`Het mengsel kookt. De damp (${this.kookt}) condenseert in de koeler. Temperatuur van de damp: ${nl(this.T,0)} °C.`);
+    else if (this.kookt) status(`Het mengsel kookt. De damp (${this.kookt === 'alcohol' ? 'ethanol' : 'water'}) condenseert in de koeler. Temperatuur van de damp: ${nl(this.T,0)} °C.`);
     else if (this.aan) status(`Het mengsel wordt warm: ${nl(this.T,0)} °C.`);
     /* loep: damp en condensatie */
     if (this.kookt && Math.random() < dt*14){ this.lg.push({ x: 0, y: rnd(20, 140), vx: rnd(80,140), vy: rnd(-40,40), soort: this.kookt, r: 4 }); }
@@ -1079,8 +1084,8 @@ WP.push({
     { q:'Waarom stroomt het koelwater onderin de koeler in en bovenin eruit?', opties:['Zo blijft de koeler helemaal gevuld met koud water.','Zo stroomt het koelwater sneller.','Zo wordt de damp de koeler in gezogen.','Omdat warm water een grotere dichtheid heeft.'], goed:[0] },
     { q:'Wat is het belangrijkste verschil tussen indampen en destilleren?', opties:['Bij destilleren vang je de verdampte stof weer op.','Bij indampen blijft er geen residu over.','Destilleren berust op een verschil in dichtheid.','Indampen werkt alleen bij suspensies.'], goed:[0] },
     { q:'Waar zit de thermometer bij het destilleren, en waarom?', opties:['Ter hoogte van de zijbuis: je meet de temperatuur van de damp die naar de koeler gaat.','Onderin de vloeistof: je meet hoe heet de vloeistof is.','In het opvangglas: je meet de temperatuur van het destillaat.','In de koeler: je meet de temperatuur van het koelwater.'], goed:[0] },
-    { n4:true, q:'Bij het destilleren van een mengsel van alcohol en water blijft de temperatuur van de damp eerst een tijd ongeveer 78 °C. Wat komt er in die periode vooral in het destillaat?', opties:['alcohol','water','evenveel alcohol als water','niets'], goed:[0] },
-    { n4:true, ster:true, q:'Op welk moment wissel je van opvangglas om de alcohol zo goed mogelijk apart op te vangen?', opties:['Als de temperatuur van de damp gaat stijgen boven ongeveer 78 °C.','Als de temperatuur 20 °C is.','Als het eerste opvangglas half vol is.','Als de kolf droogkookt.'], goed:[0] },
+    { n4:true, q:'Bij het destilleren van een mengsel van ethanol en water blijft de temperatuur van de damp eerst een tijd ongeveer 78 °C. Wat komt er in die periode vooral in het destillaat?', opties:['ethanol','water','evenveel ethanol als water','niets'], goed:[0] },
+    { n4:true, ster:true, q:'Op welk moment wissel je van opvangglas om de ethanol zo goed mogelijk apart op te vangen?', opties:['Als de temperatuur van de damp gaat stijgen boven ongeveer 78 °C.','Als de temperatuur 20 °C is.','Als het eerste opvangglas half vol is.','Als de kolf droogkookt.'], goed:[0] },
   ],
 });
 
@@ -1090,13 +1095,13 @@ WP.push({
 WP.push({
   id:'extraheren', nr:'Werkplaats VI', naam:'Extraheren', lat:'Extractio',
   uitleg: () => `
-    <div class="kader berust"><b>Berust op:</b> verschil in <b>oplosbaarheid</b>. Jood lost veel beter op in wasbenzine dan in water.</div>
-    <p>In de scheitrechter zit jood opgelost in water (geelbruin). Je voegt wasbenzine toe. Wasbenzine mengt niet met water en heeft een kleinere dichtheid: het ligt bovenop.</p>
-    <p>Na het schudden komt het jood vooral in de wasbenzine terecht: die kleurt paars. Daarna laat je de onderste laag (het water) via de kraan weglopen.</p>
+    <div class="kader berust"><b>Berust op:</b> verschil in <b>oplosbaarheid</b>. Jodium lost veel beter op in wasbenzine dan in water.</div>
+    <p>In de scheitrechter zit jodium opgelost in water (geelbruin). Je voegt wasbenzine toe. Wasbenzine mengt niet met water en heeft een kleinere dichtheid: het ligt bovenop.</p>
+    <p>Na het schudden komt het jodium vooral in de wasbenzine terecht: die kleurt paars. Daarna laat je de onderste laag (het water) via de kraan weglopen.</p>
     <p>De vloeistof waarmee je extraheert, heet het <b>extractiemiddel</b> (hier: wasbenzine). Het extractiemiddel met de opgeloste stof erin heet het <b>extract</b>.</p>
     <div class="kader"><b>Past bij:</b> oplossingen, en ook vaste mengsels: bij thee zetten haal je met heet water stoffen uit de theeblaadjes.
       <div class="termen"><span class="term">scheitrechter</span><span class="term">extractiemiddel</span><span class="term">extract</span></div></div>
-    <p class="meester">Twee keer extraheren met een beetje wasbenzine haalt meer jood uit het water dan één keer met evenveel wasbenzine in totaal. Probeer het maar. En let op: wasbenzine is brandbaar, dus geen brander in de buurt.</p>`,
+    <p class="meester">Twee keer extraheren met een beetje wasbenzine haalt meer jodium uit het water dan één keer met evenveel wasbenzine in totaal. Probeer het maar. En let op: wasbenzine is brandbaar, dus geen brander in de buurt.</p>`,
   K: 8,
   init(){
     this.nieuw();
@@ -1115,7 +1120,7 @@ WP.push({
   nieuw(){
     this.Jw = 1; this.Jb = 0; this.fase = 'start'; this.schud = 0; this.waterInTrechter = 1; this.waterInBeker = 0; this.JwBeker = 0; this.extracten = 0; this.ronde = 1; this.meng = 0;
     this.maakLoep();
-    loepTekst('Loep op de grens tussen de twee lagen. De deeltjes van het jood lossen beter op in wasbenzine dan in water: na het schudden zitten de meeste in de bovenste laag.', [['water','#6fa8d6'],['wasbenzine','#e8e1cf'],['jood','#7d3c98']]);
+    loepTekst('Loep op de grens tussen de twee lagen. De deeltjes van het jodium lossen beter op in wasbenzine dan in water: na het schudden zitten de meeste in de bovenste laag.', [['water','#6fa8d6'],['wasbenzine','#e8e1cf'],['jodium','#7d3c98']]);
   },
   maakLoep(){
     this.lw = zwerm(40, 'water', 4, { x0:12, y0:140, x1:248, y1:248 }, 30);
@@ -1128,12 +1133,12 @@ WP.push({
     $('#was').disabled = f !== 'start'; $('#schud').disabled = !(f === 'was' || f === 'rust'); $('#tap').disabled = f !== 'rust'; $('#weer').disabled = f !== 'getapt';
     const pct = Math.round(100 * (this.fase === 'getapt' ? this.JwBeker : this.Jw) / 1);
     const msg = {
-      start: this.ronde > 1 ? `Ronde ${this.ronde}: de waterlaag zit weer in een schone scheitrechter. Voeg nieuwe wasbenzine toe.` : 'In de scheitrechter zit een oplossing van jood in water. Voeg wasbenzine toe.',
-      was: 'Er zijn twee lagen: wasbenzine boven, de geelbruine joodoplossing onder. Doe de stop erop en schud.',
+      start: this.ronde > 1 ? `Ronde ${this.ronde}: de waterlaag zit weer in een schone scheitrechter. Voeg nieuwe wasbenzine toe.` : 'In de scheitrechter zit een oplossing van jodium in water. Voeg wasbenzine toe.',
+      was: 'Er zijn twee lagen: wasbenzine boven, de geelbruine jodiumoplossing onder. Doe de stop erop en schud.',
       schud: 'Schudden… (stop erop, en af en toe de kraan openen om de druk eraf te laten).',
-      rust: `De lagen zijn weer gescheiden. De bovenste laag (wasbenzine) is paars geworden. Nog ${pct}% van het jood zit in de waterlaag. Tap de onderste laag af.`,
+      rust: `De lagen zijn weer gescheiden. De bovenste laag (wasbenzine) is paars geworden. Nog ${pct}% van het jodium zit in de waterlaag. Tap de onderste laag af.`,
       tap: 'De onderste laag loopt via de kraan in het bekerglas.',
-      getapt: `Het water staat in het bekerglas; in de scheitrechter zit het extract. In de waterlaag zit nog ${pct}% van het jood.`,
+      getapt: `Het water staat in het bekerglas; in de scheitrechter zit het extract. In de waterlaag zit nog ${pct}% van het jodium.`,
     }[f];
     status(msg);
   },
@@ -1190,7 +1195,7 @@ WP.push({
     label(c, 'scheitrechter', x - 110, 120, {i:true});
     if (this.fase !== 'start'){ label(c, 'wasbenzine', x + 100, 160, {i:true, align:'left'}); pijlLijn(c, x+96, 160, x+40, 165); }
     if (this.waterInTrechter > 0){ label(c, 'water', x + 100, 250, {i:true, align:'left'}); pijlLijn(c, x+96, 250, x+40, 245); }
-    if (this.extracten > 0) label(c, `verzamelde extracten uit eerdere rondes: ${Math.round(this.extracten*100)}% van het jood`, 300, 30, {i:true, size:12, kleur:'#7a1f2b'});
+    if (this.extracten > 0) label(c, `verzamelde extracten uit eerdere rondes: ${Math.round(this.extracten*100)}% van het jodium`, 300, 30, {i:true, size:12, kleur:'#7a1f2b'});
   },
   loep(l){
     if (this.fase !== 'start' || this.lb.length){ l.fillStyle = 'rgba(240,232,212,.7)'; l.fillRect(0, 0, 260, 130); }
@@ -1204,9 +1209,9 @@ WP.push({
   vragen: [
     { q:'Op welk verschil in stofeigenschap berust extraheren?', opties:['oplosbaarheid','dichtheid','kookpunt','deeltjesgrootte','aanhechtingsvermogen'], goed:[0] },
     { q:'Waarom ligt de wasbenzine bovenop het water?', opties:['Wasbenzine heeft een kleinere dichtheid dan water.','Wasbenzine heeft een lager kookpunt dan water.','Jood lost beter op in wasbenzine.','Wasbenzine is een mengsel.'], goed:[0] },
-    { q:'Wat is het extract bij deze proef?', opties:['de wasbenzine met het jood erin','het water dat je aftapt','de wasbenzine voordat je schudt','het jood'], goed:[0] },
+    { q:'Wat is het extract bij deze proef?', opties:['de wasbenzine met het jodium erin','het water dat je aftapt','de wasbenzine voordat je schudt','het jood'], goed:[0] },
     { q:'Wat is bij het zetten van thee het extractiemiddel?', opties:['heet water','de theeblaadjes','de stoffen die uit de blaadjes in het water komen','het theezakje'], goed:[0] },
-    { ster:true, q:'Je extraheert de waterlaag na het aftappen nog een keer met nieuwe wasbenzine. Wat neem je waar?', opties:['Er blijft nog minder jood in de waterlaag achter.','Het jood gaat terug naar het water.','De lagen wisselen van plaats.','Er gebeurt niets meer: al het jood was al uit het water.'], goed:[0] },
+    { ster:true, q:'Je extraheert de waterlaag na het aftappen nog een keer met nieuwe wasbenzine. Wat neem je waar?', opties:['Er blijft nog minder jodium in de waterlaag achter.','Het jodium gaat terug naar het water.','De lagen wisselen van plaats.','Er gebeurt niets meer: al het jodium was al uit het water.'], goed:[0] },
   ],
 });
 
@@ -1347,22 +1352,22 @@ const INKT = {
   rPaars:        { naam:'kleurstof paars (bekend)', kleur:'#7d3c98', ks:['paars'] },
 };
 WP.push({
-  id:'chromatografie', nr:'Werkplaats VIII', naam:'Papierchromatografie', lat:'Chromatographia',
+  id:'chromatografie', nr:'Werkplaats VIII', naam:'Papier&shy;chromatografie', lat:'Chromatographia',
   uitleg: () => `
     <div class="kader berust"><b>Berust op:</b> verschil in <b>aanhechtingsvermogen</b> (aan het papier) én in <b>oplosbaarheid</b> (in de loopvloeistof).</div>
     <p>Je zet met <b>potlood</b> een startlijn op een strook papier en zet daarop kleine vlekjes inkt. De strook hangt in een beker met een laagje <b>loopvloeistof</b>, met de startlijn bóven de vloeistof.</p>
-    <p>De loopvloeistof trekt omhoog door het papier en neemt de kleurstoffen mee. Een kleurstof die goed oplost in de loopvloeistof en slecht aan het papier hecht, gaat ver mee. Zo ontstaat een <b>chromatogram</b>. De bovenkant van de loopvloeistof heet het <b>front</b>.</p>
+    <p>De loopvloeistof trekt omhoog door het papier en neemt de kleurstoffen mee. Een kleurstof die goed oplost in de loopvloeistof en slecht aan het papier hecht, gaat ver mee. Zo ontstaat een <b>chromatogram</b>. Hoe ver de loopvloeistof is gekomen, heet het <b>vloeistoffront</b>.</p>
     <p>Geeft een inkt meer vlekken, dan is de inkt een mengsel van kleurstoffen.</p>
-    <div class="kader v4"><b>4V — R<sub>f</sub>-waarde.</b> R<sub>f</sub> = <span style="display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.9em"><span style="border-bottom:1px solid">afstand startlijn tot midden vlek</span><span>afstand startlijn tot front</span></span><br>Een kleurstof heeft bij dezelfde loopvloeistof en hetzelfde papier altijd dezelfde R<sub>f</sub>. Zo kun je een kleurstof herkennen door te vergelijken met bekende kleurstoffen.</div>
+    <div class="kader v4"><b>4V — R<sub>f</sub>-waarde.</b> R<sub>f</sub> = <span style="display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.9em"><span style="border-bottom:1px solid">afstand startlijn tot midden vlek</span><span>afstand startlijn tot vloeistoffront</span></span><br>Een kleurstof heeft bij dezelfde loopvloeistof en hetzelfde papier altijd dezelfde R<sub>f</sub>. Zo kun je een kleurstof herkennen door te vergelijken met bekende kleurstoffen.</div>
     <div class="kader"><b>Gebruik:</b> onderzoeken welke stoffen in een mengsel zitten (je houdt er geen bruikbare hoeveelheid stof aan over).
-      <div class="termen"><span class="term">startlijn</span><span class="term">loopvloeistof</span><span class="term">front</span><span class="term">chromatogram</span></div></div>
+      <div class="termen"><span class="term">startlijn</span><span class="term">loopvloeistof</span><span class="term">vloeistoffront</span><span class="term">chromatogram</span></div></div>
     <p class="meester">In 1903 beschreef de botanicus Michail Tswett hoe hij bladkleurstoffen van elkaar scheidde. Later noemde hij zijn methode chromatografie: ‘kleurschrijven’.</p>`,
   init(){
     this.vlek = ['zwart','groen','fijn',''];
     this.eluens = 'water'; this.lijn = 'potlood'; this.onder = false;
     const keuze = (i) => `<select id="v${i}">${Object.entries(INKT).map(([k,v]) => `<option value="${k}" ${this.vlek[i]===k?'selected':''}>${v.naam}</option>`).join('')}</select>`;
     ctrlHTML(`<div style="display:flex;gap:6px;flex-wrap:wrap;width:100%">${[0,1,2,3].map(i => `<label>Vlek ${i+1}: ${keuze(i)}</label>`).join('')}</div>
-      <label>Loopvloeistof: <select id="el"><option value="water">water</option><option value="alcohol">alcohol</option></select></label>
+      <label>Loopvloeistof: <select id="el"><option value="water">water</option><option value="alcohol">ethanol</option></select></label>
       <label>Startlijn met: <select id="lijn"><option value="potlood">potlood</option><option value="pen">balpen</option></select></label>
       <label><input type="checkbox" id="onder"> startlijn onder de vloeistof</label>
       <button class="knop hoofd" id="start">▶ Start</button><button class="knop" id="opnieuw">Opnieuw</button>
@@ -1422,7 +1427,7 @@ WP.push({
   },
   klaar(){
     if (this.onder){ status('Mislukt: de vlekken zijn opgelost in de loopvloeistof in de beker. Er is geen chromatogram ontstaan. De startlijn moet boven de vloeistof liggen.'); return; }
-    status('Het front staat bijna bovenaan. Haal de strook eruit en zet met potlood een streepje bij het front. Het chromatogram is klaar.' + (this.lijn === 'pen' ? ' De balpeninkt van de startlijn is ook gaan lopen!' : ''));
+    status('Het vloeistoffront staat bijna bovenaan. Haal de strook eruit en zet met potlood een streepje bij het vloeistoffront. Het chromatogram is klaar.' + (this.lijn === 'pen' ? ' De balpeninkt van de startlijn is ook gaan lopen!' : ''));
     if (!is4()) return;
     const vl = this.vlekken();
     if (!vl.length) return;
@@ -1436,8 +1441,8 @@ WP.push({
       const fb = $('#rffb');
       if (isNaN(inv)){ fb.className = 'fb fout'; fb.textContent = 'Vul een getal in, bijvoorbeeld 0,45.'; return; }
       if (Math.abs(inv - juist) <= 0.03){ fb.className = 'fb goed'; fb.innerHTML = `✓ Goed: R<sub>f</sub> = ${nl(juist,2)}. Vergelijk met de bekende kleurstoffen om te bepalen welke kleurstof dit is.`; }
-      else if (inv > 1){ fb.className = 'fb fout'; fb.innerHTML = '✗ Een R<sub>f</sub>-waarde is nooit groter dan 1: de vlek komt nooit verder dan het front. Heb je de breuk omgedraaid?'; }
-      else { fb.className = 'fb fout'; fb.innerHTML = '✗ Nog niet goed. Meet beide afstanden vanaf de startlijn: tot het midden van de vlek en tot het front.'; }
+      else if (inv > 1){ fb.className = 'fb fout'; fb.innerHTML = '✗ Een R<sub>f</sub>-waarde is nooit groter dan 1: de vlek komt nooit verder dan het vloeistoffront. Heb je de breuk omgedraaid?'; }
+      else { fb.className = 'fb fout'; fb.innerHTML = '✗ Nog niet goed. Meet beide afstanden vanaf de startlijn: tot het midden van de vlek en tot het vloeistoffront.'; }
     };
   },
   draw(c){
@@ -1482,8 +1487,8 @@ WP.push({
       label(c, 'cm', rx + 13, g.max - 14, {size:10, i:true}); c.restore();
     }
     label(c, 'startlijn', 175, g.start, {i:true, size:12, align:'right'}); pijlLijn(c, 178, g.start, 236, g.start);
-    if (this.f > 0) { label(c, 'front', 175, fy, {i:true, size:12, align:'right'}); pijlLijn(c, 178, fy, 236, fy); }
-    label(c, 'loopvloeistof: ' + this.eluens, 100, 360, {i:true, size:12});
+    if (this.f > 0) { label(c, 'vloeistoffront', 175, fy, {i:true, size:12, align:'right'}); pijlLijn(c, 178, fy, 236, fy); }
+    label(c, 'loopvloeistof: ' + (this.eluens === 'alcohol' ? 'ethanol' : 'water'), 100, 360, {i:true, size:12});
     this.vlek.forEach((k,i) => { if (INKT[k].ks.length) label(c, String(i+1), 258 + i*28, 72, {size:11, sans:true}); });
   },
   loep(l){
@@ -1496,10 +1501,10 @@ WP.push({
   vragen: [
     { q:'Op welke verschillen in stofeigenschappen berust papierchromatografie?', opties:['aanhechtingsvermogen en oplosbaarheid','alleen dichtheid','kookpunt en smeltpunt','deeltjesgrootte'], goed:[0] },
     { q:'Waarom trek je de startlijn met potlood en niet met een balpen?', opties:['Potlood lost niet op in de loopvloeistof; balpeninkt kan gaan lopen.','Potlood is beter zichtbaar.','Een balpen gaat door het papier.','Potlood hecht niet aan het papier.'], goed:[0] },
-    { q:'Waarom moet de startlijn boven het niveau van de loopvloeistof liggen?', opties:['Anders lossen de vlekken op in de loopvloeistof in de beker.','Anders gaat de loopvloeistof niet omhoog.','Anders verdampt de loopvloeistof.','Anders wordt het front niet zichtbaar.'], goed:[0] },
-    { q:'Een inkt geeft één vlek, zowel met water als met alcohol als loopvloeistof. Wat is de beste conclusie?', opties:['De inkt is waarschijnlijk één kleurstof.','De inkt is zeker één kleurstof.','De inkt is een mengsel van kleurstoffen.','De inkt lost niet op in de loopvloeistof.'], goed:[0], uitleg:'Twee kleurstoffen kunnen toevallig even ver komen. Bij twee verschillende loopvloeistoffen is dat al minder waarschijnlijk, maar niet uitgesloten.' },
+    { q:'Waarom moet de startlijn boven het niveau van de loopvloeistof liggen?', opties:['Anders lossen de vlekken op in de loopvloeistof in de beker.','Anders gaat de loopvloeistof niet omhoog.','Anders verdampt de loopvloeistof.','Anders wordt het vloeistoffront niet zichtbaar.'], goed:[0] },
+    { q:'Een inkt geeft één vlek, zowel met water als met ethanol als loopvloeistof. Wat is de beste conclusie?', opties:['De inkt is waarschijnlijk één kleurstof.','De inkt is zeker één kleurstof.','De inkt is een mengsel van kleurstoffen.','De inkt lost niet op in de loopvloeistof.'], goed:[0], uitleg:'Twee kleurstoffen kunnen toevallig even ver komen. Bij twee verschillende loopvloeistoffen is dat al minder waarschijnlijk, maar niet uitgesloten.' },
     { q:'Kun je met papierchromatografie een bruikbare hoeveelheid van een kleurstof apart opvangen?', opties:['Nee, je gebruikt het om te onderzoeken welke stoffen in een mengsel zitten.','Ja, je knipt de vlek eruit en hebt dan een flinke hoeveelheid kleurstof.','Ja, de kleurstof druppelt onderaan uit de strook.','Nee, want de kleurstoffen verdampen.'], goed:[0] },
-    { n4:true, ster:true, q:'Een vlek ligt 3,6 cm boven de startlijn; het front ligt 8,0 cm boven de startlijn. Welke R<sub>f</sub>-waarde heeft de vlek?', opties:['0,45','2,2','0,36','4,4'], goed:[0] },
+    { n4:true, ster:true, q:'Een vlek ligt 3,6 cm boven de startlijn; het vloeistoffront ligt 8,0 cm boven de startlijn. Welke R<sub>f</sub>-waarde heeft de vlek?', opties:['0,45','2,2','0,36','4,4'], goed:[0] },
   ],
 });
 
@@ -1509,15 +1514,16 @@ WP.push({
    ===================================================================== */
 const COMP = {
   water:      { n:'water', fase:'l', vl:true,  kp:100, mengt:true },
-  alcohol:    { n:'alcohol', fase:'l', vl:true, kp:78, mengt:true },
+  alcohol:    { n:'ethanol', fase:'l', vl:true, kp:78, mengt:true },
   wasbenzine: { n:'wasbenzine', fase:'l', vl:true, kp:80, mengt:false },
   olie:       { n:'olie', fase:'l', vl:false, kp:300, mengt:false },
   zout:       { n:'zout', fase:'s', opW:true },
   suiker:     { n:'suiker', fase:'s', opW:true },
   kleurstof:  { n:'rode kleurstof', fase:'s', opW:true, ads:true },
-  jood:       { n:'jood', fase:'s', opW:true, opO:true },
+  jood:       { n:'jodium', fase:'s', opW:true, opO:true },
   zand:       { n:'zand', fase:'s', grof:true },
   klei:       { n:'klei', fase:'s', grof:false },
+  krijt:      { n:'krijt', fase:'s', grof:true },
   kool:       { n:'actieve kool', fase:'s', grof:true },
 };
 const uniek = (a) => [...new Set(a)];
@@ -1575,24 +1581,28 @@ const METHODEN = {
   }},
   chromatografie: { naam:'papierchromatografie', doe: st => ({ uit:[{ naam:'monster (onveranderd)', st }], noot:'Chromatografie gebruik je om te onderzoeken welke stoffen erin zitten. Je houdt er geen bruikbare hoeveelheid stof aan over.' }) },
 };
+/* waarop elke methode berust (zoals in het boekje) */
+const BERUST = { oplossen:'oplosbaarheid', filtreren:'deeltjesgrootte', bezinken:'dichtheid', centrifugeren:'dichtheid', scheitrechter:'dichtheid',
+  extraheren:'oplosbaarheid', adsorberen:'aanhechtingsvermogen', indampen:'kookpunt', destilleren:'kookpunt', chromatografie:'oplosbaarheid en aanhechtingsvermogen' };
+const EIGENSCHAPPEN = ['dichtheid','deeltjesgrootte','kookpunt','smeltpunt','oplosbaarheid','aanhechtingsvermogen','oplosbaarheid en aanhechtingsvermogen','kleur'];
 const SOORTEN = ['oplossing','suspensie','emulsie','mengsel van vaste stoffen','één stof'];
 const OPDRACHTEN = [
-  { id:'v', titel:'Voorbeeld', naam:'Zand en zout', st:['zand','zout'], soort:'mengsel van vaste stoffen', doel:['zand','zout'],
-    verhaal:'Een knecht heeft per ongeluk zout over het zand gestrooid. De meester wil allebei terug.', waarn:'Een droog, korrelig mengsel van witte en geelbruine korrels.', voorbeeld:true,
-    plan:[['oplossen',0],['filtreren',1],['indampen',0]] },
-  { id:'o1', titel:'Opdracht 1', naam:'Modderig zeewater', st:['water','zout','zand'], soort:'suspensie', doel:['zand','water'],
-    verhaal:'De meester heeft zeewater uit de haven meegenomen, vol zand. Hij wil het zand bewaren én drinkbaar water hebben.', waarn:'Troebel en geelbruin. Na een tijd ligt er zand op de bodem; de vloeistof erboven is helder en smaakt zout.',
-    soortUitleg:'Zandkorrels zweven in de vloeistof: een suspensie. Het vloeibare deel zelf is een oplossing van zout in water.' },
+  { id:'v', titel:'Voorbeeld', naam:'Krijt en suiker', st:['krijt','suiker'], soort:'mengsel van vaste stoffen', doel:['krijt','suiker'],
+    verhaal:'Een knecht heeft suiker in de pot met krijtpoeder gemorst. De meester wil allebei terug.', waarn:'Een droog, wit poeder met fijne en wat grovere korrels.', voorbeeld:true,
+    plan:[['oplossen',0,'oplosbaarheid'],['filtreren',1,'deeltjesgrootte'],['indampen',0,'kookpunt']] },
+  { id:'o1', titel:'Opdracht 1', naam:'Modderig zeewater', st:['water','zout','klei'], soort:'suspensie', doel:['zout','water'],
+    verhaal:'De meester heeft zeewater uit de haven meegenomen, vol fijne modder (klei). Hij wil zout én drinkbaar water hebben.', waarn:'Troebel en grijs. Ook na een dag laten staan is het nog troebel.',
+    soortUitleg:'Fijne kleikorrels zweven in de vloeistof: een suspensie. Het vloeibare deel zelf is een oplossing van zout in water.' },
   { id:'o2', titel:'Opdracht 2', naam:'De saus van de kok', st:['olie','water'], soort:'emulsie', doel:['olie','water'],
     verhaal:'De kok heeft olie en water door elkaar geklopt en wil de olie terug.', waarn:'Troebel en lichtgeel. Na een tijd ontstaan er twee heldere lagen.' },
   { id:'o3', titel:'Opdracht 3', naam:'Troebele brandewijn', st:['alcohol','water','klei'], soort:'suspensie', doel:['alcohol'],
-    verhaal:'Een vat brandewijn is vervuild met fijne klei. De meester wil er de alcohol uit halen.', waarn:'Troebel en grijs. Ook na een dag laten staan is het nog troebel.',
+    verhaal:'Een vat brandewijn is vervuild met fijne klei. De meester wil er de ethanol uit halen.', waarn:'Troebel en grijs. Ook na een dag laten staan is het nog troebel.',
     soortUitleg:'Fijne kleikorrels zweven in de vloeistof: een suspensie. Ze zakken zo langzaam uit dat het troebel blijft.' },
-  { id:'o4', titel:'Opdracht 4', naam:'Joodwater', st:['water','jood'], soort:'oplossing', doel:['jood','water'],
-    verhaal:'In een fles zit jood opgelost in water. De meester wil het jood en het water apart hebben.', waarn:'Helder en geelbruin. Er verandert niets als het blijft staan.' },
-  { id:'o5', titel:'★ Opdracht 5', naam:'Bloedrood zand', ster:true, st:['water','zand','zout','kleurstof'], soort:'suspensie', doel:['zand','zout'],
-    verhaal:'Iemand heeft zand, zout en een rode kleurstof in water gegooid. De meester wil het zand terug, en het zout zonder kleurstof.', waarn:'Troebel en rood. Na een tijd ligt er zand op de bodem; de vloeistof erboven is helder en rood.',
-    soortUitleg:'Zandkorrels zweven in de vloeistof: een suspensie. Het vloeibare deel is een oplossing van zout en kleurstof in water.' },
+  { id:'o4', titel:'Opdracht 4', naam:'Jodiumwater', st:['water','jood'], soort:'oplossing', doel:['jood','water'],
+    verhaal:'In een fles zit jodium opgelost in water. De meester wil het jodium en het water apart hebben.', waarn:'Helder en geelbruin. Er verandert niets als het blijft staan.' },
+  { id:'o5', titel:'★ Opdracht 5', naam:'Bloedrode stroop', ster:true, st:['water','zand','suiker','kleurstof'], soort:'suspensie', doel:['zand','suiker'],
+    verhaal:'Op de markt is een pan rode suikerstroop omgevallen in het zand. De meester wil het zand terug, en de suiker zonder kleurstof.', waarn:'Troebel en rood. Na een tijd ligt er zand op de bodem; de vloeistof erboven is helder en rood.',
+    soortUitleg:'Zandkorrels zweven in de vloeistof: een suspensie. Het vloeibare deel is een oplossing van suiker en kleurstof in water.' },
   { id:'o6', titel:'★ Opdracht 6 (4V)', naam:'Zoete slaolie', ster:true, n4:true, st:['olie','water','suiker'], soort:'emulsie', doel:['olie','suiker','water'],
     verhaal:'Slaolie is geschud met suikerwater. De meester wil de olie, de suiker en het water alle drie apart.', waarn:'Troebel en lichtgeel. Na een tijd ontstaan er twee heldere lagen; de onderste laag smaakt zoet.' },
 ];
@@ -1611,6 +1621,7 @@ function voerUit(start, stappen){
     st = r.uit[kies].st;
   });
   if (!fout && st.length) porties.push({ bron:'eindproduct', st });
+  regels.forEach((r, i) => { if (stappen[i]) r.berust = stappen[i].berust; });
   return { regels, porties, verloren, fout };
 }
 function beoordeel(opdr, res){
@@ -1641,7 +1652,8 @@ function blokschema(opdr, res){
     const naam = METHODEN[r.m].naam;
     const kort = naam.split(' (')[0];
     const woorden = kort.split(' '); let rij = '', rijen = []; woorden.forEach(wd => { if ((rij + ' ' + wd).trim().length > 18){ rijen.push(rij); rij = wd; } else rij = (rij + ' ' + wd).trim(); }); rijen.push(rij);
-    rijen.slice(0,3).forEach((t, k) => s += `<text x="${x + bw/2}" y="${y + 22 + k*15 - (rijen.length-1)*6}" text-anchor="middle" fill="#3b2a1a">${t}</text>`);
+    rijen.slice(0,3).forEach((t, k) => s += `<text x="${x + bw/2}" y="${y + 20 + k*14 - (rijen.length-1)*6}" text-anchor="middle" fill="#3b2a1a">${t}</text>`);
+    if (r.berust) s += `<text x="${x + bw/2}" y="${y + 54}" text-anchor="middle" fill="#7a1f2b" font-size="10" font-style="italic">${r.berust}</text>`;
     if (r.uit){
       r.uit.forEach((u, j) => {
         if (j === r.kies) return;
@@ -1660,7 +1672,7 @@ function blokschema(opdr, res){
 }
 
 WP.push({
-  id:'plan', nr:'Werkplaats IX', naam:'De opdrachten van de meester', lat:'Opus magnum',
+  id:'plan', nr:'Werkplaats IX', naam:'De opdrachten van de meester', lat:'Lapis philosophorum',
   eigen(host){
     this.host = host; this.klaarO = this.klaarO || new Set();
     this.toon(this.huidig ?? 0);
@@ -1669,18 +1681,18 @@ WP.push({
   toon(i){
     const L = this.lijst(); i = Math.min(i, L.length-1); this.huidig = i;
     const o = L[i];
-    this.stappen = o.voorbeeld ? o.plan.map(([m,k]) => ({ m, kies:k })) : []; this.soortOk = !!o.voorbeeld;
+    this.stappen = o.voorbeeld ? o.plan.map(([m,k,b]) => ({ m, kies:k, berust:b })) : []; this.soortOk = !!o.voorbeeld;
     const palet = Object.entries(METHODEN).map(([k,m]) => `<button class="knop" data-m="${k}">${m.naam}</button>`).join('');
     this.host.innerHTML = `
-      <div class="wp-kop"><h2>De opdrachten van de meester</h2><span class="lat">Opus magnum</span></div>
+      <div class="wp-kop"><h2>De opdrachten van de meester</h2><span class="lat">Lapis philosophorum</span><span class="stad">${stadTekst('plan')}</span></div>
       <p style="margin:0 0 10px">Bedenk voor elk mengsel een scheidingsplan. Werk altijd in dezelfde volgorde: <b>1.</b> wat voor mengsel is het? <b>2.</b> welke stofeigenschappen verschillen (kijk in de 🗄 voorraadkast)? <b>3.</b> welke methoden, in welke volgorde?</p>
       <div class="opdrlijst">${L.map((x,j) => `<button class="knop ${j===i?'aan':''} ${this.klaarO.has(x.id)?'klaar':''}" data-i="${j}">${x.titel}</button>`).join('')}</div>
-      ${o.voorbeeld ? `<div class="voorbeeld"><h4>Uitgewerkt voorbeeld: zand en zout scheiden</h4><ol>
+      ${o.voorbeeld ? `<div class="voorbeeld"><h4>Uitgewerkt voorbeeld: krijt en suiker scheiden</h4><ol>
         <li><b>Soort mengsel.</b> Een droog mengsel van twee vaste stoffen. Filtreren of indampen kan nog niet: er zit geen vloeistof in.</li>
-        <li><b>Stofeigenschappen.</b> In de voorraadkast staat: zout lost goed op in water, zand niet. Dat verschil gebruik je.</li>
-        <li><b>Oplossen in water.</b> Je krijgt een suspensie: zandkorrels in een zoutoplossing.</li>
-        <li><b>Filtreren.</b> Het zand blijft als residu op het filter (bewaren). Je gaat verder met het filtraat: de zoutoplossing.</li>
-        <li><b>Indampen.</b> Het water verdampt, het zout blijft als residu over. (Wil je ook het water houden? Dan destilleer je in plaats van indampen.)</li></ol>
+        <li><b>Stofeigenschappen.</b> In de voorraadkast staat: suiker lost goed op in water, krijt niet. Dat verschil gebruik je.</li>
+        <li><b>Oplossen in water</b> — berust op een verschil in <i>oplosbaarheid</i>. Je krijgt een suspensie: krijtkorrels in een suikeroplossing.</li>
+        <li><b>Filtreren</b> — berust op een verschil in <i>deeltjesgrootte</i>. Het krijt blijft als residu op het filter (bewaren). Je gaat verder met het filtraat: de suikeroplossing.</li>
+        <li><b>Indampen</b> — berust op een verschil in <i>kookpunt</i>. Het water verdampt, de suiker blijft als residu over. (Wil je ook het water houden? Dan destilleer je in plaats van indampen.)</li></ol>
         <p style="margin:6px 0 0">Het plan staat hieronder al in de planner. Druk op <b>Voer het plan uit</b> om het te volgen.</p></div>` : ''}
       <div class="opdr-grid">
         <div class="monsterkaart">
@@ -1695,7 +1707,7 @@ WP.push({
         </div>
         <div>
           <div class="stap" id="stap2" style="margin-top:0;${this.soortOk ? '' : 'opacity:.45;pointer-events:none'}"><h4>Stap 2 — Maak je scheidingsplan</h4>
-            <div style="font-size:.9rem;color:var(--inkt2)">Klik methoden aan in de juiste volgorde. Kies bij elke stap waarmee je verdergaat; de rest bewaar je.</div>
+            <div style="font-size:.9rem;color:var(--inkt2)">Klik methoden aan in de juiste volgorde. Kies bij elke stap op welk verschil in stofeigenschap de methode berust, en waarmee je verdergaat; de rest bewaar je.</div>
             <div class="palet">${palet}</div>
             <ul class="plan" id="plan"></ul>
             <button class="knop hoofd" id="voer">Voer het plan uit</button> <button class="knop" id="wis">Wis het plan</button>
@@ -1726,16 +1738,21 @@ WP.push({
         keuze = `<label style="font-size:.88rem">ga verder met: <select data-i="${i}">${r.uit.map((u,j) => `<option value="${j}" ${j===s.kies?'selected':''}>${u.naam}</option>`).join('')}</select></label>`;
       }
       st = r && !r.fout ? r.uit[r.uit.length > 1 ? clamp(s.kies ?? 0, 0, r.uit.length-1) : 0].st : null;
-      return `<li><span class="m">${METHODEN[s.m].naam}</span>${keuze}<button class="x" data-x="${i}" title="verwijder">✕</button></li>`;
+      const berust = `<label style="font-size:.88rem">berust op: <select data-b="${i}"><option value="">— kies —</option>${EIGENSCHAPPEN.map(e => `<option ${s.berust===e?'selected':''}>${e}</option>`).join('')}</select></label>`;
+      return `<li><span class="m">${METHODEN[s.m].naam}</span>${berust}${keuze}<button class="x" data-x="${i}" title="verwijder">✕</button></li>`;
     }).join('');
     $('#plan').innerHTML = items || '<li style="opacity:.6">Nog geen stappen.</li>';
-    this.host.querySelectorAll('#plan select').forEach(sel => sel.onchange = () => { this.stappen[+sel.dataset.i].kies = +sel.value; this.tekenPlan(); });
+    this.host.querySelectorAll('#plan select[data-i]').forEach(sel => sel.onchange = () => { this.stappen[+sel.dataset.i].kies = +sel.value; this.tekenPlan(); });
+    this.host.querySelectorAll('#plan select[data-b]').forEach(sel => sel.onchange = () => { this.stappen[+sel.dataset.b].berust = sel.value; $('#verloop').innerHTML = ''; });
     this.host.querySelectorAll('#plan .x').forEach(b => b.onclick = () => { this.stappen.splice(+b.dataset.x, 1); this.tekenPlan(); });
     $('#verloop').innerHTML = '';
   },
   voer(o){
     if (!this.stappen.length){ $('#verloop').innerHTML = '<div class="eind fout">Je plan heeft nog geen stappen.</div>'; return; }
     const res = voerUit(o.st, this.stappen), b = beoordeel(o, res);
+    const misB = this.stappen.map((s,i) => s.berust === BERUST[s.m] ? null : i+1).filter(x => x);
+    res.regels.forEach((r, i) => { const s = this.stappen[i]; if (!s) return; r.t += s.berust === BERUST[s.m] ? ` <span style="color:var(--groen)">· berust op ${s.berust} ✓</span>` : ` <span style="color:var(--bloed)">· berust op: ${s.berust || '(niet gekozen)'} ✗</span>`; });
+    if (misB.length && !res.fout){ b.ok = false; b.tekst = (b.tekst.startsWith('Gelukt') ? 'De scheiding zelf lukt, maar ' : b.tekst + ' En ') + `bij stap ${misB.join(' en ')} klopt het verschil in stofeigenschap nog niet.`; }
     const porties = res.porties.map(p => `<div class="regel ${o.doel.some(d => p.st.length === 1 && p.st[0] === d) ? 'goed' : ''}">Bewaard (${p.bron}): <b>${naamLijst(p.st)}</b>${p.st.length === 1 ? ' — één stof' : ' — een mengsel'}</div>`).join('');
     $('#verloop').innerHTML = `<h4 style="margin:10px 0 4px">Het plan uitgevoerd</h4>` + res.regels.map(r => `<div class="regel ${r.fout?'fout':''}">${r.t}</div>`).join('') +
       (res.fout ? '' : `<h4 style="margin:10px 0 4px">Wat heb je overgehouden?</h4>${porties}`) +
