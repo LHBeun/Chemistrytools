@@ -811,6 +811,7 @@ const SCENARIOS = {
             geenGratie = CO₂-rechten al vanaf de eerste maand verplicht
    ========================================================================= */
 let CAMP = null;
+let LAB_BEWAAR = []; // metingen van de proefreactor blijven in de campagne bewaard als je hem sluit
 const campVlag = (k) => !!(CAMP && CAMP[k]);
 const campVerbergt = (k) => !!(CAMP && !CAMP[k]);
 const fmtTon = (kg) => Math.round(kg / 1000).toLocaleString('nl-NL') + ' ton';
@@ -820,21 +821,34 @@ const CAMPAGNE = [
     nr: 1, titel: 'De proefreactor', kort: 'Evenwicht tegenover snelheid',
     vlaggen: { bouw: false },
     nieuw: ['Proefreactor: temperatuur, reactorvolume (en dus druk), katalysator en doorvoer instellen en metingen vastleggen.'],
-    verhaal: 'Je bent net aangenomen als procestechnoloog bij een nieuwe ammoniakfabriek. Voordat er ook maar één euro wordt uitgegeven, onderzoek je in de proefreactor bij welke omstandigheden de reactie N₂(g) + 3 H₂(g) ⇌ 2 NH₃(g) (ΔH = −92 kJ per mol) het meeste ammoniak oplevert.',
+    verhaal: 'Je bent net aangenomen als procestechnoloog bij een nieuwe ammoniakfabriek. Voordat er ook maar één euro wordt uitgegeven, onderzoek je in de proefreactor bij welke omstandigheden de reactie N₂(g) + 3 H₂(g) ⇌ 2 NH₃(g) (ΔH = −92 kJ per mol) het meeste ammoniak oplevert. Je kunt kiezen uit de twee katalysatoren die de fabriek kan kopen.',
     uitleg: [
       'De evenwichtsconversie is het deel van N₂ dat maximaal kan worden omgezet als het evenwicht zich heeft ingesteld.',
       'De kinetiekfactor geeft aan hoe dicht je in de beschikbare tijd bij dat evenwicht komt: hoe sneller de reactie, hoe hoger de factor.',
       'Netto omzet = evenwichtsconversie × kinetiekfactor. Dat is wat de reactor echt oplevert.',
-      'Werk als een onderzoeker: verander telkens één instelling en leg je meting vast.',
+      'Verander telkens één instelling. Een reeks telt alleen als alle andere instellingen gelijk blijven.',
+      'Temperatuurreeks: meet bij verschillende temperaturen en zoek de temperatuur met de hoogste netto omzet. Sluit dat maximum in: meet er ook vlak onder en vlak boven.',
+      'Blijft de netto omzet stijgen tot de hoogste temperatuur van de schuifregelaar? Dan ligt het maximum buiten het bereik. Kies dan een andere katalysator.',
+      'Volumereeks: meet bij één vaste temperatuur bij verschillende reactorvolumes.',
     ],
-    doel: 'Leg minstens 6 metingen vast en vind een instelling met een netto omzet van minstens 40%.',
-    lab: (ms) => ms.length >= 6 && ms.some(m => m.xNet >= 0.40),
-    voortgang: (t) => `${t.metingen} van 6 metingen · beste netto omzet ${(t.besteOmzet * 100).toFixed(1).replace('.', ',')}%`,
+    doel: 'Doe een temperatuurreeks (minstens 5 metingen, alleen de temperatuur verschilt) waarin je het maximum van de netto omzet insluit, en een volumereeks (minstens 3 metingen, alleen het volume verschilt).',
+    lab: (ms) => { const st = labStatusM1(ms); return st.ingesloten && st.vReeks >= 3; },
+    voortgang: (t) => {
+      const st = t.lab || { tReeks: 0, fase: 'geen', vReeks: 0 };
+      const fase = st.fase === 'ingesloten' ? 'maximum ingesloten ✓' : st.fase === 'grof' ? 'maximum ingesloten, maar meet dichter bij het maximum' : 'maximum nog niet ingesloten';
+      return `temperatuurreeks: ${st.tReeks} metingen · ${fase} · volumereeks: ${Math.min(st.vReeks, 3)} van 3`;
+    },
     werkblad: [
       'Geef aan wat er met de evenwichtsconversie gebeurt als je de temperatuur verhoogt. Leg je antwoord uit met behulp van de reactievergelijking.',
       'Leg uit waarom de netto omzet bij een bepaalde temperatuur een maximum heeft. Gebruik hierbij de begrippen evenwichtsconversie en reactiesnelheid.',
     ],
-    ster: 'Leg met behulp van het aantal gasdeeltjes links en rechts van de pijl uit hoe het reactorvolume de evenwichtsconversie beïnvloedt.',
+    ster: [
+      'Leg met behulp van het aantal gasdeeltjes links en rechts van de pijl uit hoe het reactorvolume de evenwichtsconversie beïnvloedt.',
+      { tekst: 'Voer de volgende opdrachten uit:', punten: [
+        'Doe met de andere katalysator ook een temperatuurreeks, bij hetzelfde volume en dezelfde doorvoer.',
+        'Leg uit waarom de temperatuur met de hoogste netto omzet afhangt van de katalysator. Gebruik hierbij de begrippen activeringsenergie, reactiesnelheid en evenwichtsconversie.',
+      ] },
+    ],
   },
   {
     nr: 2, titel: 'De eerste fabriek', kort: 'Voeding → reactor → separator',
@@ -959,6 +973,37 @@ const CAMPAGNE = [
   },
 ];
 const CAMP_KEY = 'ecoTycoonCampagne';
+// Missie 1: reeksen herkennen in de metingen van de proefreactor.
+function optimaleTemperatuur(process, materialId, volume, throughput) {
+  const mat = allMaterialsFor(process).find(m => m.id === materialId);
+  if (!mat) return null;
+  let best = -1, bestT = null;
+  for (let T = process.tempRange[0]; T <= process.tempRange[1]; T += 5) {
+    const x = ProcessEngine.getCeiling({ tempC: T, pressureBar: pressureFromVolume(volume, process, T + 273) }, process)
+      * ProcessEngine.kineticFactor(T + 273, mat.catalystEfficiency, throughput, process);
+    if (x > best) { best = x; bestT = T; }
+  }
+  return bestT;
+}
+function labStatusM1(ms) {
+  const proc = PROCESSES.haberBosch;
+  const groep = (f) => { const g = {}; ms.forEach(m => { const k = f(m); (g[k] = g[k] || []).push(m); }); return Object.values(g); };
+  let tReeks = 0, tFase = 0, fase = 'geen', ingesloten = false;
+  groep(m => [m.matId, m.volume, m.throughput].join('|')).forEach(rij => {
+    const temps = Array.from(new Set(rij.map(m => m.tempC)));
+    tReeks = Math.max(tReeks, temps.length);
+    if (temps.length < 5) return;
+    const Topt = optimaleTemperatuur(proc, rij[0].matId, rij[0].volume, rij[0].throughput);
+    if (Topt == null || Topt <= proc.tempRange[0] || Topt >= proc.tempRange[1]) return;
+    if (!(temps.some(T => T < Topt) && temps.some(T => T > Topt))) return;
+    if (temps.some(T => Math.abs(T - Topt) <= 10)) { ingesloten = true; fase = 'ingesloten'; tFase = temps.length; }
+    else if (fase !== 'ingesloten') { fase = 'grof'; tFase = temps.length; }
+  });
+  if (tFase) tReeks = tFase; // toon de reeks waar de leerling het verst mee is
+  let vReeks = 0;
+  groep(m => [m.matId, m.tempC, m.throughput].join('|')).forEach(rij => { vReeks = Math.max(vReeks, new Set(rij.map(m => m.volume)).size); });
+  return { tReeks, fase, ingesloten, vReeks };
+}
 function leesCampagne() { try { return JSON.parse(localStorage.getItem(CAMP_KEY)) || { klaar: [] }; } catch (e) { return { klaar: [] }; } }
 function bewaarCampagne(d) { try { localStorage.setItem(CAMP_KEY, JSON.stringify(d)); } catch (e) {} }
 function alleMissiesOpen() { try { return new URLSearchParams(location.search).get('alles') === '1'; } catch (e) { return false; } }
@@ -1787,7 +1832,8 @@ function HeatIntegrationSection({ node, onChange, context }) {
 // Proefreactor: één reactor zonder geld, tijd of slijtage — om variabelen één voor één te onderzoeken.
 function ProefReactor({ process, onClose, onMetingen }) {
   const isFerm = process.kineticsType === 'fermentation';
-  const mats = allMaterialsFor(process);
+  // In de campagne alleen de katalysatoren die de fabriek bij de start kan kopen.
+  const mats = CAMP ? process.getMaterials({}) : allMaterialsFor(process);
   const midT = Math.round(((process.tempRange[0] + process.tempRange[1]) / 2) / 5) * 5;
   const midV = process.volumeRange ? Math.round(((process.volumeRange[0] + process.volumeRange[1]) / 2) / process.volumeStep) * process.volumeStep : null;
   const midDial = isFerm ? Math.round(((process.pressureRange[0] + process.pressureRange[1]) / 2) / process.pressureStep) * process.pressureStep : null;
@@ -1796,9 +1842,9 @@ function ProefReactor({ process, onClose, onMetingen }) {
   const [dial, setDial] = useState(midDial);
   const [materialId, setMaterialId] = useState(mats[0].id);
   const [throughput, setThroughput] = useState(1.0);
-  const [metingen, setMetingen] = useState([]);
+  const [metingen, setMetingen] = useState(() => CAMP ? LAB_BEWAAR : []);
   const [lastChange, setLastChange] = useState(null);
-  useEffect(() => { if (onMetingen) onMetingen(metingen); }, [metingen]);
+  useEffect(() => { if (CAMP) LAB_BEWAAR = metingen; if (onMetingen) onMetingen(metingen); }, [metingen]);
   const material = mats.find(m => m.id === materialId) || mats[0];
   const T_K = tempC + 273;
   const p = isFerm ? null : pressureFromVolume(volume, process, T_K);
@@ -1816,7 +1862,7 @@ function ProefReactor({ process, onClose, onMetingen }) {
     setVolume(v);
   };
   const vastleggen = () => setMetingen(ms => [...ms, {
-    nr: ms.length + 1, tempC, volume, p, dial: config.pressureBar, cat: material.label, throughput, xEq, kF, xNet,
+    nr: ms.length + 1, tempC, volume, p, dial: config.pressureBar, cat: material.label, matId: material.id, throughput, xEq, kF, xNet,
   }]);
 
   // Grafiek: conversies tegen temperatuur
@@ -1849,7 +1895,7 @@ function ProefReactor({ process, onClose, onMetingen }) {
                   <EquilibriumChain process={process} T_K={T_K} volume={volume} lastChange={lastChange} />
                 </>}
             <div>
-              <div className="text-xs mb-1" style={{ color: 'var(--text-dim)' }}>{isFerm ? 'Giststam' : 'Katalysator'} (alle opties beschikbaar)</div>
+              <div className="text-xs mb-1" style={{ color: 'var(--text-dim)' }}>{isFerm ? 'Giststam' : 'Katalysator'}{CAMP ? '' : ' (alle opties beschikbaar)'}</div>
               <select value={materialId} onChange={(e) => setMaterialId(e.target.value)} className="w-full text-sm rounded-md border px-2 py-1.5"
                       style={{ background: 'var(--panel-2)', borderColor: 'var(--border)', color: 'var(--text)' }}>
                 {mats.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
@@ -3071,13 +3117,18 @@ function MissieBalk({ m, live, onBriefing, onWerkblad }) {
 }
 
 function MissieModal({ m, scherm, reden, onClose, onVolgende, onOpnieuw, onMenu }) {
-  const lijst = (items) => <ul style={{ margin: '6px 0 0', paddingLeft: 18, lineHeight: 1.55 }}>{items.map((x, i) => <li key={i} style={{ marginBottom: 3 }}>{x}</li>)}</ul>;
+  const lijst = (items) => <ul style={{ margin: '6px 0 0', paddingLeft: 18, lineHeight: 1.55, listStyle: 'disc' }}>{items.map((x, i) => <li key={i} style={{ marginBottom: 3 }}>{x}</li>)}</ul>;
   const werkblad = (
     <div style={{ ...cs.kaart, padding: '10px 14px', marginTop: 12 }}>
       <div style={cs.kop}>📝 Op je werkblad</div>
-      <ol style={{ margin: '6px 0 0', paddingLeft: 20, lineHeight: 1.55, fontSize: 13 }}>
+      <ol style={{ margin: '6px 0 0', paddingLeft: 20, lineHeight: 1.55, fontSize: 13, listStyle: 'decimal' }}>
         {m.werkblad.map((v, i) => <li key={i} style={{ marginBottom: 4 }}>{v}</li>)}
-        <li style={{ listStyle: 'none', marginLeft: -20, marginTop: 6 }}><span style={{ color: 'var(--amber)', fontWeight: 700 }}>★ </span>{m.ster}</li>
+        {[].concat(m.ster).map((st, i) => (
+          <li key={'ster' + i} style={{ listStyle: 'none', marginLeft: -20, marginTop: 6 }}>
+            <span style={{ color: 'var(--amber)', fontWeight: 700 }}>★ </span>{typeof st === 'string' ? st : st.tekst}
+            {typeof st !== 'string' && <ul style={{ margin: '4px 0 0', paddingLeft: 34, listStyle: 'disc' }}>{st.punten.map((pt, j) => <li key={j} style={{ marginBottom: 3 }}>{pt}</li>)}</ul>}
+          </li>
+        ))}
       </ol>
     </div>
   );
@@ -3210,7 +3261,7 @@ function App() {
   const missieRef = useRef(null);
   const missieTrack = useRef(null);
   const missieUitstel = useRef(null);
-  const nieuweTrack = () => ({ maandKg: 0, maandCo2: 0, vorigeKg: 0, vorigCo2: 0, vorigResultaat: 0, jaarKg: 0, jaarCo2: 0, leks: 0, stops: 0, minKat: 100, jaar: 1, metingen: 0, besteOmzet: 0, klaar: false });
+  const nieuweTrack = () => ({ maandKg: 0, maandCo2: 0, vorigeKg: 0, vorigCo2: 0, vorigResultaat: 0, jaarKg: 0, jaarCo2: 0, leks: 0, stops: 0, minKat: 100, jaar: 1, lab: null, klaar: false });
 
   const canvasRef = useRef(null);
   const idCounter = useRef(0);
@@ -4006,6 +4057,7 @@ function App() {
       idCounter.current = oudeId;
     }
     CAMP = { ...m.vlaggen };
+    LAB_BEWAAR = [];
     const proc = PROCESSES.haberBosch;
     const kapitaal = m.vlaggen.vrij ? 'helfhelf' : 'eigen';
     setProcessKey('haberBosch'); processRef.current = proc;
@@ -4029,7 +4081,7 @@ function App() {
   const onLabMetingen = (ms) => {
     const t = missieTrack.current, m = missieRef.current != null ? CAMPAGNE[missieRef.current] : null;
     if (!t || !m || !m.lab) return;
-    t.metingen = ms.length; t.besteOmzet = ms.reduce((b, x) => Math.max(b, x.xNet), 0);
+    t.lab = labStatusM1(ms);
     setMissieLive({ ...t });
     if (!t.klaar && m.lab(ms)) missieAfgerond('geslaagd');
   };
@@ -4909,6 +4961,7 @@ const SCENARIOS = {
   }
 };
 let CAMP = null;
+let LAB_BEWAAR = [];
 const campVlag = k => !!(CAMP && CAMP[k]);
 const campVerbergt = k => !!(CAMP && !CAMP[k]);
 const fmtTon = kg => Math.round(kg / 1000).toLocaleString('nl-NL') + ' ton';
@@ -4920,13 +4973,27 @@ const CAMPAGNE = [{
     bouw: false
   },
   nieuw: ['Proefreactor: temperatuur, reactorvolume (en dus druk), katalysator en doorvoer instellen en metingen vastleggen.'],
-  verhaal: 'Je bent net aangenomen als procestechnoloog bij een nieuwe ammoniakfabriek. Voordat er ook maar één euro wordt uitgegeven, onderzoek je in de proefreactor bij welke omstandigheden de reactie N₂(g) + 3 H₂(g) ⇌ 2 NH₃(g) (ΔH = −92 kJ per mol) het meeste ammoniak oplevert.',
-  uitleg: ['De evenwichtsconversie is het deel van N₂ dat maximaal kan worden omgezet als het evenwicht zich heeft ingesteld.', 'De kinetiekfactor geeft aan hoe dicht je in de beschikbare tijd bij dat evenwicht komt: hoe sneller de reactie, hoe hoger de factor.', 'Netto omzet = evenwichtsconversie × kinetiekfactor. Dat is wat de reactor echt oplevert.', 'Werk als een onderzoeker: verander telkens één instelling en leg je meting vast.'],
-  doel: 'Leg minstens 6 metingen vast en vind een instelling met een netto omzet van minstens 40%.',
-  lab: ms => ms.length >= 6 && ms.some(m => m.xNet >= 0.40),
-  voortgang: t => `${t.metingen} van 6 metingen · beste netto omzet ${(t.besteOmzet * 100).toFixed(1).replace('.', ',')}%`,
+  verhaal: 'Je bent net aangenomen als procestechnoloog bij een nieuwe ammoniakfabriek. Voordat er ook maar één euro wordt uitgegeven, onderzoek je in de proefreactor bij welke omstandigheden de reactie N₂(g) + 3 H₂(g) ⇌ 2 NH₃(g) (ΔH = −92 kJ per mol) het meeste ammoniak oplevert. Je kunt kiezen uit de twee katalysatoren die de fabriek kan kopen.',
+  uitleg: ['De evenwichtsconversie is het deel van N₂ dat maximaal kan worden omgezet als het evenwicht zich heeft ingesteld.', 'De kinetiekfactor geeft aan hoe dicht je in de beschikbare tijd bij dat evenwicht komt: hoe sneller de reactie, hoe hoger de factor.', 'Netto omzet = evenwichtsconversie × kinetiekfactor. Dat is wat de reactor echt oplevert.', 'Verander telkens één instelling. Een reeks telt alleen als alle andere instellingen gelijk blijven.', 'Temperatuurreeks: meet bij verschillende temperaturen en zoek de temperatuur met de hoogste netto omzet. Sluit dat maximum in: meet er ook vlak onder en vlak boven.', 'Blijft de netto omzet stijgen tot de hoogste temperatuur van de schuifregelaar? Dan ligt het maximum buiten het bereik. Kies dan een andere katalysator.', 'Volumereeks: meet bij één vaste temperatuur bij verschillende reactorvolumes.'],
+  doel: 'Doe een temperatuurreeks (minstens 5 metingen, alleen de temperatuur verschilt) waarin je het maximum van de netto omzet insluit, en een volumereeks (minstens 3 metingen, alleen het volume verschilt).',
+  lab: ms => {
+    const st = labStatusM1(ms);
+    return st.ingesloten && st.vReeks >= 3;
+  },
+  voortgang: t => {
+    const st = t.lab || {
+      tReeks: 0,
+      fase: 'geen',
+      vReeks: 0
+    };
+    const fase = st.fase === 'ingesloten' ? 'maximum ingesloten ✓' : st.fase === 'grof' ? 'maximum ingesloten, maar meet dichter bij het maximum' : 'maximum nog niet ingesloten';
+    return `temperatuurreeks: ${st.tReeks} metingen · ${fase} · volumereeks: ${Math.min(st.vReeks, 3)} van 3`;
+  },
   werkblad: ['Geef aan wat er met de evenwichtsconversie gebeurt als je de temperatuur verhoogt. Leg je antwoord uit met behulp van de reactievergelijking.', 'Leg uit waarom de netto omzet bij een bepaalde temperatuur een maximum heeft. Gebruik hierbij de begrippen evenwichtsconversie en reactiesnelheid.'],
-  ster: 'Leg met behulp van het aantal gasdeeltjes links en rechts van de pijl uit hoe het reactorvolume de evenwichtsconversie beïnvloedt.'
+  ster: ['Leg met behulp van het aantal gasdeeltjes links en rechts van de pijl uit hoe het reactorvolume de evenwichtsconversie beïnvloedt.', {
+    tekst: 'Voer de volgende opdrachten uit:',
+    punten: ['Doe met de andere katalysator ook een temperatuurreeks, bij hetzelfde volume en dezelfde doorvoer.', 'Leg uit waarom de temperatuur met de hoogste netto omzet afhangt van de katalysator. Gebruik hierbij de begrippen activeringsenergie, reactiesnelheid en evenwichtsconversie.']
+  }]
 }, {
   nr: 2,
   titel: 'De eerste fabriek',
@@ -5038,6 +5105,65 @@ const CAMPAGNE = [{
   ster: 'Leg uit welke onderzoeksinvestering voor jouw fabriek het meest heeft opgeleverd, en onderbouw dit met getallen uit je jaaroverzichten.'
 }];
 const CAMP_KEY = 'ecoTycoonCampagne';
+function optimaleTemperatuur(process, materialId, volume, throughput) {
+  const mat = allMaterialsFor(process).find(m => m.id === materialId);
+  if (!mat) return null;
+  let best = -1,
+    bestT = null;
+  for (let T = process.tempRange[0]; T <= process.tempRange[1]; T += 5) {
+    const x = ProcessEngine.getCeiling({
+      tempC: T,
+      pressureBar: pressureFromVolume(volume, process, T + 273)
+    }, process) * ProcessEngine.kineticFactor(T + 273, mat.catalystEfficiency, throughput, process);
+    if (x > best) {
+      best = x;
+      bestT = T;
+    }
+  }
+  return bestT;
+}
+function labStatusM1(ms) {
+  const proc = PROCESSES.haberBosch;
+  const groep = f => {
+    const g = {};
+    ms.forEach(m => {
+      const k = f(m);
+      (g[k] = g[k] || []).push(m);
+    });
+    return Object.values(g);
+  };
+  let tReeks = 0,
+    tFase = 0,
+    fase = 'geen',
+    ingesloten = false;
+  groep(m => [m.matId, m.volume, m.throughput].join('|')).forEach(rij => {
+    const temps = Array.from(new Set(rij.map(m => m.tempC)));
+    tReeks = Math.max(tReeks, temps.length);
+    if (temps.length < 5) return;
+    const Topt = optimaleTemperatuur(proc, rij[0].matId, rij[0].volume, rij[0].throughput);
+    if (Topt == null || Topt <= proc.tempRange[0] || Topt >= proc.tempRange[1]) return;
+    if (!(temps.some(T => T < Topt) && temps.some(T => T > Topt))) return;
+    if (temps.some(T => Math.abs(T - Topt) <= 10)) {
+      ingesloten = true;
+      fase = 'ingesloten';
+      tFase = temps.length;
+    } else if (fase !== 'ingesloten') {
+      fase = 'grof';
+      tFase = temps.length;
+    }
+  });
+  if (tFase) tReeks = tFase;
+  let vReeks = 0;
+  groep(m => [m.matId, m.tempC, m.throughput].join('|')).forEach(rij => {
+    vReeks = Math.max(vReeks, new Set(rij.map(m => m.volume)).size);
+  });
+  return {
+    tReeks,
+    fase,
+    ingesloten,
+    vReeks
+  };
+}
 function leesCampagne() {
   try {
     return JSON.parse(localStorage.getItem(CAMP_KEY)) || {
@@ -6321,7 +6447,7 @@ function ProefReactor({
   onMetingen
 }) {
   const isFerm = process.kineticsType === 'fermentation';
-  const mats = allMaterialsFor(process);
+  const mats = CAMP ? process.getMaterials({}) : allMaterialsFor(process);
   const midT = Math.round((process.tempRange[0] + process.tempRange[1]) / 2 / 5) * 5;
   const midV = process.volumeRange ? Math.round((process.volumeRange[0] + process.volumeRange[1]) / 2 / process.volumeStep) * process.volumeStep : null;
   const midDial = isFerm ? Math.round((process.pressureRange[0] + process.pressureRange[1]) / 2 / process.pressureStep) * process.pressureStep : null;
@@ -6330,9 +6456,10 @@ function ProefReactor({
   const [dial, setDial] = useState(midDial);
   const [materialId, setMaterialId] = useState(mats[0].id);
   const [throughput, setThroughput] = useState(1.0);
-  const [metingen, setMetingen] = useState([]);
+  const [metingen, setMetingen] = useState(() => CAMP ? LAB_BEWAAR : []);
   const [lastChange, setLastChange] = useState(null);
   useEffect(() => {
+    if (CAMP) LAB_BEWAAR = metingen;
     if (onMetingen) onMetingen(metingen);
   }, [metingen]);
   const material = mats.find(m => m.id === materialId) || mats[0];
@@ -6369,6 +6496,7 @@ function ProefReactor({
     p,
     dial: config.pressureBar,
     cat: material.label,
+    matId: material.id,
     throughput,
     xEq,
     kF,
@@ -6463,7 +6591,7 @@ function ProefReactor({
     style: {
       color: 'var(--text-dim)'
     }
-  }, isFerm ? 'Giststam' : 'Katalysator', " (alle opties beschikbaar)"), React.createElement("select", {
+  }, isFerm ? 'Giststam' : 'Katalysator', CAMP ? '' : ' (alle opties beschikbaar)'), React.createElement("select", {
     value: materialId,
     onChange: e => setMaterialId(e.target.value),
     className: "w-full text-sm rounded-md border px-2 py-1.5",
@@ -9099,7 +9227,8 @@ function MissieModal({
     style: {
       margin: '6px 0 0',
       paddingLeft: 18,
-      lineHeight: 1.55
+      lineHeight: 1.55,
+      listStyle: 'disc'
     }
   }, items.map((x, i) => React.createElement("li", {
     key: i,
@@ -9120,14 +9249,16 @@ function MissieModal({
       margin: '6px 0 0',
       paddingLeft: 20,
       lineHeight: 1.55,
-      fontSize: 13
+      fontSize: 13,
+      listStyle: 'decimal'
     }
   }, m.werkblad.map((v, i) => React.createElement("li", {
     key: i,
     style: {
       marginBottom: 4
     }
-  }, v)), React.createElement("li", {
+  }, v)), [].concat(m.ster).map((st, i) => React.createElement("li", {
+    key: 'ster' + i,
     style: {
       listStyle: 'none',
       marginLeft: -20,
@@ -9138,7 +9269,18 @@ function MissieModal({
       color: 'var(--amber)',
       fontWeight: 700
     }
-  }, "★ "), m.ster)));
+  }, "★ "), typeof st === 'string' ? st : st.tekst, typeof st !== 'string' && React.createElement("ul", {
+    style: {
+      margin: '4px 0 0',
+      paddingLeft: 34,
+      listStyle: 'disc'
+    }
+  }, st.punten.map((pt, j) => React.createElement("li", {
+    key: j,
+    style: {
+      marginBottom: 3
+    }
+  }, pt)))))));
   let kop, inhoud, knoppen;
   if (scherm === 'briefing') {
     kop = `Missie ${m.nr} · ${m.titel}`;
@@ -9377,8 +9519,7 @@ function App() {
     stops: 0,
     minKat: 100,
     jaar: 1,
-    metingen: 0,
-    besteOmzet: 0,
+    lab: null,
     klaar: false
   });
   const canvasRef = useRef(null);
@@ -10508,6 +10649,7 @@ function App() {
     CAMP = {
       ...m.vlaggen
     };
+    LAB_BEWAAR = [];
     const proc = PROCESSES.haberBosch;
     const kapitaal = m.vlaggen.vrij ? 'helfhelf' : 'eigen';
     setProcessKey('haberBosch');
@@ -10546,8 +10688,7 @@ function App() {
     const t = missieTrack.current,
       m = missieRef.current != null ? CAMPAGNE[missieRef.current] : null;
     if (!t || !m || !m.lab) return;
-    t.metingen = ms.length;
-    t.besteOmzet = ms.reduce((b, x) => Math.max(b, x.xNet), 0);
+    t.lab = labStatusM1(ms);
     setMissieLive({
       ...t
     });
