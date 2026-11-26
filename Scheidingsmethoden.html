@@ -559,7 +559,7 @@ WP.push({
       <span id="toerbox" style="display:none"><label>Toerental: <input type="range" id="toer" min="500" max="4000" step="100" value="3000"> <span id="toerw">3000</span> per minuut</label></span>
       <button class="knop" id="opnieuw">Opnieuw</button>`);
     $('#mon').onchange = e => { this.monster = e.target.value; this.nieuw(); };
-    $('#mod').onchange = e => { this.modus = e.target.value; $('#dec').style.display = this.modus==='bezinken' ? '' : 'none'; $('#toerbox').style.display = this.modus==='centrifuge' ? '' : 'none'; this.nieuw(); };
+    $('#mod').onchange = e => { this.modus = e.target.value; $('#toerbox').style.display = this.modus==='centrifuge' ? '' : 'none'; this.nieuw(); };
     $('#start').onclick = () => { this.loopt = !this.loopt; $('#start').textContent = this.loopt ? '⏸ Pauze' : '▶ Start'; };
     $('#dec').onclick = () => { if (!this.decant && !this.gedecanteerd){ this.loopt = false; $('#start').textContent='▶ Start'; this.decant = 0.0001; } };
     $('#toer').oninput = e => { this.toeren = +e.target.value; $('#toerw').textContent = this.toeren; };
@@ -583,11 +583,11 @@ WP.push({
   stat(){
     const z = this.zwevend();
     if (this.gedecanteerd != null){
-      status(this.gedecanteerd > .08 ? 'De afgeschonken vloeistof is nog troebel: er zaten nog korrels in de vloeistof.' : 'Gedecanteerd: de afgeschonken vloeistof is helder. Het bezinksel is in het eerste bekerglas achtergebleven.');
+      status(this.gedecanteerd > .08 ? 'De afgeschonken vloeistof is nog troebel: er zaten nog korrels in de vloeistof.' : `Gedecanteerd: de afgeschonken vloeistof is helder. Het bezinksel is ${this.modus==='centrifuge' ? 'in de buis' : 'in het eerste bekerglas'} achtergebleven.`);
       return;
     }
     if (this.modus === 'bezinken') status(z > .95 ? 'Het monster is troebel.' : z > .05 ? `De korrels zakken uit; nog ${Math.round(z*100)}% zweeft.` : 'Alle korrels liggen op de bodem: dit is het bezinksel. Je kunt nu decanteren.');
-    else status(this.loopt ? `De centrifuge draait met ${this.toeren} toeren per minuut. Nog ${Math.round(z*100)}% van de korrels zweeft.` : (z < .05 ? 'De buis is gecentrifugeerd: bovenin helder, onderin een vast bezinksel.' : 'Zet de centrifuge aan met ▶ Start.'));
+    else status(this.loopt ? `De centrifuge draait met ${this.toeren} toeren per minuut. Nog ${Math.round(z*100)}% van de korrels zweeft.` : (z < .05 ? 'De buis is gecentrifugeerd: bovenin helder, onderin een vast bezinksel. Je kunt nu decanteren.' : this.t > 0 ? `De centrifuge staat stil. Nog ${Math.round(z*100)}% van de korrels zweeft.` : 'Zet de centrifuge aan met ▶ Start.'));
   },
   update(dt){
     if (this.loopt){
@@ -647,6 +647,8 @@ WP.push({
     } else {
       /* centrifuge: bovenaanzicht van de rotor + zijaanzicht van één buis */
       const cx = 160, cy = 190;
+      const uit = this.decant || this.gedecanteerd != null; /* buis is uit de centrifuge gehaald */
+      c.save(); if (uit) c.globalAlpha = .25;
       c.save(); c.fillStyle = '#5b5148'; c.beginPath(); c.arc(cx, cy, 112, 0, Math.PI*2); c.fill();
       c.fillStyle = '#3a332c'; c.beginPath(); c.arc(cx, cy, 98, 0, Math.PI*2); c.fill();
       c.translate(cx, cy); c.rotate(this.hoek);
@@ -654,14 +656,39 @@ WP.push({
       c.fillStyle = '#c9bfae'; c.beginPath(); c.arc(0, 0, 14, 0, Math.PI*2); c.fill();
       c.restore();
       label(c, 'centrifuge (bovenaanzicht)', cx, 330, {i:true});
+      c.restore();
       /* buis */
-      const bx = 400, by = 70, bw = 46, bh = 240;
+      const bx = 400, by = 70, bw = 46, bh = 240, lvl = 200;
+      /* buis kantelt bij decanteren om de rechterbovenhoek (de schenkrand) */
+      const hoek = this.decant ? Math.sin(Math.min(1, this.decant*1.6) * Math.PI/2) * 0.95 * (this.decant < .8 ? 1 : (1 - (this.decant-.8)/.2)) : 0;
+      c.save(); c.translate(bx+bw, by); c.rotate(hoek); c.translate(-(bx+bw), -by);
       c.save(); c.strokeStyle = GLAS; c.lineWidth = 2.2;
       c.beginPath(); c.moveTo(bx, by); c.lineTo(bx, by+bh-bw/2); c.arc(bx+bw/2, by+bh-bw/2, bw/2, Math.PI, 0, true); c.lineTo(bx+bw, by); c.stroke(); c.restore();
       const b = { x:bx+1.5, y:by, w:bw-3, bodem: by+bh-6 };
-      this.tekenInhoud(c, b, 200);
-      label(c, 'één buis (zijaanzicht)', bx + bw/2, 340, {i:true});
-      label(c, this.loopt ? `${this.toeren} toeren per minuut` : 'stil', bx + bw/2, 40, {i:true, kleur:'#7a1f2b'});
+      const over = this.gedecanteerd != null ? 16 : this.decant ? lvl - (lvl-16)*Math.min(1, this.decant*1.4) : lvl;
+      this.tekenInhoud(c, b, over);
+      c.restore();
+      if (uit){
+        const fijn = this.monster === 'klei';
+        /* straal */
+        if (this.decant > .25 && this.decant < .85){
+          const z = this.zwevend();
+          c.save(); c.strokeStyle = z > .08 ? (fijn ? 'rgba(140,124,105,.8)' : 'rgba(175,140,80,.8)') : 'rgba(150,190,215,.8)'; c.lineWidth = 4;
+          c.beginPath(); c.moveTo(bx+bw+4, by+6); c.quadraticCurveTo(bx+bw+40, by+10, bx+bw+72, 262); c.stroke(); c.restore();
+        }
+        const b2 = beker(c, 480, 250, 96, 80);
+        const n2 = this.gedecanteerd != null ? 55 : this.decant > .3 ? 55*Math.min(1,(this.decant-.3)/.5) : 0;
+        if (n2 > 0){
+          const z = this.gedecanteerd != null ? this.gedecanteerd : this.zwevend();
+          vloeistof(c, b2, n2, 'rgba(190,220,235,.45)');
+          c.fillStyle = `rgba(${fijn?'154,138,120':'185,145,80'},${.55*z})`; c.fillRect(b2.x, b2.bodem-n2+2, b2.w, n2-4);
+        }
+        label(c, 'afgeschonken vloeistof', 528, 350, {i:true});
+        label(c, 'buis uit de centrifuge gehaald', 300, 30, {i:true, kleur:'#7a1f2b'});
+      } else {
+        label(c, 'één buis (zijaanzicht)', bx + bw/2, 340, {i:true});
+        label(c, this.loopt ? `${this.toeren} toeren per minuut` : 'stil', bx + bw/2, 40, {i:true, kleur:'#7a1f2b'});
+      }
     }
   },
   loep(l){ tekenZwerm(l, this.lw); for (const k of this.lk) tekenKorrel(l, k); },
