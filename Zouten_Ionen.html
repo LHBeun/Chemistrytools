@@ -1363,7 +1363,14 @@ WPS.push({
    ===================================================================== */
 const REAG_AN = [['Na','Cl'],['Na','I'],['Na','OH'],['Na','SO4'],['Na','CO3'],['Na','S'],['Na','PO4']];      /* tonen het positieve ion aan */
 const REAG_KAT = [['Ag','NO3'],['Ba','NO3'],['Pb','NO3'],['Ca','NO3'],['Mg','NO3'],['Cu','NO3']];          /* tonen het negatieve ion aan */
+const ZUUR = ['HCl'];
+function zuurUitkomst(onb){
+  if (onb[1] === 'CO3') return { soort:'gas', gas:'CO2', txt:'het mengsel bruist: er ontstaat een gas' };
+  if (onb[1] === 'S') return { soort:'gas', gas:'H2S', txt:'er ontstaat een gas met een geur van rotte eieren' };
+  return { soort:'g', txt:'geen waarneembare verandering' };
+}
 function testUitkomst(onb, reag){
+  if (reag[0] === 'HCl') return zuurUitkomst(onb);
   /* nieuwe combinaties: positief ion van het reagens met negatief ion van de onbekende, en andersom */
   const combos = [[reag[0], onb[1]], [onb[0], reag[1]]].filter(p => !(p[0] === onb[0] && p[1] === onb[1]) && !(p[0] === reag[0] && p[1] === reag[1]));
   for (const p of combos){
@@ -1376,7 +1383,7 @@ function testUitkomst(onb, reag){
 }
 const kleurKlasse = t => t.replace('gebroken wit', 'wit').replace('grijsgroen', 'groen');
 function sigKat(id){ return (ION[id].opl || '-') + REAG_AN.map(r => kleurKlasse(testUitkomst([id, 'NO3'], r).txt)).join('|'); }
-function sigAn(id){ return REAG_KAT.map(r => kleurKlasse(testUitkomst(['Na', id], r).txt)).join('|'); }
+function sigAn(id){ return REAG_KAT.concat([ZUUR]).map(r => kleurKlasse(testUitkomst(['Na', id], r).txt)).join('|'); }
 const KAT_HERKENBAAR = KAT.filter(k => KAT.filter(j => sigKat(j.id) === sigKat(k.id)).length === 1).map(k => k.id);
 const AN_HERKENBAAR = AN.filter(a => AN.filter(j => sigAn(j.id) === sigAn(a.id)).length === 1).map(a => a.id);
 
@@ -1386,7 +1393,8 @@ const SIM4 = {
     host.innerHTML = `<div class="simkop"><b>Reageerbuizenrek</b><span>druppel een reagens bij de onbekende oplossing</span></div>
       <div class="ctrl"><label>Reagens <select class="sel" id="s4r">
         <optgroup label="Natriumzouten (tonen het positieve ion aan)">${REAG_AN.map(p => `<option value="${p.join('|')}">${zoutVan(p).naam}-oplossing</option>`).join('')}</optgroup>
-        <optgroup label="Nitraten (tonen het negatieve ion aan)">${REAG_KAT.map(p => `<option value="${p.join('|')}">${zoutVan(p).naam}-oplossing</option>`).join('')}</optgroup></select></label>
+        <optgroup label="Nitraten (tonen het negatieve ion aan)">${REAG_KAT.map(p => `<option value="${p.join('|')}">${zoutVan(p).naam}-oplossing</option>`).join('')}</optgroup>
+        <optgroup label="Overige tests"><option value="HCl">verdund zoutzuur</option></optgroup></select></label>
         <button class="btn" id="s4test">Test in een nieuwe buis</button><button class="btn g" id="s4leeg">Rek leegmaken</button></div>
       <div class="doek" id="s4doek"></div>
       <div class="buislog" id="s4log"></div>
@@ -1404,7 +1412,9 @@ const SIM4 = {
     this.stat();
   },
   stat(){
-    $('#s4log').innerHTML = this.buizen.map((b, i) => `<div><b>${i + 1}. ${zoutVan(b.reag).naam}</b>${b.u.txt}</div>`).join('') || '<div style="grid-column:1/-1;color:#7a756b">Nog geen tests gedaan.</div>';
+    const naam = b => b.reag[0] === 'HCl' ? 'zoutzuur' : zoutVan(b.reag).naam;
+    $('#s4log').innerHTML = this.buizen.map((b, i) => `<div><b>${i + 1}. ${naam(b)}</b>${b.u.txt}${b.u.soort === 'gas' ? (b.kalk ? `<br><i>${b.u.gas === 'CO2' ? 'kalkwater wordt troebel' : 'kalkwater blijft helder'}</i>` : `<br><button class="btn g klein" data-kalk="${i}" style="margin-top:4px;padding:2px 8px;font-size:11.5px">gas door kalkwater</button>`) : ''}</div>`).join('') || '<div style="grid-column:1/-1;color:#7a756b">Nog geen tests gedaan.</div>';
+    $$('#s4log [data-kalk]').forEach(k => k.onclick = () => { this.buizen[+k.dataset.kalk].kalk = true; this.stat(); });
   },
   opdracht(o){ if (o && o.onbekend){ if (this.onb.join() !== o.onbekend.join()) this.zetOnbekend(o.onbekend); } },
   update(dt){ for (const b of this.buizen) b.t += dt; },
@@ -1427,7 +1437,12 @@ const SIM4 = {
         const vul = 95;
         c.save(); c.beginPath(); c.moveTo(x, y + h - vul); c.lineTo(x + w, y + h - vul); c.lineTo(x + w, y + h - w / 2); c.arc(x + w / 2, y + h - w / 2, w / 2, 0, Math.PI); c.closePath();
         c.fillStyle = tint; c.fill(); c.clip();
-        if (b.u.soort !== 'g'){
+        if (b.u.soort === 'gas'){
+          const n = Math.max(0, 1 - b.t / 7);
+          c.fillStyle = 'rgba(255,255,255,.85)'; c.strokeStyle = 'rgba(90,110,130,.5)'; c.lineWidth = 0.8;
+          for (let k = 0; k < 9; k++){ const fase = (b.t * 0.9 + k / 9) % 1; if (k / 9 > n + 0.1) continue;
+            c.beginPath(); c.arc(x + 5 + ((k * 7) % (w - 10)), y + h - 8 - fase * (vul - 10), 1.6 + (k % 3) * 0.6, 0, Math.PI * 2); c.fill(); c.stroke(); }
+        } else if (b.u.soort !== 'g'){
           const a = Math.min(1, b.t / 1.2), zak = Math.min(1, b.t / 4);
           c.globalAlpha = (b.u.soort === 'm' ? 0.3 : 0.75) * a * (1 - zak * 0.7); c.fillStyle = b.u.kleur; c.fillRect(x, y + h - vul, w, vul);
           c.globalAlpha = a; c.fillStyle = b.u.kleur;
@@ -1453,6 +1468,8 @@ WPS.push({
     <p>Met neerslagreacties kun je ionen <b>aantonen</b>. Je voegt een reagens toe en neemt waar of er een neerslag ontstaat, en welke kleur die heeft.</p>
     <ul><li>Om het <b>positieve ion</b> aan te tonen gebruik je oplossingen van <b>natriumzouten</b>. Natriumionen slaan nooit neer, dus een neerslag komt door het negatieve ion van het reagens en het positieve ion van de onbekende oplossing.</li>
     <li>Om het <b>negatieve ion</b> aan te tonen gebruik je oplossingen van <b>nitraten</b>. Nitraationen slaan nooit neer.</li></ul>
+    <h3>Carbonaat aantonen met een zuur</h3>
+    <p>Voeg je verdund zoutzuur toe aan een oplossing met ${ionHTML(ION.CO3)}, dan <b>bruist</b> het mengsel: er ontstaat koolstofdioxide. Leid je het gas door kalkwater, dan wordt het kalkwater troebel. Met ${ionHTML(ION.S)} ontstaat ook een gas, dat je herkent aan de <b>geur van rotte eieren</b> (waterstofsulfide). Dit zijn geen neerslagreacties, dus deze tests staan niet in tabel 45A.</p>
     <p>Elke waarneming sluit ionen uit, of laat er een paar over. Combineer de waarnemingen met tabel 45A tot er één mogelijkheid over is. Let ook op de kleur van de oplossing en van de neerslag.</p>`,
   voorbeeld: {
     vraag: 'Een kleurloze oplossing bevat één opgelost zout. Bepaal welke ionen erin zitten.',
@@ -1487,7 +1504,7 @@ WPS.push({
             if (gk) return { ok:false, msg:'Het positieve ion klopt, het negatieve ion nog niet. Heb je genoeg nitraten getest?' };
             if (ga) return { ok:false, msg:'Het negatieve ion klopt, het positieve ion nog niet. Heb je genoeg natriumzouten getest?' };
             return { ok:false, msg:'Allebei nog niet goed. Controleer je waarnemingen met tabel 45A.' }; },
-          goed: () => [k, a], antwoord: () => `${ionHTML(ION[k])} en ${ionHTML(ION[a])} (${zoutVan(p).naam})`, hint:'Begin met de natriumzouten voor het positieve ion. Noteer bij elke test welke ionen afvallen.' }] });
+          goed: () => [k, a], antwoord: () => `${ionHTML(ION[k])} en ${ionHTML(ION[a])} (${zoutVan(p).naam})`, hint:'Begin met de natriumzouten voor het positieve ion. Noteer bij elke test welke ionen afvallen. Vergeet de test met zoutzuur niet.' }] });
     }
     return uit;
   }
