@@ -330,7 +330,32 @@ function korrel(cx, cy, straal, soort, rr=4.2){
   }
   return { x:cx, y:cy, d, soort, rr };
 }
-function tekenKorrel(ctx, k){ for (const p of k.d) bol(ctx, k.x+p.dx, k.y+p.dy, k.rr, DEEL[k.soort] || k.soort, 'rgba(60,40,20,.35)'); }
+/* een vloeistofdruppel: deeltjes dicht bij elkaar maar zonder vaste plek; ze schuiven langs elkaar en de rand golft */
+function druppel(cx, cy, straal, soort, rr=4.2){
+  const n = Math.round(korrel(0, 0, straal, soort, rr).d.length * 0.92);
+  const d = [];
+  for (let i = 0; i < n; i++){ const a = Math.random()*6.283, r = straal*0.85*Math.sqrt(Math.random()); d.push({ dx:Math.cos(a)*r, dy:Math.sin(a)*r, vx:0, vy:0 }); }
+  return { x:cx, y:cy, d, soort, rr, straal, vloeibaar:true, fase:Math.random()*6.283, t:null };
+}
+function stapDruppel(k){
+  const nu = performance.now()/1000, dt = k.t == null ? 0 : Math.min(0.05, nu - k.t); k.t = nu;
+  if (!dt) return;
+  k.fase += dt;
+  const rand = th => k.straal*(1.04 + 0.07*Math.sin(3*th + k.fase*1.4) + 0.05*Math.sin(5*th - k.fase*1.1));
+  for (const p of k.d){
+    p.vx += rnd(-1,1)*90*dt; p.vy += rnd(-1,1)*90*dt; p.vx *= Math.pow(0.25, dt); p.vy *= Math.pow(0.25, dt);
+    p.dx += p.vx*dt; p.dy += p.vy*dt;
+    const th = Math.atan2(p.dy, p.dx), r = Math.hypot(p.dx, p.dy), R = rand(th);
+    if (r > R){ p.dx *= R/r; p.dy *= R/r; p.vx -= Math.cos(th)*12; p.vy -= Math.sin(th)*12; }
+  }
+  /* deeltjes duwen elkaar weg: dicht opeen, maar niet over elkaar heen */
+  const min = k.rr*1.9;
+  for (let it = 0; it < 3; it++) for (let i = 0; i < k.d.length; i++) for (let j = i+1; j < k.d.length; j++){
+    const a = k.d[i], b = k.d[j], ex = b.dx - a.dx, ey = b.dy - a.dy, e = Math.hypot(ex, ey) || 0.01;
+    if (e < min){ const f = (min - e)/2*0.8; a.dx -= ex/e*f; a.dy -= ey/e*f; b.dx += ex/e*f; b.dy += ey/e*f; }
+  }
+}
+function tekenKorrel(ctx, k){ if (k.vloeibaar) stapDruppel(k); for (const p of k.d) bol(ctx, k.x+p.dx, k.y+p.dy, k.rr, DEEL[k.soort] || k.soort, 'rgba(60,40,20,.35)'); }
 
 /* ---------- vragen ---------- */
 function schud(v){
@@ -474,7 +499,7 @@ WP.push({
     if (k === 'A'){ this.lx = zwerm(14, 'zout', 4.6, G, 35); loepTekst('Het zout is niet verdwenen. De deeltjes van het zout zitten los tussen de waterdeeltjes, gelijkmatig verdeeld. Ze zijn veel te klein om te zien: daarom is de oplossing helder.', [['water','#6fa8d6'],['zout','#f4f4f0']]); }
     if (k === 'B'){ this.lx = zwerm(14, 'blauw', 4.6, G, 35); loepTekst('Ook hier zitten de deeltjes van de opgeloste stof los tussen de waterdeeltjes. De oplossing is gekleurd, maar wel helder: je kunt erdoorheen kijken.', [['water','#6fa8d6'],['kopersulfaat','#2f6fc4']]); }
     if (k === 'C'){ this.lk = korrel(130, 80, 42, 'zand', 4.4); loepTekst('Een zandkorrel is opgebouwd uit ontelbaar veel deeltjes die aan elkaar vastzitten (hier sterk vereenvoudigd). Zo\'n korrel is groot genoeg om licht tegen te houden: het mengsel is troebel. De korrel zakt langzaam, want zand heeft een grotere dichtheid dan water.', [['water','#6fa8d6'],['zand','#c9a061']]); }
-    if (k === 'D'){ this.ld = this.emul ? [korrel(80,90,17,'olie',4.2), korrel(175,120,15,'olie',4.2), korrel(110,185,16,'olie',4.2)] : [korrel(130,150,38,'olie',4.3)];
+    if (k === 'D'){ this.ld = this.emul ? [druppel(80,90,17,'olie',4.2), druppel(175,120,15,'olie',4.2), druppel(110,185,16,'olie',4.2)] : [druppel(130,150,38,'olie',4.3)];
       loepTekst(this.emul ? 'De emulgator houdt de oliedruppeltjes van elkaar gescheiden: ze klonteren niet samen. Zo blijven de druppeltjes zweven en blijft de emulsie troebel.' : 'Een oliedruppeltje is een groepje oliedeeltjes tussen de waterdeeltjes. Olie mengt niet met water: de druppeltjes klonteren samen en stijgen op, want olie heeft een kleinere dichtheid dan water.', [['water','#6fa8d6'],['olie','#e3c34d']]); this.emulLoep = this.emul; }
   },
   update(dt){
@@ -746,7 +771,7 @@ WP.push({
     this.lw = zwerm(70, 'water', 3.6, G, 30); for (const p of this.lw) p.ay = 40;
     this.lx = M.opgelost ? zwerm(12, M.opgelost === 'zout' ? 'zout' : 'blauw', 4, G, 30) : []; for (const p of this.lx) p.ay = 40;
     this.lk = M.residu ? [korrel(80, 40, 26, M.troebel ? (this.m==='krijt' ? '#f3f1ea' : 'zand') : 'zand', 4), korrel(178, -40, 22, this.m==='krijt' ? '#f3f1ea' : 'zand', 4)] : [];
-    this.ld = M.emulsie ? [korrel(90, 30, 9, 'olie', 3.4), korrel(170, -60, 8, 'olie', 3.4)] : [];
+    this.ld = M.emulsie ? [druppel(90, 30, 9, 'olie', 3.4), druppel(170, -60, 8, 'olie', 3.4)] : [];
     const leg = [['water','#6fa8d6']];
     if (M.opgelost) leg.push([M.opgelost, M.opgelost==='zout' ? '#f4f4f0' : '#2f6fc4']);
     if (M.residu) leg.push([this.m === 'krijt' ? 'krijt' : 'zand', this.m === 'krijt' ? '#f3f1ea' : '#c9a061']);
