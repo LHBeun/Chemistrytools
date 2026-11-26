@@ -285,7 +285,7 @@ function pijlLijn(ctx, x1,y1,x2,y2, kleur='#5a4530'){
 /* ---------- loep (deeltjesniveau) ---------- */
 const DEEL = {
   water:'#6fa8d6', zout:'#f4f4f0', zand:'#c9a061', olie:'#e3c34d', blauw:'#2f6fc4', rood:'#c0392b', jood:'#7d3c98',
-  kool:'#2b2b2b', alcohol:'#9fd3a8', wasbenzine:'#e8e1cf', klei:'#9a8a78', papier:'#c8b48a', damp:'#9cc4e4', suiker:'#ffffff'
+  kool:'#2b2b2b', alcohol:'#9fd3a8', wasbenzine:'#e8e1cf', klei:'#9a8a78', papier:'#c8b48a', damp:'#9cc4e4', suiker:'#ffffff', glucose:'#ffffff', kleurstof:'#2350b0'
 };
 function loepStart(ctx){
   ctx.save(); ctx.beginPath(); ctx.arc(ctx.W/2, ctx.H/2, ctx.W/2, 0, Math.PI*2); ctx.clip();
@@ -449,24 +449,6 @@ function open(i){
   renderKaart();
 }
 function status(t){ const el = document.getElementById('status'); if (el) el.innerHTML = t; }
-/* een opgelost zout: twee soorten deeltjes (ionen), in verhouding 1 : 1 */
-const ZOUTDEEL = {
-  zout:  { naam:'keukenzout', a:{ k:'natrium', kl:'#b99ad9', r:4.6, ion:'natriumionen (Na⁺)' }, b:{ k:'chloride', kl:'#6cc49a', r:6.2, ion:'chloride-ionen (Cl⁻)' } },
-  koper: { naam:'kopersulfaat', a:{ k:'koperion', kl:'#1b3c8c', r:4.6, ion:'koper(II)ionen (Cu²⁺)' }, b:{ k:'sulfaat', kl:'#e0b04a', r:6.6, ion:'sulfaationen (SO₄²⁻)' } },
-};
-for (const z of Object.values(ZOUTDEEL)){ DEEL[z.a.k] = z.a.kl; DEEL[z.b.k] = z.b.kl; }
-function zoutZwerm(m, n, G, snel, schaal=1){
-  const z = ZOUTDEEL[m], uit = [];
-  for (let i = 0; i < n; i++){ const d = i % 2 ? z.b : z.a; uit.push(...zwerm(1, d.k, d.r*schaal, G, snel)); }
-  return uit;
-}
-function zoutLegenda(m){
-  const z = ZOUTDEEL[m];
-  if (is4()) return [[z.a.ion, z.a.kl], [z.b.ion, z.b.kl]];
-  return [[`<i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${z.b.kl};margin:0 4px 0 -1px;vertical-align:-1px"></i>${z.naam} (twee soorten deeltjes)`, z.a.kl]];
-}
-const zoutUitleg = m => is4() ? `${ZOUTDEEL[m].naam[0].toUpperCase() + ZOUTDEEL[m].naam.slice(1)} is opgebouwd uit ${ZOUTDEEL[m].a.ion.replace(/ \(.*\)/, '')} en ${ZOUTDEEL[m].b.ion.replace(/ \(.*\)/, '')}. Bij het oplossen raken de ionen los van elkaar.`
-                              : `${ZOUTDEEL[m].naam[0].toUpperCase() + ZOUTDEEL[m].naam.slice(1)} is opgebouwd uit twee soorten deeltjes. Bij het oplossen raken die los van elkaar.`;
 function loepTekst(t, legenda){
   const el = document.getElementById('loeptekst'); if (el) el.innerHTML = t;
   const lg = document.getElementById('legenda'); if (lg && legenda) lg.innerHTML = legenda.map(([n,c]) => `<span style="--c:${c}">${n}</span>`).join('');
@@ -507,8 +489,8 @@ WP.push({
     this.korrels = Array.from({length:170}, () => ({ u:r(), y0:r(), v:0.7+0.6*r() }));
     this.druppels = Array.from({length:110}, () => ({ u:r(), y0:r(), v:0.6+0.8*r(), r:1.6+2.2*r() }));
     this.monsters = [
-      { k:'A', naam:'zout + water', soort:'oplossing' },
-      { k:'B', naam:'kopersulfaat + water', soort:'oplossing' },
+      { k:'A', naam:'glucose + water', soort:'oplossing' },
+      { k:'B', naam:'blauwe kleurstof + water', soort:'oplossing' },
       { k:'C', naam:'zand + water', soort:'suspensie' },
       { k:'D', naam:'olie + water (geschud)', soort:'emulsie' },
     ];
@@ -539,8 +521,8 @@ WP.push({
     this.lw = zwerm(nVl(G, 5), 'water', 5, G, 30);
     this.lx = []; this.lk = null; this.ld = [];
     const k = this.monsters[this.sel].k;
-    if (k === 'A'){ this.lx = zoutZwerm('zout', 16, G, 30); loepTekst(`Het zout is niet verdwenen. ${zoutUitleg('zout')} De ${is4() ? 'ionen' : 'deeltjes'} zitten gelijkmatig verdeeld tussen de waterdeeltjes. Ze zijn veel te klein om te zien: daarom is de oplossing helder.`, [['water','#6fa8d6'], ...zoutLegenda('zout')]); }
-    if (k === 'B'){ this.lx = zoutZwerm('koper', 16, G, 30); loepTekst(`${zoutUitleg('koper')} De ${is4() ? 'ionen' : 'deeltjes'} zitten los tussen de waterdeeltjes. De oplossing is gekleurd, maar wel helder: je kunt erdoorheen kijken.`, [['water','#6fa8d6'], ...zoutLegenda('koper')]); }
+    if (k === 'A'){ this.lx = zwerm(14, 'glucose', 6.4, G, 30); loepTekst(`De glucose is niet verdwenen. De ${is4() ? 'glucosemoleculen' : 'glucosedeeltjes'} zitten los tussen de waterdeeltjes, gelijkmatig verdeeld. Ze zijn veel te klein om te zien: daarom is de oplossing helder.`, [['water','#6fa8d6'],['glucose','#ffffff']]); }
+    if (k === 'B'){ this.lx = zwerm(14, 'kleurstof', 6.8, G, 30); loepTekst('Ook hier zitten de deeltjes van de opgeloste stof los tussen de waterdeeltjes. De oplossing is gekleurd, maar wel helder: je kunt erdoorheen kijken.', [['water','#6fa8d6'],['blauwe kleurstof','#2350b0']]); }
     if (k === 'C'){ this.lk = korrel(130, 80, 42, 'zand', 4.4); loepTekst('Een zandkorrel is opgebouwd uit ontelbaar veel deeltjes die aan elkaar vastzitten (hier sterk vereenvoudigd). Zo\'n korrel is groot genoeg om licht tegen te houden: het mengsel is troebel. De korrel zakt langzaam, want zand heeft een grotere dichtheid dan water.', [['water','#6fa8d6'],['zand','#c9a061']]); }
     if (k === 'D'){ this.ld = this.emul ? [druppel(80,90,17,'olie',4.2), druppel(175,120,15,'olie',4.2), druppel(110,185,16,'olie',4.2)] : [druppel(130,150,38,'olie',4.3)];
       loepTekst(this.emul ? 'De emulgator houdt de oliedruppeltjes van elkaar gescheiden: ze klonteren niet samen. Zo blijven de druppeltjes zweven en blijft de emulsie troebel.' : 'Een oliedruppeltje is een groepje oliedeeltjes tussen de waterdeeltjes. Olie mengt niet met water: de druppeltjes klonteren samen en stijgen op, want olie heeft een kleinere dichtheid dan water.', [['water','#6fa8d6'],['olie','#e3c34d']]); this.emulLoep = this.emul; }
@@ -786,8 +768,8 @@ WP.push({
   MON: {
     zand:  { naam:'zand in water', soort:'suspensie', vast:'#b48a4a', troebel:'185,145,80', filtraat:'rgba(190,220,235,.5)', ftroebel:0, residu:true },
     krijt: { naam:'krijt in water', soort:'suspensie', vast:'#f3f1ea', troebel:'238,236,228', filtraat:'rgba(190,220,235,.5)', ftroebel:0, residu:true },
-    zout:  { naam:'zout water', soort:'oplossing', filtraat:'rgba(190,220,235,.5)', ftroebel:0, opgelost:'zout' },
-    koper: { naam:'kopersulfaatoplossing', soort:'oplossing', kleur:'rgba(60,130,210,.6)', filtraat:'rgba(60,130,210,.6)', ftroebel:0, opgelost:'kopersulfaat' },
+    zout:  { naam:'glucose-oplossing', soort:'oplossing', filtraat:'rgba(190,220,235,.5)', ftroebel:0, opgelost:'glucose' },
+    koper: { naam:'blauwe kleurstofoplossing', soort:'oplossing', kleur:'rgba(60,130,210,.6)', filtraat:'rgba(60,130,210,.6)', ftroebel:0, opgelost:'kleurstof' },
     olie:  { naam:'olie en water (geschud)', soort:'emulsie', troebel:'245,235,200', filtraat:'rgba(190,220,235,.5)', ftroebel:.55, emulsie:true },
   },
   init(){
@@ -801,7 +783,7 @@ WP.push({
     $('#test').onclick = () => {
       if (this.filtraat < .05){ status('Er is nog geen filtraat om te testen.'); return; }
       const M = this.MON[this.m];
-      this.testUit = M.opgelost ? `Er blijft een korstje ${M.opgelost === 'zout' ? 'wit zout' : 'blauw kopersulfaat'} achter: de opgeloste stof is door het filter gegaan.` : M.emulsie ? 'Er blijft een vettig vlekje olie achter: de oliedruppeltjes zijn door het filter gegaan.' : 'Er blijft niets achter: in het filtraat zat alleen water.';
+      this.testUit = M.opgelost ? `Er blijft een laagje ${M.opgelost === 'glucose' ? 'witte glucose' : 'blauwe kleurstof'} achter: de opgeloste stof is door het filter gegaan.` : M.emulsie ? 'Er blijft een vettig vlekje olie achter: de oliedruppeltjes zijn door het filter gegaan.' : 'Er blijft niets achter: in het filtraat zat alleen water.';
       status('Druppel filtraat ingedampt: ' + this.testUit);
     };
     $('#opnieuw').onclick = () => this.nieuw();
@@ -814,11 +796,11 @@ WP.push({
     const r = zaad(5);
     this.vezels = Array.from({length:26}, () => ({ y: 122 + r()*26, a: r()*6.3, f: 0.02 + r()*0.03, amp: 3 + r()*5 }));
     this.lw = zwerm(nVl(G, 4.4, 0.54), 'water', 4.4, G, 30); for (const p of this.lw) p.ay = 40;
-    this.lx = M.opgelost ? zoutZwerm(M.opgelost === 'zout' ? 'zout' : 'koper', 14, G, 30, 0.88) : []; for (const p of this.lx) p.ay = 40;
+    this.lx = M.opgelost ? zwerm(12, M.opgelost, M.opgelost === 'glucose' ? 5.8 : 6.2, G, 30) : []; for (const p of this.lx) p.ay = 40;
     this.lk = M.residu ? [korrel(80, 40, 26, M.troebel ? (this.m==='krijt' ? '#f3f1ea' : 'zand') : 'zand', 4), korrel(178, -40, 22, this.m==='krijt' ? '#f3f1ea' : 'zand', 4)] : [];
     this.ld = M.emulsie ? [druppel(90, 30, 9, 'olie', 3.4), druppel(170, -60, 8, 'olie', 3.4)] : [];
     const leg = [['water','#6fa8d6']];
-    if (M.opgelost) leg.push(...zoutLegenda(M.opgelost === 'zout' ? 'zout' : 'koper'));
+    if (M.opgelost) leg.push(M.opgelost === 'glucose' ? ['glucose','#ffffff'] : ['blauwe kleurstof','#2350b0']);
     if (M.residu) leg.push([this.m === 'krijt' ? 'krijt' : 'zand', this.m === 'krijt' ? '#f3f1ea' : '#c9a061']);
     if (M.emulsie) leg.push(['olie','#e3c34d']); leg.push(['vezels van het papier','#a08155']);
     loepTekst(M.residu ? 'De korrels zijn veel groter dan de poriën tussen de vezels: ze blijven op het papier liggen. De waterdeeltjes gaan erdoorheen.'
@@ -835,7 +817,7 @@ WP.push({
       const d = Math.min(this.trechter, 0.17*dt); this.trechter -= d; this.filtraat += d;
       if (Math.random() < dt*9) this.druppels.push({ y: 0 });
       if (this.trechter <= 0 && this.beker <= 0){
-        status(M.residu ? `Klaar. Het residu (${this.m==='krijt'?'krijt':'zand'}) ligt op het filter, het filtraat is helder.` : M.emulsie ? 'Klaar. Het filtraat is nog steeds troebel: de oliedruppeltjes zijn door het filter gegaan.' : M.opgelost === 'kopersulfaat' ? 'Klaar. Het filtraat is nog steeds blauw: het kopersulfaat is door het filter gegaan.' : 'Klaar. Het filtraat is helder en kleurloos. Is het zout eruit? Test het filtraat.');
+        status(M.residu ? `Klaar. Het residu (${this.m==='krijt'?'krijt':'zand'}) ligt op het filter, het filtraat is helder.` : M.emulsie ? 'Klaar. Het filtraat is nog steeds troebel: de oliedruppeltjes zijn door het filter gegaan.' : M.opgelost === 'kleurstof' ? 'Klaar. Het filtraat is nog steeds blauw: de kleurstof is door het filter gegaan.' : 'Klaar. Het filtraat is helder en kleurloos. Is de glucose eruit? Test het filtraat.');
       }
     }
     for (const d of this.druppels) d.y += 160*dt;
@@ -909,7 +891,7 @@ WP.push({
   },
   vragen: [
     { q:'Op welk verschil in stofeigenschap berust filtreren?', opties:['deeltjesgrootte','dichtheid','kookpunt','oplosbaarheid','aanhechtingsvermogen'], goed:[0] },
-    { q:'Je filtreert zout water. Wat is juist?', opties:['Het zout blijft als residu op het filter achter.','In het filtraat zit nog steeds zout.','Het filtraat is één stof: water.','Het filter raakt verstopt door het zout.'], goed:[1], uitleg:'De deeltjes van het opgeloste zout zijn veel kleiner dan de poriën.' },
+    { q:'Je filtreert een glucose-oplossing. Wat is juist?', opties:['De glucose blijft als residu op het filter achter.','In het filtraat zit nog steeds glucose.','Het filtraat is één stof: water.','Het filter raakt verstopt door de glucose.'], goed:[1], uitleg:'De deeltjes van de opgeloste glucose zijn veel kleiner dan de poriën.' },
     { q:'Je filtreert krijt in suikerwater. Wat is het residu?', opties:['krijt','suiker','water','krijt en suiker'], goed:[0] },
     { q:'Bij welk soort mengsel kun je filtreren gebruiken om de stoffen te scheiden?', opties:['oplossing','suspensie','emulsie','mengsel van twee gassen'], goed:[1] },
     { ster:true, q:'Waarom kun je een emulsie van olie en water meestal niet scheiden door te filtreren?', opties:['De oliedruppeltjes zijn kleiner dan de poriën van het filtreerpapier.','Olie lost op in water.','Olie heeft een grotere dichtheid dan water.','Olie verdampt in het filter.'], goed:[0] },
@@ -931,10 +913,10 @@ WP.push({
     <div class="kader"><b>Past bij:</b> oplossingen van een vaste stof in een vloeistof.
       <div class="termen"><span class="term">indampen</span><span class="term">indampschaal</span><span class="term">residu</span></div></div>
     <p class="meester">In zoutpannen aan de kust laat men zeewater indampen door de zon en de wind. Zo wordt al duizenden jaren zeezout gewonnen.</p>`,
-  MON: { zout:{ naam:'zout water', kleur:'rgba(190,220,235,.5)', kristal:'#fbfbf6', deel:'zout' }, koper:{ naam:'kopersulfaatoplossing', kleur:'rgba(60,130,210,', kristal:'#2f6fc4', deel:'blauw' } },
+  MON: { zout:{ naam:'glucose-oplossing', kleur:'rgba(190,220,235,.5)', kristal:'#fbfbf6', deel:'glucose' }, koper:{ naam:'blauwe kleurstofoplossing', kleur:'rgba(60,130,210,', kristal:'#2f6fc4', deel:'kleurstof' } },
   init(){
     this.m = 'zout'; this.nieuw();
-    ctrlHTML(`<label>Monster: <select id="mon"><option value="zout">zout water</option><option value="koper">kopersulfaatoplossing</option></select></label>
+    ctrlHTML(`<label>Monster: <select id="mon"><option value="zout">glucose-oplossing</option><option value="koper">blauwe kleurstofoplossing</option></select></label>
       <button class="knop hoofd" id="aan">🔥 Brander aan</button>
       <label>Luchttoevoer: dicht <input type="range" id="lucht" min="0" max="1" step="0.05" value="1"> open</label>
       <button class="knop" id="opnieuw">Opnieuw</button>`);
@@ -949,12 +931,9 @@ WP.push({
     const M = this.MON[this.m];
     const G = { x0:12, y0:80, x1:248, y1:248 };
     this.N = nVl(G, 5); this.lw = zwerm(this.N, 'water', 5, G, 30);
-    this.lx = zoutZwerm(this.m, 16, G, 30);
-    /* kristal: de twee soorten deeltjes om en om in een rooster */
-    const zd = ZOUTDEEL[this.m];
-    this.lx.forEach((p, i) => { const d = ((i % 4) + Math.floor(i / 4)) % 2 ? zd.b : zd.a; p.soort = d.k; p.r = d.r; });
-    this.rooster = this.lx.map((p,i) => ({ x: 82 + (i%4)*13.6, y: 234 - Math.floor(i/4)*13.6 }));
-    loepTekst(`Aan het oppervlak ontsnappen waterdeeltjes uit de vloeistof: het water verdampt. De ${is4() ? 'ionen' : 'deeltjes'} van het opgeloste zout blijven achter en komen steeds dichter bij elkaar. Als er bijna geen water meer is, vormen ze een kristal: de twee soorten ${is4() ? 'ionen' : 'deeltjes'} om en om in een geordend rooster.`, [['water','#6fa8d6'], ...zoutLegenda(this.m)]);
+    this.lx = zwerm(16, M.deel, M.deel === 'glucose' ? 6.2 : 6.6, G, 30);
+    this.rooster = this.lx.map((p,i) => ({ x: 84 + (i%4)*13.4 + ((Math.floor(i/4))%2)*6.7, y: 236 - Math.floor(i/4)*11.6 }));
+    loepTekst(`Aan het oppervlak ontsnappen waterdeeltjes uit de vloeistof: het water verdampt. De deeltjes van de opgeloste stof blijven achter en komen steeds dichter bij elkaar. Als er bijna geen water meer is, vormen ze een vaste stof: de deeltjes liggen dicht op elkaar.`, [['water','#6fa8d6'], M.deel === 'glucose' ? ['glucose','#ffffff'] : ['blauwe kleurstof','#2350b0']]);
     status(`Monster: ${M.naam} in een indampschaal. Zet de brander aan.`);
   },
   update(dt){
@@ -967,7 +946,7 @@ WP.push({
     /* status */
     if (this.aan && this.lucht <= .5) status('Gele vlam: de luchttoevoer is (bijna) dicht. Deze vlam is minder heet en geeft roet op de schaal. Draai de luchttoevoer open.');
     else if (this.droog > 2.5) status('⚠ De schaal staat droog op de vlam: het residu spat en kan ontleden. Je had moeten stoppen toen er nog een klein beetje vloeistof in de schaal stond.');
-    else if (this.w <= 0) status(`Al het water is verdampt. In de schaal ligt het residu: ${this.m === 'zout' ? 'wit zout' : 'blauw kopersulfaat'}. Zet de brander uit.`);
+    else if (this.w <= 0) status(`Al het water is verdampt. In de schaal ligt het residu: ${this.m === 'zout' ? 'witte glucose' : 'blauwe kleurstof'}. Zet de brander uit.`);
     else if (this.w < .15) status('Er staat nog maar een klein beetje vloeistof in de schaal en er ontstaan kristallen. Dit is het moment om de brander uit te zetten.');
     else if (this.aan) status(`Het water verdampt. Nog ${Math.round(this.w*100)}% van het water is over.`);
     /* loep: water ontsnapt */
