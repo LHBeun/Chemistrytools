@@ -174,6 +174,9 @@ input.getal{max-width:200px;flex:0 1 200px}
 table.data{border-collapse:collapse;font-size:14px;background:#fff;margin:6px 0}
 table.data th,table.data td{border:1px solid var(--rand2);padding:3px 10px;text-align:right}
 table.data th{background:#f7f2e6;font-weight:600}
+.fitvak{margin-top:10px;padding:10px 12px;border:1px dashed #D9822B;border-radius:10px;background:#fdf6ec}
+.fitkop{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:#b8641a;margin-bottom:4px}
+.fitvak .inp{font:inherit;font-size:14px;padding:4px 7px;border:1px solid #d8cfbd;border-radius:6px;background:#fff}
 .reeksen{display:flex;flex-direction:column;gap:4px;font-size:13.5px}
 .reeksen label{display:flex;gap:8px;align-items:center}
 .reeksen i{display:inline-block;width:14px;height:4px;border-radius:2px}
@@ -264,7 +267,7 @@ const KLEUREN = ['#1F5FBF', '#C62828', '#1A7F37', '#D9822B', '#6A3D9A', '#00838F
    ===================================================================== */
 const LAB = {
   c: { pH: 7, T: 37, E: 20, remmer: 'geen', I: 10 },
-  reeksen: [], lb: false, remX: 'comp', tijd: 0,
+  reeksen: [], lb: false, remX: 'comp', tijd: 0, schat: { i: -1, V: NaN, K: NaN },
   init(host){
     host.innerHTML = `<div class="simkop"><b>Enzymlab</b><span>deeltjesniveau en metingen</span></div>
       <div class="ctrl">
@@ -281,6 +284,7 @@ const LAB = {
         <label style="margin-left:auto;font-size:13px"><input type="checkbox" id="elb"> ★ Lineweaver-Burk</label></div>
       <div class="doek" id="egraf"></div>
       <div class="reeksen" id="ereeks"></div>
+      <div class="fitvak" id="efit"></div>
       <div id="etabel"></div>`;
     this.cv = maakCanvas($('#edoek'), 600, 360);
     this.cg = maakCanvas($('#egraf'), 600, 330);
@@ -292,7 +296,8 @@ const LAB = {
     $('#eI').oninput = e => { c.I = +e.target.value; this.stat(); };
     $('#elb').onchange = e => { this.lb = e.target.checked; this.grafiek(); };
     $('#emeet').onclick = () => this.meet();
-    $('#ewis').onclick = () => { this.reeksen = []; this.grafiek(); };
+    $('#ewis').onclick = () => { this.reeksen = []; this.schat = { i: -1, V: NaN, K: NaN }; this.fitUI(); this.grafiek(); };
+    this.fitUI();
     this.deeltjes = [];
     this.stat(); this.grafiek();
   },
@@ -304,7 +309,26 @@ const LAB = {
     const pts = S_REEKS.map(S => ({ S, v: snelheid(S, k) * ruis() }));
     this.reeksen.push({ label: this.label(), pts, k, kleur: KLEUREN[this.reeksen.length % KLEUREN.length], aan: true });
     if (this.reeksen.length > 8) this.reeksen.shift();
-    this.grafiek();
+    this.schat.i = this.reeksen.length - 1;
+    this.reeksen[this.schat.i].fit = { V: NaN, K: NaN };
+    this.fitUI(); this.grafiek();
+  },
+  /* ---------- jouw schatting: Vmax en Km zelf fitten ---------- */
+  fitUI(){
+    const vak = $('#efit'); if (!vak) return;
+    if (!this.reeksen.length){ vak.innerHTML = ''; return; }
+    if (this.schat.i < 0 || this.schat.i >= this.reeksen.length) this.schat.i = this.reeksen.length - 1;
+    const f = this.schat, r = this.reeksen[f.i], w = x => isNaN(x) ? '' : String(x).replace('.', ',');
+    if (!r.fit) r.fit = { V: NaN, K: NaN };
+    vak.innerHTML = `<div class="fitkop">Jouw schatting</div>
+      <div class="ctrl"><label>Reeks <select class="sel" id="efr">${this.reeksen.map((r, i) => `<option value="${i}" ${i === f.i ? 'selected' : ''}>${r.label}</option>`).join('')}</select></label></div>
+      <div class="ctrl"><label><span>V<sub>max</sub></span> <input class="inp" id="efv" style="width:80px" value="${w(r.fit.V)}"> µM/s</label>
+        <label><span>K<sub>m</sub></span> <input class="inp" id="efk" style="width:80px" value="${w(r.fit.K)}"> µM</label></div>
+      <div class="legenda">Pas V<sub>max</sub> en K<sub>m</sub> aan tot de gestreepte curve door de meetpunten van deze reeks gaat.</div>`;
+    $('#efr').onchange = e => { f.i = +e.target.value; this.fitUI(); this.grafiek(); };
+    const lees = s => { const t = String(s).trim().replace(',', '.'); return t === '' ? NaN : parseFloat(t); };
+    $('#efv').oninput = e => { r.fit.V = lees(e.target.value); this.grafiek(); };
+    $('#efk').oninput = e => { r.fit.K = lees(e.target.value); this.grafiek(); };
   },
   stat(){
     const c = this.c;
@@ -464,10 +488,26 @@ const LAB = {
     g.save(); g.beginPath(); g.rect(m.l, m.t, W, H); g.clip();
     for (const r of rs){
       g.strokeStyle = r.kleur; g.lineWidth = 2; g.beginPath();
-      if (lb){ for (let i = 0; i <= 60; i++){ const x = -0.02 + i / 60 * (xmax + 0.02), y = (r.k.Km / r.k.Vmax) * x + 1 / r.k.Vmax; i ? g.lineTo(X(x), Y(y)) : g.moveTo(X(x), Y(y)); } }
+      if (!lb){ /* geen modelcurve: de leerling fit zelf */ }
+      else if (lb){ for (let i = 0; i <= 60; i++){ const x = -0.02 + i / 60 * (xmax + 0.02), y = (r.k.Km / r.k.Vmax) * x + 1 / r.k.Vmax; i ? g.lineTo(X(x), Y(y)) : g.moveTo(X(x), Y(y)); } }
       else { for (let i = 0; i <= 120; i++){ const S = i / 120 * xmax, v = snelheid(S, r.k); i ? g.lineTo(X(S), Y(v)) : g.moveTo(X(S), Y(v)); } }
-      g.globalAlpha = 0.55; g.stroke(); g.globalAlpha = 1;
+      if (lb){ g.globalAlpha = 0.55; g.stroke(); g.globalAlpha = 1; }
       g.fillStyle = r.kleur; for (const p of r.pts){ const x = lb ? 1 / p.S : p.S, y = lb ? 1 / p.v : p.v; g.beginPath(); g.arc(X(x), Y(y), 4, 0, 7); g.fill(); }
+    }
+    for (const r of rs){
+      const q = r.fit; if (lb || !q || !(q.V > 0) || !(q.K > 0)) continue;
+      g.setLineDash([7, 5]); g.strokeStyle = r.kleur; g.lineWidth = 2.4; g.beginPath();
+      for (let i = 0; i <= 160; i++){ const S = i / 160 * xmax, v = q.V * S / (q.K + S); i ? g.lineTo(X(S), Y(v)) : g.moveTo(X(S), Y(v)); }
+      g.stroke(); g.setLineDash([]);
+    }
+    const fr = this.reeksen[this.schat.i], f = fr && fr.fit;
+    if (!lb && fr && fr.aan && f && f.V > 0 && f.K > 0){
+      g.lineWidth = 1.3; g.strokeStyle = fr.kleur; g.setLineDash([3, 4]);
+      g.beginPath(); g.moveTo(X(0), Y(f.V)); g.lineTo(X(xmax), Y(f.V)); g.stroke();
+      g.strokeStyle = '#8a8f99'; g.beginPath(); g.moveTo(X(0), Y(f.V / 2)); g.lineTo(X(f.K), Y(f.V / 2)); g.lineTo(X(f.K), Y(0)); g.stroke();
+      g.setLineDash([]);
+      tekstC(g, 'Vmax', X(0) + 22, Y(f.V) - 9, { px: 11, kleur: fr.kleur });
+      tekstC(g, 'Km', X(f.K), Y(0) - 9, { px: 11, kleur: '#5d5a52' });
     }
     g.restore();
     $('#ereeks').innerHTML = this.reeksen.map((r, i) => `<label><input type="checkbox" data-i="${i}" ${r.aan ? 'checked' : ''}><i style="background:${r.kleur}"></i>${r.label}</label>`).join('');
@@ -579,7 +619,7 @@ function renderOpdracht(w, p){
   return h;
 }
 const TEKENTIP = 'Tekenen: kies een atoomsoort en klik op het raster. Sleep vanaf een atoom om een binding met een nieuw of bestaand atoom te maken. Klik op een binding voor een dubbele binding. <b>+H aanvullen</b> zet ontbrekende H-atomen, maar je mag ze ook zelf zetten. <b>~</b> is een open binding: de keten gaat verder.';
-const GETALTIP = 'Atoommassa\'s: H 1,008 · C 12,01 · N 14,01 · O 16,00 · F 19,00 · Cl 35,45 u. Typ een getal met een komma, bijvoorbeeld <code>4,2</code> of <code>2,8·10^4</code> (ook <code>2,8e4</code>).';
+const GETALTIP = 'Typ een getal met een komma, bijvoorbeeld <code>2,4</code> of <code>35</code>.';
 const TYPTIP = 'Zo typ je (voorbeelden met titaan en chromaat): <code>Ti2(CrO4)3</code> · ion <code>Ti3+</code> of <code>CrO4 2-</code> · pijl <code>-></code> · toestand <code>(s)</code> <code>(aq)</code> <code>(l)</code> · coëfficiënt ervoor: <code>3 CrO4 2-(aq)</code>.';
 
 function invoerHTML(st, k){
@@ -709,6 +749,15 @@ function combiOpties(goedVm, goedKm){
   for (const vm of ['lager','gelijk','hoger']) for (const km of ['kleiner','gelijk','groter']) opties.push({ html: COMBI(vm, km), g: vm === goedVm && km === goedKm });
   return opties;
 }
+/* fit-stappen: leerling schat Vmax en Km van een reeks met 'Jouw schatting' */
+function fitStappen(naam, c){
+  const k = kinetiek(Object.assign({ pH: 7, T: 37, E: 20, remmer: 'geen', I: 0 }, c));
+  const Vm = k.Vmax, Km = k.Km;
+  return [
+    getalStap(`Reeks ${naam}: V<sub>max</sub> ≈`, Vm, 'µM/s', `V<sub>max</sub> ≈ ${nl(Vm, Vm < 1 ? 2 : 1)} µM/s.`, 'Kies deze reeks bij Jouw schatting en pas V<sub>max</sub> aan tot de gestreepte curve bij hoge [S] door de punten gaat.', 0.10),
+    getalStap(`Reeks ${naam}: K<sub>m</sub> ≈`, Km, 'µM', `K<sub>m</sub> ≈ ${Math.round(Km)} µM.`, 'Pas daarna K<sub>m</sub> aan tot de curve ook bij lage [S] door de punten gaat. K<sub>m</sub> is de [S] bij ½ V<sub>max</sub>.', 0.20)];
+}
+const FITTIP = ' Fit beide reeksen met <b>Jouw schatting</b> onder de grafiek.';
 function dataTabel(k){
   const pts = S_REEKS.map(S => ({ S, v: snelheid(S, k) * (1 + (Math.random() - 0.5) * 0.02) }));
   return { pts, html: `<table class="data"><tr><th>[S] (µM)</th>${pts.map(p => `<td>${p.S}</td>`).join('')}</tr><tr><th>v₀ (µM/s)</th>${pts.map(p => `<td>${sig(p.v, 3)}</td>`).join('')}</tr></table>` };
@@ -838,8 +887,8 @@ WPS.push({
           { html:'Een ionbinding verdwijnt: het substraat bindt zwakker, K<sub>m</sub> wordt groter.', g:true },
           { html:'Er ontstaat een extra ionbinding: K<sub>m</sub> wordt kleiner.', g:false },
           { html:'Het substraat bindt niet meer, dus K<sub>m</sub> wordt 0.', g:false }])] },
-      { titel:'Meten bij pH 5', vraag:'Meet een reeks bij pH 7 en een reeks bij pH 5 (beide 37 °C, geen remmer). Vergelijk de twee curves.',
-        stappen:[keuzeStap('Wat gebeurt er van pH 7 naar pH 5?', combiOpties('lager', 'groter'), { vast:true, hint:'Lees bij beide curves V<sub>max</sub> en de [S] bij ½ V<sub>max</sub> af.' }),
+      { titel:'Meten bij pH 5', vraag:'Meet een reeks bij pH 7 en een reeks bij pH 5 (beide 37 °C, geen remmer).' + FITTIP,
+        stappen:[...fitStappen('pH 7', { pH: 7 }), ...fitStappen('pH 5', { pH: 5 }), keuzeStap('Wat gebeurt er van pH 7 naar pH 5?', combiOpties('lager', 'groter'), { vast:true, hint:'Lees bij beide curves V<sub>max</sub> en de [S] bij ½ V<sub>max</sub> af.' }),
           keuzeStap('Welke verandering in het actieve centrum verklaart vooral de daling van V<sub>max</sub>?', [
           { html:'His neemt een extra H<sup>+</sup> op en kan niet meer helpen bij de reactie.', g:true },
           { html:'Glu verliest zijn lading.', g:false, fb:'Dat verklaart de grotere K<sub>m</sub> (zwakkere binding), maar niet dat een gebonden substraat slechter wordt omgezet.' },
@@ -878,8 +927,8 @@ WPS.push({
   },
   maakSerie(){
     return [
-      { titel:'Van 20 naar 37 °C', vraag:'Meet een reeks bij 20 °C en bij 37 °C (pH 7, geen remmer).',
-        stappen:[keuzeStap('Wat gebeurt er van 20 °C naar 37 °C?', combiOpties('hoger', 'gelijk'), { vast:true }),
+      { titel:'Van 20 naar 37 °C', vraag:'Meet een reeks bij 20 °C en bij 37 °C (pH 7, geen remmer).' + FITTIP,
+        stappen:[...fitStappen('20 °C', { T: 20 }), ...fitStappen('37 °C', { T: 37 }), keuzeStap('Wat gebeurt er van 20 °C naar 37 °C?', combiOpties('hoger', 'gelijk'), { vast:true }),
           keuzeStap('Leg uit waarom V<sub>max</sub> verandert.', [
           { html:'De deeltjes bewegen sneller: er zijn meer effectieve botsingen, dus een gebonden substraat wordt sneller omgezet.', g:true },
           { html:'Er komen meer enzymmoleculen bij.', g:false },
@@ -926,8 +975,8 @@ WPS.push({
   maakSerie(){
     const typeX = kies(['comp','noncomp']);
     return [
-      { titel:'Remmer B', vraag:'Meet een reeks zonder remmer en een reeks met remmer B (10 µM), bij pH 7 en 37 °C.',
-        stappen:[keuzeStap('Wat doet remmer B?', combiOpties('lager', 'gelijk'), { vast:true }),
+      { titel:'Remmer B', vraag:'Meet een reeks zonder remmer en een reeks met remmer B (10 µM), bij pH 7 en 37 °C.' + FITTIP,
+        stappen:[...fitStappen('zonder remmer', {}), ...fitStappen('remmer B', { remmer: 'noncomp', I: 10 }), keuzeStap('Wat doet remmer B?', combiOpties('lager', 'gelijk'), { vast:true }),
           keuzeStap('Leg uit waarom meer substraat hier niet helpt.', [
           { html:'Remmer B bindt elders en vervormt het actieve centrum: een enzym met remmer zet niets om, hoeveel substraat er ook is.', g:true },
           { html:'Remmer B zit in het actieve centrum en wordt door het substraat verdrongen.', g:false, fb:'Dat geldt voor een competitieve remmer. Kijk in de simulatie waar remmer B bindt.' },
