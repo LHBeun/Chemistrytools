@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Celfabriek</title>
+<style>
+:root{
+  --papier:#f3efe6; --vel:#fffdf8; --rand:#e3dccb; --rand2:#d6cdb8;
+  --inkt:#2b2a27; --inkt2:#3e3b35; --grijs:#7a756b; --goud:#a0701f; --goud2:#e2a84b;
+  --nacht:#24323f; --nacht2:#33475a; --nachttekst:#cfd9e2;
+  --goed:#3f8f63; --goedbg:#e5f2ea; --fout:#b4473a; --foutbg:#f8e6e2; --hint:#fbf1da;
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --sans: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Consolas, 'Liberation Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--papier);color:var(--inkt);font-size:15px;line-height:1.6}
+sub,sup{font-size:.72em;line-height:0}
+button{font-family:inherit}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
+
+/* ---------- zijbalk ---------- */
+aside{background:var(--nacht);color:var(--nachttekst);padding:26px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+aside h1{font-family:var(--serif);font-size:23px;color:#fff;font-weight:600;line-height:1.2}
+aside .sub{font-size:12.5px;color:#8aa0b3;margin:4px 0 26px}
+aside nav a{display:flex;gap:12px;align-items:center;padding:10px 10px;border-radius:9px;font-size:14.5px;margin-bottom:4px;color:#b9c7d3;cursor:pointer;user-select:none;line-height:1.3}
+aside nav a:hover{background:#2c3d4d}
+aside nav a i{font-style:normal;flex:none;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #5d7387;font-size:12.5px;font-weight:700}
+aside nav a.on{background:var(--nacht2);color:#fff}
+aside nav a.on i{background:var(--goud2);border-color:var(--goud2);color:var(--nacht)}
+aside nav a.klaar i{background:#5aa37c;border-color:#5aa37c;color:#fff}
+aside nav a small{display:block;font-size:11.5px;color:#8aa0b3}
+aside .voet{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+aside .voet button{background:transparent;border:1px solid #4b6074;color:#cfd9e2;border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer;text-align:left}
+aside .voet button:hover{background:#2c3d4d}
+aside .voet .klein{font-size:11.5px;color:#6f859a}
+
+/* ---------- werkplaats ---------- */
+.wp{display:grid;grid-template-columns:minmax(380px,1fr) minmax(540px,640px);min-height:100vh}
+.tekst{padding:34px 38px 60px;max-width:760px}
+.kicker{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--goud);font-weight:700}
+.tekst h2{font-family:var(--serif);font-size:31px;margin:3px 0 14px;font-weight:600;line-height:1.2}
+.tekst h3{font-family:var(--serif);font-size:19px;margin:22px 0 6px;font-weight:600}
+.tekst p{margin-bottom:10px;color:var(--inkt2)}
+.tekst ul{margin:0 0 10px 20px;color:var(--inkt2)}
+.tekst li{margin-bottom:3px}
+.kader{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--goud2);border-radius:8px;padding:10px 14px;margin:10px 0 12px;color:var(--inkt2)}
+.kader.binas{border-left-color:#5d7387}
+.f{white-space:nowrap}
+.tabs{display:flex;gap:4px;margin:20px 0 14px;border-bottom:1px solid var(--rand2)}
+.tabs button{background:none;border:0;padding:9px 14px;font-size:14px;font-weight:600;color:var(--grijs);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--inkt);border-bottom-color:var(--goud2)}
+.tabs button .tel{font-weight:500;font-size:12px;color:var(--grijs);margin-left:4px}
+
+/* voorbeeld */
+.vb{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:16px 18px;margin:4px 0 14px}
+.vb .vbkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--goud);margin-bottom:4px}
+.vb .vbvraag{font-weight:600;margin-bottom:8px}
+.vbstap{display:flex;gap:12px;padding:8px 0;border-top:1px dashed var(--rand2)}
+.vbstap .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
+.vbstap .b{color:var(--inkt2)}
+.vb .verder{margin-top:8px}
+
+/* opdrachten */
+.oknop{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.oknop .dot{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--rand2);background:var(--vel);display:grid;place-items:center;font-size:12.5px;font-weight:700;color:var(--grijs);cursor:pointer}
+.oknop .dot.on{border-color:var(--inkt);color:var(--inkt);box-shadow:0 0 0 2px var(--inkt) inset}
+.oknop .dot.goed{background:var(--goed);border-color:var(--goed);color:#fff}
+.oknop .dot.ster{border-style:dashed}
+.oknop .rechts{margin-left:auto;font-size:13px;color:var(--grijs)}
+.opdkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--grijs);margin-bottom:4px}
+.opdkop .st{color:var(--goud)}
+.opdvraag{font-size:16px;margin-bottom:12px;color:var(--inkt)}
+.stap{display:flex;gap:12px;padding:13px 15px;background:var(--vel);border:1px solid var(--rand);border-radius:11px;margin-bottom:10px}
+.stap>.n{flex:none;width:25px;height:25px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12.5px;font-weight:700;margin-top:1px}
+.stap.dicht{opacity:.42;pointer-events:none}
+.stap.dicht .inv{display:none}
+.stap.goed{border-color:#bcdcc8;background:#fbfefc}
+.stap.goed>.n{background:var(--goed)}
+.stap .inh{flex:1;min-width:0}
+.stap .vr{margin-bottom:8px}
+.rij{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input.in{font-family:var(--mono);font-size:15px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;background:#fff;min-width:0;flex:1 1 100%}
+input.in:focus{outline:2px solid var(--goud2);outline-offset:0;border-color:var(--goud2)}
+.voorbeeldweergave{font-size:13px;color:var(--grijs);min-height:20px;margin-top:4px}
+.voorbeeldweergave b{color:var(--inkt);font-weight:600;font-size:15px}
+select.sel{border:1px solid var(--rand2);border-radius:8px;padding:7px 9px;font-size:14px;background:#fff;color:var(--inkt);font-family:inherit}
+.btn{border:0;border-radius:8px;padding:8px 15px;font-weight:600;font-size:14px;cursor:pointer;background:var(--inkt);color:#fff}
+.btn:hover{background:#45433e}
+.btn.g{background:#ebe4d4;color:var(--inkt)}
+.btn.g:hover{background:#e0d7c3}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.klein{padding:5px 11px;font-size:13px}
+.fb{margin-top:8px;padding:8px 11px;border-radius:8px;font-size:14px;display:none}
+.fb.toon{display:block}
+.fb.goed{background:var(--goedbg);color:#255c3d}
+.fb.fout{background:var(--foutbg);color:#7c2c22}
+.fb.hint{background:var(--hint);color:#6b4d12}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1.5px solid var(--rand2);background:#fff;border-radius:999px;padding:4px 12px;font-size:14px;cursor:pointer;user-select:none;color:var(--inkt)}
+.chip:hover{border-color:#b9ad93}
+.chip.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.opties{display:flex;flex-direction:column;gap:6px}
+.optie{border:1.5px solid var(--rand2);background:#fff;border-radius:9px;padding:8px 12px;font-size:14.5px;cursor:pointer;text-align:left;color:var(--inkt)}
+.optie:hover{border-color:#b9ad93}
+.optie.aan{border-color:var(--nacht);background:#eef2f6}
+.typtip{font-size:12.5px;color:var(--grijs);margin-top:14px;line-height:1.5}
+.typtip code{font-family:var(--mono);background:#ebe4d4;border-radius:4px;padding:0 4px;font-size:12px}
+.klaarbanner{background:var(--goedbg);border:1px solid #bcdcc8;color:#255c3d;border-radius:11px;padding:12px 15px;margin:4px 0 12px}
+
+/* ---------- simulatiekolom ---------- */
+.simkol{background:var(--vel);border-left:1px solid var(--rand);padding:22px 22px 30px;display:flex;flex-direction:column;gap:12px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.simkol>*{flex-shrink:0}
+.simkop{display:flex;justify-content:space-between;align-items:baseline}
+.simkop b{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--goud)}
+.simkop span{font-size:12.5px;color:var(--grijs)}
+.ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ctrl label{font-size:13.5px;color:var(--inkt2);display:flex;gap:6px;align-items:center}
+.doek{border:1px solid var(--rand);border-radius:12px;background:#fbf8f1;position:relative;overflow:hidden}
+.doek canvas{display:block;width:100%;height:auto}
+.waarneming{font-size:14px;color:var(--inkt2);min-height:22px}
+.waarneming b{color:var(--inkt)}
+.vgl{font-family:var(--serif);font-size:19px;text-align:center;min-height:30px;color:var(--inkt)}
+.tabelkop{font-size:12px;font-weight:700;letter-spacing:1.2px;color:var(--goud);margin-bottom:6px;text-transform:uppercase}
+table.b45{border-collapse:collapse;font-size:13px;background:#fff;color:var(--inkt)}
+table.b45 th,table.b45 td{border:1px solid #6d6a62;padding:2px 0;text-align:center;width:38px}
+table.b45 th{font-weight:600;background:#fff}
+table.b45 th.hoek{width:46px;font-size:10px;font-weight:400;color:var(--grijs)}
+table.b45 td.licht{background:#f6e3bf;font-weight:700}
+table.b45 tr.licht th, table.b45 th.licht{background:#f3ead6}
+.legenda{font-size:12px;color:var(--grijs);margin-top:6px;line-height:1.45}
+.balk{display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.balk .lijn{display:flex;align-items:center;gap:8px}
+.balk .lijn span.lab{width:120px;color:var(--inkt2)}
+.balk .vak{display:flex;gap:3px;flex-wrap:wrap}
+.balk .q{width:18px;height:18px;border-radius:4px;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff}
+.balk .q.p{background:#c4822b}.balk .q.m{background:#3b6fa8}
+.uitkomst{background:#fff;border:1px solid var(--rand);border-radius:10px;padding:10px 14px;font-size:14.5px}
+.uitkomst .groot{font-family:var(--serif);font-size:22px}
+.buislog{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:12px}
+.buislog div{background:#fff;border:1px solid var(--rand);border-radius:8px;padding:5px 7px;line-height:1.35}
+.buislog div b{display:block;font-size:12.5px}
+
+/* beamerstand */
+body.beamer{font-size:18px}
+body.beamer .tekst h2{font-size:36px}
+body.beamer .opdvraag{font-size:19px}
+body.beamer input.in{font-size:18px}
+body.beamer .optie, body.beamer .chip{font-size:17px}
+body.beamer table.b45{font-size:15px}
+aside nav a .kl{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.4px;border-radius:5px;padding:0 5px;margin-left:6px;background:#3b5064;color:#cfd9e2;vertical-align:1px}
+aside nav a.on .kl{background:#4c6378}
+body.beamer .vgl{font-size:22px}
+
+/* Binas 48 */
+.modal{position:fixed;inset:0;background:rgba(20,26,32,.55);display:none;align-items:flex-start;justify-content:center;z-index:50;padding:30px 16px;overflow:auto}
+.modal.open{display:flex}
+.modal .doos{background:var(--vel);border-radius:14px;max-width:860px;width:100%;padding:20px 22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.modal .kop{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.modal .kop h3{font-family:var(--serif);font-size:22px;flex:1;font-weight:600}
+.b48zoek{font-size:14px;border:1px solid var(--rand2);border-radius:8px;padding:6px 10px;width:220px}
+table.b48{border-collapse:collapse;width:100%;font-size:14px;background:#fff}
+table.b48 th{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--grijs);text-align:left;padding:4px 8px;border-bottom:2px solid #8fb3d1}
+table.b48 td{padding:3px 8px;border-bottom:1px solid #cfe0ee;white-space:nowrap}
+table.b48 td.pijl{text-align:center;color:var(--grijs);width:30px}
+table.b48 td.v{text-align:right;font-variant-numeric:tabular-nums;width:70px}
+table.b48 tr.licht td{background:#fbf1da}
+.b48noot{font-size:12.5px;color:var(--inkt2);margin-top:10px;line-height:1.55}
+.b48kop{font-size:12.5px;color:var(--inkt2);margin-bottom:8px}
+
+/* ladder */
+.ladder{position:relative}
+.ladchip{position:absolute;transform:translateY(-50%);border:1.5px solid var(--rand2);background:#fff;border-radius:999px;padding:1px 10px;font-size:13.5px;cursor:pointer;white-space:nowrap;user-select:none}
+.ladchip:hover{border-color:#b9ad93}
+.ladchip.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.ladchip.sterk{box-shadow:0 0 0 3px #e2a84b}
+.ladchip small{color:var(--grijs);margin-left:5px;font-size:11.5px}
+.ladchip.aan small{color:#cfd9e2}
+
+/* kaarten halfreacties */
+.hkaart{background:#fff;border:1px solid var(--rand);border-radius:11px;padding:10px 12px;display:flex;align-items:center;gap:10px}
+.hkaart .vgl{flex:1;font-size:17px;text-align:left}
+.hkaart .lab{font-size:11.5px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:var(--goud);width:78px}
+.stepper{display:flex;align-items:center;gap:4px}
+.stepper button{width:28px;height:28px;border-radius:7px;border:1px solid var(--rand2);background:#fff;cursor:pointer;font-size:16px;line-height:1}
+.stepper b{min-width:30px;text-align:center;font-size:15px}
+.ebalk{display:grid;grid-template-columns:110px 1fr 40px;gap:8px;align-items:center;font-size:13px}
+.ebalk .bar{height:14px;background:#efe9dc;border-radius:7px;overflow:hidden}
+.ebalk .bar i{display:block;height:100%;border-radius:7px;transition:width .3s}
+.totaal{background:#fff;border:1px solid var(--rand);border-radius:11px;padding:12px 14px;font-size:17px;font-family:var(--serif);line-height:1.9}
+.totaal s{color:#b4473a;text-decoration-thickness:2px}
+
+/* balanscontrole */
+table.bal{border-collapse:collapse;font-size:14px;background:#fff}
+table.bal th,table.bal td{border:1px solid var(--rand);padding:3px 10px;text-align:center}
+table.bal td.ok{background:var(--goedbg);color:#255c3d;font-weight:700}
+table.bal td.nok{background:var(--foutbg);color:#7c2c22;font-weight:700}
+.miniin{font-family:var(--mono);font-size:14px;border:1px solid var(--rand2);border-radius:8px;padding:6px 9px;width:100%}
+.knoppen{display:flex;flex-wrap:wrap;gap:6px}
+.uitleg-sm{font-size:12.5px;color:var(--grijs);line-height:1.5}
+table.vgltab{border-collapse:collapse;margin:6px 0 12px;font-size:14.5px;background:var(--vel)}
+table.vgltab td{border:1px solid var(--rand);padding:5px 10px;vertical-align:top;color:var(--inkt2)}
+table.vgltab td:first-child{color:var(--grijs);font-size:13px;white-space:nowrap}
+.breuk{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 3px;line-height:1.15}
+.breuk>span:first-child{border-bottom:1.3px solid currentColor;padding:0 3px}
+.breuk>span:last-child{padding:0 3px}
+.reken{line-height:2.6}
+
+/* spel */
+.kas{background:#1b2732;border:1px solid #3b5064;border-radius:10px;padding:8px 12px;margin:-12px 0 18px;display:flex;align-items:baseline;gap:10px;position:relative}
+.kas span{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#8aa0b3}
+.kas b{font-family:var(--serif);font-size:22px;color:#f1d08f;font-weight:600;font-variant-numeric:tabular-nums}
+.kas i{font-style:normal;font-size:13px;font-weight:700;position:absolute;right:12px;top:10px;opacity:0;transition:opacity .3s,transform .9s}
+.kas i.plus{color:#7fd1a0}.kas i.min{color:#f0a294}
+.kas i.toon{opacity:1;transform:translateY(-8px)}
+aside nav a .ster3{display:block;font-size:11.5px;color:#e2a84b;letter-spacing:1px}
+.klant{display:flex;gap:14px;align-items:flex-start;background:#fff;border:1px solid var(--rand);border-radius:14px;padding:14px 16px;margin:4px 0 16px;box-shadow:0 2px 0 rgba(0,0,0,.03)}
+.klant .av{flex:none;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-weight:700;color:#fff;font-size:15px;letter-spacing:.5px}
+.klant .wie{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--grijs);font-weight:700}
+.klant .wie b{color:var(--inkt)}
+.klant .zegt{font-family:var(--serif);font-size:17px;line-height:1.5;margin-top:3px;color:var(--inkt)}
+.klant .loon{margin-left:auto;flex:none;text-align:right;font-size:12px;color:var(--grijs)}
+.klant .loon b{display:block;font-family:var(--serif);font-size:20px;color:var(--goud)}
+.afrekening{background:var(--goedbg);border:1px solid #bfdcc9;border-radius:12px;padding:12px 16px;margin:8px 0;font-size:15px;display:flex;align-items:center;gap:14px}
+.afrekening .st{font-size:26px;color:#e2a84b;letter-spacing:2px}
+.afrekening.nul{background:#f3efe6;border-color:var(--rand)}
+.gegeven{background:var(--vel);border:1px dashed var(--rand2);border-radius:10px;padding:8px 12px;font-size:14px;margin:0 0 12px;color:var(--inkt2)}
+.gegeven b{color:var(--inkt)}
+table.dt{border-collapse:collapse;font-size:14px;background:#fff;margin:6px 0 12px}
+table.dt th,table.dt td{border:1px solid var(--rand);padding:4px 10px;text-align:left}
+table.dt th{background:#f6f1e6;font-weight:600}
+table.dt td.r{text-align:right;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <h1>Celfabriek</h1>
+    <div class="sub">6 vwo · batterijen, accu's en brandstofcellen</div>
+    <div class="kas" id="kas"><span>Kas</span><b id="kasw">€ 500</b><i id="kasdelta"></i></div>
+    <nav id="nav"></nav>
+    <div class="voet">
+      <button id="binasknop">Binas tabel 48</button>
+      <button id="beamerknop">Beamerstand</button>
+      <button id="resetknop">Spel opnieuw beginnen</button>
+      <div class="klein">Een fout kost € 10, een hint € 5 en het antwoord tonen € 30. Een tevreden klant betaalt.</div>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div class="modal" id="b48modal"><div class="doos">
+  <div class="kop"><h3>Binas tabel 48 · standaardelektrodepotentialen</h3><input class="b48zoek" id="b48zoek" placeholder="zoek, bijv. Cu2+ of MnO4"><button class="btn g klein" id="b48dicht">Sluiten ✕</button></div>
+  <div id="b48inh"></div>
+</div></div>
+<script>
+'use strict';
+/* =====================================================================
+   Hulpjes
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const kies = arr => arr[Math.floor(Math.random() * arr.length)];
+function schud(arr){ const a = arr.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const ggd = (a, b) => b ? ggd(b, a % b) : a;
+const kgv = (a, b) => a / ggd(a, b) * b;
+const lerp = (a, b, t) => a + (b - a) * t;
+const komma = (x, d) => x.toFixed(d).replace('.', ',').replace('-', '−');
+const vTxt = v => v === 0 ? '0' : (v > 0 ? '+' : '−') + Math.abs(v).toFixed(2).replace('.', ',');
+
+/* =====================================================================
+   Binas tabel 48 (overgenomen uit de Binas van de klas)
+   oxidator | reductor | V0 | voetnoot
+   ===================================================================== */
+const T48_RUW = [
+  ['F2(g) + 2 e-', '2 F-', '+2,87', ''],
+  ['O3(g) + 2 H+ + 2 e-', 'H2O(l) + O2(g)', '+2,08', ''],
+  ['H2O2 + 2 H+ + 2 e-', '2 H2O(l)', '+1,78', ''],
+  ['N2O(g) + 2 H+ + 2 e-', 'N2(g) + H2O(l)', '+1,77', ''],
+  ['Ce4+ + e-', 'Ce3+', '+1,72', ''],
+  ['PbO2(s) + SO4^2- + 4 H+ + 2 e-', 'PbSO4(s) + 2 H2O(l)', '+1,69', ''],
+  ['2 HClO + 2 H+ + 2 e-', 'Cl2(g) + 2 H2O(l)', '+1,61', ''],
+  ['2 NO(g) + 2 H+ + 2 e-', 'N2O(g) + H2O(l)', '+1,59', ''],
+  ['MnO4- + 8 H+ + 5 e-', 'Mn2+ + 4 H2O(l)', '+1,51', ''],
+  ['Au3+ + 3 e-', 'Au(s)', '+1,50', ''],
+  ['Mn2O3(s) + 6 H+ + 2 e-', '2 Mn2+ + 3 H2O(l)', '+1,49', ''],
+  ['PbO2(s) + 4 H+ + 2 e-', 'Pb2+ + 2 H2O(l)', '+1,46', ''],
+  ['ClO3- + 6 H+ + 6 e-', 'Cl- + 3 H2O(l)', '+1,45', ''],
+  ['Cl2(g) + 2 e-', '2 Cl-', '+1,36', ''],
+  ['Cr2O7^2- + 14 H+ + 6 e-', '2 Cr3+ + 7 H2O(l)', '+1,36', ''],
+  ['O3(g) + H2O(l) + 2 e-', '2 OH- + O2(g)', '+1,24', ''],
+  ['O2(g) + 4 H+ + 4 e-', '2 H2O(l)', '+1,23', ''],
+  ['MnO2(s) + 4 H+ + 2 e-', 'Mn2+ + 2 H2O(l)', '+1,22', ''],
+  ['Br2 + 2 e-', '2 Br-', '+1,09', ''],
+  ['Br2(l) + 2 e-', '2 Br-', '+1,07', ''],
+  ['AuCl4- + 3 e-', 'Au(s) + 4 Cl-', '+1,00', ''],
+  ['HNO2 + H+ + e-', 'NO(g) + H2O(l)', '+0,98', ''],
+  ['NO3- + 4 H+ + 3 e-', 'NO(g) + 2 H2O(l)', '+0,96', ''],
+  ['H2O2 + 2 e-', '2 OH-', '+0,95', ''],
+  ['NO3- + 3 H+ + 2 e-', 'HNO2 + H2O(l)', '+0,93', ''],
+  ['Hg2+ + e-', 'Hg+', '+0,92', '1'],
+  ['Cu2+ + I- + e-', 'CuI(s)', '+0,85', ''],
+  ['Hg2+ + 2 e-', 'Hg(l)', '+0,85', ''],
+  ['Ag+ + e-', 'Ag(s)', '+0,80', ''],
+  ['Hg+ + e-', 'Hg(l)', '+0,80', '3'],
+  ['NO3- + 2 H+ + e-', 'NO2(g) + H2O(l)', '+0,80', '2'],
+  ['Fe3+ + e-', 'Fe2+', '+0,77', ''],
+  ['O2(g) + 2 H+ + 2 e-', 'H2O2', '+0,70', ''],
+  ['MnO4- + 2 H2O(l) + 3 e-', 'MnO2(s) + 4 OH-', '+0,60', ''],
+  ['MnO4- + e-', 'MnO4^2-', '+0,56', ''],
+  ['I2 + 2 e-', '2 I-', '+0,54', ''],
+  ['I2(s) + 2 e-', '2 I-', '+0,54', ''],
+  ['I3^- + 2 e-', '3 I-', '+0,54', ''],
+  ['Cu+ + e-', 'Cu(s)', '+0,52', ''],
+  ['NiO(OH)(s) + H2O(l) + e-', 'Ni(OH)2(s) + OH-', '+0,52', ''],
+  ['NiO2(s) + 2 H2O(l) + 2 e-', 'Ni(OH)2(s) + 2 OH-', '+0,49', ''],
+  ['O2(g) + 2 H2O(l) + 4 e-', '4 OH-', '+0,40', ''],
+  ['Fe(CN)6^3- + e-', 'Fe(CN)6^4-', '+0,36', ''],
+  ['Cu2+ + 2 e-', 'Cu(s)', '+0,34', ''],
+  ['HgCl(s) + e-', 'Hg(l) + Cl-', '+0,27', '4'],
+  ['AgCl(s) + e-', 'Ag(s) + Cl-', '+0,22', ''],
+  ['SO4^2- + 4 H+ + 2 e-', 'SO2 + 2 H2O(l)', '+0,17', '5'],
+  ['Cu2+ + e-', 'Cu+', '+0,15', ''],
+  ['Mn(OH)3(s) + e-', 'Mn(OH)2(s) + OH-', '+0,15', ''],
+  ['MnO2(s) + H2O(l) + e-', 'MnO(OH)(s) + OH-', '+0,15', ''],
+  ['2 NO2- + 3 H2O(l) + 4 e-', 'N2O(g) + 6 OH-', '+0,15', ''],
+  ['Sn4+ + 2 e-', 'Sn2+', '+0,15', ''],
+  ['S(s) + 2 H+ + 2 e-', 'H2S(g)', '+0,14', ''],
+  ['S4O6^2- + 2 e-', '2 S2O3^2-', '+0,10', ''],
+  ['N2(g) + 6 H+ + 6 e-', '2 NH3', '+0,09', ''],
+  ['HCOOH + 2 H+ + 2 e-', 'H2CO + H2O(l)', '+0,08', ''],
+  ['NO3- + H2O(l) + 2 e-', 'NO2- + 2 OH-', '+0,01', ''],
+  ['2 H+ + 2 e-', 'H2(g)', '0', ''],
+  ['SO4^2- + 2 H+ + 2 e-', 'SO3^2- + H2O(l)', '-0,09', '5'],
+  ['Pb2+ + 2 e-', 'Pb(s)', '-0,13', ''],
+  ['Sn2+ + 2 e-', 'Sn(s)', '-0,14', ''],
+  ['Ni2+ + 2 e-', 'Ni(s)', '-0,26', ''],
+  ['Co2+ + 2 e-', 'Co(s)', '-0,28', ''],
+  ['H3PO4 + 2 H+ + 2 e-', 'H3PO3 + H2O', '-0,28', ''],
+  ['PbSO4(s) + 2 e-', 'Pb(s) + SO4^2-', '-0,36', ''],
+  ['Cd2+ + 2 e-', 'Cd(s)', '-0,40', ''],
+  ['Fe2+ + 2 e-', 'Fe(s)', '-0,45', ''],
+  ['S(s) + 2 e-', 'S2-', '-0,48', ''],
+  ['2 CO2(g) + 2 H+ + 2 e-', 'H2C2O4', '-0,49', ''],
+  ['Ni(OH)2(s) + 2 e-', 'Ni(s) + 2 OH-', '-0,72', ''],
+  ['Cr3+ + 3 e-', 'Cr(s)', '-0,74', ''],
+  ['Zn2+ + 2 e-', 'Zn(s)', '-0,76', ''],
+  ['Cd(OH)2(s) + 2 e-', 'Cd(s) + 2 OH-', '-0,81', ''],
+  ['2 H2O(l) + 2 e-', 'H2(g) + 2 OH-', '-0,83', ''],
+  ['SO4^2- + H2O(l) + 2 e-', 'SO3^2- + 2 OH-', '-0,93', '5'],
+  ['Zn(OH)4^2- + 2 e-', 'Zn(s) + 4 OH-', '-1,20', ''],
+  ['Al3+ + 3 e-', 'Al(s)', '-1,66', ''],
+  ['Al(OH)4- + 3 e-', 'Al(s) + 4 OH-', '-2,33', ''],
+  ['Mg2+ + 2 e-', 'Mg(s)', '-2,37', ''],
+  ['Mg(OH)2(s) + 2 e-', 'Mg(s) + 2 OH-', '-2,69', ''],
+  ['Na+ + e-', 'Na(s)', '-2,71', ''],
+  ['Ca2+ + 2 e-', 'Ca(s)', '-2,87', ''],
+  ['Ba2+ + 2 e-', 'Ba(s)', '-2,91', ''],
+  ['K+ + e-', 'K(s)', '-2,93', ''],
+  ['Li+ + e-', 'Li(s)', '-3,04', ''],
+];
+const T48_NOTEN = {
+  '1': 'eigenlijk: 2 Hg^2+ + 2 e- -> Hg2^2+',
+  '2': 'Er stelt zich een evenwicht in: N2O4(g) -> 2 NO2(g).',
+  '3': 'eigenlijk: Hg2^2+ + 2 e- -> 2 Hg(l)',
+  '4': 'eigenlijk: Hg2Cl2(s) + 2 e- -> 2 Hg(l) + 2 Cl-',
+  '5': 'SO4^2- is alléén oxidator in warm, geconcentreerd H2SO4 volgens: H2SO4(l) + 2 H+ + 2 e- -> SO2(g) + 2 H2O(l).'
+};
+
+/* =====================================================================
+   Deeltjes: formule f + lading q. Sleutel zoals getypt: Fe3+, SO42-, e-
+   ===================================================================== */
+const SP = {};                                   /* sleutel -> { f, q } */
+let SLEUTELS = null;
+const sleutel = (f, q) => f === 'e' ? 'e-' : f + (q === 0 ? '' : (Math.abs(q) === 1 ? '' : Math.abs(q)) + (q > 0 ? '+' : '-'));
+function registreer(f, q){ const k = sleutel(f, q); if (!SP[k]){ SP[k] = { f, q }; SLEUTELS = null; } return k; }
+/* term uit de gegevens: "2 H2O(l)", "SO4^2-", "Fe3+", "e-" */
+function leesDataTerm(t){
+  t = t.trim(); let n = 1;
+  const m = t.match(/^(\d+)\s+/); if (m){ n = +m[1]; t = t.slice(m[0].length); }
+  let st = ''; const s = t.match(/\((s|l|g|aq)\)$/); if (s){ st = s[1]; t = t.slice(0, -s[0].length); }
+  let f = t, q = 0;
+  if (t === 'e-'){ f = 'e'; q = -1; }
+  else if (t.includes('^')){ const [a, b] = t.split('^'); f = a; const mm = b.match(/^(\d*)([+-])$/); q = (mm[2] === '+' ? 1 : -1) * (mm[1] ? +mm[1] : 1); }
+  else if (/^[A-Z][a-z]?\d*[+-]$/.test(t)){ const mm = t.match(/^([A-Z][a-z]?)(\d*)([+-])$/); f = mm[1]; q = (mm[3] === '+' ? 1 : -1) * (mm[2] ? +mm[2] : 1); }
+  else if (/[+-]$/.test(t)){ f = t.slice(0, -1); q = t.endsWith('+') ? 1 : -1; }
+  return { n, k: registreer(f, q), st };
+}
+const leesDataKant = s => s.split(' + ').map(leesDataTerm);
+/* vergelijking in gegevensnotatie: 'Zn -> Zn2+ + 2 e-' */
+function V(s){ const [l, r] = s.split(/\s+(?:->|⇌)\s+/); return { L: leesDataKant(l), R: leesDataKant(r) }; }
+
+const T48 = T48_RUW.map((r, i) => ({ i, ox: leesDataKant(r[0]), red: leesDataKant(r[1]), v: parseFloat(r[2].replace(',', '.').replace('−', '-')), vt: r[2], noot: r[3] }));
+for (const s of ['Na+','K+','NO3-','SO4^2-','Cl-','C2H5OH','CH3CHO','CH3COOH','C6H8O6','C6H6O6','H2C2O4','CO2','IO3-','I2','ClO-','CrO4^2-','Cr(OH)3','NH3','NO','O2','H2O2','H2O','OH-','H+','Mg2+','Zn2+','Fe2+','Fe3+','Cu2+','Ag+','Pb2+','Ni2+','Sn2+','Al3+','Cr3+','Mn2+','MnO2','MnO4-','S2O3^2-','S4O6^2-','Cl2','Br2','Br-','I-','H2','Na','Mg','Zn','Fe','Cu','Ag','Pb','Ni','Sn','Al','Au','PbSO4','CuSO4','AgNO3','NaCl','HCl','Ca2+','Ba2+','Li+','Pt','C']) leesDataTerm(s);
+SP['e'] = SP['e-'];
+
+/* ---------- weergave ---------- */
+const subHTML = s => s.replace(/([A-Za-z)])(\d+)/g, '$1<sub>$2</sub>');
+const ladHTML = q => q === 0 ? '' : '<sup>' + (Math.abs(q) === 1 ? '' : Math.abs(q)) + (q > 0 ? '+' : '−') + '</sup>';
+function spHTML(k){
+  if (!SP[k] && /[\^\s]/.test(k)) k = leesDataTerm(k).k;
+  if (k === 'e-' || k === 'e') return '<span class="f">e<sup>−</sup></span>';
+  const s = SP[k]; if (!s) return `<span class="f">${subHTML(k)}</span>`;
+  return `<span class="f">${subHTML(s.f)}${ladHTML(s.q)}</span>`;
+}
+const SUPC = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','+':'⁺','-':'⁻' };
+const SUBC = { '0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉' };
+function spUni(k){ if (!SP[k] && /[\^\s]/.test(k)) k = leesDataTerm(k).k; const s = SP[k] || { f:k, q:0 }; if (k === 'e-') return 'e⁻';
+  const f = s.f.replace(/([A-Za-z)])(\d+)/g, (m, a, d) => a + d.split('').map(c => SUBC[c]).join(''));
+  const q = s.q === 0 ? '' : ((Math.abs(s.q) === 1 ? '' : Math.abs(s.q)) + (s.q > 0 ? '+' : '-')).split('').map(c => SUPC[c]).join('');
+  return f + q; }
+const termHTML = (x, toestand) => (x.n > 1 ? x.n + ' ' : '') + spHTML(x.k) + (toestand && x.st ? '(' + x.st + ')' : '');
+function vglHTML(v, o = {}){ const d = a => a.map(x => termHTML(x, o.st)).join(' + '); return d(v.L) + (o.ev ? ' ⇌ ' : ' → ') + d(v.R); }
+function vglTyp(v){ const d = a => a.map(x => (x.n > 1 ? x.n + ' ' : '') + x.k).join(' + '); return d(v.L) + ' -> ' + d(v.R); }
+const rijHTML = r => vglHTML({ L:r.ox, R:r.red }, { st:true, ev:true });
+
+/* ---------- atomen en lading tellen ---------- */
+function atomen(f){
+  const uit = {}; if (f === 'e') return uit;
+  const stapel = [{}]; let i = 0;
+  while (i < f.length){
+    const c = f[i];
+    if (c === '('){ stapel.push({}); i++; continue; }
+    if (c === ')'){ i++; const m = f.slice(i).match(/^\d+/); const x = m ? +m[0] : 1; if (m) i += m[0].length; const top = stapel.pop(); const o = stapel[stapel.length - 1]; for (const e in top) o[e] = (o[e] || 0) + top[e] * x; continue; }
+    const m = f.slice(i).match(/^([A-Z][a-z]?)(\d*)/); if (!m){ i++; continue; }
+    const o = stapel[stapel.length - 1]; o[m[1]] = (o[m[1]] || 0) + (m[2] ? +m[2] : 1); i += m[0].length;
+  }
+  return stapel[0];
+}
+function balans(v){
+  const tel = arr => { const a = {}; let q = 0; for (const x of arr){ const s = SP[x.k]; const at = atomen(s.f); for (const e in at) a[e] = (a[e] || 0) + at[e] * x.n; q += s.q * x.n; } return { a, q }; };
+  const L = tel(v.L), R = tel(v.R);
+  const el = Array.from(new Set(Object.keys(L.a).concat(Object.keys(R.a))));
+  const vb = ['C','H','O'];
+  el.sort((x, y) => (vb.indexOf(x) < 0 ? -1 : vb.indexOf(x)) - (vb.indexOf(y) < 0 ? -1 : vb.indexOf(y)) || x.localeCompare(y));
+  return { el, L, R, ok: el.every(e => (L.a[e] || 0) === (R.a[e] || 0)) && L.q === R.q };
+}
+
+/* =====================================================================
+   Invoer lezen
+   ===================================================================== */
+function norm(s){
+  const sup = { '⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9','⁺':'+','⁻':'-' };
+  const sub = { '₀':'0','₁':'1','₂':'2','₃':'3','₄':'4','₅':'5','₆':'6','₇':'7','₈':'8','₉':'9' };
+  return s.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻]/g, c => sup[c]).replace(/[₀-₉]/g, c => sub[c])
+          .replace(/[−–—]/g, '-').replace(/⇌|⇄|<=>|<->|→|=>|-->|⟶/g, '->').replace(/\^/g, '').replace(/\s+/g, '');
+}
+const sleutels = () => SLEUTELS || (SLEUTELS = Object.keys(SP).sort((a, b) => b.length - a.length));
+function leesKant(s){
+  const K = sleutels();
+  function rec(i){
+    let n = 1, j = i; const m = s.slice(i).match(/^\d+/); if (m){ n = +m[0]; j += m[0].length; }
+    for (const k of K){
+      if (!s.startsWith(k, j)) continue;
+      let p = j + k.length, st = '';
+      const t = s.slice(p).match(/^\((s|l|g|aq)\)/); if (t){ st = t[1]; p += t[0].length; }
+      const term = { n, k: k === 'e' ? 'e-' : k, st };
+      if (p === s.length) return [term];
+      if (s[p] === '+'){ const rest = rec(p + 1); if (rest && rest.length) return [term].concat(rest); }
+    }
+    return null;
+  }
+  return s ? rec(0) : null;
+}
+function leesVgl(invoer){
+  const s = norm(invoer);
+  if (!s.includes('->')) return { fout:'pijl' };
+  const delen = s.split('->'); if (delen.length > 2) return { fout:'pijlen' };
+  const L = leesKant(delen[0]), R = leesKant(delen[1]);
+  if (!L || !R) return { fout:'lezen' };
+  return { L, R };
+}
+const samen = arr => { const o = {}; for (const x of arr) o[x.k] = (o[x.k] || 0) + x.n; return o; };
+/* netto: zelfde deeltje links en rechts tegen elkaar wegstrepen */
+function netto(v){
+  const l = samen(v.L), r = samen(v.R);
+  for (const k of Object.keys(l)) if (r[k]){ const m = Math.min(l[k], r[k]); l[k] -= m; r[k] -= m; }
+  const t = o => Object.keys(o).filter(k => o[k] > 0).map(k => ({ n:o[k], k }));
+  return { L: t(l), R: t(r) };
+}
+/* verwacht v; o.halfreactie: elektronen horen erbij */
+function checkVgl(invoer, verw, o = {}){
+  if (!invoer.trim()) return { ok:false, msg:'Typ eerst een vergelijking.' };
+  const v = leesVgl(invoer);
+  if (v.fout === 'pijl') return { ok:false, msg:'Er ontbreekt een pijl. Typ de pijl als <code>-></code>.' };
+  if (v.fout === 'pijlen') return { ok:false, msg:'Gebruik precies één pijl.' };
+  if (v.fout) return { ok:false, msg:'Ik kan je vergelijking niet lezen. Controleer de formules, de ladingen (bijvoorbeeld <code>Fe3+</code>, <code>SO4 2-</code>) en de plustekens tussen de deeltjes.' };
+  const vl = samen(v.L), vr = samen(v.R), el = samen(verw.L), er = samen(verw.R);
+  const ks = o => Object.keys(o).sort().join('|');
+  if (ks(vl) !== ks(el) || ks(vr) !== ks(er)){
+    if (ks(vl) === ks(er) && ks(vr) === ks(el)) return { ok:false, msg: o.halfreactie ? 'De deeltjes kloppen, maar de halfreactie staat in de verkeerde richting. Waar horen de elektronen te staan?' : 'De deeltjes kloppen, maar ze staan aan de verkeerde kant van de pijl.' };
+    const vAlle = new Set(Object.keys(vl).concat(Object.keys(vr))), eAlle = new Set(Object.keys(el).concat(Object.keys(er)));
+    if (eAlle.has('e-') && !vAlle.has('e-')) return { ok:false, msg:'In een halfreactie staan elektronen. Typ ze als <code>e-</code>, bijvoorbeeld <code>2 e-</code>.' };
+    if (!eAlle.has('e-') && vAlle.has('e-')) return { ok:false, msg:'In de totaalreactie staan geen elektronen meer: die streep je weg.' };
+    if ((el['e-'] && vr['e-']) || (er['e-'] && vl['e-'])) return { ok:false, msg:'De elektronen staan aan de verkeerde kant. Neemt dit deeltje elektronen op of staat het ze af?' };
+    const mis = [...eAlle].filter(k => !vAlle.has(k) && k !== 'e-'), teveel = [...vAlle].filter(k => !eAlle.has(k) && k !== 'e-');
+    if (o.tribune && teveel.some(k => o.tribune.includes(k))) return { ok:false, msg:'Er staan tribune-ionen in de vergelijking. Schrijf alleen de deeltjes die reageren.' };
+    if (mis.length && mis.every(k => ['H2O','H+','OH-'].includes(k)) && !teveel.length) return { ok:false, msg:'De belangrijkste deeltjes kloppen. Kijk nog eens naar H<sub>2</sub>O, H<sup>+</sup> en OH<sup>−</sup>.' };
+    if (teveel.length && teveel.every(k => ['H2O','H+','OH-'].includes(k)) && !mis.length) return { ok:false, msg:'Er staat H<sub>2</sub>O, H<sup>+</sup> of OH<sup>−</sup> in die er niet hoort. Streep weg wat links en rechts staat, en let op het milieu.' };
+    return { ok:false, msg:'Voor of na de pijl staan nog niet de juiste deeltjes.' };
+  }
+  const coefOk = Object.keys(el).every(k => vl[k] === el[k]) && Object.keys(er).every(k => vr[k] === er[k]);
+  if (coefOk) return { ok:true };
+  const f = Object.keys(el).map(k => vl[k] / el[k]).concat(Object.keys(er).map(k => vr[k] / er[k]));
+  if (f.every(x => Math.abs(x - f[0]) < 1e-9)) return { ok:false, msg:'De verhouding klopt, maar gebruik de kleinst mogelijke gehele getallen als coëfficiënten.' };
+  const b = balans(v);
+  const scheef = b.el.filter(e => (b.L.a[e] || 0) !== (b.R.a[e] || 0));
+  if (scheef.length) return { ok:false, msg:`De deeltjes kloppen, maar de coëfficiënten nog niet: het aantal <b>${scheef.join(', ')}</b>-atomen is links en rechts niet gelijk.` };
+  if (b.L.q !== b.R.q) return { ok:false, msg:`De atomen kloppen, maar de lading niet: links ${b.L.q > 0 ? '+' : ''}${b.L.q}, rechts ${b.R.q > 0 ? '+' : ''}${b.R.q}.` };
+  return { ok:false, msg:'De vergelijking klopt wel, maar is niet de bedoelde. Lees de vraag nog eens.' };
+}
+
+/* ---------- getallen ---------- */
+function leesGetal(s){
+  let t = s.trim().replace(/\s+/g, '').replace(/,/g, '.').replace(/[−–]/g, '-').replace(/⁻/g, '-').replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g, c => '⁰¹²³⁴⁵⁶⁷⁸⁹'.indexOf(c));
+  t = t.replace(/[a-zA-Zµ%/]+$/, m => /^e/i.test(m) ? m : '');
+  const m = t.match(/^([+-]?\d*\.?\d+)(?:(?:[x×*·]|\.)10\^?([+-]?\d+)|[eE]([+-]?\d+))?$/);
+  if (!m) return null;
+  const man = m[1], ex = m[2] || m[3] || '0';
+  const cijfers = man.replace(/^[+-]/, '').replace('.', '').replace(/^0+/, '');
+  return { w: parseFloat(man) * Math.pow(10, +ex), sig: cijfers.length || 1 };
+}
+/* o: { tol (relatief), sig, eenheidTip } */
+function checkGetal(invoer, doel, o = {}){
+  if (!invoer.trim()) return { ok:false, msg:'Typ eerst een getal.' };
+  const g = leesGetal(invoer);
+  if (!g) return { ok:false, msg:'Ik kan dit getal niet lezen. Typ bijvoorbeeld <code>0,0620</code> of <code>6,20·10^-2</code>.' };
+  const tol = o.tol || 0.01, rel = Math.abs(g.w - doel) / Math.abs(doel || 1);
+  if (rel > tol){
+    for (const f of [1000, 0.001, 2, 0.5, 5, 0.2]) if (Math.abs(g.w - doel * f) / Math.abs(doel * f) < tol)
+      return { ok:false, msg: f === 1000 || f === 0.001 ? 'Je zit er een factor 1000 naast. Let op mL en L, of mg en g.' : 'Je zit er een vaste factor naast. Kijk nog eens naar de molverhouding.' };
+    return { ok:false, msg: o.foutTip || 'Nog niet goed. Controleer je berekening stap voor stap.' };
+  }
+  if (o.sig && g.sig !== o.sig) return { ok:false, msg:`De waarde klopt, maar noteer je antwoord in het juiste aantal significante cijfers (${o.sig}).` };
+  return { ok:true };
+}
+
+/* =====================================================================
+   Tekenhulpen
+   ===================================================================== */
+function mengKleur(hex, wit){ const n = parseInt(hex.slice(1), 16); let r = n >> 16, g = (n >> 8) & 255, b = n & 255; r = Math.round(r + (255-r)*wit); g = Math.round(g + (255-g)*wit); b = Math.round(b + (255-b)*wit); return `rgb(${r},${g},${b})`; }
+function helder(hex){ const n = parseInt(hex.slice(1), 16); return (0.299*(n>>16) + 0.587*((n>>8)&255) + 0.114*(n&255)) / 255; }
+function tekenBeker(c, x, y, w, h, kleur = '#7d8a96'){
+  c.save(); c.strokeStyle = kleur; c.lineWidth = 2.4; c.lineJoin = 'round';
+  c.beginPath(); c.moveTo(x - 6, y); c.lineTo(x, y + 8); c.lineTo(x, y + h - 10); c.quadraticCurveTo(x, y + h, x + 10, y + h);
+  c.lineTo(x + w - 10, y + h); c.quadraticCurveTo(x + w, y + h, x + w, y + h - 10); c.lineTo(x + w, y); c.stroke();
+  c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 2; c.beginPath(); c.moveTo(x + 7, y + 18); c.lineTo(x + 7, y + h - 18); c.stroke();
+  c.restore();
+}
+function vloeistofVlak(c, x, y, w, h, niveau, kleur){
+  if (niveau <= 0) return;
+  c.save(); c.fillStyle = kleur;
+  c.beginPath(); c.moveTo(x + 1.5, y + h - niveau); c.lineTo(x + w - 1.5, y + h - niveau); c.lineTo(x + w - 1.5, y + h - 10);
+  c.quadraticCurveTo(x + w - 1.5, y + h - 1.5, x + w - 10, y + h - 1.5); c.lineTo(x + 10, y + h - 1.5); c.quadraticCurveTo(x + 1.5, y + h - 1.5, x + 1.5, y + h - 10); c.closePath(); c.fill();
+  c.strokeStyle = 'rgba(70,120,170,.35)'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x + 1.5, y + h - niveau); c.lineTo(x + w - 1.5, y + h - niveau); c.stroke();
+  c.restore();
+}
+function tekst(c, t, x, y, o = {}){
+  c.save(); c.font = `${o.vet ? '600 ' : ''}${o.i ? 'italic ' : ''}${o.px || 13}px ${o.serif ? 'Georgia, serif' : getComputedStyle(document.body).fontFamily}`;
+  c.fillStyle = o.kleur || '#5d5a52'; c.textAlign = o.al || 'center'; c.textBaseline = 'middle'; c.fillText(t, x, y); c.restore();
+}
+function bol(c, x, y, r, kleur, label, alfa = 1){
+  c.save(); c.globalAlpha = alfa;
+  const g = c.createRadialGradient(x - r*0.35, y - r*0.4, r*0.15, x, y, r);
+  g.addColorStop(0, mengKleur(kleur, 0.55)); g.addColorStop(0.75, kleur); g.addColorStop(1, kleur);
+  c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, Math.PI*2); c.fill();
+  c.strokeStyle = 'rgba(40,35,30,.35)'; c.lineWidth = 1; c.stroke();
+  if (label){ c.font = `700 ${Math.max(9, Math.min(14, r * 0.62))}px ${getComputedStyle(document.body).fontFamily}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillStyle = helder(kleur) > 0.6 ? '#2b2a27' : '#fff'; c.fillText(label, x, y + 0.5); }
+  c.restore();
+}
+function elektron(c, x, y, alfa = 1){ c.save(); c.globalAlpha = alfa; c.fillStyle = '#f2c230'; c.strokeStyle = '#8a6a0c'; c.lineWidth = 1; c.beginPath(); c.arc(x, y, 4.2, 0, Math.PI*2); c.fill(); c.stroke();
+  c.fillStyle = '#5a4306'; c.font = '700 8px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('−', x, y + 0.3); c.restore(); }
+function maakCanvas(host, w, h){
+  const c = document.createElement('canvas'), dpr = Math.max(1, window.devicePixelRatio || 1);
+  c.width = w * dpr; c.height = h * dpr; c.style.aspectRatio = w + ' / ' + h;
+  host.appendChild(c);
+  const ctx = c.getContext('2d'); ctx.scale(dpr, dpr); ctx.W = w; ctx.H = h; return ctx;
+}
+const breuk = (t, n) => `<span class="breuk"><span>${t}</span><span>${n}</span></span>`;
+/* ---------- opslag ---------- */
+const OPSLAG = 'celfabriek-v1';
+function laad(){ try { return JSON.parse(localStorage.getItem(OPSLAG)) || {}; } catch (e){ return {}; } }
+function bewaar(o){ try { localStorage.setItem(OPSLAG, JSON.stringify(o)); } catch (e){} }
+
+/* =====================================================================
+   Spelopbouw: levels (zoals werkplaatsen), klanten (zoals opdrachten)
+   ===================================================================== */
+const WPS = [];
+const STAAT = { wp:0, tab:'uitleg', voortgang: Object.assign({ kas:500, st:{} }, laad()) };
+const PER_WP = {};
+let SIM = null;
+const BOETE = { fout:10, hint:5, toon:30 };
+const euro = x => '€ ' + Math.round(x).toLocaleString('nl-NL');
+const tekstOf = x => typeof x === 'function' ? x() : x;
+
+function kasBij(d){
+  STAAT.voortgang.kas = Math.round(STAAT.voortgang.kas + d); bewaar(STAAT.voortgang);
+  $('#kasw').textContent = euro(STAAT.voortgang.kas);
+  const i = $('#kasdelta'); i.textContent = (d > 0 ? '+' : '−') + ' ' + euro(Math.abs(d)).slice(2);
+  i.className = d > 0 ? 'plus' : 'min'; void i.offsetWidth; i.classList.add('toon');
+  clearTimeout(kasBij.t); kasBij.t = setTimeout(() => i.classList.remove('toon'), 1300);
+}
+function sterrenVan(id){ const s = STAAT.voortgang.st[id] || {}; return Object.values(s).reduce((a, b) => a + b, 0); }
+function renderNav(){
+  $('#kasw').textContent = euro(STAAT.voortgang.kas);
+  $('#nav').innerHTML = WPS.map((w, i) => {
+    const max = w.nKlant * 3, n = sterrenVan(w.id);
+    return `<a data-i="${i}" class="${i === STAAT.wp ? 'on' : ''} ${n >= w.nKlant * 2 ? 'klaar' : ''}"><i>${i + 1}</i><span>${w.titel}<small>${w.par}</small><span class="ster3">${'★'.repeat(Math.min(n, max))}<span style="color:#4b6074">${'★'.repeat(max - Math.min(n, max))}</span></span></span></a>`;
+  }).join('');
+  $$('#nav a').forEach(a => a.onclick = () => open(+a.dataset.i));
+}
+function open(i){
+  STAAT.wp = i; STAAT.tab = 'uitleg';
+  const w = WPS[i];
+  if (!PER_WP[w.id]) nieuweSerie(w);
+  $('#main').innerHTML = `<div class="wp"><section class="tekst" id="tekst"></section><section class="simkol" id="simkol"></section></div>`;
+  SIM = w.sim; SIM.init($('#simkol'));
+  renderTekst(); renderNav(); SIM.opdracht && SIM.opdracht(null);
+  window.scrollTo(0, 0);
+}
+function nieuweSerie(w){
+  const serie = w.maakSerie();
+  PER_WP[w.id] = { serie, idx:0, st: serie.map(() => ({ stap:0, getoond:false, klaar:false, pogingen:{}, min:0, betaald:false })) };
+}
+function renderTekst(){
+  const w = WPS[STAAT.wp], p = PER_WP[w.id];
+  const nGoed = p.st.filter(s => s.klaar).length;
+  let h = `<div class="kicker">Level ${STAAT.wp + 1} · ${w.par}</div><h2>${w.titel}</h2>
+    <div class="tabs"><button data-t="uitleg" class="${STAAT.tab === 'uitleg' ? 'on' : ''}">Uitleg en voorbeeld</button>
+    <button data-t="opd" class="${STAAT.tab === 'opd' ? 'on' : ''}">Klanten<span class="tel">${nGoed}/${p.serie.length}</span></button></div>`;
+  h += STAAT.tab === 'uitleg' ? w.uitleg() + renderVoorbeelden(w) : renderOpdracht(w, p);
+  $('#tekst').innerHTML = h;
+  $$('#tekst .tabs button').forEach(b => b.onclick = () => { STAAT.tab = b.dataset.t; renderTekst(); if (STAAT.tab === 'opd') zetOpdrachtInSim(); else SIM.opdracht && SIM.opdracht(null); });
+  if (STAAT.tab === 'uitleg') koppelVoorbeelden(w); else koppelOpdracht(w, p);
+}
+
+/* ---------- uitgewerkte voorbeelden, stap voor stap ---------- */
+function vbLijst(w){ return w.voorbeelden || (w.voorbeeld ? [w.voorbeeld] : []); }
+function renderVoorbeelden(w){
+  const lijst = vbLijst(w); w._vb = w._vb || lijst.map(() => 0);
+  return lijst.map((vb, j) => {
+    const n = w._vb[j];
+    let h = `<div class="vb"><div class="vbkop">Voorbeeld${lijst.length > 1 ? ' ' + (j + 1) : ''}</div><div class="vbvraag">${vb.vraag}</div>`;
+    for (let k = 0; k < n; k++) h += `<div class="vbstap"><span class="n">${k + 1}</span><div class="b">${vb.stappen[k]}</div></div>`;
+    h += n < vb.stappen.length ? `<div class="verder"><button class="btn g klein" data-vb="${j}">${n ? 'Volgende stap' : 'Toon de uitwerking'} ▸</button></div>`
+       : (j === lijst.length - 1 ? `<div class="verder"><button class="btn klein" id="naaropd">Naar de klanten ▸</button></div>` : '');
+    return h + '</div>';
+  }).join('');
+}
+function koppelVoorbeelden(w){
+  $$('[data-vb]').forEach(b => b.onclick = () => { const j = +b.dataset.vb; w._vb[j]++; renderTekst(); const vb = vbLijst(w)[j]; vb.bijStap && vb.bijStap(w._vb[j]); });
+  const o = $('#naaropd'); if (o) o.onclick = () => { STAAT.tab = 'opd'; renderTekst(); zetOpdrachtInSim(); window.scrollTo(0, 0); };
+}
+
+/* ---------- klanten ---------- */
+const AVKL = ['#3b6fa8', '#a0701f', '#3f8f63', '#8a4f9e', '#b4473a', '#2f7f86'];
+function sterrenVoor(s){ return s.getoond ? 0 : s.min === 0 ? 3 : s.min <= 2 ? 2 : 1; }
+function renderOpdracht(w, p){
+  const o = p.serie[p.idx], s = p.st[p.idx], k0 = o.klant;
+  let h = `<div class="oknop">` + p.serie.map((x, k) => {
+    const st = p.st[k];
+    return `<span class="dot ${k === p.idx ? 'on' : ''} ${st.klaar ? 'goed' : ''} ${x.ster ? 'ster' : ''}" data-k="${k}" title="${x.klant.naam}">${x.ster ? '★' : k + 1}</span>`;
+  }).join('') + `<span class="rechts"><button class="btn g klein" id="nieuweserie">Nieuwe klanten</button></span></div>`;
+  h += `<div class="klant"><div class="av" style="background:${AVKL[p.idx % AVKL.length]}">${k0.naam.split(' ').map(x => x[0]).slice(0, 2).join('')}</div>
+    <div><div class="wie"><b>${k0.naam}</b> · ${k0.wat}${o.ster ? ' · <span style="color:var(--goud)">★ lastige klant</span>' : ''}</div><div class="zegt">“${tekstOf(o.vraag)}”</div></div>
+    <div class="loon">beloning<b>${euro(o.beloning)}</b></div></div>`;
+  if (o.gegeven) h += `<div class="gegeven">${tekstOf(o.gegeven)}</div>`;
+  o.stappen.forEach((st, k) => {
+    const dicht = k > s.stap, goed = k < s.stap || s.klaar;
+    h += `<div class="stap ${dicht ? 'dicht' : ''} ${goed ? 'goed' : ''}" data-k="${k}">${o.stappen.length > 1 ? `<span class="n">${goed ? '✓' : k + 1}</span>` : ''}<div class="inh">
+      <div class="vr">${dicht ? tekstOf(st.vrDicht || st.vr) : tekstOf(st.vr)}</div>${goed ? `<div class="antw">${st.antwoord()}</div>` : `<div class="inv">${dicht ? '' : invoerHTML(st, k)}</div>`}
+      <div class="fb" id="fb${k}"></div></div></div>`;
+  });
+  if (s.klaar){
+    const n = sterrenVoor(s), bedrag = Math.round(o.beloning * n / 3);
+    h += `<div class="afrekening ${n ? '' : 'nul'}"><span class="st">${'★'.repeat(n)}<span style="color:#d6cdb8">${'★'.repeat(3 - n)}</span></span><div><b>${n === 3 ? 'De klant is zeer tevreden.' : n === 2 ? 'De klant is tevreden.' : n === 1 ? 'De klant is matig tevreden.' : 'Opdracht afgerond met het getoonde antwoord.'}</b><br>${n ? 'Je ontvangt ' + euro(bedrag) + '.' : 'Daar betaalt de klant niet voor.'}${o.naKlaar ? ' ' + o.naKlaar() : ''}</div></div>`;
+    if (p.idx < p.serie.length - 1) h += `<div class="rij"><button class="btn" id="volgende">Volgende klant ▸</button></div>`;
+    else if (STAAT.wp < WPS.length - 1) h += `<div class="rij"><button class="btn" id="volgendlevel">Naar level ${STAAT.wp + 2} ▸</button></div>`;
+  }
+  h += `<div class="typtip">${w.typtip || TYPTIP}</div>`;
+  return h;
+}
+const TYPTIP = 'Zo typ je: ion <code>Zn2+</code> of <code>SO4 2-</code> · elektron <code>e-</code> · pijl <code>-></code> · coëfficiënt ervoor: <code>2 e-</code>. Getallen met een komma: <code>0,34</code>; machten als <code>1,5·10^4</code> of <code>1,5e4</code>.';
+
+function invoerHTML(st, k){
+  const knoppen = `<button class="btn" data-ctl="${k}">Controleer</button><button class="btn g" data-hint="${k}">Hint (€ ${BOETE.hint})</button><button class="btn g" data-toon="${k}" style="display:none">Toon antwoord (€ ${BOETE.toon})</button>`;
+  if (st.type === 'tekst') return `<div class="rij"><input class="in" id="in${k}" autocomplete="off" spellcheck="false" placeholder="${st.ph || ''}">${knoppen}</div><div class="voorbeeldweergave" id="vw${k}"></div>`;
+  if (st.type === 'getal') return `<div class="rij"><input class="in" id="in${k}" autocomplete="off" spellcheck="false" placeholder="${st.ph || 'getal'}" style="flex:0 1 220px"><span style="font-size:15px">${st.eenheid || ''}</span>${knoppen}</div><div class="voorbeeldweergave" id="vw${k}"></div>`;
+  if (st.type === 'chips') return `<div class="chips" id="ch${k}">${st.opties.map((x, j) => `<span class="chip" data-j="${j}">${x.html}</span>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'keuze') return `<div class="opties" id="op${k}">${st.opties.map((x, j) => `<button class="optie" data-j="${j}">${x.html}</button>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'selects') return `<div class="rij">${st.selects.map((s, j) => `<label style="font-size:14px">${s.lab} <select class="sel" id="se${k}_${j}"><option value="">kies…</option>${s.opties.map(x => `<option value="${x.v}">${x.t}</option>`).join('')}</select></label>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  return '';
+}
+function koppelOpdracht(w, p){
+  const o = p.serie[p.idx], s = p.st[p.idx];
+  $$('.oknop .dot').forEach(d => d.onclick = () => { p.idx = +d.dataset.k; renderTekst(); zetOpdrachtInSim(); });
+  $('#nieuweserie').onclick = () => { nieuweSerie(w); renderTekst(); zetOpdrachtInSim(); };
+  const v = $('#volgende'); if (v) v.onclick = () => { p.idx++; renderTekst(); zetOpdrachtInSim(); window.scrollTo(0, 0); };
+  const vl = $('#volgendlevel'); if (vl) vl.onclick = () => open(STAAT.wp + 1);
+  o.stappen.forEach((st, k) => {
+    if (k !== s.stap || s.klaar) return;
+    const inp = $('#in' + k);
+    if (inp){
+      inp.oninput = () => {
+        const vw = $('#vw' + k), t = inp.value.trim();
+        if (st.type === 'getal'){ const g = leesGetal(t); vw.innerHTML = t ? (g ? 'Zo lees ik het: <b>' + getalHTML(t) + '</b>' : 'Dit kan ik (nog) niet als getal lezen.') : ''; }
+        else vw.innerHTML = t ? 'Zo lees ik het: <b>' + mooi(inp.value) + '</b>' : '';
+      };
+      inp.onkeydown = e => { if (e.key === 'Enter') controleer(w, p, k); };
+      setTimeout(() => inp.focus({ preventScroll:true }), 30);
+    }
+    $$(`#ch${k} .chip`).forEach(c => c.onclick = () => c.classList.toggle('aan'));
+    $$(`#op${k} .optie`).forEach(c => c.onclick = () => {
+      if (!st.meer) $$(`#op${k} .optie`).forEach(x => x !== c && x.classList.remove('aan'));
+      c.classList.toggle('aan');
+    });
+    if (st.type === 'selects') st.selects.forEach((x, j) => $(`#se${k}_${j}`).onchange = () => SIM.invoer && SIM.invoer(waardeVan(st, k), st));
+    $(`[data-ctl="${k}"]`).onclick = () => controleer(w, p, k);
+    $(`[data-hint="${k}"]`).onclick = () => {
+      const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = tekstOf(st.hint);
+      if (!s.hints) s.hints = {};
+      if (!s.hints[k]){ s.hints[k] = true; s.min++; kasBij(-BOETE.hint); }
+    };
+    $(`[data-toon="${k}"]`).onclick = () => {
+      s.getoond = true; kasBij(-BOETE.toon); const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = 'Antwoord: ' + st.antwoord();
+      st.bijToon && st.bijToon();
+      setTimeout(() => stapGoed(w, p, k), 1600);
+    };
+    if ((s.pogingen[k] || 0) >= 2) $(`[data-toon="${k}"]`).style.display = '';
+  });
+}
+function waardeVan(st, k){
+  if (st.type === 'tekst' || st.type === 'getal') return $('#in' + k).value;
+  if (st.type === 'chips') return $$(`#ch${k} .chip.aan`).map(c => +c.dataset.j);
+  if (st.type === 'keuze') return $$(`#op${k} .optie.aan`).map(c => +c.dataset.j);
+  if (st.type === 'selects') return st.selects.map((x, j) => $(`#se${k}_${j}`).value);
+}
+function controleer(w, p, k){
+  const o = p.serie[p.idx], s = p.st[p.idx], st = o.stappen[k];
+  const r = st.check(waardeVan(st, k));
+  const fb = $('#fb' + k);
+  if (r.ok){ st.bijGoed && st.bijGoed(waardeVan(st, k)); fb.className = 'fb toon goed'; fb.innerHTML = r.msg || 'Goed!'; setTimeout(() => stapGoed(w, p, k), 700); }
+  else {
+    s.pogingen[k] = (s.pogingen[k] || 0) + 1;
+    if (!r.gratis){ s.min++; kasBij(-BOETE.fout); }
+    fb.className = 'fb toon fout'; fb.innerHTML = r.msg;
+    if (s.pogingen[k] >= 2) $(`[data-toon="${k}"]`).style.display = '';
+  }
+}
+function stapGoed(w, p, k){
+  const o = p.serie[p.idx], s = p.st[p.idx];
+  if (s.stap !== k) return;
+  s.stap = k + 1;
+  if (s.stap >= o.stappen.length) s.klaar = true;
+  SIM.stapGoed && SIM.stapGoed(o, k);
+  if (s.klaar && !s.betaald){
+    s.betaald = true;
+    const n = sterrenVoor(s), bedrag = Math.round(o.beloning * n / 3);
+    if (bedrag) kasBij(bedrag);
+    const lv = STAAT.voortgang.st[w.id] = STAAT.voortgang.st[w.id] || {};
+    lv[p.idx] = Math.max(lv[p.idx] || 0, n); bewaar(STAAT.voortgang); renderNav();
+  }
+  renderTekst();
+}
+function zetOpdrachtInSim(){
+  const w = WPS[STAAT.wp], p = PER_WP[w.id];
+  SIM.opdracht && SIM.opdracht(STAAT.tab === 'opd' ? p.serie[p.idx] : null, STAAT.tab === 'opd' ? p.st[p.idx] : null);
+}
+
+/* invoer netjes weergeven */
+function mooi(invoer){
+  const v = leesVgl(invoer);
+  if (!v.fout) return vglHTML(v, { st:true });
+  const L = leesKant(norm(invoer)); if (L) return L.map(x => termHTML(x, true)).join(' + ');
+  return norm(invoer).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/->/g, ' → ');
+}
+function getalHTML(t){ const g = leesGetal(t); if (!g) return ''; const e = g.w === 0 ? 0 : Math.floor(Math.log10(Math.abs(g.w)));
+  return (Math.abs(e) >= 3) ? (g.w / Math.pow(10, e)).toPrecision(Math.max(1, g.sig)).replace('.', ',') + '·10<sup>' + (e < 0 ? '−' + -e : e) + '</sup>' : g.w.toPrecision(Math.max(1, g.sig)).replace('.', ','); }
+
+/* ---------- veelgebruikte opdrachtbouwstenen ---------- */
+const vglStap = (vr, verw, hint, o = {}) => ({ type:'tekst', vr, ph: o.ph || 'vergelijking', check: v => checkVgl(v, verw, o), antwoord: () => vglHTML(verw), hint, goed: () => vglTyp(verw) });
+function keuze(vr, opties, goed, hint, o = {}){            /* opties: [html]; goed: [index] */
+  const idx = schud(opties.map((h, j) => j));
+  const opts = idx.map(j => ({ html: opties[j], j }));
+  return { type: o.chips ? 'chips' : 'keuze', meer: !!o.meer, vr, opties: opts, hint,
+    check: v => {
+      const gekozen = v.map(x => opts[x].j).sort().join(','), juist = goed.slice().sort().join(',');
+      if (!v.length) return { ok:false, msg: o.chips || o.meer ? 'Kies eerst één of meer antwoorden.' : 'Kies eerst een antwoord.' };
+      if (gekozen === juist) return { ok:true, msg: o.goedMsg };
+      if ((o.chips || o.meer) && v.every(x => goed.includes(opts[x].j))) return { ok:false, msg:'Wat je koos klopt, maar er zijn er nog meer.' };
+      return { ok:false, msg: (o.foutMsg && o.foutMsg(v.map(x => opts[x].j))) || 'Nog niet goed.' };
+    },
+    antwoord: () => goed.map(j => opties[j]).join('<br>'), auto: () => opts.map((x, i) => goed.includes(x.j) ? i : -1).filter(i => i >= 0) };
+}
+const getalStap = (vr, doel, o) => ({ type:'getal', vr, eenheid: o.eenheid || '', ph: o.ph, hint: o.hint, check: v => checkGetal(v, doel(), o), antwoord: () => o.antwoord() });
+
+/* =====================================================================
+   Binas 48 (venster)
+   ===================================================================== */
+function renderB48(filter = '', licht = []){
+  const f = norm(filter).toLowerCase();
+  const rijen = T48.filter(r => !f || norm(T48_RUW[r.i][0] + T48_RUW[r.i][1]).toLowerCase().includes(f));
+  const noot = r => r.noot ? ` <sup style="color:var(--goud)">▸${r.noot}</sup>` : '';
+  $('#b48inh').innerHTML = `<div class="b48kop">De reacties vinden plaats in oplossing; alle ionconcentraties steeds 1,00 mol L<sup>−1</sup>. Bij deeltjes zonder toestandsaanduiding moet steeds (aq) worden gelezen.</div>
+    <table class="b48"><tr><th>oxidator</th><th></th><th>reductor</th><th style="text-align:right">V<sub>0</sub> (V)</th></tr>
+    ${rijen.map(r => `<tr class="${licht.includes(r.i) ? 'licht' : ''}"><td>${r.ox.map(x => termHTML(x, true)).join(' + ')}</td><td class="pijl">⇌</td><td>${r.red.map(x => termHTML(x, true)).join(' + ')}${noot(r)}</td><td class="v">${r.vt.replace('-', '−')}</td></tr>`).join('')}</table>
+    <div class="b48noot">De vermelde waarden kunnen in enkele gevallen vrij sterk afwijken van gegevens uit andere bronnen. Meestal is de keuze van het milieu de oorzaak.<br>
+    ${Object.entries(T48_NOTEN).map(([k, t]) => `▸${k} ${t.replace(/(\S+) -> (.*)/, (m, a, b) => m).replace(/([A-Za-z)])(\d+)/g, '$1<sub>$2</sub>').replace(/\^(\d*[+-])/g, '<sup>$1</sup>').replace(/->/g, '⇌')}`).join('<br>')}</div>`;
+}
+function openB48(licht = []){ $('#b48zoek').value = ''; renderB48('', licht); $('#b48modal').classList.add('open'); }
+$('#binasknop').onclick = () => openB48();
+$('#b48dicht').onclick = () => $('#b48modal').classList.remove('open');
+$('#b48modal').onclick = e => { if (e.target.id === 'b48modal') $('#b48modal').classList.remove('open'); };
+$('#b48zoek').oninput = e => renderB48(e.target.value);
+const b48link = (t = 'Binas tabel 48') => `<a href="#" onclick="openB48();return false" style="color:var(--goud);font-weight:600">${t}</a>`;
+function rij(ox, red){ const r = T48.find(x => T48_RUW[x.i][0] === ox && T48_RUW[x.i][1] === red); if (!r) throw new Error('rij ontbreekt: ' + ox + ' | ' + red); return r; }
+
+/* ---------- constanten (Binas 7 en 99) ---------- */
+const FAR = 9.649e4;                       /* C/mol */
+const MM = { Zn:65.38, Cu:63.55, Pb:207.2, PbO2:239.2, H2SO4:98.08, H2O:18.02, Cd:112.4, NiOOH:91.70, LiC6:79.00, CoO2:90.93, Li:6.94, H2:2.016, O2:32.00, Ag:107.9, Fe:55.85 };
+const QV = { H2O:-2.86e5 };                /* vormingswarmte H2O(l), Binas 57 */
+const eenh = (t, n) => breuk(t, n);         /* samengestelde eenheid met breukstreep */
+const Jmol = eenh('J', 'mol'), Cmol = eenh('C', 'mol'), gmol = eenh('g', 'mol'), Jkg = eenh('J', 'kg'), kgmol = eenh('kg', 'mol'), Whkg = eenh('Wh', 'kg');
+function wet(x, sig = 3){
+  if (!isFinite(x)) return '';
+  if (x === 0) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x)));
+  if (e >= -2 && e <= sig - 1) return x.toFixed(Math.max(0, sig - 1 - e)).replace('.', ',').replace('-', '−');
+  let m = x / Math.pow(10, e), ee = e; let ms = m.toPrecision(sig); if (Math.abs(parseFloat(ms)) >= 10){ ee++; ms = (x / Math.pow(10, ee)).toPrecision(sig); }
+  return ms.replace('.', ',').replace('-', '−') + '·10<sup>' + (ee < 0 ? '−' + -ee : ee) + '</sup>';
+}
+const V2 = v => komma(v, 2);
+const SUPU = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','−':'⁻' };
+const wetU = (x, sig = 3) => wet(x, sig).replace(/<sup>(.*?)<\/sup>/g, (m, a) => a.split('').map(ch => SUPU[ch] || ch).join(''));
+/* getalstap met absolute tolerantie (voor spanningen) */
+function spanningStap(vr, doel, o = {}){
+  return { type:'getal', vr, eenheid:'V', ph:'bijv. 0,75', hint:o.hint, check: v => {
+    const g = leesGetal(v); if (!g) return { ok:false, msg:'Typ een getal, bijvoorbeeld <code>0,75</code>.' };
+    const d = doel();
+    if (Math.abs(g.w - d) < 0.006) return { ok:true };
+    if (Math.abs(g.w + d) < 0.006) return { ok:false, msg:'Je hebt het teken omgedraaid: V<sub>0</sub> van de oxidator min V<sub>0</sub> van de reductor.' };
+    return { ok:false, msg: o.foutTip || 'Nog niet goed. Zoek beide waarden op in Binas tabel 48 en trek af: V<sub>0</sub>(oxidator) − V<sub>0</sub>(reductor).' };
+  }, antwoord: o.antwoord, auto: () => komma(doel(), 2) };
+}
+/* rekenstap met relatieve tolerantie; sig alleen bij eindantwoorden */
+const reken = (vr, doel, o) => ({ type:'getal', vr, eenheid: o.eenheid || '', ph: o.ph, hint: o.hint, check: v => { const r = (o.extra && o.extra(v)) || null; if (r) return r; if (o.sig){ const g = leesGetal(v); if (g && g.sig === o.sig && Number(g.w.toPrecision(o.sig)) === Number(doel().toPrecision(o.sig))) return { ok:true }; } return checkGetal(v, doel(), Object.assign({ tol: o.sig === 2 ? 0.05 : 0.01 }, o)); }, antwoord: () => o.antwoord(), bijGoed: o.bijGoed, auto: () => doel().toPrecision(o.sig || 4) });
+const vglS = (vr, verw, hint, o = {}) => ({ type:'tekst', vr, ph: o.ph || 'halfreactie', check: v => checkVgl(v, tekstOf(verw), o), antwoord: () => vglHTML(tekstOf(verw)), hint, bijGoed: o.bijGoed, auto: () => vglTyp(tekstOf(verw)) });
+
+/* ---------- tekenhulpen voor de werkbank ---------- */
+function draad(c, pts, kleur = '#4a4f55'){ c.save(); c.strokeStyle = kleur; c.lineWidth = 2.6; c.lineJoin = 'round'; c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (const p of pts.slice(1)) c.lineTo(p[0], p[1]); c.stroke(); c.restore(); }
+function langsPad(pts, f){
+  const seg = []; let tot = 0;
+  for (let i = 1; i < pts.length; i++){ const l = Math.hypot(pts[i][0] - pts[i-1][0], pts[i][1] - pts[i-1][1]); seg.push(l); tot += l; }
+  let d = ((f % 1) + 1) % 1 * tot;
+  for (let i = 0; i < seg.length; i++){ if (d <= seg[i]){ const t = d / seg[i]; return [lerp(pts[i][0], pts[i+1][0], t), lerp(pts[i][1], pts[i+1][1], t)]; } d -= seg[i]; }
+  return pts[pts.length - 1];
+}
+function meter(c, x, y, txt, aan){
+  c.save(); c.fillStyle = '#fffdf8'; c.strokeStyle = '#24323f'; c.lineWidth = 2;
+  c.beginPath(); c.roundRect(x - 52, y - 24, 104, 48, 10); c.fill(); c.stroke();
+  c.fillStyle = aan ? '#1d2a35' : '#e9e3d6'; c.beginPath(); c.roundRect(x - 42, y - 15, 84, 30, 6); c.fill();
+  c.font = '600 18px ' + getComputedStyle(document.body).fontFamily; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = aan ? '#8ff0b5' : '#8a8478'; c.fillText(txt, x, y + 1);
+  c.restore();
+}
+function rrect(c, x, y, w, h, r, fill, stroke, lw = 1.5){ c.save(); c.beginPath(); c.roundRect(x, y, w, h, r); if (fill){ c.fillStyle = fill; c.fill(); } if (stroke){ c.strokeStyle = stroke; c.lineWidth = lw; c.stroke(); } c.restore(); }
+function strip(c, x, y, w, h, kleur, label){ rrect(c, x, y, w, h, 2, kleur, 'rgba(0,0,0,.35)', 1); if (label) tekst(c, label, x + w / 2, y - 10, { px:12, vet:true, kleur:'#3e3b35' }); }
+function pool(c, x, y, plus){ c.save(); c.fillStyle = plus ? '#b4473a' : '#3b6fa8'; c.beginPath(); c.arc(x, y, 10, 0, Math.PI * 2); c.fill(); tekst(c, plus ? '+' : '−', x, y + 0.5, { px:15, vet:true, kleur:'#fff' }); c.restore(); }
+
+/* =====================================================================
+   Level 1 — Eén cel bouwen
+   ===================================================================== */
+const HC = {
+  Zn:{ kort:'zink', naam:'zink in zinksulfaatoplossing', r:rij('Zn2+ + 2 e-', 'Zn(s)'), ion:'Zn2+', q:2, kl:'#9aa6b2', opl:'rgba(200,215,230,.35)' },
+  Fe:{ kort:'ijzer', naam:'ijzer in ijzer(II)sulfaatoplossing', r:rij('Fe2+ + 2 e-', 'Fe(s)'), ion:'Fe2+', q:2, kl:'#7d858c', opl:'rgba(150,200,140,.32)' },
+  Pb:{ kort:'lood', naam:'lood in lood(II)nitraatoplossing', r:rij('Pb2+ + 2 e-', 'Pb(s)'), ion:'Pb2+', q:2, kl:'#6f7787', opl:'rgba(200,215,230,.35)' },
+  Cu:{ kort:'koper', naam:'koper in koper(II)sulfaatoplossing', r:rij('Cu2+ + 2 e-', 'Cu(s)'), ion:'Cu2+', q:2, kl:'#c26b3e', opl:'rgba(70,150,210,.34)' },
+  Ag:{ kort:'zilver', naam:'zilver in zilvernitraatoplossing', r:rij('Ag+ + e-', 'Ag(s)'), ion:'Ag+', q:1, kl:'#b9bfc6', opl:'rgba(200,215,230,.35)' }
+};
+const hcSel = Object.entries(HC).map(([k, h]) => ({ v:k, t:h.naam }));
+const ox = k => V(`${k} -> ${HC[k].ion} + ${HC[k].q > 1 ? HC[k].q + ' ' : ''}e-`);
+const red = k => V(`${HC[k].ion} + ${HC[k].q > 1 ? HC[k].q + ' ' : ''}e- -> ${k}`);
+const dV = (n, p) => HC[p].r.v - HC[n].r.v;
+
+const SIM1 = {
+  init(host){
+    this.neg = 'Zn'; this.pos = 'Cu'; this.toonV = true; this.t = 0; this.band = null;
+    host.innerHTML = `<div class="simkop"><b>Werkbank</b><span>één cel: twee halfcellen, een draad en een zoutbrug</span></div>
+      <div class="doek" id="s1doek"></div><div class="uitkomst" id="s1uit"></div>`;
+    this.c = maakCanvas($('#s1doek'), 600, 330); this.tekst();
+  },
+  tekst(){
+    const b = this.band ? `Gevraagd: tussen <b>${V2(this.band[0])} V</b> en <b>${V2(this.band[1])} V</b>. ` : '';
+    const n = this.neg && HC[this.neg], p = this.pos && HC[this.pos];
+    $('#s1uit').innerHTML = b + (n && p ? `Negatieve elektrode: ${n.naam}. Positieve elektrode: ${p.naam}.` : 'Kies de twee halfcellen.')
+      + (this.toonV && n && p ? `<div class="groot" style="margin-top:4px">ΔV<sub>0</sub> = ${V2(dV(this.neg, this.pos))} V</div>` : '');
+  },
+  update(dt){ this.t += dt; },
+  draw(){
+    const c = this.c; c.clearRect(0, 0, c.W, c.H);
+    const L = { x:70, y:150, w:170, h:150 }, R = { x:360, y:150, w:170, h:150 };
+    for (const [b, k] of [[L, this.neg], [R, this.pos]]){
+      vloeistofVlak(c, b.x, b.y, b.w, b.h, 110, k ? HC[k].opl : 'rgba(200,215,230,.25)');
+      tekenBeker(c, b.x, b.y, b.w, b.h);
+      if (k) strip(c, b.x + b.w / 2 - 12, b.y - 40, 24, 150, HC[k].kl);
+      tekst(c, k ? HC[k].kort : '?', b.x + b.w / 2, b.y + b.h - 18, { px:13, vet:true });
+    }
+    /* zoutbrug */
+    c.save(); c.strokeStyle = '#d9cfa8'; c.lineWidth = 16; c.lineCap = 'round'; c.beginPath(); c.moveTo(200, 230); c.lineTo(200, 120); c.lineTo(400, 120); c.lineTo(400, 230); c.stroke(); c.restore();
+    tekst(c, 'zoutbrug', 300, 108, { px:11.5, kleur:'#8a7f5a' });
+    /* draden en meter */
+    const pad = [[155, 110], [155, 45], [248, 45]], pad2 = [[352, 45], [445, 45], [445, 110]];
+    draad(c, pad); draad(c, pad2);
+    const aan = this.toonV && this.neg && this.pos;
+    meter(c, 300, 45, aan ? V2(dV(this.neg, this.pos)) + ' V' : '–,–– V', aan);
+    pool(c, 128, 132, false); pool(c, 472, 132, true);
+    if (aan && dV(this.neg, this.pos) > 0) for (let j = 0; j < 4; j++){
+      const f = (this.t * 0.25 + j / 4) % 1, ppp = [[155, 110], [155, 45], [445, 45], [445, 110]];
+      const [x, y] = langsPad(ppp, f); if (Math.abs(x - 300) > 54) elektron(c, x, y);
+    }
+    tekst(c, 'negatieve elektrode', 155, 322, { px:11.5, kleur:'#3b6fa8' }); tekst(c, 'positieve elektrode', 445, 322, { px:11.5, kleur:'#b4473a' });
+  },
+  opdracht(o){
+    if (!o){ this.neg = 'Zn'; this.pos = 'Cu'; this.toonV = true; this.band = null; }
+    else { this.band = o.band || null; this.neg = o.keus ? o.keus[0] : null; this.pos = o.keus ? o.keus[1] : null; this.toonV = !!o.vGetoond; if (o.vast){ this.neg = o.vast[0]; this.pos = o.vast[1]; } }
+    this.tekst();
+  },
+  invoer(v){ if (v[0] && HC[v[0]]) this.neg = v[0]; if (v[1] && HC[v[1]]) this.pos = v[1]; this.tekst(); },
+  stapGoed(o, k){ if (o.naStap) o.naStap(k); this.opdracht(o); }
+};
+
+const BANDEN = [[1.20, 1.30], [0.40, 0.50], [0.60, 0.80], [0.85, 1.00], [1.40, 1.60], [0.30, 0.35]];
+const KLANT1 = [
+  { naam:'Klokkenmakerij Tiktak', wat:'wandklokken' }, { naam:'Fietslicht en Co', wat:'fietslampjes' },
+  { naam:'Speelgoed De Tol', wat:'speelgoed' }, { naam:'Museum Volta', wat:'tentoonstelling' }, { naam:'Sensorbedrijf Meetwel', wat:'meetapparatuur' }
+];
+function klantCel(band, klant){
+  const o = { klant, band, beloning:120, keus:null, vGetoond:false,
+    vraag:`Ik heb een cel nodig die een spanning levert tussen ${V2(band[0])} V en ${V2(band[1])} V. Welke halfcellen gebruik je?`,
+    gegeven: `Magazijn: ${Object.values(HC).map(h => h.naam).join(' · ')}. Alle oplossingen zijn 1,0 M.` };
+  o.naStap = k => { if (k === 1) o.vGetoond = true; };
+  o.stappen = [
+    { type:'selects', vr:'Kies de twee halfcellen.', selects:[{ lab:'negatieve elektrode', opties:hcSel }, { lab:'positieve elektrode', opties:hcSel }],
+      hint:'Zoek de waarden op in ' + b48link() + '. Bij de negatieve elektrode staat de reductor elektronen af; de reductor moet een lagere V<sub>0</sub> hebben dan de oxidator. Bereken voor een paar combinaties het verschil.',
+      check: v => {
+        if (!v[0] || !v[1]) return { ok:false, msg:'Kies voor beide elektroden een halfcel.', gratis:true };
+        if (v[0] === v[1]) return { ok:false, msg:'Twee gelijke halfcellen leveren geen spanning: er is geen verschil tussen oxidator en reductor.' };
+        const d = dV(v[0], v[1]);
+        if (d < 0) return { ok:false, msg:'Bij deze keuze staat de sterkste reductor bij de positieve elektrode. Bij de negatieve elektrode moet de reductor zitten die elektronen afstaat: dat is het metaal met de laagste V<sub>0</sub>.' };
+        if (d < band[0] - 1e-9 || d > band[1] + 1e-9) return { ok:false, msg:'De elektroden staan goed, maar deze cel levert niet de gevraagde spanning. Reken het verschil in V<sub>0</sub> na.' };
+        return { ok:true };
+      },
+      bijGoed: v => { o.keus = v; }, bijToon: () => { o.keus = goedePaar(band); },
+      auto: () => goedePaar(band), antwoord: () => o.keus ? `negatief: ${HC[o.keus[0]].naam}, positief: ${HC[o.keus[1]].naam}` : '' },
+    spanningStap('Bereken de bronspanning ΔV<sub>0</sub> van jouw cel.', () => dV(o.keus[0], o.keus[1]), { hint:'ΔV<sub>0</sub> = V<sub>0</sub>(oxidator) − V<sub>0</sub>(reductor). De oxidator zit bij de positieve elektrode.', antwoord: () => `${vTxt(HC[o.keus[1]].r.v)} V − (${vTxt(HC[o.keus[0]].r.v)} V) = ${V2(dV(o.keus[0], o.keus[1]))} V` }),
+    vglS('Geef de halfreactie bij de negatieve elektrode.', () => ox(o.keus[0]), 'Het metaal staat elektronen af. Draai de regel uit tabel 48 om.', { halfreactie:true }),
+    vglS('Geef de halfreactie bij de positieve elektrode.', () => red(o.keus[1]), 'De metaalionen in de oplossing nemen elektronen op.', { halfreactie:true })
+  ];
+  o.stappen[0].vr = 'Kies de twee halfcellen.';
+  return o;
+}
+function goedePaar(band){ for (const n in HC) for (const p in HC){ const d = dV(n, p); if (d >= band[0] - 1e-9 && d <= band[1] + 1e-9) return [n, p]; } }
+
+WPS.push({
+  id:'cel', titel:'Eén cel bouwen', par:'koppel kiezen, bronspanning', nKlant:4, sim:SIM1,
+  uitleg: () => `<p>Welkom bij Celfabriek. Klanten vragen om een batterij met bepaalde eigenschappen. Jij kiest de stoffen en rekent na of de cel voldoet. Elke keuze die je maakt is een scheikundige keuze.</p>
+    <h3>Een elektrochemische cel</h3>
+    <ul><li>Bij de <b>negatieve elektrode</b> staat de reductor elektronen af.</li>
+    <li>Bij de <b>positieve elektrode</b> neemt de oxidator die elektronen op.</li>
+    <li>De elektronen gaan door de draad van de negatieve naar de positieve elektrode; de zoutbrug sluit de stroomkring.</li></ul>
+    <p>De <b>bronspanning</b> bereken je met ${b48link()}:</p>
+    <div class="kader" style="text-align:center;font-size:17px">ΔV<sub>0</sub> = V<sub>0</sub>(oxidator) − V<sub>0</sub>(reductor)</div>
+    <p>Alleen als ΔV<sub>0</sub> positief is, levert de cel stroom.</p>`,
+  voorbeelden:[{ vraag:'Een klant wil een cel van ongeveer 1,1 V. Laat zien dat een cel met zink in zinksulfaatoplossing en koper in koper(II)sulfaatoplossing voldoet.',
+    stappen:[`Opzoeken in Binas 48: ${rijHTML(HC.Cu.r)} V<sub>0</sub> = +0,34 V en ${rijHTML(HC.Zn.r)} V<sub>0</sub> = −0,76 V.`,
+      `Zink is de sterkste reductor (laagste V<sub>0</sub>): zink is de negatieve elektrode. Cu<sup>2+</sup> is de oxidator bij de positieve elektrode.`,
+      `ΔV<sub>0</sub> = V<sub>0</sub>(oxidator) − V<sub>0</sub>(reductor) = +0,34 V − (−0,76 V) = <b>1,10 V</b>.`,
+      `Negatieve elektrode: ${vglHTML(ox('Zn'))}<br>Positieve elektrode: ${vglHTML(red('Cu'))}`] }],
+  maakSerie(){
+    const b = schud(BANDEN).slice(0, 3), k = schud(KLANT1);
+    const s = b.map((x, i) => klantCel(x, k[i]));
+    const st = { klant:{ naam:'Budgetbatterij BV', wat:'goedkope batterijen' }, ster:true, beloning:150, vast:['Zn', 'Cu'], vGetoond:true,
+      vraag:'Kan het goedkoper? Ik wil het zink in zoutzuur zetten in plaats van in zinksulfaatoplossing. Zoutzuur hebben we toch al liggen.',
+      stappen:[ keuze('Leg uit of dit een goed idee is.', [
+        'Nee: H<sup>+</sup> is een sterkere oxidator dan Zn<sup>2+</sup>. Het zink reageert direct met het zoutzuur, ook als de cel niet gebruikt wordt.',
+        'Ja: zoutzuur geleidt beter dan zinksulfaatoplossing, dus de cel levert meer stroom.',
+        'Nee: Cl<sup>−</sup> is een oxidator die het zink aantast.',
+        'Ja: H<sup>+</sup> en Zn<sup>2+</sup> zijn allebei positieve ionen, dus er verandert niets.'], [0], 'Zoek H<sup>+</sup> op in Binas 48 en vergelijk met Zn<sup>2+</sup>. Kan zink met H<sup>+</sup> reageren?'),
+        vglS('Geef de reactievergelijking van de reactie van zink met zoutzuur.', V('Zn + 2 H+ -> Zn2+ + H2'), 'Zink staat elektronen af, H<sup>+</sup> neemt ze op. Laat de tribune-ionen weg.', { tribune:['Cl-'], ph:'vergelijking' }) ] };
+    return [...s, st];
+  }
+});
+
+/* =====================================================================
+   Level 2 — Cellen in serie
+   ===================================================================== */
+const SIM2 = {
+  init(host){
+    this.cel = ['Zn', 'Ag']; this.n = 3; this.nodig = 4.5; this.toonN = true; this.t = 0;
+    host.innerHTML = `<div class="simkop"><b>Werkbank</b><span>cellen in serie</span></div><div class="doek" id="s2doek"></div><div class="uitkomst" id="s2uit"></div>`;
+    this.c = maakCanvas($('#s2doek'), 600, 330); this.tekst();
+  },
+  dv(){ return dV(this.cel[0], this.cel[1]); },
+  tekst(){
+    const d = this.dv(), tot = this.n * d;
+    $('#s2uit').innerHTML = `Eén cel: ${HC[this.cel[0]].kort} en ${HC[this.cel[1]].kort}. Het apparaat heeft minstens <b>${komma(this.nodig, 1)} V</b> nodig.`
+      + (this.toonN ? `<div class="groot" style="margin-top:4px">${this.n} × ${V2(d)} V = ${V2(tot)} V ${tot >= this.nodig - 1e-9 ? '<span style="color:var(--goed);font-size:15px">voldoende</span>' : '<span style="color:var(--fout);font-size:15px">te weinig</span>'}</div>` : '');
+  },
+  update(dt){ this.t += dt; },
+  draw(){
+    const c = this.c; c.clearRect(0, 0, c.W, c.H);
+    const n = this.toonN ? this.n : 1, d = this.dv(), w = Math.min(70, 440 / n - 12), gap = Math.min(30, (480 - n * w) / Math.max(1, n - 1));
+    const tot = n * w + (n - 1) * gap, x0 = 300 - tot / 2, y = 190;
+    const aan = this.toonN && n * d >= this.nodig - 1e-9;
+    /* apparaat */
+    rrect(c, 250, 22, 100, 50, 10, aan ? '#fbe7a8' : '#efe9dc', '#24323f', 2);
+    tekst(c, 'apparaat', 300, 38, { px:12, vet:true }); tekst(c, '≥ ' + komma(this.nodig, 1) + ' V', 300, 56, { px:13 });
+    if (aan){ c.save(); c.strokeStyle = 'rgba(226,168,75,.6)'; c.lineWidth = 3; for (let j = 0; j < 6; j++){ const a = -Math.PI / 2 + (j - 2.5) * 0.35; c.beginPath(); c.moveTo(300 + Math.cos(a) * 62, 47 + Math.sin(a) * 36); c.lineTo(300 + Math.cos(a) * 74, 47 + Math.sin(a) * 44); c.stroke(); } c.restore(); }
+    draad(c, [[x0 - 6, y + 30], [x0 - 26, y + 30], [x0 - 26, 47], [250, 47]]);
+    draad(c, [[x0 + tot + 6, y + 30], [x0 + tot + 26, y + 30], [x0 + tot + 26, 47], [350, 47]]);
+    for (let i = 0; i < n; i++){
+      const x = x0 + i * (w + gap);
+      rrect(c, x, y, w, 60, 8, '#fffdf8', '#24323f', 2);
+      c.fillStyle = HC[this.cel[0]].kl; c.fillRect(x + 4, y + 4, w / 2 - 6, 52); c.fillStyle = HC[this.cel[1]].kl; c.fillRect(x + w / 2 + 2, y + 4, w / 2 - 6, 52);
+      tekst(c, '−', x - 1, y + 30, { px:18, vet:true, kleur:'#3b6fa8', al:'right' }); tekst(c, '+', x + w + 1, y + 30, { px:16, vet:true, kleur:'#b4473a', al:'left' });
+      tekst(c, V2(d) + ' V', x + w / 2, y + 76, { px:11.5 });
+      if (i < n - 1) draad(c, [[x + w + 10, y + 30], [x + w + gap - 10, y + 30]]);
+    }
+    if (!this.toonN) tekst(c, 'Hoeveel cellen zijn er nodig?', 300, y + 110, { px:14, kleur:'#a0701f', vet:true });
+  },
+  opdracht(o){
+    if (!o){ this.cel = ['Zn', 'Ag']; this.n = 3; this.nodig = 4.5; this.toonN = true; }
+    else { this.cel = o.cel; this.nodig = o.nodig; this.n = o.N; this.toonN = !!o.nGetoond; }
+    this.tekst();
+  },
+  stapGoed(o, k){ if (o.naStap) o.naStap(k); this.opdracht(o); }
+};
+const PAREN2 = [['Fe', 'Ag'], ['Zn', 'Pb'], ['Fe', 'Cu'], ['Pb', 'Ag'], ['Zn', 'Cu']];
+const KLANT2 = [{ naam:'RC Racing', wat:'speelgoedauto\'s' }, { naam:'Zaklamp Zeker', wat:'zaklampen' }, { naam:'Robotica Lab', wat:'robotjes' }, { naam:'Deurbel Dingdong', wat:'deurbellen' }];
+function klantSerie(cel, nodig, klant){
+  const d = dV(cel[0], cel[1]), N = Math.ceil(nodig / d - 1e-9);
+  const o = { klant, cel, nodig, N, beloning:130, nGetoond:false,
+    vraag:`Mijn apparaat heeft minstens ${komma(nodig, 1)} V nodig. Bouw een batterij van cellen met ${HC[cel[0]].naam} en ${HC[cel[1]].naam}, met zo weinig mogelijk cellen.` };
+  o.naStap = k => { if (k === 1) o.nGetoond = true; };
+  o.stappen = [
+    spanningStap('Bereken de bronspanning van één cel.', () => d, { hint:'Zoek beide koppels op in ' + b48link() + '. Welke is de oxidator?', antwoord: () => `${vTxt(HC[cel[1]].r.v)} V − (${vTxt(HC[cel[0]].r.v)} V) = ${V2(d)} V` }),
+    { type:'getal', vr:'Hoeveel cellen zet je in serie?', ph:'aantal', hint:'In serie tel je de spanningen van de cellen op. Hoeveel keer past de spanning van één cel in de gevraagde spanning? Rond af zodat je de gevraagde spanning zeker haalt.',
+      check: v => { const g = leesGetal(v); if (!g || g.w !== Math.round(g.w) || g.w < 1) return { ok:false, msg:'Typ een geheel aantal cellen.', gratis:true };
+        if (g.w < N) return { ok:false, msg:`Met ${g.w} cellen haal je de ${komma(nodig, 1)} V niet.` };
+        if (g.w > N) return { ok:false, msg:'Dat werkt wel, maar het kan met minder cellen. De klant betaalt niet voor cellen die niet nodig zijn.' };
+        return { ok:true }; }, antwoord: () => `${N} cellen`, auto: () => String(N) },
+    spanningStap('Bereken de spanning van de hele batterij.', () => N * d, { hint:'Tel de spanningen van alle cellen op.', foutTip:'Vermenigvuldig de spanning van één cel met het aantal cellen.', antwoord: () => `${N} × ${V2(d)} V = ${V2(N * d)} V` }),
+    keuze('Hoe sluit je de cellen op elkaar aan?', [
+      'De positieve elektrode van de ene cel aan de negatieve elektrode van de volgende cel.',
+      'De positieve elektroden van alle cellen aan elkaar, en de negatieve elektroden aan elkaar.',
+      'De negatieve elektrode van de ene cel aan de negatieve elektrode van de volgende cel.',
+      'Alle elektroden samen in één bekerglas, zodat de oplossingen zich mengen.'], [0], 'De elektronen moeten van cel naar cel kunnen: waar komen ze uit, en waar gaan ze in?')
+  ];
+  return o;
+}
+WPS.push({
+  id:'serie', titel:'Cellen in serie', par:'spanning optellen', nKlant:4, sim:SIM2,
+  uitleg: () => `<p>Eén cel levert meestal maar 0,5 tot 2 V. Een apparaat heeft vaak meer nodig. Dan zet je cellen <b>in serie</b>: de positieve elektrode van de ene cel aan de negatieve elektrode van de volgende.</p>
+    <div class="kader" style="text-align:center;font-size:17px">U<sub>batterij</sub> = aantal cellen × ΔV<sub>0</sub> per cel</div>
+    <p>Het woord <i>batterij</i> betekent eigenlijk precies dit: een rij cellen achter elkaar. Een batterij van 9 V bevat bijvoorbeeld zes cellen van 1,5 V.</p>`,
+  voorbeelden:[{ vraag:'Een klant wil minstens 4,5 V uit cellen met zink in zinksulfaatoplossing en zilver in zilvernitraatoplossing.',
+    stappen:['Eén cel: ΔV<sub>0</sub> = V<sub>0</sub>(Ag<sup>+</sup>) − V<sub>0</sub>(Zn) = +0,80 V − (−0,76 V) = 1,56 V.',
+      `Aantal cellen: ${breuk('4,5 V', '1,56 V')} = 2,9. Met 2 cellen haal je de 4,5 V niet, dus je hebt <b>3 cellen</b> nodig.`,
+      'Spanning van de batterij: 3 × 1,56 V = <b>4,68 V</b>. Dat is minstens 4,5 V: de batterij voldoet.'] }],
+  maakSerie(){
+    const nodigs = schud([3.0, 6.0, 9.0, 12.0, 4.0]), p = schud(PAREN2), k = schud(KLANT2);
+    const s = [0, 1, 2].map(i => klantSerie(p[i], nodigs[i], k[i]));
+    const st = { klant:{ naam:'Hoogspanning BV', wat:'gereedschap' }, ster:true, beloning:160, cel:['Zn', 'Ag'], nodig:9.0, N:3, nGetoond:true,
+      vraag:'Ik heb gerekend: magnesium en zilver geven 3,17 V per cel. Dan heb ik maar drie cellen nodig voor 9 V. Bouw die maar met magnesium in magnesiumsulfaatoplossing!',
+      stappen:[ keuze('Leg uit of dit een goed idee is.', [
+        'Nee: magnesium is een sterkere reductor dan water. Het magnesium reageert met het water in de oplossing, ook als de cel niet gebruikt wordt.',
+        'Ja: met minder cellen is de batterij lichter en goedkoper.',
+        'Nee: magnesiumsulfaat is slecht oplosbaar, dus er zijn geen ionen in de oplossing.',
+        'Nee: Mg<sup>2+</sup> is een sterkere oxidator dan Ag<sup>+</sup>, dus de cel werkt andersom.'], [0], 'Zoek in Binas 48 de regel met H<sub>2</sub>O als oxidator in een neutrale oplossing. Staat magnesium daaronder?'),
+        { type:'tekst', vr:'Geef de reactievergelijking van magnesium met water.', ph:'vergelijking', hint:'Gebruik de regel 2 H<sub>2</sub>O + 2 e<sup>−</sup> ⇌ H<sub>2</sub> + 2 OH<sup>−</sup> uit Binas 48.',
+          check: v => { const a = checkVgl(v, V('Mg + 2 H2O -> Mg2+ + H2 + 2 OH-')); if (a.ok) return a; const b = checkVgl(v, V('Mg + 2 H2O -> Mg(OH)2 + H2')); return b.ok ? b : a; },
+          antwoord: () => vglHTML(V('Mg + 2 H2O -> Mg2+ + H2 + 2 OH-')) + ' (of met Mg(OH)<sub>2</sub> als neerslag)', auto: () => 'Mg + 2 H2O -> Mg2+ + H2 + 2 OH-' } ] };
+    return [...s, st];
+  }
+});
+
+/* =====================================================================
+   Level 3 — Gaat hij lang mee? (capaciteit)
+   ===================================================================== */
+const SIM3 = {
+  init(host){
+    this.richting = 'vooruit'; this.vak = []; this.klaar = 0; this.t = 0;
+    host.innerHTML = `<div class="simkop"><b>Rekenketting</b><span>van zink naar gebruiksduur</span></div><div class="doek" id="s3doek"></div><div class="uitkomst" id="s3uit"></div>`;
+    this.c = maakCanvas($('#s3doek'), 600, 340); this.zet(null);
+  },
+  zet(o){
+    this.o = o;
+    const vooruit = !o || o.richting !== 'terug';
+    const v = o ? o.vak : ['5,00 g', '0,0765 mol', '0,153 mol', '1,48·10⁴ C', '20,5 h'];
+    const lab = ['m(Zn)', 'n(Zn)', 'n(e⁻)', 'Q', 't'], pijl = ['delen door M', '× 2 (halfreactie)', '× F', 'delen door I'];
+    this.rij = vooruit ? lab.map((l, i) => ({ l, v:v[i] })) : lab.map((l, i) => ({ l, v:v[i] })).reverse();
+    this.pijl = vooruit ? pijl : ['× I', 'delen door F', 'delen door 2', '× M'];
+    $('#s3uit').innerHTML = o ? o.simTekst() : 'Voorbeeld: 5,00 g zink in een cel die 0,200 A levert.';
+  },
+  update(dt){ this.t += dt; },
+  draw(){
+    const c = this.c; c.clearRect(0, 0, c.W, c.H);
+    const n = this.o ? this.o.klaarN() : 5;
+    this.rij.forEach((r, i) => {
+      const y = 22 + i * 64, bekend = i < n || (this.o && this.o.bekend.includes(r.l));
+      rrect(c, 150, y, 300, 44, 10, bekend ? '#fff' : '#efe9dc', bekend ? '#24323f' : '#d6cdb8', 1.6);
+      tekst(c, r.l, 200, y + 22, { px:15, vet:true, serif:true, kleur: bekend ? '#24323f' : '#9a937f' });
+      tekst(c, bekend ? r.v : '?', 380, y + 22, { px:15, vet:bekend, kleur: bekend ? '#2b2a27' : '#a0701f' });
+      if (i < this.rij.length - 1){ c.save(); c.strokeStyle = '#a0701f'; c.lineWidth = 2; c.beginPath(); c.moveTo(300, y + 46); c.lineTo(300, y + 62); c.stroke();
+        c.fillStyle = '#a0701f'; c.beginPath(); c.moveTo(294, y + 56); c.lineTo(306, y + 56); c.lineTo(300, y + 63); c.fill(); c.restore();
+        tekst(c, this.pijl[i], 312, y + 54, { px:11.5, al:'left', kleur:'#a0701f' }); }
+    });
+    /* batterijtje met gebruiksduur */
+    const f = this.o ? (this.o.klaarN() >= 5 ? 1 : 0) : 1, x = 500, y = 120;
+    rrect(c, x, y, 50, 110, 8, '#fffdf8', '#24323f', 2); rrect(c, x + 16, y - 9, 18, 9, 2, '#24323f');
+    const lvl = f ? 0.35 + 0.65 * (0.5 + 0.5 * Math.cos(this.t * 0.8)) : 0.0;
+    rrect(c, x + 5, y + 5 + 100 * (1 - lvl), 40, 100 * lvl, 4, '#9aa6b2');
+    tekst(c, 'zink', x + 25, y + 128, { px:11.5 });
+  },
+  opdracht(o){ this.zet(o || null); },
+  stapGoed(o){ this.zet(o); }
+};
+const KLANT3 = [{ naam:'Wekkerfabriek Ring', wat:'wekkers' }, { naam:'Sporthorloge Pols', wat:'horloges' }, { naam:'Thermometer Thermo', wat:'thermometers' }, { naam:'Speelgoed Knipperlicht', wat:'speelgoed' }];
+/* vooruit: m -> t */
+function klantVooruit(m, I, klant){
+  const nZn = m / MM.Zn, ne = 2 * nZn, Q = ne * FAR, ts = Q / I, th = ts / 3600;
+  const o = { klant, richting:'vooruit', beloning:150, bekend:['m(Zn)'],
+    vraag:`Er zit ${komma(m, 2)} g zink in onze batterij en het apparaat gebruikt een stroom van ${komma(I, 3)} A. Hoeveel uur gaat de batterij mee?`,
+    gegeven:`Neem aan dat al het zink reageert. F = 9,649·10<sup>4</sup> ${Cmol} (Binas 7), M(Zn) = 65,38 ${gmol}.` };
+  o.vak = [komma(m, 2) + ' g', wetU(nZn) + ' mol', wetU(ne) + ' mol', wetU(Q) + ' C', wetU(th) + ' h'];
+  o.klaarN = () => { const s = PER_WP.cap.st[PER_WP.cap.serie.indexOf(o)]; return 1 + Math.max(0, (s ? (s.klaar ? 5 : s.stap) : 0) - 1); };
+  o.simTekst = () => `${komma(m, 2)} g zink, stroom ${komma(I, 3)} A.`;
+  o.stappen = [
+    vglS('Geef de halfreactie van zink bij de negatieve elektrode.', V('Zn -> Zn2+ + 2 e-'), 'Zink staat elektronen af.', { halfreactie:true }),
+    reken('Bereken de chemische hoeveelheid zink.', () => nZn, { eenheid:'mol', hint:`n = ${breuk('m', 'M')}`, antwoord: () => `${breuk(komma(m, 2) + ' g', '65,38 ' + gmol)} = ${wet(nZn)} mol` }),
+    reken('Bereken de chemische hoeveelheid elektronen die het zink afstaat.', () => ne, { eenheid:'mol', hint:'Gebruik de verhouding in de halfreactie: per Zn-atoom ontstaan 2 elektronen.', antwoord: () => `2 × ${wet(nZn)} mol = ${wet(ne)} mol` }),
+    reken('Bereken de lading die door de draad gaat.', () => Q, { eenheid:'C', hint:`Q = n(e<sup>−</sup>) × F. De constante van Faraday is de lading van 1 mol elektronen.`, antwoord: () => `${wet(ne)} mol × 9,649·10<sup>4</sup> ${Cmol} = ${wet(Q)} C` }),
+    reken('Bereken hoeveel uur de batterij meegaat. Noteer je antwoord in het juiste aantal significante cijfers.', () => th, { eenheid:'h', sig:3, hint:`Q = I · t, dus t = ${breuk('Q', 'I')}. Dat geeft seconden; reken om naar uren.`,
+      extra: v => { const g = leesGetal(v); if (g && Math.abs(g.w - ts) / ts < 0.01) return { ok:false, msg:'Dit is de tijd in seconden. De klant wil het aantal uren.' }; return null; },
+      antwoord: () => `t = ${breuk(wet(Q) + ' C', komma(I, 3) + ' A')} = ${wet(ts)} s = ${breuk(wet(ts) + ' s', '3600 ' + eenh('s', 'h'))} = ${wet(th)} h` })
+  ];
+  return o;
+}
+/* terug: t -> m */
+function klantTerug(th, I, klant){
+  const ts = th * 3600, Q = I * ts, ne = Q / FAR, nZn = ne / 2, m = nZn * MM.Zn;
+  const o = { klant, richting:'terug', beloning:170, bekend:['t'],
+    vraag:`Ons apparaat gebruikt ${komma(I, 3)} A en de batterij moet minstens ${komma(th, 1)} uur meegaan. Hoeveel gram zink moet er minimaal in?`,
+    gegeven:`Neem aan dat al het zink reageert. F = 9,649·10<sup>4</sup> ${Cmol}, M(Zn) = 65,38 ${gmol}.` };
+  o.vak = [komma(m, 2) + ' g', wetU(nZn) + ' mol', wetU(ne) + ' mol', wetU(Q) + ' C', wetU(th) + ' h'];
+  o.klaarN = () => { const s = PER_WP.cap.st[PER_WP.cap.serie.indexOf(o)]; return 1 + (s ? (s.klaar ? 4 : s.stap) : 0); };
+  o.simTekst = () => `${komma(th, 1)} h bij ${komma(I, 3)} A. Nu reken je terug.`;
+  o.stappen = [
+    reken('Bereken de lading die het apparaat in die tijd nodig heeft.', () => Q, { eenheid:'C', hint:'Q = I · t, met t in seconden.',
+      extra: v => { const g = leesGetal(v); if (g && Math.abs(g.w - I * th) / (I * th) < 0.01) return { ok:false, msg:'Reken de tijd eerst om naar seconden: 1 h = 3600 s.' }; return null; },
+      antwoord: () => `${komma(I, 3)} A × ${komma(th, 1)} × 3600 s = ${wet(Q)} C` }),
+    reken('Bereken de chemische hoeveelheid elektronen.', () => ne, { eenheid:'mol', hint:`n(e<sup>−</sup>) = ${breuk('Q', 'F')}`, antwoord: () => `${breuk(wet(Q) + ' C', '9,649·10<sup>4</sup> ' + Cmol)} = ${wet(ne)} mol` }),
+    reken('Bereken de chemische hoeveelheid zink.', () => nZn, { eenheid:'mol', hint:'Zn → Zn<sup>2+</sup> + 2 e<sup>−</sup>: per 2 mol elektronen is 1 mol zink nodig.', antwoord: () => `${breuk(wet(ne) + ' mol', '2')} = ${wet(nZn)} mol` }),
+    reken('Bereken de massa zink. Noteer je antwoord in het juiste aantal significante cijfers.', () => m, { eenheid:'g', sig:3, hint:'m = n · M', antwoord: () => `${wet(nZn)} mol × 65,38 ${gmol} = ${wet(m)} g` })
+  ];
+  return o;
+}
+WPS.push({
+  id:'cap', titel:'Gaat hij lang mee?', par:'capaciteit: Q = I · t', nKlant:4, sim:SIM3,
+  uitleg: () => `<p>Een batterij is leeg als de reductor op is. Hoe meer reductor erin zit, hoe meer elektronen hij kan afstaan, en hoe langer hij meegaat.</p>
+    <ul><li>De <b>lading</b> van 1 mol elektronen is de constante van Faraday: F = 9,649·10<sup>4</sup> ${Cmol} (Binas 7). Dus Q = n(e<sup>−</sup>) × F.</li>
+    <li>Een stroom I (in A) betekent I coulomb per seconde: Q = I · t, met t in seconden.</li>
+    <li>De molverhouding tussen reductor en elektronen haal je uit de halfreactie.</li></ul>
+    <p>Je rekent eerst van de stof naar de gebruiksduur. Daarna reken je terug: hoeveel stof is nodig voor een gevraagde gebruiksduur?</p>
+    <p>De <b>capaciteit</b> op een verpakking staat vaak in mAh (milliampère-uur). 1 mAh = 0,001 A × 3600 s = 3,6 C.</p>`,
+  voorbeelden:[{ vraag:'Een batterij bevat 5,00 g zink. Het apparaat gebruikt 0,200 A. Bereken hoeveel uur de batterij meegaat.',
+    stappen:[`Halfreactie: ${vglHTML(V('Zn -> Zn2+ + 2 e-'))}, dus per mol zink 2 mol elektronen.`,
+      `n(Zn) = ${breuk('5,00 g', '65,38 ' + gmol)} = 7,65·10<sup>−2</sup> mol, dus n(e<sup>−</sup>) = 2 × 7,65·10<sup>−2</sup> mol = 0,153 mol.`,
+      `Q = n(e<sup>−</sup>) × F = 0,153 mol × 9,649·10<sup>4</sup> ${Cmol} = 1,48·10<sup>4</sup> C.`,
+      `t = ${breuk('Q', 'I')} = ${breuk('1,48·10<sup>4</sup> C', '0,200 A')} = 7,38·10<sup>4</sup> s = ${breuk('7,38·10<sup>4</sup> s', '3600 ' + eenh('s', 'h'))} = <b>20,5 h</b>.`] }],
+  maakSerie(){
+    const k = schud(KLANT3), ms = schud([2.50, 4.00, 6.50, 8.00]), Is = schud([0.150, 0.250, 0.500, 0.100]);
+    const a = klantVooruit(ms[0], Is[0], k[0]), b = klantVooruit(ms[1], Is[1], k[1]);
+    const c = klantTerug(kies([12.0, 30.0, 48.0]), kies([0.150, 0.250, 0.300]), k[2]);
+    const mAh = kies([1200, 2400, 3000]), Q = mAh * 3.6, m = Q / FAR / 2 * MM.Zn;
+    const st = { klant:{ naam:'Powerbank Plus', wat:'powerbanks' }, ster:true, beloning:200, richting:'terug', bekend:['Q'],
+      vraag:`Op onze verpakking wil ik ${mAh} mAh zetten. Hoeveel gram zink moet er dan minimaal in de batterij?`, gegeven:`F = 9,649·10<sup>4</sup> ${Cmol}, M(Zn) = 65,38 ${gmol}.`,
+      vak:[wetU(m) + ' g', wetU(Q / FAR / 2) + ' mol', wetU(Q / FAR) + ' mol', wetU(Q) + ' C', mAh + ' mAh'], simTekst: () => `${mAh} mAh: reken eerst om naar coulomb.` };
+    st.klaarN = () => { const s = PER_WP.cap.st[PER_WP.cap.serie.indexOf(st)]; return 1 + (s ? (s.klaar ? 4 : s.stap) : 0); };
+    st.stappen = [
+      reken('Reken de capaciteit om naar coulomb.', () => Q, { eenheid:'C', hint:'mAh betekent milliampère × uur. Reken om naar A en s: Q = I · t.', antwoord: () => `${mAh} mAh = ${komma(mAh / 1000, 3)} A × 1 h = ${komma(mAh / 1000, 3)} A × 3600 s = ${wet(Q)} C` }),
+      reken('Bereken de massa zink. Noteer je antwoord in het juiste aantal significante cijfers.', () => m, { eenheid:'g', sig:3, hint:'Reken via n(e<sup>−</sup>) en n(Zn) naar de massa.', antwoord: () => `${breuk(wet(Q) + ' C', '9,649·10<sup>4</sup> ' + Cmol)} = ${wet(Q / FAR)} mol e<sup>−</sup>, dus n(Zn) = ${wet(Q / FAR / 2)} mol en m(Zn) = ${wet(Q / FAR / 2)} mol × 65,38 ${gmol} = ${wet(m)} g` })
+    ];
+    return [a, b, c, st];
+  }
+});
+
+/* =====================================================================
+   Level 4 — Oplaadbaar: de loodaccu
+   ===================================================================== */
+const SIM4 = {
+  init(host){
+    this.modus = 'ontladen'; this.t = 0; this.lading = 0.8;
+    host.innerHTML = `<div class="simkop"><b>Werkbank</b><span>loodaccu: zes cellen in serie</span></div>
+      <div class="ctrl"><label><input type="radio" name="s4m" value="ontladen" checked> ontladen (lamp aan)</label><label><input type="radio" name="s4m" value="opladen"> opladen (lader aan)</label></div>
+      <div class="doek" id="s4doek"></div><div class="uitkomst" id="s4uit"></div>`;
+    this.c = maakCanvas($('#s4doek'), 600, 320);
+    $$('[name=s4m]').forEach(r => r.onchange = () => { this.modus = r.value; this.tekst(); });
+    this.tekst();
+  },
+  tekst(){
+    $$('[name=s4m]').forEach(r => r.checked = r.value === this.modus);
+    $('#s4uit').innerHTML = this.modus === 'ontladen'
+      ? 'Ontladen: in beide elektroden ontstaat PbSO<sub>4</sub>. Er verdwijnt zwavelzuur uit de oplossing, dus de dichtheid van het accuzuur daalt.'
+      : 'Opladen: de lader duwt elektronen de andere kant op. Het PbSO<sub>4</sub> wordt weer omgezet; de dichtheid van het accuzuur stijgt.';
+  },
+  update(dt){ this.t += dt; this.lading = Math.max(0.05, Math.min(1, this.lading + (this.modus === 'opladen' ? 0.06 : -0.04) * dt)); if (this.lading <= 0.05 && this.modus === 'ontladen') this.lading = 1; if (this.lading >= 1 && this.modus === 'opladen') this.lading = 0.05; },
+  draw(){
+    const c = this.c; c.clearRect(0, 0, c.W, c.H);
+    const x = 120, y = 150, w = 360, h = 130, ont = this.modus === 'ontladen';
+    rrect(c, x, y, w, h, 10, '#2f3a44', '#1d252c', 2);
+    for (let i = 0; i < 6; i++){
+      const cx = x + 10 + i * 58;
+      rrect(c, cx, y + 12, 50, h - 24, 6, mengKleur('#c8dcea', 0.2 + 0.5 * (1 - this.lading)), null);
+      const wit = 1 - this.lading;
+      c.fillStyle = mengKleur('#5d6570', wit * 0.7); c.fillRect(cx + 8, y + 20, 10, h - 40);
+      c.fillStyle = mengKleur('#6b3b2a', wit * 0.7); c.fillRect(cx + 32, y + 20, 10, h - 40);
+      if (i < 5) draad(c, [[cx + 37, y + 18], [cx + 37, y + 6], [cx + 71, y + 6], [cx + 71, y + 18]], '#9aa3ab');
+    }
+    tekst(c, 'Pb', x + 23, y + h + 14, { px:11.5 }); tekst(c, 'PbO₂', x + 50, y + h + 30, { px:11.5 }); draad(c, [[x + 47, y + h - 6], [x + 50, y + h + 20]], '#9aa3ab');
+    tekst(c, 'zwavelzuur', x + w - 50, y + h + 14, { px:11.5 });
+    pool(c, x + 23, y - 14, false); pool(c, x + w - 23, y - 14, true);
+    /* apparaat of lader */
+    rrect(c, 250, 22, 100, 50, 10, ont ? '#fbe7a8' : '#dfeee4', '#24323f', 2);
+    tekst(c, ont ? 'lamp' : 'lader', 300, 38, { px:12, vet:true }); tekst(c, ont ? '12 V' : '14,4 V', 300, 56, { px:13 });
+    const links = [[x + 23, y - 24], [x + 23, 47], [250, 47]], rechts = [[350, 47], [x + w - 23, 47], [x + w - 23, y - 24]];
+    draad(c, links); draad(c, rechts);
+    const pad = [[x + 23, y - 24], [x + 23, 47], [x + w - 23, 47], [x + w - 23, y - 24]];
+    for (let j = 0; j < 6; j++){ let f = (this.t * 0.22 + j / 6) % 1; if (!ont) f = 1 - f; const [ex, ey] = langsPad(pad, f); if (Math.abs(ex - 300) > 54) elektron(c, ex, ey); }
+    tekst(c, ont ? 'elektronen: van Pb naar PbO₂' : 'elektronen: de lader duwt ze naar de Pb-elektrode', 300, 100, { px:12, kleur:'#a0701f' });
+    /* dichtheidsmeter */
+    const d = 1.10 + 0.18 * this.lading;
+    rrect(c, 510, 160, 60, 110, 8, '#fff', '#d6cdb8');
+    rrect(c, 528, 170 + 90 * (1 - this.lading), 24, 90 * this.lading, 4, '#8fb3d1');
+    tekst(c, 'dichtheid', 540, 284, { px:11 }); tekst(c, komma(d, 2) + ' g/mL', 540, 300, { px:11.5, vet:true });
+  },
+  opdracht(o){ this.modus = o && o.modus ? o.modus : 'ontladen'; this.tekst(); }
+};
+const KLANT4 = [{ naam:'Garage Smeerolie', wat:'auto-onderhoud' }, { naam:'Camperverhuur Vrij', wat:'campers' }, { naam:'Golfkar Green', wat:'golfkarretjes' }];
+WPS.push({
+  id:'accu', titel:'Oplaadbaar: de loodaccu', par:'ontladen, opladen, rendement', nKlant:4, sim:SIM4,
+  uitleg: () => `<p>Een <b>accu</b> is een cel die je kunt opladen. Bij het opladen sluit je een spanningsbron aan die de elektronen de andere kant op duwt. Dan verlopen de halfreacties precies andersom.</p>
+    <ul><li>Bij het opladen sluit je de negatieve pool van de lader aan op de elektrode die bij het ontladen de negatieve elektrode was.</li>
+    <li>Dat lukt alleen als de producten van het ontladen bij de elektroden blijven, bijvoorbeeld als vaste stof.</li></ul>
+    <p>Een <b>loodaccu</b> (auto-accu) bestaat uit cellen met een loodelektrode en een lood(IV)oxide-elektrode (PbO<sub>2</sub>) in zwavelzuur. Bij het ontladen ontstaat bij beide elektroden lood(II)sulfaat, dat slecht oplosbaar is (Binas 45A).</p>
+    <h3>Rendement</h3>
+    <p>De energie die een stroom levert, is E = U · I · t (J = V · A · s). Bij opladen stop je er meer energie in dan je er bij ontladen uit haalt:</p>
+    <div class="kader" style="text-align:center;font-size:17px">rendement = ${breuk('E<sub>nuttig</sub>', 'E<sub>toegevoerd</sub>')} × 100%</div>`,
+  voorbeelden:[{ vraag:'Een nikkel-cadmiumaccu (NiCd) bevat een cadmiumelektrode en een elektrode met NiO(OH) in kaliloog. Geef de halfreacties bij ontladen en bij opladen, en bereken de bronspanning.',
+    stappen:[`Ontladen, negatieve elektrode (reductor Cd, basisch milieu): ${vglHTML(V('Cd + 2 OH- -> Cd(OH)2 + 2 e-'))} (V<sub>0</sub> = −0,81 V)`,
+      `Ontladen, positieve elektrode (oxidator NiO(OH)): ${vglHTML(V('NiO(OH) + H2O + e- -> Ni(OH)2 + OH-'))} (V<sub>0</sub> = +0,52 V)`,
+      `Bronspanning: ΔV<sub>0</sub> = +0,52 V − (−0,81 V) = <b>1,33 V</b>.`,
+      `Opladen: de halfreacties verlopen andersom. Bij de cadmiumelektrode: ${vglHTML(V('Cd(OH)2 + 2 e- -> Cd + 2 OH-'))}. Daarvoor zijn elektronen nodig, dus deze elektrode gaat aan de negatieve pool van de lader.`] }],
+  maakSerie(){
+    const k = schud(KLANT4);
+    const nodig = kies([12, 24]), N = Math.ceil(nodig / 2.05);
+    const k1 = { klant:k[0], beloning:160, modus:'ontladen', vraag:`Ik heb een loodaccu van minstens ${nodig} V nodig. Leg me uit wat er gebeurt en hoeveel cellen erin moeten.`,
+      stappen:[ vglS('Geef de halfreactie bij de negatieve elektrode tijdens het ontladen.', V('Pb + SO4^2- -> PbSO4 + 2 e-'), 'Lood is de reductor. Let op: Pb<sup>2+</sup> vormt met sulfaat een neerslag (Binas 45A). Zoek in ' + b48link() + ' de regel met PbSO<sub>4</sub> en Pb.', { halfreactie:true }),
+        vglS('Geef de halfreactie bij de positieve elektrode tijdens het ontladen.', V('PbO2 + SO4^2- + 4 H+ + 2 e- -> PbSO4 + 2 H2O'), 'PbO<sub>2</sub> is de oxidator, in zuur milieu met sulfaat. Zoek de regel in Binas 48.', { halfreactie:true }),
+        spanningStap('Bereken de bronspanning van één cel.', () => 2.05, { hint:'Gebruik de V<sub>0</sub>-waarden van de twee regels die je net gebruikte.', antwoord: () => '+1,69 V − (−0,36 V) = 2,05 V' }),
+        { type:'getal', vr:'Hoeveel cellen moeten er in serie?', ph:'aantal', hint:'In serie tellen de spanningen op.', check: v => { const g = leesGetal(v); if (!g || g.w !== Math.round(g.w)) return { ok:false, msg:'Typ een geheel aantal.', gratis:true }; if (g.w < N) return { ok:false, msg:`Daarmee haal je de ${nodig} V niet.` }; if (g.w > N) return { ok:false, msg:'Dat kan met minder cellen.' }; return { ok:true }; }, antwoord: () => `${N} cellen: ${N} × 2,05 V = ${V2(N * 2.05)} V`, auto: () => String(N) } ] };
+    const k2 = { klant:k[1], beloning:160, modus:'opladen', vraag:'Onze accu is leeg. Hoe moet ik de lader aansluiten, en hoe kan ik zien of hij weer vol is?',
+      stappen:[ keuze('Aan welke pool van de lader sluit je de loodelektrode aan?', [
+          'Aan de negatieve pool: bij opladen moet PbSO<sub>4</sub> weer Pb worden, en daarvoor zijn elektronen nodig.',
+          'Aan de positieve pool: de loodelektrode is bij ontladen de negatieve elektrode, dus bij opladen draai je alles om.',
+          'Aan de positieve pool: daar worden elektronen afgevoerd, zodat lood weer kan ontstaan.',
+          'Het maakt niet uit: de lader zorgt zelf voor de goede richting.'], [0], 'Wat moet er bij het opladen met het PbSO<sub>4</sub> bij de loodelektrode gebeuren? Zijn daarvoor elektronen nodig, of komen die vrij?'),
+        vglS('Geef de halfreactie bij de loodelektrode tijdens het opladen.', V('PbSO4 + 2 e- -> Pb + SO4^2-'), 'Het omgekeerde van wat er bij ontladen gebeurt.', { halfreactie:true }),
+        keuze('Een monteur meet de dichtheid van het accuzuur. Leg uit hoe die verandert tijdens het ontladen.', [
+          'De dichtheid daalt: er verdwijnen H<sup>+</sup>- en SO<sub>4</sub><sup>2−</sup>-ionen uit de oplossing in vast PbSO<sub>4</sub>, en er ontstaat water.',
+          'De dichtheid stijgt: er ontstaat PbSO<sub>4</sub>, en dat heeft een grote dichtheid.',
+          'De dichtheid blijft gelijk: er verdwijnen evenveel deeltjes als er ontstaan.',
+          'De dichtheid daalt: het water verdampt doordat de accu warm wordt.'], [0], 'Kijk welke deeltjes uit de oplossing verdwijnen in de halfreacties, en welke erbij komen.') ] };
+    const Ul = 14.4, Il = kies([5.00, 6.00]), tl = kies([8.00, 10.0]), Uo = 12.0, Io = kies([4.00, 3.00]), to = Math.round(Il * tl * 0.85 / Io * 10) / 10;
+    const Ein = Ul * Il * tl * 3600, Euit = Uo * Io * to * 3600, eta = Euit / Ein * 100;
+    const k3 = { klant:k[2], beloning:180, modus:'opladen', vraag:'Hoeveel van de stroom die ik bij het opladen betaal, krijg ik terug? Ik wil het rendement weten.',
+      gegeven:`Opladen: ${komma(Ul, 1)} V, ${komma(Il, 2)} A gedurende ${komma(tl, tl < 10 ? 2 : 1)} h. Ontladen: ${komma(Uo, 1)} V, ${komma(Io, 2)} A gedurende ${komma(to, 1)} h.`,
+      stappen:[ reken('Bereken de energie die bij het opladen wordt toegevoerd.', () => Ein, { eenheid:'J', hint:'E = U · I · t, met t in seconden.', antwoord: () => `${komma(Ul, 1)} V × ${komma(Il, 2)} A × ${komma(tl, tl < 10 ? 2 : 1)} × 3600 s = ${wet(Ein)} J` }),
+        reken('Bereken de energie die de accu bij het ontladen levert.', () => Euit, { eenheid:'J', hint:'Weer E = U · I · t.', antwoord: () => `${komma(Uo, 1)} V × ${komma(Io, 2)} A × ${komma(to, 1)} × 3600 s = ${wet(Euit)} J` }),
+        reken('Bereken het rendement. Noteer je antwoord in het juiste aantal significante cijfers.', () => eta, { eenheid:'%', sig:3, hint:`rendement = ${breuk('E<sub>nuttig</sub>', 'E<sub>toegevoerd</sub>')} × 100%. Welke energie is hier nuttig?`,
+          extra: v => { const g = leesGetal(v); if (g && Math.abs(g.w - Ein / Euit * 100) / (Ein / Euit * 100) < 0.01) return { ok:false, msg:'Je hebt teller en noemer omgedraaid: een rendement is nooit meer dan 100%.' }; return null; },
+          antwoord: () => `${breuk(wet(Euit) + ' J', wet(Ein) + ' J')} × 100% = ${komma(eta, 1)}%` }) ] };
+    const st = { klant:{ naam:'Laadstation Dag en Nacht', wat:'laadpalen' }, ster:true, beloning:200, modus:'opladen',
+      vraag:'Als ik de accu de hele nacht aan de lader laat, borrelt het accuzuur en ontstaan er gasbelletjes. Wat gebeurt daar?',
+      stappen:[ keuze('Leg uit wat er gebeurt als de accu vol is en de lader blijft laden.', [
+          'Er treedt elektrolyse van water op: er ontstaan waterstof en zuurstof, een explosief mengsel.',
+          'Het lood smelt door de warmte en er ontstaat looddamp.',
+          'Er ontstaat zwaveldioxide uit het PbSO<sub>4</sub>.',
+          'Het zwavelzuur kookt doordat de accu warm wordt.'], [0], 'Als al het PbSO<sub>4</sub> is omgezet, welke deeltjes in de oplossing kunnen dan nog reageren?'),
+        vglS('Geef de halfreactie bij de loodelektrode als de accu al vol is.', V('2 H+ + 2 e- -> H2'), 'Bij deze elektrode worden elektronen opgenomen. Welke oxidator in zwavelzuur kan dat?', { halfreactie:true }) ] };
+    return [k1, k2, k3, st];
+  }
+});
+
+/* =====================================================================
+   Level 5 — Licht en krachtig: energiedichtheid
+   ===================================================================== */
+['LiC6', 'C6', 'CoO2', 'LiCoO2'].forEach(f => registreer(f, 0));
+const WHKG = { lood:171, nicd:215, li:584 };
+const SIM5 = {
+  init(host){
+    this.bekend = { lood:true, nicd:false, li:false }; this.t = 0;
+    host.innerHTML = `<div class="simkop"><b>Vergelijking</b><span>theoretische energiedichtheid</span></div><div class="doek" id="s5doek"></div><div class="uitkomst" id="s5uit"></div>`;
+    this.c = maakCanvas($('#s5doek'), 600, 320);
+    $('#s5uit').innerHTML = 'Hoe hoger de staaf, hoe minder massa je meesleept voor dezelfde energie. In werkelijkheid is de energiedichtheid veel lager: er zit ook een behuizing, een oplosmiddel en een scheidingswand in.';
+  },
+  update(dt){ this.t += dt; },
+  draw(){
+    const c = this.c; c.clearRect(0, 0, c.W, c.H);
+    const data = [['lood', 'loodaccu', '#6f7787'], ['nicd', 'NiCd-accu', '#7d9a6a'], ['li', 'Li-ion-accu', '#3b6fa8']];
+    const y0 = 270, sch = 220 / 650;
+    c.strokeStyle = '#d6cdb8'; c.lineWidth = 1;
+    for (let v = 0; v <= 600; v += 100){ c.beginPath(); c.moveTo(70, y0 - v * sch); c.lineTo(560, y0 - v * sch); c.stroke(); tekst(c, String(v), 60, y0 - v * sch, { px:11, al:'right' }); }
+    tekst(c, 'Wh/kg', 40, 30, { px:11.5, vet:true });
+    data.forEach(([k, naam, kl], i) => {
+      const x = 120 + i * 150, b = this.bekend[k], v = WHKG[k];
+      if (b){ rrect(c, x, y0 - v * sch, 80, v * sch, 6, kl); tekst(c, String(v), x + 40, y0 - v * sch - 12, { px:13, vet:true }); }
+      else { c.save(); c.setLineDash([5, 4]); c.strokeStyle = '#a0701f'; c.strokeRect(x, y0 - 120, 80, 120); c.restore(); tekst(c, '?', x + 40, y0 - 60, { px:26, kleur:'#a0701f', vet:true }); }
+      tekst(c, naam, x + 40, y0 + 18, { px:12.5, vet:true });
+    });
+  },
+  opgelost: new Set(),
+  opdracht(o){ this.bekend = { lood:true, nicd:this.opgelost.has('nicd'), li:this.opgelost.has('li') || !!(o && o.ster) }; },
+  stapGoed(o){ const s = PER_WP.dicht.st[PER_WP.dicht.serie.indexOf(o)]; if (s && s.klaar && o.verborgen){ this.opgelost.add(o.verborgen); this.opdracht(o); } }
+};
+const KLANT5 = [{ naam:'DroneDirect', wat:'drones' }, { naam:'E-bike Snel', wat:'elektrische fietsen' }, { naam:'Gereedschap Boor', wat:'accuboormachines' }];
+function klantLi(klant){
+  const Emol = FAR * 3.7, mk = (MM.LiC6 + MM.CoO2) / 1000, Jk = Emol / mk, Wh = Jk / 3600, nodig = kies([40, 60, 80]), mMin = nodig / Wh;
+  const o = { klant, beloning:200, verborgen:'li',
+    vraag:`Mijn drone moet zo licht mogelijk zijn en heeft ${nodig} Wh aan energie nodig. Hoe licht kan de accu in theorie zijn als ik een Li-ion-accu neem?`,
+    gegeven:`In een Li-ion-accu zit lithium tussen koolstoflagen (LiC<sub>6</sub>). Halfreacties bij het ontladen:<br>negatieve elektrode: ${vglHTML(V('LiC6 -> C6 + Li+ + e-'))}<br>positieve elektrode: ${vglHTML(V('CoO2 + Li+ + e- -> LiCoO2'))}<br>De bronspanning is 3,7 V. M(LiC<sub>6</sub>) = 79,00 ${gmol}, M(CoO<sub>2</sub>) = 90,93 ${gmol}. 1 Wh = 3600 J.` };
+  o.stappen = [
+    vglS('Geef de totaalreactie bij het ontladen.', V('LiC6 + CoO2 -> C6 + LiCoO2'), 'Tel de halfreacties op: de elektronen vallen weg, en Li<sup>+</sup> staat links en rechts.', { ph:'vergelijking' }),
+    reken('Bereken de elektrische energie die 1 mol totaalreactie levert.', () => Emol, { eenheid:Jmol, hint:`E = n · F · ΔV<sub>0</sub>, met n het aantal mol elektronen per mol totaalreactie.`, antwoord: () => `1 × 9,649·10<sup>4</sup> ${Cmol} × 3,7 V = ${wet(Emol)} ${Jmol}` }),
+    reken('Bereken de massa van de beginstoffen per mol totaalreactie in kg.', () => mk, { eenheid:kgmol, hint:'Tel de molaire massa\'s van de stoffen voor de pijl op, en reken om naar kg.', antwoord: () => `(79,00 + 90,93) ${gmol} = 169,93 ${gmol} = ${wet(mk, 4)} ${kgmol}` }),
+    reken('Bereken de theoretische energiedichtheid in Wh per kg.', () => Wh, { eenheid:Whkg, hint:`Deel de energie per mol door de massa per mol. Dat geeft ${Jkg}; deel door 3600 voor ${Whkg}.`,
+      extra: v => { const g = leesGetal(v); if (g && Math.abs(g.w - Jk) / Jk < 0.01) return { ok:false, msg:'Dit is de energiedichtheid in J/kg. Reken om naar Wh/kg.' }; return null; },
+      antwoord: () => `${breuk(wet(Emol) + ' ' + Jmol, wet(mk, 4) + ' ' + kgmol)} = ${wet(Jk)} ${Jkg} = ${breuk(wet(Jk) + ' ' + Jkg, '3600 ' + eenh('J', 'Wh'))} = ${wet(Wh)} ${Whkg}` }),
+    reken('Bereken de minimale massa van de accu in gram. Noteer je antwoord in het juiste aantal significante cijfers.', () => mMin * 1000, { eenheid:'g', sig:2, hint:`m = ${breuk('benodigde energie', 'energiedichtheid')}`, foutTip:'Deel de benodigde energie door de energiedichtheid, en reken kg om naar g.',
+      antwoord: () => `${breuk(nodig + ' Wh', wet(Wh) + ' ' + Whkg)} = ${wet(mMin)} kg = ${wet(mMin * 1000, 2)} g` })
+  ];
+  return o;
+}
+function klantNiCd(klant){
+  const dv = 0.52 - -0.81, Emol = 2 * FAR * dv, mg = MM.Cd + 2 * MM.NiOOH + 2 * MM.H2O, mk = mg / 1000, Jk = Emol / mk, Wh = Jk / 3600;
+  const o = { klant, beloning:200, verborgen:'nicd',
+    vraag:'Ik twijfel tussen een NiCd-accu en een loodaccu. Wat levert per kilogram de meeste energie?',
+    gegeven:`Totaalreactie bij het ontladen van een NiCd-accu: ${vglHTML(V('Cd + 2 NiO(OH) + 2 H2O -> Cd(OH)2 + 2 Ni(OH)2'))}<br>M(Cd) = 112,4 ${gmol}, M(NiO(OH)) = 91,70 ${gmol}, M(H<sub>2</sub>O) = 18,02 ${gmol}. Een loodaccu: 171 ${Whkg}. 1 Wh = 3600 J.` };
+  o.stappen = [
+    spanningStap('Bereken de bronspanning van een NiCd-cel met Binas 48.', () => dv, { hint:'Zoek de regels met Cd(OH)<sub>2</sub>/Cd en NiO(OH)/Ni(OH)<sub>2</sub> in ' + b48link() + '.', antwoord: () => '+0,52 V − (−0,81 V) = 1,33 V' }),
+    { type:'getal', vr:'Hoeveel mol elektronen worden er overgedragen per mol totaalreactie?', ph:'n', hint:'Cd wordt Cd<sup>2+</sup> (in Cd(OH)<sub>2</sub>). Hoeveel elektronen staat één Cd-atoom af?',
+      check: v => { const g = leesGetal(v); if (!g) return { ok:false, msg:'Typ een getal.', gratis:true }; return g.w === 2 ? { ok:true } : { ok:false, msg:'Kijk naar de lading van Cd voor en na de reactie.' }; }, antwoord: () => 'n = 2', auto: () => '2' },
+    reken('Bereken de elektrische energie per mol totaalreactie.', () => Emol, { eenheid:Jmol, hint:'E = n · F · ΔV<sub>0</sub>', antwoord: () => `2 × 9,649·10<sup>4</sup> ${Cmol} × 1,33 V = ${wet(Emol)} ${Jmol}` }),
+    reken('Bereken de massa van de beginstoffen per mol totaalreactie in kg.', () => mk, { eenheid:kgmol, hint:'Tel alle stoffen voor de pijl mee, met hun coëfficiënten. Ook het water hoort bij de beginstoffen.',
+      extra: v => { const g = leesGetal(v); const zonder = (MM.Cd + 2 * MM.NiOOH) / 1000; if (g && Math.abs(g.w - zonder) / zonder < 0.01) return { ok:false, msg:'Je bent het water vergeten: dat is ook een beginstof.' }; return null; },
+      antwoord: () => `(112,4 + 2 × 91,70 + 2 × 18,02) ${gmol} = ${wet(mg, 4)} ${gmol} = ${wet(mk, 4)} ${kgmol}` }),
+    reken('Bereken de theoretische energiedichtheid in Wh per kg. Noteer je antwoord in het juiste aantal significante cijfers.', () => Wh, { eenheid:Whkg, sig:3, hint:`Deel de energie per mol door de massa per mol en reken J om naar Wh.`,
+      extra: v => { const g = leesGetal(v); if (g && Math.abs(g.w - Jk) / Jk < 0.01) return { ok:false, msg:'Dit is in J/kg. Reken om naar Wh/kg.' }; return null; },
+      antwoord: () => `${breuk(wet(Emol) + ' ' + Jmol, wet(mk, 4) + ' ' + kgmol)} = ${wet(Jk)} ${Jkg} = ${wet(Wh)} ${Whkg}` })
+  ];
+  return o;
+}
+WPS.push({
+  id:'dicht', titel:'Licht en krachtig', par:'energiedichtheid, Li-ion', nKlant:4, sim:SIM5,
+  uitleg: () => `<p>Voor een telefoon, drone of elektrische auto telt niet alleen de spanning, maar vooral hoeveel energie er per kilogram in zit: de <b>energiedichtheid</b>.</p>
+    <ul><li>De elektrische energie per mol totaalreactie: E = n · F · ΔV<sub>0</sub> (in ${Jmol}). Hierin is n het aantal mol elektronen per mol totaalreactie.</li>
+    <li>Deel door de massa van de beginstoffen per mol totaalreactie (in ${kgmol}): dan krijg je ${Jkg}.</li>
+    <li>Vaak gebruik je ${Whkg}: 1 Wh = 3600 J.</li></ul>
+    <p>Lithium is aantrekkelijk: het is het lichtste metaal en de sterkste reductor uit Binas 48. Maar daardoor reageert lithium ook met water. In een Li-ion-accu zit daarom geen water, maar een organisch oplosmiddel met een opgelost lithiumzout.</p>`,
+  voorbeelden:[{ vraag:'Bereken de theoretische energiedichtheid van een loodaccu.',
+    stappen:[`Totaalreactie: ${vglHTML(V('Pb + PbO2 + 4 H+ + 2 SO4^2- -> 2 PbSO4 + 2 H2O'))}, met n = 2 en ΔV<sub>0</sub> = 2,05 V. De H<sup>+</sup> en SO<sub>4</sub><sup>2−</sup> komen uit 2 H<sub>2</sub>SO<sub>4</sub>.`,
+      `E = n · F · ΔV<sub>0</sub> = 2 × 9,649·10<sup>4</sup> ${Cmol} × 2,05 V = 3,96·10<sup>5</sup> ${Jmol}`,
+      `Massa beginstoffen: M(Pb) + M(PbO<sub>2</sub>) + 2 × M(H<sub>2</sub>SO<sub>4</sub>) = (207,2 + 239,2 + 2 × 98,08) ${gmol} = 642,6 ${gmol} = 0,6426 ${kgmol}`,
+      `${breuk('3,96·10<sup>5</sup> ' + Jmol, '0,6426 ' + kgmol)} = 6,16·10<sup>5</sup> ${Jkg} = ${breuk('6,16·10<sup>5</sup> ' + Jkg, '3600 ' + eenh('J', 'Wh'))} = <b>171 ${Whkg}</b>`] }],
+  maakSerie(){
+    const k = schud(KLANT5);
+    const k3 = { klant:k[2], beloning:170, vraag:'Waarom zit er in jullie Li-ion-accu geen gewone zoutoplossing in water? Dat is toch veel goedkoper?',
+      stappen:[ keuze('Leg uit waarom er geen water in een Li-ion-accu mag.', [
+          'Lithium is een veel sterkere reductor dan water. Het lithium zou met het water reageren, waarbij waterstof ontstaat.',
+          'Water geleidt de stroom niet, dus de accu zou geen stroom leveren.',
+          'Water bevriest in de winter, waardoor de accu kapotgaat.',
+          'Li<sup>+</sup>-ionen lossen niet op in water.'], [0], 'Vergelijk in ' + b48link() + ' de V<sub>0</sub> van Li<sup>+</sup>/Li met die van water als oxidator.'),
+        vglS('Geef de reactievergelijking van lithium met water.', V('2 Li + 2 H2O -> 2 Li+ + 2 OH- + H2'), 'Gebruik de regel 2 H<sub>2</sub>O + 2 e<sup>−</sup> ⇌ H<sub>2</sub> + 2 OH<sup>−</sup>.', { ph:'vergelijking' }),
+        keuze('Wat gebruik je in plaats van een oplossing in water? Kies alle eigenschappen die de elektrolyt moet hebben.', [
+          'Er moeten ionen in kunnen bewegen.', 'Hij mag niet reageren met lithium.', 'Hij moet elektronen geleiden.', 'Hij moet een sterke oxidator zijn.', 'Hij moet water bevatten.'], [0, 1],
+          'Wat doet een elektrolyt in een cel? En wat mag er niet gebeuren met de reductor?', { chips:true }) ] };
+    const st = { klant:{ naam:'Telefoon Fabriek', wat:'smartphones' }, ster:true, beloning:220,
+      vraag:'Jullie rekenen 584 Wh/kg voor een Li-ion-accu, maar mijn telefoonaccu haalt maar ongeveer 250 Wh/kg. Hoe kan dat?',
+      stappen:[ keuze('Kies alle redenen waarom de werkelijke energiedichtheid lager is dan de theoretische.', [
+          'Er zit massa in de accu die niet reageert: behuizing, oplosmiddel, scheidingswand en stroomgeleiders.',
+          'Het grafiet (C<sub>6</sub>) en het kobaltoxide worden in de praktijk niet volledig gebruikt.',
+          'Tijdens gebruik is de spanning lager dan de bronspanning.',
+          'De elektronen hebben ook massa, en die heb je niet meegeteld.',
+          'Lithium verdampt tijdens het ontladen.'], [0, 1, 2], 'Er zijn meerdere juiste antwoorden. Denk aan alles wat in een echte accu zit, en aan wat er tijdens gebruik met de spanning gebeurt.', { chips:true }) ] };
+    return [klantLi(k[0]), klantNiCd(k[1]), k3, st];
+  }
+});
+
+/* =====================================================================
+   Level 6 — De brandstofcel
+   ===================================================================== */
+registreer('CH3OH', 0);
+const SIM6 = {
+  init(host){
+    this.milieu = 'zuur'; this.eta = null; this.t = 0;
+    host.innerHTML = `<div class="simkop"><b>Werkbank</b><span>waterstof-zuurstofcel</span></div>
+      <div class="ctrl"><label><input type="radio" name="s6m" value="zuur" checked> zuur milieu</label><label><input type="radio" name="s6m" value="basisch"> basisch milieu</label></div>
+      <div class="doek" id="s6doek"></div><div class="uitkomst" id="s6uit"></div>`;
+    this.c = maakCanvas($('#s6doek'), 600, 330);
+    $$('[name=s6m]').forEach(r => r.onchange = () => { this.milieu = r.value; this.tekst(); });
+    this.tekst();
+  },
+  tekst(){
+    $$('[name=s6m]').forEach(r => r.checked = r.value === this.milieu);
+    this.verberg = this.milieu === 'basisch' && !this.basischGezien;
+    $('#s6uit').innerHTML = (this.milieu === 'zuur' ? 'Zuur milieu: H<sup>+</sup>-ionen gaan door het membraan naar de positieve elektrode. Daar ontstaat het water.' : 'Basisch milieu: OH<sup>−</sup>-ionen gaan door de elektrolyt naar de negatieve elektrode.' + (this.verberg ? ' Waar ontstaat het water? Dat zoek je uit bij een klant.' : ' Daar ontstaat het water.'))
+      + (this.eta ? `<div style="margin-top:6px">Rendement: <b>${komma(this.eta, 1)}%</b> elektrische energie, de rest komt vrij als warmte.</div>` : '');
+  },
+  update(dt){ this.t += dt; },
+  draw(){
+    const c = this.c; c.clearRect(0, 0, c.W, c.H);
+    const zuur = this.milieu === 'zuur';
+    rrect(c, 140, 120, 320, 150, 10, '#fffdf8', '#24323f', 2);
+    rrect(c, 160, 130, 26, 130, 4, '#3d3d3f'); rrect(c, 414, 130, 26, 130, 4, '#3d3d3f');
+    rrect(c, 290, 130, 20, 130, 3, zuur ? '#e9d79a' : '#cfe0ee');
+    tekst(c, zuur ? 'membraan' : 'kaliloog', 300, 284, { px:11.5 });
+    tekst(c, 'H₂', 70, 170, { px:20, vet:true, serif:true, kleur:'#3b6fa8' }); tekst(c, 'O₂', 530, 170, { px:20, vet:true, serif:true, kleur:'#b4473a' });
+    for (let j = 0; j < 5; j++){ const f = (this.t * 0.35 + j / 5) % 1;
+      bol(c, 90 + f * 70, 200 + 10 * Math.sin(j * 2), 6, '#8fb3d1', '', 1 - f * 0.6);
+      bol(c, 510 - f * 70, 200 + 10 * Math.sin(j * 3), 7, '#e59a8c', '', 1 - f * 0.6); }
+    for (let j = 0; j < 4; j++){ const f = (this.t * 0.3 + j / 4) % 1, x = zuur ? 200 + f * 200 : 400 - f * 200;
+      tekst(c, zuur ? 'H⁺' : 'OH⁻', x, 160 + j * 25, { px:12, vet:true, kleur: zuur ? '#b4473a' : '#3b6fa8' }); }
+    const wx = zuur ? 470 : 130;
+    if (!this.verberg) for (let j = 0; j < 3; j++){ const f = (this.t * 0.4 + j / 3) % 1; bol(c, wx, 270 + f * 45, 5, '#7fb6e0', '', 1 - f); }
+    if (!this.verberg) tekst(c, 'H₂O', wx + (zuur ? 28 : -28), 305, { px:12, vet:true });
+    pool(c, 173, 100, false); pool(c, 427, 100, true);
+    draad(c, [[173, 90], [173, 45], [250, 45]]); draad(c, [[350, 45], [427, 45], [427, 90]]);
+    rrect(c, 250, 22, 100, 46, 10, '#fbe7a8', '#24323f', 2); tekst(c, 'motor', 300, 45, { px:13, vet:true });
+    for (let j = 0; j < 5; j++){ const [x, y] = langsPad([[173, 90], [173, 45], [427, 45], [427, 90]], (this.t * 0.25 + j / 5) % 1); if (Math.abs(x - 300) > 54) elektron(c, x, y); }
+    if (this.eta){ const w = 300; rrect(c, 150, 312, w, 12, 6, '#f0c9b8'); rrect(c, 150, 312, w * this.eta / 100, 12, 6, '#3f8f63'); }
+  },
+  opdracht(o){ this.milieu = o && o.milieu ? o.milieu : 'zuur'; this.eta = o && o.toonEta ? o.toonEta : (!o ? 83.0 : null); this.tekst(); },
+  stapGoed(o){ const s = PER_WP.brand.st[PER_WP.brand.serie.indexOf(o)]; if (s && s.klaar && o.eta) o.toonEta = o.eta; if (s && s.klaar && o.milieu === 'basisch') this.basischGezien = true; this.opdracht(o); }
+};
+const KLANT6 = [{ naam:'Busbedrijf Groen', wat:'stadsbussen' }, { naam:'Havenbedrijf Kade', wat:'heftrucks' }, { naam:'Rederij Schoon Water', wat:'veerboten' }];
+WPS.push({
+  id:'brand', titel:'De brandstofcel', par:'halfreacties, rendement', nKlant:4, sim:SIM6,
+  uitleg: () => `<p>In een <b>brandstofcel</b> worden de reductor en de oxidator continu van buiten aangevoerd. De cel raakt dus niet leeg zolang je brandstof toevoert. Een waterstof-zuurstofcel heeft als enige product water.</p>
+    <ul><li>Waterstof is de reductor (negatieve elektrode), zuurstof is de oxidator (positieve elektrode).</li>
+    <li>Welke halfreacties je gebruikt, hangt af van het milieu: zuur of basisch. Zoek ze op in ${b48link()}.</li>
+    <li>De totaalreactie is in beide gevallen: ${vglHTML(V('2 H2 + O2 -> 2 H2O'))}</li></ul>
+    <h3>Rendement van een brandstofcel</h3>
+    <p>Als je waterstof verbrandt, komt per mol H<sub>2</sub> 2,86·10<sup>5</sup> J vrij (de vormingswarmte van H<sub>2</sub>O(l), Binas 57). De brandstofcel zet een deel daarvan om in elektrische energie:</p>
+    <div class="kader" style="text-align:center;font-size:17px">E<sub>elektrisch</sub> = n · F · U &nbsp;&nbsp;&nbsp; rendement = ${breuk('E<sub>elektrisch</sub>', 'E<sub>verbranding</sub>')} × 100%</div>
+    <p>Hierin is U de spanning waarbij de cel werkt. Die is in de praktijk lager dan ΔV<sub>0</sub>.</p>`,
+  voorbeelden:[{ vraag:'Een brandstofcel in zuur milieu werkt bij 1,23 V. Geef de halfreacties en bereken het rendement.',
+    stappen:[`Negatieve elektrode: ${vglHTML(V('H2 -> 2 H+ + 2 e-'))}<br>Positieve elektrode: ${vglHTML(V('O2 + 4 H+ + 4 e- -> 2 H2O'))}`,
+      `ΔV<sub>0</sub> = +1,23 V − 0,00 V = 1,23 V. Per mol H<sub>2</sub> gaan er 2 mol elektronen door de draad, dus n = 2.`,
+      `E<sub>elektrisch</sub> = 2 × 9,649·10<sup>4</sup> ${Cmol} × 1,23 V = 2,37·10<sup>5</sup> J per mol H<sub>2</sub>.`,
+      `rendement = ${breuk('2,37·10<sup>5</sup> J', '2,86·10<sup>5</sup> J')} × 100% = <b>83,0%</b>. Dit is het maximum. Bij een lagere spanning wordt het rendement lager.`],
+    bijStap(){ SIM6.milieu = 'zuur'; SIM6.eta = 83.0; SIM6.tekst(); } }],
+  maakSerie(){
+    const k = schud(KLANT6);
+    const k1 = { klant:k[0], beloning:200, milieu:'basisch', vraag:'Onze bussen krijgen een brandstofcel met kaliloog als elektrolyt. Welke reacties vinden daarin plaats, en waar ontstaat het water?',
+      stappen:[ vglS('Geef de halfreactie bij de negatieve elektrode.', V('H2 + 2 OH- -> 2 H2O + 2 e-'), 'In basisch milieu zijn er veel OH<sup>−</sup>-ionen. Zoek de regel met H<sub>2</sub> en OH<sup>−</sup> in Binas 48.', { halfreactie:true }),
+        vglS('Geef de halfreactie bij de positieve elektrode.', V('O2 + 2 H2O + 4 e- -> 4 OH-'), 'Zoek de regel met O<sub>2</sub> in basisch milieu.', { halfreactie:true }),
+        spanningStap('Bereken de bronspanning.', () => 1.23, { hint:'Gebruik de V<sub>0</sub>-waarden van de twee regels die je net gebruikte.', antwoord: () => '+0,40 V − (−0,83 V) = 1,23 V' }),
+        keuze('Bij welke elektrode moet het water worden afgevoerd?', ['Bij de negatieve elektrode.', 'Bij de positieve elektrode.', 'Bij beide elektroden evenveel.', 'Nergens: het water blijft in de kaliloog.'], [0],
+          'Bij welke halfreactie staat er netto H<sub>2</sub>O na de pijl? Kijk of je de halfreacties zo optelt dat de elektronen wegvallen.') ] };
+    const U = kies([0.70, 0.75, 0.80]), Ee = 2 * FAR * U, eta = Ee / 2.86e5 * 100;
+    const k2 = { klant:k[1], beloning:200, milieu:'zuur', eta,
+      vraag:`Onze brandstofcel werkt in de praktijk bij ${V2(U)} V. Hoeveel procent van de energie in de waterstof wordt stroom?`,
+      gegeven:`Vormingswarmte van H<sub>2</sub>O(l): −2,86·10<sup>5</sup> ${Jmol} (Binas 57). F = 9,649·10<sup>4</sup> ${Cmol}.`,
+      stappen:[ { type:'getal', vr:'Hoeveel mol elektronen gaan er door de draad per mol H<sub>2</sub>?', ph:'n', hint:'Kijk naar de halfreactie van H<sub>2</sub> bij de negatieve elektrode.', check: v => { const g = leesGetal(v); if (!g) return { ok:false, msg:'Typ een getal.', gratis:true }; if (g.w === 4) return { ok:false, msg:'4 mol elektronen hoort bij 2 mol H<sub>2</sub> (of 1 mol O<sub>2</sub>). De vraag is per mol H<sub>2</sub>.' }; return g.w === 2 ? { ok:true } : { ok:false, msg:'Kijk naar de halfreactie van H<sub>2</sub>.' }; }, antwoord: () => '2 mol', auto: () => '2' },
+        reken('Bereken de elektrische energie per mol H<sub>2</sub>.', () => Ee, { eenheid:'J', hint:'E = n · F · U, met de spanning waarbij de cel werkt.',
+          extra: v => { const g = leesGetal(v); const id = 2 * FAR * 1.23; if (g && Math.abs(g.w - id) / id < 0.01) return { ok:false, msg:'Dit is de energie bij 1,23 V. Deze cel werkt bij een lagere spanning.' }; return null; },
+          antwoord: () => `2 × 9,649·10<sup>4</sup> ${Cmol} × ${V2(U)} V = ${wet(Ee)} J` }),
+        reken('Bereken het rendement. Noteer je antwoord in het juiste aantal significante cijfers.', () => eta, { eenheid:'%', sig:2, hint:`rendement = ${breuk('E<sub>elektrisch</sub>', 'E<sub>verbranding</sub>')} × 100%`, antwoord: () => `${breuk(wet(Ee) + ' J', '2,86·10<sup>5</sup> J')} × 100% = ${komma(eta, 0)}%` }) ] };
+    const Eid = 2 * FAR * 1.23, zonder = Eid / (MM.H2 / 1000), met = Eid / ((MM.H2 + MM.O2 / 2) / 1000);
+    const k3 = { klant:k[2], beloning:200, milieu:'zuur',
+      vraag:'Voor een veerboot telt elke kilo. Hoeveel energie levert een kilogram waterstof in een brandstofcel, en hoe verhoudt dat zich tot een Li-ion-accu?',
+      gegeven:`Neem aan dat de cel bij 1,23 V werkt. M(H<sub>2</sub>) = 2,016 ${gmol}. Li-ion-accu (theoretisch): 2,10·10<sup>6</sup> ${Jkg}.`,
+      stappen:[ reken('Bereken de elektrische energie per kg waterstof.', () => zonder, { eenheid:Jkg, hint:`Per mol H<sub>2</sub>: E = 2 · F · 1,23 V. Deel door de massa van 1 mol H<sub>2</sub> in kg.`,
+          extra: v => { const g = leesGetal(v); if (g && Math.abs(g.w - met) / met < 0.01) return { ok:false, msg:'Je hebt de zuurstof meegeteld. De klant vraagt naar een kilogram waterstof.' }; return null; },
+          antwoord: () => `${breuk(wet(Eid) + ' J', '2,016·10<sup>−3</sup> kg')} = ${wet(zonder)} ${Jkg}` }),
+        keuze('Bij de Li-ion-accu telde je alle beginstoffen mee. Leg uit of je bij de brandstofcel de zuurstof ook moet meetellen.', [
+          'Nee: de zuurstof komt uit de lucht. De boot hoeft die niet mee te nemen.',
+          'Ja: zuurstof is een beginstof, dus die moet je altijd meetellen.',
+          'Nee: zuurstof heeft geen massa omdat het een gas is.',
+          'Ja: zonder zuurstof ontstaat er geen water.'], [0], 'Wat moet de boot zelf meenemen, en wat haalt hij uit de omgeving?'),
+        reken('Hoeveel keer zoveel energie per kg levert waterstof dan de Li-ion-accu? Noteer je antwoord in het juiste aantal significante cijfers.', () => zonder / 2.10e6, { eenheid:'keer', sig:2, hint:'Deel de twee energiedichtheden op elkaar.', antwoord: () => `${breuk(wet(zonder) + ' ' + Jkg, '2,10·10<sup>6</sup> ' + Jkg)} = ${wet(zonder / 2.10e6, 2)}` }) ] };
+    const st = { klant:{ naam:'Campingwinkel Buiten', wat:'kampeerspullen' }, ster:true, beloning:240, milieu:'zuur',
+      vraag:'Waterstof opslaan is lastig. Kan een brandstofcel ook op methanol (CH<sub>3</sub>OH) werken? Bij het opwekken ontstaat dan koolstofdioxide.',
+      stappen:[ keuze('Leg uit waarom methanol makkelijker mee te nemen is dan waterstof.', [
+          'Methanol is bij kamertemperatuur een vloeistof; waterstof is bij kamertemperatuur een gas en moet onder hoge druk of sterk gekoeld worden opgeslagen.',
+          'Methanol is een sterkere reductor dan waterstof.',
+          'Methanol heeft een kleinere molaire massa dan waterstof.',
+          'Methanol reageert niet met zuurstof.'], [0], 'Denk aan de fase van de stoffen bij kamertemperatuur.'),
+        vglS('Geef de halfreactie bij de negatieve elektrode in zuur milieu.', V('CH3OH + H2O -> CO2 + 6 H+ + 6 e-'), 'Methanol wordt CO<sub>2</sub>. Maak eerst C kloppend, dan O met H<sub>2</sub>O, dan H met H<sup>+</sup>, en tot slot de lading met elektronen.', { halfreactie:true }) ] };
+    return [k1, k2, k3, st];
+  }
+});
+
+/* ---------- start ---------- */
+let tVorig = 0;
+function lus(t){
+  const dt = Math.min(0.05, (t - tVorig) / 1000 || 0); tVorig = t;
+  if (SIM){ SIM.update && SIM.update(dt); SIM.draw && SIM.draw(); }
+  requestAnimationFrame(lus);
+}
+$('#beamerknop').onclick = () => document.body.classList.toggle('beamer');
+$('#resetknop').onclick = () => { if (confirm('Kas, sterren en voortgang wissen?')){ STAAT.voortgang = { kas:500, st:{} }; bewaar(STAAT.voortgang); for (const k in PER_WP) delete PER_WP[k]; open(STAAT.wp); } };
+open(0);
+requestAnimationFrame(lus);
+</script>
+</body>
+</html>
