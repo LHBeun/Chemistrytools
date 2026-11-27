@@ -159,6 +159,7 @@ textarea{width:100%;min-height:80px;font:inherit;padding:8px;border-radius:8px;b
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 document.getElementById('beamer').onclick=()=>document.body.classList.toggle('hs-beamer');
 const nl=(x,d=2)=>x.toFixed(d).replace('.',',');
+const num2=x=>(x>=1&&x<1000)?String(parseFloat(x.toPrecision(2))).replace('.',','):sci(x,2); /* 35 m/s i.p.v. 3,5·10^1 */
 function sci(x,sig=3){ // wetenschappelijke notatie met komma
   if(x===0) return '0';
   const e=Math.floor(Math.log10(Math.abs(x))); let m=x/Math.pow(10,e);
@@ -420,8 +421,8 @@ function randLog(a,b){return Math.exp(Math.log(a)+Math.random()*(Math.log(b)-Mat
 function newRk(){
   if(rkType==='db'){const d=DEELTJES[Math.floor(Math.random()*DEELTJES.length)];const v=sig3(randLog(d.v[0],d.v[1]));const lam=h/(d.m*v);
     if((d.m===me&&(v===2e6||v===5e5))||(d.m===mp&&v===3e5))return newRk(); /* voorbeelden uit de lesdia's */
-    rk={vraag:`Bereken de de Broglie-golflengte van ${d.n} met een snelheid van ${sci(v,2)} m/s.`,ant:lam,eenh:'m',
-     uitw:`<i>λ</i> = ${frac('<i>h</i>','<i>m</i>·<i>v</i>')} = ${frac('6,626·10<sup>−34</sup> J·s',sci(d.m,4)+' kg × '+sci(v,2)+' m/s')} = <b>${sci(lam,2)} m</b>`};}
+    rk={vraag:`Bereken de de Broglie-golflengte van ${d.n} met een snelheid van ${num2(v)} m/s.`,ant:lam,eenh:'m',
+     uitw:`<i>λ</i> = ${frac('<i>h</i>','<i>m</i>·<i>v</i>')} = ${frac('6,626·10<sup>−34</sup> J·s',sci(d.m,4)+' kg × '+num2(v)+' m/s')} = <b>${sci(lam,2)} m</b>`};}
   else if(rkType==='bohr'){const nl_=1+Math.floor(Math.random()*3);const nh=nl_+1+Math.floor(Math.random()*3);
     if(nl_===2&&(nh===3||nh===4))return newRk(); /* voorbeelden uit de lesdia's */
     const E=13.6*(1/(nl_*nl_)-1/(nh*nh));const EJ=E*eV;const lam=h*c0/EJ;
