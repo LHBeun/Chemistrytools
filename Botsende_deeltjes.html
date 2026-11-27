@@ -1,11 +1,207 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Botsingssimulatie — reactiekinetiek</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Botsende deeltjes — reactiesnelheid</title>
 <style>
-  :root{
+:root{
+  --papier:#f3efe6; --vel:#fffdf8; --rand:#e3dccb; --rand2:#d6cdb8;
+  --inkt:#2b2a27; --inkt2:#3e3b35; --grijs:#7a756b; --goud:#a0701f; --goud2:#e2a84b;
+  --nacht:#24323f; --nacht2:#33475a; --nachttekst:#cfd9e2;
+  --goed:#3f8f63; --goedbg:#e5f2ea; --fout:#b4473a; --foutbg:#f8e6e2; --hint:#fbf1da;
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --sans: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Consolas, 'Liberation Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--papier);color:var(--inkt);font-size:15px;line-height:1.6}
+sub,sup{font-size:.72em;line-height:0}
+button{font-family:inherit}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
+
+/* ---------- zijbalk ---------- */
+aside{background:var(--nacht);color:var(--nachttekst);padding:26px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+aside h1{font-family:var(--serif);font-size:23px;color:#fff;font-weight:600;line-height:1.2}
+aside .sub{font-size:12.5px;color:#8aa0b3;margin:4px 0 26px}
+aside nav a{display:flex;gap:12px;align-items:center;padding:10px 10px;border-radius:9px;font-size:14.5px;margin-bottom:4px;color:#b9c7d3;cursor:pointer;user-select:none;line-height:1.3}
+aside nav a:hover{background:#2c3d4d}
+aside nav a i{font-style:normal;flex:none;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #5d7387;font-size:12.5px;font-weight:700}
+aside nav a.on{background:var(--nacht2);color:#fff}
+aside nav a.on i{background:var(--goud2);border-color:var(--goud2);color:var(--nacht)}
+aside nav a.klaar i{background:#5aa37c;border-color:#5aa37c;color:#fff}
+aside nav a small{display:block;font-size:11.5px;color:#8aa0b3}
+aside .voet{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+aside .voet button{background:transparent;border:1px solid #4b6074;color:#cfd9e2;border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer;text-align:left}
+aside .voet button:hover{background:#2c3d4d}
+aside .voet .klein{font-size:11.5px;color:#6f859a}
+
+/* ---------- werkplaats ---------- */
+.wp{display:grid;grid-template-columns:minmax(380px,1fr) minmax(540px,640px);min-height:100vh}
+.tekst{padding:34px 38px 60px;max-width:760px}
+.kicker{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--goud);font-weight:700}
+.tekst h2{font-family:var(--serif);font-size:31px;margin:3px 0 14px;font-weight:600;line-height:1.2}
+.tekst h3{font-family:var(--serif);font-size:19px;margin:22px 0 6px;font-weight:600}
+.tekst p{margin-bottom:10px;color:var(--inkt2)}
+.tekst ul{margin:0 0 10px 20px;color:var(--inkt2)}
+.tekst li{margin-bottom:3px}
+.kader{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--goud2);border-radius:8px;padding:10px 14px;margin:10px 0 12px;color:var(--inkt2)}
+.kader.binas{border-left-color:#5d7387}
+.f{white-space:nowrap}
+.tabs{display:flex;gap:4px;margin:20px 0 14px;border-bottom:1px solid var(--rand2)}
+.tabs button{background:none;border:0;padding:9px 14px;font-size:14px;font-weight:600;color:var(--grijs);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--inkt);border-bottom-color:var(--goud2)}
+.tabs button .tel{font-weight:500;font-size:12px;color:var(--grijs);margin-left:4px}
+
+/* voorbeeld */
+.vb{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:16px 18px;margin:4px 0 14px}
+.vb .vbkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--goud);margin-bottom:4px}
+.vb .vbvraag{font-weight:600;margin-bottom:8px}
+.vbstap{display:flex;gap:12px;padding:8px 0;border-top:1px dashed var(--rand2)}
+.vbstap .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
+.vbstap .b{color:var(--inkt2)}
+.vb .verder{margin-top:8px}
+
+/* opdrachten */
+.oknop{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.oknop .dot{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--rand2);background:var(--vel);display:grid;place-items:center;font-size:12.5px;font-weight:700;color:var(--grijs);cursor:pointer}
+.oknop .dot.on{border-color:var(--inkt);color:var(--inkt);box-shadow:0 0 0 2px var(--inkt) inset}
+.oknop .dot.goed{background:var(--goed);border-color:var(--goed);color:#fff}
+.oknop .dot.ster{border-style:dashed}
+.oknop .rechts{margin-left:auto;font-size:13px;color:var(--grijs)}
+.opdkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--grijs);margin-bottom:4px}
+.opdkop .st{color:var(--goud)}
+.opdvraag{font-size:16px;margin-bottom:12px;color:var(--inkt)}
+.stap{display:flex;gap:12px;padding:13px 15px;background:var(--vel);border:1px solid var(--rand);border-radius:11px;margin-bottom:10px}
+.stap>.n{flex:none;width:25px;height:25px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12.5px;font-weight:700;margin-top:1px}
+.stap.dicht{opacity:.42;pointer-events:none}
+.stap.dicht .inv{display:none}
+.stap.goed{border-color:#bcdcc8;background:#fbfefc}
+.stap.goed>.n{background:var(--goed)}
+.stap .inh{flex:1;min-width:0}
+.stap .vr{margin-bottom:8px}
+.rij{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input.in{font-family:var(--mono);font-size:15px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;background:#fff;min-width:0;flex:1 1 100%}
+input.in:focus{outline:2px solid var(--goud2);outline-offset:0;border-color:var(--goud2)}
+.voorbeeldweergave{font-size:13px;color:var(--grijs);min-height:20px;margin-top:4px}
+.voorbeeldweergave b{color:var(--inkt);font-weight:600;font-size:15px}
+select.sel{border:1px solid var(--rand2);border-radius:8px;padding:7px 9px;font-size:14px;background:#fff;color:var(--inkt);font-family:inherit}
+.btn{border:0;border-radius:8px;padding:8px 15px;font-weight:600;font-size:14px;cursor:pointer;background:var(--inkt);color:#fff}
+.btn:hover{background:#45433e}
+.btn.g{background:#ebe4d4;color:var(--inkt)}
+.btn.g:hover{background:#e0d7c3}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.klein{padding:5px 11px;font-size:13px}
+.fb{margin-top:8px;padding:8px 11px;border-radius:8px;font-size:14px;display:none}
+.fb.toon{display:block}
+.fb.goed{background:var(--goedbg);color:#255c3d}
+.fb.fout{background:var(--foutbg);color:#7c2c22}
+.fb.hint{background:var(--hint);color:#6b4d12}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1.5px solid var(--rand2);background:#fff;border-radius:999px;padding:4px 12px;font-size:14px;cursor:pointer;user-select:none;color:var(--inkt)}
+.chip:hover{border-color:#b9ad93}
+.chip.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.opties{display:flex;flex-direction:column;gap:6px}
+.optie{border:1.5px solid var(--rand2);background:#fff;border-radius:9px;padding:8px 12px;font-size:14.5px;cursor:pointer;text-align:left;color:var(--inkt)}
+.optie:hover{border-color:#b9ad93}
+.optie.aan{border-color:var(--nacht);background:#eef2f6}
+.typtip{font-size:12.5px;color:var(--grijs);margin-top:14px;line-height:1.5}
+.typtip code{font-family:var(--mono);background:#ebe4d4;border-radius:4px;padding:0 4px;font-size:12px}
+.klaarbanner{background:var(--goedbg);border:1px solid #bcdcc8;color:#255c3d;border-radius:11px;padding:12px 15px;margin:4px 0 12px}
+
+/* ---------- simulatiekolom ---------- */
+.simkol{background:var(--vel);border-left:1px solid var(--rand);padding:22px 22px 30px;display:flex;flex-direction:column;gap:12px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.simkol>*{flex-shrink:0}
+.simkop{display:flex;justify-content:space-between;align-items:baseline}
+.simkop b{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--goud)}
+.simkop span{font-size:12.5px;color:var(--grijs)}
+.ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ctrl label{font-size:13.5px;color:var(--inkt2);display:flex;gap:6px;align-items:center}
+.doek{border:1px solid var(--rand);border-radius:12px;background:#fbf8f1;position:relative;overflow:hidden}
+.doek canvas{display:block;width:100%;height:auto}
+.waarneming{font-size:14px;color:var(--inkt2);min-height:22px}
+.waarneming b{color:var(--inkt)}
+.vgl{font-family:var(--serif);font-size:19px;text-align:center;min-height:30px;color:var(--inkt)}
+.tabelkop{font-size:12px;font-weight:700;letter-spacing:1.2px;color:var(--goud);margin-bottom:6px;text-transform:uppercase}
+table.b45{border-collapse:collapse;font-size:13px;background:#fff;color:var(--inkt)}
+table.b45 th,table.b45 td{border:1px solid #6d6a62;padding:2px 0;text-align:center;width:38px}
+table.b45 th{font-weight:600;background:#fff}
+table.b45 th.hoek{width:46px;font-size:10px;font-weight:400;color:var(--grijs)}
+table.b45 td.licht{background:#f6e3bf;font-weight:700}
+table.b45 tr.licht th, table.b45 th.licht{background:#f3ead6}
+.legenda{font-size:12px;color:var(--grijs);margin-top:6px;line-height:1.45}
+.balk{display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.balk .lijn{display:flex;align-items:center;gap:8px}
+.balk .lijn span.lab{width:120px;color:var(--inkt2)}
+.balk .vak{display:flex;gap:3px;flex-wrap:wrap}
+.balk .q{width:18px;height:18px;border-radius:4px;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff}
+.balk .q.p{background:#c4822b}.balk .q.m{background:#3b6fa8}
+.uitkomst{background:#fff;border:1px solid var(--rand);border-radius:10px;padding:10px 14px;font-size:14.5px}
+.uitkomst .groot{font-family:var(--serif);font-size:22px}
+.buislog{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:12px}
+.buislog div{background:#fff;border:1px solid var(--rand);border-radius:8px;padding:5px 7px;line-height:1.35}
+.buislog div b{display:block;font-size:12.5px}
+
+/* niveau */
+.niveau{display:flex;gap:4px;margin:-14px 0 22px}
+.niveau button{flex:1;background:transparent;border:1px solid #4b6074;color:#b9c7d3;border-radius:7px;padding:5px;font-weight:700;font-size:13px;cursor:pointer}
+.niveau button.aan{background:var(--goud2);border-color:var(--goud2);color:var(--nacht)}
+/* moleculen */
+svg.mol{display:block;max-width:100%;height:auto}
+.molkader{background:#fff;border:1px solid var(--rand);border-radius:10px;padding:8px 10px;margin:8px 0;overflow-x:auto}
+.molrij{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.molrij .plus{font-size:22px;color:var(--grijs)}
+.molnaam{font-size:12.5px;color:var(--grijs);text-align:center;margin-top:2px}
+/* tekenveld */
+.tv{background:#fff;border:1px solid var(--rand2);border-radius:10px;overflow:hidden}
+.tvbalk{display:flex;flex-wrap:wrap;gap:4px;padding:7px;background:#f7f2e6;border-bottom:1px solid var(--rand)}
+.tvk{border:1px solid var(--rand2);background:#fff;border-radius:7px;padding:4px 10px;font-family:Georgia,serif;font-size:15px;cursor:pointer;min-width:34px;color:var(--inkt)}
+.tvk[data-a],.tvk[data-t="gum"]{font-family:var(--sans);font-size:13px}
+.tvk.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.tvsep{width:1px;background:var(--rand2);margin:0 4px}
+.tvdoek{overflow:auto;max-height:340px}
+.tvsvg{display:block;touch-action:none;cursor:crosshair;background:#fffdf8}
+.tvuitleg{font-size:12px;color:var(--grijs);padding:5px 9px;border-top:1px solid var(--rand)}
+input.getal{max-width:200px;flex:0 1 200px}
+.eenheid{font-size:15px;color:var(--inkt2)}
+.formule{font-family:var(--serif);font-size:17px;margin:6px 0}
+.breuk{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;font-size:.95em}
+.breuk>span:first-child{border-bottom:1.3px solid currentColor;padding:0 4px}
+.breuk>span:last-child{padding:0 4px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;font-size:14.5px}
+.kv b{font-family:var(--serif);font-size:18px;font-weight:600}
+table.data{border-collapse:collapse;font-size:14px;background:#fff;margin:6px 0}
+table.data th,table.data td{border:1px solid var(--rand2);padding:3px 10px;text-align:right}
+table.data th{background:#f7f2e6;font-weight:600}
+.fitvak{margin-top:10px;padding:10px 12px;border:1px dashed #D9822B;border-radius:10px;background:#fdf6ec}
+.fitkop{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:#b8641a;margin-bottom:4px}
+.fitvak .inp{font:inherit;font-size:14px;padding:4px 7px;border:1px solid #d8cfbd;border-radius:6px;background:#fff}
+.reeksen{display:flex;flex-direction:column;gap:4px;font-size:13.5px}
+.reeksen label{display:flex;gap:8px;align-items:center}
+.reeksen i{display:inline-block;width:14px;height:4px;border-radius:2px}
+.info{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13.5px;background:#fff;border:1px solid var(--rand);border-radius:10px;padding:9px 12px}
+.info b{font-weight:600}
+.schuif{display:flex;align-items:center;gap:8px;font-size:13.5px}
+.schuif input{width:150px}
+/* beamerstand */
+body.beamer{font-size:18px}
+body.beamer .tekst h2{font-size:36px}
+body.beamer .opdvraag{font-size:19px}
+body.beamer input.in{font-size:18px}
+body.beamer .optie, body.beamer .chip{font-size:17px}
+body.beamer table.b45{font-size:15px}
+
+@media (max-width:1180px){
+  .wp{grid-template-columns:1fr}
+  .simkol{position:static;height:auto;border-left:0;border-top:1px solid var(--rand)}
+}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  aside{position:static;height:auto}
+}
+@media print{aside,.simkol{display:none}.wp{display:block}}
+#simhouder{
     --bg:#ffffff; --panel:#f7f7f5; --panel-2:#f0f0ec; --line:#d8d6ce;
     --text:#211f19; --text-dim:#6b6557;
     --accent:#c1652f; --accent-dim:#a8623a;
@@ -16,320 +212,301 @@
     --mono:'JetBrains Mono','SF Mono',Consolas,monospace;
     --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   }
-  *{box-sizing:border-box;}
-  body{
-    margin:0; background:var(--bg); color:var(--text); font-family:var(--sans);
-    -webkit-font-smoothing:antialiased;
-  }
-  .app{max-width:1180px; margin:0 auto; padding:22px 22px 50px;}
-
-  header.top{margin-bottom:18px;}
-  .eyebrow{
-    font-family:var(--mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
-    color:var(--accent); margin-bottom:6px;
-  }
-  h1{margin:0; font-size:25px; font-weight:650; letter-spacing:-0.01em;}
-  header.top p.sub{color:var(--text-dim); font-size:13.5px; line-height:1.55; max-width:760px; margin:10px 0 0;}
-
-  .layout{display:grid; grid-template-columns:1fr 320px; gap:18px;}
-  @media (max-width:880px){ .layout{grid-template-columns:1fr;} }
-
-  .panel{
+#simhouder .panel{
     background:var(--panel); border:1px solid var(--line); border-radius:12px;
     padding:18px 20px; margin-bottom:16px;
   }
-  .panel h2{font-size:14px; margin:0 0 10px; color:var(--text); font-weight:600;}
-  .panel p.sub{color:var(--text-dim); font-size:13px; line-height:1.55; margin:0 0 4px;}
-
-  .mode-row{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; align-items:center;}
-  .mode-btn{
+#simhouder .panel h2{font-size:14px; margin:0 0 10px; color:var(--text); font-weight:600;}
+#simhouder .panel p.sub{color:var(--text-dim); font-size:13px; line-height:1.55; margin:0 0 4px;}
+#simhouder .mode-row{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; align-items:center;}
+#simhouder .mode-btn{
     background:var(--panel-2); border:1px solid var(--line); color:var(--text-dim);
     font-family:var(--mono); font-size:12.5px; letter-spacing:.03em; padding:9px 16px;
     border-radius:7px; cursor:pointer; transition:all .15s;
   }
-  .mode-btn:hover:not(:disabled){border-color:var(--accent-dim); color:var(--text);}
-  .mode-btn.active{background:var(--accent-dim); border-color:var(--accent); color:#fff3ea;}
-  .mode-btn:disabled{opacity:.4; cursor:not-allowed;}
-
-  /* ---- arena / canvas ---- */
-  .arena-wrap{position:relative;}
-  #arena{
+#simhouder .mode-btn:hover:not(:disabled){border-color:var(--accent-dim); color:var(--text);}
+#simhouder .mode-btn.active{background:var(--accent-dim); border-color:var(--accent); color:#fff3ea;}
+#simhouder .mode-btn:disabled{opacity:.4; cursor:not-allowed;}
+#simhouder .arena-wrap{position:relative;}
+#simhouder #arena{
     width:100%; aspect-ratio:4/3; background:var(--bg); border-radius:10px;
     border:1px solid var(--line); display:block;
   }
-  .arena-overlay{
+#simhouder .arena-overlay{
     position:absolute; top:0; left:0; right:0; padding:14px 16px; pointer-events:none;
     display:flex; justify-content:space-between; align-items:flex-start;
   }
-  .info-chip{
+#simhouder .info-chip{
     font-family:var(--mono); background:rgba(255,255,255,0.88); border:1px solid var(--line);
     border-radius:8px; padding:8px 14px; backdrop-filter:blur(2px);
   }
-  .info-chip .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim);}
-  .info-chip .val{font-size:15px; font-weight:600;}
-
-  .legend{display:flex; gap:14px; font-size:11.5px; color:var(--text-dim); margin-top:10px; flex-wrap:wrap;}
-  .legend span{display:inline-flex; align-items:center; gap:5px;}
-  .dot{width:9px; height:9px; border-radius:50%; display:inline-block;}
-
-  /* ---- rate bar (stand 1) ---- */
-  .rate-bar-wrap{margin-top:4px;}
-  .rate-bar-track{
+#simhouder .info-chip .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim);}
+#simhouder .info-chip .val{font-size:15px; font-weight:600;}
+#simhouder .legend{display:flex; gap:14px; font-size:11.5px; color:var(--text-dim); margin-top:10px; flex-wrap:wrap;}
+#simhouder .legend span{display:inline-flex; align-items:center; gap:5px;}
+#simhouder .dot{width:9px; height:9px; border-radius:50%; display:inline-block;}
+#simhouder .rate-bar-wrap{margin-top:4px;}
+#simhouder .rate-bar-track{
     height:130px; background:var(--panel-2); border-radius:8px; position:relative; overflow:hidden;
     display:flex; align-items:flex-end; padding:0 0;
   }
-  .rate-bar-fill{
+#simhouder .rate-bar-fill{
     width:100%; background:linear-gradient(180deg, var(--accent), var(--accent-dim));
     border-radius:0; transition:height .15s ease-out;
   }
-  .rate-bar-label{
+#simhouder .rate-bar-label{
     display:flex; justify-content:space-between; align-items:baseline; margin-top:8px;
     font-family:var(--mono);
   }
-  .rate-bar-label .big{font-size:24px; font-weight:700; color:var(--accent);}
-
-  /* ---- rate-vs-time chart (stand 2) ---- */
-  #rate-chart{width:100%; height:170px; display:block;}
-
-  /* ---- knobs ---- */
-  .ctrl-group{margin-bottom:16px;}
-  .ctrl-group:last-child{margin-bottom:0;}
-  .ctrl-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;}
-  .ctrl-head label{
+#simhouder .rate-bar-label .big{font-size:24px; font-weight:700; color:var(--accent);}
+#simhouder #rate-chart{width:100%; height:170px; display:block;}
+#simhouder .ctrl-group{margin-bottom:16px;}
+#simhouder .ctrl-group:last-child{margin-bottom:0;}
+#simhouder .ctrl-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;}
+#simhouder .ctrl-head label{
     font-family:var(--mono); font-size:11.5px; letter-spacing:.03em; color:var(--text);
     text-transform:uppercase;
   }
-  .ctrl-head .readout{font-family:var(--mono); font-size:11px; color:var(--text-dim);}
-  input[type=range]{
+#simhouder .ctrl-head .readout{font-family:var(--mono); font-size:11px; color:var(--text-dim);}
+#simhouder input[type=range]{
     width:100%; height:5px; -webkit-appearance:none; background:var(--panel-2);
     border-radius:3px; outline:none; margin:6px 0 4px;
   }
-  input[type=range]::-webkit-slider-thumb{
+#simhouder input[type=range]::-webkit-slider-thumb{
     -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
     background:var(--accent); cursor:pointer; border:2px solid var(--bg);
   }
-  input[type=range]::-moz-range-thumb{
+#simhouder input[type=range]::-moz-range-thumb{
     width:14px; height:14px; border-radius:50%; background:var(--accent); cursor:pointer;
     border:2px solid var(--bg);
   }
-  input[type=range]:disabled{opacity:.4;}
-  input[type=range]:disabled::-webkit-slider-thumb{background:var(--text-dim);}
-
-  #controls-wrap.locked{position:relative;}
-  #controls-wrap.locked .panel{opacity:.55; pointer-events:none;}
-  #controls-wrap.locked::before{
+#simhouder input[type=range]:disabled{opacity:.4;}
+#simhouder input[type=range]:disabled::-webkit-slider-thumb{background:var(--text-dim);}
+#simhouder #controls-wrap.locked{position:relative;}
+#simhouder #controls-wrap.locked .panel{opacity:.55; pointer-events:none;}
+#simhouder #controls-wrap.locked::before{
     content:'Vergrendeld tijdens het verloop'; position:absolute; top:-2px; left:0; right:0;
     text-align:center; font-family:var(--mono); font-size:11px; color:var(--text-dim);
     letter-spacing:.04em; z-index:2; background:var(--bg); padding:4px 0;
   }
-
-  .toggle-row{display:flex; gap:6px; margin-top:6px;}
-  .toggle-btn{
+#simhouder .toggle-row{display:flex; gap:6px; margin-top:6px;}
+#simhouder .toggle-btn{
     flex:1; background:var(--panel-2); border:1px solid var(--line); color:var(--text-dim);
     font-family:var(--mono); font-size:11px; padding:7px 4px; border-radius:6px; cursor:pointer;
     transition:all .15s;
   }
-  .toggle-btn.active{background:var(--accent2-dim); border-color:var(--accent2); color:#eafff9;}
-  .toggle-btn:disabled{opacity:.4; cursor:not-allowed;}
+#simhouder .toggle-btn.active{background:var(--accent2-dim); border-color:var(--accent2); color:#eafff9;}
+#simhouder .toggle-btn:disabled{opacity:.4; cursor:not-allowed;}
+#simhouder .optie-row{display:flex; flex-wrap:wrap; gap:6px 18px; font-size:12.5px; color:var(--text-dim); margin:4px 0 10px;}
+#simhouder .optie-row label{display:inline-flex; align-items:center; gap:6px; cursor:pointer;}
+#simhouder .panel.uit{opacity:.45; pointer-events:none;}
+#simhouder .wear-bar{height:4px; background:var(--panel-2); border-radius:3px; overflow:hidden; margin-top:6px;}
+#simhouder .wear-fill{height:100%; width:100%; transition:width .3s;}
+/* ---------- labjournaal-aanvullingen ---------- */
+.leerdoelen{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:12px 16px 6px;margin:4px 0 6px}
+.leerdoelen b{display:block;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--goud);margin-bottom:4px}
+.leerdoelen ul{list-style:none;margin:0!important;padding:0}
+.leerdoelen li{padding:4px 0 4px 26px;position:relative;color:var(--inkt2)}
+.leerdoelen li::before{content:"";position:absolute;left:2px;top:9px;width:13px;height:13px;border:1.5px solid var(--goud2);border-radius:3px}
+.leerdoelen li.ster::before{content:"★";border:0;color:var(--goud);top:3px;left:1px;font-size:14px}
+.kl{font-size:12.5px;color:var(--grijs);line-height:1.45}
+.meetbalk{height:5px;background:#ece5d6;border-radius:3px;overflow:hidden;margin-bottom:8px}
+.meetbalk i{display:block;height:100%;width:0;background:var(--goud2);transition:width .15s linear}
+#meetlog table.data td,#meetlog table.data th{text-align:center}
 
-  .optie-row{display:flex; flex-wrap:wrap; gap:6px 18px; font-size:12.5px; color:var(--text-dim); margin:4px 0 10px;}
-  .optie-row label{display:inline-flex; align-items:center; gap:6px; cursor:pointer;}
-  .panel.uit{opacity:.45; pointer-events:none;}
-  .wear-bar{height:4px; background:var(--panel-2); border-radius:3px; overflow:hidden; margin-top:6px;}
-  .wear-fill{height:100%; width:100%; transition:width .3s;}
+/* ---------- botsingsdoos in de simulatiekolom ---------- */
+#simhouder{display:flex;flex-direction:column;gap:10px;--panel:#fbf8f1;--panel-2:#efe8d9;--line:#e3dccb;--bg:#fffdf8;--text:#2b2a27;--text-dim:#7a756b;--mono:var(--sans)}
+#simhouder .simkop{margin-bottom:2px}
+#simhouder .panel{padding:12px 14px;margin:0;border-radius:12px}
+#simhouder .panel h2{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--goud);margin-bottom:8px}
+#simhouder .panel p.sub{font-size:12.5px;margin-top:6px}
+#simhouder #controls-wrap{display:flex;flex-direction:column;gap:10px}
+#simhouder .mode-row{margin:0}
+#simhouder .mode-btn{font-family:var(--sans);font-size:13px;font-weight:600}
+#simhouder .mode-btn.active{background:var(--nacht);border-color:var(--nacht);color:#fff}
+#simhouder .toggle-btn{font-family:var(--sans);font-size:12.5px}
+#simhouder .toggle-btn.active{background:var(--nacht2);border-color:var(--nacht2);color:#fff}
+#simhouder .optie-row{margin:0;font-size:13px}
+#simhouder .optie-row:empty{display:none}
+#simhouder #arena{background:#fff}
+#simhouder .info-chip{padding:6px 10px}
+#simhouder .info-chip .val{font-size:14px}
+#simhouder .legend{margin-top:0}
+#simhouder .ratekop{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--goud);font-weight:700}
+#simhouder .ratekop .big{font-size:15px;letter-spacing:0;text-transform:none;color:var(--inkt);font-weight:600}
+#simhouder .ratekop .big span{font-family:var(--serif);font-size:22px}
+#simhouder .ratekop .kl{letter-spacing:0;text-transform:none;font-weight:400;text-align:right}
+#simhouder .rate-bar-track{height:12px;border-radius:6px;display:block}
+#simhouder .rate-bar-fill{height:100%;background:linear-gradient(90deg,#e2a84b,#c1652f);transition:width .15s ease-out}
+#simhouder .ctrl-head label{font-family:var(--sans);font-size:12px;font-weight:700}
+#simhouder .ctrl-head .readout{font-family:var(--mono);font-size:13px;color:var(--inkt)}
+#simhouder input[type=range]::-webkit-slider-thumb{background:var(--nacht2)}
+#simhouder input[type=range]::-moz-range-thumb{background:var(--nacht2)}
+#simhouder canvas{max-width:100%;height:auto}
+#simhouder #controls-wrap.locked::before{background:var(--vel)}
 
-  .btn{
-    background:var(--accent-dim); border:1px solid var(--accent); color:#fff3ea;
-    font-family:var(--mono); font-size:12.5px; padding:10px 18px; border-radius:7px;
-    cursor:pointer; transition:all .15s; width:100%;
-  }
-  .btn:hover:not(:disabled){background:var(--accent);}
-  .btn.ghost{background:transparent; border:1px solid var(--line); color:var(--text-dim);}
-  .btn.ghost:hover:not(:disabled){border-color:var(--accent-dim); color:var(--text);}
-  .btn:disabled{opacity:.4; cursor:not-allowed;}
-
-  footer.note{color:var(--text-dim); font-size:12px; text-align:center; margin-top:24px; line-height:1.6;}
-</style>
-<style id="huisstijl">
-:root{--hs-acc:#1F5FBF;--hs-acc-d:#174a96;--hs-soft:#E8F0FC;--hs-given:#F3F7FD;--hs-ok:#1A7F37;--hs-ok-soft:#E4F4E8;
---hs-err:#C62828;--hs-err-soft:#FDECEC;--hs-key:#FFF0A0;--hs-muted:#595959;--hs-line:#D5DCE8;--hs-bg:#F6F8FB;--hs-card:#fff;
---hs-text:#1d2330;--hs-font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-html,body{background:var(--hs-bg)!important;color:var(--hs-text)}
-body{font-family:var(--hs-font)!important}
-.hs-header{display:block!important;background:var(--hs-acc)!important;color:#fff;margin-bottom:18px;padding:0!important;border:none!important;border-radius:0!important}
-.hs-header .hs-wrap{max-width:var(--hs-max,1100px);margin:0 auto;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.hs-header h1{margin:0!important;padding:0!important;font-size:1.5rem!important;font-weight:650!important;color:#fff!important;text-align:left!important;letter-spacing:.2px;font-family:var(--hs-font)!important}
-.hs-header h1{flex:1 1 auto}
-.hs-header button{flex:0 0 auto;width:auto!important;margin:0!important;box-shadow:none!important;font-weight:500!important;font-family:var(--hs-font)!important;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px!important;border:1.5px solid #fff!important;background:transparent!important;color:#fff!important}
-.hs-header button:hover{background:rgba(255,255,255,.15)}
-body.hs-beamer>*:not(.hs-header):not(.hs-own):not(script):not(.hs-nozoom){zoom:1.3}
-.hs-own{background:var(--hs-acc)!important;color:#fff!important;border:none!important}
-.hs-own h1{color:#fff!important;font-family:var(--hs-font)!important}
-.hs-own .sub,.hs-own .subtitle{color:rgba(255,255,255,.85)!important}
-.hs-own>button:last-child{font:inherit;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px;border:1.5px solid #fff;background:transparent;color:#fff;margin-left:auto;flex:0 0 auto}
-.hs-own>button:last-child:hover{background:rgba(255,255,255,.15)}
-
-:root{--hs-max:1232px;--bg:#F6F8FB;--panel:#fff;--panel-2:#F3F7FD;--line:#D5DCE8;--text:#1d2330;--text-dim:#595959;--accent:#1F5FBF;--accent-dim:#174a96;--warn:#C62828;--good:#1A7F37;--mono:var(--hs-font);--sans:var(--hs-font)}
 </style>
 </head>
 <body>
 <div class="app">
+  <aside>
+    <h1>Botsende deeltjes</h1>
+    <div class="sub">3 vwo · reactiesnelheid en het botsende-deeltjesmodel</div>
+    <nav id="nav"></nav>
+    <div class="voet">
+      <button id="beamerknop">Beamerstand</button>
+      <button id="resetknop">Voortgang wissen</button>
+      <div class="klein">Een model: de deeltjes bewegen in twee dimensies en de getallen zijn niet die van één bestaande reactie.</div>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div id="parkeer" style="display:none">
+<div id="simhouder">
+  <div class="simkop"><b>Botsingsdoos</b><span id="simsub">A + B → AB</span></div>
 
-  <header class="top">
-    <div class="eyebrow">Reactiekinetiek · botsingstheorie</div>
-    <h1>Botsingssimulatie</h1>
-    <p class="sub">Verken hoe temperatuur, concentratie en een katalysator de reactiesnelheid bepalen.</p>
-  </header>
+  <div class="sh-deel" data-deel="modus">
+    <div class="mode-row">
+      <button class="mode-btn active" id="btn-explore">Verkennen</button>
+      <button class="mode-btn" id="btn-run">Laat de reactie verlopen</button>
+      <button class="mode-btn ghost" id="btn-reset-run" style="display:none;">Opnieuw</button>
+    </div>
+  </div>
+  <div class="optie-row">
+    <label class="sh-deel" data-deel="product"><input type="checkbox" id="chk-product"> toon het product AB</label>
+    <label class="sh-deel" data-deel="diagram"><input type="checkbox" id="chk-diagram"> toon het energiediagram</label>
+    <label class="sh-deel" data-deel="energie"><input type="checkbox" id="chk-energie"> toon de energieverdeling</label>
+  </div>
+  <p class="kl sh-deel" data-deel="modus" id="mode-sub" style="margin:0">De doos is een meetinstrument: botsingen tellen voor de reactiesnelheid, maar verbruiken niets.</p>
 
-  <div class="layout">
-    <div>
-      <div class="panel">
-        <div class="mode-row">
-          <button class="mode-btn active" id="btn-explore">Verkennen</button>
-          <button class="mode-btn" id="btn-run">Laat de reactie verlopen</button>
-          <button class="mode-btn ghost" id="btn-reset-run" style="display:none;">Reset</button>
-        </div>
-        <div class="optie-row">
-          <label><input type="checkbox" id="chk-product"> Toon het gevormde product AB (bij "Laat de reactie verlopen")</label>
-          <label><input type="checkbox" id="chk-energie"> Toon de energieverdeling van de botsingen</label>
-          <label><input type="checkbox" id="chk-diagram"> Toon het energiediagram</label>
-        </div>
-        <p class="sub" id="mode-sub">De doos is een meetinstrument: botsingen tellen voor de reactiesnelheid, maar verbruiken niets — pas de knoppen aan en zie het effect direct.</p>
-
-        <div class="arena-wrap">
-          <canvas id="arena" width="800" height="600"></canvas>
-          <div class="arena-overlay">
-            <div class="info-chip">
-              <div class="lbl" id="count-lbl">Deeltjes A / B</div>
-              <div class="val" id="count-val">— / —</div>
-              <div class="lbl" id="opp-lbl" style="margin-top:6px; display:none;">A aan het oppervlak</div>
-              <div class="val" id="opp-val" style="display:none;">—</div>
-              <div class="lbl" style="margin-top:6px;">Temperatuur</div>
-              <div class="val" id="temp-val">—</div>
-            </div>
-            <div class="info-chip" style="text-align:right;">
-              <div class="lbl">Effectieve botsingskans zonder katalysator</div>
-              <div class="val" id="bare-chance-val">—</div>
-              <div class="lbl" id="cat-chance-row" style="margin-top:6px; display:none;">Effectieve botsingskans met katalysator</div>
-              <div class="val" id="cat-chance-val" style="display:none;">—</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="legend">
-          <span><span class="dot" style="background:var(--accent);"></span> deeltje A</span>
-          <span><span class="dot" style="background:var(--accent2);"></span> deeltje B</span>
-          <span id="legend-product" style="display:none;"><span class="dot" style="background:#9a958a;"></span> product AB</span>
-          <span><span class="dot" style="background:var(--enzyme);"></span> katalysatordeeltje</span>
-        </div>
+  <div class="arena-wrap">
+    <canvas id="arena" width="800" height="600"></canvas>
+    <div class="arena-overlay">
+      <div class="info-chip">
+        <div class="lbl" id="count-lbl">Deeltjes A / B</div>
+        <div class="val" id="count-val">— / —</div>
+        <div class="lbl" id="opp-lbl" style="margin-top:6px; display:none;">A aan het oppervlak</div>
+        <div class="val" id="opp-val" style="display:none;">—</div>
+        <div class="lbl" style="margin-top:6px;">Temperatuur</div>
+        <div class="val" id="temp-val">—</div>
       </div>
-
-      <div class="panel" id="rate-panel-explore">
-        <h2>Reactiesnelheid (huidige condities)</h2>
-        <div class="rate-bar-wrap">
-          <div class="rate-bar-track"><div class="rate-bar-fill" id="rate-bar-fill" style="height:0%;"></div></div>
-          <div class="rate-bar-label">
-            <span class="big"><span id="rate-bar-val">0,0</span> effectieve botsingen per s</span>
-            <span style="color:var(--text-dim); font-size:12px;" id="rate-bar-sub"></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel" id="diagram-panel" style="display:none;">
-        <h2>Energiediagram</h2>
-        <canvas id="diagram-chart" width="760" height="230"></canvas>
-        <p class="sub" id="diagram-uitleg" style="margin-top:6px; font-size:12px;"></p>
-      </div>
-
-      <div class="panel" id="energie-panel" style="display:none;">
-        <h2>Energie van de botsingen tussen A en B <span style="color:var(--text-dim); font-weight:400;">(laatste seconden)</span></h2>
-        <canvas id="energie-chart" width="760" height="170"></canvas>
-        <p class="sub" style="margin-top:6px; font-size:12px;">Elke staaf telt botsingen met een bepaalde botsingsenergie. Alleen botsingen rechts van de streep E<sub>a</sub> zijn effectief. Met een katalysator verloopt de reactie via een andere route met een lagere activeringsenergie (stippellijn).</p>
-      </div>
-
-      <div class="panel" id="rate-panel-run" style="display:none;">
-        <h2>Aantal deeltjes tijdens het verloop</h2>
-        <canvas id="count-chart" width="760" height="170"></canvas>
-        <h2 style="margin-top:14px;">Reactiesnelheid tijdens het verloop</h2>
-        <canvas id="rate-chart" width="760" height="170"></canvas>
-        <h2 style="margin-top:14px;">Temperatuur tijdens het verloop</h2>
-        <canvas id="temp-chart" width="760" height="150"></canvas>
-        <p class="sub" id="run-status" style="margin-top:8px;"></p>
-        <p class="sub" id="product-note" style="margin-top:6px; font-size:12px;"></p>
+      <div class="info-chip" style="text-align:right;">
+        <div class="lbl">Effectieve botsingen</div>
+        <div class="val" id="bare-chance-val">—</div>
+        <div class="lbl" id="cat-chance-row" style="margin-top:6px; display:none;">met katalysator</div>
+        <div class="val" id="cat-chance-val" style="display:none;">—</div>
       </div>
     </div>
+  </div>
+  <div class="legend">
+    <span><span class="dot" style="background:#c1652f;"></span> deeltje A</span>
+    <span><span class="dot" style="background:#2f8a78;"></span> deeltje B</span>
+    <span id="legend-product" style="display:none;"><span class="dot" style="background:#9a958a;"></span> product AB</span>
+    <span class="sh-deel" data-deel="kat"><span class="dot" style="background:#8a5bd6;"></span> katalysatordeeltje</span>
+    <span>dieper van kleur = sneller</span>
+  </div>
 
-    <div id="controls-wrap">
-      <div class="panel">
-        <h2>Knoppen</h2>
-
-        <div class="ctrl-group">
-          <div class="ctrl-head"><label>Temperatuur</label><span class="readout"><span id="readout-T">325</span> K</span></div>
-          <input type="range" id="ctrl-T" min="250" max="500" value="325" step="1">
-        </div>
-
-        <div class="ctrl-group" id="grp-CA">
-          <div class="ctrl-head"><label>Concentratie A</label><span class="readout"><span id="readout-CA">0,40</span> mol/L</span></div>
-          <input type="range" id="ctrl-CA" min="0.05" max="1.0" value="0.40" step="0.01">
-        </div>
-
-        <div class="ctrl-group">
-          <div class="ctrl-head"><label>Concentratie B</label><span class="readout"><span id="readout-CB">0,40</span> mol/L</span></div>
-          <input type="range" id="ctrl-CB" min="0.05" max="1.0" value="0.40" step="0.01">
-        </div>
-
+  <div id="controls-wrap">
+    <div class="panel sh-deel" data-deel="knoppen" id="panel-knoppen">
+      <div class="ctrl-group sh-deel" data-deel="T">
+        <div class="ctrl-head"><label>Temperatuur</label><span class="readout"><span id="readout-T">325</span> K</span></div>
+        <input type="range" id="ctrl-T" min="250" max="500" value="325" step="1">
       </div>
-
-      <div class="panel">
-        <h2>Beginstof A</h2>
-        <div class="toggle-row">
-          <button class="toggle-btn active" data-vast="0">opgelost</button>
-          <button class="toggle-btn" data-vast="1">vast: 1 blok</button>
-          <button class="toggle-btn" data-vast="4">4 blokjes</button>
-          <button class="toggle-btn" data-vast="16">16 korrels</button>
-        </div>
-        <p class="sub" style="margin-top:8px; font-size:12px;">Bij een vaste stof is er steeds evenveel A (64 deeltjes), alleen anders verdeeld. Alleen deeltjes aan het oppervlak (donkere rand) kunnen door B geraakt worden. Fijner verdeeld = groter oppervlak.</p>
+      <div class="ctrl-group sh-deel" data-deel="CA" id="grp-CA">
+        <div class="ctrl-head"><label>Concentratie A</label><span class="readout"><span id="readout-CA">0,40</span> mol/L</span></div>
+        <input type="range" id="ctrl-CA" min="0.05" max="1.0" value="0.40" step="0.01">
       </div>
-
-      <div class="panel">
-        <h2>Reactie-energie</h2>
-        <div class="toggle-row">
-          <button class="toggle-btn" data-q="-1">endotherm</button>
-          <button class="toggle-btn active" data-q="0">geen</button>
-          <button class="toggle-btn" data-q="1">exotherm</button>
-        </div>
-        <div class="toggle-row" style="margin-top:6px;">
-          <button class="toggle-btn active" data-qs="1">klein effect</button>
-          <button class="toggle-btn" data-qs="2">groot effect</button>
-        </div>
-        <div class="toggle-row" style="margin-top:6px;">
-          <button class="toggle-btn active" data-iso="1">geïsoleerde doos</button>
-          <button class="toggle-btn" data-iso="0">in een waterbad</button>
-        </div>
-        <p class="sub" style="margin-top:8px; font-size:12px;">Te zien bij "Laat de reactie verlopen". Exotherm: bij elke effectieve botsing komt energie vrij, de deeltjes gaan sneller bewegen (de temperatuur stijgt). Endotherm: er wordt energie opgenomen, de temperatuur daalt. In een waterbad wordt de warmte afgevoerd of aangevoerd en blijft de temperatuur gelijk.</p>
+      <div class="ctrl-group sh-deel" data-deel="CB">
+        <div class="ctrl-head"><label>Concentratie B</label><span class="readout"><span id="readout-CB">0,40</span> mol/L</span></div>
+        <input type="range" id="ctrl-CB" min="0.05" max="1.0" value="0.40" step="0.01">
       </div>
-
-      <div class="panel" id="panel-enz">
-        <h2>Katalysator</h2>
-        <div class="toggle-row">
-          <button class="toggle-btn active" data-enz="0">geen</button>
-          <button class="toggle-btn" data-enz="1">weinig</button>
-          <button class="toggle-btn" data-enz="2">veel</button>
-        </div>
-        <p class="sub" style="margin-top:8px; font-size:12px;">Katalysatordeeltjes (paars) binden tijdelijk een A of B. Botst daar een partner tegenaan, dan verloopt de reactie via een andere route met een lagere activeringsenergie. De katalysator wordt niet verbruikt.</p>
-        <p class="sub" style="margin-top:6px; font-size:12px;">Deze katalysator is opgelost (homogeen), zoals een enzym. Een katalysator kan ook een vaste stof zijn waaraan de deeltjes aan het oppervlak reageren (heterogeen), zoals in een autokatalysator.</p>
-        <p class="sub kat-note" style="margin-top:6px; font-size:12px; display:none;">De katalysator werkt in deze simulatie alleen als A is opgelost.</p>
+    </div>
+    <div class="panel sh-deel" data-deel="vast">
+      <h2>Beginstof A</h2>
+      <div class="toggle-row">
+        <button class="toggle-btn active" data-vast="0">opgelost</button>
+        <button class="toggle-btn" data-vast="1">vast: 1 blok</button>
+        <button class="toggle-btn" data-vast="4">4 blokjes</button>
+        <button class="toggle-btn" data-vast="16">16 korrels</button>
       </div>
-
+      <p class="sub">Als vaste stof is er steeds evenveel A (64 deeltjes), alleen anders verdeeld.</p>
+    </div>
+    <div class="panel sh-deel" data-deel="q">
+      <h2>Reactie-energie</h2>
+      <div class="toggle-row">
+        <button class="toggle-btn" data-q="-1">endotherm</button>
+        <button class="toggle-btn active" data-q="0">geen</button>
+        <button class="toggle-btn" data-q="1">exotherm</button>
+      </div>
+      <div class="toggle-row sh-deel" data-deel="qrun">
+        <button class="toggle-btn active" data-qs="1">klein effect</button>
+        <button class="toggle-btn" data-qs="2">groot effect</button>
+      </div>
+      <div class="toggle-row sh-deel" data-deel="qrun">
+        <button class="toggle-btn active" data-iso="1">geïsoleerde doos</button>
+        <button class="toggle-btn" data-iso="0">in een waterbad</button>
+      </div>
+    </div>
+    <div class="panel sh-deel" data-deel="kat" id="panel-enz">
+      <h2>Katalysator</h2>
+      <div class="toggle-row">
+        <button class="toggle-btn active" data-enz="0">geen</button>
+        <button class="toggle-btn" data-enz="1">weinig</button>
+        <button class="toggle-btn" data-enz="2">veel</button>
+      </div>
+      <p class="sub">Katalysatordeeltjes (paars) binden tijdelijk een A of B. Botst daar een partner tegenaan, dan verloopt de reactie via een route met een lagere activeringsenergie.</p>
+      <p class="sub kat-note" style="display:none;">De katalysator werkt in deze simulatie alleen als A is opgelost.</p>
     </div>
   </div>
 
-  <footer class="note">
-    Stand "Verkennen": de doos meet de reactiesnelheid zonder iets te verbruiken (de concentraties blijven gelijk). Stand "Laat de reactie verlopen": een eenmalige doorloop waarbij A en B echt worden omgezet. Kleur van een deeltje: hoe dieper, hoe meer bewegingsenergie.
-  </footer>
+  <div class="panel" id="rate-panel-explore">
+    <div class="ratekop"><span>Reactiesnelheid nu</span><span class="big"><span id="rate-bar-val">0,0</span> effectieve botsingen per s</span></div>
+    <div class="rate-bar-track"><div class="rate-bar-fill" id="rate-bar-fill" style="width:0%;"></div></div>
+    <span id="rate-bar-sub" style="display:none"></span>
+  </div>
+
+  <div class="panel sh-deel" data-deel="meten" id="meetpaneel">
+    <div class="ratekop"><span>Meten</span><span class="kl">De snelheid schommelt. Een meting telt de effectieve botsingen 10 s lang.</span></div>
+    <div class="rij" style="margin:6px 0 8px"><button class="btn klein" id="meetknop">Meet 10 s</button><button class="btn g klein" id="beginknop">Beginstand</button><button class="btn g klein" id="wisknop">Wis metingen</button></div>
+    <div id="meetbalk" class="meetbalk"><i></i></div>
+    <div id="meetlog"></div>
+  </div>
+
+  <div class="panel" id="diagram-panel" style="display:none;">
+    <h2>Energiediagram</h2>
+    <canvas id="diagram-chart" width="760" height="230"></canvas>
+    <p class="sub" id="diagram-uitleg"></p>
+  </div>
+  <div class="panel" id="energie-panel" style="display:none;">
+    <h2>Energie van de botsingen tussen A en B</h2>
+    <canvas id="energie-chart" width="760" height="170"></canvas>
+    <p class="sub">Elke staaf telt botsingen met een bepaalde energie. Alleen botsingen rechts van de streep E<sub>a</sub> zijn effectief.</p>
+  </div>
+  <div class="panel" id="rate-panel-run" style="display:none;">
+    <h2>Aantal deeltjes tijdens het verloop</h2>
+    <canvas id="count-chart" width="760" height="170"></canvas>
+    <h2 style="margin-top:14px;">Reactiesnelheid tijdens het verloop</h2>
+    <canvas id="rate-chart" width="760" height="170"></canvas>
+    <h2 style="margin-top:14px;">Temperatuur tijdens het verloop</h2>
+    <canvas id="temp-chart" width="760" height="150"></canvas>
+    <p class="sub" id="run-status"></p>
+    <p class="sub" id="product-note"></p>
+  </div>
+</div>
 </div>
 
 <script>
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const kies = arr => arr[Math.floor(Math.random() * arr.length)];
+function schud(arr){ const a = arr.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const lerp = (a, b, t) => a + (b - a) * t;
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+function laad(){ try { return JSON.parse(localStorage.getItem('botsende-deeltjes-v1')) || {}; } catch (e){ return {}; } }
+function bewaar(o){ try { localStorage.setItem('botsende-deeltjes-v1', JSON.stringify(o)); } catch (e){} }
+const nl = (x, d = 2) => Number(x).toLocaleString('nl-NL', { maximumFractionDigits: d, minimumFractionDigits: d });
+const sig = (x, n = 3) => { if (!x) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return nl(x, d); };
 // ============================================================
 // CONFIG & CONSTANTS
 // ============================================================
@@ -945,7 +1122,7 @@ class Box{
   }
 
   onSuccessfulReaction(a,b,meta){
-    this.reactionLog.push(this.simTime);
+    this.reactionLog.push(this.simTime); this.nReacties = (this.nReacties||0) + 1;
     this.flashes.push({x:(a.x+b.x)/2, y:(a.y+b.y)/2, kind:'success', age:0});
     if(this.consumeOnReaction){
       a.alive = false; b.alive = false;
@@ -1289,7 +1466,7 @@ function updateExploreHud(dt){
 
   const maxBar = 40; // /s, scale the bar's full height represents -- tuned to the measured ceiling with both catalysts maxed
   const pct = Math.min(100, (displayRate/maxBar)*100);
-  ui.rateBarFill.style.height = pct+'%';
+  ui.rateBarFill.style.width = pct+'%';
   ui.rateBarVal.textContent = komma(displayRate, 1);
 
   updateSharedHud();
@@ -1562,16 +1739,16 @@ function tick(ts){
 
   if(appMode === 'run' && runBox){
     if(!runFinished){
-      runBox.step(dt);
+      runBox.step(dt); runBox.step(dt); runBox.step(dt); // doorloop drie keer zo snel als echt
       runRateHistory.push({t: runBox.simTime, rate: runBox.currentRate(), nA: runBox.countAlive('A'), nB: runBox.countAlive('B'), nP: runBox.productCount, T: runBox.T});
 
       const aLeft = runBox.countAlive('A'), bLeft = runBox.countAlive('B');
       if(aLeft <= RUN_DEPLETION_THRESHOLD){
-        runFinished = true; runFinishReason = `Klaar — reactant A is (bijna) op na ${komma(runBox.simTime,1)} s.`;
+        runFinished = true; runFinishReason = `Klaar: beginstof A is (bijna) op na ${komma(runBox.simTime,1)} s.`;
       } else if(bLeft <= RUN_DEPLETION_THRESHOLD){
-        runFinished = true; runFinishReason = `Klaar — reactant B is (bijna) op na ${komma(runBox.simTime,1)} s.`;
+        runFinished = true; runFinishReason = `Klaar: beginstof B is (bijna) op na ${komma(runBox.simTime,1)} s.`;
       } else if(runBox.simTime >= MAX_RUN_DURATION){
-        runFinished = true; runFinishReason = `Gestopt na ${MAX_RUN_DURATION}s — de reactie loopt nog door, maar erg langzaam.`;
+        runFinished = true; runFinishReason = `Gestopt na ${MAX_RUN_DURATION} s: de reactie loopt nog door, maar heel langzaam.`;
       }
     }
     draw();
@@ -1587,44 +1764,641 @@ function tick(ts){
 updateKnobReadouts();
 requestAnimationFrame(tick);
 
-</script>
 
-<script id="huisstijl-js">
-window.HS_CFG={};
-(function(){
-  var cfg=window.HS_CFG||{};
-  var b=document.createElement('button'); b.type='button'; b.textContent='Beamerstand'; b.title='Alles groter, voor op het digibord';
-  b.onclick=function(){document.body.classList.toggle('hs-beamer'); window.dispatchEvent(new Event('resize'));};
-  var hd;
-  if(cfg.own){ hd=document.querySelector(cfg.own); hd.classList.add('hs-own'); hd.appendChild(b); }
-  else {
-    var h=cfg.title?null:document.querySelector(cfg.sel||'h1');
-    hd=document.createElement('header'); hd.className='hs-header';
-    var w=document.createElement('div'); w.className='hs-wrap'; hd.appendChild(w);
-    var t=document.createElement('h1'); t.innerHTML=cfg.title||(h?h.innerHTML:document.title); w.appendChild(t);
-    w.appendChild(b); if(h) h.remove();
-    var cs=getComputedStyle(document.body);
-    var px=function(a,b){return '-'+(parseFloat(cs[a])+parseFloat(cs[b]))+'px';};
-    hd.style.margin=px('paddingTop','marginTop')+' '+px('paddingRight','marginRight')+' 18px '+px('paddingLeft','marginLeft');
-    document.body.insertBefore(hd, document.body.firstChild);
+/* =====================================================================
+   Algemene opbouw: zijbalk, werkplaats, voorbeeld, opdrachten in stappen
+   ===================================================================== */
+const WPS = [];
+const TEKENINGEN = {};
+const STAAT = { wp:0, tab:'uitleg', voortgang: laad(), niveau: '5V' };
+const PER_WP = {};             /* per werkplaats: { serie, idx, st:[{stap, goed:[], getoond, pogingen}] } */
+let SIM = null;
+
+function maakCanvas(host, w, h){
+  const c = document.createElement('canvas'), dpr = Math.max(1, window.devicePixelRatio || 1);
+  c.width = w * dpr; c.height = h * dpr; c.style.aspectRatio = w + ' / ' + h;
+  host.appendChild(c);
+  const ctx = c.getContext('2d'); ctx.scale(dpr, dpr); ctx.W = w; ctx.H = h; ctx.canvas_ = c;
+  return ctx;
+}
+
+function zichtbaar(w){ return !w.alleen6 || STAAT.niveau === '6V'; }
+function renderNav(){
+  $('#nav').innerHTML = WPS.map((w, i) => {
+    if (!zichtbaar(w)) return '';
+    const klaar = STAAT.voortgang[w.id] && STAAT.voortgang[w.id].klaar;
+    return `<a data-i="${i}" class="${i === STAAT.wp ? 'on' : ''} ${klaar ? 'klaar' : ''}"><i>${klaar ? '✓' : w.ster ? '★' : i + 1}</i><span>${w.titel}<small>${w.par}</small></span></a>`;
+  }).join('');
+  $$('#nav a').forEach(a => a.onclick = () => open(+a.dataset.i));
+}
+
+function open(i){
+  STAAT.wp = i; STAAT.tab = 'uitleg';
+  const w = WPS[i];
+  if (!PER_WP[w.id]) nieuweSerie(w);
+  parkeer();
+  $('#main').innerHTML = `<div class="wp"><section class="tekst" id="tekst"></section><section class="simkol" id="simkol"></section></div>`;
+  SIM = w.sim; SIM.init($('#simkol'));
+  renderTekst(); renderNav();
+  window.scrollTo(0, 0);
+}
+
+function nieuweSerie(w){
+  const serie = w.maakSerie();
+  PER_WP[w.id] = { serie, idx:0, serieNr: (PER_WP[w.id] ? PER_WP[w.id].serieNr + 1 : 0), st: serie.map(() => ({ stap:0, getoond:false, klaar:false, pogingen:{} })) };
+}
+
+function renderTekst(){
+  const w = WPS[STAAT.wp], p = PER_WP[w.id];
+  const nGoed = p.st.filter((s, k) => s.klaar && !s.getoond && !p.serie[k].ster).length, nTot = p.serie.filter(o => !o.ster).length;
+  let h = `<div class="kicker">${w.ster ? 'Werkplaats ★ · verdieping' : 'Werkplaats ' + (STAAT.wp + 1) + ' · ' + w.par}</div><h2>${w.titel}</h2>
+    <div class="tabs"><button data-t="uitleg" class="${STAAT.tab === 'uitleg' ? 'on' : ''}">Uitleg en voorbeeld</button>
+    <button data-t="opd" class="${STAAT.tab === 'opd' ? 'on' : ''}">Opdrachten<span class="tel">${nGoed}/${nTot}</span></button></div>`;
+  if (STAAT.tab === 'uitleg'){
+    h += w.uitleg() + renderVoorbeeld(w);
+  } else {
+    h += renderOpdracht(w, p);
   }
-  // zwevende elementen (tooltips) niet mee-zoomen in beamerstand
-  document.querySelectorAll('body *').forEach(function(e){ if(e!==hd && !hd.contains(e) && getComputedStyle(e).position==='fixed'){ e.classList.add('hs-nozoom'); document.body.appendChild(e); } });
-  // komma als decimaalteken in alles wat op het scherm komt
-  var dec=function(s){ return String(s).replace(/(\d)\.(\d)/g,'$1,$2'); };
-  var C=CanvasRenderingContext2D.prototype, ft=C.fillText, st=C.strokeText, mt=C.measureText;
-  C.fillText=function(t,x,y,m){ return m===undefined?ft.call(this,dec(t),x,y):ft.call(this,dec(t),x,y,m); };
-  C.strokeText=function(t,x,y,m){ return m===undefined?st.call(this,dec(t),x,y):st.call(this,dec(t),x,y,m); };
-  C.measureText=function(t){ return mt.call(this,dec(t)); };
-  var SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,INPUT:1};
-  var fix=function(root){ var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null), n;
-    while((n=w.nextNode())){ if(n.parentNode && SKIP[n.parentNode.nodeName]) continue; var v=n.nodeValue, d=dec(v); if(d!==v) n.nodeValue=d; } };
-  fix(document.body);
-  new MutationObserver(function(ms){ ms.forEach(function(m){ if(m.type==='characterData'){ if(!SKIP[m.target.parentNode&&m.target.parentNode.nodeName]){ var d=dec(m.target.nodeValue); if(d!==m.target.nodeValue) m.target.nodeValue=d; } } else m.addedNodes.forEach(function(a){ if(a.nodeType===3){ if(a.parentNode&&!SKIP[a.parentNode.nodeName]){ var d=dec(a.nodeValue); if(d!==a.nodeValue) a.nodeValue=d; } } else if(a.nodeType===1 && !SKIP[a.nodeName]) fix(a); }); }); })
-    .observe(document.body,{childList:true,subtree:true,characterData:true});
-  // invoer met komma accepteren
-  var pf=window.parseFloat; window.parseFloat=function(x){ return pf(typeof x==='string'?x.replace(',','.'):x); };
-})();
+  $('#tekst').innerHTML = h;
+  $$('#tekst .tabs button').forEach(b => b.onclick = () => { STAAT.tab = b.dataset.t; renderTekst(); if (STAAT.tab === 'opd') zetOpdrachtInSim(); else SIM.opdracht && SIM.opdracht(null); });
+  if (STAAT.tab === 'uitleg') koppelVoorbeeld(w); else koppelOpdracht(w, p);
+}
+
+/* ---------- uitgewerkt voorbeeld, stap voor stap ---------- */
+function renderVoorbeeld(w){
+  const vb = w.voorbeeld; if (!vb) return '';
+  const n = w._vbStap || 0;
+  let h = `<div class="vb"><div class="vbkop">Voorbeeld</div><div class="vbvraag">${vb.vraag}</div>`;
+  for (let k = 0; k < n; k++) h += `<div class="vbstap"><span class="n">${k + 1}</span><div class="b">${vb.stappen[k]}</div></div>`;
+  h += n < vb.stappen.length ? `<div class="verder"><button class="btn g klein" id="vbverder">${n ? 'Volgende stap' : 'Toon de uitwerking'} ▸</button></div>`
+                             : `<div class="verder"><button class="btn klein" id="naaropd">Naar de opdrachten ▸</button></div>`;
+  return h + '</div>';
+}
+function koppelVoorbeeld(w){
+  const b = $('#vbverder'); if (b) b.onclick = () => { w._vbStap = (w._vbStap || 0) + 1; renderTekst(); w.voorbeeld.bijStap && w.voorbeeld.bijStap(w._vbStap); };
+  const o = $('#naaropd'); if (o) o.onclick = () => { STAAT.tab = 'opd'; renderTekst(); zetOpdrachtInSim(); window.scrollTo(0, 0); };
+}
+
+/* ---------- opdrachten ---------- */
+function renderOpdracht(w, p){
+  const o = p.serie[p.idx], s = p.st[p.idx];
+  const nTot = p.serie.filter(x => !x.ster).length;
+  let h = '';
+  if (STAAT.voortgang[w.id] && STAAT.voortgang[w.id].klaar && p.st.every((x, k) => p.serie[k].ster || (x.klaar && !x.getoond)))
+    h += `<div class="klaarbanner"><b>Werkplaats afgerond.</b> Probeer ook de ★-opdrachten, of oefen met een nieuwe serie.</div>`;
+  h += `<div class="oknop">` + p.serie.map((x, k) => {
+    const st = p.st[k];
+    return `<span class="dot ${k === p.idx ? 'on' : ''} ${st.klaar && !st.getoond ? 'goed' : ''} ${x.ster ? 'ster' : ''}" data-k="${k}" title="${x.titel}">${x.ster ? '★' : k + 1}</span>`;
+  }).join('') + `<span class="rechts"><button class="btn g klein" id="nieuweserie">Nieuwe serie</button></span></div>`;
+  h += `<div class="opdkop">${o.ster ? '<span class="st">★ </span>' : ''}Opdracht ${o.ster ? '★' : p.idx + 1}${o.ster ? '' : ' van ' + nTot} · ${o.titel}</div>`;
+  if (o.vraag) h += `<div class="opdvraag">${o.vraag}</div>`;
+  o.stappen.forEach((st, k) => {
+    const dicht = k > s.stap, goed = k < s.stap || s.klaar;
+    h += `<div class="stap ${dicht ? 'dicht' : ''} ${goed ? 'goed' : ''}" data-k="${k}">${o.stappen.length > 1 ? `<span class="n">${goed ? '✓' : k + 1}</span>` : ''}<div class="inh">
+      <div class="vr">${st.vr}</div>${goed ? `<div class="antw">${st.antwoord()}</div>` : `<div class="inv">${invoerHTML(st, k)}</div>`}
+      <div class="fb" id="fb${k}"></div></div></div>`;
+  });
+  if (s.klaar){
+    const volgende = p.idx < p.serie.length - 1;
+    h += `<div class="rij" style="margin-top:6px">${volgende ? `<button class="btn" id="volgende">Volgende opdracht ▸</button>` : ''}${o.naKlaar ? `<span class="waarneming">${o.naKlaar()}</span>` : ''}</div>`;
+  }
+  if (o.stappen.some(x => x.type === 'teken')) h += `<div class="typtip">${TEKENTIP}</div>`;
+  else if (o.stappen.some(x => x.type === 'getal')) h += `<div class="typtip">${GETALTIP}</div>`;
+  return h;
+}
+const TEKENTIP = 'Tekenen: kies een atoomsoort en klik op het raster. Sleep vanaf een atoom om een binding met een nieuw of bestaand atoom te maken. Klik op een binding voor een dubbele binding. <b>+H aanvullen</b> zet ontbrekende H-atomen, maar je mag ze ook zelf zetten. <b>~</b> is een open binding: de keten gaat verder.';
+const GETALTIP = 'Typ een getal met een komma, bijvoorbeeld <code>2,4</code> of <code>35</code>.';
+const TYPTIP = 'Zo typ je (voorbeelden met titaan en chromaat): <code>Ti2(CrO4)3</code> · ion <code>Ti3+</code> of <code>CrO4 2-</code> · pijl <code>-></code> · toestand <code>(s)</code> <code>(aq)</code> <code>(l)</code> · coëfficiënt ervoor: <code>3 CrO4 2-(aq)</code>.';
+
+function invoerHTML(st, k){
+  const knoppen = `<button class="btn" data-ctl="${k}">Controleer</button><button class="btn g" data-hint="${k}">Hint</button><button class="btn g" data-toon="${k}" style="display:none">Toon antwoord</button>`;
+  if (st.type === 'sim') return `<div class="rij">${knoppen}</div>`;
+  if (st.type === 'tekst') return `<div class="rij"><input class="in" id="in${k}" autocomplete="off" spellcheck="false" placeholder="${st.ph || ''}">${knoppen}</div><div class="voorbeeldweergave" id="vw${k}"></div>`;
+  if (st.type === 'chips') return `<div class="chips" id="ch${k}">${st.opties.map((x, j) => `<span class="chip" data-j="${j}">${x.html}</span>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'keuze') return `<div class="opties" id="op${k}">${st.opties.map((x, j) => `<button class="optie" data-j="${j}">${x.html}</button>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'teken') return `<div id="tv${k}"></div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'getal') return `<div class="rij"><input class="in getal" id="in${k}" autocomplete="off" spellcheck="false" placeholder="${st.ph || 'antwoord'}"><span class="eenheid">${st.eenheid || ''}</span></div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'selects') return `<div class="rij">${st.selects.map((s, j) => `<label style="font-size:14px">${s.lab} <select class="sel" id="se${k}_${j}"><option value="">kies…</option>${s.opties.map(x => `<option value="${x.v}">${x.t}</option>`).join('')}</select></label>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  return '';
+}
+
+function koppelOpdracht(w, p){
+  const o = p.serie[p.idx], s = p.st[p.idx];
+  $$('.oknop .dot').forEach(d => d.onclick = () => { p.idx = +d.dataset.k; renderTekst(); zetOpdrachtInSim(); });
+  $('#nieuweserie').onclick = () => { nieuweSerie(w); renderTekst(); zetOpdrachtInSim(); };
+  const v = $('#volgende'); if (v) v.onclick = () => { p.idx++; renderTekst(); zetOpdrachtInSim(); };
+  o.stappen.forEach((st, k) => {
+    if (k !== s.stap || s.klaar) return;
+    const inp = $('#in' + k);
+    if (st.type === 'teken'){
+      const sleutel = w.id + '|' + p.idx + '|' + k + '|' + p.serieNr;
+      const tv = new Tekenveld($('#tv' + k), { breedte: st.breedte || 32, hoogte: st.hoogte || 13 });
+      if (TEKENINGEN[sleutel]) tv.zet(TEKENINGEN[sleutel]);
+      const oud = tv.teken.bind(tv); tv.teken = () => { oud(); TEKENINGEN[sleutel] = tv.g; };
+      tv.melding = m => { const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = m; };
+      st._tv = tv;
+    }
+    if (inp && st.type === 'getal'){ inp.onkeydown = e => { if (e.key === 'Enter') controleer(w, p, k); }; setTimeout(() => inp.focus({ preventScroll:true }), 30); }
+    else if (inp){
+      inp.onkeydown = e => { if (e.key === 'Enter') controleer(w, p, k); };
+      setTimeout(() => inp.focus({ preventScroll:true }), 30);
+    }
+    $$(`#ch${k} .chip`).forEach(c => c.onclick = () => c.classList.toggle('aan'));
+    $$(`#op${k} .optie`).forEach(c => c.onclick = () => {
+      if (!st.meer) $$(`#op${k} .optie`).forEach(x => x !== c && x.classList.remove('aan'));
+      c.classList.toggle('aan');
+    });
+    $(`[data-ctl="${k}"]`).onclick = () => controleer(w, p, k);
+    $(`[data-hint="${k}"]`).onclick = () => { const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = st.hint; };
+    $(`[data-toon="${k}"]`).onclick = () => {
+      s.getoond = true; const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = 'Antwoord: ' + st.antwoord();
+      setTimeout(() => stapGoed(w, p, k), 1400);
+    };
+    if ((s.pogingen[k] || 0) >= 2) $(`[data-toon="${k}"]`).style.display = '';
+  });
+}
+function waardeVan(st, k){
+  if (st.type === 'tekst') return $('#in' + k).value;
+  if (st.type === 'chips') return $$(`#ch${k} .chip.aan`).map(c => +c.dataset.j);
+  if (st.type === 'keuze') return $$(`#op${k} .optie.aan`).map(c => +c.dataset.j);
+  if (st.type === 'selects') return st.selects.map((x, j) => $(`#se${k}_${j}`).value);
+  if (st.type === 'teken') return st._tv;
+  if (st.type === 'getal') return $('#in' + k).value;
+}
+function controleer(w, p, k){
+  const o = p.serie[p.idx], s = p.st[p.idx], st = o.stappen[k];
+  const r = st.check(waardeVan(st, k));
+  const fb = $('#fb' + k);
+  if (r.ok){ fb.className = 'fb toon goed'; fb.innerHTML = r.msg || 'Goed!'; setTimeout(() => stapGoed(w, p, k), 650); }
+  else {
+    s.pogingen[k] = (s.pogingen[k] || 0) + 1;
+    fb.className = 'fb toon fout'; fb.innerHTML = r.msg;
+    if (s.pogingen[k] >= 2) $(`[data-toon="${k}"]`).style.display = '';
+  }
+}
+function stapGoed(w, p, k){
+  const o = p.serie[p.idx], s = p.st[p.idx];
+  if (s.stap !== k) return;
+  s.stap = k + 1;
+  if (s.stap >= o.stappen.length) s.klaar = true;
+  SIM.stapGoed && SIM.stapGoed(o, k);
+  if (s.klaar){
+    const nietSter = p.serie.map((x, j) => [x, p.st[j]]).filter(([x]) => !x.ster);
+    if (nietSter.every(([, y]) => y.klaar && !y.getoond)){
+      STAAT.voortgang[w.id] = { klaar:true }; bewaar(STAAT.voortgang); renderNav();
+    }
+  }
+  renderTekst();
+}
+function zetOpdrachtInSim(){
+  const w = WPS[STAAT.wp], p = PER_WP[w.id];
+  SIM.opdracht && SIM.opdracht(STAAT.tab === 'opd' ? p.serie[p.idx] : null, STAAT.tab === 'opd' ? p.st[p.idx] : null);
+}
+
+/* lus */
+let tVorig = 0;
+function lus(t){
+  const dt = Math.min(0.05, (t - tVorig) / 1000 || 0); tVorig = t;
+  if (SIM){ SIM.update && SIM.update(dt); SIM.draw && SIM.draw(); }
+  requestAnimationFrame(lus);
+}
+
+
+function keuzeStap(vr, opties, o = {}){
+  const opts = o.vast ? opties : schud(opties);
+  return { type:'keuze', meer: !!o.meer, vr, opties: opts, hint: o.hint || '',
+    check: v => {
+      if (!v.length) return { ok:false, msg:'Kies een antwoord.' };
+      const sel = v.map(j => opts[j]), goed = opts.filter(x => x.g);
+      if (sel.length === goed.length && sel.every(x => x.g)) return { ok:true, msg: o.goedMsg };
+      const fb = sel.find(x => !x.g && x.fb); if (fb) return { ok:false, msg: fb.fb };
+      if (o.meer && sel.every(x => x.g)) return { ok:false, msg:'Je mist er nog een.' };
+      return { ok:false, msg: o.fout || 'Nog niet goed.' };
+    },
+    antwoord: () => opts.filter(x => x.g).map(x => x.html).join('<br>'), goed: () => opts.map((x, j) => x.g ? j : -1).filter(j => j >= 0) };
+}
+function leesGetal(s){
+  let t = String(s).trim().replace(/\s+/g, '').replace(/[×x*·]10\^?/i, 'e').replace(/10\^/, 'e');
+  t = t.replace(',', '.');
+  return /^-?\d*\.?\d+(e-?\d+)?$/i.test(t) ? parseFloat(t) : NaN;
+}
+function getalStap(vr, waarde, eenheid, uitleg, hint, tol){
+  return { type:'getal', vr, eenheid, hint, ph:'getal',
+    check: v => { const x = leesGetal(v); if (isNaN(x)) return { ok:false, msg:'Typ een getal, bijvoorbeeld <code>2,4</code>.' };
+      if (Math.abs(x - waarde) <= Math.abs(waarde) * tol) return { ok:true, msg:'Goed! ' + uitleg };
+      return { ok:false, msg:'Nog niet goed. ' + hint }; },
+    antwoord: () => uitleg, goed: () => String(+waarde.toPrecision(3)).replace('.', ',') };
+}
+
+/* =====================================================================
+   Koppeling met de botsingsdoos
+   ===================================================================== */
+const BEGIN = { T: 325, CA: 0.40, CB: 0.40, vast: 0, kat: 0, q: 0 };
+const METINGEN = {};                 /* per werkplaats: [{T, CA, CB, vast, kat, v}] */
+let meetBezig = null;
+
+function parkeer(){ const h = $('#simhouder'); if (h) $('#parkeer').appendChild(h); }
+function simStand(){ return { T: Math.round(box.T), CA: +box.CA.toFixed(2), CB: +box.CB.toFixed(2), vast: box.vast || 0, kat: box.enzymeLevel || 0, q: box.qTeken || 0 }; }
+function zetSchuif(id, v){ const s = $('#' + id); s.value = v; s.dispatchEvent(new Event('input')); }
+function klik(sel){ const b = $(sel); if (b && !b.classList.contains('active')) b.click(); }
+function beginstand(){
+  if (appMode === 'run') resetRun();
+  klik('[data-vast="0"]'); klik('[data-enz="0"]'); klik('[data-q="0"]');
+  zetSchuif('ctrl-T', BEGIN.T); zetSchuif('ctrl-CA', BEGIN.CA); zetSchuif('ctrl-CB', BEGIN.CB);
+}
+const isBegin = (r, behalve) => ['T', 'CA', 'CB', 'vast', 'kat'].every(k => behalve.includes(k) || Math.abs(r[k] - BEGIN[k]) < (k === 'T' ? 3 : 0.015));
+const bijna = (a, b, tol) => Math.abs(a - b) <= tol;
+
+function meetlogHTML(){
+  const w = WPS[STAAT.wp], rijen = METINGEN[w.id] || [];
+  if (!rijen.length) return '<div class="kl">Nog geen metingen.</div>';
+  const kol = w.kolommen || ['T', 'CA', 'CB'];
+  const kop = { T: 'T (K)', CA: '[A] (mol/L)', CB: '[B] (mol/L)', vast: 'beginstof A', kat: 'katalysator' };
+  const waarde = (r, k) => k === 'vast' ? (r.vast ? (r.vast === 1 ? '1 blok' : r.vast === 4 ? '4 blokjes' : '16 korrels') : 'opgelost')
+    : k === 'kat' ? ['geen', 'weinig', 'veel'][r.kat] : k === 'T' ? r.T : nl(r[k], 2);
+  return `<table class="data"><tr><th>#</th>${kol.map(k => `<th>${kop[k]}</th>`).join('')}<th>snelheid (per s)</th></tr>` +
+    rijen.map((r, i) => `<tr><td>${i + 1}</td>${kol.map(k => `<td>${waarde(r, k)}</td>`).join('')}<td><b>${nl(r.v, 1)}</b></td></tr>`).join('') + '</table>';
+}
+function toonMeetlog(){ const m = $('#meetlog'); if (m) m.innerHTML = meetlogHTML(); }
+function startMeting(){
+  if (meetBezig || appMode === 'run') return;
+  meetBezig = { n0: box.nReacties || 0, t0: box.simTime, stand: simStand(), wp: WPS[STAAT.wp].id };
+  $('#meetknop').disabled = true;
+}
+function meetLus(){
+  if (meetBezig){
+    const dt = box.simTime - meetBezig.t0;
+    $('#meetbalk i').style.width = Math.min(100, dt / 10 * 100) + '%';
+    const nu = simStand();
+    if (['T', 'CA', 'CB', 'vast', 'kat'].some(k => nu[k] !== meetBezig.stand[k])){
+      meetBezig = null; $('#meetknop').disabled = false; $('#meetbalk i').style.width = '0%';
+      $('#meetlog').insertAdjacentHTML('afterbegin', '<div class="kl" style="color:#b4473a">Meting afgebroken: je veranderde een knop tijdens het meten.</div>');
+    } else if (dt >= 10){
+      const r = Object.assign({}, meetBezig.stand, { v: ((box.nReacties || 0) - meetBezig.n0) / dt });
+      (METINGEN[meetBezig.wp] = METINGEN[meetBezig.wp] || []).push(r);
+      meetBezig = null; $('#meetknop').disabled = false; $('#meetbalk i').style.width = '0%';
+      toonMeetlog();
+    }
+  }
+  requestAnimationFrame(meetLus);
+}
+requestAnimationFrame(meetLus);
+$('#meetknop').onclick = startMeting;
+$('#beginknop').onclick = beginstand;
+$('#wisknop').onclick = () => { METINGEN[WPS[STAAT.wp].id] = []; toonMeetlog(); };
+
+const BOTS = {
+  init(host){
+    const w = WPS[STAAT.wp];
+    host.appendChild($('#simhouder'));
+    if (BOTS._wp !== w.id){ BOTS._wp = w.id; meetBezig = null; $('#meetknop').disabled = false; beginstand(); }
+    $$('#simhouder .sh-deel').forEach(e => { e.style.display = w.delen.includes(e.dataset.deel) ? '' : 'none'; });
+    if (!w.delen.includes('diagram') && $('#chk-diagram').checked) $('#chk-diagram').click();
+    if (!w.delen.includes('energie') && $('#chk-energie').checked) $('#chk-energie').click();
+    if (!w.delen.includes('product') && $('#chk-product').checked) $('#chk-product').click();
+    $('#simsub').textContent = w.simsub || 'A + B → AB';
+    toonMeetlog();
+  },
+  opdracht(){}, update(){}, draw(){}
+};
+
+/* ---------- staptypen ---------- */
+function simStap(vr, test, hint, antwoord){
+  return { type:'sim', vr, hint, check: () => test() ? { ok:true } : { ok:false, msg: hint }, antwoord: () => antwoord };
+}
+const gemeten = (wp, f) => (METINGEN[wp] || []).some(f);
+const lijstGemeten = (wp, sleutel, waarden, tol) => waarden.every(x => gemeten(wp, r => bijna(r[sleutel], x, tol) && isBegin(r, [sleutel])));
+const leerdoelen = (...l) => `<div class="leerdoelen"><b>Leerdoelen</b><ul>${l.map(x => x.startsWith('★') ? `<li class="ster">${x.slice(1).trim()}</li>` : `<li>${x}</li>`).join('')}</ul></div>`;
+
+/* ================= 1. Effectieve botsingen ================= */
+WPS.push({
+  id:'botsing', titel:'Effectieve botsingen', par:'het botsende-deeltjesmodel', sim: BOTS,
+  delen: ['q', 'diagram', 'energie'],
+  uitleg: () => leerdoelen(
+      'Ik kan uitleggen dat een reactie alleen plaatsvindt bij een effectieve botsing.',
+      'Ik kan uitleggen wat de activeringsenergie is.',
+      'Ik kan in een energiediagram aflezen of een reactie exotherm of endotherm is.',
+      '★ Ik kan in een energieverdeling aanwijzen welke botsingen effectief zijn.') + `
+    <h3>Uitleg</h3>
+    <p>Een reactie vindt plaats als deeltjes van de beginstoffen tegen elkaar botsen. Niet elke botsing leidt tot een reactie. Alleen als de deeltjes hard genoeg botsen, worden de atomen anders gegroepeerd. Zo'n botsing heet een <b>effectieve botsing</b>.</p>
+    <p>De energie die een botsing minimaal nodig heeft om effectief te zijn, heet de <b>activeringsenergie</b> (E<sub>a</sub>). Hoe meer effectieve botsingen per seconde, hoe groter de <b>reactiesnelheid</b>.</p>
+    <h3>Het energiediagram</h3>
+    <ul><li>Links staat het energieniveau van de beginstoffen, rechts dat van de reactieproducten.</li>
+    <li>De top ertussen is de activeringsenergie: daar moeten de deeltjes overheen.</li>
+    <li><b>Exotherm</b>: de reactieproducten liggen lager. Er komt energie vrij.</li>
+    <li><b>Endotherm</b>: de reactieproducten liggen hoger. Er wordt energie opgenomen.</li></ul>
+    <div class="kader">In de botsingsdoos reageert A (oranje) met B (groen) tot AB. Hoe dieper de kleur van een deeltje, hoe sneller het beweegt.</div>`,
+  voorbeeld: {
+    vraag: 'Een lucifer reageert niet met de zuurstof uit de lucht zolang hij in het doosje ligt. Na het afstrijken brandt hij wel, en hij blijft branden. Leg dit uit met het botsende-deeltjesmodel.',
+    stappen: [
+      'In de luciferkop botsen deeltjes voortdurend tegen zuurstofmoleculen. Bij kamertemperatuur heeft bijna geen botsing genoeg energie: minder dan de activeringsenergie. Er zijn dus (bijna) geen effectieve botsingen.',
+      'Bij het afstrijken ontstaat door wrijving warmte. De deeltjes in de luciferkop gaan sneller bewegen en botsen harder. Nu zijn veel botsingen effectief: de verbranding begint.',
+      'Een verbranding is exotherm: er komt energie vrij. Die energie verwarmt de rest van de luciferkop, zodat ook daar de botsingen effectief zijn. De reactie houdt zichzelf in stand.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Effectief of niet?', vraag:'Volg de botsingsdoos in de beginstand. Rechtsboven staat welk deel van de botsingen tussen A en B effectief is.', stappen:[
+      keuzeStap('Welk deel van de botsingen tussen A en B is in de beginstand effectief?', [
+        { html:'bijna alle botsingen' }, { html:'ongeveer de helft' }, { html:'een klein deel: minder dan een op de vijf', g:true }, { html:'geen enkele botsing' }],
+        { hint:'Lees het percentage rechtsboven in de doos af.' }),
+      keuzeStap('Waarom leidt de rest van de botsingen niet tot een reactie?', [
+        { html:'De deeltjes botsen niet hard genoeg: de energie is kleiner dan de activeringsenergie.', g:true },
+        { html:'De deeltjes zijn te klein om te reageren.' },
+        { html:'Er botsen alleen A-deeltjes tegen A-deeltjes.', fb:'Het percentage gaat alleen over botsingen tussen A en B.' },
+        { html:'De reactie is endotherm.' }], { hint:'Denk aan de activeringsenergie.' })]},
+    { titel:'Het energiediagram', vraag:'Zet in de doos de reactie-energie op <b>exotherm</b> en zet <b>toon het energiediagram</b> aan.', stappen:[
+      simStap('Stel de doos in: exotherm, met het energiediagram zichtbaar.', () => box.qTeken === 1 && $('#chk-diagram').checked, 'Kies bij Reactie-energie <b>exotherm</b> en vink <b>toon het energiediagram</b> aan.', 'exotherm, energiediagram zichtbaar'),
+      keuzeStap('Welke uitspraken over een exotherme reactie zijn juist? Kies alle juiste.', [
+        { html:'De reactieproducten liggen lager in het diagram dan de beginstoffen.', g:true },
+        { html:'Er komt energie vrij.', g:true },
+        { html:'De reactieproducten hebben meer energie dan de beginstoffen.' },
+        { html:'Een exotherme reactie heeft geen activeringsenergie nodig.', fb:'Ook een exotherme reactie heeft een top in het diagram: die moet eerst genomen worden.' },
+        { html:'De top in het diagram ligt lager dan de beginstoffen.' }], { meer:true }),
+      keuzeStap('Zet de reactie-energie nu op <b>endotherm</b>. Waar ligt het niveau van AB?', [
+        { html:'hoger dan het niveau van A + B', g:true }, { html:'lager dan het niveau van A + B' }, { html:'even hoog als A + B' }, { html:'hoger dan de top' }])]},
+    { titel:'Een knal', vraag:'Een mengsel van waterstof en zuurstof blijft bij kamertemperatuur jarenlang bestaan. Een klein vonkje laat het hele mengsel in één keer reageren.', stappen:[
+      keuzeStap('Welke uitspraken verklaren dit? Kies alle juiste.', [
+        { html:'Bij kamertemperatuur zijn bijna geen botsingen tussen waterstof- en zuurstofmoleculen effectief.', g:true },
+        { html:'Het vonkje geeft een paar moleculen genoeg energie om de activeringsenergie te halen.', g:true },
+        { html:'De reactie is exotherm: de energie die vrijkomt, maakt de volgende botsingen effectief.', g:true },
+        { html:'Het vonkje verlaagt de activeringsenergie.' },
+        { html:'Bij kamertemperatuur botsen waterstof- en zuurstofmoleculen niet tegen elkaar.' }], { meer:true, hint:'Vergelijk met het voorbeeld van de lucifer.' })]},
+    { titel:'De energieverdeling', ster:true, vraag:'Zet de reactie-energie terug op <b>geen</b> en zet <b>toon de energieverdeling</b> aan.', stappen:[
+      simStap('Zet de energieverdeling aan.', () => $('#chk-energie').checked, 'Vink <b>toon de energieverdeling</b> aan.', 'energieverdeling zichtbaar'),
+      keuzeStap('Welke botsingen in de energieverdeling zijn effectief?', [
+        { html:'de botsingen rechts van de streep E<sub>a</sub>', g:true }, { html:'de botsingen links van de streep E<sub>a</sub>' }, { html:'de hoogste staaf' }, { html:'alle botsingen' }]),
+      keuzeStap('Waarom liggen de meeste botsingen links van de streep?', [
+        { html:'De meeste deeltjes bewegen te langzaam om de activeringsenergie te halen.', g:true },
+        { html:'De meeste deeltjes zijn A-deeltjes.' }, { html:'De streep ligt bij een te lage energie.' }, { html:'Er is te weinig B.' }])]}
+  ]
+});
+
+/* ================= 2. Concentratie ================= */
+WPS.push({
+  id:'conc', titel:'Concentratie', par:'meer deeltjes per liter', sim: BOTS,
+  delen: ['knoppen', 'CA', 'CB', 'meten'], kolommen: ['CA', 'CB'],
+  uitleg: () => leerdoelen(
+      'Ik kan meten hoe de reactiesnelheid afhangt van de concentratie, door één knop tegelijk te veranderen.',
+      'Ik kan met het botsende-deeltjesmodel uitleggen waarom een hogere concentratie een reactie versnelt.',
+      '★ Ik kan voorspellen wat er gebeurt als ik de concentraties van beide beginstoffen verhoog.') + `
+    <h3>Uitleg</h3>
+    <p>De <b>concentratie</b> geeft aan hoeveel van een opgeloste stof er in een liter oplossing zit, in g/L of in mol/L. Een hogere concentratie in g/L is ook een hogere concentratie in mol/L: er zitten meer deeltjes in elke liter.</p>
+    <ul><li>Meer deeltjes per liter: de deeltjes <b>botsen vaker</b>.</li>
+    <li>Het <b>deel</b> van de botsingen dat effectief is, verandert niet: de deeltjes bewegen even snel.</li>
+    <li>Vaker botsen betekent dus meer effectieve botsingen per seconde: de reactiesnelheid is groter.</li></ul>
+    <h3>Eerlijk meten</h3>
+    <p>Wil je weten wat de concentratie doet, dan verander je alleen de concentratie. Alle andere omstandigheden houd je gelijk. Met <b>Beginstand</b> zet je alle knoppen terug.</p>`,
+  voorbeeld: {
+    vraag: 'Een stukje marmer (kalksteen) reageert met azijnzuur. Daarbij ontstaat het gas koolstofdioxide. In schoonmaakazijn bruist het stukje marmer harder dan in keukenazijn. Beide zijn even warm en de stukjes marmer zijn even groot. Leg dit uit met het botsende-deeltjesmodel.',
+    stappen: [
+      'Alleen de concentratie verschilt: schoonmaakazijn bevat meer azijnzuur per liter dan keukenazijn. De temperatuur en de stukjes marmer zijn gelijk.',
+      'In schoonmaakazijn zitten meer azijnzuurmoleculen per liter. Ze botsen daardoor vaker tegen het marmer.',
+      'Het deel van de botsingen dat effectief is, is gelijk (zelfde temperatuur). Meer botsingen per seconde geeft dus meer effectieve botsingen per seconde: de reactie verloopt sneller.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Meten', vraag:'Druk op <b>Beginstand</b>. Meet de reactiesnelheid bij een concentratie van A van 0,20, 0,40 en 0,80 mol/L. Laat de concentratie van B op 0,40 mol/L staan.', stappen:[
+      simStap('Doe de drie metingen.', () => lijstGemeten('conc', 'CA', [0.2, 0.4, 0.8], 0.015), 'Meet bij [A] = 0,20, 0,40 en 0,80 mol/L, met [B] = 0,40 mol/L en de andere knoppen in de beginstand. Een meting met andere instellingen telt niet mee.', 'drie metingen gedaan'),
+      keuzeStap('Wat gebeurt er met de reactiesnelheid als je de concentratie van A twee keer zo groot maakt?', [
+        { html:'Die wordt ongeveer twee keer zo groot.', g:true }, { html:'Die blijft ongeveer gelijk.' }, { html:'Die wordt ongeveer vier keer zo groot.' }, { html:'Die wordt kleiner.' }],
+        { hint:'Vergelijk de meting bij 0,20 met die bij 0,40 mol/L, en die bij 0,40 met die bij 0,80 mol/L. De metingen schommelen een beetje.' })]},
+    { titel:'Verklaren', vraag:'Zet [A] op 0,20 mol/L en daarna op 0,80 mol/L. Volg rechtsboven welk deel van de botsingen effectief is.', stappen:[
+      keuzeStap('Wat gebeurt er met het deel van de botsingen dat effectief is?', [
+        { html:'Dat blijft ongeveer gelijk.', g:true }, { html:'Dat wordt groter.' }, { html:'Dat wordt kleiner.' }]),
+      keuzeStap('Welke uitspraken verklaren waarom de reactie bij een hogere concentratie van A sneller gaat? Kies alle juiste.', [
+        { html:'Er zitten meer A-deeltjes in elke liter.', g:true },
+        { html:'Een B-deeltje botst daardoor vaker tegen een A-deeltje.', g:true },
+        { html:'De deeltjes bewegen sneller.' },
+        { html:'Een groter deel van de botsingen is effectief.', fb:'Dat deel bleef in de vorige vraag juist gelijk.' },
+        { html:'De activeringsenergie wordt lager.' }], { meer:true })]},
+    { titel:'Een gloeiende houtspaander', vraag:'Een gloeiende houtspaander gloeit in lucht zachtjes na. In een fles met zuurstof vlamt hij fel op. Lucht bestaat voor ongeveer een vijfde uit zuurstof.', stappen:[
+      keuzeStap('Welke uitspraken verklaren dit? Kies alle juiste.', [
+        { html:'In de fles zitten meer zuurstofmoleculen per liter dan in lucht.', g:true },
+        { html:'De houtspaander wordt daardoor vaker geraakt door zuurstofmoleculen.', g:true },
+        { html:'Zuurstof in een fles is warmer dan lucht.' },
+        { html:'In de fles is een groter deel van de botsingen effectief.' },
+        { html:'In lucht is de activeringsenergie hoger.' }], { meer:true })]},
+    { titel:'Allebei meer', ster:true, vraag:'Wat gebeurt er als je de concentraties van A én B allebei twee keer zo groot maakt? Meet bij [A] = 0,80 en [B] = 0,80 mol/L.', stappen:[
+      simStap('Doe de meting.', () => gemeten('conc', r => bijna(r.CA, 0.8, 0.015) && bijna(r.CB, 0.8, 0.015) && isBegin(r, ['CA', 'CB'])), 'Meet bij [A] = 0,80 en [B] = 0,80 mol/L, de andere knoppen in de beginstand.', 'meting gedaan'),
+      keuzeStap('Hoeveel keer zo groot is de reactiesnelheid nu, vergeleken met de beginstand ([A] = [B] = 0,40 mol/L)?', [
+        { html:'ongeveer twee keer zo groot' }, { html:'ongeveer vier keer zo groot', g:true }, { html:'ongeveer acht keer zo groot' }, { html:'ongeveer even groot' }],
+        { hint:'Twee keer zoveel A-deeltjes geeft twee keer zoveel botsingen. En elk A-deeltje heeft ook twee keer zoveel B-deeltjes om tegenaan te botsen.' })]}
+  ]
+});
+
+/* ================= 3. Verdelingsgraad ================= */
+WPS.push({
+  id:'verdeling', titel:'Verdelingsgraad', par:'het oppervlak van een vaste stof', sim: BOTS,
+  delen: ['vast', 'meten'], kolommen: ['vast'], simsub: 'vaste stof A + opgeloste B',
+  uitleg: () => leerdoelen(
+      'Ik kan meten hoe de reactiesnelheid afhangt van de verdelingsgraad van een vaste stof.',
+      'Ik kan met het botsende-deeltjesmodel uitleggen waarom een fijner verdeelde vaste stof sneller reageert.',
+      '★ Ik kan dit toepassen in een nieuwe situatie.') + `
+    <h3>Uitleg</h3>
+    <p>Bij een vaste stof kunnen alleen de deeltjes aan het <b>oppervlak</b> geraakt worden. De deeltjes binnenin zitten opgesloten.</p>
+    <ul><li>Verdeel je dezelfde hoeveelheid vaste stof over kleinere stukjes, dan komen er meer deeltjes aan het oppervlak.</li>
+    <li>Er zijn dan meer botsingen per seconde, dus meer effectieve botsingen per seconde.</li>
+    <li>Hoe fijner een stof verdeeld is, hoe groter de <b>verdelingsgraad</b> en hoe groter de reactiesnelheid.</li></ul>
+    <div class="kader">In de doos zijn de deeltjes aan het oppervlak van de vaste stof donker omrand. Linksboven staat hoeveel A-deeltjes aan het oppervlak zitten.</div>`,
+  voorbeeld: {
+    vraag: 'Een ijzeren spijker gloeit in een vlam wat na. Een plukje staalwol (heel dunne ijzerdraadjes) verbrandt in dezelfde vlam met felle vonken. Leg dit uit met het botsende-deeltjesmodel.',
+    stappen: [
+      'Het is dezelfde stof (ijzer) in dezelfde vlam. Alleen de verdeling van het ijzer verschilt.',
+      'Bij de spijker zitten de meeste ijzeratomen binnenin. Bij de dunne draadjes van staalwol zitten veel meer ijzeratomen aan het oppervlak.',
+      'Zuurstofmoleculen botsen daardoor veel vaker tegen ijzeratomen: meer effectieve botsingen per seconde, dus een veel snellere reactie.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Meten', vraag:'Druk op <b>Beginstand</b>. Meet de reactiesnelheid met A als 1 blok, als 4 blokjes en als 16 korrels.', stappen:[
+      simStap('Doe de drie metingen.', () => [1, 4, 16].every(n => gemeten('verdeling', r => r.vast === n && isBegin(r, ['vast', 'CA']))), 'Meet bij <b>vast: 1 blok</b>, <b>4 blokjes</b> en <b>16 korrels</b>. Laat de andere knoppen in de beginstand.', 'drie metingen gedaan'),
+      keuzeStap('Wat is de volgorde van de reactiesnelheid, van groot naar klein?', [
+        { html:'16 korrels, 4 blokjes, 1 blok', g:true }, { html:'1 blok, 4 blokjes, 16 korrels' }, { html:'4 blokjes, 16 korrels, 1 blok' }, { html:'Ze zijn ongeveer even snel.' }])]},
+    { titel:'Verklaren', vraag:'Wissel tussen 1 blok en 16 korrels. Linksboven in de doos staat hoeveel A-deeltjes aan het oppervlak zitten.', stappen:[
+      keuzeStap('Hoeveel A-deeltjes zitten er in totaal in de doos, bij 1 blok en bij 16 korrels?', [
+        { html:'Bij allebei 64.', g:true }, { html:'Bij 16 korrels meer dan bij 1 blok.' }, { html:'Bij 1 blok meer dan bij 16 korrels.' }]),
+      keuzeStap('Welke uitspraken verklaren waarom 16 korrels sneller reageren dan 1 blok? Kies alle juiste.', [
+        { html:'Er zitten meer A-deeltjes aan het oppervlak.', g:true },
+        { html:'B-deeltjes botsen daardoor vaker tegen een A-deeltje.', g:true },
+        { html:'Er zijn meer A-deeltjes.' },
+        { html:'De deeltjes botsen harder.' },
+        { html:'De activeringsenergie is lager.' }], { meer:true })]},
+    { titel:'Een stofexplosie', vraag:'Een zak meel in een meelfabriek kan rustig in brand staan. Hangt het meel als een fijne stofwolk in de lucht, dan kan één vonk een explosie veroorzaken.', stappen:[
+      keuzeStap('Welke uitspraken verklaren dit? Kies alle juiste.', [
+        { html:'In de stofwolk zijn de meeldeeltjes heel fijn verdeeld.', g:true },
+        { html:'Bijna alle meeldeeltjes kunnen tegelijk door zuurstofmoleculen geraakt worden.', g:true },
+        { html:'De verbranding gaat daardoor zo snel dat de gassen in één klap uitzetten.', g:true },
+        { html:'Meel in de lucht heeft een lagere activeringsenergie.' },
+        { html:'In een zak zit geen zuurstof bij het meel.' }], { meer:true })]},
+    { titel:'Even groot oppervlak', ster:true, vraag:'Bij 16 korrels zitten alle 64 A-deeltjes aan het oppervlak.', stappen:[
+      keuzeStap('Wat verwacht je als je A nog fijner zou verdelen, bijvoorbeeld in 64 losse deeltjes?', [
+        { html:'Dan gaat het ongeveer even snel als bij 16 korrels: er kunnen niet meer deeltjes aan het oppervlak zitten dan er zijn.', g:true },
+        { html:'Dan gaat het vier keer zo snel als bij 16 korrels.' },
+        { html:'Dan reageert er niets meer.' },
+        { html:'Dan gaat het langzamer.' }])]}
+  ]
+});
+
+/* ================= 4. Temperatuur ================= */
+WPS.push({
+  id:'temp', titel:'Temperatuur', par:'sneller en harder botsen', sim: BOTS,
+  delen: ['knoppen', 'T', 'meten', 'energie'], kolommen: ['T'],
+  uitleg: () => leerdoelen(
+      'Ik kan meten hoe de reactiesnelheid afhangt van de temperatuur.',
+      'Ik kan de twee redenen noemen waarom een reactie bij een hogere temperatuur sneller gaat.',
+      '★ Ik kan in de energieverdeling aanwijzen wat er verandert bij een hogere temperatuur.') + `
+    <h3>Uitleg</h3>
+    <p>Bij een hogere temperatuur bewegen de deeltjes sneller. Dat heeft twee gevolgen:</p>
+    <ul><li>De deeltjes <b>botsen vaker</b>.</li>
+    <li>De deeltjes <b>botsen harder</b>: een groter deel van de botsingen heeft genoeg energie om de activeringsenergie te halen.</li></ul>
+    <p>Het tweede gevolg is het belangrijkste. Daardoor gaan de meeste reacties bij een hogere temperatuur veel sneller.</p>
+    <div class="kader">De temperatuur staat in de doos in kelvin (K). Van °C naar K tel je 273 op: 25 °C = 298 K.</div>`,
+  voorbeeld: {
+    vraag: 'Een bruistablet in warm water bruist veel harder dan dezelfde bruistablet in koud water. Leg dit uit met het botsende-deeltjesmodel.',
+    stappen: [
+      'Alleen de temperatuur verschilt. De tablet en de hoeveelheid water zijn gelijk.',
+      'In warm water bewegen de deeltjes sneller. Ze botsen vaker tegen elkaar.',
+      'Ze botsen ook harder: een groter deel van de botsingen haalt de activeringsenergie. Beide effecten geven meer effectieve botsingen per seconde: de tablet bruist harder.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Meten', vraag:'Druk op <b>Beginstand</b>. Meet de reactiesnelheid bij 275 K, 375 K en 475 K.', stappen:[
+      simStap('Doe de drie metingen.', () => lijstGemeten('temp', 'T', [275, 375, 475], 3), 'Meet bij 275, 375 en 475 K. Laat de andere knoppen in de beginstand.', 'drie metingen gedaan'),
+      keuzeStap('Wat zie je in je metingen?', [
+        { html:'Hoe hoger de temperatuur, hoe groter de reactiesnelheid.', g:true }, { html:'Hoe hoger de temperatuur, hoe kleiner de reactiesnelheid.' }, { html:'De temperatuur maakt niets uit.' }, { html:'Alleen boven 375 K gaat het sneller.' }])]},
+    { titel:'Twee redenen', vraag:'Zet de temperatuur op 275 K en daarna op 475 K. Volg rechtsboven welk deel van de botsingen effectief is.', stappen:[
+      keuzeStap('Wat gebeurt er met het deel van de botsingen dat effectief is, als de temperatuur stijgt?', [
+        { html:'Dat wordt groter.', g:true }, { html:'Dat blijft gelijk.' }, { html:'Dat wordt kleiner.' }],
+        { hint:'Vergelijk met de concentratie: daar bleef dit deel gelijk.' }),
+      keuzeStap('Welke uitspraken verklaren waarom de reactie bij een hogere temperatuur sneller gaat? Kies alle juiste.', [
+        { html:'De deeltjes botsen vaker.', g:true },
+        { html:'Een groter deel van de botsingen heeft genoeg energie om effectief te zijn.', g:true },
+        { html:'Er zitten meer deeltjes in elke liter.' },
+        { html:'De activeringsenergie wordt lager.', fb:'De activeringsenergie hoort bij de reactie en verandert niet door de temperatuur.' },
+        { html:'De deeltjes worden groter.' }], { meer:true })]},
+    { titel:'De koelkast', vraag:'Melk bederft doordat er reacties in plaatsvinden. Buiten de koelkast is melk na een dag bedorven, in de koelkast blijft hij een week goed.', stappen:[
+      keuzeStap('Welke uitspraken verklaren dit? Kies alle juiste.', [
+        { html:'In de koelkast bewegen de deeltjes langzamer.', g:true },
+        { html:'In de koelkast is een kleiner deel van de botsingen effectief.', g:true },
+        { html:'In de koelkast zitten er minder deeltjes in de melk.' },
+        { html:'In de koelkast is de activeringsenergie hoger.' },
+        { html:'In de koelkast vinden er helemaal geen reacties plaats.' }], { meer:true })]},
+    { titel:'De energieverdeling', ster:true, vraag:'Zet <b>toon de energieverdeling</b> aan. Vergelijk de verdeling bij 275 K met die bij 475 K.', stappen:[
+      simStap('Zet de energieverdeling aan en zet de temperatuur op 475 K.', () => $('#chk-energie').checked && Math.abs(box.T - 475) < 6, 'Vink <b>toon de energieverdeling</b> aan en zet de temperatuur op 475 K.', 'energieverdeling bij 475 K'),
+      keuzeStap('Wat verandert er in de energieverdeling bij een hogere temperatuur? Kies alle juiste.', [
+        { html:'Er liggen meer botsingen rechts van de streep E<sub>a</sub>.', g:true },
+        { html:'De botsingen schuiven naar een hogere energie.', g:true },
+        { html:'De streep E<sub>a</sub> schuift naar links.' },
+        { html:'Er zijn alleen nog botsingen rechts van de streep.' }], { meer:true })]}
+  ]
+});
+
+/* ================= 5. Katalysator ================= */
+WPS.push({
+  id:'kat', titel:'Katalysator', par:'een andere route', sim: BOTS,
+  delen: ['kat', 'meten', 'diagram'], kolommen: ['kat'],
+  uitleg: () => leerdoelen(
+      'Ik kan meten hoe een katalysator de reactiesnelheid verandert.',
+      'Ik kan uitleggen dat een katalysator de activeringsenergie verlaagt en niet wordt verbruikt.',
+      'Ik kan het effect van een katalysator in een energiediagram aanwijzen.',
+      '★ Ik kan het verschil tussen een homogene en een heterogene katalysator uitleggen.') + `
+    <h3>Uitleg</h3>
+    <p>Een <b>katalysator</b> is een stof die een reactie versnelt, zonder dat hij zelf wordt verbruikt. Na de reactie is er nog evenveel katalysator.</p>
+    <ul><li>Met een katalysator verloopt de reactie via een andere route, met een <b>lagere activeringsenergie</b>.</li>
+    <li>Een groter deel van de botsingen is daardoor effectief: de reactie gaat sneller.</li>
+    <li>In het energiediagram ligt de top lager. De niveaus van de beginstoffen en de reactieproducten veranderen niet.</li></ul>
+    <h3>Twee soorten</h3>
+    <p>Een <b>homogene</b> katalysator is opgelost, net als de beginstoffen. Een enzym in je lichaam is daar een voorbeeld van. Een <b>heterogene</b> katalysator is een vaste stof waaraan de deeltjes reageren, zoals het platina in een autokatalysator. In de doos is de katalysator opgelost.</p>`,
+  voorbeeld: {
+    vraag: 'Waterstofperoxide ontleedt heel langzaam in water en zuurstof. Doe je er een schepje bruinsteen bij, dan bruist het hevig. Na afloop is het bruinsteen nog even zwaar. Leg uit wat het bruinsteen doet.',
+    stappen: [
+      'Het bruinsteen versnelt de reactie en is na afloop nog even zwaar: het wordt niet verbruikt. Bruinsteen is een katalysator.',
+      'Met bruinsteen verloopt de ontleding via een andere route met een lagere activeringsenergie.',
+      'Een groter deel van de botsingen is daardoor effectief: meer effectieve botsingen per seconde, dus een veel snellere reactie. Bruinsteen is een vaste stof in een oplossing: een heterogene katalysator.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Meten', vraag:'Druk op <b>Beginstand</b>. Meet de reactiesnelheid zonder katalysator, met weinig en met veel katalysator.', stappen:[
+      simStap('Doe de drie metingen.', () => [0, 1, 2].every(n => gemeten('kat', r => r.kat === n && isBegin(r, ['kat']))), 'Meet bij katalysator <b>geen</b>, <b>weinig</b> en <b>veel</b>. Laat de andere knoppen in de beginstand.', 'drie metingen gedaan'),
+      keuzeStap('Wat zie je in je metingen?', [
+        { html:'Met katalysator is de reactiesnelheid groter dan zonder.', g:true }, { html:'Met katalysator is de reactiesnelheid kleiner dan zonder.' }, { html:'De katalysator maakt niets uit.' }, { html:'Alleen met veel katalysator gaat het sneller.' }])]},
+    { titel:'Het energiediagram', vraag:'Kies katalysator <b>weinig</b> en zet <b>toon het energiediagram</b> aan.', stappen:[
+      simStap('Stel de doos in.', () => box.enzymeLevel > 0 && $('#chk-diagram').checked, 'Kies een katalysator en vink <b>toon het energiediagram</b> aan.', 'katalysator en energiediagram'),
+      keuzeStap('Wat verandert er door de katalysator? Kies alle juiste.', [
+        { html:'De top in het diagram ligt lager.', g:true },
+        { html:'Een groter deel van de botsingen is effectief.', g:true },
+        { html:'Het niveau van de reactieproducten ligt lager.' },
+        { html:'De katalysator wordt bij de reactie verbruikt.' },
+        { html:'De deeltjes bewegen sneller.' }], { meer:true })]},
+    { titel:'De autokatalysator', vraag:'In de autokatalysator reageren giftige uitlaatgassen aan een vaste laag platina. Het platina zit als een heel dun laagje op een rooster met duizenden kleine kanaaltjes.', stappen:[
+      keuzeStap('Wat voor katalysator is het platina?', [
+        { html:'een heterogene katalysator', g:true }, { html:'een homogene katalysator' }, { html:'een beginstof' }, { html:'een reactieproduct' }]),
+      keuzeStap('Waarom zit het platina op een rooster met veel kleine kanaaltjes? Kies alle juiste.', [
+        { html:'Zo is het oppervlak van het platina heel groot.', g:true },
+        { html:'Veel gasmoleculen kunnen tegelijk tegen het platina botsen.', g:true },
+        { html:'Zo wordt het platina niet verbruikt.' },
+        { html:'Zo worden de uitlaatgassen warmer.' }], { meer:true, hint:'Denk aan de verdelingsgraad.' })]},
+    { titel:'Wat de katalysator niet doet', ster:true, vraag:'Zet in het energiediagram de katalysator aan en uit.', stappen:[
+      keuzeStap('Welke uitspraken zijn juist? Kies alle juiste.', [
+        { html:'Een katalysator verandert niet hoeveel energie er bij de reactie vrijkomt of nodig is.', g:true },
+        { html:'Met een katalysator heb je dezelfde reactieproducten.', g:true },
+        { html:'Een katalysator maakt een endotherme reactie exotherm.' },
+        { html:'Een katalysator geeft de deeltjes extra bewegingsenergie.' }], { meer:true })]}
+  ]
+});
+
+/* ================= ★ 6. Een reactie in de tijd ================= */
+WPS.push({
+  id:'verloop', titel:'Een reactie in de tijd', par:'verdieping', ster:true, sim: BOTS,
+  delen: ['modus', 'knoppen', 'CA', 'CB', 'q', 'qrun', 'product'],
+  uitleg: () => leerdoelen(
+      '★ Ik kan uitleggen waarom een reactie steeds langzamer gaat.',
+      '★ Ik kan uitleggen hoe de warmte van een exotherme reactie de reactiesnelheid verandert.',
+      '★ Ik kan voorspellen welke beginstof als eerste op is.') + `
+    <h3>Uitleg</h3>
+    <p>Met <b>Laat de reactie verlopen</b> worden A en B echt omgezet. Tijdens de reactie worden de beginstoffen verbruikt: hun concentraties dalen. Er zijn dan steeds minder botsingen per seconde en de reactiesnelheid daalt. De reactie stopt als een van de beginstoffen op is.</p>
+    <p>Bij een exotherme reactie komt warmte vrij. In een <b>geïsoleerde doos</b> blijft die warmte in het mengsel: de temperatuur stijgt, en dat versnelt de reactie. In een <b>waterbad</b> wordt de warmte afgevoerd en blijft de temperatuur gelijk.</p>`,
+  voorbeeld: {
+    vraag: 'Een lint magnesium in zoutzuur bruist in het begin het hardst. Daarna wordt het bruisen steeds minder, tot het stopt. Er blijft zoutzuur over. Leg dit uit.',
+    stappen: [
+      'Tijdens de reactie wordt het magnesium verbruikt: het lint wordt kleiner en dunner.',
+      'Er zitten steeds minder magnesiumatomen aan het oppervlak. Er zijn dus steeds minder effectieve botsingen per seconde: het bruisen neemt af.',
+      'Als het magnesium op is, stopt de reactie. Het zoutzuur was in overmaat: daarvan blijft er over.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Steeds langzamer', vraag:'Zet de doos in de beginstand (knoppen op 0,40 mol/L, reactie-energie <b>geen</b>) en klik op <b>Laat de reactie verlopen</b>. Wacht tot de reactie klaar is.', stappen:[
+      simStap('Laat de reactie helemaal verlopen.', () => appMode === 'run' && runFinished, 'Klik op <b>Laat de reactie verlopen</b> en wacht tot onder de grafieken staat dat de reactie klaar is.', 'reactie verlopen'),
+      keuzeStap('Hoe verandert de reactiesnelheid tijdens het verloop?', [
+        { html:'Die neemt steeds verder af.', g:true }, { html:'Die blijft gelijk tot alles op is.' }, { html:'Die neemt steeds verder toe.' }, { html:'Die neemt eerst af en daarna weer toe.' }]),
+      keuzeStap('Welke uitspraken verklaren dit? Kies alle juiste.', [
+        { html:'De concentraties van A en B dalen.', g:true },
+        { html:'Er zijn daardoor steeds minder botsingen per seconde tussen A en B.', g:true },
+        { html:'De deeltjes gaan steeds langzamer bewegen.' },
+        { html:'De activeringsenergie stijgt.' }], { meer:true })]},
+    { titel:'Warmte die blijft', vraag:'Klik op <b>Opnieuw</b>. Kies reactie-energie <b>exotherm</b>, <b>groot effect</b> en <b>geïsoleerde doos</b>. Laat de reactie verlopen.', stappen:[
+      simStap('Laat de exotherme reactie in de geïsoleerde doos verlopen.', () => appMode === 'run' && runFinished && runBox && runBox.qTeken === 1 && runBox.geisoleerd, 'Kies exotherm, groot effect en geïsoleerde doos, en laat de reactie verlopen tot hij klaar is.', 'exotherme reactie verlopen'),
+      keuzeStap('Wat gebeurt er met de temperatuur tijdens de reactie?', [
+        { html:'Die stijgt.', g:true }, { html:'Die blijft gelijk.' }, { html:'Die daalt.' }]),
+      keuzeStap('Waarom verloopt de reactie in de geïsoleerde doos sneller dan zonder reactie-energie? Kies alle juiste.', [
+        { html:'De vrijgekomen warmte maakt de deeltjes sneller.', g:true },
+        { html:'Een groter deel van de botsingen is daardoor effectief.', g:true },
+        { html:'Er zijn meer A- en B-deeltjes.' },
+        { html:'De warmte werkt als katalysator.' }], { meer:true })]},
+    { titel:'Wat is als eerste op?', vraag:'Klik op <b>Opnieuw</b>. Zet de reactie-energie op <b>geen</b>, [A] op 0,20 mol/L en [B] op 0,40 mol/L.', stappen:[
+      keuzeStap('Voorspel: welke beginstof is als eerste op?', [
+        { html:'A', g:true }, { html:'B' }, { html:'Ze zijn tegelijk op.' }],
+        { hint:'Bij de reactie A + B → AB reageert één deeltje A met één deeltje B.' }),
+      simStap('Controleer je voorspelling: laat de reactie verlopen.', () => appMode === 'run' && runFinished && runBox && runBox.CA < runBox.CB - 0.1, 'Zet [A] op 0,20 en [B] op 0,40 mol/L en laat de reactie verlopen tot hij klaar is.', 'reactie verlopen'),
+      keuzeStap('Welke beginstof is in overmaat?', [
+        { html:'B', g:true }, { html:'A' }, { html:'geen van beide' }])]}
+  ]
+});
+
+/* ---------- start ---------- */
+$('#beamerknop').onclick = () => document.body.classList.toggle('beamer');
+$('#resetknop').onclick = () => { if (confirm('Alle voortgang wissen?')){ STAAT.voortgang = {}; bewaar({}); for (const k in PER_WP) delete PER_WP[k]; open(STAAT.wp); } };
+open(0);
+requestAnimationFrame(lus);
 </script>
 </body>
 </html>
