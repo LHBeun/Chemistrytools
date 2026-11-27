@@ -1,455 +1,333 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Titratiecurve Generator & Quiz – VWO Chemie</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titratiecurven</title>
 <style>
-  :root {
-    --bg: #f0f4f8;
-    --card: #ffffff;
-    --text: #1e293b;
-    --muted: #64748b;
-    --accent: #3b82f6;
-    --accent2: #10b981;
-    --danger: #ef4444;
-    --warn: #f59e0b;
-    --border: #e2e8f0;
-    --radius: 12px;
-  }
-  * { box-sizing: border-box; }
-  body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    margin: 0;
-    padding: 24px;
-    line-height: 1.5;
-  }
-  h1 { text-align: center; margin-bottom: 4px; font-size: 1.7rem; }
-  .subtitle { text-align: center; color: var(--muted); margin-bottom: 24px; font-size: 0.95rem; }
+:root{
+  --papier:#f3efe6; --vel:#fffdf8; --rand:#e3dccb; --rand2:#d6cdb8;
+  --inkt:#2b2a27; --inkt2:#3e3b35; --grijs:#7a756b; --goud:#a0701f; --goud2:#e2a84b;
+  --nacht:#24323f; --nacht2:#33475a; --nachttekst:#cfd9e2;
+  --goed:#3f8f63; --goedbg:#e5f2ea; --fout:#b4473a; --foutbg:#f8e6e2; --hint:#fbf1da;
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --sans: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Consolas, 'Liberation Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--papier);color:var(--inkt);font-size:15px;line-height:1.6}
+sub,sup{font-size:.72em;line-height:0}
+button{font-family:inherit}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
 
-  .tabs {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 24px;
-  }
-  .tab {
-    padding: 10px 28px;
-    border-radius: var(--radius);
-    background: var(--card);
-    border: 1px solid var(--border);
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: all 0.2s;
-  }
-  .tab:hover { background: #f1f5f9; }
-  .tab.active {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-  }
+/* ---------- zijbalk ---------- */
+aside{background:var(--nacht);color:var(--nachttekst);padding:26px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+aside h1{font-family:var(--serif);font-size:23px;color:#fff;font-weight:600;line-height:1.2}
+aside .sub{font-size:12.5px;color:#8aa0b3;margin:4px 0 26px}
+aside nav a{display:flex;gap:12px;align-items:center;padding:10px 10px;border-radius:9px;font-size:14.5px;margin-bottom:4px;color:#b9c7d3;cursor:pointer;user-select:none;line-height:1.3}
+aside nav a:hover{background:#2c3d4d}
+aside nav a i{font-style:normal;flex:none;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #5d7387;font-size:12.5px;font-weight:700}
+aside nav a.on{background:var(--nacht2);color:#fff}
+aside nav a.on i{background:var(--goud2);border-color:var(--goud2);color:var(--nacht)}
+aside nav a.klaar i{background:#5aa37c;border-color:#5aa37c;color:#fff}
+aside nav a small{display:block;font-size:11.5px;color:#8aa0b3}
+aside .voet{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+aside .voet button{background:transparent;border:1px solid #4b6074;color:#cfd9e2;border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer;text-align:left}
+aside .voet button:hover{background:#2c3d4d}
+aside .voet .klein{font-size:11.5px;color:#6f859a}
 
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
+/* ---------- werkplaats ---------- */
+.wp{display:grid;grid-template-columns:minmax(380px,1fr) minmax(540px,640px);min-height:100vh}
+.tekst{padding:34px 38px 60px;max-width:760px}
+.kicker{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--goud);font-weight:700}
+.tekst h2{font-family:var(--serif);font-size:31px;margin:3px 0 14px;font-weight:600;line-height:1.2}
+.tekst h3{font-family:var(--serif);font-size:19px;margin:22px 0 6px;font-weight:600}
+.tekst p{margin-bottom:10px;color:var(--inkt2)}
+.tekst ul{margin:0 0 10px 20px;color:var(--inkt2)}
+.tekst li{margin-bottom:3px}
+.kader{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--goud2);border-radius:8px;padding:10px 14px;margin:10px 0 12px;color:var(--inkt2)}
+.kader.binas{border-left-color:#5d7387}
+.f{white-space:nowrap}
+.tabs{display:flex;gap:4px;margin:20px 0 14px;border-bottom:1px solid var(--rand2)}
+.tabs button{background:none;border:0;padding:9px 14px;font-size:14px;font-weight:600;color:var(--grijs);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--inkt);border-bottom-color:var(--goud2)}
+.tabs button .tel{font-weight:500;font-size:12px;color:var(--grijs);margin-left:4px}
 
-  .sim-container {
-    max-width: 1100px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: 20px;
-  }
-  @media (max-width: 860px) {
-    .sim-container { grid-template-columns: 1fr; }
-  }
+/* voorbeeld */
+.vb{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:16px 18px;margin:4px 0 14px}
+.vb .vbkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--goud);margin-bottom:4px}
+.vb .vbvraag{font-weight:600;margin-bottom:8px}
+.vbstap{display:flex;gap:12px;padding:8px 0;border-top:1px dashed var(--rand2)}
+.vbstap .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
+.vbstap .b{color:var(--inkt2)}
+.vb .verder{margin-top:8px}
 
-  .quiz-container {
-    max-width: 900px;
-    margin: 0 auto;
-  }
+/* opdrachten */
+.oknop{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.oknop .dot{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--rand2);background:var(--vel);display:grid;place-items:center;font-size:12.5px;font-weight:700;color:var(--grijs);cursor:pointer}
+.oknop .dot.on{border-color:var(--inkt);color:var(--inkt);box-shadow:0 0 0 2px var(--inkt) inset}
+.oknop .dot.goed{background:var(--goed);border-color:var(--goed);color:#fff}
+.oknop .dot.ster{border-style:dashed}
+.oknop .rechts{margin-left:auto;font-size:13px;color:var(--grijs)}
+.opdkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--grijs);margin-bottom:4px}
+.opdkop .st{color:var(--goud)}
+.opdvraag{font-size:16px;margin-bottom:12px;color:var(--inkt)}
+.stap{display:flex;gap:12px;padding:13px 15px;background:var(--vel);border:1px solid var(--rand);border-radius:11px;margin-bottom:10px}
+.stap>.n{flex:none;width:25px;height:25px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12.5px;font-weight:700;margin-top:1px}
+.stap.dicht{opacity:.42;pointer-events:none}
+.stap.dicht .inv{display:none}
+.stap.goed{border-color:#bcdcc8;background:#fbfefc}
+.stap.goed>.n{background:var(--goed)}
+.stap .inh{flex:1;min-width:0}
+.stap .vr{margin-bottom:8px}
+.rij{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input.in{font-family:var(--mono);font-size:15px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;background:#fff;min-width:0;flex:1 1 100%}
+input.in:focus{outline:2px solid var(--goud2);outline-offset:0;border-color:var(--goud2)}
+.voorbeeldweergave{font-size:13px;color:var(--grijs);min-height:20px;margin-top:4px}
+.voorbeeldweergave b{color:var(--inkt);font-weight:600;font-size:15px}
+select.sel{border:1px solid var(--rand2);border-radius:8px;padding:7px 9px;font-size:14px;background:#fff;color:var(--inkt);font-family:inherit}
+.btn{border:0;border-radius:8px;padding:8px 15px;font-weight:600;font-size:14px;cursor:pointer;background:var(--inkt);color:#fff}
+.btn:hover{background:#45433e}
+.btn.g{background:#ebe4d4;color:var(--inkt)}
+.btn.g:hover{background:#e0d7c3}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.klein{padding:5px 11px;font-size:13px}
+.fb{margin-top:8px;padding:8px 11px;border-radius:8px;font-size:14px;display:none}
+.fb.toon{display:block}
+.fb.goed{background:var(--goedbg);color:#255c3d}
+.fb.fout{background:var(--foutbg);color:#7c2c22}
+.fb.hint{background:var(--hint);color:#6b4d12}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1.5px solid var(--rand2);background:#fff;border-radius:999px;padding:4px 12px;font-size:14px;cursor:pointer;user-select:none;color:var(--inkt)}
+.chip:hover{border-color:#b9ad93}
+.chip.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.opties{display:flex;flex-direction:column;gap:6px}
+.optie{border:1.5px solid var(--rand2);background:#fff;border-radius:9px;padding:8px 12px;font-size:14.5px;cursor:pointer;text-align:left;color:var(--inkt)}
+.optie:hover{border-color:#b9ad93}
+.optie.aan{border-color:var(--nacht);background:#eef2f6}
+.typtip{font-size:12.5px;color:var(--grijs);margin-top:14px;line-height:1.5}
+.typtip code{font-family:var(--mono);background:#ebe4d4;border-radius:4px;padding:0 4px;font-size:12px}
+.klaarbanner{background:var(--goedbg);border:1px solid #bcdcc8;color:#255c3d;border-radius:11px;padding:12px 15px;margin:4px 0 12px}
 
-  .panel {
-    background: var(--card);
-    border-radius: var(--radius);
-    padding: 22px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.05);
-  }
-  .panel h2 {
-    font-size: 1.1rem;
-    margin-top: 0;
-    margin-bottom: 18px;
-    border-bottom: 2px solid var(--border);
-    padding-bottom: 8px;
-  }
+/* ---------- simulatiekolom ---------- */
+.simkol{background:var(--vel);border-left:1px solid var(--rand);padding:22px 22px 30px;display:flex;flex-direction:column;gap:12px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.simkol>*{flex-shrink:0}
+.simkop{display:flex;justify-content:space-between;align-items:baseline}
+.simkop b{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--goud)}
+.simkop span{font-size:12.5px;color:var(--grijs)}
+.ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ctrl label{font-size:13.5px;color:var(--inkt2);display:flex;gap:6px;align-items:center}
+.doek{border:1px solid var(--rand);border-radius:12px;background:#fbf8f1;position:relative;overflow:hidden}
+.doek canvas{display:block;width:100%;height:auto}
+.waarneming{font-size:14px;color:var(--inkt2);min-height:22px}
+.waarneming b{color:var(--inkt)}
+.vgl{font-family:var(--serif);font-size:19px;text-align:center;min-height:30px;color:var(--inkt)}
+.tabelkop{font-size:12px;font-weight:700;letter-spacing:1.2px;color:var(--goud);margin-bottom:6px;text-transform:uppercase}
+table.b45{border-collapse:collapse;font-size:13px;background:#fff;color:var(--inkt)}
+table.b45 th,table.b45 td{border:1px solid #6d6a62;padding:2px 0;text-align:center;width:38px}
+table.b45 th{font-weight:600;background:#fff}
+table.b45 th.hoek{width:46px;font-size:10px;font-weight:400;color:var(--grijs)}
+table.b45 td.licht{background:#f6e3bf;font-weight:700}
+table.b45 tr.licht th, table.b45 th.licht{background:#f3ead6}
+.legenda{font-size:12px;color:var(--grijs);margin-top:6px;line-height:1.45}
+.balk{display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.balk .lijn{display:flex;align-items:center;gap:8px}
+.balk .lijn span.lab{width:120px;color:var(--inkt2)}
+.balk .vak{display:flex;gap:3px;flex-wrap:wrap}
+.balk .q{width:18px;height:18px;border-radius:4px;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff}
+.balk .q.p{background:#c4822b}.balk .q.m{background:#3b6fa8}
+.uitkomst{background:#fff;border:1px solid var(--rand);border-radius:10px;padding:10px 14px;font-size:14.5px}
+.uitkomst .groot{font-family:var(--serif);font-size:22px}
+.buislog{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:12px}
+.buislog div{background:#fff;border:1px solid var(--rand);border-radius:8px;padding:5px 7px;line-height:1.35}
+.buislog div b{display:block;font-size:12.5px}
 
-  label {
-    display: block;
-    font-size: 0.82rem;
-    font-weight: 600;
-    margin-bottom: 4px;
-    color: var(--muted);
-  }
-  select, input[type="number"] {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 0.95rem;
-    margin-bottom: 14px;
-    transition: border-color 0.2s;
-  }
-  select:focus, input:focus { outline: none; border-color: var(--accent); }
-  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .hidden { display: none !important; }
+/* niveau */
+.niveau{display:flex;gap:4px;margin:-14px 0 22px}
+.niveau button{flex:1;background:transparent;border:1px solid #4b6074;color:#b9c7d3;border-radius:7px;padding:5px;font-weight:700;font-size:13px;cursor:pointer}
+.niveau button.aan{background:var(--goud2);border-color:var(--goud2);color:var(--nacht)}
+/* moleculen */
+svg.mol{display:block;max-width:100%;height:auto}
+.molkader{background:#fff;border:1px solid var(--rand);border-radius:10px;padding:8px 10px;margin:8px 0;overflow-x:auto}
+.molrij{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.molrij .plus{font-size:22px;color:var(--grijs)}
+.molnaam{font-size:12.5px;color:var(--grijs);text-align:center;margin-top:2px}
+/* tekenveld */
+.tv{background:#fff;border:1px solid var(--rand2);border-radius:10px;overflow:hidden}
+.tvbalk{display:flex;flex-wrap:wrap;gap:4px;padding:7px;background:#f7f2e6;border-bottom:1px solid var(--rand)}
+.tvk{border:1px solid var(--rand2);background:#fff;border-radius:7px;padding:4px 10px;font-family:Georgia,serif;font-size:15px;cursor:pointer;min-width:34px;color:var(--inkt)}
+.tvk[data-a],.tvk[data-t="gum"]{font-family:var(--sans);font-size:13px}
+.tvk.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.tvsep{width:1px;background:var(--rand2);margin:0 4px}
+.tvdoek{overflow:auto;max-height:340px}
+.tvsvg{display:block;touch-action:none;cursor:crosshair;background:#fffdf8}
+.tvuitleg{font-size:12px;color:var(--grijs);padding:5px 9px;border-top:1px solid var(--rand)}
+input.getal{max-width:200px;flex:0 1 200px}
+.eenheid{font-size:15px;color:var(--inkt2)}
+.formule{font-family:var(--serif);font-size:17px;margin:6px 0}
+.breuk{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;font-size:.95em}
+.breuk>span:first-child{border-bottom:1.3px solid currentColor;padding:0 4px}
+.breuk>span:last-child{padding:0 4px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;font-size:14.5px}
+.kv b{font-family:var(--serif);font-size:18px;font-weight:600}
+table.data{border-collapse:collapse;font-size:14px;background:#fff;margin:6px 0}
+table.data th,table.data td{border:1px solid var(--rand2);padding:3px 10px;text-align:right}
+table.data th{background:#f7f2e6;font-weight:600}
+.fitvak{margin-top:10px;padding:10px 12px;border:1px dashed #D9822B;border-radius:10px;background:#fdf6ec}
+.fitkop{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:#b8641a;margin-bottom:4px}
+.fitvak .inp{font:inherit;font-size:14px;padding:4px 7px;border:1px solid #d8cfbd;border-radius:6px;background:#fff}
+.reeksen{display:flex;flex-direction:column;gap:4px;font-size:13.5px}
+.reeksen label{display:flex;gap:8px;align-items:center}
+.reeksen i{display:inline-block;width:14px;height:4px;border-radius:2px}
+.info{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13.5px;background:#fff;border:1px solid var(--rand);border-radius:10px;padding:9px 12px}
+.info b{font-weight:600}
+.schuif{display:flex;align-items:center;gap:8px;font-size:13.5px}
+.schuif input{width:150px}
+/* beamerstand */
+body.beamer{font-size:18px}
+body.beamer .tekst h2{font-size:36px}
+body.beamer .opdvraag{font-size:19px}
+body.beamer input.in{font-size:18px}
+body.beamer .optie, body.beamer .chip{font-size:17px}
+body.beamer table.b45{font-size:15px}
 
-  button {
-    width: 100%;
-    padding: 12px;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  button:hover { background: #2563eb; }
-  button.secondary {
-    background: var(--card);
-    color: var(--text);
-    border: 1px solid var(--border);
-  }
-  button.secondary:hover { background: #f1f5f9; }
+@media (max-width:1180px){
+  .wp{grid-template-columns:1fr}
+  .simkol{position:static;height:auto;border-left:0;border-top:1px solid var(--rand)}
+}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  aside{position:static;height:auto}
+}
+@media print{aside,.simkol{display:none}.wp{display:block}}
 
-  .info-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 16px;
-  }
-  .info-card {
-    background: #f8fafc;
-    border-radius: 8px;
-    padding: 12px;
-    text-align: center;
-  }
-  .info-card .val { font-size: 1.25rem; font-weight: 700; color: var(--accent); }
-  .info-card .lbl { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
 
-  .indicator-box {
-    margin-top: 14px;
-    padding: 12px;
-    border-radius: 8px;
-    background: #ecfdf5;
-    border-left: 4px solid var(--accent2);
-  }
-  .indicator-box h4 { margin: 0 0 6px 0; font-size: 0.9rem; color: #065f46; }
-  .indicator-box p { margin: 0; font-size: 0.85rem; color: #065f46; }
+.leerdoelen{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:12px 16px 6px;margin:4px 0 6px}
+.leerdoelen b{display:block;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--goud);margin-bottom:4px}
+.leerdoelen ul{list-style:none;margin:0!important;padding:0}
+.leerdoelen li{padding:4px 0 4px 26px;position:relative;color:var(--inkt2)}
+.leerdoelen li::before{content:"";position:absolute;left:2px;top:9px;width:13px;height:13px;border:1.5px solid var(--goud2);border-radius:3px}
+.leerdoelen li.ster::before{content:"★";border:0;color:var(--goud);top:3px;left:1px;font-size:14px}
+.kl{font-size:12.5px;color:var(--grijs);line-height:1.45}
+#simhouder{display:flex;flex-direction:column;gap:10px}
+#simhouder .simkop{margin-bottom:2px}
+#simhouder{display:flex;flex-direction:column;gap:12px}
+#simhouder .tc-info{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#simhouder .tc-info>div{background:#fff;border:1px solid var(--rand);border-radius:10px;padding:8px 12px;font-size:14px;color:var(--inkt2)}
+#simhouder .tc-info b{display:block;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--goud);margin-bottom:2px}
+#simhouder .tc-graf{background:#fff;border:1px solid var(--rand);border-radius:12px;padding:10px}
+#simhouder canvas{width:100%;height:340px;display:block;cursor:crosshair}
+#simhouder .tc-lees{font-size:14px;color:var(--inkt2);padding:6px 4px 0;min-height:26px}
+#simhouder .tc-chk{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--inkt2);cursor:pointer}
+#simhouder .tc-chk input{accent-color:var(--nacht)}
+#simhouder .tc-instel{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:#fff;border:1px solid var(--rand);border-radius:12px;padding:12px}
+#simhouder .tc-veld{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--grijs)}
+#simhouder .tc-breed{grid-column:1/-1}
+#simhouder .tc-veld select,#simhouder .tc-veld input{font:inherit;font-size:15px;color:var(--inkt);padding:6px 8px;border:1px solid var(--rand2);border-radius:8px;background:#fff}
+#simhouder .verborgen{display:none!important}
 
-  canvas {
-    width: 100%;
-    height: 420px;
-    border-radius: var(--radius);
-    background: #fff;
-    cursor: crosshair;
-  }
-  .canvas-wrap { position: relative; }
-  .tooltip {
-    position: absolute;
-    background: rgba(0,0,0,0.8);
-    color: white;
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    pointer-events: none;
-    display: none;
-    z-index: 10;
-  }
-  .legend {
-    display: flex;
-    gap: 16px;
-    justify-content: center;
-    margin-top: 10px;
-    font-size: 0.85rem;
-    color: var(--muted);
-  }
-  .legend span { display: flex; align-items: center; gap: 6px; }
-  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-
-  .quiz-setup {
-    display: flex;
-    gap: 12px;
-    align-items: flex-end;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-  }
-  .quiz-setup > div { flex: 1; min-width: 180px; }
-  .quiz-setup > div:last-child { flex: 0; }
-  .quiz-curve { margin-bottom: 20px; }
-  .quiz-question {
-    background: #f8fafc;
-    border-radius: 10px;
-    padding: 16px 20px;
-    margin-bottom: 12px;
-    border-left: 4px solid transparent;
-    transition: all 0.3s;
-  }
-  .quiz-question.correct { border-left-color: var(--accent2); background: #f0fdf4; }
-  .quiz-question.wrong { border-left-color: var(--danger); background: #fef2f2; }
-  .quiz-question.locked { opacity: 0.7; pointer-events: none; }
-  .quiz-question h4 { margin: 0 0 10px 0; font-size: 1rem; }
-  .quiz-question input[type="text"], .quiz-question input[type="number"], .quiz-question select {
-    width: 100%;
-    max-width: 300px;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 0.95rem;
-  }
-  .quiz-question .feedback {
-    margin-top: 10px;
-    font-size: 0.9rem;
-    display: none;
-  }
-  .quiz-question .feedback.show { display: block; }
-  .score-bar {
-    text-align: center;
-    padding: 16px;
-    background: var(--card);
-    border-radius: var(--radius);
-    margin-bottom: 20px;
-    font-size: 1.1rem;
-    font-weight: 600;
-  }
-  .score-bar .score { color: var(--accent); font-size: 1.4rem; }
-
-  .checkbox-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 14px;
-  }
-  .checkbox-row input[type="checkbox"] {
-    width: 18px; height: 18px; cursor: pointer;
-  }
-  .checkbox-row label {
-    margin: 0; font-size: 0.95rem; color: var(--text); cursor: pointer;
-  }
-
-  .quiz-info-bar {
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 16px;
-    font-size: 0.9rem;
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-  }
-  .quiz-info-bar strong { color: var(--accent); }
-</style>
-<style id="huisstijl">
-:root{--hs-acc:#1F5FBF;--hs-acc-d:#174a96;--hs-soft:#E8F0FC;--hs-given:#F3F7FD;--hs-ok:#1A7F37;--hs-ok-soft:#E4F4E8;
---hs-err:#C62828;--hs-err-soft:#FDECEC;--hs-key:#FFF0A0;--hs-muted:#595959;--hs-line:#D5DCE8;--hs-bg:#F6F8FB;--hs-card:#fff;
---hs-text:#1d2330;--hs-font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-html,body{background:var(--hs-bg)!important;color:var(--hs-text)}
-body{font-family:var(--hs-font)!important}
-.hs-header{display:block!important;background:var(--hs-acc)!important;color:#fff;margin-bottom:18px;padding:0!important;border:none!important;border-radius:0!important}
-.hs-header .hs-wrap{max-width:var(--hs-max,1100px);margin:0 auto;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.hs-header h1{margin:0!important;padding:0!important;font-size:1.5rem!important;font-weight:650!important;color:#fff!important;text-align:left!important;letter-spacing:.2px;font-family:var(--hs-font)!important}
-.hs-header h1{flex:1 1 auto}
-.hs-header button{flex:0 0 auto;width:auto!important;margin:0!important;box-shadow:none!important;font-weight:500!important;font-family:var(--hs-font)!important;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px!important;border:1.5px solid #fff!important;background:transparent!important;color:#fff!important}
-.hs-header button:hover{background:rgba(255,255,255,.15)}
-body.hs-beamer>*:not(.hs-header):not(.hs-own):not(script):not(.hs-nozoom){zoom:1.3}
-.hs-own{background:var(--hs-acc)!important;color:#fff!important;border:none!important}
-.hs-own h1{color:#fff!important;font-family:var(--hs-font)!important}
-.hs-own .sub,.hs-own .subtitle{color:rgba(255,255,255,.85)!important}
-.hs-own>button:last-child{font:inherit;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px;border:1.5px solid #fff;background:transparent;color:#fff;margin-left:auto;flex:0 0 auto}
-.hs-own>button:last-child:hover{background:rgba(255,255,255,.15)}
-:root{--hs-max:1132px}
-
-:root{--bg:#F6F8FB;--accent:#1F5FBF;--accent2:#1A7F37;--danger:#C62828;--border:#D5DCE8;--muted:#595959;--text:#1d2330}
-.panel{box-shadow:none;border:1px solid var(--hs-line)}
 </style>
 </head>
 <body>
-
-<h1>🧪 Titratiecurve Generator & Quiz</h1>
-<p class="subtitle">VWO Chemie – Simuleer titraties en test je analytisch vermogen</p>
-
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('sim')" id="tab-sim">Simulatie</div>
-  <div class="tab" onclick="switchTab('quiz')" id="tab-quiz">Quiz</div>
+<div class="app">
+  <aside>
+    <h1>Titratiecurven</h1>
+    <div class="sub">5 vwo · H8 zuren en basen</div>
+    <nav id="nav"></nav>
+    <div class="voet">
+      <button id="beamerknop">Beamerstand</button>
+      <button id="resetknop">Voortgang wissen</button>
+      <div class="klein">Een model: de pH wordt exact berekend met de ladingsbalans; de indicatoren hebben afgeronde omslagtrajecten.</div>
+    </div>
+  </aside>
+  <main id="main"></main>
 </div>
-
-<!-- ==================== SIMULATIE ==================== -->
-<div id="sim-panel" class="tab-content active">
-  <div class="sim-container">
-    <div class="panel">
-      <h2>⚙️ Instellingen</h2>
-
-      <label for="simCombo">Type titratie</label>
-      <select id="simCombo">
-        <option value="sa_sb">Sterk zuur + Sterke base</option>
-        <option value="sb_sa">Sterke base + Sterk zuur</option>
-        <option value="wa_sb">Zwak zuur + Sterke base</option>
-        <option value="wb_sa">Zwakke base + Sterk zuur</option>
-      </select>
-
-      <div class="checkbox-row" id="divalentRow">
-        <input type="checkbox" id="simDivalent" onchange="toggleSimDivalent()">
-        <label for="simDivalent">Tweewaardig</label>
-      </div>
-
-      <div class="row">
-        <div>
-          <label for="simCa">c(analyte) (mol/L)</label>
-          <input id="simCa" type="number" step="any" value="0.100">
-        </div>
-        <div>
-          <label for="simVa">V(analyte) (mL)</label>
-          <input id="simVa" type="number" step="any" value="25.00">
-        </div>
-      </div>
-
-      <div class="row">
-        <div>
-          <label for="simCb">c(titrant) (mol/L)</label>
-          <input id="simCb" type="number" step="any" value="0.100">
-        </div>
-        <div>
-          <label for="simVmax">Max V(titrant) (mL)</label>
-          <input id="simVmax" type="number" step="any" value="50.00">
-        </div>
-      </div>
-
-      <div id="simPKaWrap" class="row hidden">
-        <div>
-          <label for="simPKa">pKₐ</label>
-          <input id="simPKa" type="number" step="any" value="4.75">
-        </div>
-      </div>
-
-      <div id="simPKa1Wrap" class="row hidden">
-        <div>
-          <label for="simPKa1">pKₐ₁</label>
-          <input id="simPKa1" type="number" step="any" value="2.15">
-        </div>
-        <div>
-          <label for="simPKa2">pKₐ₂</label>
-          <input id="simPKa2" type="number" step="any" value="7.20">
-        </div>
-      </div>
-
-      <div id="simPKbWrap" class="row hidden">
-        <div>
-          <label for="simPKb">pKᵦ</label>
-          <input id="simPKb" type="number" step="any" value="4.75">
-        </div>
-      </div>
-
-      <div id="simPKb1Wrap" class="row hidden">
-        <div>
-          <label for="simPKb1">pKᵦ₁</label>
-          <input id="simPKb1" type="number" step="any" value="3.35">
-        </div>
-        <div>
-          <label for="simPKb2">pKᵦ₂</label>
-          <input id="simPKb2" type="number" step="any" value="6.40">
-        </div>
-      </div>
-
-      <button onclick="drawSim()">Genereer curve</button>
-
-      <div class="info-grid" id="simInfo">
-        <div class="info-card"><div class="lbl">V(eq)</div><div class="val" id="simVeq">—</div></div>
-        <div class="info-card"><div class="lbl">pH(eq)</div><div class="val" id="simPHeq">—</div></div>
-        <div class="info-card"><div class="lbl">½ V(eq)</div><div class="val" id="simVhalf">—</div></div>
-        <div class="info-card"><div class="lbl">pH(½ eq)</div><div class="val" id="simPHhalf">—</div></div>
-      </div>
-
-      <div id="simEq2Info" class="info-grid hidden" style="margin-top:10px;">
-        <div class="info-card"><div class="lbl">V(eq₂)</div><div class="val" id="simVeq2">—</div></div>
-        <div class="info-card"><div class="lbl">pH(eq₂)</div><div class="val" id="simPHeq2">—</div></div>
-        <div class="info-card"><div class="lbl">½ V(eq₂)</div><div class="val" id="simVhalf2">—</div></div>
-        <div class="info-card"><div class="lbl">pH(½ eq₂)</div><div class="val" id="simPHhalf2">—</div></div>
-      </div>
-
-      <div class="indicator-box" id="simIndicatorBox" style="display:none;">
-        <h4>🎨 Aanbevolen indicator</h4>
-        <p id="simIndicatorText"></p>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>📈 Titratiecurve</h2>
-      <div class="canvas-wrap">
-        <canvas id="simCanvas" width="700" height="420"></canvas>
-        <div id="simTooltip" class="tooltip"></div>
-      </div>
-      <div class="legend">
-        <span><span class="dot" style="background:#3b82f6"></span> Curve</span>
-        <span><span class="dot" style="background:#ef4444"></span> Eq-punt</span>
-        <span><span class="dot" style="background:#10b981"></span> ½ Eq</span>
-      </div>
-    </div>
+<div id="parkeer" style="display:none"><div id="simhouder">
+  <div class="simkop"><b>Titratie</b><span>pH-curve</span></div>
+  <div class="tc-info" id="tc-info"></div>
+  <div class="tc-graf"><canvas id="tc-cv" onmousemove="tcAflezen(event)" onmouseleave="TC.muis=null;document.getElementById('tc-lees').innerHTML='Beweeg over de grafiek om af te lezen.';tcTeken()"></canvas>
+    <div class="tc-lees" id="tc-lees">Beweeg over de grafiek om af te lezen.</div></div>
+  <label class="tc-chk sh-deel" data-deel="banden"><input type="checkbox" id="tc-banden" onchange="tcBanden(this.checked)"> toon de omslagtrajecten van de indicatoren</label>
+  <div class="tc-instel" id="tc-instel">
+    <div class="tc-veld tc-breed"><span>In de erlenmeyer</span><select id="tc-stof" onchange="tcStof(this.value)"></select></div>
+    <div class="tc-veld" id="tc-pkrij" style="display:none"><span id="tc-pklab">pK<sub>z</sub></span><input id="tc-pK" type="number" step="any" value="5.00" onchange="tcVeld('pK',this)"></div>
+    <div class="tc-veld"><span>V in de erlenmeyer (mL)</span><input id="tc-Va" type="number" step="any" value="25.00" onchange="tcVeld('Va',this)"></div>
+    <div class="tc-veld"><span>c in de erlenmeyer (mol/L)</span><input id="tc-Ca" type="number" step="any" value="0.100" onchange="tcVeld('Ca',this)"></div>
+    <div class="tc-veld"><span>c in de buret (mol/L)</span><input id="tc-Cb" type="number" step="any" value="0.100" onchange="tcVeld('Cb',this)"></div>
   </div>
 </div>
-
-<!-- ==================== QUIZ ==================== -->
-<div id="quiz-panel" class="tab-content">
-  <div class="quiz-container">
-    <div class="panel">
-      <h2>🎯 Quiz – Analyse de titratiecurve</h2>
-      <div class="quiz-setup">
-        <div>
-          <label for="quizLevel">Niveau</label>
-          <select id="quizLevel">
-            <option value="easy">Makkelijk</option>
-            <option value="medium" selected>Gemiddeld</option>
-            <option value="hard">Moeilijk</option>
-          </select>
-        </div>
-        <div style="flex:0;">
-          <button onclick="generateQuiz()">Nieuwe opdracht</button>
-        </div>
-      </div>
-
-      <div class="score-bar" id="quizScoreBar" style="display:none;">
-        Score: <span class="score" id="quizScore">0</span> / <span id="quizTotal">0</span>
-      </div>
-
-      <div id="quizInfoBar" class="quiz-info-bar" style="display:none;"></div>
-
-      <div id="quizCurveArea" style="display:none;">
-        <div class="canvas-wrap quiz-curve">
-          <canvas id="quizCanvas" width="800" height="400"></canvas>
-          <div id="quizTooltip" class="tooltip"></div>
-        </div>
-        <div class="legend">
-          <span><span class="dot" style="background:#3b82f6"></span> Curve</span>
-          <span><span class="dot" style="background:#ef4444"></span> Eq-punt</span>
-          <span><span class="dot" style="background:#10b981"></span> ½ Eq</span>
-        </div>
-      </div>
-
-      <div id="quizQuestions"></div>
-    </div>
-  </div>
 </div>
-
 <script>
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const kies = arr => arr[Math.floor(Math.random() * arr.length)];
+function schud(arr){ const a = arr.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const lerp = (a, b, t) => a + (b - a) * t;
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+function laad(){ try { return JSON.parse(localStorage.getItem('titratiecurve-v2')) || {}; } catch (e){ return {}; } }
+function bewaar(o){ try { localStorage.setItem('titratiecurve-v2', JSON.stringify(o)); } catch (e){} }
+const nl = (x, d = 2) => Number(x).toLocaleString('nl-NL', { maximumFractionDigits: d, minimumFractionDigits: d });
+const sig = (x, n = 3) => { if (!x) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return nl(x, d); };
+
+/* Getalvelden met decimale komma. Een type="number"-veld leest een komma niet
+   (in Chrome wordt "0,5" dan 5). Daarom worden alle getalvelden tekstvelden die
+   een komma tonen en accepteren; de code leest ze nog steeds als 0.5. */
+(function () {
+  const d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+  const naarKomma = x => String(x).replace(/(\d)\.(\d)/g, '$1,$2');
+  function zet(el) {
+    if (el.dataset.komma) return;
+    const v = d.get.call(el);
+    el.dataset.komma = '1';
+    el.type = 'text';
+    el.setAttribute('inputmode', 'decimal');
+    el.setAttribute('autocomplete', 'off');
+    Object.defineProperty(el, 'value', {
+      configurable: true,
+      get() { return d.get.call(this).trim().replace(/\s/g, '').replace(',', '.'); },
+      set(x) { d.set.call(this, naarKomma(x)); }
+    });
+    if (v !== '') el.value = v;
+    if (el.placeholder) el.placeholder = naarKomma(el.placeholder);
+  }
+  // stijlregels voor getalvelden ook laten gelden voor de omgezette velden
+  try {
+    for (const sh of document.styleSheets) {
+      let regels; try { regels = sh.cssRules; } catch (e) { continue; }
+      for (const r of [...regels]) {
+        if (r.selectorText && /type=["']?number/.test(r.selectorText)) {
+          const sel = r.selectorText.replace(/\[type=["']?number["']?\]/g, '[data-komma]');
+          sh.insertRule(sel + '{' + r.style.cssText + '}', sh.cssRules.length);
+        }
+      }
+    }
+  } catch (e) {}
+  const alles = root => { if (root.matches && root.matches('input[type="number"]')) zet(root); if (root.querySelectorAll) root.querySelectorAll('input[type="number"]').forEach(zet); };
+  alles(document);
+  new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) alles(n); })))
+    .observe(document.documentElement, { childList: true, subtree: true });
+})();
+
+
+(function(){ const C = CanvasRenderingContext2D.prototype, ft = C.fillText, dec = t => String(t).replace(/(\d)\.(\d)/g, '$1,$2');
+  C.fillText = function(t, x, y, m){ return m === undefined ? ft.call(this, dec(t), x, y) : ft.call(this, dec(t), x, y, m); }; })();
+
+(function(){ const SKIP = {SCRIPT:1, STYLE:1, TEXTAREA:1, INPUT:1}; const dec = s => String(s).replace(/(\d)\.(\d)/g, '$1,$2');
+  const fix = root => { const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null); let n;
+    while ((n = w.nextNode())){ if (n.parentNode && SKIP[n.parentNode.nodeName]) continue; const d = dec(n.nodeValue); if (d !== n.nodeValue) n.nodeValue = d; } };
+  new MutationObserver(ms => ms.forEach(m => { if (m.type === 'characterData'){ const p = m.target.parentNode; if (p && !SKIP[p.nodeName]){ const d = dec(m.target.nodeValue); if (d !== m.target.nodeValue) m.target.nodeValue = d; } }
+    else m.addedNodes.forEach(a => { if (a.nodeType === 3){ if (a.parentNode && !SKIP[a.parentNode.nodeName]){ const d = dec(a.nodeValue); if (d !== a.nodeValue) a.nodeValue = d; } } else if (a.nodeType === 1 && !SKIP[a.nodeName]) fix(a); }); }))
+    .observe(document.body, { childList:true, subtree:true, characterData:true });
+  fix(document.body); })();
+
 const Kw = 1e-14;
 
 function log10(x) { return Math.log10(x); }
 function pow10(x) { return Math.pow(10, x); }
 
-function clamp(pH) {
+function clampPH(pH) {
   if (!isFinite(pH) || isNaN(pH)) return 7;
   return Math.max(0.1, Math.min(13.9, pH));
 }
@@ -492,7 +370,7 @@ function calcPH(Vb, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2) {
   if (combo === 'sa_sb') {
     const delta = (nA - nB) / Vtot;
     const H = (delta + Math.sqrt(delta * delta + 4 * Kw)) / 2;
-    return clamp(-log10(H));
+    return clampPH(-log10(H));
   }
 
   // --- STERKE BASE + STERK ZUUR ---
@@ -504,7 +382,7 @@ function calcPH(Vb, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2) {
   if (combo === 'sb_sa') {
     const delta = (nB - nA) / Vtot;
     const H = (delta + Math.sqrt(delta * delta + 4 * Kw)) / 2;
-    return clamp(-log10(H));
+    return clampPH(-log10(H));
   }
 
   // --- ZWAK ZUUR + STERKE BASE ---
@@ -513,7 +391,7 @@ function calcPH(Vb, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2) {
       const Ka = pow10(-pKa);
       // Ladingsbalans: [H+] + [Na+] = [OH-] + [A-],  [A-] = Ka·C_analyte / (H + Ka)
       const H = bisectH(H => H + C_titrant - Kw / H - (Ka * C_analyte) / (H + Ka));
-      return clamp(-log10(H));
+      return clampPH(-log10(H));
     } else {
       const Ka1 = pow10(-pKa), Ka2 = pow10(-pKa2);
       // Ladingsbalans: [H+] + [Na+] = [OH-] + [HA-] + 2[A2-]
@@ -523,7 +401,7 @@ function calcPH(Vb, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2) {
         const alphaA2 = (Ka1 * Ka2) / D;
         return H + C_titrant - Kw / H - C_analyte * (alphaHA + 2 * alphaA2);
       });
-      return clamp(-log10(H));
+      return clampPH(-log10(H));
     }
   }
 
@@ -534,7 +412,7 @@ function calcPH(Vb, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2) {
       const Ka = Kw / Kb;   // Ka van het geconjugeerde zuur BH+
       // Ladingsbalans: [H+] + [BH+] = [OH-] + [Cl-],  [BH+] = C_analyte·H / (H + Ka)
       const H = bisectH(H => H + (C_analyte * H) / (H + Ka) - Kw / H - C_titrant);
-      return clamp(-log10(H));
+      return clampPH(-log10(H));
     } else {
       const Kb1 = pow10(-pKb), Kb2 = pow10(-pKb2);
       const Ka1 = Kw / Kb2;   // BH2^2+ -> BH+  (sterkste van de twee zure dissociaties)
@@ -546,7 +424,7 @@ function calcPH(Vb, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2) {
         const alphaBH2 = (H * H) / D;
         return H + C_analyte * (alphaBH + 2 * alphaBH2) - Kw / H - C_titrant;
       });
-      return clamp(-log10(H));
+      return clampPH(-log10(H));
     }
   }
 
@@ -558,7 +436,7 @@ function calcPH(Vb, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2) {
 const INDICATOREN = [
   { slug: 'methyloranje',    name: 'Methyloranje',    range: [3.1, 4.4],  color: '#f97316' },
   { slug: 'methylrood',      name: 'Methylrood',      range: [4.4, 6.2],  color: '#ef4444' },
-  { slug: 'bromthymolblauw', name: 'Bromthymolblauw', range: [6.0, 7.6],  color: '#3b82f6' },
+  { slug: 'bromthymolblauw', name: 'Broomthymolblauw', range: [6.0, 7.6],  color: '#3b82f6' },
   { slug: 'fenolftaleine',   name: 'Fenolftaleïne',   range: [8.2, 10.0], color: '#ec4899' }
 ];
 // Alle indicatoren die goed gerekend worden bij een eq-punt-pH. In een overlap (pH 6,0-6,2 en 4,4)
@@ -586,583 +464,621 @@ function getIndicators(pHList) {
   });
 }
 
-// ==================== SIMULATION UI ====================
 
-function toggleSimDivalent() {
-  const combo = document.getElementById('simCombo').value;
-  const div = document.getElementById('simDivalent').checked;
-  const pKaWrap = document.getElementById('simPKaWrap');
-  const pKa1Wrap = document.getElementById('simPKa1Wrap');
-  const pKbWrap = document.getElementById('simPKbWrap');
-  const pKb1Wrap = document.getElementById('simPKb1Wrap');
-  const eq2Info = document.getElementById('simEq2Info');
-  const divalentRow = document.getElementById('divalentRow');
-
-  pKaWrap.classList.add('hidden');
-  pKa1Wrap.classList.add('hidden');
-  pKbWrap.classList.add('hidden');
-  pKb1Wrap.classList.add('hidden');
-  eq2Info.classList.add('hidden');
-
-  if (combo === 'wa_sb') {
-    divalentRow.style.display = 'flex';
-    if (div) { pKa1Wrap.classList.remove('hidden'); eq2Info.classList.remove('hidden'); }
-    else pKaWrap.classList.remove('hidden');
-  } else if (combo === 'wb_sa') {
-    divalentRow.style.display = 'flex';
-    if (div) { pKb1Wrap.classList.remove('hidden'); eq2Info.classList.remove('hidden'); }
-    else pKbWrap.classList.remove('hidden');
-  } else {
-    divalentRow.style.display = 'none';
-    document.getElementById('simDivalent').checked = false;
-  }
-}
-
-document.getElementById('simCombo').addEventListener('change', toggleSimDivalent);
-
-function drawSim() {
-  const combo = document.getElementById('simCombo').value;
-  let divalent = document.getElementById('simDivalent').checked;
-  if (combo === 'sa_sb') divalent = false;
-  const Ca = parseFloat(document.getElementById('simCa').value);
-  const Va = parseFloat(document.getElementById('simVa').value);
-  const Cb = parseFloat(document.getElementById('simCb').value);
-  const Vmax = parseFloat(document.getElementById('simVmax').value);
-
-  let pKa = 7, pKa2 = 7, pKb = 7, pKb2 = 7;
-  if (combo === 'wa_sb') {
-    if (divalent) { pKa = parseFloat(document.getElementById('simPKa1').value); pKa2 = parseFloat(document.getElementById('simPKa2').value); }
-    else pKa = parseFloat(document.getElementById('simPKa').value);
-  }
-  if (combo === 'wb_sa') {
-    if (divalent) { pKb = parseFloat(document.getElementById('simPKb1').value); pKb2 = parseFloat(document.getElementById('simPKb2').value); }
-    else pKb = parseFloat(document.getElementById('simPKb').value);
-  }
-
-  const nA = Ca * Va;
-  const Veq = nA / Cb;
-  const Veq2 = divalent ? 2 * nA / Cb : null;
-
-  const steps = 800;
-  const points = [];
-  for (let i = 0; i <= steps; i++) {
-    const Vb = (i / steps) * Vmax;
-    points.push({ Vb, pH: calcPH(Vb, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2) });
-  }
-
-  const pH_eq = calcPH(Veq, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2);
-  const pH_half = calcPH(Veq/2, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2);
-
-  document.getElementById('simVeq').textContent = Veq.toFixed(2) + ' mL';
-  document.getElementById('simPHeq').textContent = pH_eq.toFixed(2);
-  document.getElementById('simVhalf').textContent = (Veq/2).toFixed(2) + ' mL';
-  document.getElementById('simPHhalf').textContent = pH_half.toFixed(2);
-
-  let pHList = [pH_eq];
-  if (divalent) {
-    const pH_eq2 = calcPH(Veq2, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2);
-    const pH_half2 = calcPH((Veq+Veq2)/2, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2);
-    document.getElementById('simVeq2').textContent = Veq2.toFixed(2) + ' mL';
-    document.getElementById('simPHeq2').textContent = pH_eq2.toFixed(2);
-    document.getElementById('simVhalf2').textContent = ((Veq+Veq2)/2).toFixed(2) + ' mL';
-    document.getElementById('simPHhalf2').textContent = pH_half2.toFixed(2);
-    pHList.push(pH_eq2);
-  }
-
-  const inds = getIndicators(pHList);
-  document.getElementById('simIndicatorBox').style.display = 'block';
-  let indText = '';
-  inds.forEach((ind, i) => {
-    indText += `<strong style="color:${ind.color}">${ind.name}</strong>`;
-    if (divalent) indText += i === 0 ? ' (eq₁)' : ' (eq₂)';
-    indText += '<br>';
-  });
-  document.getElementById('simIndicatorText').innerHTML = indText;
-
-  drawCurveOnCanvas('simCanvas', points, Vmax, Veq, Veq2, pHList);
-}
-
-// ==================== CANVAS DRAWING ====================
-
-function drawCurveOnCanvas(canvasId, points, Vmax, Veq, Veq2, pHList) {
-  const canvas = document.getElementById(canvasId);
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const padL = 55, padR = 30, padT = 30, padB = 45;
-  const gw = W - padL - padR;
-  const gh = H - padT - padB;
-
-  let minPH = 14, maxPH = 0;
-  for (let pt of points) {
-    if (pt.pH < minPH) minPH = pt.pH;
-    if (pt.pH > maxPH) maxPH = pt.pH;
-  }
-  minPH = Math.max(0, Math.floor(minPH) - 1);
-  maxPH = Math.min(14, Math.ceil(maxPH) + 1);
-  if (maxPH - minPH < 4) maxPH = minPH + 4;
-
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
-
-  ctx.strokeStyle = '#f1f5f9'; ctx.lineWidth = 1;
-  for (let i = 0; i <= 10; i++) {
-    const x = padL + (i/10)*gw;
-    ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, H-padB); ctx.stroke();
-  }
-  for (let i = 0; i <= 10; i++) {
-    const y = padT + (i/10)*gh;
-    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W-padR, y); ctx.stroke();
-  }
-
-  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, H-padB); ctx.lineTo(W-padR, H-padB); ctx.stroke();
-
-  ctx.fillStyle = '#64748b'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
-  ctx.fillText('Volume titrant (mL)', W/2, H-8);
-  ctx.save(); ctx.translate(14, H/2); ctx.rotate(-Math.PI/2); ctx.fillText('pH', 0, 0); ctx.restore();
-
-  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-  for (let i = 0; i <= 5; i++) {
-    const val = (i/5)*Vmax;
-    const x = padL + (val/Vmax)*gw;
-    ctx.fillText(val.toFixed(0), x, H-padB+6);
-    ctx.beginPath(); ctx.moveTo(x, H-padB); ctx.lineTo(x, H-padB+4); ctx.stroke();
-  }
-
-  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-  for (let i = 0; i <= 5; i++) {
-    const val = minPH + (i/5)*(maxPH-minPH);
-    const y = H - padB - ((val-minPH)/(maxPH-minPH))*gh;
-    ctx.fillText(val.toFixed(1), padL-8, y);
-    ctx.beginPath(); ctx.moveTo(padL-4, y); ctx.lineTo(padL, y); ctx.stroke();
-  }
-
-  ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2.5; ctx.beginPath();
-  let first = true;
-  for (let pt of points) {
-    const x = padL + (pt.Vb/Vmax)*gw;
-    const y = H - padB - ((pt.pH-minPH)/(maxPH-minPH))*gh;
-    if (first) { ctx.moveTo(x, y); first = false; }
-    else ctx.lineTo(x, y);
-  }
-  ctx.stroke();
-
-  const eqPoints = [Veq];
-  if (Veq2) eqPoints.push(Veq2);
-  eqPoints.forEach((ve, i) => {
-    if (ve > Vmax) return;
-    const x = padL + (ve/Vmax)*gw;
-    const y = H - padB - ((pHList[i]-minPH)/(maxPH-minPH))*gh;
-    ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#ef4444'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'left';
-    ctx.fillText(i === 0 ? 'eq' : 'eq₂', x+8, y-8);
-  });
-
-  const halfPoints = [Veq/2];
-  if (Veq2) halfPoints.push((Veq+Veq2)/2);
-  halfPoints.forEach((vh, i) => {
-    if (vh > Vmax) return;
-    const pHh = points.find(p => Math.abs(p.Vb - vh) < Vmax/800)?.pH || pHList[i];
-    const x = padL + (vh/Vmax)*gw;
-    const y = H - padB - ((pHh-minPH)/(maxPH-minPH))*gh;
-    ctx.fillStyle = '#10b981'; ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#10b981'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'left';
-    ctx.fillText(i === 0 ? '½ eq' : '½ eq₂', x+8, y-8);
-  });
-
-  canvas.dataset.minPH = minPH;
-  canvas.dataset.maxPH = maxPH;
-  canvas.dataset.Vmax = Vmax;
-}
-
-// Bewaart per canvas de actuele puntenreeks, zodat setupTooltip() bij elke nieuwe
-// curve (bijv. elke "Nieuwe opdracht") niet telkens een nieuwe mousemove-listener
-// hoeft toe te voegen — dat zou zich na veel klikken in één sessie blijven opstapelen.
-const tooltipPointsByCanvas = {};
-
-function setupTooltip(canvasId, tooltipId, points) {
-  tooltipPointsByCanvas[canvasId] = points;
-  const canvas = document.getElementById(canvasId);
-  if (canvas.dataset.tooltipBound) return; // listener staat al, punten zijn hierboven al bijgewerkt
-  canvas.dataset.tooltipBound = '1';
-  const tooltip = document.getElementById(tooltipId);
-  canvas.addEventListener('mousemove', function(e) {
-    const points = tooltipPointsByCanvas[canvasId];
-    const rect = canvas.getBoundingClientRect();
-    // De canvas heeft een vaste interne tekenresolutie (canvas.width/height),
-    // maar wordt via CSS geschaald naar de containerbreedte (width: 100%).
-    // Muiscoordinaten komen binnen in CSS-pixels (rect-schaal), dus die moeten
-    // eerst omgerekend worden naar de interne buffer-schaal — anders kloppen
-    // de padL/padR/padT/padB-grenzen en dus de afgelezen Vb/pH niet.
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const mx = (e.clientX - rect.left) * scaleX;
-    const my = (e.clientY - rect.top) * scaleY;
-    const W = canvas.width, H = canvas.height;
-    const padL = 55, padR = 30, padT = 30, padB = 45;
-    const gw = W - padL - padR;
-    const gh = H - padT - padB;
-    if (mx < padL || mx > W - padR || my < padT || my > H - padB) { tooltip.style.display = 'none'; return; }
-
-    const minPH = parseFloat(canvas.dataset.minPH);
-    const maxPH = parseFloat(canvas.dataset.maxPH);
-    const Vmax = parseFloat(canvas.dataset.Vmax);
-    const Vb = ((mx - padL) / gw) * Vmax;
-
-    let idx = Math.round((Vb / Vmax) * (points.length - 1));
-    idx = Math.max(0, Math.min(points.length - 1, idx));
-    const pt = points[idx];
-    if (pt) {
-      tooltip.style.display = 'block';
-      // Tooltip zelf wordt weer in CSS-pixels gepositioneerd, dus terugschalen
-      const offsetX = 15, offsetY = -40;
-      tooltip.style.left = ((mx / scaleX) + offsetX) + 'px';
-      tooltip.style.top = ((my / scaleY) + offsetY) + 'px';
-      tooltip.innerHTML = `V = ${pt.Vb.toFixed(2)} mL<br>pH = ${pt.pH.toFixed(2)}`;
-    }
-  });
-  canvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
-}
-
-// ==================== QUIZ ====================
-
-let quizAnswers = {};
-let quizScore = 0;
-let quizTotal = 0;
-let currentQuizPoints = [];
-
-function generateQuiz() {
-  const level = document.getElementById('quizLevel').value;
-  let combos = [];
-  let allowDivalent = false;
-  if (level === 'easy') { combos = ['sa_sb', 'sb_sa']; allowDivalent = false; }
-  else if (level === 'medium') { combos = ['wa_sb', 'wb_sa']; allowDivalent = false; }
-  else { combos = ['wa_sb', 'wb_sa']; allowDivalent = true; }
-
-  const combo = combos[Math.floor(Math.random() * combos.length)];
-  const divalent = allowDivalent && Math.random() < 0.5;
-
-  const Ca = Math.round((0.05 + Math.random() * 0.45) / 0.05) * 0.05;
-  const Va = Math.round((20 + Math.random() * 15) * 10) / 10;
-  const Cb = Math.round((0.05 + Math.random() * 0.45) / 0.05) * 0.05;
-  const Vmax = divalent 
-    ? Math.ceil((Ca * Va / Cb) * 3.5 / 5) * 5 
-    : Math.ceil((Ca * Va / Cb) * 2.5 / 5) * 5;
-
-  let pKa = 0, pKa2 = 0, pKb = 0, pKb2 = 0;
-  if (combo === 'wa_sb') {
-    if (divalent) {
-      pKa = Math.round((2.0 + Math.random() * 3.0) * 10) / 10;
-      pKa2 = Math.round((pKa + 2 + Math.random() * 4.0) * 10) / 10;
-    } else {
-      pKa = Math.round((3.0 + Math.random() * 7.0) * 10) / 10;
-    }
-  }
-  if (combo === 'wb_sa') {
-    if (divalent) {
-      pKb = Math.round((2.0 + Math.random() * 3.0) * 10) / 10;
-      pKb2 = Math.round((pKb + 2 + Math.random() * 4.0) * 10) / 10;
-    } else {
-      pKb = Math.round((3.0 + Math.random() * 7.0) * 10) / 10;
-    }
-  }
-
-  const nA = Ca * Va;
-  const Veq = nA / Cb;
-  const Veq2 = divalent ? 2 * nA / Cb : null;
-
-  const steps = 800;
-  const points = [];
-  for (let i = 0; i <= steps; i++) {
-    const Vb = (i / steps) * Vmax;
-    points.push({ Vb, pH: calcPH(Vb, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2) });
-  }
-  currentQuizPoints = points;
-
-  const pH_eq = calcPH(Veq, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2);
-  const pHList = [pH_eq];
-  if (divalent) pHList.push(calcPH(Veq2, Ca, Va, Cb, combo, divalent, pKa, pKa2, pKb, pKb2));
-
-  // Titrant is altijd het tweede deel van de combo-naam (na de underscore): '_sb' = NaOH-titrant,
-  // '_sa' = HCl-titrant. Let op: .includes('sb') zou ten onrechte ook 'sb_sa' (base als analyte) matchen.
-  const titrantName = combo.endsWith('_sb') ? 'NaOH' : 'HCl';
-  const valencyText = divalent ? ' (tweewaardig)' : '';
-  document.getElementById('quizInfoBar').style.display = 'flex';
-  document.getElementById('quizInfoBar').innerHTML = `
-    <div><strong>Titrant:</strong> ${Cb.toFixed(3)} M ${titrantName}</div>
-    <div><strong>V(analyte):</strong> ${Va.toFixed(2)} mL</div>
-    <div><strong>Analyte:</strong> onbekend${valencyText}</div>
-  `;
-
-  document.getElementById('quizCurveArea').style.display = 'block';
-  drawCurveOnCanvas('quizCanvas', points, Vmax, Veq, Veq2, pHList);
-  setupTooltip('quizCanvas', 'quizTooltip', points);
-
-  quizAnswers = {};
-  quizScore = 0;
-  quizTotal = 0;
-  document.getElementById('quizScoreBar').style.display = 'block';
-  updateScore();
-
-  const container = document.getElementById('quizQuestions');
-  container.innerHTML = '';
-
-  // Q1: Type
-  addQuestion(container, 'q1', 'Wat voor titratie is dit?', 'select', {
-    options: [
-      { value: 'sa_sb', text: 'Sterk zuur + Sterke base' },
-      { value: 'sb_sa', text: 'Sterke base + Sterk zuur' },
-      { value: 'wa_sb', text: 'Zwak zuur + Sterke base' },
-      { value: 'wb_sa', text: 'Zwakke base + Sterk zuur' }
-    ],
-    correct: combo,
-    feedback: 'Kijk eerst naar de beginwaarde: begint de curve laag (zuur) of hoog (base)? Kijk dan naar de vorm: een zwak zuur of een zwakke base geeft een bufferregio en een eq-punt dat niet bij pH 7 ligt.'
-  });
-
-  // Q2: Valency
-  addQuestion(container, 'q2', 'Is de analyte een- of tweewaardig?', 'select', {
-    options: [
-      { value: 'mono', text: 'Eenwaardig' },
-      { value: 'di', text: 'Tweewaardig' }
-    ],
-    correct: divalent ? 'di' : 'mono',
-    feedback: divalent 
-      ? 'Je ziet twee equivalentiepunten op de curve, dat wijst op een tweewaardig systeem.' 
-      : 'Er is slechts één equivalentiepunt zichtbaar, dus het systeem is eenwaardig.'
-  });
-
-  // Q3: Concentration
-  addQuestion(container, 'q3', 'Wat is de concentratie van de analyte? (mol/L)', 'number', {
-    correct: Ca,
-    tolerance: 0.01,
-    feedback: `Gebruik: V(eq) = (c(analyte) × V(analyte)) / c(titrant). Hier is V(eq) = ${Veq.toFixed(2)} mL, V(analyte) = ${Va.toFixed(2)} mL en c(titrant) = ${Cb.toFixed(3)} M.`
-  });
-
-  // Q4: pKa / pKb
-  if (combo !== 'sa_sb') {
-    if (!divalent) {
-      const label = combo === 'wa_sb' ? 'Wat is de pKa van dit zuur?' : 'Wat is de pKb van deze base?';
-      const val = combo === 'wa_sb' ? pKa : pKb;
-      addQuestion(container, 'q4', label, 'number', {
-        correct: val,
-        tolerance: 0.15,
-        feedback: `Het half-equivalentiepunt ligt bij pH = pKa (of pOH = pKb). Kijk waar de curve het halve eq-volume snijdt.`
-      });
-    } else {
-      if (combo === 'wa_sb') {
-        addQuestion(container, 'q4a', 'Wat is de pKa₁?', 'number', {
-          correct: pKa, tolerance: 0.15,
-          feedback: 'Bij het eerste half-equivalentiepunt geldt: pH = pKa₁.'
-        });
-        addQuestion(container, 'q4b', 'Wat is de pKa₂?', 'number', {
-          correct: pKa2, tolerance: 0.15,
-          feedback: 'Bij het tweede half-equivalentiepunt geldt: pH = pKa₂.'
-        });
-      } else {
-        addQuestion(container, 'q4a', 'Wat is de pKb₁?', 'number', {
-          correct: pKb, tolerance: 0.15,
-          feedback: 'Bij het eerste half-equivalentiepunt geldt: pOH = pKb₁, dus pH = 14 - pKb₁.'
-        });
-        addQuestion(container, 'q4b', 'Wat is de pKb₂?', 'number', {
-          correct: pKb2, tolerance: 0.15,
-          feedback: 'Bij het tweede half-equivalentiepunt geldt: pOH = pKb₂, dus pH = 14 - pKb₂.'
-        });
-      }
-    }
-  }
-
-  // Q5/Q6: Indicator(s)
-  const inds = getIndicators(pHList);
-  const indOptions = [
-    { value: 'methyloranje', text: 'Methyloranje' },
-    { value: 'methylrood', text: 'Methylrood' },
-    { value: 'bromthymolblauw', text: 'Bromthymolblauw' },
-    { value: 'fenolftaleine', text: 'Fenolftaleïne' }
-  ];
-
-  if (!divalent) {
-    addQuestion(container, 'q5', 'Welke indicator past bij dit eq-punt?', 'select', {
-      options: indOptions,
-      correct: geschikteIndicatoren(pHList[0]),
-      feedback: `Het eq-punt ligt bij pH ${pHList[0].toFixed(1)}. Kies een indicator waarvan het omslagtraject deze pH omvat.`
-    });
-  } else {
-    addQuestion(container, 'q5a', 'Welke indicator past bij het eerste eq-punt?', 'select', {
-      options: indOptions,
-      correct: geschikteIndicatoren(pHList[0]),
-      feedback: `Het eerste eq-punt ligt bij pH ${pHList[0].toFixed(1)}.`
-    });
-    addQuestion(container, 'q5b', 'Welke indicator past bij het tweede eq-punt?', 'select', {
-      options: indOptions,
-      correct: geschikteIndicatoren(pHList[1]),
-      feedback: `Het tweede eq-punt ligt bij pH ${pHList[1].toFixed(1)}.`
-    });
-  }
-}
-
-function addQuestion(container, id, label, type, config) {
-  const juisteLijst = Array.isArray(config.correct) ? config.correct : [config.correct];
-  const tekstVan = v => { const o = (config.options || []).find(o => o.value === v); return o ? o.text : String(v).replace('.', ','); };
-  quizAnswers[id] = { correct: config.correct, tolerance: config.tolerance || 0, feedback: config.feedback,
-                      correctText: juisteLijst.map(tekstVan).join(' of ') };
-  const div = document.createElement('div');
-  div.className = 'quiz-question';
-  div.id = 'qwrap-' + id;
-
-  let inputHTML = '';
-  if (type === 'select') {
-    inputHTML = `<select id="${id}">`;
-    config.options.forEach(opt => {
-      inputHTML += `<option value="${opt.value}">${opt.text}</option>`;
-    });
-    inputHTML += '</select>';
-  } else {
-    inputHTML = `<input type="number" id="${id}" step="any" placeholder="Typ je antwoord...">`;
-  }
-
-  div.innerHTML = `
-    <h4>${label}</h4>
-    ${inputHTML}
-    <button onclick="checkAnswer('${id}', '${type}')" style="width:auto; margin-top:10px; padding:8px 16px;">Controleer</button>
-    <div class="feedback" id="fb-${id}"></div>
-  `;
-  container.appendChild(div);
-}
-
-function checkAnswer(id, type) {
-  const wrap = document.getElementById('qwrap-' + id);
-  const fb = document.getElementById('fb-' + id);
-  const config = quizAnswers[id];
-  if (!config) return;
-
-  let val = document.getElementById(id).value;
-  let isCorrect = false;
-
-  if (type === 'select') {
-    isCorrect = Array.isArray(config.correct) ? config.correct.includes(val) : val === config.correct;
-  } else {
-    const num = parseFloat(val);
-    if (!isNaN(num)) {
-      isCorrect = Math.abs(num - config.correct) <= config.tolerance;
-    }
-  }
-
-  fb.classList.add('show');
-  if (isCorrect) {
-    wrap.classList.add('correct');
-    wrap.classList.remove('wrong');
-    fb.innerHTML = '<span style="color:#10b981; font-weight:600;">✓ Goed!</span>';
-    if (!wrap.dataset.scored) { quizScore++; quizTotal++; wrap.dataset.scored = '1'; }
-  } else {
-    wrap.classList.add('wrong');
-    wrap.classList.remove('correct');
-    fb.innerHTML = `<span style="color:#ef4444; font-weight:600;">✗ Fout.</span> ${config.feedback} <br><strong>Juist antwoord: ${config.correctText}</strong>`;
-    if (!wrap.dataset.scored) { quizTotal++; wrap.dataset.scored = '1'; }
-  }
-  updateScore();
-  wrap.classList.add('locked');
-}
-
-function updateScore() {
-  document.getElementById('quizScore').textContent = quizScore;
-  document.getElementById('quizTotal').textContent = quizTotal;
-}
-
-// ==================== TABS ====================
-
-function switchTab(name) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  document.getElementById(name + '-panel').classList.add('active');
-}
-
-// Init
-window.onload = function() {
-  toggleSimDivalent();
-  drawSim();
+/* =====================================================================
+   Titratiecurve: instellingen, tekenen en aflezen
+   ===================================================================== */
+const STOFFEN = {
+  zoutzuur:   { naam:'zoutzuur', soort:'sterk zuur', combo:'sa_sb' },
+  ethaanzuur: { naam:'ethaanzuur (azijnzuur)', kort:'ethaanzuur', soort:'zwak zuur', combo:'wa_sb', pK:4.74 },
+  methaanzuur:{ naam:'methaanzuur (mierenzuur)', kort:'methaanzuur', soort:'zwak zuur', combo:'wa_sb', pK:3.75 },
+  hz:         { naam:'zwak zuur HZ (kies pK<sub>z</sub>)', kort:'zwak zuur HZ', soort:'zwak zuur', combo:'wa_sb', pK:5.0, vrij:true },
+  natronloog: { naam:'natronloog', soort:'sterke base', combo:'sb_sa' },
+  ammoniak:   { naam:'ammoniak', soort:'zwakke base', combo:'wb_sa', pK:4.74 },
+  b:          { naam:'zwakke base B (kies pK<sub>b</sub>)', kort:'zwakke base B', soort:'zwakke base', combo:'wb_sa', pK:5.0, vrij:true }
 };
-</script>
+const TC = { stof:'zoutzuur', Ca:0.100, Va:25.00, Cb:0.100, pK:5.0, banden:false, vast:null, punten:[], Vmax:50, gezien:new Set() };
+const titrantVan = combo => combo.endsWith('_sb') ? 'natronloog' : 'zoutzuur';
+const d2 = (x, n = 2) => x.toFixed(n).replace('.', ',');
+const lees = v => parseFloat(String(v).replace(',', '.'));
 
-
-
-
-<script id="huisstijl-js">
-window.HS_CFG={};
-(function(){
-  var cfg=window.HS_CFG||{};
-  var b=document.createElement('button'); b.type='button'; b.textContent='Beamerstand'; b.title='Alles groter, voor op het digibord';
-  b.onclick=function(){document.body.classList.toggle('hs-beamer'); window.dispatchEvent(new Event('resize'));};
-  var hd;
-  if(cfg.own){ hd=document.querySelector(cfg.own); hd.classList.add('hs-own'); hd.appendChild(b); }
-  else {
-    var h=cfg.title?null:document.querySelector(cfg.sel||'h1');
-    hd=document.createElement('header'); hd.className='hs-header';
-    var w=document.createElement('div'); w.className='hs-wrap'; hd.appendChild(w);
-    var t=document.createElement('h1'); t.innerHTML=cfg.title||(h?h.innerHTML:document.title); w.appendChild(t);
-    w.appendChild(b); if(h) h.remove();
-    var cs=getComputedStyle(document.body);
-    var px=function(a,b){return '-'+(parseFloat(cs[a])+parseFloat(cs[b]))+'px';};
-    hd.style.margin=px('paddingTop','marginTop')+' '+px('paddingRight','marginRight')+' 18px '+px('paddingLeft','marginLeft');
-    document.body.insertBefore(hd, document.body.firstChild);
+function curveParams(){
+  if (TC.vast) return TC.vast;
+  const s = STOFFEN[TC.stof];
+  const Veq = TC.Ca * TC.Va / TC.Cb;
+  const Vmax = Math.max(10, Math.ceil(Veq * 2 / 5) * 5);
+  return { combo:s.combo, Ca:TC.Ca, Va:TC.Va, Cb:TC.Cb, pK:s.vrij ? TC.pK : (s.pK || 7), pK2:7, divalent:false, Vmax };
+}
+function berekenCurve(p){
+  const pts = [];
+  for (let i = 0; i <= 800; i++){
+    const Vb = i / 800 * p.Vmax;
+    pts.push({ Vb, pH: calcPH(Vb, p.Ca, p.Va, p.Cb, p.combo, p.divalent, p.pK, p.pK2, p.pK, p.pK2) });
   }
-  // zwevende elementen (tooltips) niet mee-zoomen in beamerstand
-  document.querySelectorAll('body *').forEach(function(e){ if(e!==hd && !hd.contains(e) && getComputedStyle(e).position==='fixed'){ e.classList.add('hs-nozoom'); document.body.appendChild(e); } });
-  // komma als decimaalteken in alles wat op het scherm komt
-  var dec=function(s){ return String(s).replace(/(\d)\.(\d)/g,'$1,$2'); };
-  var C=CanvasRenderingContext2D.prototype, ft=C.fillText, st=C.strokeText, mt=C.measureText;
-  C.fillText=function(t,x,y,m){ return m===undefined?ft.call(this,dec(t),x,y):ft.call(this,dec(t),x,y,m); };
-  C.strokeText=function(t,x,y,m){ return m===undefined?st.call(this,dec(t),x,y):st.call(this,dec(t),x,y,m); };
-  C.measureText=function(t){ return mt.call(this,dec(t)); };
-  var SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,INPUT:1};
-  var fix=function(root){ var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null), n;
-    while((n=w.nextNode())){ if(n.parentNode && SKIP[n.parentNode.nodeName]) continue; var v=n.nodeValue, d=dec(v); if(d!==v) n.nodeValue=d; } };
-  fix(document.body);
-  new MutationObserver(function(ms){ ms.forEach(function(m){ if(m.type==='characterData'){ if(!SKIP[m.target.parentNode&&m.target.parentNode.nodeName]){ var d=dec(m.target.nodeValue); if(d!==m.target.nodeValue) m.target.nodeValue=d; } } else m.addedNodes.forEach(function(a){ if(a.nodeType===3){ if(a.parentNode&&!SKIP[a.parentNode.nodeName]){ var d=dec(a.nodeValue); if(d!==a.nodeValue) a.nodeValue=d; } } else if(a.nodeType===1 && !SKIP[a.nodeName]) fix(a); }); }); })
-    .observe(document.body,{childList:true,subtree:true,characterData:true});
-  // invoer met komma accepteren
-  var pf=window.parseFloat; window.parseFloat=function(x){ return pf(typeof x==='string'?x.replace(',','.'):x); };
-})();
-</script>
-<script id="komma-invoer">
-/* Getalvelden met decimale komma. Een type="number"-veld leest een komma niet
-   (in Chrome wordt "0,5" dan 5). Daarom worden alle getalvelden tekstvelden die
-   een komma tonen en accepteren; de code leest ze nog steeds als 0.5. */
-(function () {
-  const d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
-  const naarKomma = x => String(x).replace(/(\d)\.(\d)/g, '$1,$2');
-  function zet(el) {
-    if (el.dataset.komma) return;
-    const v = d.get.call(el);
-    el.dataset.komma = '1';
-    el.type = 'text';
-    el.setAttribute('inputmode', 'decimal');
-    el.setAttribute('autocomplete', 'off');
-    Object.defineProperty(el, 'value', {
-      configurable: true,
-      get() { return d.get.call(this).trim().replace(/\s/g, '').replace(',', '.'); },
-      set(x) { d.set.call(this, naarKomma(x)); }
+  return pts;
+}
+const pHbij = (p, V) => calcPH(V, p.Ca, p.Va, p.Cb, p.combo, p.divalent, p.pK, p.pK2, p.pK, p.pK2);
+
+function tcInfo(){
+  const p = curveParams(), el = document.getElementById('tc-info');
+  if (TC.vast){ el.innerHTML = TC.vast.info; return; }
+  const s = STOFFEN[TC.stof];
+  el.innerHTML = `<div><b>In de buret</b>${titrantVan(s.combo)}, ${d2(TC.Cb, 3)} mol/L</div><div><b>In de erlenmeyer</b>${d2(TC.Va)} mL ${s.kort || s.naam}, ${d2(TC.Ca, 3)} mol/L${s.pK && !s.vrij ? `, pK<sub>${s.combo === 'wa_sb' ? 'z' : 'b'}</sub> = ${d2(s.pK)}` : ''}</div>`;
+}
+function tcTeken(){
+  const p = curveParams(); TC.punten = berekenCurve(p); TC.Vmax = p.Vmax;
+  if (!TC.vast) TC.gezien.add([TC.stof, +TC.Ca.toFixed(4), +TC.Va.toFixed(2), +TC.Cb.toFixed(4)].join('|'));
+  const cv = document.getElementById('tc-cv'), dpr = window.devicePixelRatio || 1, W = cv.clientWidth || 520, H = cv.clientHeight || 340;
+  cv.width = W * dpr; cv.height = H * dpr; const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const L = 46, R = TC.banden ? 118 : 16, T = 14, B = 40, gw = W - L - R, gh = H - T - B;
+  TC.geo = { L, R, T, B, gw, gh, W, H };
+  c.fillStyle = '#fff'; c.fillRect(0, 0, W, H);
+  const px = V => L + V / p.Vmax * gw, py = pH => T + gh * (1 - pH / 14);
+  if (TC.banden){
+    INDICATOREN.forEach((ind, i) => {
+      c.fillStyle = ind.color + '2a'; c.fillRect(L, py(ind.range[1]), gw, py(ind.range[0]) - py(ind.range[1]));
+      c.fillStyle = ind.color; c.font = '600 11.5px Segoe UI, system-ui, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'middle';
+      c.fillText(ind.name, L + gw + 6, (py(ind.range[0]) + py(ind.range[1])) / 2);
     });
-    if (v !== '') el.value = v;
-    if (el.placeholder) el.placeholder = naarKomma(el.placeholder);
   }
-  // stijlregels voor getalvelden ook laten gelden voor de omgezette velden
-  try {
-    for (const sh of document.styleSheets) {
-      let regels; try { regels = sh.cssRules; } catch (e) { continue; }
-      for (const r of [...regels]) {
-        if (r.selectorText && /type=["']?number/.test(r.selectorText)) {
-          const sel = r.selectorText.replace(/\[type=["']?number["']?\]/g, '[data-komma]');
-          sh.insertRule(sel + '{' + r.style.cssText + '}', sh.cssRules.length);
-        }
-      }
+  c.strokeStyle = '#efe9dc'; c.lineWidth = 1; c.font = '11.5px Segoe UI, system-ui, sans-serif'; c.fillStyle = '#7a756b';
+  for (let pH = 0; pH <= 14; pH += 2){ c.beginPath(); c.moveTo(L, py(pH)); c.lineTo(L + gw, py(pH)); c.stroke(); c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillText(pH, L - 7, py(pH)); }
+  const stap = p.Vmax <= 20 ? 2 : p.Vmax <= 50 ? 5 : 10;
+  for (let V = 0; V <= p.Vmax + 1e-9; V += stap){ c.beginPath(); c.moveTo(px(V), T); c.lineTo(px(V), T + gh); c.stroke(); c.textAlign = 'center'; c.textBaseline = 'top'; c.fillText(V, px(V), T + gh + 6); }
+  c.strokeStyle = '#8a8376'; c.lineWidth = 1.3; c.beginPath(); c.moveTo(L, T); c.lineTo(L, T + gh); c.lineTo(L + gw, T + gh); c.stroke();
+  c.fillStyle = '#5b574f'; c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillText('volume uit de buret (mL)', L + gw / 2, H - 6);
+  c.save(); c.translate(13, T + gh / 2); c.rotate(-Math.PI / 2); c.fillText('pH', 0, 0); c.restore();
+  c.strokeStyle = '#24323f'; c.lineWidth = 2.4; c.beginPath();
+  TC.punten.forEach((q, i) => i ? c.lineTo(px(q.Vb), py(q.pH)) : c.moveTo(px(q.Vb), py(q.pH))); c.stroke();
+  if (TC.muis != null){
+    const q = TC.punten[Math.round(TC.muis / p.Vmax * 800)];
+    if (q){ c.strokeStyle = '#a0701f'; c.setLineDash([4, 4]); c.lineWidth = 1; c.beginPath(); c.moveTo(px(q.Vb), T); c.lineTo(px(q.Vb), T + gh); c.moveTo(L, py(q.pH)); c.lineTo(L + gw, py(q.pH)); c.stroke(); c.setLineDash([]);
+      c.fillStyle = '#a0701f'; c.beginPath(); c.arc(px(q.Vb), py(q.pH), 4.5, 0, 7); c.fill(); }
+  }
+  tcInfo();
+}
+function tcAflezen(e){
+  const cv = document.getElementById('tc-cv'), r = cv.getBoundingClientRect(), g = TC.geo; if (!g) return;
+  const x = e.clientX - r.left, V = (x - g.L) / g.gw * TC.Vmax;
+  if (V < 0 || V > TC.Vmax){ TC.muis = null; document.getElementById('tc-lees').innerHTML = 'Beweeg over de grafiek om af te lezen.'; tcTeken(); return; }
+  TC.muis = V; const q = TC.punten[Math.round(V / TC.Vmax * 800)];
+  document.getElementById('tc-lees').innerHTML = `V = <b>${d2(q.Vb)} mL</b> &nbsp; pH = <b>${d2(q.pH)}</b>`;
+  tcTeken();
+}
+function tcStof(k){
+  TC.stof = k; const s = STOFFEN[k];
+  document.getElementById('tc-pkrij').style.display = s.vrij ? '' : 'none';
+  document.getElementById('tc-pklab').innerHTML = s.combo === 'wb_sa' ? 'pK<sub>b</sub>' : 'pK<sub>z</sub>';
+  tcTeken();
+}
+function tcVeld(k, el){ const v = lees(el.value); if (isFinite(v) && v > 0){ TC[k] = v; tcTeken(); } }
+function tcBanden(v){ TC.banden = v; document.getElementById('tc-banden').checked = v; tcTeken(); }
+function tcZet(o){
+  if (o.stof){ document.getElementById('tc-stof').value = o.stof; TC.stof = o.stof; }
+  ['Ca', 'Va', 'Cb', 'pK'].forEach(k => { if (o[k] != null){ TC[k] = o[k]; const el = document.getElementById('tc-' + k); if (el) el.value = d2(o[k], k === 'Va' ? 2 : k === 'pK' ? 2 : 3); } });
+  tcStof(TC.stof);
+}
+function tcVulStoffen(toegestaan){
+  const sel = document.getElementById('tc-stof');
+  sel.innerHTML = Object.entries(STOFFEN).filter(([k]) => !toegestaan || toegestaan.includes(k)).map(([k, s]) => `<option value="${k}">${s.naam.replace(/<[^>]+>/g, '').replace('pKz', 'pKz')}</option>`).join('');
+  if (![...sel.options].some(o => o.value === TC.stof)) TC.stof = sel.options[0].value;
+  sel.value = TC.stof; tcStof(TC.stof);
+}
+function tcVast(p){
+  TC.vast = p; TC.muis = null;
+  document.getElementById('tc-instel').style.display = p ? 'none' : '';
+  document.getElementById('tc-lees').innerHTML = 'Beweeg over de grafiek om af te lezen.';
+  tcTeken();
+}
+new ResizeObserver(() => tcTeken()).observe(document.getElementById('tc-cv'));
+
+/* =====================================================================
+   Algemene opbouw: zijbalk, werkplaats, voorbeeld, opdrachten in stappen
+   ===================================================================== */
+const WPS = [];
+const TEKENINGEN = {};
+const STAAT = { wp:0, tab:'uitleg', voortgang: laad(), niveau: '5V' };
+const PER_WP = {};             /* per werkplaats: { serie, idx, st:[{stap, goed:[], getoond, pogingen}] } */
+let SIM = null;
+
+function maakCanvas(host, w, h){
+  const c = document.createElement('canvas'), dpr = Math.max(1, window.devicePixelRatio || 1);
+  c.width = w * dpr; c.height = h * dpr; c.style.aspectRatio = w + ' / ' + h;
+  host.appendChild(c);
+  const ctx = c.getContext('2d'); ctx.scale(dpr, dpr); ctx.W = w; ctx.H = h; ctx.canvas_ = c;
+  return ctx;
+}
+
+function zichtbaar(w){ return !w.alleen6 || STAAT.niveau === '6V'; }
+function renderNav(){
+  $('#nav').innerHTML = WPS.map((w, i) => {
+    if (!zichtbaar(w)) return '';
+    const klaar = STAAT.voortgang[w.id] && STAAT.voortgang[w.id].klaar;
+    return `<a data-i="${i}" class="${i === STAAT.wp ? 'on' : ''} ${klaar ? 'klaar' : ''}"><i>${klaar ? '✓' : w.ster ? '★' : i + 1}</i><span>${w.titel}<small>${w.par}</small></span></a>`;
+  }).join('');
+  $$('#nav a').forEach(a => a.onclick = () => open(+a.dataset.i));
+}
+
+function open(i){
+  STAAT.wp = i; STAAT.tab = 'uitleg';
+  const w = WPS[i];
+  if (!PER_WP[w.id]) nieuweSerie(w);
+  parkeer();
+  $('#main').innerHTML = `<div class="wp"><section class="tekst" id="tekst"></section><section class="simkol" id="simkol"></section></div>`;
+  SIM = w.sim; SIM.init($('#simkol'));
+  renderTekst(); renderNav();
+  window.scrollTo(0, 0);
+}
+
+function nieuweSerie(w){
+  const serie = w.maakSerie();
+  PER_WP[w.id] = { serie, idx:0, serieNr: (PER_WP[w.id] ? PER_WP[w.id].serieNr + 1 : 0), st: serie.map(() => ({ stap:0, getoond:false, klaar:false, pogingen:{} })) };
+}
+
+function renderTekst(){
+  const w = WPS[STAAT.wp], p = PER_WP[w.id];
+  const nGoed = p.st.filter((s, k) => s.klaar && !s.getoond && !p.serie[k].ster).length, nTot = p.serie.filter(o => !o.ster).length;
+  let h = `<div class="kicker">${w.ster ? 'Werkplaats ★ · verdieping' : 'Werkplaats ' + (STAAT.wp + 1) + ' · ' + w.par}</div><h2>${w.titel}</h2>
+    <div class="tabs"><button data-t="uitleg" class="${STAAT.tab === 'uitleg' ? 'on' : ''}">Uitleg en voorbeeld</button>
+    <button data-t="opd" class="${STAAT.tab === 'opd' ? 'on' : ''}">Opdrachten<span class="tel">${nGoed}/${nTot}</span></button></div>`;
+  if (STAAT.tab === 'uitleg'){
+    h += w.uitleg() + renderVoorbeeld(w);
+  } else {
+    h += renderOpdracht(w, p);
+  }
+  $('#tekst').innerHTML = h;
+  $$('#tekst .tabs button').forEach(b => b.onclick = () => { STAAT.tab = b.dataset.t; renderTekst(); if (STAAT.tab === 'opd') zetOpdrachtInSim(); else SIM.opdracht && SIM.opdracht(null); });
+  if (STAAT.tab === 'uitleg') koppelVoorbeeld(w); else koppelOpdracht(w, p);
+}
+
+/* ---------- uitgewerkt voorbeeld, stap voor stap ---------- */
+function renderVoorbeeld(w){
+  const vb = w.voorbeeld; if (!vb) return '';
+  const n = w._vbStap || 0;
+  let h = `<div class="vb"><div class="vbkop">Voorbeeld</div><div class="vbvraag">${vb.vraag}</div>`;
+  for (let k = 0; k < n; k++) h += `<div class="vbstap"><span class="n">${k + 1}</span><div class="b">${vb.stappen[k]}</div></div>`;
+  h += n < vb.stappen.length ? `<div class="verder"><button class="btn g klein" id="vbverder">${n ? 'Volgende stap' : 'Toon de uitwerking'} ▸</button></div>`
+                             : `<div class="verder"><button class="btn klein" id="naaropd">Naar de opdrachten ▸</button></div>`;
+  return h + '</div>';
+}
+function koppelVoorbeeld(w){
+  const b = $('#vbverder'); if (b) b.onclick = () => { w._vbStap = (w._vbStap || 0) + 1; renderTekst(); w.voorbeeld.bijStap && w.voorbeeld.bijStap(w._vbStap); };
+  const o = $('#naaropd'); if (o) o.onclick = () => { STAAT.tab = 'opd'; renderTekst(); zetOpdrachtInSim(); window.scrollTo(0, 0); };
+}
+
+/* ---------- opdrachten ---------- */
+function renderOpdracht(w, p){
+  const o = p.serie[p.idx], s = p.st[p.idx];
+  const nTot = p.serie.filter(x => !x.ster).length;
+  let h = '';
+  if (STAAT.voortgang[w.id] && STAAT.voortgang[w.id].klaar && p.st.every((x, k) => p.serie[k].ster || (x.klaar && !x.getoond)))
+    h += `<div class="klaarbanner"><b>Werkplaats afgerond.</b> Probeer ook de ★-opdrachten, of oefen met een nieuwe serie.</div>`;
+  h += `<div class="oknop">` + p.serie.map((x, k) => {
+    const st = p.st[k];
+    return `<span class="dot ${k === p.idx ? 'on' : ''} ${st.klaar && !st.getoond ? 'goed' : ''} ${x.ster ? 'ster' : ''}" data-k="${k}" title="${x.titel}">${x.ster ? '★' : k + 1}</span>`;
+  }).join('') + `<span class="rechts"><button class="btn g klein" id="nieuweserie">Nieuwe serie</button></span></div>`;
+  h += `<div class="opdkop">${o.ster ? '<span class="st">★ </span>' : ''}Opdracht ${o.ster ? '★' : p.idx + 1}${o.ster ? '' : ' van ' + nTot} · ${o.titel}</div>`;
+  if (o.vraag) h += `<div class="opdvraag">${o.vraag}</div>`;
+  o.stappen.forEach((st, k) => {
+    const dicht = k > s.stap, goed = k < s.stap || s.klaar;
+    h += `<div class="stap ${dicht ? 'dicht' : ''} ${goed ? 'goed' : ''}" data-k="${k}">${o.stappen.length > 1 ? `<span class="n">${goed ? '✓' : k + 1}</span>` : ''}<div class="inh">
+      <div class="vr">${st.vr}</div>${goed ? `<div class="antw">${st.antwoord()}</div>` : `<div class="inv">${invoerHTML(st, k)}</div>`}
+      <div class="fb" id="fb${k}"></div></div></div>`;
+  });
+  if (s.klaar){
+    const volgende = p.idx < p.serie.length - 1;
+    h += `<div class="rij" style="margin-top:6px">${volgende ? `<button class="btn" id="volgende">Volgende opdracht ▸</button>` : ''}${o.naKlaar ? `<span class="waarneming">${o.naKlaar()}</span>` : ''}</div>`;
+  }
+  if (o.stappen.some(x => x.type === 'teken')) h += `<div class="typtip">${TEKENTIP}</div>`;
+  else if (o.stappen.some(x => x.type === 'getal')) h += `<div class="typtip">${GETALTIP}</div>`;
+  return h;
+}
+const TEKENTIP = 'Tekenen: kies een atoomsoort en klik op het raster. Sleep vanaf een atoom om een binding met een nieuw of bestaand atoom te maken. Klik op een binding voor een dubbele binding. <b>+H aanvullen</b> zet ontbrekende H-atomen, maar je mag ze ook zelf zetten. <b>~</b> is een open binding: de keten gaat verder.';
+const GETALTIP = 'Typ een getal met een komma, bijvoorbeeld <code>2,4</code> of <code>35</code>.';
+const TYPTIP = 'Zo typ je (voorbeelden met titaan en chromaat): <code>Ti2(CrO4)3</code> · ion <code>Ti3+</code> of <code>CrO4 2-</code> · pijl <code>-></code> · toestand <code>(s)</code> <code>(aq)</code> <code>(l)</code> · coëfficiënt ervoor: <code>3 CrO4 2-(aq)</code>.';
+
+function invoerHTML(st, k){
+  const knoppen = `<button class="btn" data-ctl="${k}">Controleer</button><button class="btn g" data-hint="${k}">Hint</button><button class="btn g" data-toon="${k}" style="display:none">Toon antwoord</button>`;
+  if (st.type === 'sim') return `<div class="rij">${knoppen}</div>`;
+  if (st.type === 'tekst') return `<div class="rij"><input class="in" id="in${k}" autocomplete="off" spellcheck="false" placeholder="${st.ph || ''}">${knoppen}</div><div class="voorbeeldweergave" id="vw${k}"></div>`;
+  if (st.type === 'chips') return `<div class="chips" id="ch${k}">${st.opties.map((x, j) => `<span class="chip" data-j="${j}">${x.html}</span>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'keuze') return `<div class="opties" id="op${k}">${st.opties.map((x, j) => `<button class="optie" data-j="${j}">${x.html}</button>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'teken') return `<div id="tv${k}"></div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'getal') return `<div class="rij"><input class="in getal" id="in${k}" autocomplete="off" spellcheck="false" placeholder="${st.ph || 'antwoord'}"><span class="eenheid">${st.eenheid || ''}</span></div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'selects') return `<div class="rij">${st.selects.map((s, j) => `<label style="font-size:14px">${s.lab} <select class="sel" id="se${k}_${j}"><option value="">kies…</option>${s.opties.map(x => `<option value="${x.v}">${x.t}</option>`).join('')}</select></label>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  return '';
+}
+
+function koppelOpdracht(w, p){
+  const o = p.serie[p.idx], s = p.st[p.idx];
+  $$('.oknop .dot').forEach(d => d.onclick = () => { p.idx = +d.dataset.k; renderTekst(); zetOpdrachtInSim(); });
+  $('#nieuweserie').onclick = () => { nieuweSerie(w); renderTekst(); zetOpdrachtInSim(); };
+  const v = $('#volgende'); if (v) v.onclick = () => { p.idx++; renderTekst(); zetOpdrachtInSim(); };
+  o.stappen.forEach((st, k) => {
+    if (k !== s.stap || s.klaar) return;
+    const inp = $('#in' + k);
+    if (st.type === 'teken'){
+      const sleutel = w.id + '|' + p.idx + '|' + k + '|' + p.serieNr;
+      const tv = new Tekenveld($('#tv' + k), { breedte: st.breedte || 32, hoogte: st.hoogte || 13 });
+      if (TEKENINGEN[sleutel]) tv.zet(TEKENINGEN[sleutel]);
+      const oud = tv.teken.bind(tv); tv.teken = () => { oud(); TEKENINGEN[sleutel] = tv.g; };
+      tv.melding = m => { const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = m; };
+      st._tv = tv;
     }
-  } catch (e) {}
-  const alles = root => { if (root.matches && root.matches('input[type="number"]')) zet(root); if (root.querySelectorAll) root.querySelectorAll('input[type="number"]').forEach(zet); };
-  alles(document);
-  new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) alles(n); })))
-    .observe(document.documentElement, { childList: true, subtree: true });
-})();
+    if (inp && st.type === 'getal'){ inp.onkeydown = e => { if (e.key === 'Enter') controleer(w, p, k); }; setTimeout(() => inp.focus({ preventScroll:true }), 30); }
+    else if (inp){
+      inp.onkeydown = e => { if (e.key === 'Enter') controleer(w, p, k); };
+      setTimeout(() => inp.focus({ preventScroll:true }), 30);
+    }
+    $$(`#ch${k} .chip`).forEach(c => c.onclick = () => c.classList.toggle('aan'));
+    $$(`#op${k} .optie`).forEach(c => c.onclick = () => {
+      if (!st.meer) $$(`#op${k} .optie`).forEach(x => x !== c && x.classList.remove('aan'));
+      c.classList.toggle('aan');
+    });
+    $(`[data-ctl="${k}"]`).onclick = () => controleer(w, p, k);
+    $(`[data-hint="${k}"]`).onclick = () => { const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = st.hint; };
+    $(`[data-toon="${k}"]`).onclick = () => {
+      s.getoond = true; const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = 'Antwoord: ' + st.antwoord();
+      setTimeout(() => stapGoed(w, p, k), 1400);
+    };
+    if ((s.pogingen[k] || 0) >= 2) $(`[data-toon="${k}"]`).style.display = '';
+  });
+}
+function waardeVan(st, k){
+  if (st.type === 'tekst') return $('#in' + k).value;
+  if (st.type === 'chips') return $$(`#ch${k} .chip.aan`).map(c => +c.dataset.j);
+  if (st.type === 'keuze') return $$(`#op${k} .optie.aan`).map(c => +c.dataset.j);
+  if (st.type === 'selects') return st.selects.map((x, j) => $(`#se${k}_${j}`).value);
+  if (st.type === 'teken') return st._tv;
+  if (st.type === 'getal') return $('#in' + k).value;
+}
+function controleer(w, p, k){
+  const o = p.serie[p.idx], s = p.st[p.idx], st = o.stappen[k];
+  const r = st.check(waardeVan(st, k));
+  const fb = $('#fb' + k);
+  if (r.ok){ fb.className = 'fb toon goed'; fb.innerHTML = r.msg || 'Goed!'; setTimeout(() => stapGoed(w, p, k), 650); }
+  else {
+    s.pogingen[k] = (s.pogingen[k] || 0) + 1;
+    fb.className = 'fb toon fout'; fb.innerHTML = r.msg;
+    if (s.pogingen[k] >= 2) $(`[data-toon="${k}"]`).style.display = '';
+  }
+}
+function stapGoed(w, p, k){
+  const o = p.serie[p.idx], s = p.st[p.idx];
+  if (s.stap !== k) return;
+  s.stap = k + 1;
+  if (s.stap >= o.stappen.length) s.klaar = true;
+  SIM.stapGoed && SIM.stapGoed(o, k);
+  if (s.klaar){
+    const nietSter = p.serie.map((x, j) => [x, p.st[j]]).filter(([x]) => !x.ster);
+    if (nietSter.every(([, y]) => y.klaar && !y.getoond)){
+      STAAT.voortgang[w.id] = { klaar:true }; bewaar(STAAT.voortgang); renderNav();
+    }
+  }
+  renderTekst();
+}
+function zetOpdrachtInSim(){
+  const w = WPS[STAAT.wp], p = PER_WP[w.id];
+  SIM.opdracht && SIM.opdracht(STAAT.tab === 'opd' ? p.serie[p.idx] : null, STAAT.tab === 'opd' ? p.st[p.idx] : null);
+}
+
+/* lus */
+let tVorig = 0;
+function lus(t){
+  const dt = Math.min(0.05, (t - tVorig) / 1000 || 0); tVorig = t;
+  if (SIM){ SIM.update && SIM.update(dt); SIM.draw && SIM.draw(); }
+  requestAnimationFrame(lus);
+}
+
+
+function keuzeStap(vr, opties, o = {}){
+  const opts = o.vast ? opties : schud(opties);
+  return { type:'keuze', meer: !!o.meer, vr, opties: opts, hint: o.hint || '',
+    check: v => {
+      if (!v.length) return { ok:false, msg:'Kies een antwoord.' };
+      const sel = v.map(j => opts[j]), goed = opts.filter(x => x.g);
+      if (sel.length === goed.length && sel.every(x => x.g)) return { ok:true, msg: o.goedMsg };
+      const fb = sel.find(x => !x.g && x.fb); if (fb) return { ok:false, msg: fb.fb };
+      if (o.meer && sel.every(x => x.g)) return { ok:false, msg:'Je mist er nog een.' };
+      return { ok:false, msg: o.fout || 'Nog niet goed.' };
+    },
+    antwoord: () => opts.filter(x => x.g).map(x => x.html).join('<br>'), goed: () => opts.map((x, j) => x.g ? j : -1).filter(j => j >= 0) };
+}
+function leesGetal(s){
+  let t = String(s).trim().replace(/\s+/g, '').replace(/[×x*·]10\^?/i, 'e').replace(/10\^/, 'e');
+  t = t.replace(',', '.');
+  return /^-?\d*\.?\d+(e-?\d+)?$/i.test(t) ? parseFloat(t) : NaN;
+}
+function getalStap(vr, waarde, eenheid, uitleg, hint, tol){
+  return { type:'getal', vr, eenheid, hint, ph:'getal',
+    check: v => { const x = leesGetal(v); if (isNaN(x)) return { ok:false, msg:'Typ een getal, bijvoorbeeld <code>2,4</code>.' };
+      if (Math.abs(x - waarde) <= Math.abs(waarde) * tol) return { ok:true, msg:'Goed! ' + uitleg };
+      return { ok:false, msg:'Nog niet goed. ' + hint }; },
+    antwoord: () => uitleg, goed: () => String(+waarde.toPrecision(3)).replace('.', ',') };
+}
+
+function parkeer(){ const h = $('#simhouder'); if (h) $('#parkeer').appendChild(h); }
+function simStap(vr, test, hint, antwoord){ return { type:'sim', vr, hint, check: () => test() ? { ok:true } : { ok:false, msg: hint }, antwoord: () => antwoord }; }
+const leerdoelen = (...l) => `<div class="leerdoelen"><b>Leerdoelen</b><ul>${l.map(x => x.startsWith('★') ? `<li class="ster">${x.slice(1).trim()}</li>` : `<li>${x}</li>`).join('')}</ul></div>`;
+
+/* =====================================================================
+   Koppeling met de titratie
+   ===================================================================== */
+const BRK = (t, n) => `<span class="breuk"><span>${t}</span><span>${n}</span></span>`;
+const ML = BRK('mol', 'L');
+const rndS = (a, b, s) => Math.round((a + Math.random() * (b - a)) / s) * s;
+const kiesUit = a => a[Math.floor(Math.random() * a.length)];
+const g = (x, n) => String(+x.toPrecision(n)).replace('.', ',');
+const mach = x => { const e = Math.floor(Math.log10(x)), m = x / 10 ** e; return `${m.toFixed(2).replace('.', ',')}·10<sup>${e < 0 ? '−' + (-e) : e}</sup>`; };
+
+const TITR = {
+  init(host){
+    const w = WPS[STAAT.wp];
+    host.appendChild($('#simhouder'));
+    $$('#simhouder .sh-deel').forEach(e => e.classList.toggle('verborgen', !(w.delen || []).includes(e.dataset.deel)));
+    if (TITR._wp !== w.id){ TITR._wp = w.id; tcVulStoffen(w.stoffen); if (w.begin) tcZet(w.begin); tcBanden(false); }
+    setTimeout(tcTeken, 30);
+  },
+  opdracht(o){ tcVast(o && o.curve ? o.curve : null); },
+  update(){}, draw(){}
+};
+function getalAbs(vr, waarde, eenheid, uitleg, hint, abs, ook){
+  return { type:'getal', vr, eenheid, hint, ph:'getal',
+    check: v => { const x = leesGetal(v); if (isNaN(x)) return { ok:false, msg:'Typ een getal, bijvoorbeeld <code>4,7</code>.' };
+      if (Math.abs(x - waarde) <= abs || (ook != null && Math.abs(x - ook) <= abs)) return { ok:true, msg:'Goed! ' + uitleg };
+      return { ok:false, msg:'Nog niet goed. ' + hint }; },
+    antwoord: () => uitleg, goed: () => String(+waarde.toFixed(2)).replace('.', ',') };
+}
+/* een curve met onbekende gegevens */
+function maakVast(combo, Ca, Va, Cb, pK, info, extra = {}){
+  const Veq = Ca * Va / Cb, deler = extra.divalent ? 2 : 1;
+  const Vmax = extra.Vmax || Math.ceil(Veq * (extra.divalent ? 3.4 : 2) / 5) * 5;
+  const p = { combo, Ca, Va, Cb, pK, pK2: extra.pK2 || 7, divalent: !!extra.divalent, Vmax, info };
+  p.Veq = Veq; p.Veq2 = extra.divalent ? 2 * Veq : null;
+  p.pHeq = pHbij(p, Veq); p.pHhalf = pHbij(p, Veq / 2);
+  return p;
+}
+const infoBlok = (buret, erl) => `<div><b>In de buret</b>${buret}</div><div><b>In de erlenmeyer</b>${erl}</div>`;
+/* indicatoren waarvan het omslagtraject in de sprong ligt, of die de pH bij het equivalentiepunt bevatten */
+function goedeIndicatoren(p){
+  const lo = Math.min(pHbij(p, p.Veq * 0.99), pHbij(p, p.Veq * 1.01)), hi = Math.max(pHbij(p, p.Veq * 0.99), pHbij(p, p.Veq * 1.01));
+  return INDICATOREN.filter(i => (i.range[0] >= lo && i.range[1] <= hi) || (p.pHeq >= i.range[0] && p.pHeq <= i.range[1])).map(i => i.slug);
+}
+function indicatorStap(vr, p){
+  const goed = goedeIndicatoren(p);
+  return keuzeStap(vr, INDICATOREN.map(i => ({ html: i.name + ` <span style="color:var(--grijs)">(pH ${d2(i.range[0], 1)}–${d2(i.range[1], 1)})</span>`, g: goed.includes(i.slug) }))
+    .concat([{ html:'geen van deze indicatoren', g: !goed.length }]),
+    { meer: goed.length > 1, hint:'Zet de omslagtrajecten aan. Het omslagtraject moet in het steile deel van de curve liggen, rond het equivalentiepunt.',
+      goedMsg: `Goed. Het equivalentiepunt ligt bij pH ${d2(p.pHeq, 1)}.` + (goed.length > 1 ? ' Alle gekozen indicatoren slaan om in het steile deel van de curve.' : '') });
+}
+
+/* ================= 1. Sterk zuur en sterke base ================= */
+function onbekendZoutzuur(){
+  for (;;){
+    const Cb = kiesUit([0.100, 0.125, 0.150, 0.200]), Va = kiesUit([20.00, 25.00]), Ca = rndS(0.05, 0.20, 0.005), Veq = Ca * Va / Cb;
+    if (Veq < 10 || Veq > 30) continue;
+    const p = maakVast('sa_sb', Ca, Va, Cb, 7, infoBlok(`natronloog, ${d2(Cb, 3)} mol/L`, `${d2(Va)} mL zoutzuur, onbekende molariteit`));
+    const n = Cb * Veq / 1000;
+    return { titel:'Een onbekend zoutzuur', vraag:`Rechts staat de titratiecurve van ${d2(Va)} mL zoutzuur met onbekende molariteit, getitreerd met ${d2(Cb, 3)} M natronloog. Bereken de molariteit van het zoutzuur.`, curve: p, stappen:[
+      getalStap('Volume natronloog bij het equivalentiepunt =', Veq, 'mL', `Het equivalentiepunt ligt in het midden van de sprong, bij ${d2(Veq)} mL.`, 'Zoek het midden van het steile deel van de curve en lees daar het volume af.', 0.025),
+      getalStap('Aantal mol OH<sup>−</sup> toegevoegd =', n, 'mol', `n(OH<sup>−</sup>) = ${d2(Cb, 3)} ${ML} · ${d2(Veq / 1000, 5)} L = ${mach(n)} mol.`, 'Vermenigvuldig de molariteit van de natronloog met het volume in liter.', 0.04),
+      getalStap('Molariteit van het zoutzuur =', Ca, ML, `Bij het equivalentiepunt geldt n(H<sub>3</sub>O<sup>+</sup>) = n(OH<sup>−</sup>) = ${mach(n)} mol. [H<sub>3</sub>O<sup>+</sup>] = ${BRK(mach(n) + ' mol', d2(Va / 1000, 5) + ' L')} = ${g(Ca, 3)} ${ML}.`, 'Bij het equivalentiepunt is het aantal mol H<sub>3</sub>O<sup>+</sup> gelijk aan het aantal mol OH<sup>−</sup>. Deel door het volume zoutzuur in liter.', 0.04)] };
+  }
+}
+WPS.push({
+  id:'sterk', titel:'Sterk zuur en sterke base', par:'het equivalentiepunt', sim: TITR, stoffen:['zoutzuur', 'natronloog'], delen:[], begin:{ stof:'zoutzuur', Ca:0.100, Va:25.00, Cb:0.100 },
+  uitleg: () => leerdoelen(
+      'Ik kan het verloop van een titratiecurve van een sterk zuur met een sterke base beschrijven.',
+      'Ik kan uitleggen wat het equivalentiepunt is en waarom de pH daar 7 is.',
+      'Ik kan met het volume bij het equivalentiepunt de molariteit van het zuur berekenen.',
+      '★ Ik kan de curve van een sterke base met een sterk zuur beschrijven.') + `
+    <h3>Uitleg</h3>
+    <p>Bij een titratie voeg je uit een buret een oplossing met bekende molariteit toe aan een afgemeten volume van de oplossing die je onderzoekt. Een <b>pH-meter</b> meet de pH na elke toevoeging. Zo ontstaat een <b>titratiecurve</b>.</p>
+    <p>Titreer je zoutzuur met natronloog, dan reageren de H<sub>3</sub>O<sup>+</sup>-ionen met de toegevoegde OH<sup>−</sup>-ionen:</p>
+    <div class="formule">H<sub>3</sub>O<sup>+</sup>(aq) + OH<sup>−</sup>(aq) → 2 H<sub>2</sub>O(l)</div>
+    <ul><li>In het begin is er veel H<sub>3</sub>O<sup>+</sup>: de pH is laag en stijgt langzaam.</li>
+    <li>Bij het <b>equivalentiepunt</b> is precies evenveel OH<sup>−</sup> toegevoegd als er H<sub>3</sub>O<sup>+</sup> was: n(OH<sup>−</sup>) = n(H<sub>3</sub>O<sup>+</sup>). Rond dat punt maakt de pH een grote <b>sprong</b>.</li>
+    <li>Bij een sterk zuur en een sterke base blijven alleen Na<sup>+</sup>, Cl<sup>−</sup> en water over. Die reageren niet met water: de pH bij het equivalentiepunt is 7.</li></ul>`,
+  voorbeeld: {
+    vraag: 'Van een oplossing van salpeterzuur wordt 20,00 mL getitreerd met 0,120 M natronloog. Het equivalentiepunt ligt bij 16,50 mL. Bereken de molariteit van het salpeterzuur.',
+    stappen: [
+      `n(OH<sup>−</sup>) = 0,120 ${ML} · 0,01650 L = 1,98·10<sup>−3</sup> mol.`,
+      'Bij het equivalentiepunt geldt n(H<sub>3</sub>O<sup>+</sup>) = n(OH<sup>−</sup>) = 1,98·10<sup>−3</sup> mol.',
+      `[H<sub>3</sub>O<sup>+</sup>] = ${BRK('1,98·10<sup>−3</sup> mol', '0,02000 L')} = 0,0990 ${ML}. Salpeterzuur is een sterk zuur, dus de molariteit van het salpeterzuur is 0,0990 M.`
+    ]
+  },
+  maakSerie: () => [
+    { titel:'De curve', vraag:'Stel rechts in: in de erlenmeyer 25,00 mL zoutzuur van 0,100 mol/L, in de buret natronloog van 0,100 mol/L. Beweeg over de grafiek om af te lezen.', stappen:[
+      simStap('Stel de titratie in.', () => !TC.vast && TC.stof === 'zoutzuur' && Math.abs(TC.Ca - 0.1) < 1e-6 && Math.abs(TC.Va - 25) < 1e-6 && Math.abs(TC.Cb - 0.1) < 1e-6, 'Kies zoutzuur en vul 25,00 mL, 0,100 mol/L en 0,100 mol/L in.', 'ingesteld'),
+      keuzeStap('Welke uitspraken over de curve zijn juist? Kies alle juiste.', [
+        { html:'In het begin stijgt de pH langzaam.', g:true },
+        { html:'Rond het equivalentiepunt stijgt de pH sterk bij een kleine toevoeging.', g:true },
+        { html:'Na het equivalentiepunt daalt de pH weer.' },
+        { html:'Aan het begin is de pH 7.' },
+        { html:'De pH wordt nooit hoger dan 7.' }], { meer:true }),
+      getalStap('Volume natronloog bij het equivalentiepunt =', 25.0, 'mL', 'Het equivalentiepunt ligt bij 25,0 mL: daar is evenveel OH<sup>−</sup> toegevoegd als er H<sub>3</sub>O<sup>+</sup> was.', 'Lees het volume af in het midden van de sprong.', 0.02),
+      keuzeStap('Wat is de pH bij het equivalentiepunt?', [{ html:'7', g:true }, { html:'lager dan 7' }, { html:'hoger dan 7' }, { html:'Dat hangt af van de molariteit van de natronloog.' }])]},
+    onbekendZoutzuur(),
+    { titel:'Waarom pH 7?', vraag:'Bij het equivalentiepunt van de titratie van zoutzuur met natronloog is de pH 7.', stappen:[
+      keuzeStap('Welke uitleg is juist?', [
+        { html:'Er is geen H<sub>3</sub>O<sup>+</sup> of OH<sup>−</sup> over, en Na<sup>+</sup> en Cl<sup>−</sup> reageren niet met water.', g:true },
+        { html:'Natriumchloride is een zout, en zouten hebben altijd pH 7.' },
+        { html:'Alle ionen zijn uit de oplossing verdwenen.' },
+        { html:'De H<sub>3</sub>O<sup>+</sup>-ionen en OH<sup>−</sup>-ionen vormen samen NaCl.' }])]},
+    { titel:'Een sterke base', ster:true, vraag:'Kies in de erlenmeyer natronloog. Er wordt nu getitreerd met zoutzuur.', stappen:[
+      simStap('Kies natronloog in de erlenmeyer.', () => !TC.vast && TC.stof === 'natronloog', 'Kies bij "In de erlenmeyer" natronloog.', 'natronloog gekozen'),
+      keuzeStap('Welke uitspraken zijn juist? Kies alle juiste.', [
+        { html:'De curve begint bij een hoge pH en daalt.', g:true },
+        { html:'De pH bij het equivalentiepunt is 7.', g:true },
+        { html:'De curve is een spiegelbeeld van de curve van zoutzuur met natronloog.', g:true },
+        { html:'Het equivalentiepunt ligt bij pH 14.' },
+        { html:'Er is geen sprong.' }], { meer:true })]}
+  ]
+});
+
+/* ================= 2. Zwak zuur ================= */
+function onbekendZwakZuur(){
+  for (;;){
+    const Cb = kiesUit([0.100, 0.150, 0.200]), Va = kiesUit([20.00, 25.00]), Ca = rndS(0.06, 0.20, 0.005), Veq = Ca * Va / Cb, pK = rndS(3.8, 5.8, 0.1);
+    if (Veq < 10 || Veq > 30) continue;
+    const p = maakVast('wa_sb', Ca, Va, Cb, pK, infoBlok(`natronloog, ${d2(Cb, 3)} mol/L`, `${d2(Va)} mL van een onbekend zwak zuur HZ`));
+    return { titel:'Een onbekend zwak zuur', vraag:`Rechts staat de titratiecurve van ${d2(Va)} mL van een oplossing van een onbekend zwak zuur HZ, getitreerd met ${d2(Cb, 3)} M natronloog. Bepaal de pK<sub>z</sub> en de K<sub>z</sub> van het zuur.`, curve: p, stappen:[
+      getalStap('Volume natronloog bij het equivalentiepunt =', Veq, 'mL', `Het equivalentiepunt ligt bij ${d2(Veq)} mL.`, 'Zoek het midden van het steile deel van de curve.', 0.025),
+      getalStap('Volume bij het halve equivalentiepunt =', Veq / 2, 'mL', `Het halve equivalentiepunt ligt bij ${d2(Veq / 2)} mL.`, 'Neem de helft van het volume bij het equivalentiepunt.', 0.025),
+      getalAbs('pK<sub>z</sub> =', pK, '', `Bij het halve equivalentiepunt is [HZ] = [Z<sup>−</sup>], dus pH = pK<sub>z</sub> = ${d2(pK, 1)}.`, 'Lees de pH af bij het halve equivalentiepunt.', 0.15, p.pHhalf),
+      getalStap('K<sub>z</sub> =', 10 ** -pK, '', `K<sub>z</sub> = 10<sup>−pK<sub>z</sub></sup> = 10<sup>−${d2(pK, 1)}</sup> = ${mach(10 ** -pK)}.`, 'Gebruik K<sub>z</sub> = 10<sup>−pK<sub>z</sub></sup>.', 0.4)] };
+  }
+}
+WPS.push({
+  id:'zwak', titel:'Zwak zuur', par:'het halve equivalentiepunt', sim: TITR, stoffen:['zoutzuur', 'ethaanzuur', 'methaanzuur', 'hz'], delen:[], begin:{ stof:'ethaanzuur', Ca:0.100, Va:25.00, Cb:0.100 },
+  uitleg: () => leerdoelen(
+      'Ik kan de titratiecurve van een zwak zuur vergelijken met die van een sterk zuur.',
+      'Ik kan uitleggen waarom bij het halve equivalentiepunt geldt: pH = pK<sub>z</sub>.',
+      'Ik kan uit een titratiecurve de pK<sub>z</sub> en de K<sub>z</sub> van een zwak zuur bepalen.',
+      'Ik kan uitleggen waarom de pH bij het equivalentiepunt hoger is dan 7.') + `
+    <h3>Uitleg</h3>
+    <p>Titreer je een zwak zuur HZ met natronloog, dan reageert HZ met OH<sup>−</sup>:</p>
+    <div class="formule">HZ(aq) + OH<sup>−</sup>(aq) → Z<sup>−</sup>(aq) + H<sub>2</sub>O(l)</div>
+    <ul><li>Tot het equivalentiepunt bevat de oplossing HZ en Z<sup>−</sup> naast elkaar: een <b>buffer</b>. De pH verandert daar weinig.</li>
+    <li>Bij het <b>halve equivalentiepunt</b> is de helft van HZ omgezet: [HZ] = [Z<sup>−</sup>]. Invullen in de evenwichtsvoorwaarde geeft:</li></ul>
+    <div class="reken">K<sub>z</sub> = ${BRK('[H<sub>3</sub>O<sup>+</sup>] · [Z<sup>−</sup>]', '[HZ]')} = [H<sub>3</sub>O<sup>+</sup>] &nbsp; dus &nbsp; pH = pK<sub>z</sub></div>
+    <ul><li>Bij het equivalentiepunt is alle HZ omgezet in Z<sup>−</sup>. Z<sup>−</sup> is een zwakke base: de pH is hoger dan 7.</li></ul>`,
+  voorbeeld: {
+    vraag: 'Een oplossing van een zwak zuur HZ wordt getitreerd met natronloog. Het equivalentiepunt ligt bij 18,40 mL. Bij 9,20 mL natronloog is de pH 3,90. Bepaal de K<sub>z</sub> van HZ.',
+    stappen: [
+      '9,20 mL is de helft van 18,40 mL: dat is het halve equivalentiepunt.',
+      'Daar is [HZ] = [Z<sup>−</sup>], dus pK<sub>z</sub> = pH = 3,90.',
+      'K<sub>z</sub> = 10<sup>−3,90</sup> = 1,3·10<sup>−4</sup>.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Sterk en zwak', vraag:'Rechts staat de curve van 25,00 mL ethaanzuur van 0,100 mol/L met natronloog van 0,100 mol/L. Vergelijk met zoutzuur van dezelfde molariteit: kies bij "In de erlenmeyer" ook eens zoutzuur.', stappen:[
+      simStap('Maak de curve van ethaanzuur en die van zoutzuur.', () => ['zoutzuur', 'ethaanzuur'].every(k => TC.gezien.has(k + '|0.1|25|0.1')), 'Kies zoutzuur en daarna weer ethaanzuur, met dezelfde volumes en molariteiten.', 'beide curves gemaakt'),
+      keuzeStap('Wat is anders bij ethaanzuur? Kies alle juiste.', [
+        { html:'De pH aan het begin is hoger.', g:true },
+        { html:'Vóór het equivalentiepunt is er een gebied waar de pH weinig verandert.', g:true },
+        { html:'De pH bij het equivalentiepunt is hoger dan 7.', g:true },
+        { html:'Het equivalentiepunt ligt bij een groter volume natronloog.', fb:'Er is evenveel mol zuur: het equivalentiepunt ligt bij hetzelfde volume.' },
+        { html:'De sprong is groter.' }], { meer:true })]},
+    { titel:'Het halve equivalentiepunt', vraag:'Bij de titratie van ethaanzuur met natronloog is precies de helft van het volume tot het equivalentiepunt toegevoegd.', stappen:[
+      keuzeStap('Wat geldt dan in de oplossing?', [
+        { html:'[CH<sub>3</sub>COOH] = [CH<sub>3</sub>COO<sup>−</sup>]', g:true },
+        { html:'[CH<sub>3</sub>COOH] = 0' },
+        { html:'[H<sub>3</sub>O<sup>+</sup>] = [OH<sup>−</sup>]' },
+        { html:'[CH<sub>3</sub>COO<sup>−</sup>] = [H<sub>3</sub>O<sup>+</sup>]' }]),
+      getalAbs('Lees in de curve de pH af bij 12,50 mL. pH =', 4.74, '', 'De pH bij het halve equivalentiepunt is 4,74: dat is de pK<sub>z</sub> van ethaanzuur.', 'Beweeg naar V = 12,50 mL. Zorg dat rechts ethaanzuur is gekozen.', 0.1, pHbij({ combo:'wa_sb', Ca:0.1, Va:25, Cb:0.1, pK:4.74, pK2:7, divalent:false }, 12.5))]},
+    onbekendZwakZuur(),
+    { titel:'Boven pH 7', vraag:'Bij het equivalentiepunt van de titratie van ethaanzuur met natronloog is de pH ongeveer 8,7.', stappen:[
+      keuzeStap('Welke uitleg is juist?', [
+        { html:'Alle ethaanzuur is omgezet in ethanoaat. Ethanoaat is een zwakke base.', g:true },
+        { html:'Er is al te veel natronloog toegevoegd.' },
+        { html:'Ethaanzuur is een zwak zuur, dus het reageert niet helemaal.' },
+        { html:'Na<sup>+</sup> is een zwakke base.' }])]},
+    { titel:'K<sub>z</sub> zonder curve', ster:true, vraag:'Van een oplossing van een zwak zuur wordt 25,00 mL getitreerd met natronloog. Het equivalentiepunt ligt bij 14,60 mL. Bij 7,30 mL natronloog is de pH 4,20.', stappen:[
+      getalStap('K<sub>z</sub> =', 10 ** -4.2, '', 'Bij 7,30 mL (het halve equivalentiepunt) geldt pH = pK<sub>z</sub> = 4,20. K<sub>z</sub> = 10<sup>−4,20</sup> = 6,3·10<sup>−5</sup>.', 'Welk punt is 7,30 mL? Wat geldt daar voor de pH?', 0.03)]}
+  ]
+});
+
+/* ================= 3. Indicator kiezen ================= */
+function indicatorOpdracht(nr){
+  const soort = kiesUit(['sa_sb', 'wa_sb', 'wa_sb', 'wb_sa', 'wb_sa', 'sb_sa']);
+  for (;;){
+    const Cb = kiesUit([0.100, 0.150, 0.200]), Va = 25.00, Ca = rndS(0.06, 0.20, 0.005), Veq = Ca * Va / Cb;
+    if (Veq < 10 || Veq > 30) continue;
+    const pK = soort === 'wa_sb' || soort === 'wb_sa' ? rndS(3.5, 6.5, 0.1) : 7;
+    const erl = { sa_sb:'zoutzuur', sb_sa:'natronloog', wa_sb:'van een oplossing van een zwak zuur HZ', wb_sa:'van een oplossing van een zwakke base B' }[soort];
+    const p = maakVast(soort, Ca, Va, Cb, pK, infoBlok(`${titrantVan(soort)}, ${d2(Cb, 3)} mol/L`, `${d2(Va)} mL ${erl}`));
+    const ligging = Math.abs(p.pHeq - 7) < 0.3 ? 'gelijk' : p.pHeq > 7 ? 'hoger' : 'lager';
+    return { titel:'Een indicator kiezen', vraag:`Rechts staat de titratiecurve van ${d2(Va)} mL ${erl}, getitreerd met ${titrantVan(soort)}. Het eindpunt wordt bepaald met een indicator.`, curve: p, stappen:[
+      keuzeStap('Wat is de pH bij het equivalentiepunt?', [{ html:'7', g: ligging === 'gelijk' }, { html:'lager dan 7', g: ligging === 'lager' }, { html:'hoger dan 7', g: ligging === 'hoger' }], { vast:true, hint:'Zoek het midden van de sprong en lees de pH af.' }),
+      indicatorStap('Welke indicator is geschikt? Kies alle geschikte.', p)] };
+  }
+}
+WPS.push({
+  id:'indicator', titel:'Indicator kiezen', par:'omslagtraject en sprong', sim: TITR, stoffen:['zoutzuur', 'ethaanzuur', 'methaanzuur', 'hz', 'natronloog', 'ammoniak', 'b'], delen:['banden'], begin:{ stof:'ethaanzuur', Ca:0.100, Va:25.00, Cb:0.100 },
+  uitleg: () => leerdoelen(
+      'Ik kan uitleggen wat het omslagtraject van een indicator is.',
+      'Ik kan bij een titratiecurve een geschikte indicator kiezen.',
+      'Ik kan uitleggen waarom een indicator bij een zwak zuur of een zwakke base niet zomaar geschikt is.') + `
+    <h3>Uitleg</h3>
+    <p>Zonder pH-meter neem je het eindpunt van een titratie waar met een <b>indicator</b>. Een indicator verandert van kleur in een bepaald pH-gebied: het <b>omslagtraject</b>.</p>
+    <table class="data"><tr><th>indicator</th><th>omslagtraject (pH)</th></tr>${INDICATOREN.map(i => `<tr><td style="text-align:left">${i.name}</td><td>${d2(i.range[0], 1)} – ${d2(i.range[1], 1)}</td></tr>`).join('')}</table>
+    <ul><li>Een indicator is geschikt als het omslagtraject in het steile deel van de curve ligt. Dan slaat de indicator om bij (bijna) hetzelfde volume als het equivalentiepunt.</li>
+    <li>Het beste is een indicator waarvan het omslagtraject de pH van het equivalentiepunt bevat.</li>
+    <li>Bij een zwak zuur ligt het equivalentiepunt boven pH 7, bij een zwakke base onder pH 7. De sprong is kleiner: kies dan zorgvuldig.</li></ul>`,
+  voorbeeld: {
+    vraag: 'Een oplossing van ammoniak wordt getitreerd met zoutzuur. Het equivalentiepunt ligt bij pH 5,3. De sprong loopt van pH 7,0 tot pH 3,5. Welke indicator is geschikt?',
+    stappen: [
+      'Methylrood (pH 4,4 – 6,2) bevat de pH van het equivalentiepunt en ligt in de sprong: geschikt.',
+      'Broomthymolblauw (pH 6,0 – 7,6) slaat voor een deel boven de sprong om: te vroeg. Fenolftaleïne (pH 8,2 – 10,0) slaat al om voordat de sprong begint.',
+      'Methyloranje (pH 3,1 – 4,4) slaat pas om aan het eind van de sprong, deels erbuiten: minder geschikt.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Omslagtrajecten', vraag:'Rechts staat de curve van ethaanzuur met natronloog.', stappen:[
+      simStap('Zet de omslagtrajecten van de indicatoren aan.', () => TC.banden, 'Vink onder de grafiek de omslagtrajecten aan.', 'omslagtrajecten aan'),
+      indicatorStap('Welke indicator is geschikt voor deze titratie? Kies alle geschikte.', maakVast('wa_sb', 0.1, 25, 0.1, 4.74, '')),
+      keuzeStap('Waarom is broomthymolblauw hier niet geschikt?', [
+        { html:'Het slaat om vóór de sprong, terwijl er nog ethaanzuur over is.', g:true },
+        { html:'Het slaat pas om na het equivalentiepunt.' },
+        { html:'Broomthymolblauw werkt niet met natronloog.' },
+        { html:'De kleur is niet goed waar te nemen.' }])]},
+    indicatorOpdracht(1), indicatorOpdracht(2), indicatorOpdracht(3)
+  ]
+});
+
+/* ================= ★ 4. Curves herkennen ================= */
+function herkenOpdracht(niveau, ster){
+  const combos = niveau === 'mak' ? ['sa_sb', 'sb_sa'] : ['wa_sb', 'wb_sa'];
+  const combo = kiesUit(combos), divalent = niveau === 'moeilijk' && Math.random() < 0.6;
+  for (;;){
+    const Ca = rndS(0.05, 0.20, 0.005), Va = rndS(20, 30, 0.5), Cb = kiesUit([0.100, 0.150, 0.200]), Veq = Ca * Va / Cb;
+    if (Veq < 8 || Veq > (divalent ? 15 : 30)) continue;
+    let pK = 7, pK2 = 7;
+    if (combo === 'wa_sb' || combo === 'wb_sa'){ if (divalent){ pK = rndS(2.5, 4.5, 0.1); pK2 = rndS(pK + 2.5, pK + 4.5, 0.1); } else pK = rndS(3.5, 8.5, 0.1); }
+    const titrant = titrantVan(combo);
+    const p = maakVast(combo, Ca, Va, Cb, pK, infoBlok(`${titrant}, ${d2(Cb, 3)} mol/L`, `${d2(Va)} mL, onbekende stof`), { divalent, pK2 });
+    const base = combo === 'wb_sa' || combo === 'sb_sa', zwak = combo[0] === 'w';
+    const stappen = [
+      keuzeStap('Wat zit er in de erlenmeyer?', [{ html:'een sterk zuur', g: combo === 'sa_sb' }, { html:'een zwak zuur', g: combo === 'wa_sb' }, { html:'een sterke base', g: combo === 'sb_sa' }, { html:'een zwakke base', g: combo === 'wb_sa' }],
+        { vast:true, hint:'Begint de curve laag of hoog? Is er vóór het equivalentiepunt een gebied waar de pH weinig verandert, en ligt het equivalentiepunt bij pH 7?' })];
+    if (zwak) stappen.push(keuzeStap('Hoeveel equivalentiepunten heeft de curve?', [{ html:'één', g: !divalent }, { html:'twee', g: divalent }, { html:'geen' }], { vast:true }));
+    stappen.push(getalStap('Molariteit van de stof in de erlenmeyer =', Ca, ML, `Het (eerste) equivalentiepunt ligt bij ${d2(Veq)} mL. n = ${d2(Cb, 3)} ${ML} · ${d2(Veq / 1000, 5)} L = ${mach(Cb * Veq / 1000)} mol; c = ${BRK(mach(Cb * Veq / 1000) + ' mol', d2(Va / 1000, 4) + ' L')} = ${g(Ca, 3)} ${ML}.`, 'Gebruik het volume bij het (eerste) equivalentiepunt. Bereken eerst het aantal mol titrant.', 0.04));
+    if (zwak && !divalent){
+      if (!base) stappen.push(getalAbs('pK<sub>z</sub> =', pK, '', `Bij het halve equivalentiepunt is pH = pK<sub>z</sub> = ${d2(pK, 1)}.`, 'Lees de pH af bij de helft van het volume van het equivalentiepunt.', 0.15, p.pHhalf));
+      else stappen.push(getalAbs('pK<sub>b</sub> =', pK, '', `Bij het halve equivalentiepunt is [B] = [BH<sup>+</sup>], dus pOH = pK<sub>b</sub>. pH = ${d2(p.pHhalf, 1)}, dus pK<sub>b</sub> = 14,00 − ${d2(p.pHhalf, 1)} = ${d2(pK, 1)}.`, 'Bij het halve equivalentiepunt geldt pOH = pK<sub>b</sub>. Reken de afgelezen pH om naar pOH.', 0.15, 14 - p.pHhalf));
+    }
+    if (divalent){
+      const z = base ? 'b' : 'z', half2 = pHbij(p, 1.5 * Veq);
+      stappen.push(getalAbs(`pK<sub>${z}1</sub> =`, pK, '', `Bij het eerste halve equivalentiepunt (${d2(Veq / 2)} mL) geldt ${base ? 'pOH' : 'pH'} = pK<sub>${z}1</sub> = ${d2(pK, 1)}.`, `Lees af bij ${base ? 'de helft van het eerste equivalentiepunt en reken om naar pOH' : 'de helft van het eerste equivalentiepunt'}.`, 0.2, base ? 14 - p.pHhalf : p.pHhalf));
+      stappen.push(getalAbs(`pK<sub>${z}2</sub> =`, pK2, '', `Halverwege het eerste en het tweede equivalentiepunt (${d2(1.5 * Veq)} mL) geldt ${base ? 'pOH' : 'pH'} = pK<sub>${z}2</sub> = ${d2(pK2, 1)}.`, 'Lees af halverwege het eerste en het tweede equivalentiepunt.', 0.2, base ? 14 - half2 : half2));
+    } else stappen.push(indicatorStap('Welke indicator is geschikt? Kies alle geschikte.', p));
+    return { titel: divalent ? 'Een tweewaardige stof' : 'Een onbekende curve', ster, vraag:`Rechts staat een titratiecurve. De stof in de erlenmeyer is onbekend. Analyseer de curve.`, curve: p, stappen };
+  }
+}
+WPS.push({
+  id:'herkennen', titel:'Curves herkennen', par:'verdieping', ster:true, sim: TITR, stoffen:['zoutzuur', 'ethaanzuur', 'methaanzuur', 'hz', 'natronloog', 'ammoniak', 'b'], delen:['banden'], begin:{ stof:'ammoniak', Ca:0.100, Va:25.00, Cb:0.100 },
+  uitleg: () => leerdoelen(
+      '★ Ik kan aan een titratiecurve herkennen of er een sterk of zwak zuur of een sterke of zwakke base is getitreerd.',
+      '★ Ik kan uit de curve van een zwakke base de pK<sub>b</sub> bepalen.',
+      '★ Ik kan een curve met twee equivalentiepunten analyseren.') + `
+    <h3>Uitleg</h3>
+    <ul><li>Een curve die laag begint en stijgt, hoort bij een zuur in de erlenmeyer. Een curve die hoog begint en daalt, hoort bij een base.</li>
+    <li>Een zwak zuur of een zwakke base geeft vóór het equivalentiepunt een <b>buffergebied</b>, en het equivalentiepunt ligt niet bij pH 7.</li>
+    <li>Bij een zwakke base B geldt bij het halve equivalentiepunt [B] = [BH<sup>+</sup>], dus pOH = pK<sub>b</sub> en pK<sub>b</sub> = 14,00 − pH.</li>
+    <li>Een tweewaardig zuur (zoals H<sub>2</sub>A) geeft twee equivalentiepunten. Het tweede ligt bij twee keer het volume van het eerste. Bij het eerste halve equivalentiepunt is pH = pK<sub>z1</sub>, halverwege het eerste en het tweede equivalentiepunt is pH = pK<sub>z2</sub>.</li></ul>`,
+  voorbeeld: {
+    vraag: 'Een oplossing van een zwakke base wordt getitreerd met zoutzuur. Het equivalentiepunt ligt bij 16,00 mL. Bij 8,00 mL zoutzuur is de pH 9,60. Bepaal de pK<sub>b</sub>.',
+    stappen: ['8,00 mL is het halve equivalentiepunt: [B] = [BH<sup>+</sup>], dus pOH = pK<sub>b</sub>.', 'pOH = 14,00 − 9,60 = 4,40.', 'pK<sub>b</sub> = 4,40.']
+  },
+  maakSerie: () => [herkenOpdracht('mak', true), herkenOpdracht('gem', true), herkenOpdracht('gem', true), herkenOpdracht('moeilijk', true)]
+});
+
+/* ---------- start ---------- */
+$('#beamerknop').onclick = () => document.body.classList.toggle('beamer');
+$('#resetknop').onclick = () => { if (confirm('Alle voortgang wissen?')){ STAAT.voortgang = {}; bewaar({}); for (const k in PER_WP) delete PER_WP[k]; open(STAAT.wp); } };
+open(0);
+requestAnimationFrame(lus);
 </script>
 </body>
 </html>
