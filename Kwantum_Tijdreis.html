@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tijdreis naar de kwantumwereld</title>
+<style>
+/* Huisstijl Chemistrytools */
+:root{--hs-acc:#1F5FBF;--hs-acc-d:#174a96;--hs-soft:#E8F0FC;--hs-given:#F3F7FD;--hs-ok:#1A7F37;--hs-ok-soft:#E4F4E8;
+--hs-err:#C62828;--hs-err-soft:#FDECEC;--hs-key:#FFF0A0;--hs-muted:#595959;--hs-line:#D5DCE8;--hs-bg:#F6F8FB;--hs-card:#fff;
+--hs-text:#1d2330;--hs-font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+--l45:#6a53d1;--l45-soft:#efebfd;--l6:#b0475a;--l6-soft:#fbe9ed}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--hs-bg);color:var(--hs-text);font-family:var(--hs-font)}
+.hs-header{background:var(--hs-acc);color:#fff;margin-bottom:18px}
+.hs-header .hs-wrap{max-width:1180px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hs-header h1{margin:0;font-size:1.5rem;font-weight:650;flex:1 1 auto}
+.hs-header button{font:inherit;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px;border:1.5px solid #fff;background:transparent;color:#fff}
+.hs-header button:hover{background:rgba(255,255,255,.15)}
+body.hs-beamer .wrap{zoom:1.3}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px 40px}
+.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tabs button{font:inherit;font-size:.95rem;padding:8px 16px;border-radius:8px;border:1px solid var(--hs-line);background:#fff;color:var(--hs-muted);cursor:pointer}
+.tabs button.on{background:var(--hs-acc);border-color:var(--hs-acc);color:#fff}
+.niveau{display:flex;align-items:center;gap:6px;font-size:.9rem;color:var(--hs-muted)}
+.niveau button{font:inherit;font-size:.9rem;padding:6px 12px;border-radius:999px;border:1.5px solid var(--hs-line);background:#fff;cursor:pointer;color:var(--hs-text)}
+.niveau button.on[data-n="3"]{background:var(--hs-acc);border-color:var(--hs-acc);color:#fff}
+.niveau button.on[data-n="45"]{background:var(--l45);border-color:var(--l45);color:#fff}
+.niveau button.on[data-n="6"]{background:var(--l6);border-color:var(--l6);color:#fff}
+.card{background:var(--hs-card);border:1px solid var(--hs-line);border-radius:12px;padding:18px}
+h2{color:var(--hs-acc);font-size:1.35rem;margin:0 0 4px;padding-bottom:6px;border-bottom:2px solid var(--hs-acc)}
+h3{color:var(--hs-acc);font-size:1.05rem;margin:18px 0 6px}
+p{line-height:1.6;margin:0 0 10px}
+.muted{color:var(--hs-muted)}
+/* tijdlijn */
+.timeline{display:flex;gap:6px;overflow-x:auto;padding:6px 2px 12px;margin-bottom:10px;position:relative}
+.timeline::before{content:"";position:absolute;left:0;right:0;top:31px;height:2px;background:var(--hs-line);z-index:0}
+.tl{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;font:inherit;color:var(--hs-muted);padding:0 4px;z-index:1;min-width:78px}
+.tl .yr{font-size:.75rem;font-weight:600}
+.tl .dot{width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--hs-line)}
+.tl .nm{font-size:.78rem;max-width:90px;text-align:center;line-height:1.2}
+.tl.done .dot{border-color:var(--hs-acc);background:var(--hs-soft)}
+.tl.on .dot{background:var(--hs-acc);border-color:var(--hs-acc)}
+.tl.on{color:var(--hs-text);font-weight:600}
+.station{display:grid;grid-template-columns:360px 1fr;gap:22px}
+@media (max-width:900px){.station{grid-template-columns:1fr}}
+.illu{background:#0f1a2a;border-radius:12px;display:flex;align-items:center;justify-content:center;min-height:300px;position:relative;overflow:hidden}
+.illu svg,.illu canvas{width:100%;height:auto;display:block}
+.yearbig{font-size:.85rem;font-weight:700;color:var(--hs-acc);letter-spacing:.05em;text-transform:uppercase;margin-bottom:2px}
+.stuk{background:var(--hs-err-soft);border-left:4px solid var(--hs-err);border-radius:6px;padding:10px 14px;margin:12px 0}
+.stuk b{color:var(--hs-err)}
+.blijft{background:var(--hs-given);border-left:4px solid var(--hs-acc);border-radius:6px;padding:10px 14px;margin:12px 0}
+.ext{border-radius:8px;padding:12px 14px;margin:12px 0}
+.ext .lbl{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.ext45{background:var(--l45-soft);border:1px solid #d8d0fa}.ext45 .lbl{color:var(--l45)}
+.ext6{background:var(--l6-soft);border:1px solid #f1cdd5}.ext6 .lbl{color:var(--l6)}
+.key{background:var(--hs-key);padding:1px 4px;border-radius:3px}
+.form{font-family:"Cambria Math","Times New Roman",serif;font-size:1.05em;white-space:nowrap}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;font-size:.95em}
+.frac>span:first-child{border-bottom:1.3px solid currentColor;padding:0 3px}
+.frac>span:last-child{padding:0 3px}
+.calc{background:#fff;border:1px dashed #e3b7c1;border-radius:6px;padding:8px 12px;margin-top:8px;line-height:2}
+.nav{display:flex;justify-content:space-between;margin-top:16px;gap:10px}
+.btn{font:inherit;font-size:.95rem;padding:9px 16px;border-radius:8px;border:1px solid var(--hs-line);background:#fff;cursor:pointer;color:var(--hs-text)}
+.btn.main{background:var(--hs-acc);border-color:var(--hs-acc);color:#fff}
+.btn:disabled{opacity:.4;cursor:default}
+.task{background:var(--hs-given);border:1px solid var(--hs-line);border-radius:10px;padding:12px 14px;margin-top:14px}
+.task .q{font-weight:600;margin-bottom:8px}
+.task .q::before{content:"Opdracht · ";color:var(--hs-acc)}
+.task.voorspel .q::before{content:"Voorspel eerst · "}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opts button{font:inherit;text-align:left;padding:8px 12px;border-radius:8px;border:1px solid var(--hs-line);background:#fff;cursor:pointer}
+.opts button.ok{border-color:var(--hs-ok);background:var(--hs-ok-soft)}
+.opts button.nok{border-color:var(--hs-err);background:var(--hs-err-soft)}
+.fb{margin-top:8px;padding:8px 12px;border-radius:6px;line-height:1.55}
+.fb.ok{background:var(--hs-ok-soft);color:#0f4f22}
+.fb.nok{background:var(--hs-err-soft);color:#7a1717}
+.ans{background:var(--hs-ok-soft);border-left:4px solid var(--hs-ok);border-radius:6px;padding:10px 14px;margin-top:8px;line-height:1.55}
+textarea{width:100%;min-height:80px;font:inherit;padding:8px;border-radius:8px;border:1px solid var(--hs-line);resize:vertical}
+.links a{color:var(--hs-acc)}
+/* ordenen/koppelen */
+.order{display:flex;flex-direction:column;gap:6px;max-width:520px}
+.order .it{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--hs-line);border-radius:8px;padding:6px 10px}
+.order .it .n{width:24px;height:24px;border-radius:50%;background:var(--hs-soft);color:var(--hs-acc);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700}
+.order .it .t{flex:1}
+.order .it button{font:inherit;border:1px solid var(--hs-line);background:#fff;border-radius:6px;cursor:pointer;width:30px;height:28px}
+.order .it.ok{border-color:var(--hs-ok);background:var(--hs-ok-soft)}
+.order .it.nok{border-color:var(--hs-err);background:var(--hs-err-soft)}
+.match{display:grid;grid-template-columns:220px 1fr;gap:8px 14px;align-items:center;max-width:820px}
+.match select{font:inherit;padding:7px;border-radius:7px;border:1px solid var(--hs-line);width:100%}
+.match select.ok{border-color:var(--hs-ok);background:var(--hs-ok-soft)}
+.match select.nok{border-color:var(--hs-err);background:var(--hs-err-soft)}
+/* rekenen */
+.rk-type{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.rk-type button{font:inherit;font-size:.9rem;padding:7px 12px;border-radius:8px;border:1px solid var(--hs-line);background:#fff;cursor:pointer}
+.rk-type button.on{background:var(--l6);border-color:var(--l6);color:#fff}
+.given{background:var(--hs-given);border-radius:8px;padding:10px 14px;margin:8px 0;line-height:1.7}
+.inp{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:10px 0}
+.inp input{font:inherit;width:90px;padding:7px;border-radius:7px;border:1px solid var(--hs-line);text-align:right}
+.inp input.exp{width:60px}
+.inp sup input{width:56px;font-size:.85rem;padding:4px}
+.const{font-size:.85rem;color:var(--hs-muted);margin-top:10px;line-height:1.6}
+.locked{padding:30px;text-align:center;color:var(--hs-muted)}
+</style>
+</head>
+<body>
+<header class="hs-header"><div class="hs-wrap"><h1>Tijdreis naar de kwantumwereld</h1><button id="beamer" type="button">Beamerstand</button></div></header>
+<div class="wrap">
+  <div class="bar">
+    <div class="tabs" id="tabs">
+      <button data-t="reis" class="on">Tijdreis</button>
+      <button data-t="koppel">Ordenen &amp; koppelen</button>
+      <button data-t="reken">Rekenen (6V)</button>
+      <button data-t="eind">Eindopdracht</button>
+    </div>
+    <div class="niveau" id="niveau">Niveau:
+      <button data-n="3" class="on">3V</button>
+      <button data-n="45">4V/5V</button>
+      <button data-n="6">6V</button>
+    </div>
+  </div>
+
+  <section id="v-reis">
+    <div class="timeline" id="timeline"></div>
+    <div class="card"><div class="station">
+      <div class="illu" id="illu"></div>
+      <div id="stext"></div>
+    </div>
+    <div class="nav"><button class="btn" id="prev">← Vorige</button><button class="btn main" id="next">Volgende →</button></div>
+    </div>
+  </section>
+
+  <section id="v-koppel" hidden>
+    <div class="card">
+      <h2>Modellen op volgorde</h2>
+      <p class="muted">Zet de modellen in de volgorde waarin ze zijn bedacht. Gebruik de pijltjes.</p>
+      <div class="order" id="order"></div>
+      <div style="margin-top:10px"><button class="btn main" id="orderCheck">Controleer</button> <button class="btn" id="orderShuffle">Opnieuw husselen</button></div>
+      <div id="orderFb"></div>
+      <h2 style="margin-top:26px">Waar liep het model op stuk?</h2>
+      <p class="muted">Kies bij elk model de waarneming of het probleem dat het model onderuit haalde. Er zijn meer keuzes dan modellen.</p>
+      <div class="match" id="match"></div>
+      <div style="margin-top:10px"><button class="btn main" id="matchCheck">Controleer</button></div>
+      <div id="matchFb"></div>
+    </div>
+  </section>
+
+  <section id="v-reken" hidden>
+    <div class="card" id="rekenCard"></div>
+  </section>
+
+  <section id="v-eind" hidden>
+    <div class="card" id="eindCard"></div>
+  </section>
+</div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+document.getElementById('beamer').onclick=()=>document.body.classList.toggle('hs-beamer');
+const nl=(x,d=2)=>x.toFixed(d).replace('.',',');
+function sci(x,sig=3){ // wetenschappelijke notatie met komma
+  if(x===0) return '0';
+  const e=Math.floor(Math.log10(Math.abs(x))); let m=x/Math.pow(10,e);
+  let ms=m.toPrecision(sig); if(parseFloat(ms)>=10){m/=10;ms=m.toPrecision(sig);return ms.replace('.',',')+'·10<sup>'+(e+1)+'</sup>';}
+  return ms.replace('.',',')+(e===0?'':'·10<sup>'+e+'</sup>');
+}
+const frac=(a,b)=>`<span class="frac"><span>${a}</span><span>${b}</span></span>`;
+let niveau='3';
+
+/* ============ STATIONS ============ */
+const ST=[
+{nm:'Wat is een model?',yr:'',titel:'Wat is een model?',illu:'model',
+ kern:`<p>Atomen zijn zo klein dat je ze niet direct kunt waarnemen. Toch weten we er veel over. Dat komt door <b>modellen</b>: vereenvoudigde voorstellingen van iets wat je niet direct kunt waarnemen.</p>
+<p>Een model is zo goed als zijn <span class="key">voorspellingen</span>. Je bedenkt met het model wat er bij een proef zou moeten gebeuren, en dan doe je de proef. Klopt de uitkomst, dan blijft het model staan. Klopt de uitkomst niet (en is de proef zorgvuldig uitgevoerd), dan moet het model worden aangepast of verworpen. Het lab heeft het laatste woord.</p>
+<p>In deze tijdreis zie je dat steeds weer gebeuren: elk model liep ergens op stuk. En aan het eind blijkt dat het verhaal nog lang niet af is.</p>`},
+{nm:'Democritus',yr:'± 400 v.Chr.',titel:'Democritus: het ondeelbare deeltje',illu:'democritus',
+ kern:`<p>De Griekse filosoof Democritus (samen met zijn leraar Leucippus) vroeg zich af wat er gebeurt als je een stuk stof steeds verder doormidden snijdt. Kan dat eindeloos? Hij dacht van niet: ergens houdt het op bij deeltjes die je niet meer kunt delen. Hij noemde ze <i>atomos</i>: ondeelbaar.</p>
+<p>Democritus deed geen experimenten. Het was een gedachte. De beroemde filosoof Aristoteles was het er niet mee eens, en ruim tweeduizend jaar raakte het idee op de achtergrond.</p>`,
+ stuk:`Er was geen enkele waarneming die het idee ondersteunde of kon weerleggen. Een idee wordt pas een wetenschappelijk model als je er voorspellingen mee kunt doen die je met een proef kunt controleren.`,
+ task:{type:'open',q:'Leg uit waarom het idee van Democritus nog geen wetenschappelijk model was, ook al klinkt het verrassend modern.',
+  ans:'Er hoorde geen voorspelling bij die je met een proef kon controleren. Democritus kon zijn idee niet toetsen, en anderen konden het ook niet weerleggen. Dat het idee later (deels) klopte, was geluk, geen bewijs.'}},
+{nm:'Dalton',yr:'1803',titel:'Dalton: het massieve bolletje',illu:'dalton',
+ kern:`<p>Rond 1803 bracht de Engelse scheikundige John Dalton het atoom terug, maar nu wél onderbouwd met metingen. Zijn model:</p>
+<ul style="line-height:1.7;margin:0 0 10px"><li>elke stof is opgebouwd uit atomen;</li><li>atomen van één element zijn gelijk en hebben dezelfde massa; atomen van verschillende elementen hebben een verschillende massa;</li><li>bij een chemische reactie worden atomen anders gegroepeerd, maar ze verdwijnen niet en ontstaan niet.</li></ul>
+<p>Hiermee kon Dalton verklaren waarom stoffen altijd in vaste massaverhoudingen met elkaar reageren. Een atoom was voor hem een massief, ondeelbaar bolletje.</p>`,
+ stuk:`In 1897 ontdekte J.J. Thomson dat kathodestralen uit deeltjes zijn opgebouwd die veel lichter zijn dan het lichtste atoom, negatief geladen zijn en uit atomen afkomstig zijn: <b>elektronen</b>. Het atoom is dus niet ondeelbaar.`,
+ e45:`Een elektron heeft ongeveer 1/1836 van de massa van een waterstofatoom. Toch bepalen juist de elektronen hoe atomen met elkaar reageren.`,
+ task:{type:'mc',q:'Wat betekende de ontdekking van het elektron voor het model van Dalton?',
+  opts:['Niets: elektronen zijn gewoon een extra soort atoom.','Een atoom moet uit kleinere deeltjes zijn opgebouwd, dus het is niet ondeelbaar.','Atomen van één element hebben toch verschillende massa\'s.'],ok:1,
+  fb:['Elektronen kwamen uít atomen en waren veel lichter dan het lichtste atoom. Het zijn dus geen atomen.','Precies. Het massieve, ondeelbare bolletje kon niet meer kloppen.','Dat volgde niet uit de ontdekking van het elektron.']}},
+{nm:'Thomson',yr:'1904',titel:'Het krentenbolmodel van Thomson',illu:'thomson',
+ kern:`<p>Als er in een atoom negatieve elektronen zitten, maar het atoom zelf neutraal is, moet er ook positieve lading in zitten. Thomson stelde in 1904 voor: het atoom is een bol met positieve lading, waarin de elektronen verspreid zitten, als krenten in een bol. Dat is het <b>krentenbolmodel van Thomson</b>.</p>
+<p>De positieve lading is in dit model gelijkmatig over het hele atoom verdeeld. Nergens zit dus veel lading of massa bij elkaar.</p>`,
+ task:{type:'voorspel',q:'Je schiet zware, snelle, positief geladen alfadeeltjes op een flinterdun goudfolie. Wat zou er volgens het krentenbolmodel van Thomson moeten gebeuren?',
+  opts:['Bijna alle alfadeeltjes gaan vrijwel rechtdoor, hooguit een heel klein beetje afgebogen.','Veel alfadeeltjes kaatsen terug.','Alle alfadeeltjes worden tegengehouden.'],ok:0,
+  fb:['Goed voorspeld vanuit het model: de lading is overal dun verdeeld, dus niets kan een zwaar alfadeeltje sterk afbuigen. Dat dacht Rutherford ook. Ga naar het volgende station: daar lees je wat er werkelijk gebeurde.','Daarvoor zou er ergens veel lading of massa bij elkaar moeten zitten. In het krentenbolmodel is alles juist gelijkmatig verdeeld.','Het folie is maar een paar honderd atomen dik en de alfadeeltjes zijn snel en zwaar. Volgens het model is er niets dat ze kan tegenhouden.']}},
+{nm:'Rutherford',yr:'1911',titel:'Het kernmodel van Rutherford',illu:'rutherford',
+ kern:`<p>In 1909 schoten Hans Geiger en Ernest Marsden, op aanwijzing van Rutherford, alfadeeltjes op een flinterdun goudfolie. Volgens het krentenbolmodel zouden ze er allemaal vrijwel recht doorheen vliegen. De meeste deden dat ook, maar een heel klein deel (ongeveer één op de achtduizend) kaatste terug. Rutherford zei later dat het was alsof je een granaat afvuurt op een vel vloeipapier en hij terugkomt.</p>
+<p>Zijn verklaring (1911): bijna alle massa en alle positieve lading van het atoom zit in een piepkleine kern. Daaromheen bewegen de elektronen. De rest van het atoom is vooral lege ruimte. Dat is het <b>kernmodel van Rutherford</b>.</p>
+<p class="links">Zelf proberen? Open de tool <a href="Goudfolie_Experiment.html" target="_blank">Goudfolie-experiment</a>.</p>`,
+ stuk:`Een elektron dat rond de kern draait, zou volgens de natuurkunde van toen voortdurend energie verliezen en binnen een fractie van een seconde in de kern storten. Maar atomen zijn stabiel. Bovendien geven verhitte gassen licht met maar een paar vaste kleuren: een <b>lijnenspectrum</b>. Het kernmodel van Rutherford kon dat niet verklaren.`,
+ e45:`De kern is ongeveer honderdduizend keer kleiner dan het atoom zelf. Als het atoom zo groot was als een voetbalstadion, was de kern een erwt op de middenstip.`},
+{nm:'Bohr',yr:'1913',titel:'Bohr: vaste banen',illu:'bohr',
+ kern:`<p>De Deense natuurkundige Niels Bohr kwam in 1913 met een gedurfd idee: een elektron kan alleen in bepaalde vaste banen (schillen) rond de kern bewegen, elk met een vaste energie. In zo'n baan verliest het geen energie.</p>
+<p>Springt een elektron van een hogere naar een lagere schil, dan zendt het een lichtdeeltje uit met precies het energieverschil. Omdat alleen bepaalde sprongen mogelijk zijn, ontstaan alleen bepaalde kleuren licht. Zo verklaarde Bohr het lijnenspectrum van waterstof.</p>
+<p class="links">Elektronen in schillen zetten? Open de tool <a href="Schillen_Periodiek_Systeem.html" target="_blank">Schillen en het periodiek systeem</a>.</p>`,
+ stuk:`Het model werkt goed voor waterstof (één elektron), maar niet voor atomen met meer elektronen. En Bohr kon niet uitleggen <i>waarom</i> alleen die banen zijn toegestaan. Hij stelde het gewoon.`,
+ e45:`De schillen heten ook K, L, M, N. In schil <i>n</i> passen maximaal 2<i>n</i>² elektronen: 2, 8, 18, 32. De verdeling van elektronen over de schillen (de elektronenconfiguratie) verklaart de bouw van het periodiek systeem.`,
+ e6:`<p>De energie van een lichtdeeltje (foton): <span class="form"><i>E</i> = <i>h</i>·<i>f</i> = ${frac('<i>h</i>·<i>c</i>','<i>λ</i>')}</span>. De energie van schil <i>n</i> bij waterstof: <span class="form"><i>E</i><sub><i>n</i></sub> = ${frac('−13,6 eV','<i>n</i>²')}</span>.</p>
+<p><b>Voorbeeld:</b> sprong van <i>n</i> = 3 naar <i>n</i> = 2.</p>
+<div class="calc">
+Δ<i>E</i> = <i>E</i><sub>3</sub> − <i>E</i><sub>2</sub> = ${frac('−13,6 eV','9')} − ${frac('−13,6 eV','4')} = −1,511 eV + 3,400 eV = 1,889 eV<br>
+Δ<i>E</i> = 1,889 eV × 1,602·10<sup>−19</sup> ${frac('J','eV')} = 3,026·10<sup>−19</sup> J<br>
+<i>λ</i> = ${frac('<i>h</i>·<i>c</i>','Δ<i>E</i>')} = ${frac('6,626·10<sup>−34</sup> J·s × 2,998·10<sup>8</sup> m/s','3,026·10<sup>−19</sup> J')} = 6,56·10<sup>−7</sup> m = 656 nm: <b>rood licht</b>.
+</div>`},
+{nm:'De Broglie',yr:'1924',titel:'De Broglie: het elektron als golf',illu:'debroglie',
+ kern:`<p>Licht gedraagt zich soms als een golf en soms als een stroom deeltjes (Einstein, 1905). De Franse natuurkundige Louis de Broglie draaide het in 1924 om: misschien gedraagt een deeltje zoals een elektron zich soms als een golf.</p>
+<p>Dat verklaart meteen de vaste banen van Bohr: rond de kern past een elektrongolf alleen als er een geheel aantal golven rondom past. Andere banen "doven zichzelf uit".</p>
+<p>In 1927 werd het gemeten: Davisson en Germer stuurden elektronen op een kristal en namen een interferentiepatroon waar, precies zoals bij golven.</p>`,
+ stuk:`Een golf die rond de kern loopt, werkt in een plat vlak. Maar een atoom is driedimensionaal, en hoe beschrijf je de golf van meerdere elektronen tegelijk? Daar was een nieuwe theorie voor nodig.`,
+ e6:`<p>De golflengte van een deeltje (de Broglie-golflengte): <span class="form"><i>λ</i> = ${frac('<i>h</i>','<i>m</i>·<i>v</i>')}</span></p>
+<div class="calc">Elektron met <i>v</i> = 2,2·10<sup>6</sup> m/s: <i>λ</i> = ${frac('6,626·10<sup>−34</sup> J·s','9,109·10<sup>−31</sup> kg × 2,2·10<sup>6</sup> m/s')} = 3,3·10<sup>−10</sup> m: ongeveer de grootte van een atoom.<br>
+Tennisbal (0,058 kg) met 50 m/s: <i>λ</i> = ${frac('6,626·10<sup>−34</sup> J·s','0,058 kg × 50 m/s')} = 2,3·10<sup>−34</sup> m: veel te klein om ooit iets van te merken.</div>`},
+{nm:'Schrödinger',yr:'1926',titel:'Schrödinger: de golffunctie',illu:'schrodinger',
+ kern:`<p>In 1926 schreef de Oostenrijker Erwin Schrödinger een vergelijking voor de golf van een elektron: de <b>golffunctie</b>. Max Born ontdekte wat die golf betekent: hij vertelt niet wáár het elektron is, maar hoe groot de <span class="key">kans</span> is dat je het ergens aantreft.</p>
+<p>Er is dus geen baan meer. Het elektron is een soort <b>kanswolk</b> rond de kern: waar de wolk dicht is, vind je het elektron vaak; waar hij dun is, zelden. Dit model werkt voor alle atomen en is nog steeds de basis van de scheikunde.</p>`,
+ blijft:`Wat blijft er vreemd? Vóór de meting heeft het elektron geen vaste plek, alleen kansen. Pas bij de meting "kiest" het een plek. Wat er bij een meting precies gebeurt, is nog altijd een open vraag.`,
+ e45:`De wolken heten <b>orbitalen</b>. Een s-orbitaal is bolvormig, een p-orbitaal heeft de vorm van een halter. In elk orbitaal passen maximaal 2 elektronen, en schil <i>n</i> heeft <i>n</i>² orbitalen. Zo volgt de regel van 2<i>n</i>² elektronen per schil uit dit model. Hoe de wolken zich rond een atoom verdelen, bepaalt ook de ruimtelijke vorm van moleculen.`,
+ e6:`De kans om het elektron op een plek aan te treffen is evenredig met het kwadraat van de golffunctie: |<i>ψ</i>|². Er zijn ook plekken waar de golffunctie nul is (knopen): daar tref je het elektron nooit aan, ook al vind je het aan beide kanten wel.`},
+{nm:'Heisenberg',yr:'1927',titel:'Heisenberg: de onzekerheidsrelatie',illu:'heisenberg',
+ kern:`<p>In 1927 ontdekte de Duitser Werner Heisenberg iets vreemds: je kunt van een deeltje nooit tegelijk precies de plaats én de snelheid bepalen. Hoe nauwkeuriger je de plaats kent, hoe onzekerder de snelheid, en andersom.</p>
+<p>Dat komt niet door slechte meetinstrumenten. Het zit in de natuur zelf, en volgt uit het golfkarakter van deeltjes: een golf die op één plek is samengeperst, is opgebouwd uit veel golflengtes tegelijk, en dus van veel snelheden.</p>`,
+ blijft:`Bij gewone voorwerpen merk je hier niets van: de onzekerheid is daar veel te klein. Bij een elektron in een atoom is de onzekerheid juist enorm. Daarom is "een baan" daar een zinloos begrip.`,
+ e6:`<p>De onzekerheidsrelatie: <span class="form">Δ<i>x</i>·Δ<i>p</i> ≥ ${frac('<i>h</i>','4π')}</span>, met <i>p</i> = <i>m</i>·<i>v</i> (impuls).</p>
+<div class="calc">Elektron opgesloten in een atoom: Δ<i>x</i> ≈ 1·10<sup>−10</sup> m.<br>
+Δ<i>p</i> ≥ ${frac('<i>h</i>','4π·Δ<i>x</i>')} = ${frac('6,626·10<sup>−34</sup> J·s','4π × 1·10<sup>−10</sup> m')} = 5,3·10<sup>−25</sup> kg·m/s<br>
+Δ<i>v</i> ≥ ${frac('Δ<i>p</i>','<i>m</i>')} = ${frac('5,3·10<sup>−25</sup> kg·m/s','9,109·10<sup>−31</sup> kg')} = 5,8·10<sup>5</sup> m/s: honderden kilometers per seconde onzekerheid.</div>`},
+{nm:'Dubbele spleet',yr:'1989',titel:'De dubbele spleet: golf én deeltje',illu:'spleet',
+ kern:`<p>Stuur elektronen <b>één voor één</b> op een wand met twee smalle spleten, met daarachter een scherm. Elk elektron komt als één puntje op het scherm aan: een deeltje. Maar na duizenden elektronen ontstaat er een patroon van strepen, een interferentiepatroon: typisch voor een golf. Elk elektron gaat dus als golf door beide spleten tegelijk, en komt als deeltje aan.</p>
+<p>Akira Tonomura en collega's bij Hitachi filmden in 1989 hoe zo'n patroon puntje voor puntje ontstaat.</p>
+<p class="muted">Klik in de illustratie op <b>Start</b> en volg hoe het patroon ontstaat.</p>`,
+ task:{type:'voorspel',q:'Je zet bij de spleten een meter die per elektron vaststelt door welke spleet het gaat. Wat gebeurt er dan met het patroon op het scherm?',
+  opts:['Er blijft hetzelfde strepenpatroon.','De strepen verdwijnen: je krijgt twee vlekken, één achter elke spleet.','Er komen helemaal geen elektronen meer aan.'],ok:1,
+  fb:['Dat zou je verwachten als de meting niets uitmaakt. Probeer het in de illustratie: zet "meet de spleet" aan.','Klopt, en dit is echt waargenomen. Zodra je meet door welke spleet het elektron gaat, gedraagt het zich als deeltje en verdwijnt de interferentie. Probeer het in de illustratie.','De elektronen komen nog steeds aan. Probeer het in de illustratie: zet "meet de spleet" aan.'],
+  na:()=>{spleetMeet=true;const c=document.getElementById('meetChk');if(c)c.checked=true;spleetReset();}}},
+{nm:'Verstrengeling',yr:'1935–2022',titel:'Verstrengeling: "spookachtig"',illu:'verstrengeling',
+ kern:`<p>Twee deeltjes kunnen zo met elkaar verbonden raken dat ze zich gedragen als één geheel, ook als ze ver uit elkaar zijn: ze zijn <b>verstrengeld</b>. Meet je een eigenschap van het ene deeltje, dan weet je meteen de uitkomst bij het andere.</p>
+<p>Einstein vond dat verdacht. In 1935 schreef hij er met Podolsky en Rosen een beroemd artikel over, en in 1947 noemde hij het in een brief aan Max Born "spukhafte Fernwirkung": spookachtige werking op afstand. Volgens hem moesten de deeltjes vooraf al "afgesproken" hebben wat ze zouden laten meten, zoals een paar handschoenen: vind je de linker, dan weet je dat de andere de rechter is.</p>
+<p>John Bell bedacht in de jaren zestig een proef waarmee je dat kunt toetsen. John Clauser, Alain Aspect en Anton Zeilinger voerden zulke proeven uit, en de uitkomst was steeds: <b>de deeltjes hadden níets vooraf afgesproken</b>. De kwantummechanica klopte, Einstein niet. Ze kregen er in 2022 de Nobelprijs voor natuurkunde voor.</p>`,
+ blijft:`Je kunt met verstrengeling géén bericht sneller dan het licht versturen: de uitkomst van elke meting is toeval. Wel is verstrengeling de basis van nieuwe technologie, zoals kwantumcomputers en communicatie die niet af te luisteren is.`,
+ e6:`Het verschil met de handschoenen: bij de Bell-proef meet je de deeltjes in steeds andere, willekeurig gekozen richtingen. Als de uitkomsten vooraf vastlagen, kunnen de overeenkomsten tussen de metingen nooit groter zijn dan een bepaalde grens (de ongelijkheid van Bell). De metingen gaan over die grens heen.`},
+{nm:'Zwarte gaten',yr:'1974–2019',titel:'Zwarte gaten: waar de theorieën botsen',illu:'zwartgat',
+ kern:`<p>Een zwart gat is zoveel massa op zo'n kleine plek dat zelfs licht er niet meer uit kan ontsnappen. De grens waarbinnen niets meer terug kan, heet de <b>waarnemingshorizon</b>. Zwarte gaten worden beschreven met de algemene relativiteitstheorie van Einstein: de theorie van de zwaartekracht. In 2019 lukte het om voor het eerst een afbeelding te maken van de omgeving van een zwart gat.</p>
+<p>In 1974 voorspelde Stephen Hawking dat een zwart gat door kwantumeffecten aan de rand van de horizon heel zwak straling uitzendt: <b>Hawking-straling</b>. Daardoor verdampen zwarte gaten, ontzettend langzaam.</p>`,
+ stuk:`Hier botsen de twee beste theorieën die we hebben. Wat gebeurt er met de informatie over alles wat in een zwart gat valt, als het zwarte gat verdampt? En in het midden van een zwart gat geven beide theorieën samen geen zinnig antwoord. Een theorie die kwantummechanica en zwaartekracht verenigt (kwantumzwaartekracht) bestaat nog niet.`},
+{nm:'Wat we niet weten',yr:'nu',titel:'Wat we nog niet weten',illu:'open',
+ kern:`<p>De kwantummechanica is een van de best geteste theorieën ooit. Je telefoon, lasers, ledlampen en mri-scanners werken dankzij haar. En toch zijn er grote open vragen:</p>
+<ul style="line-height:1.8;margin:0 0 10px">
+<li><b>Kwantumzwaartekracht:</b> hoe gaan kwantummechanica en zwaartekracht samen?</li>
+<li><b>Het meetprobleem:</b> wat gebeurt er precies als een kanswolk bij een meting één uitkomst "kiest"?</li>
+<li><b>Donkere materie en donkere energie:</b> gewone materie (alles van atomen) is maar ongeveer 5% van het heelal. Wat de rest is, weten we niet.</li>
+</ul>
+<p>Elk model in deze tijdreis was het beste van zijn tijd, en elk model liep op iets stuk. Ons huidige model zal dat waarschijnlijk ook doen. Het lab heeft het laatste woord, maar voor deze vragen hebben we de juiste proeven nog niet bedacht. Misschien doe jij dat.</p>`}
+];
+
+/* ============ ILLUSTRATIES (SVG) ============ */
+const W=360,H=300;
+function svg(inner,extra=''){return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" ${extra}>${inner}</svg>`;}
+function rnd(seed){let s=seed;return()=>{s=(s*16807)%2147483647;return (s-1)/2147483646;};}
+function gauss(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+const defs=`<defs>
+<radialGradient id="gBall" cx="35%" cy="35%" r="70%"><stop offset="0" stop-color="#9ec5ff"/><stop offset="1" stop-color="#1F5FBF"/></radialGradient>
+<radialGradient id="gRed" cx="35%" cy="35%" r="70%"><stop offset="0" stop-color="#ffb3a7"/><stop offset="1" stop-color="#c62828"/></radialGradient>
+<radialGradient id="gPink" cx="40%" cy="40%" r="70%"><stop offset="0" stop-color="#ffd8cc"/><stop offset="1" stop-color="#e0897a"/></radialGradient>
+<radialGradient id="gHole" cx="50%" cy="50%" r="50%"><stop offset=".55" stop-color="#000"/><stop offset=".62" stop-color="#ffb347"/><stop offset=".75" stop-color="#b3400a" stop-opacity=".6"/><stop offset="1" stop-color="#0f1a2a" stop-opacity="0"/></radialGradient>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#ffcf5a"/></marker>
+</defs>`;
+const T=(x,y,t,s=13,c='#cfe0ff',a='middle')=>`<text x="${x}" y="${y}" fill="${c}" font-size="${s}" text-anchor="${a}" font-family="system-ui,sans-serif">${t}</text>`;
+function nucleus(cx,cy,r){return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#gRed)"/>`;}
+const ILLU={
+ model:()=>svg(defs+`<circle cx="150" cy="140" r="70" fill="none" stroke="#cfe0ff" stroke-width="8"/><line x1="200" y1="190" x2="262" y2="252" stroke="#cfe0ff" stroke-width="14" stroke-linecap="round"/>
+  ${[[130,125],[160,120],[145,155],[175,150],[120,155]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="10" fill="url(#gBall)"/>`).join('')}
+  ${T(180,40,'model → voorspelling → proef',15)}${T(180,285,'klopt het niet? model aanpassen',13,'#ffcf5a')}`),
+ democritus:()=>{let s='';const sizes=[[60,150,46],[150,150,30],[215,150,18],[260,150,11],[292,150,6],[316,150,3]];
+  sizes.forEach(([x,y,r],i)=>{s+=`<rect x="${x-r}" y="${y-r}" width="${2*r}" height="${2*r}" rx="${r*0.3}" fill="#8d9bb0"/>`;if(i<sizes.length-1)s+=`<path d="M${x+r+4},${y} l${(sizes[i+1][0]-sizes[i+1][2])-(x+r)-10},0" stroke="#ffcf5a" stroke-width="2" marker-end="url(#ar)"/>`});
+  return svg(defs+s+T(180,60,'steeds verder doormidden snijden…',15)+T(316,180,'?',22,'#ffcf5a')+T(180,250,'atomos: ondeelbaar',17,'#fff'));},
+ dalton:()=>svg(defs+`<circle cx="100" cy="140" r="50" fill="url(#gBall)"/><circle cx="230" cy="140" r="36" fill="url(#gRed)"/><circle cx="292" cy="140" r="24" fill="#d0d6df"/>
+  ${T(100,220,'element A',13)}${T(230,220,'element B',13)}${T(292,220,'C',13)}${T(180,50,'massieve, ondeelbare bolletjes',15)}${T(180,270,'per element eigen massa',13,'#ffcf5a')}`),
+ thomson:()=>{const r=rnd(7);let e='';const pts=[];let tries=0;while(pts.length<14&&tries<2000){tries++;const a=r()*Math.PI*2,d=Math.sqrt(r())*92;const x=180+d*Math.cos(a),y=150+d*Math.sin(a);if(pts.every(([px,py])=>Math.hypot(px-x,py-y)>34))pts.push([x,y]);}
+  pts.forEach(([x,y])=>{const d=Math.hypot(x-180,y-150),a=Math.atan2(y-150,x-180);e+=`<circle cx="${180+d*Math.cos(a)}" cy="${150+d*Math.sin(a)}" r="9" fill="#1F5FBF"/><text x="${180+d*Math.cos(a)}" y="${154+d*Math.sin(a)}" fill="#fff" font-size="12" text-anchor="middle">−</text>`;});
+  return svg(defs+`<circle cx="180" cy="150" r="115" fill="url(#gPink)"/>`+[[110,90],[250,100],[120,220],[240,210],[180,60],[180,245]].map(([x,y])=>T(x,y,'+',18,'#8a2b1c')).join('')+e+T(180,290,'positieve bol met elektronen (krenten)',13));},
+ rutherford:()=>{let p='';[-80,-50,-25,30,55,82].forEach(y=>{p+=`<path d="M10,${150+y} L340,${150+y}" stroke="#ffcf5a" stroke-width="1.6" opacity=".55" marker-end="url(#ar)"/>`;});
+  p+=`<path d="M10,154 L172,154 Q180,152 172,150 L20,130" stroke="#ffcf5a" stroke-width="2.4" fill="none" marker-end="url(#ar)"/><path d="M10,165 L160,165 Q190,170 330,240" stroke="#ffcf5a" stroke-width="2" fill="none" marker-end="url(#ar)"/>`;
+  return svg(defs+`<circle cx="180" cy="150" r="100" fill="none" stroke="#5d7aa3" stroke-dasharray="4 5"/>`+p+nucleus(180,150,7)+`<circle cx="250" cy="110" r="5" fill="#9ec5ff"/><circle cx="120" cy="200" r="5" fill="#9ec5ff"/>`+T(180,30,'bijna alles gaat rechtdoor…',14)+T(180,285,'…heel soms kaatst er één terug',14,'#ffcf5a'));},
+ bohr:()=>{let s='';[45,80,115].forEach((r,i)=>s+=`<circle cx="160" cy="150" r="${r}" fill="none" stroke="#5d7aa3" stroke-width="1.5"/>`+T(160,150-r-4,'n='+(i+1),11,'#8fb0dd'));
+  s+=nucleus(160,150,12)+`<circle cx="${160+115*Math.cos(-0.6)}" cy="${150+115*Math.sin(-0.6)}" r="7" fill="#9ec5ff" opacity=".35"/><circle cx="${160+80*Math.cos(-0.6)}" cy="${150+80*Math.sin(-0.6)}" r="7" fill="#9ec5ff"/>`;
+  s+=`<path d="M${160+113*Math.cos(-0.6)},${150+113*Math.sin(-0.6)} L${160+86*Math.cos(-0.6)},${150+86*Math.sin(-0.6)}" stroke="#fff" stroke-width="1.5" marker-end="url(#ar)"/>`;
+  let w='M232,100';for(let x=0;x<=100;x+=2)w+=` L${232+x},${100-x*0.55+8*Math.sin(x/5)}`;s+=`<path d="${w}" stroke="#ff5a5a" stroke-width="2.5" fill="none"/>`+T(318,32,'foton',13,'#ff8080');
+  return svg(defs+s+T(160,290,'sprong naar lagere schil → licht met één kleur',13));},
+ debroglie:()=>{let s=`<circle cx="180" cy="150" r="90" fill="none" stroke="#5d7aa3" stroke-dasharray="3 4"/>`+nucleus(180,150,10);let d='';
+  for(let i=0;i<=360;i++){const a=i*Math.PI/180,r=90+14*Math.sin(5*a);d+=(i?'L':'M')+(180+r*Math.cos(a)).toFixed(1)+','+(150+r*Math.sin(a)).toFixed(1);}
+  s+=`<path d="${d}" stroke="#7dffb0" stroke-width="2.5" fill="none"/>`;return svg(defs+s+T(180,28,'precies 5 golven passen rond',14)+T(180,285,'alleen zulke banen zijn mogelijk',13,'#ffcf5a'));},
+ schrodinger:()=>{const r=rnd(42);let s='';for(let i=0;i<900;i++){const rad=Math.abs(gauss(r))*45+Math.abs(gauss(r))*8,a=r()*Math.PI*2;s+=`<circle cx="${(180+rad*Math.cos(a)).toFixed(1)}" cy="${(145+rad*Math.sin(a)).toFixed(1)}" r="1.6" fill="#9ec5ff" opacity=".6"/>`;}
+  return svg(defs+s+nucleus(180,145,6)+T(180,28,'geen baan, maar een kanswolk',14)+T(180,285,'dicht = vaak, dun = zelden',13,'#ffcf5a'));},
+ heisenberg:()=>{const curve=(cx,sig,amp,y0,c)=>{let d='';for(let x=-80;x<=80;x+=2){const y=amp*Math.exp(-(x*x)/(2*sig*sig));d+=(x>-80?'L':'M')+(cx+x)+','+(y0-y);}return `<path d="${d}" stroke="${c}" stroke-width="3" fill="none"/>`;};
+  return svg(defs+curve(95,10,110,200,'#7dffb0')+curve(265,45,40,200,'#ffcf5a')+`<line x1="10" y1="200" x2="350" y2="200" stroke="#5d7aa3"/>`+T(95,230,'plaats: scherp',13,'#7dffb0')+T(265,230,'snelheid: breed',13,'#ffcf5a')+T(180,40,'hoe scherper het één…',14)+T(180,270,'…hoe vager het ander',14));},
+ verstrengeling:()=>{let d='M80,150';for(let x=0;x<=200;x+=2)d+=` L${80+x},${150+10*Math.sin(x/8)}`;
+  return svg(defs+`<path d="${d}" stroke="#c9a6ff" stroke-width="2" fill="none" stroke-dasharray="5 4"/><circle cx="70" cy="150" r="22" fill="url(#gBall)"/><circle cx="290" cy="150" r="22" fill="url(#gBall)"/>
+  <path d="M70,140 L70,100" stroke="#7dffb0" stroke-width="4" marker-end="url(#ar)"/><path d="M290,160 L290,200" stroke="#7dffb0" stroke-width="4" marker-end="url(#ar)"/>`+T(70,85,'meet: omhoog',13,'#7dffb0')+T(290,225,'dus: omlaag',13,'#7dffb0')+T(180,40,'ver uit elkaar, toch één geheel',14)+T(180,280,'"spookachtige werking op afstand"',13,'#ffcf5a'));},
+ zwartgat:()=>{const r=rnd(3);let st='';for(let i=0;i<60;i++)st+=`<circle cx="${r()*W}" cy="${r()*H}" r="${r()*1.2+.3}" fill="#fff" opacity="${r()*.7+.2}"/>`;
+  return svg(defs+st+`<ellipse cx="180" cy="150" rx="150" ry="32" fill="#ff9b3d" opacity=".35"/><circle cx="180" cy="150" r="100" fill="url(#gHole)"/><circle cx="180" cy="150" r="55" fill="#000"/>`+T(180,28,'waarnemingshorizon: zelfs licht ontsnapt niet',13)+T(180,285,'Hawking-straling: heel zwakke kwantumgloed',13,'#ffcf5a'));},
+ open:()=>{let s=`<circle cx="180" cy="150" r="100" fill="#22324a"/><path d="M180,150 L180,50 A100,100 0 0 1 211,55 Z" fill="#7dffb0"/>`;
+  return svg(defs+s+T(205,40,'± 5% gewone materie',13,'#7dffb0','start')+T(180,155,'?',72,'#ffcf5a')+T(180,285,'de rest: donkere materie en donkere energie',13));}
+};
+
+/* dubbele spleet (canvas) */
+let spleetMeet=false,spleetTimer=null,spleetHits=[],spleetN=0;
+function spleetHTML(){return `<canvas id="spleet" width="720" height="560"></canvas>
+<div style="position:absolute;left:10px;bottom:10px;display:flex;gap:8px;align-items:center;color:#cfe0ff;font-size:13px">
+<button class="btn" id="spStart" style="padding:5px 10px">Start</button><button class="btn" id="spReset" style="padding:5px 10px">Wissen</button>
+<label><input type="checkbox" id="meetChk" ${spleetMeet?'checked':''}> meet de spleet</label><span id="spN"></span></div>`;}
+function spleetSample(){
+  // positie op scherm (-1..1); interferentie: cos^2 * envelop; gemeten: twee vlekken
+  for(;;){const x=Math.random()*2-1;let p;
+    if(spleetMeet){p=0.5*(Math.exp(-((x-0.28)**2)/0.02)+Math.exp(-((x+0.28)**2)/0.02));}
+    else{p=Math.cos(x*Math.PI*5)**2*Math.exp(-(x*x)/0.18);}
+    if(Math.random()<p) return x;}
+}
+function spleetDraw(){
+  const c=document.getElementById('spleet'); if(!c) return; const g=c.getContext('2d');
+  g.fillStyle='#0f1a2a';g.fillRect(0,0,c.width,c.height);
+  g.fillStyle='#8d9bb0';g.fillRect(170,40,14,440);g.fillStyle='#0f1a2a';g.fillRect(170,215,14,22);g.fillRect(170,303,14,22);
+  g.fillStyle='#ffcf5a';g.beginPath();g.arc(40,270,10,0,7);g.fill();g.font='22px system-ui';g.fillStyle='#cfe0ff';g.fillText('bron',18,300);
+  g.fillStyle='#22324a';g.fillRect(560,50,30,440);g.fillStyle='#cfe0ff';g.fillText('scherm',540,40);
+  if(spleetMeet){g.fillStyle='#ff8080';g.fillText('meter',150,28);g.strokeStyle='#ff8080';g.strokeRect(160,195,34,150);}
+  g.fillStyle='#7dffb0';spleetHits.forEach(([x,y])=>{g.fillRect(560+y,270+x*220,2.4,2.4);});
+  // intensiteitsprofiel naast het scherm
+  const B=88,cnt=new Array(B).fill(0);spleetHits.forEach(([x])=>{const k=Math.min(B-1,Math.max(0,Math.floor((x+1)/2*B)));cnt[k]++;});
+  const mx=Math.max(1,...cnt);g.fillStyle='rgba(125,255,176,.55)';
+  cnt.forEach((n,k)=>{const y=270-220+k*(440/B);g.fillRect(600,y,(n/mx)*105,440/B-1);});
+  g.fillStyle='#cfe0ff';g.font='18px system-ui';g.fillText('aantal',612,505);
+  const sn=document.getElementById('spN');if(sn) sn.textContent=spleetN+' elektronen';
+}
+function spleetReset(){spleetHits=[];spleetN=0;spleetDraw();}
+function spleetStep(k){for(let i=0;i<k;i++){spleetHits.push([spleetSample(),Math.random()*28]);spleetN++;}spleetDraw();}
+function spleetStart(){if(spleetTimer){clearInterval(spleetTimer);spleetTimer=null;$('#spStart').textContent='Start';return;}
+  $('#spStart').textContent='Pauze';let t=0;spleetTimer=setInterval(()=>{t++;spleetStep(t<40?1:t<120?5:25);if(spleetN>6000){clearInterval(spleetTimer);spleetTimer=null;$('#spStart').textContent='Start';}},60);}
+
+/* ============ RENDER TIJDREIS ============ */
+let cur=0; const visited=new Set([0]); const answered={};
+function show(n){return niveau==='45'?n!=='6':niveau==='6'?true:false;}
+function renderTimeline(){
+  $('#timeline').innerHTML=ST.map((s,i)=>`<button class="tl ${i===cur?'on':''} ${visited.has(i)?'done':''}" data-i="${i}"><span class="yr">${s.yr||'&nbsp;'}</span><span class="dot"></span><span class="nm">${s.nm}</span></button>`).join('');
+  const on=$('#timeline .tl.on'); if(on) on.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+}
+function taskHTML(t,i){
+  if(!t) return '';
+  if(t.type==='open') return `<div class="task"><div class="q">${t.q}</div><textarea id="ta${i}" placeholder="Schrijf eerst je eigen antwoord…"></textarea>
+    <div style="margin-top:6px"><button class="btn" data-modelans="${i}">Toon modelantwoord</button></div><div id="ma${i}"></div></div>`;
+  const a=answered[i];
+  return `<div class="task ${t.type==='voorspel'?'voorspel':''}"><div class="q">${t.q}</div><div class="opts">${t.opts.map((o,k)=>`<button data-st="${i}" data-k="${k}" class="${a!==undefined&&k===a?(k===t.ok?'ok':'nok'):''}">${String.fromCharCode(65+k)}. ${o}</button>`).join('')}</div>
+    ${a!==undefined?`<div class="fb ${a===t.ok?'ok':'nok'}">${t.fb[a]}</div>`:''}</div>`;
+}
+function renderStation(){
+  const s=ST[cur]; visited.add(cur);
+  if(spleetTimer){clearInterval(spleetTimer);spleetTimer=null;}
+  $('#illu').innerHTML=s.illu==='spleet'?spleetHTML():ILLU[s.illu]();
+  if(s.illu==='spleet'){spleetDraw();$('#spStart').onclick=spleetStart;$('#spReset').onclick=spleetReset;$('#meetChk').onchange=e=>{spleetMeet=e.target.checked;spleetReset();};}
+  let h=`<div class="yearbig">${s.yr||'Start'}</div><h2>${s.titel}</h2><div style="margin-top:10px">${s.kern}</div>`;
+  if(s.stuk) h+=`<div class="stuk"><b>Waar liep het op stuk?</b> ${s.stuk}</div>`;
+  if(s.blijft) h+=`<div class="blijft"><b>Wat blijft er vreemd?</b> ${s.blijft}</div>`;
+  if(s.e45&&show('45')) h+=`<div class="ext ext45"><div class="lbl">Verder voor 4V/5V</div>${s.e45}</div>`;
+  if(s.e6&&show('6')) h+=`<div class="ext ext6"><div class="lbl">Rekenen voor 6V</div>${s.e6}</div>`;
+  h+=taskHTML(s.task,cur);
+  $('#stext').innerHTML=h;
+  $('#prev').disabled=cur===0; $('#next').textContent=cur===ST.length-1?'Naar de opdrachten →':'Volgende →';
+  renderTimeline();
+}
+$('#timeline').addEventListener('click',e=>{const b=e.target.closest('.tl');if(!b)return;cur=+b.dataset.i;renderStation();});
+$('#prev').onclick=()=>{if(cur>0){cur--;renderStation();}};
+$('#next').onclick=()=>{if(cur<ST.length-1){cur++;renderStation();window.scrollTo({top:0,behavior:'smooth'});}else setTab('koppel');};
+$('#stext').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-st]');
+  if(b){const i=+b.dataset.st,k=+b.dataset.k,t=ST[i].task;answered[i]=k;renderStation();if(k===t.ok&&t.na)t.na();return;}
+  const m=e.target.closest('button[data-modelans]');
+  if(m){const i=+m.dataset.modelans;const ta=$('#ta'+i);
+    if(ta.value.trim().length<15){$('#ma'+i).innerHTML='<div class="fb nok">Schrijf eerst zelf een antwoord van minstens één zin.</div>';return;}
+    $('#ma'+i).innerHTML=`<div class="ans"><b>Modelantwoord:</b> ${ST[i].task.ans}</div>`;}
+});
+
+/* ============ ORDENEN & KOPPELEN ============ */
+const ORDER=['Democritus: atomos','Dalton: massief bolletje','Krentenbolmodel van Thomson','Kernmodel van Rutherford','Bohr: vaste banen','De Broglie: elektron als golf','Schrödinger: golffunctie en kanswolk'];
+let ord=[];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function newOrder(){do{ord=shuffle(ORDER.map((_,i)=>i));}while(ord.every((v,i)=>v===i));renderOrder();$('#orderFb').innerHTML='';}
+function renderOrder(marks){
+  $('#order').innerHTML=ord.map((v,i)=>`<div class="it ${marks?(v===i?'ok':'nok'):''}"><span class="n">${i+1}</span><span class="t">${ORDER[v]}</span>
+  <button data-mv="${i}" data-d="-1" ${i===0?'disabled':''}>↑</button><button data-mv="${i}" data-d="1" ${i===ord.length-1?'disabled':''}>↓</button></div>`).join('');
+}
+$('#order').addEventListener('click',e=>{const b=e.target.closest('button[data-mv]');if(!b)return;const i=+b.dataset.mv,j=i+ +b.dataset.d;[ord[i],ord[j]]=[ord[j],ord[i]];renderOrder();$('#orderFb').innerHTML='';});
+$('#orderShuffle').onclick=newOrder;
+$('#orderCheck').onclick=()=>{renderOrder(true);const goed=ord.filter((v,i)=>v===i).length;
+  $('#orderFb').innerHTML=goed===ORDER.length?'<div class="fb ok">Helemaal goed: zo is het atoommodel stap voor stap bijgesteld.</div>':`<div class="fb nok">${goed} van de ${ORDER.length} staan op de goede plek. De rode staan nog verkeerd. Kijk zo nodig terug in de tijdlijn.</div>`;};
+
+const MATCH_MODELS=[['Democritus',0],['Dalton',1],['Krentenbolmodel van Thomson',2],['Kernmodel van Rutherford',3],['Bohr',4]];
+const MATCH_OPTS=['Er was geen proef om het idee te toetsen','De ontdekking van het elektron','Het goudfolie-experiment','Atomen zijn stabiel en geven een lijnenspectrum','Werkt alleen voor waterstof; waarom vaste banen?','De ontdekking van het neutron','De dubbele-spleetproef','De ontdekking van radioactiviteit'];
+let matchOrder=[];
+function renderMatch(){matchOrder=shuffle(MATCH_OPTS.map((_,i)=>i));
+  $('#match').innerHTML=MATCH_MODELS.map(([m,k],i)=>`<div><b>${m}</b></div><select data-m="${i}"><option value="">— kies —</option>${matchOrder.map(o=>`<option value="${o}">${MATCH_OPTS[o]}</option>`).join('')}</select>`).join('');}
+$('#matchCheck').onclick=()=>{let goed=0;$$('#match select').forEach(s=>{const ok=+s.value===MATCH_MODELS[+s.dataset.m][1]&&s.value!=='';s.className=s.value===''?'':ok?'ok':'nok';if(ok)goed++;});
+  $('#matchFb').innerHTML=goed===MATCH_MODELS.length?'<div class="fb ok">Alles goed. Valt het je op dat het neutron, de dubbele spleet en radioactiviteit hier niet bij horen? Die hebben geen van deze modellen onderuitgehaald.</div>':`<div class="fb nok">${goed} van de ${MATCH_MODELS.length} goed. Kijk bij de rode nog eens naar "Waar liep het op stuk?" in de tijdlijn.</div>`;};
+
+/* ============ REKENEN 6V ============ */
+const h=6.626e-34,c0=2.998e8,me=9.109e-31,mp=1.673e-27,eV=1.602e-19;
+const DEELTJES=[{n:'een elektron',m:me,v:[1e5,5e6]},{n:'een proton',m:mp,v:[1e3,1e5]},{n:'een neutron',m:1.675e-27,v:[500,5000]},{n:'een stofje van 1,0·10<sup>−15</sup> kg',m:1e-15,v:[1e-3,1e-1]},{n:'een tennisbal van 0,058 kg',m:0.058,v:[20,60]}];
+let rkType='db',rk=null;
+const sig3=x=>parseFloat(x.toPrecision(3));
+function randLog(a,b){return Math.exp(Math.log(a)+Math.random()*(Math.log(b)-Math.log(a)));}
+function newRk(){
+  if(rkType==='db'){const d=DEELTJES[Math.floor(Math.random()*DEELTJES.length)];const v=sig3(randLog(d.v[0],d.v[1]));const lam=h/(d.m*v);
+    rk={vraag:`Bereken de de Broglie-golflengte van ${d.n} met een snelheid van ${sci(v,2)} m/s.`,ant:lam,eenh:'m',
+     uitw:`<i>λ</i> = ${frac('<i>h</i>','<i>m</i>·<i>v</i>')} = ${frac('6,626·10<sup>−34</sup> J·s',sci(d.m,4)+' kg × '+sci(v,2)+' m/s')} = <b>${sci(lam,2)} m</b>`};}
+  else if(rkType==='bohr'){const nl_=1+Math.floor(Math.random()*3);const nh=nl_+1+Math.floor(Math.random()*3);
+    const E=13.6*(1/(nl_*nl_)-1/(nh*nh));const EJ=E*eV;const lam=h*c0/EJ;
+    rk={vraag:`Een elektron in een waterstofatoom springt van schil <i>n</i> = ${nh} naar schil <i>n</i> = ${nl_}. Bereken de golflengte van het uitgezonden licht.`,ant:lam,eenh:'m',
+     uitw:`Δ<i>E</i> = <i>E</i><sub>${nh}</sub> − <i>E</i><sub>${nl_}</sub> = ${frac('−13,6 eV',nh*nh)} − ${frac('−13,6 eV',nl_*nl_)} = ${nl(E,3)} eV<br>
+     Δ<i>E</i> = ${nl(E,3)} eV × 1,602·10<sup>−19</sup> ${frac('J','eV')} = ${sci(EJ,4)} J<br>
+     <i>λ</i> = ${frac('<i>h</i>·<i>c</i>','Δ<i>E</i>')} = ${frac('6,626·10<sup>−34</sup> J·s × 2,998·10<sup>8</sup> m/s',sci(EJ,4)+' J')} = <b>${sci(lam,3)} m</b> (${Math.round(lam*1e9)} nm${lam>380e-9&&lam<750e-9?', zichtbaar licht':lam<380e-9?', ultraviolet':', infrarood'})`};}
+  else if(rkType==='heis'){const d=Math.random()<0.6?{n:'een elektron',m:me}:{n:'een proton',m:mp};const dx=sig3(randLog(1e-11,1e-8));const dv=h/(4*Math.PI*dx*d.m);
+    rk={vraag:`De plaats van ${d.n} is bekend met een onzekerheid Δ<i>x</i> = ${sci(dx,2)} m. Bereken de kleinst mogelijke onzekerheid in de snelheid.`,ant:dv,eenh:'m/s',
+     uitw:`Δ<i>p</i> ≥ ${frac('<i>h</i>','4π·Δ<i>x</i>')} = ${frac('6,626·10<sup>−34</sup> J·s','4π × '+sci(dx,2)+' m')} = ${sci(h/(4*Math.PI*dx),3)} kg·m/s<br>
+     Δ<i>v</i> ≥ ${frac('Δ<i>p</i>','<i>m</i>')} = ${frac(sci(h/(4*Math.PI*dx),3)+' kg·m/s',sci(d.m,4)+' kg')} = <b>${sci(dv,2)} m/s</b>`};}
+  else {const lamT=sig3(randLog(5e-11,5e-9));const v=h/(me*lamT);
+    rk={vraag:`★ Bij welke snelheid heeft een elektron een de Broglie-golflengte van ${sci(lamT,2)} m?`,ant:v,eenh:'m/s',
+     uitw:`<i>λ</i> = ${frac('<i>h</i>','<i>m</i>·<i>v</i>')} → <i>v</i> = ${frac('<i>h</i>','<i>m</i>·<i>λ</i>')} = ${frac('6,626·10<sup>−34</sup> J·s','9,109·10<sup>−31</sup> kg × '+sci(lamT,2)+' m')} = <b>${sci(v,2)} m/s</b>`};}
+  renderRk();
+}
+function renderRk(){
+  if(niveau!=='6'){$('#rekenCard').innerHTML='<div class="locked">Dit onderdeel hoort bij 6V. Zet rechtsboven het niveau op <b>6V</b>.</div>';return;}
+  $('#rekenCard').innerHTML=`<h2>Rekenen aan de kwantumwereld</h2>
+  <div class="rk-type">${[['db','de Broglie-golflengte'],['bohr','Lijnen van waterstof'],['heis','Onzekerheidsrelatie'],['terug','★ Terugrekenen']].map(([k,t])=>`<button data-rk="${k}" class="${k===rkType?'on':''}">${t}</button>`).join('')}</div>
+  <div class="given">${rk.vraag}</div>
+  <div class="inp">Antwoord: <input id="rkM" placeholder="3,3"> · 10<sup><input id="rkE" class="exp" placeholder="−10"></sup> ${rk.eenh}
+  <button class="btn main" id="rkCheck">Controleer</button> <button class="btn" id="rkShow">Toon uitwerking</button> <button class="btn" id="rkNew">Nieuwe opgave</button></div>
+  <div id="rkFb"></div>
+  <div class="const">Constanten (zie ook Binas): <i>h</i> = 6,626·10<sup>−34</sup> J·s · <i>c</i> = 2,998·10<sup>8</sup> m/s · <i>m</i><sub>e</sub> = 9,109·10<sup>−31</sup> kg · <i>m</i><sub>p</sub> = 1,673·10<sup>−27</sup> kg · 1 eV = 1,602·10<sup>−19</sup> J.<br>Vul je antwoord in als getal × 10-macht. Een afwijking tot 2% wordt goed gerekend (afrondingsverschillen).</div>`;
+}
+$('#rekenCard').addEventListener('click',e=>{
+  const t=e.target.closest('button[data-rk]'); if(t){rkType=t.dataset.rk;newRk();return;}
+  if(e.target.id==='rkNew') newRk();
+  if(e.target.id==='rkShow') $('#rkFb').innerHTML=`<div class="ans"><b>Uitwerking</b><div class="calc" style="background:transparent;border:none;padding:4px 0">${rk.uitw}</div></div>`;
+  if(e.target.id==='rkCheck'){
+    const m=parseFloat(($('#rkM').value||'').replace(',','.').replace('−','-')); const ex=parseInt(($('#rkE').value||'0').replace('−','-').replace('+',''),10);
+    if(isNaN(m)){$('#rkFb').innerHTML='<div class="fb nok">Vul eerst een getal in.</div>';return;}
+    const v=m*Math.pow(10,isNaN(ex)?0:ex); const ok=Math.abs(v-rk.ant)/rk.ant<0.02;
+    $('#rkFb').innerHTML=ok?`<div class="fb ok">Goed! ${sci(rk.ant,3)} ${rk.eenh}.</div>`:`<div class="fb nok">Nog niet goed. Controleer je eenheden en je 10-machten, of bekijk de uitwerking.</div>`;}
+});
+
+/* ============ EINDOPDRACHT ============ */
+const EIND={
+ '3':{q:'Kies één van de open vragen uit het laatste station. Leg in je eigen woorden uit wat de vraag is en waarom we het antwoord nog niet weten.',
+  ans:'Bijvoorbeeld kwantumzwaartekracht: we hebben twee theorieën die elk heel goed werken (kwantummechanica voor het allerkleinste, de algemene relativiteitstheorie voor zwaartekracht), maar ze passen niet samen. Bij een zwart gat heb je ze allebei nodig, en dan geven ze samen geen zinnig antwoord. We weten het antwoord nog niet omdat er nog geen proef is waarmee we kunnen testen welk nieuw model klopt.'},
+ '45':{q:'Leg uit hoe het golfmodel (Schrödinger) de regel "maximaal 2n² elektronen in schil n" verklaart, terwijl Bohr die regel alleen kon aannemen.',
+  ans:'In het golfmodel heeft schil n precies n² orbitalen, en in elk orbitaal passen maximaal 2 elektronen. Samen geeft dat 2·n² elektronen per schil. Bohr nam de schillen en hun capaciteit gewoon aan; het golfmodel verklaart waar ze vandaan komen.'},
+ '6':{q:'Leg met een berekening uit waarom je bij een tennisbal nooit golfgedrag of onzekerheid waarneemt, terwijl dat bij een elektron in een atoom onvermijdelijk is.',
+  ans:'De Broglie: voor een tennisbal (0,058 kg, 50 m/s) is λ = h/(m·v) ≈ 2·10⁻³⁴ m, veel kleiner dan een atoomkern; geen enkele spleet of meting kan dat waarnemen. Voor een elektron (v ≈ 2·10⁶ m/s) is λ ≈ 3·10⁻¹⁰ m, de grootte van een atoom zelf. Heisenberg: een elektron opgesloten in Δx ≈ 10⁻¹⁰ m heeft Δv ≥ h/(4π·m·Δx) ≈ 6·10⁵ m/s, groter dan zijn eigen snelheid in het atoom. Voor een tennisbal is dezelfde Δv onmeetbaar klein. Kwantumeffecten zijn dus alleen merkbaar als massa en afmetingen heel klein zijn.'}
+};
+function renderEind(){const e=EIND[niveau];
+  $('#eindCard').innerHTML=`<h2>Eindopdracht (${niveau==='3'?'3V':niveau==='45'?'4V/5V':'6V'})</h2><div class="task"><div class="q">${e.q}</div><textarea id="eindTa" placeholder="Schrijf eerst je eigen antwoord…"></textarea>
+  <div style="margin-top:6px"><button class="btn" id="eindShow">Toon modelantwoord</button></div><div id="eindMa"></div></div>
+  <p class="muted" style="margin-top:12px">Een ander niveau kiezen? Gebruik de knoppen rechtsboven.</p>`;}
+$('#eindCard').addEventListener('click',e=>{if(e.target.id!=='eindShow')return;
+  if($('#eindTa').value.trim().length<20){$('#eindMa').innerHTML='<div class="fb nok">Schrijf eerst zelf een antwoord van een paar zinnen.</div>';return;}
+  $('#eindMa').innerHTML=`<div class="ans"><b>Modelantwoord:</b> ${EIND[niveau].ans}</div>`;});
+
+/* ============ TABS & NIVEAU ============ */
+let tab='reis';
+function setTab(t){tab=t;$$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  ['reis','koppel','reken','eind'].forEach(k=>$('#v-'+k).hidden=k!==t);
+  if(t==='reken'){if(!rk)newRk();else renderRk();} if(t==='eind') renderEind(); window.scrollTo({top:0});}
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setTab(b.dataset.t);});
+$('#niveau').addEventListener('click',e=>{const b=e.target.closest('button[data-n]');if(!b)return;niveau=b.dataset.n;
+  $$('#niveau button').forEach(x=>x.classList.toggle('on',x===b));renderStation(); if(tab==='reken'){if(!rk)newRk();else renderRk();} if(tab==='eind')renderEind();});
+
+newOrder(); renderMatch(); renderStation();
+</script>
+</body>
+</html>
