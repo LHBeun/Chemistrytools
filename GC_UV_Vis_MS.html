@@ -1706,7 +1706,7 @@ function showGcAnswer(which) {
         <div class="gc-calc">A<sub>X,gecorrigeerd</sub> = ${gcFrac('A<sub>X,monster</sub>', 'f')} = ${gcFrac(gcNum(q.sampleTargetArea, 1), gcNum(A.f, 3))} = ${gcNum(A.corr, 1)}</div>
         <div class="gc-calc">c<sub>X</sub> = ${gcFrac('A<sub>X,gecorrigeerd</sub>', 'A<sub>X,calibratie</sub>')} × c<sub>X,calibratie</sub> = ${gcFrac(gcNum(A.corr, 1), gcNum(q.calibTargetArea, 1))} × ${q.calibTargetConcentration} mmol/L = ${gcNum(A.c, 1)} mmol/L</div>`;
     } else if (which === 'q5b') {
-      fb.innerHTML = `<div class="gc-calc">c<sub>X</sub> = ${gcFrac('A<sub>X,monster</sub>', 'A<sub>X,calibratie</sub>')} × c<sub>X,calibratie</sub> = ${gcFrac(gcNum(q.sampleTargetArea, 1), gcNum(q.calibTargetArea, 1))} × ${q.calibTargetConcentration} mmol/L = ${gcNum(A.cRaw, 1)} mmol/L</div>Dat wijkt af van ${gcNum(A.c, 1)} mmol/L, omdat er een andere hoeveelheid is geïnjecteerd. Zonder interne standaard zie je dat verschil niet en meet je dus fout.`;
+      fb.innerHTML = `<div class="gc-calc">c<sub>X</sub> = ${gcFrac('A<sub>X,monster</sub>', 'A<sub>X,calibratie</sub>')} × c<sub>X,calibratie</sub> = ${gcFrac(gcNum(q.sampleTargetArea, 1), gcNum(q.calibTargetArea, 1))} × ${q.calibTargetConcentration} mmol/L = ${gcNum(A.cRaw, 1)} mmol/L</div>Dat wijkt af van ${gcNum(A.c, 1)} mmol/L, omdat er een andere hoeveelheid is geïnjecteerd. Zonder interne standaard merk je dat verschil niet op en meet je dus fout.`;
     } else {
       fb.innerHTML = `Met twee keer zoveel IS wordt A<sub>IS,monster</sub> twee keer zo groot. Dan wordt ook f twee keer zo groot, terwijl er niet meer is geïnjecteerd.
         <div class="gc-calc">c<sub>X</sub> = ${gcFrac(gcNum(A.c, 1) + ' mmol/L', '2')} = ${gcNum(A.cKlaar, 1)} mmol/L</div>De methode werkt dus alleen als je in beide metingen precies dezelfde concentratie IS gebruikt.`;
@@ -1811,7 +1811,7 @@ function tlcBestSpreadFor(compounds, stationary) {
 //    ongeveer de helft van de willekeurige trekkingen, dus dit kost maar een
 //    paar pogingen, ver binnen de 200 die we toestaan).
 const TLC_MIN_SPREAD = 0.20;
-const TLC_MIN_GAP = 0.07; // kleinste afstand tussen twee vlekken, zodat je ze apart ziet
+const TLC_MIN_GAP = 0.07; // kleinste afstand tussen twee vlekken, zodat je ze apart waarneemt
 
 function tlcMinGapAt(compounds, stationary, eluent) {
   const rfs = compounds.map(c => tlcRfPure(c, stationary, eluent)).sort((a, b) => b - a);
@@ -2039,7 +2039,7 @@ function renderTlcQuestions() {
   const nSpots = tlcCurrentData.sample.length;
   html += `
     <div class="question-block">
-      <div class="question-text">2. Zet de detectie op <strong>jodiumdamp</strong>, zodat je alle vlekken ziet. Tel de vlekken in baan M. Is dat het aantal dat je verwacht? (Liggen er vlekken over elkaar, pas dan eerst de polariteit van het eluens aan.)</div>
+      <div class="question-text">2. Zet de detectie op <strong>jodiumdamp</strong>, zodat je alle vlekken waarneemt. Tel de vlekken in baan M. Is dat het aantal dat je verwacht? (Liggen er vlekken over elkaar, pas dan eerst de polariteit van het eluens aan.)</div>
       <select id="tlc-q2count-input">
         <option value="">— kies —</option>
         <option value="ok">evenveel vlekken als verwachte stoffen</option>
@@ -2102,7 +2102,7 @@ function tlcChosen(prefix) {
 function tlcNeedIodine(fb) {
   if (tlcGetSettings().detection === 'iodine') return false;
   fb.className = 'feedback incorrect';
-  fb.textContent = 'Zet de detectie eerst op jodiumdamp, zodat je alle vlekken ziet.';
+  fb.textContent = 'Zet de detectie eerst op jodiumdamp, zodat je alle vlekken waarneemt.';
   return true;
 }
 
@@ -2213,7 +2213,7 @@ function showTlcAnswer(which) {
     const fb = document.getElementById('tlc-q2count-feedback');
     fb.className = 'feedback info';
     fb.textContent = `Antwoord (bij jodiumdamp): ${d.sample.length} vlekken bij ${d.compounds.length} verwachte stoffen, dus ` +
-      (d.scenario === 'ok' ? 'evenveel.' : d.scenario === 'missing' ? 'minder: er ontbreekt een stof. Welke, dat zie je pas met de referenties.' : 'meer: er zit een extra stof in.');
+      (d.scenario === 'ok' ? 'evenveel.' : d.scenario === 'missing' ? 'minder: er ontbreekt een stof. Welke, dat stel je pas vast met de referenties.' : 'meer: er zit een extra stof in.');
     return;
   }
   if (which === 'q3') {
@@ -2226,8 +2226,8 @@ function showTlcAnswer(which) {
     fb.className = 'feedback info';
     fb.textContent = `Antwoord (bij jodiumdamp): ${list}. ${tlcScenarioText()} Op ${phase} loopt de stof die het minst door de plaat wordt aangetrokken het verst mee met het eluens. ` +
       (notUv.length
-        ? `Zet de detectie daarna op UV: dan verdwijnt ${notUv.length === 1 ? 'de vlek van ' + notUv[0] : 'de vlekken van ' + notUv.join(' en ')}. ${notUv.length === 1 ? 'Die stof heeft' : 'Die stoffen hebben'} geen aromatische ring of geconjugeerd systeem en ${notUv.length === 1 ? 'absorbeert' : 'absorberen'} geen UV-licht van 254 nm. Met UV zie je dus niet altijd alle stoffen.`
-        : 'Alle stoffen in dit monster zijn UV-actief, dus met de UV-lamp zie je ook alle vlekken.');
+        ? `Zet de detectie daarna op UV: dan verdwijnt ${notUv.length === 1 ? 'de vlek van ' + notUv[0] : 'de vlekken van ' + notUv.join(' en ')}. ${notUv.length === 1 ? 'Die stof heeft' : 'Die stoffen hebben'} geen aromatische ring of geconjugeerd systeem en ${notUv.length === 1 ? 'absorbeert' : 'absorberen'} geen UV-licht van 254 nm. Met UV neem je dus niet altijd alle stoffen waar.`
+        : 'Alle stoffen in dit monster zijn UV-actief, dus met de UV-lamp neem je ook alle vlekken waar.');
     return;
   }
   if (which === 'klaar2') {
@@ -3086,7 +3086,7 @@ function renderIr() {
       <div class="gc-order-row">${d.marks.map((m, i) => `<select id="ir-q1-pos${i}">${irOpts('piek ' + m.letter)}</select>`).join('')}</div>${irBtns('q1')}</div>`;
     q += `<div class="question-block" id="ir-q2-block" style="display:none"><div class="question-text">2. Welke stof hoort bij dit spectrum? Leg in je schrift uit welke pieken de doorslag geven.</div>
       <select id="ir-q2-input"><option value="">— kies een stof —</option>${d.candidates.map(n => `<option value="${n}">${n}</option>`).join('')}</select>${irBtns('q2')}</div>`;
-    q += `<div class="question-block"><div class="question-text"><strong>Klaar?</strong> Kies een van de andere stoffen uit de lijst. Welke piek zou je dan juist wél of juist níet zien?</div>
+    q += `<div class="question-block"><div class="question-text"><strong>Klaar?</strong> Kies een van de andere stoffen uit de lijst. Welke piek zou je dan juist wél of juist níet waarnemen?</div>
       <div class="btn-row"><button class="btn secondary" onclick="showIrAnswer('klaar')">Toon antwoord</button></div><div class="feedback" id="ir-klaar-feedback"></div></div>`;
   } else if (d.level === 'spectrum') {
     html = d.options.map((n, i) => irSvg([[n, 1]], { small: true, title: 'Spectrum ' + 'ABC'[i] })).join('<div style="height:10px"></div>');
@@ -3147,7 +3147,7 @@ function checkIr(id) {
   } else if (d.level === 'reactie' && id === 'q2') {
     const { gone, fresh } = irDiffBonds(d);
     const v = document.getElementById('ir-q2-input').value;
-    irFb('q2', gone.includes(v) || fresh.includes(v), 'Klopt: aan deze piek zie je het verschil tussen beginstof en product.', 'Nog niet juist. Kies een binding die maar in één van de twee stoffen voorkomt (beginstof of product).');
+    irFb('q2', gone.includes(v) || fresh.includes(v), 'Klopt: aan deze piek herken je het verschil tussen beginstof en product.', 'Nog niet juist. Kies een binding die maar in één van de twee stoffen voorkomt (beginstof of product).');
   }
 }
 
@@ -3173,7 +3173,7 @@ function irAnswerText(id) {
     const base = `Pieken die alleen de beginstof heeft: ${L(gone)}. Pieken die alleen het product heeft: ${L(fresh)}. `;
     if (d.scenario === 'volledig') return 'Antwoord: volledig gelukt. ' + base + 'Na de reactie zijn de pieken van de beginstof weg en zijn de pieken van het product er.';
     if (d.scenario === 'niet') return 'Antwoord: niet gelukt. ' + base + 'Het spectrum na de reactie is hetzelfde als ervoor: de pieken van het product ontbreken.';
-    return `Antwoord: gedeeltelijk gelukt (ongeveer ${Math.round(d.f * 100)} % omgezet). ` + base + 'Na de reactie zie je de pieken van het product, maar ook nog (kleiner) de pieken van de beginstof.';
+    return `Antwoord: gedeeltelijk gelukt (ongeveer ${Math.round(d.f * 100)} % omgezet). ` + base + 'Na de reactie meet je de pieken van het product, maar ook nog (kleiner) de pieken van de beginstof.';
   }
   return 'Antwoord: C–H-bindingen zitten in de beginstof én in het product. Die piek verandert dus nauwelijks en zegt niets over of de reactie gelukt is.';
 }
