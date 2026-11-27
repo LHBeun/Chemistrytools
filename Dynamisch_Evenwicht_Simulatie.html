@@ -540,6 +540,15 @@ function calcP(m,V,T){
 
 // ── Integratie ────────────────────────────────────────────────────────────
 const NSTEPS=8000, NPLOT=500;
+// Impliciete (achterwaartse) Euler-stap: blijft stabiel bij grote tijdstappen
+function stapXi(m,V,T,S,cat,dt,vN){
+  const[a,b,c,d]=RXN.co;
+  const h=1e-7*Math.max(m.A+m.B+m.C+m.D,1e-6);
+  const mh={A:Math.max(0,m.A-a*h),B:Math.max(0,m.B-b*h),C:m.C+c*h,D:m.D+d*h};
+  const J=((VF(mh,V,T,S,cat)-VR(mh,V,T,S,cat))-vN)/h;
+  const xi=vN*dt*V/(1-dt*V*Math.min(J,0));
+  return isFinite(xi)?xi:0;
+}
 function findEqTime(m0,V,T,S,cat){
   // Proefintegratie: verdubbel tijdvenster totdat evenwicht bereikt is
   const v0=VF(m0,V,T,S,cat)+VR(m0,V,T,S,cat)+1e-30;
@@ -555,7 +564,7 @@ function findEqTime(m0,V,T,S,cat){
     for(let i=0;i<PROBE;i++){
       const vF=VF(m,V,T,S,cat),vR=VR(m,V,T,S,cat),vN=vF-vR;
       if((vF+vR)>1e-30 && Math.abs(vF-vR)/(vF+vR)<0.01){atEq=true;break;}
-      const xi=vN*dt*V;
+      const xi=stapXi(m,V,T,S,cat,dt,vN);
       m.A=Math.max(0,m.A-a*xi);m.B=Math.max(0,m.B-b*xi);
       m.C=Math.max(0,m.C+c*xi);m.D=Math.max(0,m.D+d*xi);
     }
@@ -580,7 +589,7 @@ function integrate(m0,V,T,S,cat,forcedTTot){
       vfs.push(vF);vrs.push(vR);vns.push(vN);
       Qs.push(calcQ(m,V));Ps.push(calcP(m,V,T));
     }
-    const xi=vN*dt*V;
+    const xi=stapXi(m,V,T,S,cat,dt,vN);
     m.A=Math.max(0,m.A-a*xi);m.B=Math.max(0,m.B-b*xi);
     m.C=Math.max(0,m.C+c*xi);m.D=Math.max(0,m.D+d*xi);
   }
@@ -1562,7 +1571,7 @@ WPS.push({
     <h3>Uitleg</h3>
     <p>Bij een omkeerbare reactie verlopen twee reacties: de <b>heenreactie</b> (naar rechts) en de <b>terugreactie</b> (naar links). In het begin zijn er vooral beginstoffen: v<sub>heen</sub> is groot en v<sub>terug</sub> klein. Naarmate er product ontstaat, daalt v<sub>heen</sub> en stijgt v<sub>terug</sub>.</p>
     <p>Zodra v<sub>heen</sub> = v<sub>terug</sub>, ontstaat elke seconde evenveel product als er weer verdwijnt. De concentraties veranderen dan niet meer: er is <b>evenwicht</b>. De reacties gaan wel door: het is een <b>dynamisch</b> evenwicht.</p>
-    <div class="kader">In het reactievat kies je de beginhoeveelheden en de omstandigheden, en druk je op Start. Je ziet hoe de concentraties en de snelheden veranderen tot het evenwicht is ingesteld.</div>`,
+    <div class="kader">In het reactievat kies je de beginhoeveelheden en de omstandigheden, en druk je op Start. Je volgt hoe de concentraties en de snelheden veranderen tot het evenwicht is ingesteld.</div>`,
   voorbeeld: {
     vraag: 'In een afgesloten fles staat een laagje water. Na een tijd verandert het waterniveau niet meer. Leg uit wat er dan met de watermoleculen gebeurt.',
     stappen: [
@@ -1582,7 +1591,7 @@ WPS.push({
         { html:'De concentraties van alle stoffen zijn gelijk.' }], { meer:true })]},
     { titel:'Van de andere kant', vraag:'Begin nu met alleen product: zet de beginhoeveelheden op 0 mol H<sub>2</sub>, 0 mol I<sub>2</sub> en 2,000 mol HI. Druk op Start.', stappen:[
       simStap('Start met alleen HI en laat het evenwicht instellen.', () => runs().some(r => r.eq && r.startMols.A < 0.001 && r.startMols.B < 0.001 && Math.abs(r.startMols.C - 2) < 0.01), 'Zet mol H<sub>2</sub> en mol I<sub>2</sub> op 0 en mol HI op 2, en druk op Start.', 'evenwicht vanuit HI'),
-      keuzeStap('Vergelijk met de eerste keer (1 mol H<sub>2</sub>, 1 mol I<sub>2</sub>, 0 mol HI). Wat zie je?', [
+      keuzeStap('Vergelijk met de eerste keer (1 mol H<sub>2</sub>, 1 mol I<sub>2</sub>, 0 mol HI). Wat neem je waar?', [
         { html:'Er stelt zich (vrijwel) hetzelfde evenwicht in: dezelfde concentraties.', g:true },
         { html:'Nu ontstaat er geen evenwicht.' },
         { html:'Nu blijft alle HI over.' },
@@ -1724,7 +1733,7 @@ WPS.push({
     <li>Is de heenreactie endotherm (ΔH &gt; 0), dan verschuift het evenwicht naar rechts en wordt K groter.</li>
     <li>De temperatuur is de enige omstandigheid die K verandert.</li></ul>`,
   voorbeeld: {
-    vraag: 'N<sub>2</sub>O<sub>4</sub>(g) ⇌ 2 NO<sub>2</sub>(g) is endotherm (ΔH &gt; 0). NO<sub>2</sub> is bruin, N<sub>2</sub>O<sub>4</sub> kleurloos. Wat zie je als je de kolf in heet water zet?',
+    vraag: 'N<sub>2</sub>O<sub>4</sub>(g) ⇌ 2 NO<sub>2</sub>(g) is endotherm (ΔH &gt; 0). NO<sub>2</sub> is bruin, N<sub>2</sub>O<sub>4</sub> kleurloos. Wat neem je waar als je de kolf in heet water zet?',
     stappen: [
       'Bij een hogere temperatuur versnelt de endotherme heenreactie sterker dan de terugreactie.',
       'Het evenwicht verschuift naar rechts: er ontstaat meer NO<sub>2</sub>, en K wordt groter.',
@@ -1734,7 +1743,7 @@ WPS.push({
   maakSerie: () => [
     { titel:'Twee temperaturen', vraag:'2 SO<sub>2</sub> + O<sub>2</sub> ⇌ 2 SO<sub>3</sub> is exotherm. Druk op <b>↺ Reset</b> en laat het evenwicht instellen bij 600 K en daarna bij 700 K. Lees telkens Q bij evenwicht af: dat is K.', stappen:[
       simStap('Doe beide metingen.', () => [600, 700].every(T => runs().some(r => r.eq && r.soort === 'start' && Math.abs(r.T - T) < 5)), 'Stel de temperatuur in op 600 K, druk op Start; doe hetzelfde bij 700 K.', 'beide temperaturen gemeten'),
-      keuzeStap('Wat zie je?', [
+      keuzeStap('Wat neem je waar?', [
         { html:'Bij 700 K is K kleiner en is er minder SO<sub>2</sub> omgezet.', g:true },
         { html:'Bij 700 K is K groter en is er meer SO<sub>2</sub> omgezet.' },
         { html:'K is bij beide temperaturen gelijk.' }])]},

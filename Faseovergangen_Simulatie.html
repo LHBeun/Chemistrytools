@@ -1076,6 +1076,7 @@ function drawCurve() {
     const x = ml + gW * i / 5;
     const realT = findNearestByTd(tdVal).t; // eerlijk label: de werkelijke tijd op dit punt
     const tEind = findNearestByTd(tdMax).t;
+    if (tEind <= 0 && i > 0) continue;
     ctx.fillText(realT.toFixed(tEind < 10 ? 1 : 0) + ' s', x, mt + gH + 16);
   }
 
@@ -1626,7 +1627,7 @@ WPS.push({
   id:'mengsel', titel:'Mengsels', par:'smelttraject en kooktraject', sim: FASE, stoffen:['water', 'suikerwater', 'waterethanol'],
   uitleg: () => leerdoelen(
       'Ik kan uitleggen dat een mengsel geen smeltpunt en kookpunt heeft, maar een smelttraject en een kooktraject.',
-      'Ik kan aan een verwarmingscurve zien of het om één stof of om een mengsel gaat.',
+      'Ik kan uit een verwarmingscurve afleiden of het om één stof of om een mengsel gaat.',
       '★ Ik kan uitleggen welke stof uit een mengsel als eerste verdampt.') + `
     <h3>Uitleg</h3>
     <p>Eén stof heeft een vast smeltpunt en een vast kookpunt: in de verwarmingscurve zijn smelten en koken horizontale stukken. Een <b>mengsel</b> bevat meer stoffen. Tijdens het smelten en koken verandert de samenstelling, en de temperatuur loopt door. Een mengsel heeft daarom een <b>smelttraject</b> en een <b>kooktraject</b>: de curve loopt daar schuin omhoog in plaats van horizontaal.</p>
@@ -1642,7 +1643,7 @@ WPS.push({
   maakSerie: () => [
     { titel:'Suikerwater', vraag:'Kies <b>suikerwater</b>. ' + OPSTART + ' Verwarm tot het water kookt.', stappen:[
       simStap('Verwarm het suikerwater tot het kookt.', () => bereikt('suikerwater', 102), 'Kies suikerwater en verwarm tot de fase koken is.', 'suikerwater verwarmd'),
-      keuzeStap('Wat zie je in de curve tijdens het smelten van het suikerwater?', [
+      keuzeStap('Wat neem je waar in de curve tijdens het smelten van het suikerwater?', [
         { html:'De temperatuur loopt door: een smelttraject.', g:true }, { html:'De temperatuur blijft precies gelijk: een smeltpunt.' }, { html:'De temperatuur daalt.' }]),
       getalStap('Bij welke temperatuur begint het suikerwater te koken?', 102, '°C', 'Het kooktraject begint bij ongeveer 102 °C: hoger dan bij water.', 'Zoek waar het tweede schuine stuk begint.', 0.03)]},
     { titel:'Water en ethanol', vraag:'Kies het <b>water-ethanolmengsel</b> en verwarm tot alles een gas is.', stappen:[
