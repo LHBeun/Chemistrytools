@@ -1,246 +1,465 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<title>Chemisch Evenwicht — VWO Interactief</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dynamisch evenwicht</title>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
+  --papier:#f3efe6; --vel:#fffdf8; --rand:#e3dccb; --rand2:#d6cdb8;
+  --inkt:#2b2a27; --inkt2:#3e3b35; --grijs:#7a756b; --goud:#a0701f; --goud2:#e2a84b;
+  --nacht:#24323f; --nacht2:#33475a; --nachttekst:#cfd9e2;
+  --goed:#3f8f63; --goedbg:#e5f2ea; --fout:#b4473a; --foutbg:#f8e6e2; --hint:#fbf1da;
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --sans: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Consolas, 'Liberation Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--papier);color:var(--inkt);font-size:15px;line-height:1.6}
+sub,sup{font-size:.72em;line-height:0}
+button{font-family:inherit}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
+
+/* ---------- zijbalk ---------- */
+aside{background:var(--nacht);color:var(--nachttekst);padding:26px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+aside h1{font-family:var(--serif);font-size:23px;color:#fff;font-weight:600;line-height:1.2}
+aside .sub{font-size:12.5px;color:#8aa0b3;margin:4px 0 26px}
+aside nav a{display:flex;gap:12px;align-items:center;padding:10px 10px;border-radius:9px;font-size:14.5px;margin-bottom:4px;color:#b9c7d3;cursor:pointer;user-select:none;line-height:1.3}
+aside nav a:hover{background:#2c3d4d}
+aside nav a i{font-style:normal;flex:none;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #5d7387;font-size:12.5px;font-weight:700}
+aside nav a.on{background:var(--nacht2);color:#fff}
+aside nav a.on i{background:var(--goud2);border-color:var(--goud2);color:var(--nacht)}
+aside nav a.klaar i{background:#5aa37c;border-color:#5aa37c;color:#fff}
+aside nav a small{display:block;font-size:11.5px;color:#8aa0b3}
+aside .voet{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+aside .voet button{background:transparent;border:1px solid #4b6074;color:#cfd9e2;border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer;text-align:left}
+aside .voet button:hover{background:#2c3d4d}
+aside .voet .klein{font-size:11.5px;color:#6f859a}
+
+/* ---------- werkplaats ---------- */
+.wp{display:grid;grid-template-columns:minmax(380px,1fr) minmax(540px,640px);min-height:100vh}
+.tekst{padding:34px 38px 60px;max-width:760px}
+.kicker{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--goud);font-weight:700}
+.tekst h2{font-family:var(--serif);font-size:31px;margin:3px 0 14px;font-weight:600;line-height:1.2}
+.tekst h3{font-family:var(--serif);font-size:19px;margin:22px 0 6px;font-weight:600}
+.tekst p{margin-bottom:10px;color:var(--inkt2)}
+.tekst ul{margin:0 0 10px 20px;color:var(--inkt2)}
+.tekst li{margin-bottom:3px}
+.kader{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--goud2);border-radius:8px;padding:10px 14px;margin:10px 0 12px;color:var(--inkt2)}
+.kader.binas{border-left-color:#5d7387}
+.f{white-space:nowrap}
+.tabs{display:flex;gap:4px;margin:20px 0 14px;border-bottom:1px solid var(--rand2)}
+.tabs button{background:none;border:0;padding:9px 14px;font-size:14px;font-weight:600;color:var(--grijs);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--inkt);border-bottom-color:var(--goud2)}
+.tabs button .tel{font-weight:500;font-size:12px;color:var(--grijs);margin-left:4px}
+
+/* voorbeeld */
+.vb{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:16px 18px;margin:4px 0 14px}
+.vb .vbkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--goud);margin-bottom:4px}
+.vb .vbvraag{font-weight:600;margin-bottom:8px}
+.vbstap{display:flex;gap:12px;padding:8px 0;border-top:1px dashed var(--rand2)}
+.vbstap .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
+.vbstap .b{color:var(--inkt2)}
+.vb .verder{margin-top:8px}
+
+/* opdrachten */
+.oknop{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.oknop .dot{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--rand2);background:var(--vel);display:grid;place-items:center;font-size:12.5px;font-weight:700;color:var(--grijs);cursor:pointer}
+.oknop .dot.on{border-color:var(--inkt);color:var(--inkt);box-shadow:0 0 0 2px var(--inkt) inset}
+.oknop .dot.goed{background:var(--goed);border-color:var(--goed);color:#fff}
+.oknop .dot.ster{border-style:dashed}
+.oknop .rechts{margin-left:auto;font-size:13px;color:var(--grijs)}
+.opdkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--grijs);margin-bottom:4px}
+.opdkop .st{color:var(--goud)}
+.opdvraag{font-size:16px;margin-bottom:12px;color:var(--inkt)}
+.stap{display:flex;gap:12px;padding:13px 15px;background:var(--vel);border:1px solid var(--rand);border-radius:11px;margin-bottom:10px}
+.stap>.n{flex:none;width:25px;height:25px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12.5px;font-weight:700;margin-top:1px}
+.stap.dicht{opacity:.42;pointer-events:none}
+.stap.dicht .inv{display:none}
+.stap.goed{border-color:#bcdcc8;background:#fbfefc}
+.stap.goed>.n{background:var(--goed)}
+.stap .inh{flex:1;min-width:0}
+.stap .vr{margin-bottom:8px}
+.rij{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input.in{font-family:var(--mono);font-size:15px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;background:#fff;min-width:0;flex:1 1 100%}
+input.in:focus{outline:2px solid var(--goud2);outline-offset:0;border-color:var(--goud2)}
+.voorbeeldweergave{font-size:13px;color:var(--grijs);min-height:20px;margin-top:4px}
+.voorbeeldweergave b{color:var(--inkt);font-weight:600;font-size:15px}
+select.sel{border:1px solid var(--rand2);border-radius:8px;padding:7px 9px;font-size:14px;background:#fff;color:var(--inkt);font-family:inherit}
+.btn{border:0;border-radius:8px;padding:8px 15px;font-weight:600;font-size:14px;cursor:pointer;background:var(--inkt);color:#fff}
+.btn:hover{background:#45433e}
+.btn.g{background:#ebe4d4;color:var(--inkt)}
+.btn.g:hover{background:#e0d7c3}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.klein{padding:5px 11px;font-size:13px}
+.fb{margin-top:8px;padding:8px 11px;border-radius:8px;font-size:14px;display:none}
+.fb.toon{display:block}
+.fb.goed{background:var(--goedbg);color:#255c3d}
+.fb.fout{background:var(--foutbg);color:#7c2c22}
+.fb.hint{background:var(--hint);color:#6b4d12}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1.5px solid var(--rand2);background:#fff;border-radius:999px;padding:4px 12px;font-size:14px;cursor:pointer;user-select:none;color:var(--inkt)}
+.chip:hover{border-color:#b9ad93}
+.chip.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.opties{display:flex;flex-direction:column;gap:6px}
+.optie{border:1.5px solid var(--rand2);background:#fff;border-radius:9px;padding:8px 12px;font-size:14.5px;cursor:pointer;text-align:left;color:var(--inkt)}
+.optie:hover{border-color:#b9ad93}
+.optie.aan{border-color:var(--nacht);background:#eef2f6}
+.typtip{font-size:12.5px;color:var(--grijs);margin-top:14px;line-height:1.5}
+.typtip code{font-family:var(--mono);background:#ebe4d4;border-radius:4px;padding:0 4px;font-size:12px}
+.klaarbanner{background:var(--goedbg);border:1px solid #bcdcc8;color:#255c3d;border-radius:11px;padding:12px 15px;margin:4px 0 12px}
+
+/* ---------- simulatiekolom ---------- */
+.simkol{background:var(--vel);border-left:1px solid var(--rand);padding:22px 22px 30px;display:flex;flex-direction:column;gap:12px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.simkol>*{flex-shrink:0}
+.simkop{display:flex;justify-content:space-between;align-items:baseline}
+.simkop b{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--goud)}
+.simkop span{font-size:12.5px;color:var(--grijs)}
+.ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ctrl label{font-size:13.5px;color:var(--inkt2);display:flex;gap:6px;align-items:center}
+.doek{border:1px solid var(--rand);border-radius:12px;background:#fbf8f1;position:relative;overflow:hidden}
+.doek canvas{display:block;width:100%;height:auto}
+.waarneming{font-size:14px;color:var(--inkt2);min-height:22px}
+.waarneming b{color:var(--inkt)}
+.vgl{font-family:var(--serif);font-size:19px;text-align:center;min-height:30px;color:var(--inkt)}
+.tabelkop{font-size:12px;font-weight:700;letter-spacing:1.2px;color:var(--goud);margin-bottom:6px;text-transform:uppercase}
+table.b45{border-collapse:collapse;font-size:13px;background:#fff;color:var(--inkt)}
+table.b45 th,table.b45 td{border:1px solid #6d6a62;padding:2px 0;text-align:center;width:38px}
+table.b45 th{font-weight:600;background:#fff}
+table.b45 th.hoek{width:46px;font-size:10px;font-weight:400;color:var(--grijs)}
+table.b45 td.licht{background:#f6e3bf;font-weight:700}
+table.b45 tr.licht th, table.b45 th.licht{background:#f3ead6}
+.legenda{font-size:12px;color:var(--grijs);margin-top:6px;line-height:1.45}
+.balk{display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.balk .lijn{display:flex;align-items:center;gap:8px}
+.balk .lijn span.lab{width:120px;color:var(--inkt2)}
+.balk .vak{display:flex;gap:3px;flex-wrap:wrap}
+.balk .q{width:18px;height:18px;border-radius:4px;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff}
+.balk .q.p{background:#c4822b}.balk .q.m{background:#3b6fa8}
+.uitkomst{background:#fff;border:1px solid var(--rand);border-radius:10px;padding:10px 14px;font-size:14.5px}
+.uitkomst .groot{font-family:var(--serif);font-size:22px}
+.buislog{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:12px}
+.buislog div{background:#fff;border:1px solid var(--rand);border-radius:8px;padding:5px 7px;line-height:1.35}
+.buislog div b{display:block;font-size:12.5px}
+
+/* niveau */
+.niveau{display:flex;gap:4px;margin:-14px 0 22px}
+.niveau button{flex:1;background:transparent;border:1px solid #4b6074;color:#b9c7d3;border-radius:7px;padding:5px;font-weight:700;font-size:13px;cursor:pointer}
+.niveau button.aan{background:var(--goud2);border-color:var(--goud2);color:var(--nacht)}
+/* moleculen */
+svg.mol{display:block;max-width:100%;height:auto}
+.molkader{background:#fff;border:1px solid var(--rand);border-radius:10px;padding:8px 10px;margin:8px 0;overflow-x:auto}
+.molrij{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.molrij .plus{font-size:22px;color:var(--grijs)}
+.molnaam{font-size:12.5px;color:var(--grijs);text-align:center;margin-top:2px}
+/* tekenveld */
+.tv{background:#fff;border:1px solid var(--rand2);border-radius:10px;overflow:hidden}
+.tvbalk{display:flex;flex-wrap:wrap;gap:4px;padding:7px;background:#f7f2e6;border-bottom:1px solid var(--rand)}
+.tvk{border:1px solid var(--rand2);background:#fff;border-radius:7px;padding:4px 10px;font-family:Georgia,serif;font-size:15px;cursor:pointer;min-width:34px;color:var(--inkt)}
+.tvk[data-a],.tvk[data-t="gum"]{font-family:var(--sans);font-size:13px}
+.tvk.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.tvsep{width:1px;background:var(--rand2);margin:0 4px}
+.tvdoek{overflow:auto;max-height:340px}
+.tvsvg{display:block;touch-action:none;cursor:crosshair;background:#fffdf8}
+.tvuitleg{font-size:12px;color:var(--grijs);padding:5px 9px;border-top:1px solid var(--rand)}
+input.getal{max-width:200px;flex:0 1 200px}
+.eenheid{font-size:15px;color:var(--inkt2)}
+.formule{font-family:var(--serif);font-size:17px;margin:6px 0}
+.breuk{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;font-size:.95em}
+.breuk>span:first-child{border-bottom:1.3px solid currentColor;padding:0 4px}
+.breuk>span:last-child{padding:0 4px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;font-size:14.5px}
+.kv b{font-family:var(--serif);font-size:18px;font-weight:600}
+table.data{border-collapse:collapse;font-size:14px;background:#fff;margin:6px 0}
+table.data th,table.data td{border:1px solid var(--rand2);padding:3px 10px;text-align:right}
+table.data th{background:#f7f2e6;font-weight:600}
+.fitvak{margin-top:10px;padding:10px 12px;border:1px dashed #D9822B;border-radius:10px;background:#fdf6ec}
+.fitkop{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:#b8641a;margin-bottom:4px}
+.fitvak .inp{font:inherit;font-size:14px;padding:4px 7px;border:1px solid #d8cfbd;border-radius:6px;background:#fff}
+.reeksen{display:flex;flex-direction:column;gap:4px;font-size:13.5px}
+.reeksen label{display:flex;gap:8px;align-items:center}
+.reeksen i{display:inline-block;width:14px;height:4px;border-radius:2px}
+.info{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13.5px;background:#fff;border:1px solid var(--rand);border-radius:10px;padding:9px 12px}
+.info b{font-weight:600}
+.schuif{display:flex;align-items:center;gap:8px;font-size:13.5px}
+.schuif input{width:150px}
+/* beamerstand */
+body.beamer{font-size:18px}
+body.beamer .tekst h2{font-size:36px}
+body.beamer .opdvraag{font-size:19px}
+body.beamer input.in{font-size:18px}
+body.beamer .optie, body.beamer .chip{font-size:17px}
+body.beamer table.b45{font-size:15px}
+
+@media (max-width:1180px){
+  .wp{grid-template-columns:1fr}
+  .simkol{position:static;height:auto;border-left:0;border-top:1px solid var(--rand)}
+}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  aside{position:static;height:auto}
+}
+@media print{aside,.simkol{display:none}.wp{display:block}}
+#simhouder{
   --bg:#ffffff;--panel:#f7f7f5;--border:#d8d8d4;
   --accent:#6b8a12;--text:#1c1e1f;--muted:#5f6469;
   --cA:#2f8a5b;--cB:#c1642f;--cC:#8a5bd6;--cD:#3b6bc4;
   --vf:#b8862a;--vr:#b8402f;--vn:#444444;
-  --mono:'Courier New',monospace;
+  
 }
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;padding:20px}
-.wrap{max-width:1100px;margin:0 auto}
-h1{font-size:1.25em;font-weight:700;color:var(--accent);margin-bottom:16px}
+#simhouder .rxnbar{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 18px;margin-bottom:10px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+#simhouder .rxneq{font-family:var(--mono);font-size:1.05em;color:var(--accent)}
+#simhouder .newbtn{margin-left:auto;background:transparent;border:1.5px solid var(--accent);color:var(--accent);padding:6px 14px;border-radius:5px;font-size:.82em;font-weight:700;cursor:pointer}
+#simhouder .newbtn:hover{background:rgba(107,138,18,.12)}
+#simhouder .solidnote{display:none;background:#eaf5ea;border:1px solid #8fc98f;border-left:4px solid #2f8a5b;border-radius:8px;padding:10px 16px;margin-bottom:10px;font-size:.87em;color:#2f6b3f;line-height:1.5}
+#simhouder .statbar{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin-bottom:10px;display:flex;gap:20px;flex-wrap:wrap;font-family:var(--mono);font-size:.82em}
+#simhouder .st{display:flex;flex-direction:column;gap:2px}
+#simhouder .stl{font-size:.7em;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+#simhouder .stv{font-weight:700}
+#simhouder .stv.eq{color:var(--accent)}
+#simhouder .stv.neq{color:#c1642f}
+#simhouder .main{display:grid;grid-template-columns:1fr 300px;gap:14px;margin-bottom:14px}
+#simhouder .gcol{display:flex;flex-direction:column;gap:12px}
+#simhouder .gbox{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+#simhouder .ghead{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+#simhouder .gtit{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+#simhouder .gtab{padding:3px 10px;border-radius:4px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:.75em;font-weight:700;cursor:pointer}
+#simhouder .gtab.on{border-color:var(--accent);color:var(--accent);background:rgba(107,138,18,.08)}
+#simhouder .spbtns{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+#simhouder .spb{padding:3px 8px;border-radius:4px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:.75em;font-weight:700;cursor:pointer;font-family:var(--mono)}
+#simhouder .spb.oA{border-color:var(--cA);color:var(--cA);background:rgba(79,195,161,.1)}
+#simhouder .spb.oB{border-color:var(--cB);color:var(--cB);background:rgba(238,139,91,.1)}
+#simhouder .spb.oC{border-color:var(--cC);color:var(--cC);background:rgba(181,141,238,.1)}
+#simhouder .spb.oD{border-color:var(--cD);color:var(--cD);background:rgba(91,141,238,.1)}
+#simhouder canvas{width:100%;height:210px;display:block;border-radius:4px;cursor:crosshair}
+#simhouder #tip{position:fixed;background:#f5f5f2;border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:.8em;color:var(--text);pointer-events:none;display:none;z-index:100;font-family:var(--mono);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+#simhouder .pcol{display:flex;flex-direction:column;gap:10px}
+#simhouder .pbox{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+#simhouder .ptit{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+#simhouder .pr{margin-bottom:11px}
+#simhouder .pr:last-child{margin-bottom:0}
+#simhouder .pl{font-size:.8em;color:#5f6469;display:flex;justify-content:space-between;margin-bottom:4px}
+#simhouder .pv{font-family:var(--mono);color:#3b6bc4}
+#simhouder .srow{display:flex;align-items:center;gap:8px}
+#simhouder input[type=range]{-webkit-appearance:none;flex:1;height:4px;background:var(--border);border-radius:2px;outline:none}
+#simhouder input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#3b6bc4;cursor:pointer;border:2px solid var(--bg)}
+#simhouder .ni{width:64px;flex-shrink:0;background:#f2f2ef;border:1.5px solid var(--border);border-radius:5px;color:#3b6bc4;font-family:var(--mono);font-size:.83em;padding:4px 5px;text-align:right;outline:none}
+#simhouder .ni:focus{border-color:#3b6bc4}
+#simhouder .togrow{display:flex;gap:6px;margin-top:4px}
+#simhouder .tog{flex:1;padding:5px;border-radius:5px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:.78em;font-weight:700;cursor:pointer}
+#simhouder .tog.on{border-color:var(--accent);color:var(--accent);background:rgba(107,138,18,.1)}
+#simhouder .molg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+#simhouder .molrow{display:flex;flex-direction:column;gap:3px}
+#simhouder .mollbl{font-size:.75em}
+#simhouder .moli{background:#f2f2ef;border:1.5px solid var(--border);border-radius:5px;color:#3b6bc4;font-family:var(--mono);font-size:.83em;padding:5px 7px;outline:none;width:100%}
+#simhouder .moli:focus{border-color:#3b6bc4}
+#simhouder .actbtn{width:100%;padding:9px;border-radius:6px;border:1.5px solid #4747c9;background:transparent;color:#4747c9;font-size:.82em;font-weight:700;cursor:pointer;margin-bottom:6px;transition:all .12s}
+#simhouder .actbtn:hover{background:rgba(91,91,238,.15)}
+#simhouder .actbtn.start{border-color:var(--accent);color:var(--accent);font-size:.9em;padding:11px}
+#simhouder .actbtn.start:hover{background:rgba(107,138,18,.12)}
+#simhouder .actbtn.warn{border-color:#b8402f;color:#b8503b}
+#simhouder .actbtn.warn:hover{background:rgba(224,90,90,.15)}
+#simhouder .qsec{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin-bottom:14px;display:none}
+#simhouder .qtit{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:16px}
+#simhouder .qb{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+#simhouder .qb:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+#simhouder .qt{font-size:.9em;line-height:1.5;margin-bottom:8px}
+#simhouder .qrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#simhouder .qin{width:100px;background:#f2f2ef;border:1.5px solid var(--border);border-radius:5px;color:#3b6bc4;font-family:var(--mono);font-size:.9em;padding:5px 8px;outline:none}
+#simhouder .qin:focus{border-color:#3b6bc4}
+#simhouder .cbtn{padding:6px 14px;border-radius:5px;border:1.5px solid #3b6bc4;background:transparent;color:#3b6bc4;font-size:.8em;font-weight:700;cursor:pointer}
+#simhouder .cbtn:hover{background:rgba(91,141,238,.15)}
+#simhouder .qfb{font-size:.85em;margin-top:6px;display:none;line-height:1.5}
+#simhouder .qfb.ok{color:#2f8a5b}
+#simhouder .qfb.err{color:#c1642f}
+#simhouder .ropts{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+#simhouder .ropt{padding:5px 12px;border-radius:5px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:.82em;font-weight:700;cursor:pointer}
+#simhouder .ropt.on{border-color:#3b6bc4;color:#3b6bc4;background:rgba(91,141,238,.1)}
 
-.rxnbar{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 18px;margin-bottom:10px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.rxneq{font-family:var(--mono);font-size:1.05em;color:var(--accent)}
-.newbtn{margin-left:auto;background:transparent;border:1.5px solid var(--accent);color:var(--accent);padding:6px 14px;border-radius:5px;font-size:.82em;font-weight:700;cursor:pointer}
-.newbtn:hover{background:rgba(107,138,18,.12)}
+.leerdoelen{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:12px 16px 6px;margin:4px 0 6px}
+.leerdoelen b{display:block;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--goud);margin-bottom:4px}
+.leerdoelen ul{list-style:none;margin:0!important;padding:0}
+.leerdoelen li{padding:4px 0 4px 26px;position:relative;color:var(--inkt2)}
+.leerdoelen li::before{content:"";position:absolute;left:2px;top:9px;width:13px;height:13px;border:1.5px solid var(--goud2);border-radius:3px}
+.leerdoelen li.ster::before{content:"★";border:0;color:var(--goud);top:3px;left:1px;font-size:14px}
+.kl{font-size:12.5px;color:var(--grijs);line-height:1.45}
+#simhouder{display:flex;flex-direction:column;gap:10px}
+#simhouder .simkop{margin-bottom:2px}
 
-.solidnote{display:none;background:#eaf5ea;border:1px solid #8fc98f;border-left:4px solid #2f8a5b;border-radius:8px;padding:10px 16px;margin-bottom:10px;font-size:.87em;color:#2f6b3f;line-height:1.5}
+#simhouder{--bg:#fffdf8;--panel:#fbf8f1;--border:#e3dccb;--text:#2b2a27;--muted:#7a756b;--accent:#24323f}
+#simhouder .verborgen{display:none!important}
+#simhouder .rxnbar,#simhouder .statbar,#simhouder .gbox,#simhouder .pbox{border-radius:12px}
+#simhouder .rxneq{font-family:var(--sans);font-weight:700;font-size:1.1em;color:var(--inkt)}
+#simhouder .statbar{gap:16px}
+#simhouder .stv.eq{color:#2f7a4f}
+#simhouder canvas{width:100%;height:210px;display:block;background:#fff;border-radius:8px}
+#simhouder .gbox{margin-bottom:10px}
+#simhouder .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+#simhouder .newbtn{border-color:var(--nacht);color:var(--nacht);font-family:var(--sans)}
+#simhouder .newbtn:hover{background:#ebe4d4}
+#simhouder .actbtn{font-family:var(--sans)}
+#simhouder .actbtn.start{background:var(--nacht);border-color:var(--nacht);color:#fff}
+#simhouder .actbtn.start:hover{background:var(--nacht2)}
+#simhouder .tog.on{background:var(--nacht);border-color:var(--nacht);color:#fff}
+#simhouder .gtab.on{background:var(--nacht);border-color:var(--nacht);color:#fff}
+#simhouder input[type=range]::-webkit-slider-thumb{background:var(--nacht2)}
+#simhouder #dist-box .actbtn{margin:4px 4px 0 0;width:auto}
+#tip{position:fixed;pointer-events:none;background:var(--nacht);color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;display:none;z-index:50}
+.formule{font-family:var(--sans);font-weight:700;margin-bottom:6px}
+.reken{margin:8px 0;font-size:16px}
 
-.statbar{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin-bottom:10px;display:flex;gap:20px;flex-wrap:wrap;font-family:var(--mono);font-size:.82em}
-.st{display:flex;flex-direction:column;gap:2px}
-.stl{font-size:.7em;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
-.stv{font-weight:700}
-.stv.eq{color:var(--accent)}.stv.neq{color:#c1642f}
-
-.main{display:grid;grid-template-columns:1fr 300px;gap:14px;margin-bottom:14px}
-
-.gcol{display:flex;flex-direction:column;gap:12px}
-.gbox{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
-.ghead{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
-.gtit{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
-.gtab{padding:3px 10px;border-radius:4px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:.75em;font-weight:700;cursor:pointer}
-.gtab.on{border-color:var(--accent);color:var(--accent);background:rgba(107,138,18,.08)}
-.spbtns{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
-.spb{padding:3px 8px;border-radius:4px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:.75em;font-weight:700;cursor:pointer;font-family:var(--mono)}
-.spb.oA{border-color:var(--cA);color:var(--cA);background:rgba(79,195,161,.1)}
-.spb.oB{border-color:var(--cB);color:var(--cB);background:rgba(238,139,91,.1)}
-.spb.oC{border-color:var(--cC);color:var(--cC);background:rgba(181,141,238,.1)}
-.spb.oD{border-color:var(--cD);color:var(--cD);background:rgba(91,141,238,.1)}
-canvas{width:100%;height:210px;display:block;border-radius:4px;cursor:crosshair}
-
-#tip{position:fixed;background:#f5f5f2;border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:.8em;color:var(--text);pointer-events:none;display:none;z-index:100;font-family:var(--mono);box-shadow:0 2px 8px rgba(0,0,0,.12)}
-
-.pcol{display:flex;flex-direction:column;gap:10px}
-.pbox{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
-.ptit{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
-.pr{margin-bottom:11px}.pr:last-child{margin-bottom:0}
-.pl{font-size:.8em;color:#5f6469;display:flex;justify-content:space-between;margin-bottom:4px}
-.pv{font-family:var(--mono);color:#3b6bc4}
-.srow{display:flex;align-items:center;gap:8px}
-input[type=range]{-webkit-appearance:none;flex:1;height:4px;background:var(--border);border-radius:2px;outline:none}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#3b6bc4;cursor:pointer;border:2px solid var(--bg)}
-.ni{width:64px;flex-shrink:0;background:#f2f2ef;border:1.5px solid var(--border);border-radius:5px;color:#3b6bc4;font-family:var(--mono);font-size:.83em;padding:4px 5px;text-align:right;outline:none}
-.ni:focus{border-color:#3b6bc4}
-.togrow{display:flex;gap:6px;margin-top:4px}
-.tog{flex:1;padding:5px;border-radius:5px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:.78em;font-weight:700;cursor:pointer}
-.tog.on{border-color:var(--accent);color:var(--accent);background:rgba(107,138,18,.1)}
-.molg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.molrow{display:flex;flex-direction:column;gap:3px}
-.mollbl{font-size:.75em}
-.moli{background:#f2f2ef;border:1.5px solid var(--border);border-radius:5px;color:#3b6bc4;font-family:var(--mono);font-size:.83em;padding:5px 7px;outline:none;width:100%}
-.moli:focus{border-color:#3b6bc4}
-
-.actbtn{width:100%;padding:9px;border-radius:6px;border:1.5px solid #4747c9;background:transparent;color:#4747c9;font-size:.82em;font-weight:700;cursor:pointer;margin-bottom:6px;transition:all .12s}
-.actbtn:hover{background:rgba(91,91,238,.15)}
-.actbtn.start{border-color:var(--accent);color:var(--accent);font-size:.9em;padding:11px}
-.actbtn.start:hover{background:rgba(107,138,18,.12)}
-.actbtn.warn{border-color:#b8402f;color:#b8503b}
-.actbtn.warn:hover{background:rgba(224,90,90,.15)}
-
-.qsec{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin-bottom:14px;display:none}
-.qtit{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:16px}
-.qb{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)}
-.qb:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
-.qt{font-size:.9em;line-height:1.5;margin-bottom:8px}
-.qrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.qin{width:100px;background:#f2f2ef;border:1.5px solid var(--border);border-radius:5px;color:#3b6bc4;font-family:var(--mono);font-size:.9em;padding:5px 8px;outline:none}
-.qin:focus{border-color:#3b6bc4}
-.cbtn{padding:6px 14px;border-radius:5px;border:1.5px solid #3b6bc4;background:transparent;color:#3b6bc4;font-size:.8em;font-weight:700;cursor:pointer}
-.cbtn:hover{background:rgba(91,141,238,.15)}
-.qfb{font-size:.85em;margin-top:6px;display:none;line-height:1.5}
-.qfb.ok{color:#2f8a5b}.qfb.err{color:#c1642f}
-.ropts{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
-.ropt{padding:5px 12px;border-radius:5px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:.82em;font-weight:700;cursor:pointer}
-.ropt.on{border-color:#3b6bc4;color:#3b6bc4;background:rgba(91,141,238,.1)}
-
-@media(max-width:800px){.main{grid-template-columns:1fr}}
-</style>
-<style id="huisstijl">
-:root{--hs-acc:#1F5FBF;--hs-acc-d:#174a96;--hs-soft:#E8F0FC;--hs-given:#F3F7FD;--hs-ok:#1A7F37;--hs-ok-soft:#E4F4E8;
---hs-err:#C62828;--hs-err-soft:#FDECEC;--hs-key:#FFF0A0;--hs-muted:#595959;--hs-line:#D5DCE8;--hs-bg:#F6F8FB;--hs-card:#fff;
---hs-text:#1d2330;--hs-font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-html,body{background:var(--hs-bg)!important;color:var(--hs-text)}
-body{font-family:var(--hs-font)!important}
-.hs-header{display:block!important;background:var(--hs-acc)!important;color:#fff;margin-bottom:18px;padding:0!important;border:none!important;border-radius:0!important}
-.hs-header .hs-wrap{max-width:var(--hs-max,1100px);margin:0 auto;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.hs-header h1{margin:0!important;padding:0!important;font-size:1.5rem!important;font-weight:650!important;color:#fff!important;text-align:left!important;letter-spacing:.2px;font-family:var(--hs-font)!important}
-.hs-header h1{flex:1 1 auto}
-.hs-header button{flex:0 0 auto;width:auto!important;margin:0!important;box-shadow:none!important;font-weight:500!important;font-family:var(--hs-font)!important;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px!important;border:1.5px solid #fff!important;background:transparent!important;color:#fff!important}
-.hs-header button:hover{background:rgba(255,255,255,.15)}
-body.hs-beamer>*:not(.hs-header):not(.hs-own):not(script):not(.hs-nozoom){zoom:1.3}
-.hs-own{background:var(--hs-acc)!important;color:#fff!important;border:none!important}
-.hs-own h1{color:#fff!important;font-family:var(--hs-font)!important}
-.hs-own .sub,.hs-own .subtitle{color:rgba(255,255,255,.85)!important}
-.hs-own>button:last-child{font:inherit;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px;border:1.5px solid #fff;background:transparent;color:#fff;margin-left:auto;flex:0 0 auto}
-.hs-own>button:last-child:hover{background:rgba(255,255,255,.15)}
-:root{--hs-max:1132px}
-
-:root{--accent:#1F5FBF;--panel:#fff;--border:#D5DCE8;--mono:var(--hs-font)}
-body{font-size:15px}
-.gtab.on,.tog.on{background:var(--hs-soft)!important}
-.newbtn,.cbtn{background:var(--hs-acc);color:#fff;border-color:var(--hs-acc)}
-.newbtn:hover,.cbtn:hover{background:var(--hs-acc-d)}
-.actbtn{border-color:var(--hs-acc);color:var(--hs-acc)}
-.actbtn:hover{background:var(--hs-soft)}
-.actbtn.start{background:var(--hs-acc);color:#fff;border-color:var(--hs-acc)}
-.actbtn.start:hover{background:var(--hs-acc-d)}
-.actbtn.warn{border-color:var(--hs-err);color:var(--hs-err)}
-.ni,.moli,.qin{background:var(--hs-given)!important;font-variant-numeric:tabular-nums}
-.stv,.pv{font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
-<div class="wrap">
-<h1>Chemisch Evenwicht — VWO Interactief</h1>
-
-<div class="rxnbar">
-  <div class="rxneq" id="eq-disp">—</div>
-  <button class="newbtn" onclick="newRxn()">↻ Nieuwe reactie</button>
-</div>
-<div class="solidnote" id="solid-note">
-  ⚗️ <strong>Let op:</strong> vaste stof in grote overmaat — concentratie als constant beschouwd.
-  Pas het oppervlak S aan om het effect op de reactiesnelheid te onderzoeken.
-</div>
-
-<div class="statbar">
-  <div class="st"><span class="stl">Status</span><span class="stv" id="st-s">Stel parameters in en druk op Start</span></div>
-  <div class="st"><span class="stl">Q (huidig)</span><span class="stv" id="st-Q">—</span></div>
-  <div class="st"><span class="stl">Totaaldruk</span><span class="stv" id="st-P">—</span></div>
-  <div class="st"><span class="stl">v_heen</span><span class="stv" id="st-vf">—</span></div>
-  <div class="st"><span class="stl">v_terug</span><span class="stv" id="st-vr">—</span></div>
-</div>
-
-<div class="main">
-  <div class="gcol">
-    <div class="gbox">
-      <div class="ghead">
-        <span class="gtit">Grafiek 1</span>
-        <button class="gtab on" id="tab-c" onclick="setTab('c')">Concentraties</button>
-        <button class="gtab"    id="tab-p" onclick="setTab('p')">Druk</button>
-        <button class="gtab"    id="tab-q" onclick="setTab('q')">Q</button>
-        <div class="spbtns" id="spbtns"></div>
-      </div>
-      <canvas id="c1"></canvas>
+<div class="app">
+  <aside>
+    <h1>Dynamisch evenwicht</h1>
+    <div class="sub">5 vwo · H6 evenwichten</div>
+    <nav id="nav"></nav>
+    <div class="voet">
+      <button id="beamerknop">Beamerstand</button>
+      <button id="resetknop">Voortgang wissen</button>
+      <div class="klein">Een model: de reacties zijn gekalibreerd op realistische waarden van K, maar de snelheden zijn vereenvoudigd.</div>
     </div>
-    <div class="gbox">
-      <div class="ghead">
-        <span class="gtit">Snelheden</span>
-        <span style="font-size:.75em;color:var(--muted);margin-left:8px">
-          <span style="color:var(--vf)">■</span> v_heen &nbsp;
-          <span style="color:var(--vr)">■</span> v_terug &nbsp;
-          <span style="color:var(--vn)">■</span> v_netto
-        </span>
-      </div>
-      <canvas id="c2"></canvas>
-    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div id="parkeer" style="display:none"><div id="simhouder">
+  <div class="simkop"><b>Reactievat</b><span id="simsub">evenwicht</span></div>
+  <div class="rxnbar"><div class="rxneq" id="eq-disp">—</div><button class="newbtn sh-deel" data-deel="nieuw" onclick="newRxn()">↻ Andere reactie</button></div>
+  <div class="solidnote" id="solid-note">Vaste stof in grote overmaat: de concentratie ervan is constant.</div>
+  <div class="statbar">
+    <div class="st"><span class="stl">Status</span><span class="stv" id="st-s">Stel in en druk op Start</span></div>
+    <div class="st"><span class="stl">Q (nu)</span><span class="stv" id="st-Q">—</span></div>
+    <div class="st"><span class="stl">Omgezet</span><span class="stv" id="st-om">—</span></div>
+    <div class="st"><span class="stl">Druk</span><span class="stv" id="st-P">—</span></div>
+    <div class="st"><span class="stl">v<sub>heen</sub></span><span class="stv" id="st-vf">—</span></div>
+    <div class="st"><span class="stl">v<sub>terug</sub></span><span class="stv" id="st-vr">—</span></div>
   </div>
-
-  <div class="pcol">
+  <div class="gbox">
+    <div class="ghead">
+      <button class="gtab on" id="tab-c" onclick="setTab('c')">Concentraties</button>
+      <button class="gtab" id="tab-p" onclick="setTab('p')">Druk</button>
+      <button class="gtab" id="tab-q" onclick="setTab('q')">Q</button>
+      <div class="spbtns" id="spbtns"></div>
+    </div>
+    <canvas id="c1"></canvas>
+  </div>
+  <div class="gbox">
+    <div class="ghead"><span class="gtit">Snelheden</span>
+      <span style="font-size:.78em;color:var(--muted);margin-left:8px"><span style="color:var(--vf)">■</span> v<sub>heen</sub> &nbsp;<span style="color:var(--vr)">■</span> v<sub>terug</sub> &nbsp;<span style="color:var(--vn)">■</span> v<sub>netto</sub></span></div>
+    <canvas id="c2"></canvas>
+  </div>
+  <div class="pgrid">
     <div class="pbox">
-      <div class="ptit">
-        Beginhoeveelheden
-        <button class="newbtn" style="font-size:.7em;padding:3px 8px;margin-left:0" onclick="resetSim()">↺ Reset</button>
-      </div>
+      <div class="ptit">Beginhoeveelheden <button class="newbtn" onclick="resetSim()">↺ Reset</button></div>
       <div class="pr">
         <div class="pl"><span>Volume</span><span class="pv" id="lbl-V">1,00 L</span></div>
-        <div class="srow">
-          <input type="range" id="sl-V" min="0.1" max="5" step="0.1" value="1" oninput="sp('V',this.value)">
-          <input type="number" class="ni" id="ni-V" value="1" min="0.1" max="5" step="0.1" onchange="sp('V',this.value)" onkeydown="if(event.key==='Enter')sp('V',this.value)">
-        </div>
+        <div class="srow"><input type="range" id="sl-V" min="0.1" max="5" step="0.1" value="1" oninput="sp('V',this.value)">
+          <input type="number" class="ni" id="ni-V" value="1" min="0.1" max="5" step="0.1" onchange="sp('V',this.value)" onkeydown="if(event.key==='Enter')sp('V',this.value)"></div>
       </div>
       <div class="molg" id="molg"></div>
     </div>
-
     <div class="pbox">
-      <div class="ptit">Condities</div>
+      <div class="ptit">Omstandigheden</div>
       <div class="pr">
         <div class="pl"><span>Temperatuur</span><span class="pv" id="lbl-T">500 K</span></div>
-        <div class="srow">
-          <input type="range" id="sl-T" min="200" max="900" step="10" value="500" oninput="sp('T',this.value)">
-          <input type="number" class="ni" id="ni-T" value="500" min="200" max="900" step="10" onchange="sp('T',this.value)" onkeydown="if(event.key==='Enter')sp('T',this.value)">
-        </div>
+        <div class="srow"><input type="range" id="sl-T" min="200" max="900" step="10" value="500" oninput="sp('T',this.value)">
+          <input type="number" class="ni" id="ni-T" value="500" min="200" max="900" step="10" onchange="sp('T',this.value)" onkeydown="if(event.key==='Enter')sp('T',this.value)"></div>
       </div>
-      <div class="pr">
+      <div class="pr sh-deel" data-deel="kat">
         <div class="pl"><span>Katalysator</span></div>
-        <div class="togrow">
-          <button class="tog on" id="cat-n" onclick="setCat(false)">Zonder</button>
-          <button class="tog"    id="cat-y" onclick="setCat(true)">Met</button>
-        </div>
+        <div class="togrow"><button class="tog on" id="cat-n" onclick="setCat(false)">zonder</button><button class="tog" id="cat-y" onclick="setCat(true)">met</button></div>
       </div>
       <div class="pr" id="surf-row" style="display:none">
         <div class="pl"><span>Oppervlak S</span><span class="pv" id="lbl-S">1,00</span></div>
-        <div class="srow">
-          <input type="range" id="sl-S" min="0.1" max="3" step="0.05" value="1" oninput="sp('S',this.value)">
-          <input type="number" class="ni" id="ni-S" value="1" min="0.1" max="3" step="0.05" onchange="sp('S',this.value)" onkeydown="if(event.key==='Enter')sp('S',this.value)">
-        </div>
+        <div class="srow"><input type="range" id="sl-S" min="0.1" max="3" step="0.05" value="1" oninput="sp('S',this.value)">
+          <input type="number" class="ni" id="ni-S" value="1" min="0.1" max="3" step="0.05" onchange="sp('S',this.value)" onkeydown="if(event.key==='Enter')sp('S',this.value)"></div>
       </div>
       <div class="pr" id="ar-row" style="display:none">
         <div class="pl"><span>Argon (mol)</span><span class="pv" id="lbl-Ar">0,00</span></div>
-        <div class="srow">
-          <input type="range" id="sl-Ar" min="0" max="5" step="0.1" value="0" oninput="sp('Ar',this.value)">
-          <input type="number" class="ni" id="ni-Ar" value="0" min="0" max="5" step="0.1" onchange="sp('Ar',this.value)" onkeydown="if(event.key==='Enter')sp('Ar',this.value)">
-        </div>
+        <div class="srow"><input type="range" id="sl-Ar" min="0" max="5" step="0.1" value="0" oninput="sp('Ar',this.value)">
+          <input type="number" class="ni" id="ni-Ar" value="0" min="0" max="5" step="0.1" onchange="sp('Ar',this.value)" onkeydown="if(event.key==='Enter')sp('Ar',this.value)"></div>
       </div>
     </div>
-
-    <button class="actbtn start" onclick="startSim()">▶ Start simulatie</button>
-
-    <div class="pbox" id="dist-box" style="display:none">
-      <div class="ptit">Verstoring (na evenwicht)</div>
-      <button class="actbtn" onclick="disturb('addA')">+ Voeg reactant toe</button>
-      <button class="actbtn" onclick="disturb('addC')">+ Voeg product toe</button>
-      <button class="actbtn" onclick="disturb('remC')">− Verwijder product</button>
-      <button class="actbtn warn" onclick="disturb('quench')">❄ T snel verlagen</button>
-    </div>
   </div>
+  <button class="actbtn start" onclick="startSim()">▶ Start</button>
+  <div class="pbox sh-deel" data-deel="verstoor" id="dist-box" style="display:none">
+    <div class="ptit">Verstoor het evenwicht</div>
+    <button class="actbtn" onclick="disturb('addA')">+ voeg beginstof toe</button>
+    <button class="actbtn" onclick="disturb('addC')">+ voeg product toe</button>
+    <button class="actbtn" onclick="disturb('remC')">− haal product weg</button>
+    <button class="actbtn warn" onclick="disturb('quench')">❄ temperatuur snel 200 K lager</button>
+  </div>
+  <div id="tip"></div>
+  <div id="qsec" style="display:none"><div id="qcon"></div></div>
 </div>
-
-<div id="tip"></div>
-
-<div class="qsec" id="qsec">
-  <div class="qtit">Beredeneer en bereken</div>
-  <div id="qcon"></div>
 </div>
-</div>
-
 <script>
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const kies = arr => arr[Math.floor(Math.random() * arr.length)];
+function schud(arr){ const a = arr.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const lerp = (a, b, t) => a + (b - a) * t;
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+function laad(){ try { return JSON.parse(localStorage.getItem('evenwicht-v2')) || {}; } catch (e){ return {}; } }
+function bewaar(o){ try { localStorage.setItem('evenwicht-v2', JSON.stringify(o)); } catch (e){} }
+const nl = (x, d = 2) => Number(x).toLocaleString('nl-NL', { maximumFractionDigits: d, minimumFractionDigits: d });
+const sig = (x, n = 3) => { if (!x) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return nl(x, d); };
+
+/* Getalvelden met decimale komma. Een type="number"-veld leest een komma niet
+   (in Chrome wordt "0,5" dan 5). Daarom worden alle getalvelden tekstvelden die
+   een komma tonen en accepteren; de code leest ze nog steeds als 0.5. */
+(function () {
+  const d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+  const naarKomma = x => String(x).replace(/(\d)\.(\d)/g, '$1,$2');
+  function zet(el) {
+    if (el.dataset.komma) return;
+    const v = d.get.call(el);
+    el.dataset.komma = '1';
+    el.type = 'text';
+    el.setAttribute('inputmode', 'decimal');
+    el.setAttribute('autocomplete', 'off');
+    Object.defineProperty(el, 'value', {
+      configurable: true,
+      get() { return d.get.call(this).trim().replace(/\s/g, '').replace(',', '.'); },
+      set(x) { d.set.call(this, naarKomma(x)); }
+    });
+    if (v !== '') el.value = v;
+    if (el.placeholder) el.placeholder = naarKomma(el.placeholder);
+  }
+  // stijlregels voor getalvelden ook laten gelden voor de omgezette velden
+  try {
+    for (const sh of document.styleSheets) {
+      let regels; try { regels = sh.cssRules; } catch (e) { continue; }
+      for (const r of [...regels]) {
+        if (r.selectorText && /type=["']?number/.test(r.selectorText)) {
+          const sel = r.selectorText.replace(/\[type=["']?number["']?\]/g, '[data-komma]');
+          sh.insertRule(sel + '{' + r.style.cssText + '}', sh.cssRules.length);
+        }
+      }
+    }
+  } catch (e) {}
+  const alles = root => { if (root.matches && root.matches('input[type="number"]')) zet(root); if (root.querySelectorAll) root.querySelectorAll('input[type="number"]').forEach(zet); };
+  alles(document);
+  new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) alles(n); })))
+    .observe(document.documentElement, { childList: true, subtree: true });
+})();
+
+
+(function(){ const C = CanvasRenderingContext2D.prototype, ft = C.fillText, dec = t => String(t).replace(/(\d)\.(\d)/g, '$1,$2');
+  C.fillText = function(t, x, y, m){ return m === undefined ? ft.call(this, dec(t), x, y) : ft.call(this, dec(t), x, y, m); }; })();
+
+(function(){ const SKIP = {SCRIPT:1, STYLE:1, TEXTAREA:1, INPUT:1}; const dec = s => String(s).replace(/(\d)\.(\d)/g, '$1,$2');
+  const fix = root => { const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null); let n;
+    while ((n = w.nextNode())){ if (n.parentNode && SKIP[n.parentNode.nodeName]) continue; const d = dec(n.nodeValue); if (d !== n.nodeValue) n.nodeValue = d; } };
+  new MutationObserver(ms => ms.forEach(m => { if (m.type === 'characterData'){ const p = m.target.parentNode; if (p && !SKIP[p.nodeName]){ const d = dec(m.target.nodeValue); if (d !== m.target.nodeValue) m.target.nodeValue = d; } }
+    else m.addedNodes.forEach(a => { if (a.nodeType === 3){ if (a.parentNode && !SKIP[a.parentNode.nodeName]){ const d = dec(a.nodeValue); if (d !== a.nodeValue) a.nodeValue = d; } } else if (a.nodeType === 1 && !SKIP[a.nodeName]) fix(a); }); }))
+    .observe(document.body, { childList:true, subtree:true, characterData:true });
+  fix(document.body); })();
+
 const R=8.314;
 
 // ── Gecalibreerde reacties ────────────────────────────────────────────────
@@ -284,7 +503,7 @@ const RXNS=[
 ];
 
 // ── State ─────────────────────────────────────────────────────────────────
-let RXN={}, SIM={}, g1Tab='c', selSp=new Set(['A','C']);
+let RXN={}, EVS={}, g1Tab='c', selSp=new Set(['A','C']);
 let segments=[], disturb_ts=[], hasEq=false;
 
 // ── k berekenen (absolute Arrhenius, A_f en A_r onafhankelijk) ────────────
@@ -397,11 +616,11 @@ function startSim(){
     B: Math.max(0, parseFloat(document.getElementById('mol-B')?.value) || 0),
     C: Math.max(0, parseFloat(document.getElementById('mol-C')?.value) || 0),
     D: Math.max(0, parseFloat(document.getElementById('mol-D')?.value) || 0),
-    Ar: SIM.mols.Ar || 0,
+    Ar: EVS.mols.Ar || 0,
   };
-  SIM.mols = freshMols;
-  const seg=integrate(SIM.mols,SIM.V,SIM.T,SIM.S,SIM.cat);
-  segments.push(seg);SIM.mols={...seg.finalM};
+  EVS.mols = freshMols;
+  const seg=integrate(EVS.mols,EVS.V,EVS.T,EVS.S,EVS.cat);
+  segments.push(seg);EVS.mols={...seg.finalM};
   afterSeg(seg);
 }
 
@@ -409,21 +628,21 @@ function disturb(type){
   if(!hasEq)return;
   disturb_ts.push(segments.reduce((s,g)=>s+g.tTot,0));
   let forcedTTot = undefined;
-  if(type==='addA') SIM.mols.A+=0.5*SIM.V;
-  if(type==='addC') SIM.mols.C+=0.5*SIM.V;
-  if(type==='remC') SIM.mols.C=Math.max(0,SIM.mols.C-0.5*SIM.V);
+  if(type==='addA') EVS.mols.A+=0.5*EVS.V;
+  if(type==='addC') EVS.mols.C+=0.5*EVS.V;
+  if(type==='remC') EVS.mols.C=Math.max(0,EVS.mols.C-0.5*EVS.V);
   if(type==='quench'){
     // Tijdschaal = 2× vorig segment zodat langzame kinetiek zichtbaar is
     forcedTTot = segments[segments.length-1].tTot * 2;
-    SIM.T=Math.max(200,SIM.T-200);SIM.cat=false;
+    EVS.T=Math.max(200,EVS.T-200);EVS.cat=false;
     document.getElementById('cat-n').classList.add('on');
     document.getElementById('cat-y').classList.remove('on');
     syncT();
   }
   buildMolGrid();hasEq=false;
   document.getElementById('dist-box').style.display='none';
-  const seg=integrate(SIM.mols,SIM.V,SIM.T,SIM.S,SIM.cat,forcedTTot);
-  segments.push(seg);SIM.mols={...seg.finalM};
+  const seg=integrate(EVS.mols,EVS.V,EVS.T,EVS.S,EVS.cat,forcedTTot);
+  segments.push(seg);EVS.mols={...seg.finalM};
   afterSeg(seg);
 }
 
@@ -436,7 +655,7 @@ function afterSeg(seg){
     hasEq=true;el.textContent='⇌ Evenwicht bereikt';el.className='stv eq';
     document.getElementById('dist-box').style.display='block';
   } else {
-    el.textContent='→ Reactie loopt nog — vergroot tijdvenster of verhoog T';el.className='stv neq';
+    el.textContent='→ Reactie loopt nog';el.className='stv neq';
   }
   const Q=seg.Qs[last],P=seg.Ps[last];
   document.getElementById('st-Q').textContent=fmt(Q);
@@ -444,8 +663,7 @@ function afterSeg(seg){
   document.getElementById('st-vf').textContent=fmt(vF);
   document.getElementById('st-vr').textContent=fmt(vR);
   drawAll();
-  document.getElementById('qsec').style.display='block';
-  buildQ();
+  if (window.naSeg) naSeg(seg, atEq);
 }
 
 // ── Canvas ────────────────────────────────────────────────────────────────
@@ -512,7 +730,7 @@ function drawC(id,ds,yLbl,dts,negNote){
 }
 
 function drawAll(){
-  if(!segments.length)return;
+  if(!segments.length){ ['c1','c2'].forEach(id=>{ const c=document.getElementById(id); c.getContext('2d').clearRect(0,0,c.width,c.height); }); ['st-Q','st-om','st-P','st-vf','st-vr'].forEach(id=>document.getElementById(id).textContent='—'); return; }
   const mg=timeline();
   const{ts,msA,msB,msC,msD,vfs,vrs,vns,Qs,Ps}=mg;
   const dts=disturb_ts;
@@ -609,39 +827,39 @@ function buildMolGrid(){
   for(const s of sps){
     const d=document.createElement('div');d.className='molrow';
     d.innerHTML=`<label class="mollbl" style="color:${s.col}">mol ${s.n}</label>
-      <input type="number" class="moli" id="mol-${s.k}" value="${SIM.mols[s.k].toFixed(3)}"
+      <input type="number" class="moli" id="mol-${s.k}" value="${EVS.mols[s.k].toFixed(3)}"
         min="0" step="0.01" onchange="setMol('${s.k}',this.value)"
         onkeydown="if(event.key==='Enter')setMol('${s.k}',this.value)">`;
     g.appendChild(d);
   }
 }
-function setMol(k,v){SIM.mols[k]=Math.max(0,parseFloat(v)||0);}
+function setMol(k,v){EVS.mols[k]=Math.max(0,parseFloat(v)||0);}
 
 // ── Params ────────────────────────────────────────────────────────────────
 function sp(id,v){
   v=parseFloat(v);
-  if(id==='V'){SIM.V=Math.max(0.1,v);document.getElementById('lbl-V').textContent=SIM.V.toFixed(2)+' L';sync('V',SIM.V);}
-  if(id==='T'){SIM.T=Math.max(200,Math.min(900,v));syncT();}
-  if(id==='S'){SIM.S=Math.max(0.1,v);document.getElementById('lbl-S').textContent=SIM.S.toFixed(2);sync('S',SIM.S);}
-  if(id==='Ar'){SIM.mols.Ar=Math.max(0,v);document.getElementById('lbl-Ar').textContent=SIM.mols.Ar.toFixed(2);sync('Ar',SIM.mols.Ar);}
+  if(id==='V'){EVS.V=Math.max(0.1,v);document.getElementById('lbl-V').textContent=EVS.V.toFixed(2)+' L';sync('V',EVS.V);}
+  if(id==='T'){EVS.T=Math.max(200,Math.min(900,v));syncT();}
+  if(id==='S'){EVS.S=Math.max(0.1,v);document.getElementById('lbl-S').textContent=EVS.S.toFixed(2);sync('S',EVS.S);}
+  if(id==='Ar'){EVS.mols.Ar=Math.max(0,v);document.getElementById('lbl-Ar').textContent=EVS.mols.Ar.toFixed(2);sync('Ar',EVS.mols.Ar);}
 }
 function sync(id,v){
   const sl=document.getElementById('sl-'+id),ni=document.getElementById('ni-'+id);
   if(sl)sl.value=v;if(ni)ni.value=v%1?v.toFixed(2):v;
 }
 function syncT(){
-  document.getElementById('lbl-T').textContent=SIM.T.toFixed(0)+' K ('+(SIM.T-273).toFixed(0)+'°C)';
-  sync('T',SIM.T);
+  document.getElementById('lbl-T').textContent=EVS.T.toFixed(0)+' K ('+(EVS.T-273).toFixed(0)+'°C)';
+  sync('T',EVS.T);
 }
 function setCat(v){
-  SIM.cat=v;
+  EVS.cat=v;
   document.getElementById('cat-n').classList.toggle('on',!v);
   document.getElementById('cat-y').classList.toggle('on',v);
 }
 function resetSim(){
-  SIM.initMols={...RXN.init,Ar:0};
-  SIM.mols={...SIM.initMols};
-  SIM.V=1;SIM.T=RXN.refT;SIM.S=1;SIM.cat=false;
+  EVS.initMols={...RXN.init,Ar:0};
+  EVS.mols={...EVS.initMols};
+  EVS.V=1;EVS.T=RXN.refT;EVS.S=1;EVS.cat=false;
   segments=[];disturb_ts=[];hasEq=false;
   document.getElementById('dist-box').style.display='none';
   document.getElementById('st-s').textContent='Stel parameters in en druk op Start';
@@ -649,12 +867,12 @@ function resetSim(){
   sync('V',1);syncT();sync('S',1);sync('Ar',0);
   document.getElementById('lbl-V').textContent='1,00 L';
   document.getElementById('cat-n').classList.add('on');document.getElementById('cat-y').classList.remove('on');
-  buildMolGrid();
+  buildMolGrid();drawAll();
 }
 
 // ── Nieuwe reactie ────────────────────────────────────────────────────────
-function newRxn(){
-  const r=RXNS[Math.floor(Math.random()*RXNS.length)];
+function newRxn(idx){
+  const r=RXNS[typeof idx==='number' ? idx : Math.floor(Math.random()*RXNS.length)];
   const sc=s=>s.trim().replace(/^[\d½¼¾]+\s*/,'');
   RXN={...r,
     nameA:r.lhs[0]?sc(r.lhs[0]):null,
@@ -664,9 +882,9 @@ function newRxn(){
     catDEa:20000,
   };
   // initMols = de door de gebruiker instelbare beginhoeveelheden
-  // SIM.mols wordt tijdens simulatie overschreven; initMols niet
-  SIM={mols:{...r.init,Ar:0},V:1,T:r.refT,S:1,cat:false};
-  SIM.initMols={...r.init,Ar:0};
+  // EVS.mols wordt tijdens simulatie overschreven; initMols niet
+  EVS={mols:{...r.init,Ar:0},V:1,T:r.refT,S:1,cat:false};
+  EVS.initMols={...r.init,Ar:0};
   selSp=new Set([RXN.nameA?'A':null,RXN.nameC?'C':null].filter(Boolean));
   segments=[];disturb_ts=[];hasEq=false;
   document.getElementById('eq-disp').textContent=r.eq;
@@ -679,12 +897,12 @@ function newRxn(){
   document.getElementById('qsec').style.display='none';
   sync('V',1);sync('T',r.refT);syncT();
   document.getElementById('cat-n').classList.add('on');document.getElementById('cat-y').classList.remove('on');
-  buildMolGrid();buildSP();
+  buildMolGrid();buildSP();drawAll();
 }
 
 // ── Vragen ────────────────────────────────────────────────────────────────
 function buildQ(){
-  const KcV=Kc(SIM.T,SIM.cat);
+  const KcV=Kc(EVS.T,EVS.cat);
   const endo=RXN.dH>0;
   const[a,b,c,d]=RXN.co;
   const dn=(c+d)-(a+b);
@@ -696,7 +914,7 @@ function buildQ(){
   const qs=[
     // 1. Kc berekenen
     {id:'q-kc', type:'num', answer:KcV, tol:.05,
-     text:`Bereken Kc bij ${SIM.T.toFixed(0)} K.`,
+     text:`Bereken Kc bij ${EVS.T.toFixed(0)} K.`,
      fb:ok=>ok?`✓ Correct! Kc = ${fmt(KcV)}.`
              :`✗ Niet correct. Kc = kf/kr = ${fmt(KcV)}.`},
 
@@ -840,88 +1058,766 @@ function fmtT(t){if(t>=3600)return(t/3600).toFixed(1)+'h';if(t>=60)return(t/60).
 const ro=new ResizeObserver(()=>drawAll());
 ro.observe(document.getElementById('c1'));ro.observe(document.getElementById('c2'));
 
-newRxn();
-</script>
+newRxn(1);
 
+const VR_REACTIES = {
+  no2: { eq: '2NO₂(g) ⇌ N₂O₄(g)', dH: 'exotherm', species: { 'NO₂': 'g', 'N₂O₄': 'g' }, gas: true },
+  hi: { eq: 'H₂(g) + I₂(g) ⇌ 2HI(g)', dH: 'exotherm', species: { 'H₂': 'g', 'I₂': 'g', 'HI': 'g' }, gas: true },
+  fescn: { eq: 'Fe³⁺(aq) + SCN⁻(aq) ⇌ FeSCN²⁺(aq)', dH: 'exotherm', species: { 'Fe³⁺': 'aq', 'SCN⁻': 'aq', 'FeSCN²⁺': 'aq' }, gas: false, opl: true },
+  brcl: { eq: '2Br⁻(aq) + Cl₂(aq) ⇌ Br₂(aq) + 2Cl⁻(aq)', dH: 'exotherm', species: { 'Br⁻': 'aq', 'Cl₂': 'aq', 'Br₂': 'aq', 'Cl⁻': 'aq' }, gas: false, opl: true },
+  agcl: { eq: 'AgCl(s) ⇌ Ag⁺(aq) + Cl⁻(aq)', dH: 'endotherm', species: { 'AgCl': 's', 'Ag⁺': 'aq', 'Cl⁻': 'aq' }, gas: false, opl: true },
+  acetic: { eq: 'CH₃COOH(aq) + H₂O(l) ⇌ CH₃COO⁻(aq) + H₃O⁺(aq)', dH: 'endotherm', species: { 'CH₃COOH': 'aq', 'H₂O': 'l', 'CH₃COO⁻': 'aq', 'H₃O⁺': 'aq' }, gas: false, opl: true },
+  nh4cl: { eq: 'NH₄Cl(s) ⇌ NH₃(g) + HCl(g)', dH: 'endotherm', species: { 'NH₄Cl': 's', 'NH₃': 'g', 'HCl': 'g' }, gas: true },
+  n2h2: { eq: 'N₂(g) + 3H₂(g) ⇌ 2NH₃(g)', dH: 'exotherm', species: { 'N₂': 'g', 'H₂': 'g', 'NH₃': 'g' }, gas: true },
+  cowater: { eq: 'CO(g) + H₂O(g) ⇌ CO₂(g) + H₂(g)', dH: 'exotherm', species: { 'CO': 'g', 'H₂O': 'g', 'CO₂': 'g', 'H₂': 'g' }, gas: true },
+  pcl5: { eq: 'PCl₅(g) ⇌ PCl₃(g) + Cl₂(g)', dH: 'endotherm', species: { 'PCl₅': 'g', 'PCl₃': 'g', 'Cl₂': 'g' }, gas: true },
+  so2cl2: { eq: 'SO₂Cl₂(g) ⇌ SO₂(g) + Cl₂(g)', dH: 'endotherm', species: { 'SO₂Cl₂': 'g', 'SO₂': 'g', 'Cl₂': 'g' }, gas: true },
+  so2o2: { eq: '2SO₂(g) + O₂(g) ⇌ 2SO₃(g)', dH: 'exotherm', species: { 'SO₂': 'g', 'O₂': 'g', 'SO₃': 'g' }, gas: true },
+  ester: { eq: 'CH₃COOC₂H₅(aq) + H₂O(l) ⇌ CH₃COOH(aq) + C₂H₅OH(aq)', dH: 'endotherm', species: { 'CH₃COOC₂H₅': 'aq', 'H₂O': 'l', 'CH₃COOH': 'aq', 'C₂H₅OH': 'aq' }, gas: false, opl: true },
+  nh3base: { eq: 'NH₃(aq) + H₂O(l) ⇌ NH₄⁺(aq) + OH⁻(aq)', dH: 'exotherm', species: { 'NH₃': 'aq', 'H₂O': 'l', 'NH₄⁺': 'aq', 'OH⁻': 'aq' }, gas: false, opl: true },
+  h2co3: { eq: 'H₂CO₃(aq) ⇌ H₂O(l) + CO₂(aq)', dH: 'endotherm', species: { 'H₂CO₃': 'aq', 'H₂O': 'l', 'CO₂': 'aq' }, gas: false, opl: true }
+};
 
+function vrAntwoord(rid, change, substance, inert) {
+  const key = change + (substance ? '_' + substance : '') + (inert === 'yes' ? '_inert' : '');
 
-
-<script id="huisstijl-js">
-window.HS_CFG={};
-(function(){
-  var cfg=window.HS_CFG||{};
-  var b=document.createElement('button'); b.type='button'; b.textContent='Beamerstand'; b.title='Alles groter, voor op het digibord';
-  b.onclick=function(){document.body.classList.toggle('hs-beamer'); window.dispatchEvent(new Event('resize'));};
-  var hd;
-  if(cfg.own){ hd=document.querySelector(cfg.own); hd.classList.add('hs-own'); hd.appendChild(b); }
-  else {
-    var h=cfg.title?null:document.querySelector(cfg.sel||'h1');
-    hd=document.createElement('header'); hd.className='hs-header';
-    var w=document.createElement('div'); w.className='hs-wrap'; hd.appendChild(w);
-    var t=document.createElement('h1'); t.innerHTML=cfg.title||(h?h.innerHTML:document.title); w.appendChild(t);
-    w.appendChild(b); if(h) h.remove();
-    var cs=getComputedStyle(document.body);
-    var px=function(a,b){return '-'+(parseFloat(cs[a])+parseFloat(cs[b]))+'px';};
-    hd.style.margin=px('paddingTop','marginTop')+' '+px('paddingRight','marginRight')+' 18px '+px('paddingLeft','marginLeft');
-    document.body.insertBefore(hd, document.body.firstChild);
+  if (rid === 'no2') {
+    if (key === 'add_NO₂') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer NO₂ → direct meer botsingen voor v→. [N₂O₄] verandert nog niet, dus v← blijft gelijk.' };
+    if (key === 'add_N₂O₄') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer N₂O₄ → direct hogere v←. [NO₂] ongewijzigd, dus v→ blijft gelijk.' };
+    if (key === 'remove_NO₂') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder NO₂ → direct lagere v→. [N₂O₄] ongewijzigd, dus v← blijft gelijk.' };
+    if (key === 'remove_N₂O₄') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder N₂O₄ → direct lagere v←. [NO₂] ongewijzigd, dus v→ blijft gelijk.' };
+    if (key === 'volume_decrease') return { vf: '++', vr: '+', net: 'right', K: 'same', expl: 'Alle concentraties stijgen. v→ = k[NO₂]²: verdubbeling → 4× (meer toe, ++). v← = k[N₂O₄]: verdubbeling → 2× (toe, +).' };
+    if (key === 'volume_increase') return { vf: '--', vr: '-', net: 'left', K: 'same', expl: 'Alle concentraties dalen. [NO₂] halveert → v→ ¼ (meer af, --). [N₂O₄] halveert → v← ½ (af, -).' };
+    if (key === 'temp_increase') return { vf: '+', vr: '++', net: 'left', K: 'down', expl: 'Beide stijgen, maar endotherm (links) harder. v← = ++, v→ = +. K daalt.' };
+    if (key === 'temp_decrease') return { vf: '-', vr: '--', net: 'right', K: 'up', expl: 'Beide dalen, maar exotherm (rechts) minder hard. v← = --, v→ = -. K stijgt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide richtingen evenveel versneld. Beide +.' };
+    if (key === 'add_inert') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij constant volume: [NO₂] en [N₂O₄] veranderen niet, dus v→ en v← blijven gelijk.' };
   }
-  // zwevende elementen (tooltips) niet mee-zoomen in beamerstand
-  document.querySelectorAll('body *').forEach(function(e){ if(e!==hd && !hd.contains(e) && getComputedStyle(e).position==='fixed'){ e.classList.add('hs-nozoom'); document.body.appendChild(e); } });
-  // komma als decimaalteken in alles wat op het scherm komt
-  var dec=function(s){ return String(s).replace(/(\d)\.(\d)/g,'$1,$2'); };
-  var C=CanvasRenderingContext2D.prototype, ft=C.fillText, st=C.strokeText, mt=C.measureText;
-  C.fillText=function(t,x,y,m){ return m===undefined?ft.call(this,dec(t),x,y):ft.call(this,dec(t),x,y,m); };
-  C.strokeText=function(t,x,y,m){ return m===undefined?st.call(this,dec(t),x,y):st.call(this,dec(t),x,y,m); };
-  C.measureText=function(t){ return mt.call(this,dec(t)); };
-  var SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,INPUT:1};
-  var fix=function(root){ var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null), n;
-    while((n=w.nextNode())){ if(n.parentNode && SKIP[n.parentNode.nodeName]) continue; var v=n.nodeValue, d=dec(v); if(d!==v) n.nodeValue=d; } };
-  fix(document.body);
-  new MutationObserver(function(ms){ ms.forEach(function(m){ if(m.type==='characterData'){ if(!SKIP[m.target.parentNode&&m.target.parentNode.nodeName]){ var d=dec(m.target.nodeValue); if(d!==m.target.nodeValue) m.target.nodeValue=d; } } else m.addedNodes.forEach(function(a){ if(a.nodeType===3){ if(a.parentNode&&!SKIP[a.parentNode.nodeName]){ var d=dec(a.nodeValue); if(d!==a.nodeValue) a.nodeValue=d; } } else if(a.nodeType===1 && !SKIP[a.nodeName]) fix(a); }); }); })
-    .observe(document.body,{childList:true,subtree:true,characterData:true});
-  // invoer met komma accepteren
-  var pf=window.parseFloat; window.parseFloat=function(x){ return pf(typeof x==='string'?x.replace(',','.'):x); };
-})();
-</script>
-<script id="komma-invoer">
-/* Getalvelden met decimale komma. Een type="number"-veld leest een komma niet
-   (in Chrome wordt "0,5" dan 5). Daarom worden alle getalvelden tekstvelden die
-   een komma tonen en accepteren; de code leest ze nog steeds als 0.5. */
-(function () {
-  const d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
-  const naarKomma = x => String(x).replace(/(\d)\.(\d)/g, '$1,$2');
-  function zet(el) {
-    if (el.dataset.komma) return;
-    const v = d.get.call(el);
-    el.dataset.komma = '1';
-    el.type = 'text';
-    el.setAttribute('inputmode', 'decimal');
-    el.setAttribute('autocomplete', 'off');
-    Object.defineProperty(el, 'value', {
-      configurable: true,
-      get() { return d.get.call(this).trim().replace(/\s/g, '').replace(',', '.'); },
-      set(x) { d.set.call(this, naarKomma(x)); }
-    });
-    if (v !== '') el.value = v;
-    if (el.placeholder) el.placeholder = naarKomma(el.placeholder);
+  if (rid === 'hi') {
+    if (key === 'add_H₂' || key === 'add_I₂') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer reagens → direct hogere v→. [HI] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_HI') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer HI → direct hogere v←. [H₂] en [I₂] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_H₂' || key === 'remove_I₂') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder reagens → direct lagere v→. [HI] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_HI') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder HI → direct lagere v←. [H₂] en [I₂] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Gelijk aantal deeltjes (2↔2). Alle concentraties verdubbelen → beide 4×. Beide + (evenveel).' };
+    if (key === 'volume_increase') return { vf: '-', vr: '-', net: 'eq', K: 'same', expl: 'Gelijk aantal deeltjes. Alle concentraties halveren → beide ¼. Beide - (evenveel).' };
+    if (key === 'temp_increase') return { vf: '+', vr: '++', net: 'left', K: 'down', expl: 'Exotherm: endotherm (terug) harder. v← = ++, v→ = +. K daalt.' };
+    if (key === 'temp_decrease') return { vf: '-', vr: '--', net: 'right', K: 'up', expl: 'Exotherm: exotherm (voorwaarts) minder hard. v← = --, v→ = -. K stijgt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+    if (key === 'add_inert') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij constant volume: partiële drukken ongewijzigd.' };
   }
-  // stijlregels voor getalvelden ook laten gelden voor de omgezette velden
-  try {
-    for (const sh of document.styleSheets) {
-      let regels; try { regels = sh.cssRules; } catch (e) { continue; }
-      for (const r of [...regels]) {
-        if (r.selectorText && /type=["']?number/.test(r.selectorText)) {
-          const sel = r.selectorText.replace(/\[type=["']?number["']?\]/g, '[data-komma]');
-          sh.insertRule(sel + '{' + r.style.cssText + '}', sh.cssRules.length);
-        }
-      }
+  if (rid === 'fescn') {
+    if (key === 'add_Fe³⁺' || key === 'add_SCN⁻') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer reagens → direct hogere v→. [FeSCN²⁺] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_FeSCN²⁺') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer product → direct hogere v←. [Fe³⁺] en [SCN⁻] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_Fe³⁺' || key === 'remove_SCN⁻') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder reagens → direct lagere v→. [FeSCN²⁺] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_FeSCN²⁺') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder product → direct lagere v←. [Fe³⁺] en [SCN⁻] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '++', vr: '+', net: 'right', K: 'same', expl: '2 deeltjes links, 1 rechts. Concentraties verdubbelen → v→ 4× (++), v← 2× (+).' };
+    if (key === 'volume_increase') return { vf: '--', vr: '-', net: 'left', K: 'same', expl: 'Verdunning: v→ ¼ (--), v← ½ (-).' };
+    if (key === 'temp_increase') return { vf: '+', vr: '++', net: 'left', K: 'down', expl: 'Exotherm: v← = ++, v→ = +. K daalt.' };
+    if (key === 'temp_decrease') return { vf: '-', vr: '--', net: 'right', K: 'up', expl: 'Exotherm: v← = --, v→ = -. K stijgt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+  }
+  if (rid === 'brcl') {
+    if (key === 'add_Br⁻' || key === 'add_Cl₂') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer reagens → direct hogere v→. Producten ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_Br₂' || key === 'add_Cl⁻') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer product → direct hogere v←. Reagens ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_Br⁻' || key === 'remove_Cl₂') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder reagens → direct lagere v→. Producten ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_Br₂' || key === 'remove_Cl⁻') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder product → direct lagere v←. Reagens ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: '3 deeltjes links, 3 rechts. Concentraties verdubbelen → v→ 8×, v← 8×. Beide + (evenveel).' };
+    if (key === 'volume_increase') return { vf: '-', vr: '-', net: 'eq', K: 'same', expl: 'Verdunning: v→ ⅛, v← ⅛. Beide - (evenveel).' };
+    if (key === 'temp_increase') return { vf: '+', vr: '++', net: 'left', K: 'down', expl: 'Exotherm: v← = ++, v→ = +. K daalt.' };
+    if (key === 'temp_decrease') return { vf: '-', vr: '--', net: 'right', K: 'up', expl: 'Exotherm: v← = --, v→ = -. K stijgt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+  }
+  if (rid === 'agcl') {
+    if (key === 'add_AgCl') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Meer oppervlak: oplossen (v→) en aangroei (v←) versnellen evenveel. Beide + (geen ++).' };
+    if (key === 'remove_AgCl') return { vf: '-', vr: '-', net: 'eq', K: 'same', expl: 'Minder oppervlak: beide dalen evenveel. Beide - (geen --).' };
+    if (key === 'add_Ag⁺' || key === 'add_Cl⁻') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer ionen → direct hogere v←. v→ hangt van oppervlak af, blijft gelijk.' };
+    if (key === 'remove_Ag⁺' || key === 'remove_Cl⁻') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder ionen → direct lagere v←. v→ blijft gelijk.' };
+    if (key === 'volume_decrease') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Concentreren: [Ag⁺] en [Cl⁻] stijgen → v← stijgt. v→ blijft gelijk (oppervlak).' };
+    if (key === 'volume_increase') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Verdunnen: [Ag⁺] en [Cl⁻] dalen → v← daalt. v→ blijft gelijk.' };
+    if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (oplossen) stijgt harder. v→ = ++, v← = +. K stijgt.' };
+    if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (oplossen) daalt harder. v→ = --, v← = -. K daalt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Voor het oplossen en neerslaan van AgCl bestaat in werkelijkheid geen katalysator. Als die er wel zou zijn, versnelt hij beide richtingen evenveel: beide +.' };
+  }
+  if (rid === 'acetic') {
+    if (key === 'add_CH₃COOH') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer zuur → direct hogere v→. [CH₃COO⁻] en [H₃O⁺] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_CH₃COO⁻' || key === 'add_H₃O⁺') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer product → direct hogere v←. [CH₃COOH] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_CH₃COOH') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder zuur → direct lagere v→. [CH₃COO⁻] en [H₃O⁺] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_CH₃COO⁻' || key === 'remove_H₃O⁺') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder product → direct lagere v←. [CH₃COOH] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'add_H₂O') return { vf: '-', vr: '--', net: 'right', K: 'same', expl: 'Verdunning: [CH₃COOH] daalt → v→ -. [CH₃COO⁻] en [H₃O⁺] dalen beide → v← --. Netto: meer dissociatie.' };
+    if (key === 'remove_H₂O') return { vf: '+', vr: '++', net: 'left', K: 'same', expl: 'Concentreren: [CH₃COOH] stijgt → v→ +. [CH₃COO⁻] en [H₃O⁺] stijgen beide → v← ++. Netto: minder dissociatie.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '++', net: 'left', K: 'same', expl: 'Concentreren: [CH₃COOH] stijgt → v→ +. [CH₃COO⁻] en [H₃O⁺] stijgen beide → v← ++. Netto: ←.' };
+    if (key === 'volume_increase') return { vf: '-', vr: '--', net: 'right', K: 'same', expl: 'Verdunnen: [CH₃COOH] daalt → v→ -. [CH₃COO⁻] en [H₃O⁺] dalen beide → v← --. Netto: →.' };
+    if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (dissociatie) stijgt harder. v→ = ++, v← = +. K stijgt.' };
+    if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (dissociatie) daalt harder. v→ = --, v← = -. K daalt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+  }
+  if (rid === 'nh4cl') {
+    if (key === 'add_NH₄Cl') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Meer oppervlak: sublimeren (v→) en aangroei (v←) versnellen evenveel. Beide +.' };
+    if (key === 'remove_NH₄Cl') return { vf: '-', vr: '-', net: 'eq', K: 'same', expl: 'Minder oppervlak: beide dalen evenveel. Beide -.' };
+    if (key === 'add_NH₃') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer NH₃ → direct hogere v←. v→ hangt van oppervlak af, blijft gelijk.' };
+    if (key === 'add_HCl') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer HCl → direct hogere v←. v→ blijft gelijk.' };
+    if (key === 'remove_NH₃') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder NH₃ → direct lagere v←. v→ blijft gelijk.' };
+    if (key === 'remove_HCl') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder HCl → direct lagere v←. v→ blijft gelijk.' };
+    if (key === 'volume_decrease') return { vf: '0', vr: '++', net: 'left', K: 'same', expl: '[NH₃] en [HCl] stijgen beide → v← kwadratisch harder (++). v→ blijft gelijk (oppervlak).' };
+    if (key === 'volume_increase') return { vf: '0', vr: '--', net: 'right', K: 'same', expl: '[NH₃] en [HCl] dalen beide → v← daalt kwadratisch harder (--). v→ blijft gelijk.' };
+    if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (sublimeren) stijgt harder. v→ = ++, v← = +. K stijgt.' };
+    if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (sublimeren) daalt harder. v→ = --, v← = -. K daalt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+    if (key === 'add_inert') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij constant volume: [NH₃] en [HCl] veranderen niet, dus v→ en v← blijven gelijk.' };
+  }
+  if (rid === 'n2h2') {
+    if (key === 'add_N₂' || key === 'add_H₂') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer reagens → direct hogere v→. [NH₃] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_NH₃') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer NH₃ → direct hogere v←. [N₂] en [H₂] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_N₂' || key === 'remove_H₂') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder reagens → direct lagere v→. [NH₃] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_NH₃') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder NH₃ → direct lagere v←. [N₂] en [H₂] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '++', vr: '+', net: 'right', K: 'same', expl: '4 deeltjes links, 2 rechts. Concentraties verdubbelen → v→ 16× (++), v← 4× (+).' };
+    if (key === 'volume_increase') return { vf: '--', vr: '-', net: 'left', K: 'same', expl: 'Verdunning: v→ 1/16 (--), v← ¼ (-).' };
+    if (key === 'temp_increase') return { vf: '+', vr: '++', net: 'left', K: 'down', expl: 'Exotherm: v← = ++, v→ = +. K daalt.' };
+    if (key === 'temp_decrease') return { vf: '-', vr: '--', net: 'right', K: 'up', expl: 'Exotherm: v← = --, v→ = -. K stijgt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+    if (key === 'add_inert') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij constant volume: partiële drukken ongewijzigd.' };
+  }
+  if (rid === 'cowater') {
+    if (key === 'add_CO' || key === 'add_H₂O') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer reagens → direct hogere v→. Producten ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_CO₂' || key === 'add_H₂') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer product → direct hogere v←. Reagentia ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_CO' || key === 'remove_H₂O') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder reagens → direct lagere v→. Producten ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_CO₂' || key === 'remove_H₂') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder product → direct lagere v←. Reagentia ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Gelijk aantal deeltjes (2↔2). Alle concentraties verdubbelen → beide 4×. Beide + (evenveel).' };
+    if (key === 'volume_increase') return { vf: '-', vr: '-', net: 'eq', K: 'same', expl: 'Gelijk aantal deeltjes. Alle concentraties halveren → beide ¼. Beide - (evenveel).' };
+    if (key === 'temp_increase') return { vf: '+', vr: '++', net: 'left', K: 'down', expl: 'Exotherm: v← = ++, v→ = +. K daalt.' };
+    if (key === 'temp_decrease') return { vf: '-', vr: '--', net: 'right', K: 'up', expl: 'Exotherm: v← = --, v→ = -. K stijgt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+    if (key === 'add_inert') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij constant volume: partiële drukken ongewijzigd.' };
+  }
+  if (rid === 'pcl5') {
+    if (key === 'add_PCl₅') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer PCl₅ → direct hogere v→. [PCl₃] en [Cl₂] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_PCl₃' || key === 'add_Cl₂') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer product → direct hogere v←. [PCl₅] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_PCl₅') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder PCl₅ → direct lagere v→. [PCl₃] en [Cl₂] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_PCl₃' || key === 'remove_Cl₂') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder product → direct lagere v←. [PCl₅] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '++', net: 'left', K: 'same', expl: '1 deeltje links, 2 rechts. Concentraties verdubbelen → v→ 2× (+), v← 4× (++).' };
+    if (key === 'volume_increase') return { vf: '-', vr: '--', net: 'right', K: 'same', expl: 'Verdunning: v→ ½ (-), v← ¼ (--).' };
+    if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (dissociatie) stijgt harder. v→ = ++, v← = +. K stijgt.' };
+    if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (dissociatie) daalt harder. v→ = --, v← = -. K daalt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+    if (key === 'add_inert') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij constant volume: partiële drukken ongewijzigd.' };
+  }
+  if (rid === 'so2cl2') {
+    if (key === 'add_SO₂Cl₂') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer SO₂Cl₂ → direct hogere v→. [SO₂] en [Cl₂] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_SO₂' || key === 'add_Cl₂') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer product → direct hogere v←. [SO₂Cl₂] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_SO₂Cl₂') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder SO₂Cl₂ → direct lagere v→. [SO₂] en [Cl₂] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_SO₂' || key === 'remove_Cl₂') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder product → direct lagere v←. [SO₂Cl₂] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '++', net: 'left', K: 'same', expl: '1 deeltje links, 2 rechts. Concentraties verdubbelen → v→ 2× (+), v← 4× (++).' };
+    if (key === 'volume_increase') return { vf: '-', vr: '--', net: 'right', K: 'same', expl: 'Verdunning: v→ ½ (-), v← ¼ (--).' };
+    if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (dissociatie) stijgt harder. v→ = ++, v← = +. K stijgt.' };
+    if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (dissociatie) daalt harder. v→ = --, v← = -. K daalt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+    if (key === 'add_inert') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij constant volume: partiële drukken ongewijzigd.' };
+  }
+  if (rid === 'so2o2') {
+    if (key === 'add_SO₂' || key === 'add_O₂') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer reagens → direct hogere v→. [SO₃] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_SO₃') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer SO₃ → direct hogere v←. [SO₂] en [O₂] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_SO₂' || key === 'remove_O₂') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder reagens → direct lagere v→. [SO₃] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_SO₃') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder SO₃ → direct lagere v←. [SO₂] en [O₂] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '++', vr: '+', net: 'right', K: 'same', expl: '3 deeltjes links, 2 rechts. Concentraties verdubbelen → v→ 8× (++), v← 4× (+).' };
+    if (key === 'volume_increase') return { vf: '--', vr: '-', net: 'left', K: 'same', expl: 'Verdunning: v→ ⅛ (--), v← ¼ (-).' };
+    if (key === 'temp_increase') return { vf: '+', vr: '++', net: 'left', K: 'down', expl: 'Exotherm: v← = ++, v→ = +. K daalt.' };
+    if (key === 'temp_decrease') return { vf: '-', vr: '--', net: 'right', K: 'up', expl: 'Exotherm: v← = --, v→ = -. K stijgt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+    if (key === 'add_inert') return { vf: '0', vr: '0', net: 'eq', K: 'same', expl: 'Inert gas bij constant volume: partiële drukken ongewijzigd.' };
+  }
+  if (rid === 'ester') {
+    if (key === 'add_CH₃COOC₂H₅') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer ester → direct hogere v→. [CH₃COOH] en [C₂H₅OH] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_H₂O') return { vf: '-', vr: '--', net: 'right', K: 'same', expl: 'Verdunning: [CH₃COOC₂H₅] daalt → v→ -. [CH₃COOH] en [C₂H₅OH] dalen beide → v← --. Netto: meer hydrolyse.' };
+    if (key === 'add_CH₃COOH' || key === 'add_C₂H₅OH') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer product → direct hogere v←. [CH₃COOC₂H₅] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_CH₃COOC₂H₅') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder ester → direct lagere v→. [CH₃COOH] en [C₂H₅OH] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_H₂O') return { vf: '+', vr: '++', net: 'left', K: 'same', expl: 'Concentreren: [CH₃COOC₂H₅] stijgt → v→ +. [CH₃COOH] en [C₂H₅OH] stijgen beide → v← ++. Netto: minder hydrolyse.' };
+    if (key === 'remove_CH₃COOH' || key === 'remove_C₂H₅OH') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder product → direct lagere v←. [CH₃COOC₂H₅] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '++', net: 'left', K: 'same', expl: 'Concentreren: [CH₃COOC₂H₅] stijgt → v→ +. [CH₃COOH] en [C₂H₅OH] stijgen beide → v← ++. Netto: ←.' };
+    if (key === 'volume_increase') return { vf: '-', vr: '--', net: 'right', K: 'same', expl: 'Verdunning: [CH₃COOC₂H₅] daalt → v→ -. [CH₃COOH] en [C₂H₅OH] dalen beide → v← --. Netto: →.' };
+    if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (hydrolyse) stijgt harder. v→ = ++, v← = +. K stijgt.' };
+    if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (hydrolyse) daalt harder. v→ = --, v← = -. K daalt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+  }
+  if (rid === 'nh3base') {
+    if (key === 'add_NH₃') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer NH₃ → direct hogere v→. [NH₄⁺] en [OH⁻] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_H₂O') return { vf: '-', vr: '--', net: 'right', K: 'same', expl: 'Verdunning: [NH₃] daalt → v→ -. [NH₄⁺] en [OH⁻] dalen beide → v← --. Netto: meer dissociatie.' };
+    if (key === 'add_NH₄⁺' || key === 'add_OH⁻') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer product → direct hogere v←. [NH₃] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_NH₃') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder NH₃ → direct lagere v→. [NH₄⁺] en [OH⁻] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_H₂O') return { vf: '+', vr: '++', net: 'left', K: 'same', expl: 'Concentreren: [NH₃] stijgt → v→ +. [NH₄⁺] en [OH⁻] stijgen beide → v← ++. Netto: minder dissociatie.' };
+    if (key === 'remove_NH₄⁺' || key === 'remove_OH⁻') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder product → direct lagere v←. [NH₃] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '++', net: 'left', K: 'same', expl: 'Concentreren: [NH₃] stijgt → v→ +. [NH₄⁺] en [OH⁻] stijgen beide → v← ++. Netto: ←.' };
+    if (key === 'volume_increase') return { vf: '-', vr: '--', net: 'right', K: 'same', expl: 'Verdunning: [NH₃] daalt → v→ -. [NH₄⁺] en [OH⁻] dalen beide → v← --. Netto: →.' };
+    if (key === 'temp_increase') return { vf: '+', vr: '++', net: 'left', K: 'down', expl: 'Exotherm: v← = ++, v→ = +. K daalt.' };
+    if (key === 'temp_decrease') return { vf: '-', vr: '--', net: 'right', K: 'up', expl: 'Exotherm: v← = --, v→ = -. K stijgt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+  }
+  if (rid === 'h2co3') {
+    if (key === 'add_H₂CO₃') return { vf: '+', vr: '0', net: 'right', K: 'same', expl: 'Meer H₂CO₃ → direct hogere v→. [CO₂(aq)] ongewijzigd, dus v← gelijk.' };
+    if (key === 'add_H₂O') return { vf: '-', vr: '-', net: 'eq', K: 'same', expl: 'Verdunning: [H₂CO₃] daalt → v→ -. [CO₂(aq)] daalt → v← -. Beide evenveel, netto eq.' };
+    if (key === 'add_CO₂') return { vf: '0', vr: '+', net: 'left', K: 'same', expl: 'Meer CO₂(aq) → direct hogere v←. [H₂CO₃] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'remove_H₂CO₃') return { vf: '-', vr: '0', net: 'left', K: 'same', expl: 'Minder H₂CO₃ → direct lagere v→. [CO₂(aq)] ongewijzigd, dus v← gelijk.' };
+    if (key === 'remove_H₂O') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Concentreren: [H₂CO₃] stijgt → v→ +. [CO₂(aq)] stijgt → v← +. Beide evenveel, netto eq.' };
+    if (key === 'remove_CO₂') return { vf: '0', vr: '-', net: 'right', K: 'same', expl: 'Minder CO₂(aq) → direct lagere v←. [H₂CO₃] ongewijzigd, dus v→ gelijk.' };
+    if (key === 'volume_decrease') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Concentreren: [H₂CO₃] stijgt → v→ +. [CO₂(aq)] stijgt → v← +. Beide evenveel, netto eq.' };
+    if (key === 'volume_increase') return { vf: '-', vr: '-', net: 'eq', K: 'same', expl: 'Verdunning: [H₂CO₃] daalt → v→ -. [CO₂(aq)] daalt → v← -. Beide evenveel, netto eq.' };
+    if (key === 'temp_increase') return { vf: '++', vr: '+', net: 'right', K: 'up', expl: 'Endotherm: v→ (ontbinding) stijgt harder. v→ = ++, v← = +. K stijgt.' };
+    if (key === 'temp_decrease') return { vf: '--', vr: '-', net: 'left', K: 'down', expl: 'Endotherm: v→ (ontbinding) daalt harder. v→ = --, v← = -. K daalt.' };
+    if (key === 'catalyst') return { vf: '+', vr: '+', net: 'eq', K: 'same', expl: 'Beide evenveel. Beide +.' };
+  }
+  return null;
+}
+/* =====================================================================
+   Algemene opbouw: zijbalk, werkplaats, voorbeeld, opdrachten in stappen
+   ===================================================================== */
+const WPS = [];
+const TEKENINGEN = {};
+const STAAT = { wp:0, tab:'uitleg', voortgang: laad(), niveau: '5V' };
+const PER_WP = {};             /* per werkplaats: { serie, idx, st:[{stap, goed:[], getoond, pogingen}] } */
+let SIM = null;
+
+function maakCanvas(host, w, h){
+  const c = document.createElement('canvas'), dpr = Math.max(1, window.devicePixelRatio || 1);
+  c.width = w * dpr; c.height = h * dpr; c.style.aspectRatio = w + ' / ' + h;
+  host.appendChild(c);
+  const ctx = c.getContext('2d'); ctx.scale(dpr, dpr); ctx.W = w; ctx.H = h; ctx.canvas_ = c;
+  return ctx;
+}
+
+function zichtbaar(w){ return !w.alleen6 || STAAT.niveau === '6V'; }
+function renderNav(){
+  $('#nav').innerHTML = WPS.map((w, i) => {
+    if (!zichtbaar(w)) return '';
+    const klaar = STAAT.voortgang[w.id] && STAAT.voortgang[w.id].klaar;
+    return `<a data-i="${i}" class="${i === STAAT.wp ? 'on' : ''} ${klaar ? 'klaar' : ''}"><i>${klaar ? '✓' : w.ster ? '★' : i + 1}</i><span>${w.titel}<small>${w.par}</small></span></a>`;
+  }).join('');
+  $$('#nav a').forEach(a => a.onclick = () => open(+a.dataset.i));
+}
+
+function open(i){
+  STAAT.wp = i; STAAT.tab = 'uitleg';
+  const w = WPS[i];
+  if (!PER_WP[w.id]) nieuweSerie(w);
+  parkeer();
+  $('#main').innerHTML = `<div class="wp"><section class="tekst" id="tekst"></section><section class="simkol" id="simkol"></section></div>`;
+  SIM = w.sim; SIM.init($('#simkol'));
+  renderTekst(); renderNav();
+  window.scrollTo(0, 0);
+}
+
+function nieuweSerie(w){
+  const serie = w.maakSerie();
+  PER_WP[w.id] = { serie, idx:0, serieNr: (PER_WP[w.id] ? PER_WP[w.id].serieNr + 1 : 0), st: serie.map(() => ({ stap:0, getoond:false, klaar:false, pogingen:{} })) };
+}
+
+function renderTekst(){
+  const w = WPS[STAAT.wp], p = PER_WP[w.id];
+  const nGoed = p.st.filter((s, k) => s.klaar && !s.getoond && !p.serie[k].ster).length, nTot = p.serie.filter(o => !o.ster).length;
+  let h = `<div class="kicker">${w.ster ? 'Werkplaats ★ · verdieping' : 'Werkplaats ' + (STAAT.wp + 1) + ' · ' + w.par}</div><h2>${w.titel}</h2>
+    <div class="tabs"><button data-t="uitleg" class="${STAAT.tab === 'uitleg' ? 'on' : ''}">Uitleg en voorbeeld</button>
+    <button data-t="opd" class="${STAAT.tab === 'opd' ? 'on' : ''}">Opdrachten<span class="tel">${nGoed}/${nTot}</span></button></div>`;
+  if (STAAT.tab === 'uitleg'){
+    h += w.uitleg() + renderVoorbeeld(w);
+  } else {
+    h += renderOpdracht(w, p);
+  }
+  $('#tekst').innerHTML = h;
+  $$('#tekst .tabs button').forEach(b => b.onclick = () => { STAAT.tab = b.dataset.t; renderTekst(); if (STAAT.tab === 'opd') zetOpdrachtInSim(); else SIM.opdracht && SIM.opdracht(null); });
+  if (STAAT.tab === 'uitleg') koppelVoorbeeld(w); else koppelOpdracht(w, p);
+}
+
+/* ---------- uitgewerkt voorbeeld, stap voor stap ---------- */
+function renderVoorbeeld(w){
+  const vb = w.voorbeeld; if (!vb) return '';
+  const n = w._vbStap || 0;
+  let h = `<div class="vb"><div class="vbkop">Voorbeeld</div><div class="vbvraag">${vb.vraag}</div>`;
+  for (let k = 0; k < n; k++) h += `<div class="vbstap"><span class="n">${k + 1}</span><div class="b">${vb.stappen[k]}</div></div>`;
+  h += n < vb.stappen.length ? `<div class="verder"><button class="btn g klein" id="vbverder">${n ? 'Volgende stap' : 'Toon de uitwerking'} ▸</button></div>`
+                             : `<div class="verder"><button class="btn klein" id="naaropd">Naar de opdrachten ▸</button></div>`;
+  return h + '</div>';
+}
+function koppelVoorbeeld(w){
+  const b = $('#vbverder'); if (b) b.onclick = () => { w._vbStap = (w._vbStap || 0) + 1; renderTekst(); w.voorbeeld.bijStap && w.voorbeeld.bijStap(w._vbStap); };
+  const o = $('#naaropd'); if (o) o.onclick = () => { STAAT.tab = 'opd'; renderTekst(); zetOpdrachtInSim(); window.scrollTo(0, 0); };
+}
+
+/* ---------- opdrachten ---------- */
+function renderOpdracht(w, p){
+  const o = p.serie[p.idx], s = p.st[p.idx];
+  const nTot = p.serie.filter(x => !x.ster).length;
+  let h = '';
+  if (STAAT.voortgang[w.id] && STAAT.voortgang[w.id].klaar && p.st.every((x, k) => p.serie[k].ster || (x.klaar && !x.getoond)))
+    h += `<div class="klaarbanner"><b>Werkplaats afgerond.</b> Probeer ook de ★-opdrachten, of oefen met een nieuwe serie.</div>`;
+  h += `<div class="oknop">` + p.serie.map((x, k) => {
+    const st = p.st[k];
+    return `<span class="dot ${k === p.idx ? 'on' : ''} ${st.klaar && !st.getoond ? 'goed' : ''} ${x.ster ? 'ster' : ''}" data-k="${k}" title="${x.titel}">${x.ster ? '★' : k + 1}</span>`;
+  }).join('') + `<span class="rechts"><button class="btn g klein" id="nieuweserie">Nieuwe serie</button></span></div>`;
+  h += `<div class="opdkop">${o.ster ? '<span class="st">★ </span>' : ''}Opdracht ${o.ster ? '★' : p.idx + 1}${o.ster ? '' : ' van ' + nTot} · ${o.titel}</div>`;
+  if (o.vraag) h += `<div class="opdvraag">${o.vraag}</div>`;
+  o.stappen.forEach((st, k) => {
+    const dicht = k > s.stap, goed = k < s.stap || s.klaar;
+    h += `<div class="stap ${dicht ? 'dicht' : ''} ${goed ? 'goed' : ''}" data-k="${k}">${o.stappen.length > 1 ? `<span class="n">${goed ? '✓' : k + 1}</span>` : ''}<div class="inh">
+      <div class="vr">${st.vr}</div>${goed ? `<div class="antw">${st.antwoord()}</div>` : `<div class="inv">${invoerHTML(st, k)}</div>`}
+      <div class="fb" id="fb${k}"></div></div></div>`;
+  });
+  if (s.klaar){
+    const volgende = p.idx < p.serie.length - 1;
+    h += `<div class="rij" style="margin-top:6px">${volgende ? `<button class="btn" id="volgende">Volgende opdracht ▸</button>` : ''}${o.naKlaar ? `<span class="waarneming">${o.naKlaar()}</span>` : ''}</div>`;
+  }
+  if (o.stappen.some(x => x.type === 'teken')) h += `<div class="typtip">${TEKENTIP}</div>`;
+  else if (o.stappen.some(x => x.type === 'getal')) h += `<div class="typtip">${GETALTIP}</div>`;
+  return h;
+}
+const TEKENTIP = 'Tekenen: kies een atoomsoort en klik op het raster. Sleep vanaf een atoom om een binding met een nieuw of bestaand atoom te maken. Klik op een binding voor een dubbele binding. <b>+H aanvullen</b> zet ontbrekende H-atomen, maar je mag ze ook zelf zetten. <b>~</b> is een open binding: de keten gaat verder.';
+const GETALTIP = 'Typ een getal met een komma, bijvoorbeeld <code>2,4</code> of <code>35</code>.';
+const TYPTIP = 'Zo typ je (voorbeelden met titaan en chromaat): <code>Ti2(CrO4)3</code> · ion <code>Ti3+</code> of <code>CrO4 2-</code> · pijl <code>-></code> · toestand <code>(s)</code> <code>(aq)</code> <code>(l)</code> · coëfficiënt ervoor: <code>3 CrO4 2-(aq)</code>.';
+
+function invoerHTML(st, k){
+  const knoppen = `<button class="btn" data-ctl="${k}">Controleer</button><button class="btn g" data-hint="${k}">Hint</button><button class="btn g" data-toon="${k}" style="display:none">Toon antwoord</button>`;
+  if (st.type === 'sim') return `<div class="rij">${knoppen}</div>`;
+  if (st.type === 'tekst') return `<div class="rij"><input class="in" id="in${k}" autocomplete="off" spellcheck="false" placeholder="${st.ph || ''}">${knoppen}</div><div class="voorbeeldweergave" id="vw${k}"></div>`;
+  if (st.type === 'chips') return `<div class="chips" id="ch${k}">${st.opties.map((x, j) => `<span class="chip" data-j="${j}">${x.html}</span>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'keuze') return `<div class="opties" id="op${k}">${st.opties.map((x, j) => `<button class="optie" data-j="${j}">${x.html}</button>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'teken') return `<div id="tv${k}"></div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'getal') return `<div class="rij"><input class="in getal" id="in${k}" autocomplete="off" spellcheck="false" placeholder="${st.ph || 'antwoord'}"><span class="eenheid">${st.eenheid || ''}</span></div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'selects') return `<div class="rij">${st.selects.map((s, j) => `<label style="font-size:14px">${s.lab} <select class="sel" id="se${k}_${j}"><option value="">kies…</option>${s.opties.map(x => `<option value="${x.v}">${x.t}</option>`).join('')}</select></label>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  return '';
+}
+
+function koppelOpdracht(w, p){
+  const o = p.serie[p.idx], s = p.st[p.idx];
+  $$('.oknop .dot').forEach(d => d.onclick = () => { p.idx = +d.dataset.k; renderTekst(); zetOpdrachtInSim(); });
+  $('#nieuweserie').onclick = () => { nieuweSerie(w); renderTekst(); zetOpdrachtInSim(); };
+  const v = $('#volgende'); if (v) v.onclick = () => { p.idx++; renderTekst(); zetOpdrachtInSim(); };
+  o.stappen.forEach((st, k) => {
+    if (k !== s.stap || s.klaar) return;
+    const inp = $('#in' + k);
+    if (st.type === 'teken'){
+      const sleutel = w.id + '|' + p.idx + '|' + k + '|' + p.serieNr;
+      const tv = new Tekenveld($('#tv' + k), { breedte: st.breedte || 32, hoogte: st.hoogte || 13 });
+      if (TEKENINGEN[sleutel]) tv.zet(TEKENINGEN[sleutel]);
+      const oud = tv.teken.bind(tv); tv.teken = () => { oud(); TEKENINGEN[sleutel] = tv.g; };
+      tv.melding = m => { const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = m; };
+      st._tv = tv;
     }
-  } catch (e) {}
-  const alles = root => { if (root.matches && root.matches('input[type="number"]')) zet(root); if (root.querySelectorAll) root.querySelectorAll('input[type="number"]').forEach(zet); };
-  alles(document);
-  new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) alles(n); })))
-    .observe(document.documentElement, { childList: true, subtree: true });
-})();
+    if (inp && st.type === 'getal'){ inp.onkeydown = e => { if (e.key === 'Enter') controleer(w, p, k); }; setTimeout(() => inp.focus({ preventScroll:true }), 30); }
+    else if (inp){
+      inp.onkeydown = e => { if (e.key === 'Enter') controleer(w, p, k); };
+      setTimeout(() => inp.focus({ preventScroll:true }), 30);
+    }
+    $$(`#ch${k} .chip`).forEach(c => c.onclick = () => c.classList.toggle('aan'));
+    $$(`#op${k} .optie`).forEach(c => c.onclick = () => {
+      if (!st.meer) $$(`#op${k} .optie`).forEach(x => x !== c && x.classList.remove('aan'));
+      c.classList.toggle('aan');
+    });
+    $(`[data-ctl="${k}"]`).onclick = () => controleer(w, p, k);
+    $(`[data-hint="${k}"]`).onclick = () => { const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = st.hint; };
+    $(`[data-toon="${k}"]`).onclick = () => {
+      s.getoond = true; const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = 'Antwoord: ' + st.antwoord();
+      setTimeout(() => stapGoed(w, p, k), 1400);
+    };
+    if ((s.pogingen[k] || 0) >= 2) $(`[data-toon="${k}"]`).style.display = '';
+  });
+}
+function waardeVan(st, k){
+  if (st.type === 'tekst') return $('#in' + k).value;
+  if (st.type === 'chips') return $$(`#ch${k} .chip.aan`).map(c => +c.dataset.j);
+  if (st.type === 'keuze') return $$(`#op${k} .optie.aan`).map(c => +c.dataset.j);
+  if (st.type === 'selects') return st.selects.map((x, j) => $(`#se${k}_${j}`).value);
+  if (st.type === 'teken') return st._tv;
+  if (st.type === 'getal') return $('#in' + k).value;
+}
+function controleer(w, p, k){
+  const o = p.serie[p.idx], s = p.st[p.idx], st = o.stappen[k];
+  const r = st.check(waardeVan(st, k));
+  const fb = $('#fb' + k);
+  if (r.ok){ fb.className = 'fb toon goed'; fb.innerHTML = r.msg || 'Goed!'; setTimeout(() => stapGoed(w, p, k), 650); }
+  else {
+    s.pogingen[k] = (s.pogingen[k] || 0) + 1;
+    fb.className = 'fb toon fout'; fb.innerHTML = r.msg;
+    if (s.pogingen[k] >= 2) $(`[data-toon="${k}"]`).style.display = '';
+  }
+}
+function stapGoed(w, p, k){
+  const o = p.serie[p.idx], s = p.st[p.idx];
+  if (s.stap !== k) return;
+  s.stap = k + 1;
+  if (s.stap >= o.stappen.length) s.klaar = true;
+  SIM.stapGoed && SIM.stapGoed(o, k);
+  if (s.klaar){
+    const nietSter = p.serie.map((x, j) => [x, p.st[j]]).filter(([x]) => !x.ster);
+    if (nietSter.every(([, y]) => y.klaar && !y.getoond)){
+      STAAT.voortgang[w.id] = { klaar:true }; bewaar(STAAT.voortgang); renderNav();
+    }
+  }
+  renderTekst();
+}
+function zetOpdrachtInSim(){
+  const w = WPS[STAAT.wp], p = PER_WP[w.id];
+  SIM.opdracht && SIM.opdracht(STAAT.tab === 'opd' ? p.serie[p.idx] : null, STAAT.tab === 'opd' ? p.st[p.idx] : null);
+}
+
+/* lus */
+let tVorig = 0;
+function lus(t){
+  const dt = Math.min(0.05, (t - tVorig) / 1000 || 0); tVorig = t;
+  if (SIM){ SIM.update && SIM.update(dt); SIM.draw && SIM.draw(); }
+  requestAnimationFrame(lus);
+}
+
+
+function keuzeStap(vr, opties, o = {}){
+  const opts = o.vast ? opties : schud(opties);
+  return { type:'keuze', meer: !!o.meer, vr, opties: opts, hint: o.hint || '',
+    check: v => {
+      if (!v.length) return { ok:false, msg:'Kies een antwoord.' };
+      const sel = v.map(j => opts[j]), goed = opts.filter(x => x.g);
+      if (sel.length === goed.length && sel.every(x => x.g)) return { ok:true, msg: o.goedMsg };
+      const fb = sel.find(x => !x.g && x.fb); if (fb) return { ok:false, msg: fb.fb };
+      if (o.meer && sel.every(x => x.g)) return { ok:false, msg:'Je mist er nog een.' };
+      return { ok:false, msg: o.fout || 'Nog niet goed.' };
+    },
+    antwoord: () => opts.filter(x => x.g).map(x => x.html).join('<br>'), goed: () => opts.map((x, j) => x.g ? j : -1).filter(j => j >= 0) };
+}
+function leesGetal(s){
+  let t = String(s).trim().replace(/\s+/g, '').replace(/[×x*·]10\^?/i, 'e').replace(/10\^/, 'e');
+  t = t.replace(',', '.');
+  return /^-?\d*\.?\d+(e-?\d+)?$/i.test(t) ? parseFloat(t) : NaN;
+}
+function getalStap(vr, waarde, eenheid, uitleg, hint, tol){
+  return { type:'getal', vr, eenheid, hint, ph:'getal',
+    check: v => { const x = leesGetal(v); if (isNaN(x)) return { ok:false, msg:'Typ een getal, bijvoorbeeld <code>2,4</code>.' };
+      if (Math.abs(x - waarde) <= Math.abs(waarde) * tol) return { ok:true, msg:'Goed! ' + uitleg };
+      return { ok:false, msg:'Nog niet goed. ' + hint }; },
+    antwoord: () => uitleg, goed: () => String(+waarde.toPrecision(3)).replace('.', ',') };
+}
+
+function parkeer(){ const h = $('#simhouder'); if (h) $('#parkeer').appendChild(h); }
+function simStap(vr, test, hint, antwoord){ return { type:'sim', vr, hint, check: () => test() ? { ok:true } : { ok:false, msg: hint }, antwoord: () => antwoord }; }
+const leerdoelen = (...l) => `<div class="leerdoelen"><b>Leerdoelen</b><ul>${l.map(x => x.startsWith('★') ? `<li class="ster">${x.slice(1).trim()}</li>` : `<li>${x}</li>`).join('')}</ul></div>`;
+
+/* =====================================================================
+   Koppeling met het reactievat
+   ===================================================================== */
+const RUNS = {};          /* per werkplaats: [{rxn, T, V, cat, start:{...}, eq, Q, omzet, soort}] */
+let laatsteSoort = 'start';
+function naSeg(seg, atEq){
+  const w = WPS[STAAT.wp];
+  const eerste = segments[0];
+  const A0 = eerste ? (eerste.msA[0] || 0) : 0, An = seg.msA[seg.msA.length - 1];
+  const omzet = A0 > 0 ? Math.max(0, (A0 - An) / A0) : null;
+  document.getElementById('st-om').textContent = omzet == null ? '—' : Math.round(omzet * 100) + '% van ' + (RXN.nameA || 'A');
+  (RUNS[w.id] = RUNS[w.id] || []).push({ rxn: RXN.eq, T: EVS.T, V: EVS.V, cat: EVS.cat, eq: atEq, Q: seg.Qs[seg.Qs.length - 1], omzet, soort: laatsteSoort, startMols: { ...STARTMOLS } });
+  laatsteSoort = 'start';
+}
+let STARTMOLS = {};
+{
+  const oudStart = startSim;
+  window.startSim = function(){ STARTMOLS = { A: +$('#mol-A')?.value || 0, B: +$('#mol-B')?.value || 0, C: +$('#mol-C')?.value || 0 }; laatsteSoort = 'start'; return oudStart(); };
+  const oudDist = disturb;
+  window.disturb = function(t){ laatsteSoort = t; return oudDist(t); };
+}
+const runs = () => RUNS[WPS[STAAT.wp].id] || [];
+const zetMol = (k, v) => { const i = document.getElementById('mol-' + k); if (i){ i.value = v; setMol(k, v); } };
+
+const EVW = {
+  init(host){
+    const w = WPS[STAAT.wp];
+    host.appendChild($('#simhouder'));
+    $$('#simhouder .sh-deel').forEach(e => e.classList.toggle('verborgen', !(w.delen || []).includes(e.dataset.deel)));
+    if (EVW._wp !== w.id){ EVW._wp = w.id; newRxn(w.reactie); resetSim(); if (w.begin) Object.entries(w.begin).forEach(([k, v]) => zetMol(k, v)); }
+    setTimeout(drawAll, 30);
+  },
+  opdracht(){}, update(){}, draw(){}
+};
+const SNEL = [['++', 'neemt sterk toe'], ['+', 'neemt toe'], ['0', 'blijft gelijk'], ['-', 'neemt af'], ['--', 'neemt sterk af']];
+const NET = [['right', 'naar rechts'], ['left', 'naar links'], ['eq', 'geen verschuiving']];
+const KK = [['up', 'wordt groter'], ['down', 'wordt kleiner'], ['same', 'blijft gelijk']];
+function redeneerStap(vr, ans, uitleg, metK = true){
+  const selects = [
+    { lab:'v<sub>heen</sub>', opties: SNEL.map(([v, t]) => ({ v, t })) },
+    { lab:'v<sub>terug</sub>', opties: SNEL.map(([v, t]) => ({ v, t })) },
+    { lab:'verschuiving', opties: NET.map(([v, t]) => ({ v, t })) }];
+  const ex = s => s.replace(/v→/g, 'v<sub>heen</sub>').replace(/v←/g, 'v<sub>terug</sub>');
+  ans = { ...ans, expl: ex(ans.expl) };
+  if (metK) selects.push({ lab:'K', opties: KK.map(([v, t]) => ({ v, t })) });
+  const goed = [ans.vf, ans.vr, ans.net].concat(metK ? [ans.K] : []);
+  return { type:'selects', vr, selects, hint:'Denk eerst aan wat er direct (op t = 0+) met de concentraties gebeurt. Een snelheid verandert alleen als een concentratie in die snelheid verandert, of als de temperatuur verandert.',
+    check: v => {
+      if (v.some(x => !x)) return { ok:false, msg:'Kies bij elk vak een antwoord.' };
+      const fout = v.map((x, i) => x !== goed[i]);
+      if (!fout.some(Boolean)) return { ok:true, msg: uitleg || ans.expl };
+      const namen = ['v<sub>heen</sub>', 'v<sub>terug</sub>', 'de verschuiving', 'K'];
+      return { ok:false, msg:'Nog niet goed bij ' + namen.filter((_, i) => fout[i]).join(' en ') + '.' };
+    },
+    antwoord: () => ans.expl, goed: () => goed };
+}
+
+/* ================= 1. Dynamisch evenwicht ================= */
+WPS.push({
+  id:'dynamisch', titel:'Dynamisch evenwicht', par:'heen en terug even snel', sim: EVW, reactie: 2, delen: [], begin: { A:1, B:1, C:0 },
+  uitleg: () => leerdoelen(
+      'Ik kan uitleggen dat bij een evenwicht de heenreactie en de terugreactie allebei doorgaan, even snel.',
+      'Ik kan uitleggen waarom de concentraties bij evenwicht constant zijn.',
+      'Ik kan uitleggen dat je hetzelfde evenwicht bereikt vanuit de beginstoffen of vanuit de producten.') + `
+    <h3>Uitleg</h3>
+    <p>Bij een omkeerbare reactie verlopen twee reacties: de <b>heenreactie</b> (naar rechts) en de <b>terugreactie</b> (naar links). In het begin zijn er vooral beginstoffen: v<sub>heen</sub> is groot en v<sub>terug</sub> klein. Naarmate er product ontstaat, daalt v<sub>heen</sub> en stijgt v<sub>terug</sub>.</p>
+    <p>Zodra v<sub>heen</sub> = v<sub>terug</sub>, ontstaat elke seconde evenveel product als er weer verdwijnt. De concentraties veranderen dan niet meer: er is <b>evenwicht</b>. De reacties gaan wel door: het is een <b>dynamisch</b> evenwicht.</p>
+    <div class="kader">In het reactievat kies je de beginhoeveelheden en de omstandigheden, en druk je op Start. Je ziet hoe de concentraties en de snelheden veranderen tot het evenwicht is ingesteld.</div>`,
+  voorbeeld: {
+    vraag: 'In een afgesloten fles staat een laagje water. Na een tijd verandert het waterniveau niet meer. Leg uit wat er dan met de watermoleculen gebeurt.',
+    stappen: [
+      'Watermoleculen verdampen uit de vloeistof, en watermoleculen uit de damp condenseren weer.',
+      'In het begin verdampen er meer moleculen dan er condenseren. Hoe meer damp, hoe vaker moleculen condenseren.',
+      'Op een gegeven moment verdampen er per seconde evenveel moleculen als er condenseren: dynamisch evenwicht. Het waterniveau blijft gelijk, maar de moleculen blijven wisselen.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Evenwicht instellen', vraag:'Het vat bevat waterstof en jood. Druk op <b>Start</b> en volg de grafieken.', stappen:[
+      simStap('Laat de reactie verlopen tot het evenwicht is bereikt.', () => runs().some(r => r.eq), 'Druk op <b>▶ Start</b>. Bovenaan staat wanneer het evenwicht is bereikt.', 'evenwicht bereikt'),
+      keuzeStap('Wat geldt als het evenwicht is bereikt? Kies alle juiste.', [
+        { html:'v<sub>heen</sub> is gelijk aan v<sub>terug</sub>.', g:true },
+        { html:'De concentraties veranderen niet meer.', g:true },
+        { html:'De reacties gaan door.', g:true },
+        { html:'De reactie is gestopt.', fb:'In de grafiek van de snelheden zijn v<sub>heen</sub> en v<sub>terug</sub> niet nul.' },
+        { html:'De concentraties van alle stoffen zijn gelijk.' }], { meer:true })]},
+    { titel:'Van de andere kant', vraag:'Begin nu met alleen product: zet de beginhoeveelheden op 0 mol H<sub>2</sub>, 0 mol I<sub>2</sub> en 2,000 mol HI. Druk op Start.', stappen:[
+      simStap('Start met alleen HI en laat het evenwicht instellen.', () => runs().some(r => r.eq && r.startMols.A < 0.001 && r.startMols.B < 0.001 && Math.abs(r.startMols.C - 2) < 0.01), 'Zet mol H<sub>2</sub> en mol I<sub>2</sub> op 0 en mol HI op 2, en druk op Start.', 'evenwicht vanuit HI'),
+      keuzeStap('Vergelijk met de eerste keer (1 mol H<sub>2</sub>, 1 mol I<sub>2</sub>, 0 mol HI). Wat zie je?', [
+        { html:'Er stelt zich (vrijwel) hetzelfde evenwicht in: dezelfde concentraties.', g:true },
+        { html:'Nu ontstaat er geen evenwicht.' },
+        { html:'Nu blijft alle HI over.' },
+        { html:'Nu is v<sub>terug</sub> bij evenwicht groter dan v<sub>heen</sub>.' }],
+        { hint:'2 mol HI bevat evenveel H-atomen en I-atomen als 1 mol H<sub>2</sub> en 1 mol I<sub>2</sub>.' })]},
+    { titel:'Een fles frisdrank', vraag:'In een dichte fles frisdrank stelt zich een evenwicht in: CO<sub>2</sub>(aq) ⇌ CO<sub>2</sub>(g).', stappen:[
+      keuzeStap('Welke uitspraken over de dichte fles zijn juist? Kies alle juiste.', [
+        { html:'Er gaan per seconde evenveel CO<sub>2</sub>-moleculen de gasfase in als eruit.', g:true },
+        { html:'De hoeveelheid opgelost CO<sub>2</sub> blijft gelijk.', g:true },
+        { html:'Er lossen geen CO<sub>2</sub>-moleculen meer op.' },
+        { html:'Na een tijd is al het CO<sub>2</sub> in de gasfase.' }], { meer:true }),
+      keuzeStap('Je draait de dop eraf. Waarom is er dan geen evenwicht meer?', [
+        { html:'Het CO<sub>2</sub>-gas ontsnapt: het systeem is niet meer afgesloten.', g:true },
+        { html:'De temperatuur daalt.' }, { html:'Er komt zuurstof bij.' }, { html:'Het water verdampt.' }])]}
+  ]
+});
+
+/* ================= 2. Q en K ================= */
+WPS.push({
+  id:'qk', titel:'De evenwichtsvoorwaarde', par:'concentratiebreuk, Q en K', sim: EVW, reactie: 1, delen: [],
+  uitleg: () => leerdoelen(
+      'Ik kan de concentratiebreuk opstellen bij een reactievergelijking.',
+      'Ik kan K berekenen uit evenwichtsconcentraties, met een BOE-schema.',
+      'Ik kan met Q en K voorspellen naar welke kant een reactie verloopt.') + `
+    <h3>Uitleg</h3>
+    <p>Voor de reactie a A + b B ⇌ c C + d D is de <b>concentratiebreuk</b>:</p>
+    <div class="reken">Q = <span class="breuk"><span>[C]<sup>c</sup> · [D]<sup>d</sup></span><span>[A]<sup>a</sup> · [B]<sup>b</sup></span></span></div>
+    <ul><li>Bij evenwicht heeft Q een vaste waarde: de <b>evenwichtsconstante K</b>. K hangt alleen af van de temperatuur.</li>
+    <li>Vaste stoffen en water (als oplosmiddel) komen niet in de breuk.</li>
+    <li>Is Q &lt; K, dan verloopt de reactie netto naar rechts. Is Q &gt; K, dan netto naar links. Is Q = K, dan is er evenwicht.</li></ul>`,
+  voorbeeld: {
+    vraag: `In een vat van 1,0 L wordt 1,00 mol N<sub>2</sub>O<sub>4</sub> gebracht. Bij evenwicht is er 0,40 mol NO<sub>2</sub>. Bereken K voor N<sub>2</sub>O<sub>4</sub>(g) ⇌ 2 NO<sub>2</sub>(g).`,
+    stappen: [
+      `BOE-schema in mol, met x-termen. Er ontstaat 2x mol NO<sub>2</sub>, en 2x = 0,40 mol, dus x = 0,20 mol.
+       <table class="data"><tr><th></th><th>N<sub>2</sub>O<sub>4</sub></th><th>NO<sub>2</sub></th></tr><tr><th>B</th><td>1,00</td><td>0</td></tr><tr><th>O</th><td>−x = −0,20</td><td>+2x = +0,40</td></tr><tr><th>E</th><td>0,80</td><td>0,40</td></tr></table>`,
+      'Het volume is 1,0 L, dus [N<sub>2</sub>O<sub>4</sub>] = 0,80 mol/L en [NO<sub>2</sub>] = 0,40 mol/L.',
+      `<div class="reken">K = <span class="breuk"><span>[NO<sub>2</sub>]<sup>2</sup></span><span>[N<sub>2</sub>O<sub>4</sub>]</span></span> = <span class="breuk"><span>0,40<sup>2</sup></span><span>0,80</span></span> = 0,20</div>`
+    ]
+  },
+  maakSerie: () => [
+    { titel:'De concentratiebreuk', vraag:'Het reactievat bevat de reactie 2 SO<sub>2</sub>(g) + O<sub>2</sub>(g) ⇌ 2 SO<sub>3</sub>(g).', stappen:[
+      keuzeStap('Wat is de concentratiebreuk?', [
+        { html:'<span class="breuk"><span>[SO<sub>3</sub>]<sup>2</sup></span><span>[SO<sub>2</sub>]<sup>2</sup> · [O<sub>2</sub>]</span></span>', g:true },
+        { html:'<span class="breuk"><span>[SO<sub>3</sub>]</span><span>[SO<sub>2</sub>] · [O<sub>2</sub>]</span></span>' },
+        { html:'<span class="breuk"><span>[SO<sub>2</sub>]<sup>2</sup> · [O<sub>2</sub>]</span><span>[SO<sub>3</sub>]<sup>2</sup></span></span>' },
+        { html:'<span class="breuk"><span>2[SO<sub>3</sub>]</span><span>2[SO<sub>2</sub>] + [O<sub>2</sub>]</span></span>' }]),
+      simStap('Druk op Start en laat het evenwicht instellen. Klik daarna op de tab <b>Q</b> boven de grafiek.', () => runs().some(r => r.eq), 'Druk op <b>▶ Start</b> en wacht tot het evenwicht is bereikt.', 'evenwicht bereikt'),
+      keuzeStap('Wat gebeurt er met Q tijdens de reactie?', [
+        { html:'Q stijgt tot de waarde van K en blijft dan gelijk.', g:true }, { html:'Q daalt tot nul.' }, { html:'Q blijft de hele tijd gelijk.' }, { html:'Q stijgt steeds verder.' }])]},
+    { titel:'K berekenen', vraag:'In een vat van 2,0 L wordt 1,00 mol H<sub>2</sub> en 1,00 mol I<sub>2</sub> gebracht. Bij evenwicht is er 1,56 mol HI. Gegeven: H<sub>2</sub>(g) + I<sub>2</sub>(g) ⇌ 2 HI(g). Maak in je schrift een BOE-schema met x-termen.', stappen:[
+      getalStap('x =', 0.78, 'mol', 'In de O-rij staat +2x bij HI. Bij evenwicht is er 1,56 mol HI, en dat is gelijk aan 2x: x = 0,78 mol.', 'Bij de omzetting ontstaat 2x mol HI. Stel 2x gelijk aan 1,56 mol.', 0.01),
+      getalStap('[H<sub>2</sub>] bij evenwicht =', 0.11, '<span class="breuk"><span>mol</span><span>L</span></span>', '[H<sub>2</sub>] = <span class="breuk"><span>(1,00 − 0,78) mol</span><span>2,0 L</span></span> = 0,11 <span class="breuk"><span>mol</span><span>L</span></span>.', 'Trek x af van de beginhoeveelheid en deel door het volume.', 0.03),
+      getalStap('K =', 50.3, '', '[HI] = <span class="breuk"><span>1,56 mol</span><span>2,0 L</span></span> = 0,78 <span class="breuk"><span>mol</span><span>L</span></span> en [I<sub>2</sub>] = [H<sub>2</sub>] = 0,11 <span class="breuk"><span>mol</span><span>L</span></span>. K = <span class="breuk"><span>[HI]<sup>2</sup></span><span>[H<sub>2</sub>] · [I<sub>2</sub>]</span></span> = <span class="breuk"><span>0,78<sup>2</sup></span><span>0,11 · 0,11</span></span> = 50', 'Deel [HI]<sup>2</sup> door [H<sub>2</sub>] · [I<sub>2</sub>]. Let op: bereken eerst [HI] uit 1,56 mol en het volume.', 0.03)]},
+    { titel:'Q en K vergelijken', vraag:'Bij een bepaalde temperatuur is voor H<sub>2</sub> + I<sub>2</sub> ⇌ 2 HI de waarde K = 50. In een vat is op een moment Q = 12.', stappen:[
+      keuzeStap('Wat gebeurt er?', [
+        { html:'De reactie verloopt netto naar rechts tot Q = 50.', g:true }, { html:'De reactie verloopt netto naar links tot Q = 50.' }, { html:'Er is al evenwicht.' }, { html:'K daalt tot 12.' }])]}
+  ]
+});
+
+/* ================= 3. Concentratie veranderen ================= */
+WPS.push({
+  id:'conc', titel:'Concentratie veranderen', par:'stof toevoegen of weghalen', sim: EVW, reactie: 1, delen: ['verstoor'],
+  uitleg: () => leerdoelen(
+      'Ik kan beredeneren wat er direct met v<sub>heen</sub> en v<sub>terug</sub> gebeurt als ik een stof toevoeg of weghaal.',
+      'Ik kan daarmee voorspellen naar welke kant het evenwicht verschuift.',
+      'Ik kan uitleggen dat K daarbij gelijk blijft.') + `
+    <h3>Uitleg</h3>
+    <p>Voeg je bij een evenwicht een beginstof toe, dan stijgt op dat moment alleen v<sub>heen</sub>: die hangt af van de concentraties van de beginstoffen. v<sub>terug</sub> verandert op dat moment niet. Er ontstaat netto meer product: het evenwicht <b>verschuift naar rechts</b>, tot v<sub>heen</sub> en v<sub>terug</sub> weer gelijk zijn.</p>
+    <ul><li>Stof toevoegen: het evenwicht verschuift naar de andere kant.</li>
+    <li>Stof weghalen: het evenwicht verschuift naar de kant van die stof.</li>
+    <li>K verandert niet: alleen de temperatuur verandert K.</li></ul>`,
+  voorbeeld: {
+    vraag: 'Fe<sup>3+</sup>(aq) + SCN<sup>−</sup>(aq) ⇌ FeSCN<sup>2+</sup>(aq) is in evenwicht. Je voegt wat Fe<sup>3+</sup> toe. Beredeneer wat er gebeurt.',
+    stappen: [
+      'Direct na toevoegen is [Fe<sup>3+</sup>] groter: Fe<sup>3+</sup>-ionen botsen vaker met SCN<sup>−</sup>-ionen. v<sub>heen</sub> neemt toe.',
+      '[FeSCN<sup>2+</sup>] is op dat moment nog niet veranderd: v<sub>terug</sub> blijft gelijk.',
+      'v<sub>heen</sub> &gt; v<sub>terug</sub>: er ontstaat netto FeSCN<sup>2+</sup>. Het evenwicht verschuift naar rechts (de oplossing wordt donkerder rood). K blijft gelijk.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Beginstof toevoegen', vraag:'Laat het evenwicht 2 SO<sub>2</sub> + O<sub>2</sub> ⇌ 2 SO<sub>3</sub> instellen. Klik daarna op <b>+ voeg beginstof toe</b>.', stappen:[
+      simStap('Laat het evenwicht instellen en voeg beginstof toe.', () => runs().some(r => r.soort === 'addA'), 'Druk op Start, wacht op het evenwicht en klik op <b>+ voeg beginstof toe</b>.', 'beginstof toegevoegd'),
+      redeneerStap('Wat gebeurt er direct na het toevoegen van SO<sub>2</sub>?', vrAntwoord('so2o2', 'add', 'SO₂', 'no'))]},
+    { titel:'Product weghalen', vraag:'Laat het evenwicht opnieuw instellen en klik op <b>− haal product weg</b>.', stappen:[
+      simStap('Haal product weg bij evenwicht.', () => runs().some(r => r.soort === 'remC'), 'Druk op Start, wacht op het evenwicht en klik op <b>− haal product weg</b>.', 'product weggehaald'),
+      redeneerStap('Wat gebeurt er direct na het weghalen van SO<sub>3</sub>?', vrAntwoord('so2o2', 'remove', 'SO₃', 'no'))]},
+    { titel:'Een andere reactie', vraag:'Gegeven het evenwicht H<sub>2</sub>(g) + I<sub>2</sub>(g) ⇌ 2 HI(g). Je voegt HI toe.', stappen:[
+      redeneerStap('Wat gebeurt er direct na het toevoegen van HI?', vrAntwoord('hi', 'add', 'HI', 'no'))]}
+  ]
+});
+
+/* ================= 4. Volume en druk ================= */
+WPS.push({
+  id:'volume', titel:'Volume en druk', par:'deeltjes per liter', sim: EVW, reactie: 1, delen: [],
+  uitleg: () => leerdoelen(
+      'Ik kan beredeneren wat een kleiner volume doet met de snelheden en de ligging van een gasevenwicht.',
+      'Ik kan uitleggen waarom een edelgas toevoegen bij gelijk volume niets verandert.',
+      '★ Ik kan uitleggen waarom een kleiner volume bij gelijke aantallen deeltjes links en rechts niets verschuift.') + `
+    <h3>Uitleg</h3>
+    <p>Maak je het volume van een gasmengsel kleiner, dan stijgen alle concentraties tegelijk. De kant met de <b>meeste gasdeeltjes</b> in de reactievergelijking heeft de hoogste machten in de snelheidsvergelijking: die snelheid stijgt het sterkst. Het evenwicht verschuift daardoor naar de kant met de <b>minste gasdeeltjes</b>.</p>
+    <ul><li>Even veel gasdeeltjes links en rechts: geen verschuiving.</li>
+    <li>Een edelgas toevoegen bij gelijk volume verandert geen enkele concentratie: geen verschuiving.</li></ul>`,
+  voorbeeld: {
+    vraag: 'Voor N<sub>2</sub>(g) + 3 H<sub>2</sub>(g) ⇌ 2 NH<sub>3</sub>(g) wordt het volume kleiner gemaakt. Naar welke kant verschuift het evenwicht?',
+    stappen: [
+      'Links staan 1 + 3 = 4 gasdeeltjes, rechts 2.',
+      'Alle concentraties stijgen. v<sub>heen</sub> hangt af van vier deeltjes en stijgt sterker dan v<sub>terug</sub>, die van twee deeltjes afhangt.',
+      'Het evenwicht verschuift naar rechts, de kant met de minste gasdeeltjes: er ontstaat meer NH<sub>3</sub>.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Twee volumes', vraag:'Druk op <b>↺ Reset</b>. Laat het evenwicht 2 SO<sub>2</sub> + O<sub>2</sub> ⇌ 2 SO<sub>3</sub> instellen bij een volume van 2,0 L en daarna bij 0,5 L. Lees telkens af hoeveel procent van het SO<sub>2</sub> is omgezet.', stappen:[
+      simStap('Doe beide metingen.', () => [2, 0.5].every(V => runs().some(r => r.eq && r.soort === 'start' && Math.abs(r.V - V) < 0.05)), 'Stel het volume in op 2,0 L, druk op Start; doe hetzelfde bij 0,5 L.', 'beide volumes gemeten'),
+      keuzeStap('Bij welk volume is het grootste deel van het SO<sub>2</sub> omgezet?', [
+        { html:'bij 0,5 L', g:true }, { html:'bij 2,0 L' }, { html:'Dat is bij allebei even veel.' }]),
+      keuzeStap('Leg uit met de gasdeeltjes in de reactievergelijking.', [
+        { html:'Links staan 3 gasdeeltjes, rechts 2: bij een kleiner volume verschuift het evenwicht naar rechts.', g:true },
+        { html:'Bij een kleiner volume botsen alle deeltjes vaker, dus verschuift niets.' },
+        { html:'Links staan 2 gasdeeltjes, rechts 3: het evenwicht verschuift naar links.' },
+        { html:'Bij een kleiner volume wordt K groter.' }])]},
+    { titel:'De snelheden', vraag:'Het volume van het evenwichtsmengsel 2 SO<sub>2</sub> + O<sub>2</sub> ⇌ 2 SO<sub>3</sub> wordt in één keer kleiner gemaakt.', stappen:[
+      redeneerStap('Wat gebeurt er direct na het verkleinen van het volume?', vrAntwoord('so2o2', 'volume_decrease', '', 'no'))]},
+    { titel:'Argon', vraag:'Bij evenwicht wordt bij gelijk volume argon in het vat geblazen.', stappen:[
+      redeneerStap('Wat gebeurt er direct?', vrAntwoord('so2o2', 'add', '', 'yes'))]},
+    { titel:'Evenveel deeltjes', ster:true, vraag:'Voor H<sub>2</sub>(g) + I<sub>2</sub>(g) ⇌ 2 HI(g) wordt het volume kleiner gemaakt.', stappen:[
+      redeneerStap('Wat gebeurt er direct?', vrAntwoord('hi', 'volume_decrease', '', 'no'))]}
+  ]
+});
+
+/* ================= 5. Temperatuur ================= */
+WPS.push({
+  id:'temp', titel:'Temperatuur', par:'K verandert', sim: EVW, reactie: 1, delen: ['verstoor'],
+  uitleg: () => leerdoelen(
+      'Ik kan uitleggen dat bij een hogere temperatuur de endotherme richting sterker versnelt.',
+      'Ik kan voorspellen hoe de ligging van een evenwicht en K veranderen als de temperatuur verandert.') + `
+    <h3>Uitleg</h3>
+    <p>Bij een hogere temperatuur gaan beide reacties sneller. De <b>endotherme</b> richting heeft de grootste activeringsenergie en versnelt het sterkst. Het evenwicht verschuift daardoor naar de endotherme kant.</p>
+    <ul><li>Is de heenreactie exotherm (ΔH &lt; 0), dan verschuift het evenwicht bij een hogere temperatuur naar links en wordt K kleiner.</li>
+    <li>Is de heenreactie endotherm (ΔH &gt; 0), dan verschuift het evenwicht naar rechts en wordt K groter.</li>
+    <li>De temperatuur is de enige omstandigheid die K verandert.</li></ul>`,
+  voorbeeld: {
+    vraag: 'N<sub>2</sub>O<sub>4</sub>(g) ⇌ 2 NO<sub>2</sub>(g) is endotherm (ΔH &gt; 0). NO<sub>2</sub> is bruin, N<sub>2</sub>O<sub>4</sub> kleurloos. Wat zie je als je de kolf in heet water zet?',
+    stappen: [
+      'Bij een hogere temperatuur versnelt de endotherme heenreactie sterker dan de terugreactie.',
+      'Het evenwicht verschuift naar rechts: er ontstaat meer NO<sub>2</sub>, en K wordt groter.',
+      'Het gas in de kolf wordt donkerder bruin.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Twee temperaturen', vraag:'2 SO<sub>2</sub> + O<sub>2</sub> ⇌ 2 SO<sub>3</sub> is exotherm. Druk op <b>↺ Reset</b> en laat het evenwicht instellen bij 600 K en daarna bij 700 K. Lees telkens Q bij evenwicht af: dat is K.', stappen:[
+      simStap('Doe beide metingen.', () => [600, 700].every(T => runs().some(r => r.eq && r.soort === 'start' && Math.abs(r.T - T) < 5)), 'Stel de temperatuur in op 600 K, druk op Start; doe hetzelfde bij 700 K.', 'beide temperaturen gemeten'),
+      keuzeStap('Wat zie je?', [
+        { html:'Bij 700 K is K kleiner en is er minder SO<sub>2</sub> omgezet.', g:true },
+        { html:'Bij 700 K is K groter en is er meer SO<sub>2</sub> omgezet.' },
+        { html:'K is bij beide temperaturen gelijk.' }])]},
+    { titel:'Snel afkoelen', vraag:'Laat het evenwicht instellen bij 700 K en klik op <b>❄ temperatuur snel 200 K lager</b>.', stappen:[
+      simStap('Laat het evenwicht instellen en koel snel af.', () => runs().some(r => r.soort === 'quench'), 'Druk op Start, wacht op het evenwicht en klik op <b>❄ temperatuur snel 200 K lager</b>.', 'afgekoeld'),
+      redeneerStap('Wat gebeurt er direct na het afkoelen?', vrAntwoord('so2o2', 'temp_decrease', '', 'no'))]},
+    { titel:'Een endotherm evenwicht', vraag:'PCl<sub>5</sub>(g) ⇌ PCl<sub>3</sub>(g) + Cl<sub>2</sub>(g) is endotherm. De temperatuur wordt verhoogd.', stappen:[
+      redeneerStap('Wat gebeurt er direct?', vrAntwoord('pcl5', 'temp_increase', '', 'no'))]}
+  ]
+});
+
+/* ================= 6. Katalysator ================= */
+WPS.push({
+  id:'kat', titel:'Katalysator', par:'sneller, niet anders', sim: EVW, reactie: 1, delen: ['kat'],
+  uitleg: () => leerdoelen(
+      'Ik kan uitleggen dat een katalysator de heenreactie en de terugreactie evenveel versnelt.',
+      'Ik kan uitleggen dat een katalysator de ligging van het evenwicht en K niet verandert, maar het evenwicht sneller laat instellen.') + `
+    <h3>Uitleg</h3>
+    <p>Een katalysator verlaagt de activeringsenergie van de heenreactie en de terugreactie evenveel. Beide reacties gaan daardoor sneller. Het evenwicht stelt zich <b>sneller in</b>, maar de ligging verandert niet: K blijft gelijk.</p>`,
+  voorbeeld: {
+    vraag: 'In de ammoniakfabriek gebruikt men een ijzerkatalysator. Levert dat bij dezelfde temperatuur en druk meer ammoniak op in het evenwichtsmengsel?',
+    stappen: [
+      'De katalysator versnelt de heenreactie en de terugreactie evenveel.',
+      'De ligging van het evenwicht en K veranderen niet: het evenwichtsmengsel bevat evenveel ammoniak.',
+      'Het voordeel is dat het evenwicht veel sneller wordt bereikt: de fabriek maakt per uur meer ammoniak.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Met en zonder', vraag:'Druk op <b>↺ Reset</b>. Laat het evenwicht 2 SO<sub>2</sub> + O<sub>2</sub> ⇌ 2 SO<sub>3</sub> instellen zonder katalysator en daarna met katalysator. Let op de tijdas.', stappen:[
+      simStap('Doe beide metingen bij dezelfde temperatuur en hetzelfde volume.', () => { const r = runs().filter(x => x.eq && x.soort === 'start'); return r.some(a => !a.cat && r.some(b => b.cat && Math.abs(a.T - b.T) < 5 && Math.abs(a.V - b.V) < 0.05)); }, 'Druk op Start zonder katalysator. Kies daarna <b>met</b> en druk opnieuw op Start.', 'beide metingen gedaan'),
+      keuzeStap('Wat verandert de katalysator? Kies alle juiste.', [
+        { html:'Het evenwicht is sneller bereikt.', g:true },
+        { html:'Bij evenwicht is evenveel SO<sub>2</sub> omgezet.', g:true },
+        { html:'K wordt groter.' },
+        { html:'Alleen v<sub>heen</sub> wordt groter.' }], { meer:true })]},
+    { titel:'De snelheden', vraag:'Bij het evenwicht 2 SO<sub>2</sub> + O<sub>2</sub> ⇌ 2 SO<sub>3</sub> wordt een katalysator toegevoegd.', stappen:[
+      redeneerStap('Wat gebeurt er direct?', vrAntwoord('so2o2', 'catalyst', '', 'no'))]}
+  ]
+});
+
+/* ================= ★ 7. Snelheidsredeneren ================= */
+function willekeurigeRedeneervraag(){
+  for (let p = 0; p < 50; p++){
+    const rids = Object.keys(VR_REACTIES), rid = rids[Math.floor(Math.random() * rids.length)], r = VR_REACTIES[rid];
+    const changes = ['add', 'remove', 'volume_decrease', 'volume_increase', 'temp_increase', 'temp_decrease', 'catalyst'];
+    const change = changes[Math.floor(Math.random() * changes.length)];
+    let sub = '';
+    if (change === 'add' || change === 'remove'){ const s = Object.keys(r.species).filter(k => r.species[k] !== 'l'); sub = s[Math.floor(Math.random() * s.length)]; }
+    if (rid === 'agcl' && change === 'catalyst') continue;
+    const ans = vrAntwoord(rid, change, sub, 'no'); if (!ans) continue;
+    const opl = r.opl, wat = change === 'add' ? sub + ' toevoegen' : change === 'remove' ? sub + ' weghalen'
+      : change === 'volume_decrease' ? (opl ? 'indampen (het volume van de oplossing wordt kleiner)' : 'het volume kleiner maken')
+      : change === 'volume_increase' ? (opl ? 'verdunnen met water' : 'het volume groter maken')
+      : change === 'temp_increase' ? 'de temperatuur verhogen' : change === 'temp_decrease' ? 'de temperatuur verlagen' : 'een katalysator toevoegen';
+    return { titel: 'Redeneren', ster: true, vraag: `<div class="formule">${r.eq} &nbsp; ΔH ${r.dH === 'exotherm' ? '&lt; 0' : '&gt; 0'}</div>Het systeem is in evenwicht. Verandering: <b>${wat}</b>.`,
+      stappen: [redeneerStap('Wat gebeurt er direct (t = 0+)?', ans)] };
+  }
+}
+WPS.push({
+  id:'redeneren', titel:'Snelheidsredeneren', par:'verdieping', ster:true, sim: EVW, reactie: 1, delen: ['nieuw', 'kat', 'verstoor'],
+  uitleg: () => leerdoelen('★ Ik kan bij elke verandering van een evenwicht de directe effecten op v<sub>heen</sub> en v<sub>terug</sub>, de verschuiving en K beredeneren.') + `
+    <h3>Uitleg</h3>
+    <p>Gebruik steeds dezelfde stappen:</p>
+    <ol><li>Welke concentraties veranderen direct, of verandert de temperatuur?</li>
+    <li>Welke snelheid hangt af van die concentraties? Die verandert. Bij vaste stoffen hangt de snelheid af van het oppervlak.</li>
+    <li>Welke snelheid is nu groter? Daar verschuift het evenwicht heen.</li>
+    <li>K verandert alleen bij een andere temperatuur.</li></ol>`,
+  voorbeeld: {
+    vraag: 'AgCl(s) ⇌ Ag<sup>+</sup>(aq) + Cl<sup>−</sup>(aq) is in evenwicht. Je voegt keukenzout toe (meer Cl<sup>−</sup>).',
+    stappen: [
+      '[Cl<sup>−</sup>] stijgt direct. v<sub>terug</sub> (neerslaan) hangt af van [Ag<sup>+</sup>] en [Cl<sup>−</sup>]: die neemt toe.',
+      'v<sub>heen</sub> (oplossen) hangt alleen af van het oppervlak van het vaste AgCl: die blijft gelijk.',
+      'v<sub>terug</sub> &gt; v<sub>heen</sub>: het evenwicht verschuift naar links, er slaat extra AgCl neer. K blijft gelijk.'
+    ]
+  },
+  maakSerie: () => Array.from({ length: 6 }, willekeurigeRedeneervraag)
+});
+
+/* ---------- start ---------- */
+$('#beamerknop').onclick = () => document.body.classList.toggle('beamer');
+$('#resetknop').onclick = () => { if (confirm('Alle voortgang wissen?')){ STAAT.voortgang = {}; bewaar({}); for (const k in PER_WP) delete PER_WP[k]; open(STAAT.wp); } };
+open(0);
+requestAnimationFrame(lus);
 </script>
 </body>
 </html>
