@@ -1,12 +1,207 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<title>Faseovergangen — VWO Interactief</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Faseovergangen</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root{
+  --papier:#f3efe6; --vel:#fffdf8; --rand:#e3dccb; --rand2:#d6cdb8;
+  --inkt:#2b2a27; --inkt2:#3e3b35; --grijs:#7a756b; --goud:#a0701f; --goud2:#e2a84b;
+  --nacht:#24323f; --nacht2:#33475a; --nachttekst:#cfd9e2;
+  --goed:#3f8f63; --goedbg:#e5f2ea; --fout:#b4473a; --foutbg:#f8e6e2; --hint:#fbf1da;
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --sans: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Consolas, 'Liberation Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--papier);color:var(--inkt);font-size:15px;line-height:1.6}
+sub,sup{font-size:.72em;line-height:0}
+button{font-family:inherit}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
 
-  :root {
+/* ---------- zijbalk ---------- */
+aside{background:var(--nacht);color:var(--nachttekst);padding:26px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+aside h1{font-family:var(--serif);font-size:23px;color:#fff;font-weight:600;line-height:1.2}
+aside .sub{font-size:12.5px;color:#8aa0b3;margin:4px 0 26px}
+aside nav a{display:flex;gap:12px;align-items:center;padding:10px 10px;border-radius:9px;font-size:14.5px;margin-bottom:4px;color:#b9c7d3;cursor:pointer;user-select:none;line-height:1.3}
+aside nav a:hover{background:#2c3d4d}
+aside nav a i{font-style:normal;flex:none;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #5d7387;font-size:12.5px;font-weight:700}
+aside nav a.on{background:var(--nacht2);color:#fff}
+aside nav a.on i{background:var(--goud2);border-color:var(--goud2);color:var(--nacht)}
+aside nav a.klaar i{background:#5aa37c;border-color:#5aa37c;color:#fff}
+aside nav a small{display:block;font-size:11.5px;color:#8aa0b3}
+aside .voet{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+aside .voet button{background:transparent;border:1px solid #4b6074;color:#cfd9e2;border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer;text-align:left}
+aside .voet button:hover{background:#2c3d4d}
+aside .voet .klein{font-size:11.5px;color:#6f859a}
+
+/* ---------- werkplaats ---------- */
+.wp{display:grid;grid-template-columns:minmax(380px,1fr) minmax(540px,640px);min-height:100vh}
+.tekst{padding:34px 38px 60px;max-width:760px}
+.kicker{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--goud);font-weight:700}
+.tekst h2{font-family:var(--serif);font-size:31px;margin:3px 0 14px;font-weight:600;line-height:1.2}
+.tekst h3{font-family:var(--serif);font-size:19px;margin:22px 0 6px;font-weight:600}
+.tekst p{margin-bottom:10px;color:var(--inkt2)}
+.tekst ul{margin:0 0 10px 20px;color:var(--inkt2)}
+.tekst li{margin-bottom:3px}
+.kader{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--goud2);border-radius:8px;padding:10px 14px;margin:10px 0 12px;color:var(--inkt2)}
+.kader.binas{border-left-color:#5d7387}
+.f{white-space:nowrap}
+.tabs{display:flex;gap:4px;margin:20px 0 14px;border-bottom:1px solid var(--rand2)}
+.tabs button{background:none;border:0;padding:9px 14px;font-size:14px;font-weight:600;color:var(--grijs);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--inkt);border-bottom-color:var(--goud2)}
+.tabs button .tel{font-weight:500;font-size:12px;color:var(--grijs);margin-left:4px}
+
+/* voorbeeld */
+.vb{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:16px 18px;margin:4px 0 14px}
+.vb .vbkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--goud);margin-bottom:4px}
+.vb .vbvraag{font-weight:600;margin-bottom:8px}
+.vbstap{display:flex;gap:12px;padding:8px 0;border-top:1px dashed var(--rand2)}
+.vbstap .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
+.vbstap .b{color:var(--inkt2)}
+.vb .verder{margin-top:8px}
+
+/* opdrachten */
+.oknop{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.oknop .dot{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--rand2);background:var(--vel);display:grid;place-items:center;font-size:12.5px;font-weight:700;color:var(--grijs);cursor:pointer}
+.oknop .dot.on{border-color:var(--inkt);color:var(--inkt);box-shadow:0 0 0 2px var(--inkt) inset}
+.oknop .dot.goed{background:var(--goed);border-color:var(--goed);color:#fff}
+.oknop .dot.ster{border-style:dashed}
+.oknop .rechts{margin-left:auto;font-size:13px;color:var(--grijs)}
+.opdkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--grijs);margin-bottom:4px}
+.opdkop .st{color:var(--goud)}
+.opdvraag{font-size:16px;margin-bottom:12px;color:var(--inkt)}
+.stap{display:flex;gap:12px;padding:13px 15px;background:var(--vel);border:1px solid var(--rand);border-radius:11px;margin-bottom:10px}
+.stap>.n{flex:none;width:25px;height:25px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12.5px;font-weight:700;margin-top:1px}
+.stap.dicht{opacity:.42;pointer-events:none}
+.stap.dicht .inv{display:none}
+.stap.goed{border-color:#bcdcc8;background:#fbfefc}
+.stap.goed>.n{background:var(--goed)}
+.stap .inh{flex:1;min-width:0}
+.stap .vr{margin-bottom:8px}
+.rij{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input.in{font-family:var(--mono);font-size:15px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;background:#fff;min-width:0;flex:1 1 100%}
+input.in:focus{outline:2px solid var(--goud2);outline-offset:0;border-color:var(--goud2)}
+.voorbeeldweergave{font-size:13px;color:var(--grijs);min-height:20px;margin-top:4px}
+.voorbeeldweergave b{color:var(--inkt);font-weight:600;font-size:15px}
+select.sel{border:1px solid var(--rand2);border-radius:8px;padding:7px 9px;font-size:14px;background:#fff;color:var(--inkt);font-family:inherit}
+.btn{border:0;border-radius:8px;padding:8px 15px;font-weight:600;font-size:14px;cursor:pointer;background:var(--inkt);color:#fff}
+.btn:hover{background:#45433e}
+.btn.g{background:#ebe4d4;color:var(--inkt)}
+.btn.g:hover{background:#e0d7c3}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.klein{padding:5px 11px;font-size:13px}
+.fb{margin-top:8px;padding:8px 11px;border-radius:8px;font-size:14px;display:none}
+.fb.toon{display:block}
+.fb.goed{background:var(--goedbg);color:#255c3d}
+.fb.fout{background:var(--foutbg);color:#7c2c22}
+.fb.hint{background:var(--hint);color:#6b4d12}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1.5px solid var(--rand2);background:#fff;border-radius:999px;padding:4px 12px;font-size:14px;cursor:pointer;user-select:none;color:var(--inkt)}
+.chip:hover{border-color:#b9ad93}
+.chip.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.opties{display:flex;flex-direction:column;gap:6px}
+.optie{border:1.5px solid var(--rand2);background:#fff;border-radius:9px;padding:8px 12px;font-size:14.5px;cursor:pointer;text-align:left;color:var(--inkt)}
+.optie:hover{border-color:#b9ad93}
+.optie.aan{border-color:var(--nacht);background:#eef2f6}
+.typtip{font-size:12.5px;color:var(--grijs);margin-top:14px;line-height:1.5}
+.typtip code{font-family:var(--mono);background:#ebe4d4;border-radius:4px;padding:0 4px;font-size:12px}
+.klaarbanner{background:var(--goedbg);border:1px solid #bcdcc8;color:#255c3d;border-radius:11px;padding:12px 15px;margin:4px 0 12px}
+
+/* ---------- simulatiekolom ---------- */
+.simkol{background:var(--vel);border-left:1px solid var(--rand);padding:22px 22px 30px;display:flex;flex-direction:column;gap:12px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.simkol>*{flex-shrink:0}
+.simkop{display:flex;justify-content:space-between;align-items:baseline}
+.simkop b{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--goud)}
+.simkop span{font-size:12.5px;color:var(--grijs)}
+.ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ctrl label{font-size:13.5px;color:var(--inkt2);display:flex;gap:6px;align-items:center}
+.doek{border:1px solid var(--rand);border-radius:12px;background:#fbf8f1;position:relative;overflow:hidden}
+.doek canvas{display:block;width:100%;height:auto}
+.waarneming{font-size:14px;color:var(--inkt2);min-height:22px}
+.waarneming b{color:var(--inkt)}
+.vgl{font-family:var(--serif);font-size:19px;text-align:center;min-height:30px;color:var(--inkt)}
+.tabelkop{font-size:12px;font-weight:700;letter-spacing:1.2px;color:var(--goud);margin-bottom:6px;text-transform:uppercase}
+table.b45{border-collapse:collapse;font-size:13px;background:#fff;color:var(--inkt)}
+table.b45 th,table.b45 td{border:1px solid #6d6a62;padding:2px 0;text-align:center;width:38px}
+table.b45 th{font-weight:600;background:#fff}
+table.b45 th.hoek{width:46px;font-size:10px;font-weight:400;color:var(--grijs)}
+table.b45 td.licht{background:#f6e3bf;font-weight:700}
+table.b45 tr.licht th, table.b45 th.licht{background:#f3ead6}
+.legenda{font-size:12px;color:var(--grijs);margin-top:6px;line-height:1.45}
+.balk{display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.balk .lijn{display:flex;align-items:center;gap:8px}
+.balk .lijn span.lab{width:120px;color:var(--inkt2)}
+.balk .vak{display:flex;gap:3px;flex-wrap:wrap}
+.balk .q{width:18px;height:18px;border-radius:4px;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff}
+.balk .q.p{background:#c4822b}.balk .q.m{background:#3b6fa8}
+.uitkomst{background:#fff;border:1px solid var(--rand);border-radius:10px;padding:10px 14px;font-size:14.5px}
+.uitkomst .groot{font-family:var(--serif);font-size:22px}
+.buislog{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:12px}
+.buislog div{background:#fff;border:1px solid var(--rand);border-radius:8px;padding:5px 7px;line-height:1.35}
+.buislog div b{display:block;font-size:12.5px}
+
+/* niveau */
+.niveau{display:flex;gap:4px;margin:-14px 0 22px}
+.niveau button{flex:1;background:transparent;border:1px solid #4b6074;color:#b9c7d3;border-radius:7px;padding:5px;font-weight:700;font-size:13px;cursor:pointer}
+.niveau button.aan{background:var(--goud2);border-color:var(--goud2);color:var(--nacht)}
+/* moleculen */
+svg.mol{display:block;max-width:100%;height:auto}
+.molkader{background:#fff;border:1px solid var(--rand);border-radius:10px;padding:8px 10px;margin:8px 0;overflow-x:auto}
+.molrij{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.molrij .plus{font-size:22px;color:var(--grijs)}
+.molnaam{font-size:12.5px;color:var(--grijs);text-align:center;margin-top:2px}
+/* tekenveld */
+.tv{background:#fff;border:1px solid var(--rand2);border-radius:10px;overflow:hidden}
+.tvbalk{display:flex;flex-wrap:wrap;gap:4px;padding:7px;background:#f7f2e6;border-bottom:1px solid var(--rand)}
+.tvk{border:1px solid var(--rand2);background:#fff;border-radius:7px;padding:4px 10px;font-family:Georgia,serif;font-size:15px;cursor:pointer;min-width:34px;color:var(--inkt)}
+.tvk[data-a],.tvk[data-t="gum"]{font-family:var(--sans);font-size:13px}
+.tvk.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.tvsep{width:1px;background:var(--rand2);margin:0 4px}
+.tvdoek{overflow:auto;max-height:340px}
+.tvsvg{display:block;touch-action:none;cursor:crosshair;background:#fffdf8}
+.tvuitleg{font-size:12px;color:var(--grijs);padding:5px 9px;border-top:1px solid var(--rand)}
+input.getal{max-width:200px;flex:0 1 200px}
+.eenheid{font-size:15px;color:var(--inkt2)}
+.formule{font-family:var(--serif);font-size:17px;margin:6px 0}
+.breuk{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;font-size:.95em}
+.breuk>span:first-child{border-bottom:1.3px solid currentColor;padding:0 4px}
+.breuk>span:last-child{padding:0 4px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;font-size:14.5px}
+.kv b{font-family:var(--serif);font-size:18px;font-weight:600}
+table.data{border-collapse:collapse;font-size:14px;background:#fff;margin:6px 0}
+table.data th,table.data td{border:1px solid var(--rand2);padding:3px 10px;text-align:right}
+table.data th{background:#f7f2e6;font-weight:600}
+.fitvak{margin-top:10px;padding:10px 12px;border:1px dashed #D9822B;border-radius:10px;background:#fdf6ec}
+.fitkop{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:#b8641a;margin-bottom:4px}
+.fitvak .inp{font:inherit;font-size:14px;padding:4px 7px;border:1px solid #d8cfbd;border-radius:6px;background:#fff}
+.reeksen{display:flex;flex-direction:column;gap:4px;font-size:13.5px}
+.reeksen label{display:flex;gap:8px;align-items:center}
+.reeksen i{display:inline-block;width:14px;height:4px;border-radius:2px}
+.info{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13.5px;background:#fff;border:1px solid var(--rand);border-radius:10px;padding:9px 12px}
+.info b{font-weight:600}
+.schuif{display:flex;align-items:center;gap:8px;font-size:13.5px}
+.schuif input{width:150px}
+/* beamerstand */
+body.beamer{font-size:18px}
+body.beamer .tekst h2{font-size:36px}
+body.beamer .opdvraag{font-size:19px}
+body.beamer input.in{font-size:18px}
+body.beamer .optie, body.beamer .chip{font-size:17px}
+body.beamer table.b45{font-size:15px}
+
+@media (max-width:1180px){
+  .wp{grid-template-columns:1fr}
+  .simkol{position:static;height:auto;border-left:0;border-top:1px solid var(--rand)}
+}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  aside{position:static;height:auto}
+}
+@media print{aside,.simkol{display:none}.wp{display:block}}
+#simhouder{
     --bg:        #f4f5f7;
     --panel:     #ffffff;
     --border:    #d9dce3;
@@ -18,200 +213,224 @@
     --muted:     #64748b;
     --font-mono: 'Courier New', monospace;
   }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    font-size: 14px;
-    min-height: 100vh;
-    padding: 20px;
-  }
-
-  header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 18px; }
-  header h1 { font-size: 1.25em; font-weight: 700; letter-spacing: -0.3px; color: var(--accent); }
-  header .sub { font-size: 0.82em; color: var(--muted); }
-
-  .panel {
+#simhouder .panel{
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 14px 18px;
     margin-bottom: 16px;
   }
-
-  .stof-bar { display: flex; flex-direction: column; gap: 10px; }
-  .stof-group-label { font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.9px; color: var(--muted); }
-  .stof-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .stof-btn {
+#simhouder .stof-bar{ display: flex; flex-direction: column; gap: 10px; }
+#simhouder .stof-group-label{ font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.9px; color: var(--muted); }
+#simhouder .stof-row{ display: flex; gap: 8px; flex-wrap: wrap; }
+#simhouder .stof-btn{
     padding: 7px 14px; border-radius: 6px; border: 1.5px solid var(--border);
     background: transparent; color: var(--muted); font-size: 0.85em; font-weight: 700;
     cursor: pointer; transition: all 0.12s; font-family: var(--font-mono);
   }
-  .stof-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(37,99,235,0.08); }
-  .stof-btn.mengsel.active { border-color: #ea580c; color: #ea580c; background: rgba(234,88,12,0.08); }
-
-  .tip { font-size: 0.83em; color: var(--muted); line-height: 1.55; margin-top: 4px; }
-
-  .graphs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-  .graph-title {
+#simhouder .stof-btn.active{ border-color: var(--accent); color: var(--accent); background: rgba(37,99,235,0.08); }
+#simhouder .stof-btn.mengsel.active{ border-color: #ea580c; color: #ea580c; background: rgba(234,88,12,0.08); }
+#simhouder .tip{ font-size: 0.83em; color: var(--muted); line-height: 1.55; margin-top: 4px; }
+#simhouder .graphs{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+#simhouder .graph-title{
     font-size: 0.75em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.9px;
     margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
   }
-  .graph-title .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--liquid-c); }
-  .fase-badge {
+#simhouder .graph-title .dot{ width: 8px; height: 8px; border-radius: 50%; background: var(--liquid-c); }
+#simhouder .fase-badge{
     margin-left: auto; font-family: var(--font-mono); font-size: 0.9em; font-weight: 400;
     text-transform: none; letter-spacing: 0; padding: 2px 8px; border-radius: 4px;
   }
-  .fase-badge.vast    { color: var(--solid-c);  background: rgba(63,111,209,0.1); }
-  .fase-badge.vloeibaar { color: var(--liquid-c); background: rgba(13,148,136,0.1); }
-  .fase-badge.gas     { color: var(--gas-c);    background: rgba(234,88,12,0.1); }
-  .fase-badge.overgang{ color: var(--accent);   background: rgba(37,99,235,0.1); }
-
-  canvas { width: 100%; height: 260px; display: block; border-radius: 4px; background: #ffffff; border: 1px solid var(--border); cursor: crosshair; }
-
-  .controls-grid {
+#simhouder .fase-badge.vast{ color: var(--solid-c);  background: rgba(63,111,209,0.1); }
+#simhouder .fase-badge.vloeibaar{ color: var(--liquid-c); background: rgba(13,148,136,0.1); }
+#simhouder .fase-badge.gas{ color: var(--gas-c);    background: rgba(234,88,12,0.1); }
+#simhouder .fase-badge.overgang{ color: var(--accent);   background: rgba(37,99,235,0.1); }
+#simhouder canvas{ width: 100%; height: 260px; display: block; border-radius: 4px; background: #ffffff; border: 1px solid var(--border); cursor: crosshair; }
+#simhouder .controls-grid{
     display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: center;
   }
-  .power-row { display: flex; align-items: center; gap: 14px; }
-  .power-label { font-size: 0.8em; color: var(--muted); white-space: nowrap; }
-  input[type=range] {
+#simhouder .power-row{ display: flex; align-items: center; gap: 14px; }
+#simhouder .power-label{ font-size: 0.8em; color: var(--muted); white-space: nowrap; }
+#simhouder input[type=range]{
     -webkit-appearance: none; flex: 1; height: 4px; background: var(--border);
     border-radius: 2px; outline: none;
   }
-  input[type=range]::-webkit-slider-thumb {
+#simhouder input[type=range]::-webkit-slider-thumb{
     -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
     background: var(--accent); cursor: pointer; border: 2px solid var(--panel);
   }
-  .power-val { font-family: var(--font-mono); font-size: 0.95em; color: var(--accent); min-width: 60px; text-align: right; }
-  .readouts { display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 0.9em; color: var(--muted); }
-  .readouts strong { color: var(--text); }
-  .reset-btn {
+#simhouder .power-val{ font-family: var(--font-mono); font-size: 0.95em; color: var(--accent); min-width: 60px; text-align: right; }
+#simhouder .readouts{ display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 0.9em; color: var(--muted); }
+#simhouder .readouts strong{ color: var(--text); }
+#simhouder .reset-btn{
     background: transparent; border: 1.5px solid var(--accent); color: var(--accent);
     padding: 7px 16px; border-radius: 6px; font-size: 0.82em; font-weight: 700; cursor: pointer;
   }
-  .reset-btn:hover { background: rgba(37,99,235,0.08); }
-
-  table.vgl { width: 100%; border-collapse: collapse; font-size: 0.85em; }
-  table.vgl th { text-align: left; color: var(--muted); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 10px; }
-  table.vgl td { padding: 6px 10px; border-top: 1px solid var(--border); font-family: var(--font-mono); vertical-align: middle; }
-  table.vgl td.undiscovered { color: var(--muted); }
-  .guess-input {
+#simhouder .reset-btn:hover{ background: rgba(37,99,235,0.08); }
+#simhouder table.vgl{ width: 100%; border-collapse: collapse; font-size: 0.85em; }
+#simhouder table.vgl th{ text-align: left; color: var(--muted); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 10px; }
+#simhouder table.vgl td{ padding: 6px 10px; border-top: 1px solid var(--border); font-family: var(--font-mono); vertical-align: middle; }
+#simhouder table.vgl td.undiscovered{ color: var(--muted); }
+#simhouder .guess-input{
     width: 64px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 5px;
     color: var(--text); font-family: var(--font-mono); font-size: 0.92em; padding: 4px 6px; outline: none;
   }
-  .guess-input:focus { border-color: var(--accent); }
-  .guess-input.correct { border-color: #16a34a; background: rgba(22,163,74,0.08); }
-  .guess-input.incorrect { border-color: #dc2626; background: rgba(220,38,38,0.08); }
-  .guess-check { font-size: 0.9em; margin-left: 4px; }
-  .guess-check.correct { color: #16a34a; }
-  .guess-check.incorrect { color: #dc2626; }
-  .guess-btn {
+#simhouder .guess-input:focus{ border-color: var(--accent); }
+#simhouder .guess-input.correct{ border-color: #16a34a; background: rgba(22,163,74,0.08); }
+#simhouder .guess-input.incorrect{ border-color: #dc2626; background: rgba(220,38,38,0.08); }
+#simhouder .guess-check{ font-size: 0.9em; margin-left: 4px; }
+#simhouder .guess-check.correct{ color: #16a34a; }
+#simhouder .guess-check.incorrect{ color: #dc2626; }
+#simhouder .guess-btn{
     background: transparent; border: 1px solid var(--border); color: var(--muted);
     border-radius: 5px; padding: 3px 8px; font-size: 0.78em; cursor: pointer; margin-left: 4px;
   }
-  .guess-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .guess-row { display: flex; align-items: center; flex-wrap: wrap; gap: 2px; }
-  .guess-row + .guess-row { margin-top: 4px; }
-  .guess-unit { font-size: 0.78em; color: var(--muted); width: 20px; flex-shrink: 0; }
-
-  .component-legend {
+#simhouder .guess-btn:hover{ border-color: var(--accent); color: var(--accent); }
+#simhouder .guess-row{ display: flex; align-items: center; flex-wrap: wrap; gap: 2px; }
+#simhouder .guess-row + .guess-row{ margin-top: 4px; }
+#simhouder .guess-unit{ font-size: 0.78em; color: var(--muted); width: 20px; flex-shrink: 0; }
+#simhouder .component-legend{
     display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; font-size: 0.8em; color: var(--muted);
   }
-  .component-legend .item { display: flex; align-items: center; gap: 6px; }
-  .component-legend .swatch { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-  .component-legend .note { font-size: 0.92em; font-style: italic; }
+#simhouder .component-legend .item{ display: flex; align-items: center; gap: 6px; }
+#simhouder .component-legend .swatch{ width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+#simhouder .component-legend .note{ font-size: 0.92em; font-style: italic; }
 
-  @media (max-width: 700px) {
-    .graphs { grid-template-columns: 1fr; }
-    .controls-grid { grid-template-columns: 1fr; }
-  }
-</style>
-<style id="huisstijl">
-:root{--hs-acc:#1F5FBF;--hs-acc-d:#174a96;--hs-soft:#E8F0FC;--hs-given:#F3F7FD;--hs-ok:#1A7F37;--hs-ok-soft:#E4F4E8;
---hs-err:#C62828;--hs-err-soft:#FDECEC;--hs-key:#FFF0A0;--hs-muted:#595959;--hs-line:#D5DCE8;--hs-bg:#F6F8FB;--hs-card:#fff;
---hs-text:#1d2330;--hs-font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-html,body{background:var(--hs-bg)!important;color:var(--hs-text)}
-body{font-family:var(--hs-font)!important}
-.hs-header{display:block!important;background:var(--hs-acc)!important;color:#fff;margin-bottom:18px;padding:0!important;border:none!important;border-radius:0!important}
-.hs-header .hs-wrap{max-width:var(--hs-max,1100px);margin:0 auto;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.hs-header h1{margin:0!important;padding:0!important;font-size:1.5rem!important;font-weight:650!important;color:#fff!important;text-align:left!important;letter-spacing:.2px;font-family:var(--hs-font)!important}
-.hs-header h1{flex:1 1 auto}
-.hs-header button{flex:0 0 auto;width:auto!important;margin:0!important;box-shadow:none!important;font-weight:500!important;font-family:var(--hs-font)!important;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px!important;border:1.5px solid #fff!important;background:transparent!important;color:#fff!important}
-.hs-header button:hover{background:rgba(255,255,255,.15)}
-body.hs-beamer>*:not(.hs-header):not(.hs-own):not(script):not(.hs-nozoom){zoom:1.3}
-.hs-own{background:var(--hs-acc)!important;color:#fff!important;border:none!important}
-.hs-own h1{color:#fff!important;font-family:var(--hs-font)!important}
-.hs-own .sub,.hs-own .subtitle{color:rgba(255,255,255,.85)!important}
-.hs-own>button:last-child{font:inherit;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px;border:1.5px solid #fff;background:transparent;color:#fff;margin-left:auto;flex:0 0 auto}
-.hs-own>button:last-child:hover{background:rgba(255,255,255,.15)}
+.leerdoelen{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:12px 16px 6px;margin:4px 0 6px}
+.leerdoelen b{display:block;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--goud);margin-bottom:4px}
+.leerdoelen ul{list-style:none;margin:0!important;padding:0}
+.leerdoelen li{padding:4px 0 4px 26px;position:relative;color:var(--inkt2)}
+.leerdoelen li::before{content:"";position:absolute;left:2px;top:9px;width:13px;height:13px;border:1.5px solid var(--goud2);border-radius:3px}
+.leerdoelen li.ster::before{content:"★";border:0;color:var(--goud);top:3px;left:1px;font-size:14px}
+.kl{font-size:12.5px;color:var(--grijs);line-height:1.45}
+#simhouder{display:flex;flex-direction:column;gap:10px}
+#simhouder .simkop{margin-bottom:2px}
 
-:root{--hs-max:1100px;--bg:#F6F8FB;--border:#D5DCE8;--accent:#1F5FBF;--text:#1d2330;--muted:#595959;--font-mono:var(--hs-font)}
-body>header{margin-bottom:10px}
+#simhouder{--bg:#fffdf8;--panel:#fbf8f1;--border:#e3dccb;--text:#2b2a27;--muted:#7a756b;--accent:#24323f;--font-mono:var(--mono)}
+#simhouder .panel{padding:12px 14px;margin:0;border-radius:12px}
+#simhouder canvas{height:230px;background:#fff}
+#simhouder .stof-btn{font-family:var(--sans);font-weight:600;color:var(--inkt2);background:#fff}
+#simhouder .stof-btn.active{background:var(--nacht);border-color:var(--nacht);color:#fff}
+#simhouder .stof-btn.mengsel.active{background:#a0701f;border-color:#a0701f;color:#fff}
+#simhouder .stof-bar{gap:8px}
+#simhouder .reset-btn{border:0;background:#ebe4d4;color:var(--inkt);font-family:var(--sans)}
+#simhouder .reset-btn:hover{background:#e0d7c3}
+#simhouder .power-val{color:var(--inkt)}
+#simhouder input[type=range]::-webkit-slider-thumb{background:var(--nacht2)}
+#simhouder table.vgl td{font-family:var(--sans)}
+
 </style>
 </head>
 <body>
-
-<header>
-  <h1>Faseovergangen</h1>
-  <span class="sub">VWO — Deeltjesmodel &amp; verwarmingscurve</span>
-</header>
-
-<div class="panel stof-bar">
-  <div>
-    <div class="stof-group-label">Eén stof</div>
-    <div class="stof-row" id="stof-row-puur"></div>
-  </div>
-  <div>
-    <div class="stof-group-label">Mengsels</div>
-    <div class="stof-row" id="stof-row-mengsel"></div>
-  </div>
-  <div class="tip" id="stof-tip"></div>
-</div>
-
-<div class="graphs">
-  <div class="panel">
-    <div class="graph-title">
-      <span class="dot"></span>Deeltjes
-      <span class="fase-badge" id="fase-badge">—</span>
+<div class="app">
+  <aside>
+    <h1>Faseovergangen</h1>
+    <div class="sub">3 vwo · deeltjesmodel en verwarmingscurve</div>
+    <nav id="nav"></nav>
+    <div class="voet">
+      <button id="beamerknop">Beamerstand</button>
+      <button id="resetknop">Voortgang wissen</button>
+      <div class="klein">Een model: de smelt- en kookpunten van de stoffen kloppen; de trajecten van de mengsels zijn vereenvoudigd.</div>
     </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div id="parkeer" style="display:none"><div id="simhouder">
+  <div class="simkop"><b>Verwarmingsbak</b><span id="simsub">deeltjes en verwarmingscurve</span></div>
+  <div class="panel stof-bar">
+    <div class="stof-row" id="stof-row-puur"></div>
+    <div class="stof-row" id="stof-row-mengsel"></div>
+    <div class="tip" id="stof-tip" style="display:none"></div>
+  </div>
+  <div class="panel">
+    <div class="graph-title"><span class="dot"></span>Deeltjes <span class="fase-badge" id="fase-badge">—</span></div>
     <canvas id="canvas-particles"></canvas>
     <div class="component-legend" id="component-legend"></div>
-    <p id="water-note" style="display:none;margin:8px 2px 0;font-size:.85em;color:#595959">Water is bijzonder: in ijs zitten de moleculen iets verder uit elkaar dan in vloeibaar water. Daarom is ijs minder dicht en drijft het.</p>
+    <p id="water-note" style="display:none;margin:8px 2px 0;font-size:.85em;color:#7a756b">Water is bijzonder: in ijs zitten de moleculen iets verder uit elkaar dan in vloeibaar water. Daarom is ijs minder dicht en drijft het.</p>
   </div>
   <div class="panel">
-    <div class="graph-title">
-      <span class="dot" style="background:var(--solid-c)"></span>Verwarmingscurve
-    </div>
-    <canvas id="canvas-curve"></canvas>
-  </div>
-</div>
-
-<div class="panel">
-  <div class="controls-grid">
     <div class="power-row">
-      <span class="power-label">❄️ Koelen — Verwarmen 🔥</span>
+      <span class="power-label">❄️ koelen</span>
       <input type="range" id="power-slider" min="-6" max="6" step="0.1" value="0" oninput="setHeatPower(this.value)">
+      <span class="power-label">verwarmen 🔥</span>
       <span class="power-val" id="power-val">0.0</span>
     </div>
-    <div style="display:flex;gap:8px;">
+    <div class="readouts" style="margin-top:10px;">
+      <span>T = <strong id="read-T">—</strong></span>
+      <span>t = <strong id="read-t">0 s</strong></span>
+      <span>fase: <strong id="read-fase">vast</strong></span>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px">
       <button class="reset-btn" id="pause-btn" onclick="togglePause()">⏸ Pauze</button>
-      <button class="reset-btn" onclick="resetSim()">↻ Opnieuw (deze stof)</button>
+      <button class="reset-btn" onclick="resetSim()">↻ Opnieuw</button>
     </div>
   </div>
-  <div class="readouts" style="margin-top:12px;">
-    <span>T = <strong id="read-T">—</strong></span>
-    <span>t = <strong id="read-t">0 s</strong></span>
-    <span>Fase: <strong id="read-fase">vast</strong></span>
+  <div class="panel">
+    <div class="graph-title"><span class="dot" style="background:var(--solid-c)"></span>Verwarmingscurve <span class="kl" style="margin-left:auto;text-transform:none;letter-spacing:0;font-weight:400">beweeg de muis over de curve om af te lezen</span></div>
+    <canvas id="canvas-curve"></canvas>
+  </div>
+  <div class="panel sh-deel" data-deel="tabel">
+    <div class="graph-title" style="margin-bottom:12px;">Wat heb je al gemeten?</div>
+    <table class="vgl" id="vgl-table"></table>
   </div>
 </div>
-
-<div class="panel">
-  <div class="graph-title" style="margin-bottom:12px;">Vergelijking — wat heb je al ontdekt?</div>
-  <table class="vgl" id="vgl-table"></table>
 </div>
-
 <script>
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const kies = arr => arr[Math.floor(Math.random() * arr.length)];
+function schud(arr){ const a = arr.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const lerp = (a, b, t) => a + (b - a) * t;
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+function laad(){ try { return JSON.parse(localStorage.getItem('faseovergangen-v2')) || {}; } catch (e){ return {}; } }
+function bewaar(o){ try { localStorage.setItem('faseovergangen-v2', JSON.stringify(o)); } catch (e){} }
+const nl = (x, d = 2) => Number(x).toLocaleString('nl-NL', { maximumFractionDigits: d, minimumFractionDigits: d });
+const sig = (x, n = 3) => { if (!x) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return nl(x, d); };
+
+/* Getalvelden met decimale komma. Een type="number"-veld leest een komma niet
+   (in Chrome wordt "0,5" dan 5). Daarom worden alle getalvelden tekstvelden die
+   een komma tonen en accepteren; de code leest ze nog steeds als 0.5. */
+(function () {
+  const d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+  const naarKomma = x => String(x).replace(/(\d)\.(\d)/g, '$1,$2');
+  function zet(el) {
+    if (el.dataset.komma) return;
+    const v = d.get.call(el);
+    el.dataset.komma = '1';
+    el.type = 'text';
+    el.setAttribute('inputmode', 'decimal');
+    el.setAttribute('autocomplete', 'off');
+    Object.defineProperty(el, 'value', {
+      configurable: true,
+      get() { return d.get.call(this).trim().replace(/\s/g, '').replace(',', '.'); },
+      set(x) { d.set.call(this, naarKomma(x)); }
+    });
+    if (v !== '') el.value = v;
+    if (el.placeholder) el.placeholder = naarKomma(el.placeholder);
+  }
+  // stijlregels voor getalvelden ook laten gelden voor de omgezette velden
+  try {
+    for (const sh of document.styleSheets) {
+      let regels; try { regels = sh.cssRules; } catch (e) { continue; }
+      for (const r of [...regels]) {
+        if (r.selectorText && /type=["']?number/.test(r.selectorText)) {
+          const sel = r.selectorText.replace(/\[type=["']?number["']?\]/g, '[data-komma]');
+          sh.insertRule(sel + '{' + r.style.cssText + '}', sh.cssRules.length);
+        }
+      }
+    }
+  } catch (e) {}
+  const alles = root => { if (root.matches && root.matches('input[type="number"]')) zet(root); if (root.querySelectorAll) root.querySelectorAll('input[type="number"]').forEach(zet); };
+  alles(document);
+  new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) alles(n); })))
+    .observe(document.documentElement, { childList: true, subtree: true });
+})();
+
+
+(function(){ const C = CanvasRenderingContext2D.prototype, ft = C.fillText, dec = t => String(t).replace(/(\d)\.(\d)/g, '$1,$2');
+  C.fillText = function(t, x, y, m){ return m === undefined ? ft.call(this, dec(t), x, y) : ft.call(this, dec(t), x, y, m); }; })();
+
 // ─── Stofgegevens ─────────────────────────────────────────────────────────
 // TmLow/TmHigh en TbLow/TbHigh: voor één stof zijn Low en High gelijk
 // (scherp punt). Voor mengsels ligt er een traject tussen: de temperatuur
@@ -227,11 +446,11 @@ const SUBSTANCES = {
                     TmLow: 0,    TmHigh: 0,    TbLow: 100,  TbHigh: 100,  mengsel: false },
   methanol:      { naam: 'Methanol',                     formule: 'CH₃OH',
                     TmLow: -98,  TmHigh: -98,  TbLow: 65,   TbHigh: 65,   mengsel: false },
-  zoutwater:     { naam: 'Zout water',                   formule: 'H₂O + NaCl (opgelost)',
-                    TmLow: -21,  TmHigh: -8,   TbLow: 103,  TbHigh: 109,  mengsel: true,
+  suikerwater:   { naam: 'Suikerwater',                  formule: 'H₂O + C₆H₁₂O₆ (opgelost)',
+                    TmLow: -10,  TmHigh: -2,   TbLow: 102,  TbHigh: 108,  mengsel: true,
                     components: [
                       { naam: 'H₂O',  fractie: 0.8, vluchtig: true,  bias: 0, kleur: 'std' },
-                      { naam: 'NaCl', fractie: 0.2, vluchtig: false, bias: 0, kleur: '#94a3b8' }
+                      { naam: 'glucose', fractie: 0.2, vluchtig: false, bias: 0, kleur: '#94a3b8' }
                     ] },
   waterethanol:  { naam: 'Water-ethanolmengsel',         formule: 'H₂O + C₂H₅OH',
                     TmLow: -25,  TmHigh: 0,    TbLow: 78,   TbHigh: 100,  mengsel: true,
@@ -306,7 +525,7 @@ function buildStofPicker() {
   const purRow = document.getElementById('stof-row-puur');
   const mengRow = document.getElementById('stof-row-mengsel');
   purRow.innerHTML = ''; mengRow.innerHTML = '';
-  Object.entries(SUBSTANCES).forEach(([key, s]) => {
+  Object.entries(SUBSTANCES).filter(([key]) => !window.TOEGESTAAN || TOEGESTAAN.includes(key)).forEach(([key, s]) => {
     const btn = document.createElement('button');
     btn.className = 'stof-btn' + (s.mengsel ? ' mengsel' : '') + (key === currentKey ? ' active' : '');
     btn.textContent = s.naam;
@@ -339,7 +558,7 @@ function resetSim() {
   sessionYMax = T;
   document.getElementById('pause-btn').textContent = '▶ Hervat';
   document.getElementById('power-slider').value = 0;
-  document.getElementById('power-val').textContent = '0.0';
+  document.getElementById('power-val').textContent = '0,0';
   history = [{ t: 0, td: 0, T }];
   initParticles();
   renderComponentLegend();
@@ -350,7 +569,7 @@ function resetSim() {
 
 function setHeatPower(v) {
   heatPower = parseFloat(v);
-  document.getElementById('power-val').textContent = heatPower.toFixed(1);
+  document.getElementById('power-val').textContent = heatPower.toFixed(1).replace('.', ',');
 }
 
 // ─── Deeltjes initialiseren ───────────────────────────────────────────────
@@ -913,8 +1132,8 @@ function drawCurve() {
 }
 
 function updateReadouts() {
-  document.getElementById('read-T').textContent = `${T.toFixed(1)} °C  (${(T + 273).toFixed(0)} K)`;
-  document.getElementById('read-t').textContent = `${simTime.toFixed(1)} s`;
+  document.getElementById('read-T').textContent = `${T.toFixed(1).replace('.', ',')} °C  (${(T + 273).toFixed(0)} K)`;
+  document.getElementById('read-t').textContent = `${simTime.toFixed(1).replace('.', ',')} s`;
   const s = SUBSTANCES[currentKey];
   const labelMap = { solid: 'vast', liquid: 'vloeibaar', gas: 'gas', meltrange: 'smelten/stollen', boilrange: 'koken/condenseren' };
   let label = labelMap[phase] || phase;
@@ -976,7 +1195,7 @@ function checkGuess(key, field, unit) {
   input.classList.toggle('correct', ok);
   input.classList.toggle('incorrect', !ok);
   check.className = 'guess-check ' + (ok ? 'correct' : 'incorrect');
-  check.textContent = ok ? '✓ correct' : '✗ nog niet — probeer opnieuw';
+  check.textContent = ok ? '✓' : '✗ nog niet';
 }
 
 // ─── Animatieloop ──────────────────────────────────────────────────────────
@@ -1011,85 +1230,468 @@ buildStofPicker();
 renderVglTable();
 resetSim();
 requestAnimationFrame(loop);
-</script>
 
+/* =====================================================================
+   Algemene opbouw: zijbalk, werkplaats, voorbeeld, opdrachten in stappen
+   ===================================================================== */
+const WPS = [];
+const TEKENINGEN = {};
+const STAAT = { wp:0, tab:'uitleg', voortgang: laad(), niveau: '5V' };
+const PER_WP = {};             /* per werkplaats: { serie, idx, st:[{stap, goed:[], getoond, pogingen}] } */
+let SIM = null;
 
-<script id="huisstijl-js">
-window.HS_CFG={};
-(function(){
-  var cfg=window.HS_CFG||{};
-  var b=document.createElement('button'); b.type='button'; b.textContent='Beamerstand'; b.title='Alles groter, voor op het digibord';
-  b.onclick=function(){document.body.classList.toggle('hs-beamer'); window.dispatchEvent(new Event('resize'));};
-  var hd;
-  if(cfg.own){ hd=document.querySelector(cfg.own); hd.classList.add('hs-own'); hd.appendChild(b); }
-  else {
-    var h=cfg.title?null:document.querySelector(cfg.sel||'h1');
-    hd=document.createElement('header'); hd.className='hs-header';
-    var w=document.createElement('div'); w.className='hs-wrap'; hd.appendChild(w);
-    var t=document.createElement('h1'); t.innerHTML=cfg.title||(h?h.innerHTML:document.title); w.appendChild(t);
-    w.appendChild(b); if(h) h.remove();
-    var cs=getComputedStyle(document.body);
-    var px=function(a,b){return '-'+(parseFloat(cs[a])+parseFloat(cs[b]))+'px';};
-    hd.style.margin=px('paddingTop','marginTop')+' '+px('paddingRight','marginRight')+' 18px '+px('paddingLeft','marginLeft');
-    document.body.insertBefore(hd, document.body.firstChild);
+function maakCanvas(host, w, h){
+  const c = document.createElement('canvas'), dpr = Math.max(1, window.devicePixelRatio || 1);
+  c.width = w * dpr; c.height = h * dpr; c.style.aspectRatio = w + ' / ' + h;
+  host.appendChild(c);
+  const ctx = c.getContext('2d'); ctx.scale(dpr, dpr); ctx.W = w; ctx.H = h; ctx.canvas_ = c;
+  return ctx;
+}
+
+function zichtbaar(w){ return !w.alleen6 || STAAT.niveau === '6V'; }
+function renderNav(){
+  $('#nav').innerHTML = WPS.map((w, i) => {
+    if (!zichtbaar(w)) return '';
+    const klaar = STAAT.voortgang[w.id] && STAAT.voortgang[w.id].klaar;
+    return `<a data-i="${i}" class="${i === STAAT.wp ? 'on' : ''} ${klaar ? 'klaar' : ''}"><i>${klaar ? '✓' : w.ster ? '★' : i + 1}</i><span>${w.titel}<small>${w.par}</small></span></a>`;
+  }).join('');
+  $$('#nav a').forEach(a => a.onclick = () => open(+a.dataset.i));
+}
+
+function open(i){
+  STAAT.wp = i; STAAT.tab = 'uitleg';
+  const w = WPS[i];
+  if (!PER_WP[w.id]) nieuweSerie(w);
+  parkeer();
+  $('#main').innerHTML = `<div class="wp"><section class="tekst" id="tekst"></section><section class="simkol" id="simkol"></section></div>`;
+  SIM = w.sim; SIM.init($('#simkol'));
+  renderTekst(); renderNav();
+  window.scrollTo(0, 0);
+}
+
+function nieuweSerie(w){
+  const serie = w.maakSerie();
+  PER_WP[w.id] = { serie, idx:0, serieNr: (PER_WP[w.id] ? PER_WP[w.id].serieNr + 1 : 0), st: serie.map(() => ({ stap:0, getoond:false, klaar:false, pogingen:{} })) };
+}
+
+function renderTekst(){
+  const w = WPS[STAAT.wp], p = PER_WP[w.id];
+  const nGoed = p.st.filter((s, k) => s.klaar && !s.getoond && !p.serie[k].ster).length, nTot = p.serie.filter(o => !o.ster).length;
+  let h = `<div class="kicker">${w.ster ? 'Werkplaats ★ · verdieping' : 'Werkplaats ' + (STAAT.wp + 1) + ' · ' + w.par}</div><h2>${w.titel}</h2>
+    <div class="tabs"><button data-t="uitleg" class="${STAAT.tab === 'uitleg' ? 'on' : ''}">Uitleg en voorbeeld</button>
+    <button data-t="opd" class="${STAAT.tab === 'opd' ? 'on' : ''}">Opdrachten<span class="tel">${nGoed}/${nTot}</span></button></div>`;
+  if (STAAT.tab === 'uitleg'){
+    h += w.uitleg() + renderVoorbeeld(w);
+  } else {
+    h += renderOpdracht(w, p);
   }
-  // zwevende elementen (tooltips) niet mee-zoomen in beamerstand
-  document.querySelectorAll('body *').forEach(function(e){ if(e!==hd && !hd.contains(e) && getComputedStyle(e).position==='fixed'){ e.classList.add('hs-nozoom'); document.body.appendChild(e); } });
-  // komma als decimaalteken in alles wat op het scherm komt
-  var dec=function(s){ return String(s).replace(/(\d)\.(\d)/g,'$1,$2'); };
-  var C=CanvasRenderingContext2D.prototype, ft=C.fillText, st=C.strokeText, mt=C.measureText;
-  C.fillText=function(t,x,y,m){ return m===undefined?ft.call(this,dec(t),x,y):ft.call(this,dec(t),x,y,m); };
-  C.strokeText=function(t,x,y,m){ return m===undefined?st.call(this,dec(t),x,y):st.call(this,dec(t),x,y,m); };
-  C.measureText=function(t){ return mt.call(this,dec(t)); };
-  var SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,INPUT:1};
-  var fix=function(root){ var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null), n;
-    while((n=w.nextNode())){ if(n.parentNode && SKIP[n.parentNode.nodeName]) continue; var v=n.nodeValue, d=dec(v); if(d!==v) n.nodeValue=d; } };
-  fix(document.body);
-  new MutationObserver(function(ms){ ms.forEach(function(m){ if(m.type==='characterData'){ if(!SKIP[m.target.parentNode&&m.target.parentNode.nodeName]){ var d=dec(m.target.nodeValue); if(d!==m.target.nodeValue) m.target.nodeValue=d; } } else m.addedNodes.forEach(function(a){ if(a.nodeType===3){ if(a.parentNode&&!SKIP[a.parentNode.nodeName]){ var d=dec(a.nodeValue); if(d!==a.nodeValue) a.nodeValue=d; } } else if(a.nodeType===1 && !SKIP[a.nodeName]) fix(a); }); }); })
-    .observe(document.body,{childList:true,subtree:true,characterData:true});
-  // invoer met komma accepteren
-  var pf=window.parseFloat; window.parseFloat=function(x){ return pf(typeof x==='string'?x.replace(',','.'):x); };
-})();
-</script>
-<script id="komma-invoer">
-/* Getalvelden met decimale komma. Een type="number"-veld leest een komma niet
-   (in Chrome wordt "0,5" dan 5). Daarom worden alle getalvelden tekstvelden die
-   een komma tonen en accepteren; de code leest ze nog steeds als 0.5. */
-(function () {
-  const d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
-  const naarKomma = x => String(x).replace(/(\d)\.(\d)/g, '$1,$2');
-  function zet(el) {
-    if (el.dataset.komma) return;
-    const v = d.get.call(el);
-    el.dataset.komma = '1';
-    el.type = 'text';
-    el.setAttribute('inputmode', 'decimal');
-    el.setAttribute('autocomplete', 'off');
-    Object.defineProperty(el, 'value', {
-      configurable: true,
-      get() { return d.get.call(this).trim().replace(/\s/g, '').replace(',', '.'); },
-      set(x) { d.set.call(this, naarKomma(x)); }
-    });
-    if (v !== '') el.value = v;
-    if (el.placeholder) el.placeholder = naarKomma(el.placeholder);
+  $('#tekst').innerHTML = h;
+  $$('#tekst .tabs button').forEach(b => b.onclick = () => { STAAT.tab = b.dataset.t; renderTekst(); if (STAAT.tab === 'opd') zetOpdrachtInSim(); else SIM.opdracht && SIM.opdracht(null); });
+  if (STAAT.tab === 'uitleg') koppelVoorbeeld(w); else koppelOpdracht(w, p);
+}
+
+/* ---------- uitgewerkt voorbeeld, stap voor stap ---------- */
+function renderVoorbeeld(w){
+  const vb = w.voorbeeld; if (!vb) return '';
+  const n = w._vbStap || 0;
+  let h = `<div class="vb"><div class="vbkop">Voorbeeld</div><div class="vbvraag">${vb.vraag}</div>`;
+  for (let k = 0; k < n; k++) h += `<div class="vbstap"><span class="n">${k + 1}</span><div class="b">${vb.stappen[k]}</div></div>`;
+  h += n < vb.stappen.length ? `<div class="verder"><button class="btn g klein" id="vbverder">${n ? 'Volgende stap' : 'Toon de uitwerking'} ▸</button></div>`
+                             : `<div class="verder"><button class="btn klein" id="naaropd">Naar de opdrachten ▸</button></div>`;
+  return h + '</div>';
+}
+function koppelVoorbeeld(w){
+  const b = $('#vbverder'); if (b) b.onclick = () => { w._vbStap = (w._vbStap || 0) + 1; renderTekst(); w.voorbeeld.bijStap && w.voorbeeld.bijStap(w._vbStap); };
+  const o = $('#naaropd'); if (o) o.onclick = () => { STAAT.tab = 'opd'; renderTekst(); zetOpdrachtInSim(); window.scrollTo(0, 0); };
+}
+
+/* ---------- opdrachten ---------- */
+function renderOpdracht(w, p){
+  const o = p.serie[p.idx], s = p.st[p.idx];
+  const nTot = p.serie.filter(x => !x.ster).length;
+  let h = '';
+  if (STAAT.voortgang[w.id] && STAAT.voortgang[w.id].klaar && p.st.every((x, k) => p.serie[k].ster || (x.klaar && !x.getoond)))
+    h += `<div class="klaarbanner"><b>Werkplaats afgerond.</b> Probeer ook de ★-opdrachten, of oefen met een nieuwe serie.</div>`;
+  h += `<div class="oknop">` + p.serie.map((x, k) => {
+    const st = p.st[k];
+    return `<span class="dot ${k === p.idx ? 'on' : ''} ${st.klaar && !st.getoond ? 'goed' : ''} ${x.ster ? 'ster' : ''}" data-k="${k}" title="${x.titel}">${x.ster ? '★' : k + 1}</span>`;
+  }).join('') + `<span class="rechts"><button class="btn g klein" id="nieuweserie">Nieuwe serie</button></span></div>`;
+  h += `<div class="opdkop">${o.ster ? '<span class="st">★ </span>' : ''}Opdracht ${o.ster ? '★' : p.idx + 1}${o.ster ? '' : ' van ' + nTot} · ${o.titel}</div>`;
+  if (o.vraag) h += `<div class="opdvraag">${o.vraag}</div>`;
+  o.stappen.forEach((st, k) => {
+    const dicht = k > s.stap, goed = k < s.stap || s.klaar;
+    h += `<div class="stap ${dicht ? 'dicht' : ''} ${goed ? 'goed' : ''}" data-k="${k}">${o.stappen.length > 1 ? `<span class="n">${goed ? '✓' : k + 1}</span>` : ''}<div class="inh">
+      <div class="vr">${st.vr}</div>${goed ? `<div class="antw">${st.antwoord()}</div>` : `<div class="inv">${invoerHTML(st, k)}</div>`}
+      <div class="fb" id="fb${k}"></div></div></div>`;
+  });
+  if (s.klaar){
+    const volgende = p.idx < p.serie.length - 1;
+    h += `<div class="rij" style="margin-top:6px">${volgende ? `<button class="btn" id="volgende">Volgende opdracht ▸</button>` : ''}${o.naKlaar ? `<span class="waarneming">${o.naKlaar()}</span>` : ''}</div>`;
   }
-  // stijlregels voor getalvelden ook laten gelden voor de omgezette velden
-  try {
-    for (const sh of document.styleSheets) {
-      let regels; try { regels = sh.cssRules; } catch (e) { continue; }
-      for (const r of [...regels]) {
-        if (r.selectorText && /type=["']?number/.test(r.selectorText)) {
-          const sel = r.selectorText.replace(/\[type=["']?number["']?\]/g, '[data-komma]');
-          sh.insertRule(sel + '{' + r.style.cssText + '}', sh.cssRules.length);
-        }
-      }
+  if (o.stappen.some(x => x.type === 'teken')) h += `<div class="typtip">${TEKENTIP}</div>`;
+  else if (o.stappen.some(x => x.type === 'getal')) h += `<div class="typtip">${GETALTIP}</div>`;
+  return h;
+}
+const TEKENTIP = 'Tekenen: kies een atoomsoort en klik op het raster. Sleep vanaf een atoom om een binding met een nieuw of bestaand atoom te maken. Klik op een binding voor een dubbele binding. <b>+H aanvullen</b> zet ontbrekende H-atomen, maar je mag ze ook zelf zetten. <b>~</b> is een open binding: de keten gaat verder.';
+const GETALTIP = 'Typ een getal met een komma, bijvoorbeeld <code>2,4</code> of <code>35</code>.';
+const TYPTIP = 'Zo typ je (voorbeelden met titaan en chromaat): <code>Ti2(CrO4)3</code> · ion <code>Ti3+</code> of <code>CrO4 2-</code> · pijl <code>-></code> · toestand <code>(s)</code> <code>(aq)</code> <code>(l)</code> · coëfficiënt ervoor: <code>3 CrO4 2-(aq)</code>.';
+
+function invoerHTML(st, k){
+  const knoppen = `<button class="btn" data-ctl="${k}">Controleer</button><button class="btn g" data-hint="${k}">Hint</button><button class="btn g" data-toon="${k}" style="display:none">Toon antwoord</button>`;
+  if (st.type === 'sim') return `<div class="rij">${knoppen}</div>`;
+  if (st.type === 'tekst') return `<div class="rij"><input class="in" id="in${k}" autocomplete="off" spellcheck="false" placeholder="${st.ph || ''}">${knoppen}</div><div class="voorbeeldweergave" id="vw${k}"></div>`;
+  if (st.type === 'chips') return `<div class="chips" id="ch${k}">${st.opties.map((x, j) => `<span class="chip" data-j="${j}">${x.html}</span>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'keuze') return `<div class="opties" id="op${k}">${st.opties.map((x, j) => `<button class="optie" data-j="${j}">${x.html}</button>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'teken') return `<div id="tv${k}"></div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'getal') return `<div class="rij"><input class="in getal" id="in${k}" autocomplete="off" spellcheck="false" placeholder="${st.ph || 'antwoord'}"><span class="eenheid">${st.eenheid || ''}</span></div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'selects') return `<div class="rij">${st.selects.map((s, j) => `<label style="font-size:14px">${s.lab} <select class="sel" id="se${k}_${j}"><option value="">kies…</option>${s.opties.map(x => `<option value="${x.v}">${x.t}</option>`).join('')}</select></label>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  return '';
+}
+
+function koppelOpdracht(w, p){
+  const o = p.serie[p.idx], s = p.st[p.idx];
+  $$('.oknop .dot').forEach(d => d.onclick = () => { p.idx = +d.dataset.k; renderTekst(); zetOpdrachtInSim(); });
+  $('#nieuweserie').onclick = () => { nieuweSerie(w); renderTekst(); zetOpdrachtInSim(); };
+  const v = $('#volgende'); if (v) v.onclick = () => { p.idx++; renderTekst(); zetOpdrachtInSim(); };
+  o.stappen.forEach((st, k) => {
+    if (k !== s.stap || s.klaar) return;
+    const inp = $('#in' + k);
+    if (st.type === 'teken'){
+      const sleutel = w.id + '|' + p.idx + '|' + k + '|' + p.serieNr;
+      const tv = new Tekenveld($('#tv' + k), { breedte: st.breedte || 32, hoogte: st.hoogte || 13 });
+      if (TEKENINGEN[sleutel]) tv.zet(TEKENINGEN[sleutel]);
+      const oud = tv.teken.bind(tv); tv.teken = () => { oud(); TEKENINGEN[sleutel] = tv.g; };
+      tv.melding = m => { const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = m; };
+      st._tv = tv;
     }
-  } catch (e) {}
-  const alles = root => { if (root.matches && root.matches('input[type="number"]')) zet(root); if (root.querySelectorAll) root.querySelectorAll('input[type="number"]').forEach(zet); };
-  alles(document);
-  new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) alles(n); })))
-    .observe(document.documentElement, { childList: true, subtree: true });
+    if (inp && st.type === 'getal'){ inp.onkeydown = e => { if (e.key === 'Enter') controleer(w, p, k); }; setTimeout(() => inp.focus({ preventScroll:true }), 30); }
+    else if (inp){
+      inp.onkeydown = e => { if (e.key === 'Enter') controleer(w, p, k); };
+      setTimeout(() => inp.focus({ preventScroll:true }), 30);
+    }
+    $$(`#ch${k} .chip`).forEach(c => c.onclick = () => c.classList.toggle('aan'));
+    $$(`#op${k} .optie`).forEach(c => c.onclick = () => {
+      if (!st.meer) $$(`#op${k} .optie`).forEach(x => x !== c && x.classList.remove('aan'));
+      c.classList.toggle('aan');
+    });
+    $(`[data-ctl="${k}"]`).onclick = () => controleer(w, p, k);
+    $(`[data-hint="${k}"]`).onclick = () => { const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = st.hint; };
+    $(`[data-toon="${k}"]`).onclick = () => {
+      s.getoond = true; const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = 'Antwoord: ' + st.antwoord();
+      setTimeout(() => stapGoed(w, p, k), 1400);
+    };
+    if ((s.pogingen[k] || 0) >= 2) $(`[data-toon="${k}"]`).style.display = '';
+  });
+}
+function waardeVan(st, k){
+  if (st.type === 'tekst') return $('#in' + k).value;
+  if (st.type === 'chips') return $$(`#ch${k} .chip.aan`).map(c => +c.dataset.j);
+  if (st.type === 'keuze') return $$(`#op${k} .optie.aan`).map(c => +c.dataset.j);
+  if (st.type === 'selects') return st.selects.map((x, j) => $(`#se${k}_${j}`).value);
+  if (st.type === 'teken') return st._tv;
+  if (st.type === 'getal') return $('#in' + k).value;
+}
+function controleer(w, p, k){
+  const o = p.serie[p.idx], s = p.st[p.idx], st = o.stappen[k];
+  const r = st.check(waardeVan(st, k));
+  const fb = $('#fb' + k);
+  if (r.ok){ fb.className = 'fb toon goed'; fb.innerHTML = r.msg || 'Goed!'; setTimeout(() => stapGoed(w, p, k), 650); }
+  else {
+    s.pogingen[k] = (s.pogingen[k] || 0) + 1;
+    fb.className = 'fb toon fout'; fb.innerHTML = r.msg;
+    if (s.pogingen[k] >= 2) $(`[data-toon="${k}"]`).style.display = '';
+  }
+}
+function stapGoed(w, p, k){
+  const o = p.serie[p.idx], s = p.st[p.idx];
+  if (s.stap !== k) return;
+  s.stap = k + 1;
+  if (s.stap >= o.stappen.length) s.klaar = true;
+  SIM.stapGoed && SIM.stapGoed(o, k);
+  if (s.klaar){
+    const nietSter = p.serie.map((x, j) => [x, p.st[j]]).filter(([x]) => !x.ster);
+    if (nietSter.every(([, y]) => y.klaar && !y.getoond)){
+      STAAT.voortgang[w.id] = { klaar:true }; bewaar(STAAT.voortgang); renderNav();
+    }
+  }
+  renderTekst();
+}
+function zetOpdrachtInSim(){
+  const w = WPS[STAAT.wp], p = PER_WP[w.id];
+  SIM.opdracht && SIM.opdracht(STAAT.tab === 'opd' ? p.serie[p.idx] : null, STAAT.tab === 'opd' ? p.st[p.idx] : null);
+}
+
+/* lus */
+let tVorig = 0;
+function lus(t){
+  const dt = Math.min(0.05, (t - tVorig) / 1000 || 0); tVorig = t;
+  if (SIM){ SIM.update && SIM.update(dt); SIM.draw && SIM.draw(); }
+  requestAnimationFrame(lus);
+}
+
+
+function keuzeStap(vr, opties, o = {}){
+  const opts = o.vast ? opties : schud(opties);
+  return { type:'keuze', meer: !!o.meer, vr, opties: opts, hint: o.hint || '',
+    check: v => {
+      if (!v.length) return { ok:false, msg:'Kies een antwoord.' };
+      const sel = v.map(j => opts[j]), goed = opts.filter(x => x.g);
+      if (sel.length === goed.length && sel.every(x => x.g)) return { ok:true, msg: o.goedMsg };
+      const fb = sel.find(x => !x.g && x.fb); if (fb) return { ok:false, msg: fb.fb };
+      if (o.meer && sel.every(x => x.g)) return { ok:false, msg:'Je mist er nog een.' };
+      return { ok:false, msg: o.fout || 'Nog niet goed.' };
+    },
+    antwoord: () => opts.filter(x => x.g).map(x => x.html).join('<br>'), goed: () => opts.map((x, j) => x.g ? j : -1).filter(j => j >= 0) };
+}
+function leesGetal(s){
+  let t = String(s).trim().replace(/\s+/g, '').replace(/[×x*·]10\^?/i, 'e').replace(/10\^/, 'e');
+  t = t.replace(',', '.');
+  return /^-?\d*\.?\d+(e-?\d+)?$/i.test(t) ? parseFloat(t) : NaN;
+}
+function getalStap(vr, waarde, eenheid, uitleg, hint, tol){
+  return { type:'getal', vr, eenheid, hint, ph:'getal',
+    check: v => { const x = leesGetal(v); if (isNaN(x)) return { ok:false, msg:'Typ een getal, bijvoorbeeld <code>2,4</code>.' };
+      if (Math.abs(x - waarde) <= Math.abs(waarde) * tol) return { ok:true, msg:'Goed! ' + uitleg };
+      return { ok:false, msg:'Nog niet goed. ' + hint }; },
+    antwoord: () => uitleg, goed: () => String(+waarde.toPrecision(3)).replace('.', ',') };
+}
+
+function parkeer(){ const h = $('#simhouder'); if (h) $('#parkeer').appendChild(h); }
+function simStap(vr, test, hint, antwoord){ return { type:'sim', vr, hint, check: () => test() ? { ok:true } : { ok:false, msg: hint }, antwoord: () => antwoord }; }
+const leerdoelen = (...l) => `<div class="leerdoelen"><b>Leerdoelen</b><ul>${l.map(x => x.startsWith('★') ? `<li class="ster">${x.slice(1).trim()}</li>` : `<li>${x}</li>`).join('')}</ul></div>`;
+
+/* =====================================================================
+   Koppeling met de verwarmingsbak
+   ===================================================================== */
+const MAXT = {}, MINT = {};
+(function volg(){
+  if (typeof T === 'number'){ MAXT[currentKey] = Math.max(MAXT[currentKey] ?? -1e9, T); MINT[currentKey] = Math.min(MINT[currentKey] ?? 1e9, T); }
+  requestAnimationFrame(volg);
 })();
+const bereikt = (k, t) => (MAXT[k] ?? -1e9) >= t;
+
+const FASE = {
+  init(host){
+    const w = WPS[STAAT.wp];
+    host.appendChild($('#simhouder'));
+    window.TOEGESTAAN = w.stoffen;
+    $$('#simhouder .sh-deel').forEach(e => { e.style.display = (w.delen || []).includes(e.dataset.deel) ? '' : 'none'; });
+    if (FASE._wp !== w.id){ FASE._wp = w.id; selectSubstance(w.stoffen[0]); }
+    else buildStofPicker();
+    $('#stof-row-mengsel').style.display = w.stoffen.some(k => SUBSTANCES[k].mengsel) ? '' : 'none';
+    $('#stof-row-puur').style.display = w.stoffen.some(k => !SUBSTANCES[k].mengsel) ? '' : 'none';
+    setTimeout(() => { drawParticles(); drawCurve(); }, 30);
+  },
+  opdracht(){}, update(){}, draw(){}
+};
+const OPSTART = 'Zet de schuif op <b>verwarmen</b> en klik op <b>▶ Hervat</b>.';
+
+/* ================= 1. Fasen op deeltjesniveau ================= */
+WPS.push({
+  id:'fasen', titel:'Fasen en deeltjes', par:'vast, vloeibaar en gas', sim: FASE, stoffen:['water'],
+  uitleg: () => leerdoelen(
+      'Ik kan de drie fasen beschrijven met de afstand, de beweging en de ordening van de deeltjes.',
+      'Ik kan de faseovergangen benoemen: smelten, stollen, verdampen en condenseren.',
+      'Ik kan uitleggen dat de fase van een stof afhangt van de temperatuur.',
+      '★ Ik kan uitleggen waarom ijs op water drijft.') + `
+    <h3>Uitleg</h3>
+    <p>Elke stof is opgebouwd uit deeltjes. Of een stof vast, vloeibaar of een gas is, hangt af van de temperatuur. Water is bij kamertemperatuur vloeibaar, maar onder 0 °C vast en boven 100 °C een gas.</p>
+    <ul><li><b>Vast</b>: de deeltjes zitten dicht op elkaar, op een vaste plek in een regelmatige ordening. Ze trillen op hun plek.</li>
+    <li><b>Vloeibaar</b>: de deeltjes zitten nog dicht bij elkaar, maar bewegen langs elkaar heen. Er is geen vaste ordening.</li>
+    <li><b>Gas</b>: de deeltjes zitten ver uit elkaar en bewegen snel en kriskras door de ruimte.</li></ul>
+    <h3>Faseovergangen</h3>
+    <table class="data"><tr><th>van</th><th>naar</th><th>naam</th></tr>
+    <tr><td>vast</td><td>vloeibaar</td><td>smelten</td></tr><tr><td>vloeibaar</td><td>vast</td><td>stollen</td></tr>
+    <tr><td>vloeibaar</td><td>gas</td><td>verdampen</td></tr><tr><td>gas</td><td>vloeibaar</td><td>condenseren</td></tr></table>
+    <p>Hoe hoger de temperatuur, hoe sneller de deeltjes bewegen.</p>`,
+  voorbeeld: {
+    vraag: 'Beschrijf de deeltjes van water bij −10 °C, bij 20 °C en bij 110 °C.',
+    stappen: [
+      'Bij −10 °C is water vast (ijs): de moleculen zitten op een vaste plek in een regelmatige ordening en trillen op hun plek.',
+      'Bij 20 °C is water vloeibaar: de moleculen zitten dicht bij elkaar, maar bewegen langs elkaar heen.',
+      'Bij 110 °C is water een gas (waterdamp): de moleculen zitten ver uit elkaar en bewegen snel door de ruimte.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Smelten waarnemen', vraag:'De bak bevat ijs van −20 °C. ' + OPSTART + ' Verwarm tot het ijs helemaal gesmolten is.', stappen:[
+      simStap('Verwarm tot er alleen nog vloeibaar water is.', () => currentKey === 'water' && (phase === 'liquid' || phase === 'boilrange' || phase === 'gas'), 'Zet de schuif op verwarmen en klik op <b>▶ Hervat</b>. Wacht tot de fase vloeibaar is.', 'het ijs is gesmolten'),
+      keuzeStap('Wat gebeurt er met de deeltjes als het ijs smelt? Kies alle juiste.', [
+        { html:'Ze verlaten hun vaste plek en gaan langs elkaar heen bewegen.', g:true },
+        { html:'Ze blijven dicht bij elkaar.', g:true },
+        { html:'Ze worden groter.' },
+        { html:'Ze gaan ver uit elkaar zitten.' },
+        { html:'Er ontstaan nieuwe soorten deeltjes.' }], { meer:true })]},
+    { titel:'Faseovergangen benoemen', vraag:'Verwarm het water verder tot alles een gas is. Koel daarna weer af.', stappen:[
+      simStap('Verwarm tot er alleen nog gas is.', () => currentKey === 'water' && bereikt('water', 101), 'Verwarm door tot boven het kookpunt.', 'alles is een gas geworden'),
+      keuzeStap('Hoe heet de overgang van vloeibaar water naar waterdamp?', [{ html:'verdampen', g:true }, { html:'condenseren' }, { html:'smelten' }, { html:'stollen' }, { html:'sublimeren' }]),
+      keuzeStap('Hoe heet de omgekeerde overgang, van waterdamp naar vloeibaar water?', [{ html:'condenseren', g:true }, { html:'verdampen' }, { html:'stollen' }, { html:'rijpen' }, { html:'smelten' }])]},
+    { titel:'Een plas op straat', vraag:'Na een regenbui ligt er een plas op straat. Op een zonnige dag is die na een paar uur verdwenen.', stappen:[
+      keuzeStap('Welke faseovergang vindt hier plaats?', [{ html:'verdampen', g:true }, { html:'condenseren' }, { html:'smelten' }, { html:'sublimeren' }]),
+      keuzeStap('Welke uitspraken over de watermoleculen zijn juist? Kies alle juiste.', [
+        { html:'Ze gaan van de plas de lucht in.', g:true },
+        { html:'In de lucht zitten ze ver uit elkaar.', g:true },
+        { html:'Ze verdwijnen.' },
+        { html:'Ze worden omgezet in zuurstof en waterstof.' }], { meer:true })]},
+    { titel:'IJs drijft', ster:true, vraag:'Kijk in de uitleg onder de deeltjes in de bak: water gedraagt zich anders dan de meeste stoffen.', stappen:[
+      keuzeStap('Waarom drijft ijs op vloeibaar water? Kies alle juiste.', [
+        { html:'In ijs zitten de moleculen iets verder uit elkaar dan in vloeibaar water.', g:true },
+        { html:'Ijs heeft daardoor een kleinere dichtheid dan vloeibaar water.', g:true },
+        { html:'IJsmoleculen zijn lichter dan watermoleculen.' },
+        { html:'In ijs zit lucht tussen de moleculen.' }], { meer:true })]}
+  ]
+});
+
+/* ================= 2. De verwarmingscurve ================= */
+WPS.push({
+  id:'curve', titel:'De verwarmingscurve', par:'smeltpunt en kookpunt', sim: FASE, stoffen:['butaan', 'methylpropaan', 'water', 'methanol'],
+  uitleg: () => leerdoelen(
+      'Ik kan in een verwarmingscurve het smeltpunt en het kookpunt aflezen.',
+      'Ik kan uitleggen waarom de temperatuur tijdens het smelten en koken niet stijgt.',
+      'Ik kan met het smeltpunt en het kookpunt bepalen in welke fase een stof is bij een bepaalde temperatuur.',
+      '★ Ik kan uitleggen dat stoffen met dezelfde molecuulformule een ander kookpunt kunnen hebben.') + `
+    <h3>Uitleg</h3>
+    <p>Verwarm je een vaste stof, dan stijgt de temperatuur. Bij het <b>smeltpunt</b> blijft de temperatuur gelijk tot alles gesmolten is. De toegevoerde energie is dan nodig om de deeltjes van hun vaste plek los te maken. Daarna stijgt de temperatuur weer, tot het <b>kookpunt</b>. Ook daar blijft de temperatuur gelijk, tot alle vloeistof verdampt is.</p>
+    <ul><li>In de verwarmingscurve zijn smelten en koken de <b>horizontale stukken</b>.</li>
+    <li>Het smeltpunt is gelijk aan het stolpunt; het kookpunt is gelijk aan het condensatiepunt.</li>
+    <li>Ligt de temperatuur onder het smeltpunt, dan is de stof vast. Tussen smeltpunt en kookpunt is hij vloeibaar, boven het kookpunt een gas.</li></ul>`,
+  voorbeeld: {
+    vraag: 'De verwarmingscurve van methanol heeft een horizontaal stuk bij −98 °C en een bij 65 °C. In welke fase is methanol bij kamertemperatuur (20 °C)?',
+    stappen: [
+      'Het eerste horizontale stuk is het smelten: het smeltpunt van methanol is −98 °C.',
+      'Het tweede horizontale stuk is het koken: het kookpunt is 65 °C.',
+      '20 °C ligt tussen het smeltpunt en het kookpunt: methanol is bij kamertemperatuur vloeibaar.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Butaan', vraag:'Kies <b>butaan</b>. ' + OPSTART + ' Verwarm tot alles een gas is en lees de curve af.', stappen:[
+      simStap('Verwarm butaan tot alles een gas is.', () => bereikt('butaan', 5), 'Kies butaan, zet de schuif op verwarmen, klik op <b>▶ Hervat</b> en wacht tot de fase gas is.', 'butaan verwarmd'),
+      getalStap('Smeltpunt van butaan =', -138, '°C', 'Het smeltpunt van butaan is −138 °C.', 'Zoek het eerste horizontale stuk. Beweeg de muis over de curve om af te lezen.', 0.03),
+      getalStap('Kookpunt van butaan =', -1, '°C', 'Het kookpunt van butaan is −1 °C.', 'Zoek het tweede horizontale stuk.', 1.5),
+      keuzeStap('In welke fase is butaan bij kamertemperatuur (20 °C)?', [{ html:'gas', g:true }, { html:'vloeibaar' }, { html:'vast' }, { html:'Dat kun je niet weten.' }])]},
+    { titel:'Het horizontale stuk', vraag:'Kies <b>water</b> en verwarm het ijs tot het water kookt. Let op de temperatuur tijdens het smelten.', stappen:[
+      simStap('Verwarm water tot het kookt.', () => bereikt('water', 99.5), 'Kies water en verwarm tot de fase koken is.', 'water verwarmd'),
+      keuzeStap('Waarom stijgt de temperatuur niet zolang het ijs smelt? Kies alle juiste.', [
+        { html:'De toegevoerde energie is nodig om de moleculen van hun vaste plek los te maken.', g:true },
+        { html:'De moleculen gaan in die tijd niet sneller bewegen.', g:true },
+        { html:'Tijdens het smelten wordt er geen energie toegevoerd.' },
+        { html:'De thermometer werkt niet in een mengsel van ijs en water.' }], { meer:true })]},
+    { titel:'Een onbekende stof', vraag:'Een stof heeft een smeltpunt van −23 °C en een kookpunt van 77 °C.', stappen:[
+      keuzeStap('In welke fase is deze stof bij −40 °C?', [{ html:'vast', g:true }, { html:'vloeibaar' }, { html:'gas' }]),
+      keuzeStap('En bij 20 °C?', [{ html:'vloeibaar', g:true }, { html:'vast' }, { html:'gas' }]),
+      keuzeStap('En bij 100 °C?', [{ html:'gas', g:true }, { html:'vloeibaar' }, { html:'vast' }])]},
+    { titel:'Butaan en isobutaan', ster:true, vraag:'Butaan en 2-methylpropaan (isobutaan) hebben allebei de molecuulformule C<sub>4</sub>H<sub>10</sub>. Kies <b>2-methylpropaan</b> en verwarm tot alles een gas is.', stappen:[
+      simStap('Verwarm 2-methylpropaan tot alles een gas is.', () => bereikt('methylpropaan', -5), 'Kies 2-methylpropaan en verwarm tot de fase gas is.', '2-methylpropaan verwarmd'),
+      getalStap('Kookpunt van 2-methylpropaan =', -12, '°C', 'Het kookpunt is −12 °C: lager dan dat van butaan (−1 °C).', 'Zoek het tweede horizontale stuk.', 0.15),
+      keuzeStap('Wat laat dit zien?', [
+        { html:'Stoffen met dezelfde molecuulformule kunnen verschillende kookpunten hebben.', g:true },
+        { html:'Een stof met meer atomen heeft altijd een hoger kookpunt.' },
+        { html:'Butaan en 2-methylpropaan zijn dezelfde stof.' }])]}
+  ]
+});
+
+/* ================= 3. Celsius en kelvin ================= */
+WPS.push({
+  id:'kelvin', titel:'Celsius en kelvin', par:'twee temperatuurschalen', sim: FASE, stoffen:['methaan', 'butaan', 'water', 'methanol'], delen:['tabel'],
+  uitleg: () => leerdoelen(
+      'Ik kan een temperatuur omrekenen van graden Celsius naar kelvin en terug.',
+      'Ik kan uitleggen wat het absolute nulpunt is.') + `
+    <h3>Uitleg</h3>
+    <p>In de scheikunde gebruik je naast graden Celsius (°C) ook de <b>kelvin</b> (K). Een stap van 1 K is even groot als een stap van 1 °C, maar de kelvinschaal begint bij het <b>absolute nulpunt</b>: −273 °C. Kouder kan niet: daar bewegen de deeltjes (bijna) niet meer.</p>
+    <div class="kader">T (K) = T (°C) + 273 &nbsp;&nbsp;·&nbsp;&nbsp; T (°C) = T (K) − 273</div>`,
+  voorbeeld: {
+    vraag: 'Het kookpunt van methanol is 65 °C. Reken dit om naar kelvin. Stikstof kookt bij 77 K. Hoeveel °C is dat?',
+    stappen: [
+      'Van °C naar K tel je 273 op: 65 + 273 = 338 K.',
+      'Van K naar °C trek je 273 af: 77 − 273 = −196 °C.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Omrekenen', vraag:'Reken om. Gebruik de regel uit de uitleg.', stappen:[
+      getalStap('Het kookpunt van water is 100 °C. In kelvin is dat:', 373, 'K', '100 + 273 = 373 K.', 'Tel 273 op bij de temperatuur in °C.', 0.001),
+      getalStap('Het smeltpunt van methaan is −182 °C. In kelvin is dat:', 91, 'K', '−182 + 273 = 91 K.', 'Tel 273 op: −182 + 273.', 0.001),
+      getalStap('Zuurstof kookt bij 90 K. In °C is dat:', -183, '°C', '90 − 273 = −183 °C.', 'Trek 273 af van de temperatuur in K.', 0.001)]},
+    { titel:'De tabel invullen', vraag:'Meet in de bak het smeltpunt en het kookpunt van <b>methanol</b> en <b>butaan</b>. Vul ze onderaan in de tabel in, in °C én in K, en klik telkens op ✓.', stappen:[
+      simStap('Vul voor methanol en butaan het smeltpunt en het kookpunt in, in °C en in K.', () => ['methanol', 'butaan'].every(k => ['tm', 'tb'].every(f => ['c', 'k'].every(u => { const c = document.getElementById(`check-${k}-${f}-${u}`); return c && c.classList.contains('correct'); }))), 'Er zijn nog vakjes leeg of niet goed. Elk vakje moet een groen vinkje hebben.', 'tabel ingevuld')]},
+    { titel:'Het absolute nulpunt', vraag:'Een leerling zegt: "Als ik verder blijf afkoelen, kan ik op −300 °C uitkomen."', stappen:[
+      keuzeStap('Leg uit of dat kan.', [
+        { html:'Nee: −273 °C (0 K) is de laagste temperatuur die bestaat.', g:true },
+        { html:'Ja, als je maar lang genoeg afkoelt.' },
+        { html:'Ja, maar alleen bij gassen.' },
+        { html:'Nee, want onder 0 °C bestaat geen temperatuur.' }])]}
+  ]
+});
+
+/* ================= 4. Mengsels ================= */
+WPS.push({
+  id:'mengsel', titel:'Mengsels', par:'smelttraject en kooktraject', sim: FASE, stoffen:['water', 'suikerwater', 'waterethanol'],
+  uitleg: () => leerdoelen(
+      'Ik kan uitleggen dat een mengsel geen smeltpunt en kookpunt heeft, maar een smelttraject en een kooktraject.',
+      'Ik kan aan een verwarmingscurve zien of het om één stof of om een mengsel gaat.',
+      '★ Ik kan uitleggen welke stof uit een mengsel als eerste verdampt.') + `
+    <h3>Uitleg</h3>
+    <p>Eén stof heeft een vast smeltpunt en een vast kookpunt: in de verwarmingscurve zijn smelten en koken horizontale stukken. Een <b>mengsel</b> bevat meer stoffen. Tijdens het smelten en koken verandert de samenstelling, en de temperatuur loopt door. Een mengsel heeft daarom een <b>smelttraject</b> en een <b>kooktraject</b>: de curve loopt daar schuin omhoog in plaats van horizontaal.</p>
+    <div class="kader">Opgeloste suiker verdampt niet: als al het water verdampt is, blijft de suiker achter.</div>`,
+  voorbeeld: {
+    vraag: 'Een blokje kaarsvet smelt tussen 50 en 60 °C. IJs smelt bij precies 0 °C. Welke van de twee is een mengsel?',
+    stappen: [
+      'IJs smelt bij één vaste temperatuur: water is één stof.',
+      'Kaarsvet smelt over een traject van 50 tot 60 °C: de temperatuur loopt tijdens het smelten door.',
+      'Kaarsvet is dus een mengsel.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Suikerwater', vraag:'Kies <b>suikerwater</b>. ' + OPSTART + ' Verwarm tot het water kookt.', stappen:[
+      simStap('Verwarm het suikerwater tot het kookt.', () => bereikt('suikerwater', 102), 'Kies suikerwater en verwarm tot de fase koken is.', 'suikerwater verwarmd'),
+      keuzeStap('Wat zie je in de curve tijdens het smelten van het suikerwater?', [
+        { html:'De temperatuur loopt door: een smelttraject.', g:true }, { html:'De temperatuur blijft precies gelijk: een smeltpunt.' }, { html:'De temperatuur daalt.' }]),
+      getalStap('Bij welke temperatuur begint het suikerwater te koken?', 102, '°C', 'Het kooktraject begint bij ongeveer 102 °C: hoger dan bij water.', 'Zoek waar het tweede schuine stuk begint.', 0.03)]},
+    { titel:'Water en ethanol', vraag:'Kies het <b>water-ethanolmengsel</b> en verwarm tot alles een gas is.', stappen:[
+      simStap('Verwarm het mengsel tot alles een gas is.', () => bereikt('waterethanol', 101), 'Kies het water-ethanolmengsel en verwarm tot de fase gas is.', 'mengsel verwarmd'),
+      keuzeStap('Welke stof verdampt vooral aan het begin van het kooktraject?', [{ html:'ethanol', g:true }, { html:'water' }, { html:'Ze verdampen precies even snel.' }],
+        { hint:'Ethanol kookt bij 78 °C, water bij 100 °C.' })]},
+    { titel:'Eén stof of een mengsel?', vraag:'Van drie witte poeders is het smeltgedrag gemeten.', stappen:[
+      keuzeStap('Welke poeders zijn een mengsel? Kies alle juiste.', [
+        { html:'poeder P: smelt tussen 132 en 138 °C', g:true },
+        { html:'poeder Q: smelt bij 186 °C' },
+        { html:'poeder R: begint te smelten bij 70 °C en is bij 95 °C helemaal gesmolten', g:true },
+        { html:'poeder S: smelt bij 801 °C' }], { meer:true })]},
+    { titel:'Wat blijft er over?', ster:true, vraag:'Laat het suikerwater zo lang koken dat al het water verdampt is.', stappen:[
+      keuzeStap('Wat blijft er in de bak over?', [
+        { html:'de suiker, want die verdampt niet', g:true }, { html:'niets, alles is verdampt' }, { html:'water, want suiker verdampt eerst' }])]}
+  ]
+});
+
+/* ================= ★ 5. Sublimeren ================= */
+WPS.push({
+  id:'sublimeren', titel:'Sublimeren', par:'verdieping', ster:true, sim: FASE, stoffen:['co2'],
+  uitleg: () => leerdoelen(
+      '★ Ik kan sublimeren en rijpen herkennen en uitleggen.') + `
+    <h3>Uitleg</h3>
+    <p>Sommige stoffen gaan bij normale druk direct van vast naar gas, zonder eerst te smelten. Dat heet <b>sublimeren</b>. De omgekeerde overgang, van gas direct naar vast, heet <b>rijpen</b>.</p>
+    <p>Vast koolstofdioxide (droogijs) sublimeert bij −78 °C. Daarom heet het droogijs: het wordt nooit nat.</p>`,
+  voorbeeld: {
+    vraag: 'Bij verwarmen ontstaat uit vast jood een paarse damp. Tegen een koude plaat ontstaan daaruit weer kristallen. Welke faseovergangen zijn dit?',
+    stappen: [
+      'Vast jood gaat direct over in een gas: sublimeren.',
+      'De damp gaat tegen de koude plaat direct over in vaste kristallen: rijpen.'
+    ]
+  },
+  maakSerie: () => [
+    { titel:'Droogijs', vraag:'De bak bevat droogijs. ' + OPSTART + ' Verwarm tot alles een gas is.', stappen:[
+      simStap('Verwarm het droogijs tot alles een gas is.', () => bereikt('co2', -70), 'Zet de schuif op verwarmen en klik op <b>▶ Hervat</b>.', 'droogijs verwarmd'),
+      keuzeStap('Wat valt op aan de verwarmingscurve van droogijs?', [
+        { html:'Er is maar één horizontaal stuk: er ontstaat geen vloeistof.', g:true }, { html:'Er zijn twee horizontale stukken.' }, { html:'Er is geen horizontaal stuk.' }]),
+      getalStap('Bij welke temperatuur sublimeert droogijs?', -78, '°C', 'Droogijs sublimeert bij −78 °C (195 K).', 'Lees het horizontale stuk af.', 0.05)]},
+    { titel:'Rijp op het gras', vraag:'Op een koude, heldere ochtend ligt er rijp op het gras: kleine ijskristallen, terwijl er geen vloeibaar water is geweest.', stappen:[
+      keuzeStap('Welke faseovergang heeft hier plaatsgevonden?', [{ html:'rijpen: waterdamp wordt direct ijs', g:true }, { html:'stollen: water wordt ijs' }, { html:'condenseren: waterdamp wordt water' }, { html:'sublimeren: ijs wordt waterdamp' }])]}
+  ]
+});
+
+/* ---------- start ---------- */
+$('#beamerknop').onclick = () => document.body.classList.toggle('beamer');
+$('#resetknop').onclick = () => { if (confirm('Alle voortgang wissen?')){ STAAT.voortgang = {}; bewaar({}); for (const k in PER_WP) delete PER_WP[k]; open(STAAT.wp); } };
+open(0);
+requestAnimationFrame(lus);
 </script>
 </body>
 </html>
