@@ -285,6 +285,7 @@ body.hs-beamer>*:not(.hs-header):not(.hs-own):not(script):not(.hs-nozoom){zoom:1
 </div>
 </main>
 <script>
+const BR=(t,n)=>'<span style="display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.25;margin:0 2px"><span style="border-bottom:1.5px solid currentColor;padding:0 3px 1px">'+t+'</span><span style="padding:1px 3px 0">'+n+'</span></span>';
 /* =================================================================
    HULPFUNCTIES
    ================================================================= */
@@ -551,7 +552,7 @@ function cOp(p,t){ // concentratie referentiestof op tijdstip t (fijne integrati
   const oud=tSchaal; tSchaal=t/60; const s=simuleer(p); tSchaal=oud; return s.reeks[RX.ref.id][s.reeks[RX.ref.id].length-1];
 }
 function checkGem(){ const x=leesGetal(document.getElementById('q-gem').value), g=Q.gem.antwoord, ok=binnen(x,g,0.06);
-  zetFb('f-gem', ok?'goed':'fout', (ok?'✓ Goed! ':'✗ Nog niet goed. ')+`v<sub>gem</sub> = −Δ[${formule(RX.ref.f)}]/Δt = (0,50 − ${fmt(0.5-g*Q.gem.t1)}) mol/L ÷ ${Q.gem.t1} s ≈ ${fmt(g)} mol L⁻¹ s⁻¹`); }
+  zetFb('f-gem', ok?'goed':'fout', (ok?'✓ Goed! ':'✗ Nog niet goed. ')+`v<sub>gem</sub> = ${BR('−Δ['+formule(RX.ref.f)+']', 'Δt')} = ${BR('(0,50 − '+fmt(0.5-g*Q.gem.t1)+') '+BR('mol','L'), Q.gem.t1+' s')} ≈ ${fmt(g)} mol L⁻¹ s⁻¹`); }
 function checkV0(){ const x=leesGetal(document.getElementById('q-v0').value), g=Q.v0, ok=binnen(x,g,0.10);
   let extra=''; if(raakPunten.length===2){ const [a,b]=raakPunten; extra=` Helling van jouw raaklijn: ${fmt((b.c-a.c)/(b.t-a.t))} mol L⁻¹ s⁻¹.`; }
   zetFb('f-v0', ok?'goed':'fout', ok?`✓ Goed! De echte v₀ is ${fmt(g)} mol L⁻¹ s⁻¹ (binnen 10 % is goed).`:`✗ Nog niet goed.${extra} Let op: v₀ is de helling van de raaklijn bij t = 0 s, zonder minteken (afname). Vink "toon echte raaklijn" aan om te vergelijken.`); }

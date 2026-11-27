@@ -883,5 +883,45 @@ window.HS_CFG={};
   var pf=window.parseFloat; window.parseFloat=function(x){ return pf(typeof x==='string'?x.replace(',','.'):x); };
 })();
 </script>
+<script id="komma-invoer">
+/* Getalvelden met decimale komma. Een type="number"-veld leest een komma niet
+   (in Chrome wordt "0,5" dan 5). Daarom worden alle getalvelden tekstvelden die
+   een komma tonen en accepteren; de code leest ze nog steeds als 0.5. */
+(function () {
+  const d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+  const naarKomma = x => String(x).replace(/(\d)\.(\d)/g, '$1,$2');
+  function zet(el) {
+    if (el.dataset.komma) return;
+    const v = d.get.call(el);
+    el.dataset.komma = '1';
+    el.type = 'text';
+    el.setAttribute('inputmode', 'decimal');
+    el.setAttribute('autocomplete', 'off');
+    Object.defineProperty(el, 'value', {
+      configurable: true,
+      get() { return d.get.call(this).trim().replace(/\s/g, '').replace(',', '.'); },
+      set(x) { d.set.call(this, naarKomma(x)); }
+    });
+    if (v !== '') el.value = v;
+    if (el.placeholder) el.placeholder = naarKomma(el.placeholder);
+  }
+  // stijlregels voor getalvelden ook laten gelden voor de omgezette velden
+  try {
+    for (const sh of document.styleSheets) {
+      let regels; try { regels = sh.cssRules; } catch (e) { continue; }
+      for (const r of [...regels]) {
+        if (r.selectorText && /type=["']?number/.test(r.selectorText)) {
+          const sel = r.selectorText.replace(/\[type=["']?number["']?\]/g, '[data-komma]');
+          sh.insertRule(sel + '{' + r.style.cssText + '}', sh.cssRules.length);
+        }
+      }
+    }
+  } catch (e) {}
+  const alles = root => { if (root.matches && root.matches('input[type="number"]')) zet(root); if (root.querySelectorAll) root.querySelectorAll('input[type="number"]').forEach(zet); };
+  alles(document);
+  new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) alles(n); })))
+    .observe(document.documentElement, { childList: true, subtree: true });
+})();
+</script>
 </body>
 </html>
