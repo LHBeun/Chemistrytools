@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Het Lab</title>
+<style>
+/* VOICE: coöperatief onderzoeksspel, rustig en helder, spanning via geld en tijd
+   IDEA: het dashboard van een klein onderzoeksinstituut aan de rand van een vijver
+   PICTURE: vijver met sloot, akker en algen; in het spel de eigen meetgrafiek
+   COLOUR and TYPE: vijverteal dominant, papier als ondergrond, algengroen als accent, rood voor gevaar; één sans-serif
+   LAYOUT: bovenbalk met ronde/budget/aan zet; drie kolommen instituut, rol aan zet, onderzoek */
+:root{color-scheme:light dark;
+--bg:light-dark(#eef2ef,#0e1a1c);--paper:light-dark(#ffffff,#152427);--paper2:light-dark(#f5f8f6,#1b2e31);
+--ink:light-dark(#152427,#e6efeb);--muted:light-dark(#566866,#9db1ad);--line:light-dark(#d3ddd9,#2b4044);
+--pond:light-dark(#17605c,#4cb3a8);--pondsoft:light-dark(#dcefec,#1d3b3b);--algae:light-dark(#4f7f22,#9ccc65);
+--warn:light-dark(#b23a28,#ff8a70);--warnsoft:light-dark(#fbe6e1,#3a2320);--gold:light-dark(#7a5a0e,#e5c46b)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Avenir Next","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;overflow-x:clip}
+h1,h2,h3{line-height:1.1;margin:0 0 .4em;text-wrap:balance}
+h1{font-size:clamp(34px,5vw,52px);font-weight:800;letter-spacing:-.02em}
+h2{font-size:22px;font-weight:750}h3{font-size:17px;font-weight:700}
+p{margin:0 0 .7em}
+button,select,input{font:inherit;font-size:16px}
+button{cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:10px 16px;min-height:44px}
+button:hover:not(:disabled){border-color:var(--pond)}
+button:focus-visible,input:focus-visible,select:focus-visible,label:focus-within{outline:3px solid var(--pond);outline-offset:2px}
+button:disabled{opacity:.45;cursor:not-allowed}
+.btn-main{background:var(--pond);color:#fff;border-color:var(--pond);font-weight:700}
+.btn-warn{border-color:var(--warn);color:var(--warn)}
+input[type=text],input[type=number],select,textarea{border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:var(--paper);color:var(--ink);width:100%}
+textarea{font:13px/1.4 ui-monospace,Menlo,Consolas,monospace;min-height:90px}
+.wrap{max-width:1320px;margin:0 auto;padding:clamp(16px,3vw,32px)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px}
+.muted{color:var(--muted)}.small{font-size:14px}.tiny{font-size:13px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.hidden{display:none!important}
+/* start */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:28px;align-items:center}
+.hero svg{width:100%;height:auto;display:block;border-radius:18px}
+@media(max-width:800px){.hero{grid-template-columns:1fr}}
+.lead{font-size:18px;max-width:60ch}
+/* setup */
+.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--paper);cursor:pointer}
+.opt input{margin-top:4px;width:18px;height:18px;flex:none}
+.opt.on{border-color:var(--pond);background:var(--pondsoft)}
+.lvls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}
+.assign{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 12px;align-items:center}
+/* top bar */
+.top{position:sticky;top:0;z-index:5;background:var(--pond);color:#fff}
+.top .in{max-width:1320px;margin:0 auto;padding:10px clamp(12px,3vw,32px);display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.top b{font-size:20px}
+.stat{display:flex;flex-direction:column;line-height:1.15}.stat span{font-size:13px;opacity:.85}.stat strong{font-size:19px;white-space:nowrap}
+.turn{margin-left:auto;background:rgba(255,255,255,.14);border-radius:10px;padding:6px 12px}
+.turn strong{font-size:18px}
+.top button{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.35)}
+.dots{display:flex;gap:4px}.dots i{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.3);display:block}.dots i.done{background:#fff}.dots i.now{background:#ffd76a}
+/* game grid */
+.game{display:grid;grid-template-columns:270px minmax(0,1fr) minmax(0,1.15fr);gap:16px;align-items:start}
+@media(max-width:1100px){.game{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.side{grid-column:1/-1}}
+@media(max-width:700px){.game{grid-template-columns:1fr}.side{order:3}}
+.side .card+.card,.col .card+.card{margin-top:14px}
+.meter{height:12px;border-radius:6px;background:var(--paper2);overflow:hidden;border:1px solid var(--line)}
+.meter i{display:block;height:100%;background:var(--pond)}
+.meter.low i{background:var(--warn)}
+.roles{list-style:none;padding:0;margin:0}
+.roles li{display:flex;justify-content:space-between;gap:8px;padding:7px 8px;border-radius:8px;font-size:15px}
+.roles li.act{background:var(--pondsoft);font-weight:700}
+.roles li small{color:var(--muted);font-weight:400}
+.tag{display:inline-block;font-size:13px;border-radius:999px;padding:2px 9px;background:var(--paper2);border:1px solid var(--line)}
+.tag.bad{background:var(--warnsoft);border-color:var(--warn);color:var(--warn)}
+.tag.good{background:var(--pondsoft);border-color:var(--pond);color:var(--pond)}
+.rolehead{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.badge{width:46px;height:46px;border-radius:12px;background:var(--pond);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px;flex:none}
+.task{background:var(--paper2);border-radius:10px;padding:10px 12px;font-size:15px;margin-bottom:12px}
+fieldset{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 12px}
+legend{font-weight:700;padding:0 4px;font-size:15px}
+.chk{display:flex;gap:8px;align-items:center;padding:4px 0}
+.chk input{width:18px;height:18px;flex:none}
+.xbtns{display:flex;flex-wrap:wrap;gap:6px}
+.xbtns button{min-width:64px}
+.xbtns button.sel{background:var(--pond);color:#fff;border-color:var(--pond)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{border-bottom:1px solid var(--line);padding:6px 6px;text-align:left;vertical-align:top}
+td.num,th.num{text-align:right;white-space:nowrap}
+.vals{font-variant-numeric:tabular-nums}
+.vals span{display:inline-block;margin:0 6px 2px 0;padding:1px 6px;border-radius:6px;background:var(--paper2)}
+.vals span.cal{background:var(--warnsoft);color:var(--warn)}
+.fig{position:relative;height:280px;margin-top:10px}.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+.feed{border-left:4px solid var(--pond);padding:8px 12px;background:var(--pondsoft);border-radius:0 10px 10px 0;margin-bottom:8px}
+.feed.bad{border-color:var(--warn);background:var(--warnsoft)}
+.log{max-height:260px;overflow:auto;font-size:14px}
+.log div{padding:4px 0;border-bottom:1px dashed var(--line)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tabs button{padding:6px 12px;min-height:38px;font-size:15px}
+.tabs button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.bron{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--paper2)}
+.bron b{display:block;font-size:14px;color:var(--muted);font-weight:600}
+.skill{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(5,15,16,.55);display:grid;place-items:center;padding:16px;z-index:20}
+.modal{background:var(--paper);color:var(--ink);border-radius:18px;max-width:640px;width:100%;max-height:92vh;overflow:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.evkind{font-size:14px;font-weight:700;color:var(--pond)}
+.evkind.neg{color:var(--warn)}.evkind.pos{color:var(--algae)}.evkind.dil{color:var(--gold)}
+.cardart{height:8px;border-radius:4px;background:var(--pond);margin-bottom:14px}
+.cardart.neg{background:var(--warn)}.cardart.pos{background:var(--algae)}.cardart.dil{background:var(--gold)}
+@media(prefers-reduced-motion:no-preference){.modal{animation:pop .22s ease-out}@keyframes pop{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}}
+.end-hero{padding:28px;border-radius:18px;background:var(--pond);color:#fff;margin-bottom:16px}
+.end-hero.lost{background:var(--warn)}
+.study{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal-root"></div>
+
+<script>
+{
+/* ================= DATA ================= */
+const INST = [
+  null,
+  {naam:'teststrip', sigma:1.0, dec:0, prijs:0},
+  {naam:'titratiekit', sigma:0.3, dec:1, prijs:6},
+  {naam:'zuurstofmeter', sigma:0.1, dec:2, prijs:10}
+];
+const ROLES = {
+  leider:{naam:'Onderzoeksleider', kort:'OL', kern:true, taak:'Kiest een deelvraag, legt de hypothese vast en bepaalt welke variabelen constant blijven.',
+    skills:[{id:'werkplan',naam:'Werkplan',kost:2,txt:'Elke meting kost €0,5k minder.'},{id:'lobby',naam:'Lobbyen',kost:3,txt:'De vaste lasten worden €1k lager.'}]},
+  pm:{naam:'Projectmanager', kort:'PM', taak:'Koopt instrumenten met korting en haalt meer uit subsidie-oproepen.',
+    skills:[{id:'onderhandel',naam:'Onderhandelen',kost:2,txt:'Instrumenten kosten de helft (in plaats van 25% korting).'},{id:'subsidiejager',naam:'Subsidiejager',kost:2,txt:'Een gehaalde subsidie-oproep levert €5k extra op.'}]},
+  kwal:{naam:'Kwaliteitsbewaker', kort:'KB', taak:'IJkt instrumenten en houdt de omstandigheden in het lab constant (verstoringen hebben geen effect).',
+    skills:[{id:'ijkroutine',naam:'IJkroutine',kost:2,txt:'IJken kost €1k in plaats van €3k.'},{id:'onderhoud',naam:'Preventief onderhoud',kost:2,txt:'Kapotte apparatuur heeft geen effect meer.'}]},
+  lit:{naam:'Literatuuronderzoeker', kort:'LO', taak:'Zoekt bronnen met voorkennis. Niet elke bron is betrouwbaar: beoordeel dat zelf.',
+    skills:[{id:'bieb',naam:'Bibliotheekpas',kost:2,txt:'Bronnen zoeken is gratis.'}]},
+  veilig:{naam:'Veiligheidscoördinator', kort:'VC', taak:'Werkt op de achtergrond: voorkomt incidenten in het lab (de helft van de keren, met skill altijd).',
+    skills:[{id:'cultuur',naam:'Veiligheidscultuur',kost:2,txt:'Incidenten worden altijd voorkomen.'},{id:'opgeruimd',naam:'Opgeruimd lab',kost:2,txt:'Verontreinigde chemicaliën hebben geen effect.'}]},
+  monster:{naam:'Monsternemer', kort:'MN', taak:'Werkt op de achtergrond: maakt veldwerk in de vijver zelf mogelijk (extra deelvraag).',
+    skills:[{id:'veld',naam:'Veldervaring',kost:2,txt:'Veldmetingen kosten €0,5k minder.'}]},
+  rapp:{naam:'Rapporteur', kort:'RP', minLvl:2, taak:'Schrijft bij elke publicatie de discussie. Een echte beperking benoemen levert €3k op.',
+    skills:[{id:'schrijf',naam:'Heldere schrijfstijl',kost:2,txt:'+€2k bij elke geslaagde publicatie.'}]},
+  tech:{naam:'Meettechnicus', kort:'MT', kern:true, taak:'Kiest instrument, meetpunten en aantal herhalingen, en voert de metingen uit.',
+    skills:[{id:'efficient',naam:'Efficiënt werken',kost:2,txt:'+3 meetslots per ronde.'},{id:'routine',naam:'Routine',kost:3,txt:'De eerste 3 metingen per ronde zijn gratis.'}]},
+  analist:{naam:'Data-analist', kort:'DA', kern:true, taak:'Verwerkt de data, trekt de conclusie en dient de publicatie in bij de financier.',
+    skills:[{id:'kritisch',naam:'Kritische blik',kost:2,txt:'Voor publicatie een gratis bewijscheck doen.'},{id:'overtuigend',naam:'Overtuigend',kost:3,txt:'+€3k bij elke geslaagde publicatie.'}]}
+};
+const KEUZE = ['pm','kwal','lit','veilig','monster','rapp'];
+const CORE = ['leider','tech','analist'];
+
+const lin = (pts)=>x=>{for(let i=0;i<pts.length-1;i++){const[a,ya]=pts[i],[b,yb]=pts[i+1];if(x<=b)return ya+(yb-ya)*(x-a)/(b-a)}return pts[pts.length-1][1]};
+const FACTORS = [
+  {id:'temp',naam:'Watertemperatuur',vraag:'Heeft de watertemperatuur invloed op het zuurstofgehalte?',xnaam:'watertemperatuur',als:'de watertemperatuur',eenheid:'°C',xs:[15,20,25,30],
+   opzet:'Flessen met vijverwater worden in een waterbad op verschillende temperaturen gebracht.',
+   truth:lin([[15,10.1],[20,9.1],[25,8.3],[30,7.6]]),effect:'daalt',verband:'lineair',
+   controls:[{id:'water',naam:'hoeveelheid water in de fles',b:0.6},{id:'schud',naam:'schudden of roeren van de fles',b:2.2},{id:'tijd',naam:'tijd tussen vullen en meten',b:1.6}],
+   decoys:['kleur van de fles','wie de meting doet','dag van de week']},
+  {id:'kunst',naam:'Hoeveelheid kunstmest',vraag:'Heeft de hoeveelheid kunstmest invloed op het zuurstofgehalte?',xnaam:'kunstmest',als:'de hoeveelheid kunstmest',eenheid:'g per 10 L',xs:[0,1,2,3,4],
+   opzet:'Emmers met 10 L vijverwater krijgen verschillende hoeveelheden kunstmest en staan vijf dagen in het licht.',
+   truth:x=>8.8-1.575*x,effect:'daalt',verband:'lineair',
+   controls:[{id:'moment',naam:'meetmoment (tijdstip van de dag)',b:3.2,oneSided:true},{id:'wtemp',naam:'watertemperatuur',b:1.5},{id:'licht',naam:'lichtsterkte',b:2.4},{id:'water',naam:'hoeveelheid water in de emmer',b:0.6}],
+   decoys:['kleur van de emmer','wie de meting doet','dag van de week']},
+  {id:'ph',naam:'pH van het water',vraag:'Heeft de pH van het water invloed op het zuurstofgehalte?',xnaam:'pH',als:'de pH',eenheid:'',xs:[5,6,7,8,9],
+   opzet:'Bekerglazen met vijverwater worden met een beetje zuur of base op verschillende pH gebracht.',
+   truth:()=>8.9,effect:'geen',verband:'geen',
+   controls:[{id:'wtemp',naam:'watertemperatuur',b:1.5},{id:'water',naam:'hoeveelheid water',b:0.6}],
+   decoys:['soort bekerglas','wie de meting doet','dag van de week']},
+  {id:'zout',naam:'Hoeveelheid strooizout',vraag:'Heeft de hoeveelheid strooizout invloed op het zuurstofgehalte?',xnaam:'strooizout',als:'de hoeveelheid strooizout',eenheid:'g/L',xs:[0,0.25,0.5,0.75,1],
+   opzet:'Bekerglazen met vijverwater krijgen verschillende hoeveelheden strooizout.',
+   truth:x=>9.0-0.04*x,effect:'geen',verband:'geen',
+   controls:[{id:'wtemp',naam:'watertemperatuur',b:1.5},{id:'water',naam:'hoeveelheid water',b:0.6}],
+   decoys:['merk van het zout','wie de meting doet','dag van de week']},
+  {id:'kalk',naam:'Kalkgehalte (hardheid)',vraag:'Heeft het kalkgehalte van het water invloed op het zuurstofgehalte?',xnaam:'hardheid',als:'de hardheid van het water',eenheid:'',xs:[1,2,3],labels:{1:'zacht',2:'middel',3:'hard'},
+   opzet:'Vijverwater wordt vergeleken met zachter en harder gemaakt water.',
+   truth:()=>9.0,effect:'geen',verband:'geen',
+   controls:[{id:'wtemp',naam:'watertemperatuur',b:1.5},{id:'water',naam:'hoeveelheid water',b:0.6}],
+   decoys:['vorm van het bekerglas','wie de meting doet','dag van de week']},
+  {id:'plek',naam:'Meetplek in de vijver',vraag:'Hoe hangt het zuurstofgehalte af van de afstand tot de inlaat van de sloot?',xnaam:'afstand tot de inlaat',als:'de afstand tot de inlaat',eenheid:'m',xs:[5,50,100],veld:true,needs:'monster',
+   opzet:'Veldwerk: monsters worden in de vijver zelf genomen, op verschillende afstanden van de sloot langs de akker.',
+   truth:lin([[5,3.1],[50,5.0],[100,6.5]]),effect:'stijgt',verband:'lineair',
+   controls:[{id:'moment',naam:'meetmoment (tijdstip van de dag)',b:3.2,oneSided:true},{id:'diepte',naam:'diepte waarop het monster wordt genomen',b:1.4}],
+   decoys:['kleur van de monsterfles','wie het monster neemt','weer van gisteren']}
+];
+const EXTRA_OORZAKEN = [{id:'vissen',naam:'Te veel vissen in de vijver'},{id:'bladeren',naam:'Rottende bladeren'},{id:'gif',naam:'Een giftige stof'}];
+const BRONNEN = [
+  {id:'b1',type:'Wetenschappelijk artikel',bron:'Tijdschrift voor waterbeheer',ok:true,tekst:'Sterke algengroei kan ervoor zorgen dat het zuurstofgehalte in stilstaand water rond zonsopkomst sterk daalt.'},
+  {id:'b2',type:'Rapport',bron:'Waterschap',ok:true,tekst:'Via de sloot langs de akkers komen in de zomer veel voedingsstoffen in de vijver terecht.'},
+  {id:'b3',type:'Leerboek',bron:'Leerboek scheikunde',ok:true,tekst:'Hoe hoger de temperatuur van water, hoe minder zuurstof erin oplost. Bij 25 °C lost nog ruim 8 mg zuurstof per liter op.'},
+  {id:'b4',type:'Blog',bron:'Blog van een hobbyvisser',ok:false,tekst:'Vissterfte komt eigenlijk altijd door zure regen. Een lage pH haalt de zuurstof uit het water!'},
+  {id:'b5',type:'Reclamefolder',bron:'Folder van een kunstmestfabrikant',ok:false,tekst:'Onze kunstmest is volkomen onschadelijk voor sloten en vijvers.'},
+  {id:'b6',type:'Forumbericht',bron:'Online forum',ok:false,tekst:'Het strooizout van afgelopen winter zit nog in de vijver en vergiftigt de vissen, zeker weten.'},
+  {id:'b7',type:'Meetrapport',bron:'Gemeente, afdeling water',ok:true,tekst:'De pH van de vijver lag deze zomer tussen 7,2 en 7,8. Het water is middelhard.'}
+];
+const BEPERKINGEN = [
+  {id:'bereik',txt:'Er is maar in een deel van het mogelijke bereik gemeten.'},
+  {id:'herhaal',txt:'Er is per meetpunt weinig herhaald.'},
+  {id:'inst',txt:'Het gebruikte instrument was niet erg nauwkeurig.'},
+  {id:'lab',txt:'Het onderzoek is in het lab gedaan en niet in de vijver zelf.'},
+  {id:'hyp',txt:'De hypothese bleek niet te kloppen.'},
+  {id:'geld',txt:'Het onderzoek was duur.'}
+];
+const EVENTS = {
+  verstoring:{kind:'neg',titel:'Temperatuurschommeling in het lab',tekst:'De verwarming in het lab slaat op hol. De temperatuur van de opstellingen schommelt deze ronde.'},
+  ijkfout:{kind:'neg',titel:'IJkfout ontdekt',tekst:'Bij een controle blijkt een instrument verkeerd geijkt: het geeft systematisch te hoge waarden.'},
+  stuk:{kind:'neg',titel:'Apparaat kapot',tekst:'Het beste meetinstrument van het lab is deze ronde in reparatie.'},
+  verontreinigd:{kind:'neg',titel:'Verontreinigde chemicaliën',tekst:'Er blijkt een verontreinigde fles in het lab te staan. Metingen van de vorige ronde zijn mogelijk onbruikbaar.'},
+  incident:{kind:'neg',titel:'Incident in het lab',tekst:'Er valt een fles om en er moet worden opgeruimd.'},
+  storing:{kind:'neg',titel:'Stroomstoring',tekst:'Een deel van de dag valt de stroom uit. Er zijn deze ronde minder meetslots.'},
+  evaluatie:{kind:'fin',titel:'Tussentijdse evaluatie',tekst:'De gemeente wil resultaten zien. Is er de afgelopen twee rondes iets gepubliceerd?'},
+  audit:{kind:'fin',titel:'Audit',tekst:'Een externe commissie controleert hoe het instituut werkt.'},
+  bezuiniging:{kind:'fin',titel:'Bezuinigingsronde',tekst:'De huur van het lab stijgt. De vaste lasten worden €1k hoger.'},
+  talent:{kind:'pos',titel:'Getalenteerde onderzoeker wil samenwerken',tekst:'Een onderzoeker van een ander instituut wil twee rondes met jullie meewerken. Kies welke rol zij vervult.'},
+  stagiair:{kind:'pos',titel:'Stagiair',tekst:'Een student komt stage lopen. Na een ronde inwerken heeft de meettechnicus twee rondes lang +3 meetslots.'},
+  uni:{kind:'pos',titel:'Samenwerking met de universiteit',tekst:'De universiteit leent jullie twee rondes een zuurstofmeter (niveau 3).'},
+  subsidie:{kind:'pos',titel:'Subsidie-oproep',tekst:'Een fonds geeft extra geld voor een publicatie over een bepaald onderwerp, als die binnen twee rondes verschijnt.'},
+  artikel:{kind:'pos',titel:'Open-access-artikel gevonden',tekst:'Jullie stuiten op een vrij toegankelijk artikel.'},
+  waarneming:{kind:'pos',titel:'Onverwachte waarneming',tekst:'Wie zorgvuldig en herhaald meet, neemt soms iets onverwachts waar.'},
+  media:{kind:'pos',titel:'Media-aandacht',tekst:'De lokale krant schrijft over het onderzoek.'},
+  rustig:{kind:'fin',titel:'Rustige week',tekst:'Er gebeurt niets bijzonders. Fijn om door te kunnen werken.'},
+  sponsor:{kind:'dil',titel:'Een bedrijf wil sponsoren',tekst:'Een kunstmestfabrikant biedt €15k sponsoring aan. In ruil verwacht het bedrijf dat jullie onderzoek "positief" uitvalt voor hun producten.'},
+  onthulling:{kind:'neg',titel:'Onthulling in de krant',tekst:'Een journalist ontdekt dat het instituut gesponsord wordt door een kunstmestfabrikant.'}
+};
+const DECK_BASE = ['verstoring','ijkfout','stuk','verontreinigd','incident','storing','evaluatie','audit','bezuiniging','talent','stagiair','uni','subsidie','artikel','waarneming','media','rustig'];
+const KIND_LABEL = {neg:'Tegenslag',pos:'Kans',fin:'Financier',dil:'Dilemma'};
+
+/* ================= HELPERS ================= */
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const k = n=>{const v=Math.round(n*10)/10;return '€'+(Number.isInteger(v)?v:v.toFixed(1).replace('.',','))+'k'};
+const num = (v,d)=>v.toFixed(d).replace('.',',');
+const gauss = ()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
+const shuffle = a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const F = id=>FACTORS.find(f=>f.id===id);
+const xval = (f,x)=>{if(f.labels)return f.labels[x];const s=num(x,Number.isInteger(x)?0:2);return s.includes(',')?s.replace(/0+$/,'').replace(/,$/,''):s};
+const xlab = (f,x)=>xval(f,x)+(f.labels||!f.eenheid?'':' '+f.eenheid);
+const SAVE_KEY='hetlab-v1';
+
+let S = null;          // game state
+let ui = {screen:'start', tab:'data', tx:null, reps:3, inst:null, setup:null};
+
+function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S))}catch(e){}}
+function loadSaved(){try{const t=localStorage.getItem(SAVE_KEY);return t?JSON.parse(t):null}catch(e){return null}}
+function clearSave(){try{localStorage.removeItem(SAVE_KEY)}catch(e){}}
+
+const has = id=>S.skills.includes(id);
+function hasRole(r){
+  if(CORE.includes(r)||S.chosen.includes(r))return true;
+  return !!(S.guest&&S.guest.role===r&&S.round<=S.guest.until);
+}
+function playerFor(r){
+  if(S.assign[r])return S.assign[r];
+  if(S.guest&&S.guest.role===r)return S.guest.player+' (gast)';
+  return '';
+}
+function turnOrder(){return ['leider',...['pm','kwal','lit'].filter(hasRole),'tech','analist']}
+function cur(){return turnOrder()[S.turnIdx]}
+function active(){return S.active!=null?S.studies[S.active]:null}
+function log(t,kind=''){S.log.push({r:S.round,t,kind})}
+function spend(n,why){S.budget=Math.round((S.budget-n)*10)/10;S.ledger.push({r:S.round,d:-n,why});}
+function earn(n,why){S.budget=Math.round((S.budget+n)*10)/10;S.ledger.push({r:S.round,d:n,why});}
+function measCost(f){let c=1;if(has('werkplan'))c-=0.5;if(f&&f.veld&&has('veld'))c-=0.5;return Math.max(0.5,c)}
+function fixedCost(){return S.fixed-(has('lobby')?1:0)}
+function availLevels(){
+  let lv=S.owned.slice();
+  if(S.fx.stuk===S.round&&!has('onderhoud')&&lv.length>1)lv=lv.filter(l=>l!==Math.max(...lv));
+  if(S.fx.leenTot>=S.round&&!lv.includes(3))lv.push(3);
+  return lv.sort();
+}
+
+/* ================= NEW GAME ================= */
+function newGame(cfg){
+  const deck=shuffle(DECK_BASE);
+  if(cfg.level===3)deck.splice(1+Math.floor(Math.random()*3),0,'sponsor');
+  S={v:1,level:cfg.level,players:cfg.players,chosen:cfg.chosen,assign:cfg.assign,round:1,maxRounds:8,
+     budget:40,fixed:4,expertise:0,skills:[],owned:[1],cal:{},deck,fx:{},studies:[],active:null,turnIdx:0,
+     slots:9,slotsUsed:0,freeUsed:0,bronnen:[],hints:[],lastPub:0,oproep:null,sponsored:false,guest:null,
+     log:[],ledger:[],over:null,event:null};
+  log('Ronde 1: het instituut krijgt een startsubsidie van €40k.');
+  startTurnPhase();
+}
+
+/* ================= ROUND FLOW ================= */
+function computeSlots(){
+  let s=9;if(has('efficient'))s+=3;
+  if(S.fx.stagVan&&S.round>=S.fx.stagVan&&S.round<=S.fx.stagTot)s+=3;
+  if(S.fx.storing===S.round)s-=3;
+  if(S.fx.incident===S.round)s-=5;
+  S.slots=Math.max(0,s);S.slotsUsed=0;S.freeUsed=0;
+}
+function startTurnPhase(){computeSlots();S.turnIdx=0;S.event=null;save();render()}
+function endTurn(){
+  S.turnIdx++;
+  if(S.turnIdx>=turnOrder().length){endRound();return}
+  ui.tx=null;save();render();
+}
+function endRound(){
+  const fc=fixedCost();spend(fc,'Vaste lasten');log(`Vaste lasten betaald: ${k(fc)}.`);
+  if(S.oproep&&S.round>=S.oproep.tot){log('De subsidie-oproep is verlopen.');S.oproep=null}
+  if(checkBudget())return;
+  if(S.round>=S.maxRounds){finish(false,'De subsidieperiode is voorbij zonder eindrapport. De financiering stopt.');return}
+  S.round++;S.turnIdx=0;ui.tx=null;ui.mx=null;
+  if(S.guest&&S.round>S.guest.until){log(`De gastonderzoeker (${ROLES[S.guest.role].naam}) vertrekt.`);S.guest=null}
+  drawEvent();
+}
+function checkBudget(){
+  if(S.budget<0){finish(false,'Het budget is op. De gemeente zet de financiering stop.');return true}
+  return false;
+}
+function drawEvent(){
+  if(!S.deck.length)S.deck=shuffle(DECK_BASE);
+  const id=S.deck.shift();
+  S.event={id,stage:'show',msg:''};
+  resolveEvent(id);
+  save();render();
+}
+function resolveEvent(id){
+  const E=S.event;const st=active();
+  const say=m=>{E.msg=m;log(EVENTS[id].titel+': '+m,EVENTS[id].kind)};
+  switch(id){
+    case 'verstoring': if(hasRole('kwal'))say('De kwaliteitsbewaker houdt de omstandigheden constant. Geen effect.');
+      else{S.fx.verstoord=S.round;say('Metingen deze ronde krijgen extra spreiding, omdat de temperatuur niet constant is.')} break;
+    case 'ijkfout':{const lv=Math.max(...S.owned);S.cal[lv]=1.5;say(`De ${INST[lv].naam} meet voortaan 1,5 mg/L te hoog, tot het instrument geijkt is. Herhalen helpt hier niet.`);break}
+    case 'stuk': if(has('onderhoud')||S.owned.length<2)say(S.owned.length<2?'Gelukkig hebben jullie alleen teststrips. Geen effect.':'Dankzij preventief onderhoud is alles op tijd gerepareerd.');
+      else{S.fx.stuk=S.round;say(`De ${INST[Math.max(...S.owned)].naam} is deze ronde niet beschikbaar.`)} break;
+    case 'verontreinigd':
+      if(has('opgeruimd'))say('In een opgeruimd lab valt de verontreinigde fles meteen op. Geen effect.');
+      else if(st){const before=st.meas.length;st.meas=st.meas.filter(m=>m.r!==S.round-1);const n=before-st.meas.length;say(n?`${n} metingen van de vorige ronde zijn ongeldig en verwijderd.`:'Er waren geen metingen van de vorige ronde. Geen effect.')}
+      else say('Er liep geen onderzoek. Geen effect.'); break;
+    case 'incident':{let ok=false;if(hasRole('veilig'))ok=has('cultuur')||Math.random()<0.5;
+      if(ok)say('De veiligheidscoördinator heeft het lab goed op orde: het incident wordt voorkomen.');
+      else{S.fx.incident=S.round;say('Opruimen kost tijd: deze ronde 5 meetslots minder.'+(hasRole('veilig')?'':' (Een veiligheidscoördinator had dit kunnen voorkomen.)'))} break}
+    case 'storing': S.fx.storing=S.round;say('Deze ronde 3 meetslots minder.');break;
+    case 'evaluatie': if(S.round-S.lastPub>2){spend(5,'Tussentijdse evaluatie');say('Er is te lang niets gepubliceerd. Korting: −€5k.')}else say('De gemeente is tevreden over de voortgang.');break;
+    case 'audit': if(S.sponsored){spend(10,'Audit');say('De commissie ontdekt de sponsoring door de kunstmestfabrikant: belangenverstrengeling. Boete: −€10k.')}else{earn(2,'Audit');say('De audit is doorstaan. De gemeente geeft een kleine bonus: +€2k.')}break;
+    case 'bezuiniging': S.fixed+=1;say(`De vaste lasten zijn nu ${k(S.fixed)} per ronde.`);break;
+    case 'talent':{const opts=KEUZE.filter(r=>!hasRole(r)&&!(ROLES[r].minLvl>S.level));
+      if(!opts.length){say('Alle rollen zijn al bezet. Zij geeft wat goede tips, maar vertrekt weer.')}else{E.stage='choose';E.opts=opts;E.msg=''} break}
+    case 'stagiair': S.fx.stagVan=S.round+1;S.fx.stagTot=S.round+2;say(`In ronde ${S.round+1} en ${S.round+2} heeft de meettechnicus +3 meetslots.`);break;
+    case 'uni': S.fx.leenTot=S.round+1;say(`In ronde ${S.round} en ${S.round+1} kunnen jullie met een zuurstofmeter meten.`);break;
+    case 'subsidie':{const done=S.studies.filter(s=>s.status==='gepubliceerd').map(s=>s.f);
+      const opts=FACTORS.filter(f=>!done.includes(f.id)&&(!f.needs||hasRole(f.needs)));
+      if(!opts.length){say('Er is geen passend onderwerp meer. Jammer.')}else{const f=opts[Math.floor(Math.random()*opts.length)];E.stage='choose';E.f=f.id;E.msg=''} break}
+    case 'artikel':{const b=BRONNEN.find(b=>b.ok&&!S.bronnen.includes(b.id));if(b){S.bronnen.push(b.id);say('Er is een nieuwe bron toegevoegd. Lees hem in het tabblad Bronnen.')}else say('Niets nieuws te vinden.');break}
+    case 'waarneming':{const st2=S.studies.find(s=>groups(s).some(g=>g.n>=3));
+      if(st2){const h=st2.f==='kunst'?'Het water in de emmers met kunstmest is na een paar dagen groen geworden: er zijn veel algen gegroeid.':'Bij het monsternemen valt op dat het water bij de inlaat van de sloot groener is dan midden in de vijver.';
+        if(!S.hints.includes(h))S.hints.push(h);say(h+' (Toegevoegd bij Bronnen.)')}
+      else say('Er is nog nergens herhaald gemeten. Niemand neemt iets bijzonders waar.');break}
+    case 'media': if(S.studies.some(s=>s.status==='gepubliceerd')){earn(4,'Media-aandacht');say('Een lezer doneert €4k aan het onderzoek.')}else say('Zonder publicaties is er nog niets te melden. Geen effect.');break;
+    case 'rustig': say('Geen effect.');break;
+    case 'sponsor': E.stage='choose';E.msg='';break;
+    case 'onthulling': spend(20,'Onthulling sponsoring');say('Het vertrouwen van de gemeente is weg: −€20k.');break;
+  }
+}
+function chooseEvent(val){
+  const E=S.event,id=E.id;
+  const say=m=>{E.msg=m;E.stage='show';log(EVENTS[id].titel+': '+m,EVENTS[id].kind)};
+  if(id==='talent'){const [role,player]=val;S.guest={role,player,until:S.round+1};say(`${player} speelt in ronde ${S.round} en ${S.round+1} ook de ${ROLES[role].naam.toLowerCase()}.`)}
+  if(id==='subsidie'){if(val){S.oproep={f:E.f,tot:S.round+2};say(`Oproep aangenomen: publiceer vóór het einde van ronde ${S.round+2} over "${F(E.f).naam.toLowerCase()}" voor €10k extra.`)}else say('Het team slaat de oproep af en blijft bij het eigen plan.')}
+  if(id==='sponsor'){if(val){S.sponsored=true;earn(15,'Sponsoring');S.deck.splice(Math.min(S.deck.length,1+Math.floor(Math.random()*2)),0,'onthulling');say('Het team neemt het geld aan: +€15k.')}else say('Het team bedankt vriendelijk: onafhankelijk onderzoek gaat voor.')}
+  save();render();
+}
+function closeEvent(){if(checkBudget())return;startTurnPhase()}
+
+/* ================= STUDIES ================= */
+function startStudy(fid,hyp,controls){
+  const f=F(fid);const needed=f.controls.map(c=>c.id);
+  const st={n:S.studies.length+1,f:fid,hyp,controls,missing:needed.filter(id=>!controls.includes(id)),meas:[],status:'actief',r:S.round,res:null};
+  S.studies.push(st);S.active=S.studies.length-1;
+  log(`Deelonderzoek ${st.n} gestart: ${f.naam.toLowerCase()} (hypothese: ${hypTxt(hyp)}).`);
+  save();render();
+}
+const hypTxt=h=>({stijgt:'het zuurstofgehalte stijgt',daalt:'het zuurstofgehalte daalt',geen:'geen invloed'}[h]);
+function stopStudy(){const st=active();if(!st)return;st.status='gestopt';S.active=null;log(`Deelonderzoek ${st.n} is stopgezet.`);save();render()}
+function measure(x,reps,lv){
+  const st=active();const f=F(st.f);let done=0;
+  for(let i=0;i<reps;i++){
+    if(S.slotsUsed>=S.slots)break;
+    const free=has('routine')&&S.freeUsed<3;const c=free?0:measCost(f);
+    if(S.budget<c)break;
+    if(free)S.freeUsed++;else spend(c,'Metingen');
+    S.slotsUsed++;
+    let v=f.truth(x)+gauss()*INST[lv].sigma;
+    for(const id of st.missing){const c2=f.controls.find(c=>c.id===id);v+=c2.oneSided?Math.random()*c2.b:(Math.random()-.5)*2*c2.b}
+    if(S.fx.verstoord===S.round&&!hasRole('kwal'))v+=(Math.random()-.5)*2;
+    const cal=!!S.cal[lv];if(cal)v+=S.cal[lv];
+    v=Math.max(0,v);
+    st.meas.push({x,lv,v,s:num(v,INST[lv].dec),r:S.round,cal});done++;
+  }
+  if(done)log(`${done} meting${done>1?'en':''} bij ${xlab(f,x)} met ${INST[lv].naam}.`);
+  save();render();
+}
+function groups(st){
+  const m={};for(const q of st.meas){(m[q.x]=m[q.x]||[]).push(q)}
+  return Object.keys(m).map(Number).sort((a,b)=>a-b).map(x=>{const a=m[x];const mean=a.reduce((s,q)=>s+q.v,0)/a.length;
+    const dec=Math.min(...a.map(q=>INST[q.lv].dec));const sig=Math.max(...a.map(q=>INST[q.lv].sigma));
+    const se=Math.sqrt(a.reduce((s,q)=>s+INST[q.lv].sigma**2,0))/a.length;
+    return {x,n:a.length,mean,meanDisp:a.reduce((s,q)=>s+parseFloat(q.s.replace(',','.')),0)/a.length,dec,sig,se,list:a}});
+}
+function evidence(st){
+  const f=F(st.f);const g=groups(st);
+  if(g.length<2)return {shows:'onduidelijk',why:['Er is maar bij één waarde van de onafhankelijke variabele gemeten. Meet bij minstens twee verschillende waarden.'],g};
+  const lo=g[0],hi=g[g.length-1];
+  const nmin=Math.min(lo.n,hi.n);const sig=Math.max(lo.sig,hi.sig);
+  const thr=2*Math.sqrt(lo.se**2+hi.se**2);const d=hi.mean-lo.mean;
+  const cover=(hi.x-lo.x)/(f.xs[f.xs.length-1]-f.xs[0]);
+  if(Math.abs(d)>thr)return {shows:d>0?'stijgt':'daalt',g,thr,d,cover};
+  const why=[];
+  if(cover<0.5)why.push('Het meetbereik is te smal: een eventuele invloed valt binnen zo’n klein bereik niet op.');
+  if(thr>0.5)why.push(sig>=0.3&&nmin>=3?'De metingen zijn te onnauwkeurig om een eventuele invloed op te merken. Een nauwkeuriger instrument helpt.':'De verschillen zijn niet groter dan de spreiding van de metingen. Meet vaker of nauwkeuriger.');
+  if(!why.length)return {shows:'geen',g,thr,d,cover};
+  return {shows:'onduidelijk',why,g,thr,d,cover};
+}
+function realLimits(st){
+  const f=F(st.f);const ev=evidence(st);const g=ev.g;const out=new Set();
+  if(g.length&&((g[g.length-1].x-g[0].x)/(f.xs[f.xs.length-1]-f.xs[0]))<1)out.add('bereik');
+  if(g.length&&Math.min(...g.map(q=>q.n))<3)out.add('herhaal');
+  if(st.meas.some(q=>q.lv===1))out.add('inst');
+  if(!f.veld)out.add('lab');
+  return out;
+}
+function publish(form){
+  const st=active();const f=F(st.f);const ev=evidence(st);
+  const R={kind:'',msgs:[],claim:form.claim,steun:form.steun};
+  const fail=(m)=>{R.kind='afgewezen';R.msgs.push(...[].concat(m));};
+  // 1 ongeldige opzet
+  if(st.missing.length){fail(`De opzet was ongeldig: ${st.missing.map(id=>f.controls.find(c=>c.id===id).naam).join(' en ')} ${st.missing.length>1?'zijn':'is'} niet constant gehouden. Daardoor zegt de data weinig over de invloed van ${f.xnaam}.`)}
+  // 2 systematische fout
+  else if(st.meas.some(q=>q.cal)){fail('Een deel van de metingen is gedaan met een verkeerd geijkt instrument. Dat is een systematische fout: herhalen helpt daar niet tegen, ijken wel. Verwijder die metingen of ijk eerst.')}
+  else{
+    const goodSteun=form.claim===st.hyp?'ondersteund':'weerlegd';
+    if(form.steun!==goodSteun){fail(`De hypothese was "${hypTxt(st.hyp)}". Als de data laten zien: "${hypTxt(form.claim)}", dan is de hypothese ${goodSteun}, niet ${form.steun}.`)}
+    else if(ev.shows==='onduidelijk'){R.kind='onvoldoende';R.msgs.push(...ev.why)}
+    else if(form.claim!==ev.shows){fail(`De conclusie past niet bij de data. Kijk nog eens naar de gemiddelden bij de laagste en de hoogste waarde van ${f.xnaam}.`)}
+    else if(form.claim!==f.effect){R.kind='onvoldoende';R.msgs.push('De financier herhaalt jullie metingen en vindt een ander resultaat. Waarschijnlijk was het toeval: meet vaker of nauwkeuriger.')}
+    else if(S.level>=2&&ev.g.length<3){R.kind='onvoldoende';R.msgs.push('Om het type verband te bepalen zijn metingen bij minstens drie verschillende waarden nodig.')}
+    else if(S.level>=2&&form.verband!==f.verband){fail(`Het verband klopt niet met de data. ${form.verband==='recht'?'Bij een recht evenredig verband gaat de lijn door de oorsprong.':form.verband==='omgekeerd'?'Bij omgekeerd evenredig wordt de afstand tussen de punten steeds kleiner en blijft het product van x en y gelijk.':form.verband==='geen'?'De data laten wel een duidelijke verandering zien.':'Kijk of de punten op een rechte lijn liggen.'}`)}
+    else if(S.level>=3){
+      const hi=ev.g[ev.g.length-1];const txt=(form.sigval||'').trim().replace(',','.');const val=parseFloat(txt);
+      const decIn=txt.includes('.')?txt.split('.')[1].length:0;
+      const sigN=d=>{const s=num(hi.meanDisp,d).replace(',','');return s.replace(/^0+/,'').length};
+      if(isNaN(val)){fail('Er is geen gemiddelde ingevuld.')}
+      else if(decIn>hi.dec){fail(`Overclaimen: het gemiddelde bij ${xlab(f,hi.x)} is met meer significante cijfers genoteerd dan het instrument toelaat. Gebruik ${sigN(hi.dec)} significante cijfers.`)}
+      else if(decIn<hi.dec){fail(`Het gemiddelde is met te weinig significante cijfers genoteerd. Jullie metingen laten ${sigN(hi.dec)} significante cijfers toe.`)}
+      else if(Math.abs(val-hi.meanDisp)>0.5*Math.pow(10,-hi.dec)+1e-9){fail(`Het ingevulde gemiddelde bij ${xlab(f,hi.x)} klopt niet. Reken het nog eens na.`)}
+    }
+  }
+  if(!R.kind){
+    R.kind='succes';let gain=12;const extra=[];
+    if(has('overtuigend')){gain+=3;extra.push('overtuigend +€3k')}
+    if(has('schrijf')){gain+=2;extra.push('heldere schrijfstijl +€2k')}
+    earn(gain,'Publicatie');S.expertise+=2;
+    R.msgs.push(`De publicatie is geaccepteerd.${f.effect==='geen'?' Een factor uitsluiten is net zo waardevol als een invloed aantonen.':''} Verlenging van de financiering: +${k(gain)}${extra.length?' ('+extra.join(', ')+')':''}, +2 expertise.`);
+    if(S.oproep&&S.oproep.f===st.f){const b=10+(has('subsidiejager')?5:0);earn(b,'Subsidie-oproep');R.msgs.push(`De subsidie-oproep is gehaald: +${k(b)}.`);S.oproep=null}
+    if(hasRole('rapp')&&S.level>=2&&form.beperking){
+      const real=realLimits(st);
+      if(real.has(form.beperking)){earn(3,'Discussie');R.msgs.push('De rapporteur benoemt een echte beperking in de discussie: +€3k.')}
+      else R.msgs.push(form.beperking==='hyp'?'Discussie: een weerlegde hypothese is geen beperking van het onderzoek, maar gewoon een resultaat.':'Discussie: dit is geen beperking van de resultaten.');
+    }
+    st.status='gepubliceerd';S.lastPub=S.round;S.active=null;
+  } else if(R.kind==='afgewezen'){
+    spend(4,'Afgewezen publicatie');st.status='afgewezen';S.active=null;R.msgs.push('De financier verliest wat vertrouwen: −€4k. Het deelonderzoek is afgesloten; jullie kunnen het opnieuw opzetten.');
+  }
+  st.res={kind:R.kind,claim:form.claim,steun:form.steun,verband:form.verband,msgs:R.msgs.slice(),r:S.round};
+  log(`Publicatie deelonderzoek ${st.n}: ${R.kind}.`,R.kind==='succes'?'pos':R.kind==='afgewezen'?'neg':'');
+  save();
+  openModal(feedbackHTML(R));
+  if(R.kind==='afgewezen')checkBudget();
+}
+function evidencePreview(){
+  const st=active();const ev=evidence(st);
+  const m=ev.shows==='onduidelijk'?ev.why.join(' '):'Het verschil tussen de laagste en hoogste meetwaarde is groter dan de spreiding. Er is genoeg bewijs voor een conclusie.';
+  openModal(`<div class="cardart"></div><h2>Bewijscheck</h2><p>${esc(m)}</p><p class="small muted">Deze check zegt niets over welke conclusie juist is: dat moeten jullie zelf uit de data halen.</p><div class="row"><button class="btn-main" data-act="closeModal">Terug</button></div>`);
+}
+
+/* ================= EINDRAPPORT ================= */
+function submitReport(ids){
+  const pub=S.studies.filter(s=>s.status==='gepubliceerd');
+  const bewijs=id=>pub.some(s=>s.f===id&&s.res&&s.res.claim!=='geen');
+  const missing=ids.filter(id=>!bewijs(id));
+  if(missing.length){const n=missing.map(id=>(F(id)||EXTRA_OORZAKEN.find(e=>e.id===id)).naam.toLowerCase());
+    finish(false,`Het eindrapport noemt oorzaken zonder bewijs uit eigen gepubliceerd onderzoek (${n.join(', ')}). De gemeente keurt het rapport af en stopt de financiering.`);return}
+  if(ids.length===1&&ids[0]==='kunst'){finish(true,'Kunstmest uit de akker zorgt voor sterke algengroei. ’s Nachts verbruiken de algen zuurstof, net als de afbraak van dode algen. Daardoor zakt het zuurstofgehalte ’s ochtends onder de 4 mg/L. De gemeente gaat met de boeren in gesprek over een bufferstrook langs de sloot.');return}
+  let m='Het eindrapport wijst niet de juiste oorzaak aan.';
+  if(ids.includes('temp'))m+=' Temperatuur heeft wel invloed op het zuurstofgehalte, maar daarmee zakt het niet onder de 4 mg/L: bij 25 °C lost nog ruim 8 mg/L op.';
+  if(ids.includes('plek')&&!ids.includes('kunst'))m+=' De meetplek laat zien wáár het probleem zit, maar niet wat het veroorzaakt.';
+  finish(false,m+' De financiering wordt stopgezet.');
+}
+function finish(won,msg){S.over={won,msg,r:S.round};log(won?'Eindrapport goedgekeurd!':'Het spel is afgelopen.',won?'pos':'neg');save();closeModal();ui.screen='end';render()}
+
+/* ================= MODAL ================= */
+function openModal(html){$('#modal-root').innerHTML=`<div class="ov" data-ov="1"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;const b=$('#modal-root button');if(b)b.focus()}
+function closeModal(){$('#modal-root').innerHTML=''}
+function feedbackHTML(R){
+  const t={succes:'Publicatie geaccepteerd',onvoldoende:'Onvoldoende bewijs',afgewezen:'Publicatie afgewezen'}[R.kind];
+  const cls=R.kind==='succes'?'pos':R.kind==='afgewezen'?'neg':'';
+  return `<div class="cardart ${cls}"></div><h2>${t}</h2>${R.msgs.map(m=>`<div class="feed ${R.kind==='afgewezen'?'bad':''}">${esc(m)}</div>`).join('')}
+  ${R.kind==='onvoldoende'?'<p class="small muted">Geen straf: de data blijven bewaard en jullie kunnen verder meten.</p>':''}
+  <div class="row"><button class="btn-main" data-act="closeModal">Verder</button></div>`;
+}
+function eventHTML(){
+  const E=S.event,ev=EVENTS[E.id];
+  let body='';
+  if(E.stage==='choose'){
+    if(E.id==='talent'){body=`<fieldset><legend>Welke rol vervult zij?</legend>${E.opts.map((r,i)=>`<label class="chk"><input type="radio" name="trole" value="${r}" ${i===0?'checked':''}> ${ROLES[r].naam}: <span class="small muted">${esc(ROLES[r].taak)}</span></label>`).join('')}</fieldset>
+      <label class="small">Wie van jullie speelt deze rol erbij?<select id="tplayer">${S.players.map(p=>`<option>${esc(p)}</option>`).join('')}</select></label>
+      <div class="row" style="margin-top:14px"><button class="btn-main" data-act="evTalent">Welkom!</button></div>`}
+    if(E.id==='subsidie'){body=`<p><strong>Onderwerp: ${esc(F(E.f).naam)}.</strong> Publiceer vóór het einde van ronde ${S.round+2} een geslaagd deelonderzoek hierover voor €10k extra${has('subsidiejager')?' (+€5k subsidiejager)':''}.</p><p class="small muted">Past dit in jullie plan, of houdt het jullie op?</p>
+      <div class="row"><button class="btn-main" data-act="evYes">Oproep aannemen</button><button data-act="evNo">Afslaan</button></div>`}
+    if(E.id==='sponsor'){body=`<p>Accepteren levert direct €15k op. Weigeren levert niets op.</p><div class="row"><button data-act="evYes">Sponsoring aannemen</button><button class="btn-main" data-act="evNo">Vriendelijk weigeren</button></div>`}
+  } else body=`<div class="feed ${ev.kind==='neg'?'bad':''}">${esc(E.msg)}</div><div class="row"><button class="btn-main" data-act="evClose">Naar ronde ${S.round}</button></div>`;
+  return `<div class="cardart ${ev.kind}"></div><div class="evkind ${ev.kind}">Gebeurtenis · ${KIND_LABEL[ev.kind]} · ronde ${S.round}</div><h2>${esc(ev.titel)}</h2><p>${esc(ev.tekst)}</p>${body}`;
+}
+
+/* ================= RENDER ================= */
+const POND = `<svg viewBox="0 0 600 400" role="img" aria-label="Vijver met sloot langs een akker">
+<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfe9ef"/><stop offset="1" stop-color="#eef6f1"/></linearGradient>
+<linearGradient id="water" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3f9c8f"/><stop offset="1" stop-color="#16524f"/></linearGradient>
+<radialGradient id="alg" cx=".2" cy=".4" r=".5"><stop offset="0" stop-color="#8fc04a" stop-opacity=".9"/><stop offset="1" stop-color="#8fc04a" stop-opacity="0"/></radialGradient></defs>
+<rect width="600" height="400" fill="url(#sky)"/>
+<path d="M0 150 L600 120 L600 400 L0 400Z" fill="#a9c97a"/>
+<g stroke="#8aa85b" stroke-width="3">${Array.from({length:9},(_,i)=>`<path d="M${20+i*22} 160 L${60+i*22} 400"/>`).join('')}</g>
+<path d="M0 150 L230 140 L230 400 L0 400Z" fill="#c9a86a" opacity=".55"/>
+<path d="M225 135 C 240 200, 210 260, 250 300" stroke="#3f9c8f" stroke-width="16" fill="none" stroke-linecap="round"/>
+<ellipse cx="400" cy="300" rx="190" ry="80" fill="#0f3d3b" opacity=".25"/>
+<ellipse cx="395" cy="290" rx="185" ry="76" fill="url(#water)"/>
+<ellipse cx="300" cy="290" rx="120" ry="60" fill="url(#alg)"/>
+<path d="M240 262 q160 -30 330 10" stroke="#fff" stroke-opacity=".35" stroke-width="3" fill="none"/>
+<g fill="#e6efeb"><path d="M430 300 q18 -10 36 0 q-18 10 -36 0z M466 300 l10 -7 v14z" opacity=".9" transform="rotate(170 452 300)"/>
+<path d="M500 320 q14 -8 28 0 q-14 8 -28 0z M528 320 l8 -6 v12z" opacity=".75" transform="rotate(190 514 320)"/></g>
+<g transform="translate(470 120)"><rect x="0" y="40" width="96" height="58" rx="4" fill="#fdfcf6"/><path d="M-8 44 L48 6 L104 44Z" fill="#17605c"/><rect x="38" y="64" width="20" height="34" fill="#17605c"/><rect x="10" y="56" width="18" height="14" fill="#cfe9ef"/><rect x="68" y="56" width="18" height="14" fill="#cfe9ef"/></g>
+<text x="482" y="232" font-size="15" font-weight="700" fill="#17605c" font-family="system-ui,sans-serif">Het Lab</text>
+</svg>`;
+
+function render(){
+  const app=$('#app');
+  if(ui.screen==='start')app.innerHTML=startHTML();
+  else if(ui.screen==='setup')app.innerHTML=setupHTML();
+  else if(ui.screen==='intro')app.innerHTML=introHTML();
+  else if(ui.screen==='game'){app.innerHTML=gameHTML();drawGraph();
+    if(S.event&&!$('#modal-root').innerHTML)openModal(eventHTML());
+    else if(S.event)$('#modal-root .modal').innerHTML=eventHTML();}
+  else if(ui.screen==='end')app.innerHTML=endHTML();
+}
+function startHTML(){
+  const sv=loadSaved();const can=sv&&!sv.over;
+  return `<div class="wrap"><div class="hero"><div>
+  <h1>Het Lab</h1>
+  <p class="lead">Een coöperatief onderzoeksspel. Jullie runnen samen een klein onderzoeksinstituut en zoeken uit waarom de vissen in de stadsvijver doodgaan, voordat het geld op is.</p>
+  <p class="muted">Eén laptop per team · 3 of 4 spelers · ongeveer 60 minuten · tussendoor opslaan kan</p>
+  <div class="row" style="margin-top:18px">
+    <button class="btn-main" data-act="toSetup">Nieuw spel</button>
+    ${can?`<button data-act="resume">Verder met opgeslagen spel (ronde ${sv.round})</button>`:''}
+    <button data-act="showImport">Spel laden met code</button>
+  </div>
+  <div id="importbox" class="card hidden" style="margin-top:14px"><label class="small">Plak hier de opslagcode<textarea id="importcode"></textarea></label><div class="row" style="margin-top:8px"><button data-act="doImport">Laden</button><span id="importmsg" class="small muted"></span></div></div>
+  </div>${POND}</div></div>`;
+}
+function setupHTML(){
+  const s=ui.setup;
+  const keuzeOpts=KEUZE.filter(r=>!(ROLES[r].minLvl>s.level));
+  s.chosen=s.chosen.filter(r=>keuzeOpts.includes(r));
+  const roles=[...CORE,...s.chosen];
+  const pl=s.players.filter(p=>p.trim());
+  return `<div class="wrap"><h1>Nieuw spel</h1>
+  <div class="grid2">
+  <div class="card"><h2>1. Niveau</h2><div class="lvls">
+  ${[[1,'Basis','3V: variabelen, hypothese, betrouwbaarheid en nauwkeurigheid'],[2,'Grafieken en verbanden','4V: meetpunten in een grafiek, type verband bepalen, rapporteur'],[3,'Significantie','5V/6V: significante cijfers, overclaimen en een sponsordilemma']].map(([v,n,t])=>`
+  <label class="opt ${s.level===v?'on':''}"><input type="radio" name="lvl" value="${v}" ${s.level===v?'checked':''} data-ch="lvl"><span><strong>Niveau ${v}: ${n}</strong><br><span class="small muted">${t}</span></span></label>`).join('')}
+  </div>
+  <h2 style="margin-top:18px">2. Spelers</h2><p class="small muted">Vul 3 of 4 namen in.</p>
+  ${[0,1,2,3].map(i=>`<input type="text" style="margin-bottom:6px" placeholder="Speler ${i+1}${i===3?' (optioneel)':''}" value="${esc(s.players[i]||'')}" data-pl="${i}" maxlength="20">`).join('')}
+  </div>
+  <div class="card"><h2>3. Extra rollen</h2><p class="small muted">De onderzoeksleider, meettechnicus en data-analist zijn er altijd. Kies er 1 of 2 bij.</p>
+  <div style="display:grid;gap:8px">${keuzeOpts.map(r=>`<label class="opt ${s.chosen.includes(r)?'on':''}"><input type="checkbox" value="${r}" ${s.chosen.includes(r)?'checked':''} data-ch="role"><span><strong>${ROLES[r].naam}</strong><br><span class="small muted">${esc(ROLES[r].taak)}</span></span></label>`).join('')}</div>
+  </div></div>
+  <div class="card" style="margin-top:16px"><h2>4. Wie speelt welke rol?</h2>
+  <div id="assignbox">${assignHTML()}</div>
+  <p id="setupmsg" class="small" style="color:var(--warn);margin-top:10px"></p>
+  <div class="row" style="margin-top:6px"><button data-act="toStart">Terug</button><button class="btn-main" data-act="toIntro">Verder</button></div></div></div>`;
+}
+function assignHTML(){
+  const s=ui.setup;const pl=s.players.map(p=>p.trim()).filter(Boolean);const roles=[...CORE,...s.chosen];
+  if(pl.length<3)return '<p class="muted">Vul eerst minstens 3 spelersnamen in.</p>';
+  return `<p class="small muted">Iedereen speelt minstens één rol. Bij meer rollen dan spelers speelt iemand er twee.</p><div class="assign">${roles.map(r=>`<label for="as-${r}"><strong>${ROLES[r].naam}</strong></label><select id="as-${r}" data-as="${r}">${pl.map(p=>`<option ${s.assign[r]===p?'selected':''}>${esc(p)}</option>`).join('')}</select>`).join('')}</div>`;
+}
+function introHTML(){
+  return `<div class="wrap"><div class="hero"><div>
+  <p class="muted">Scenario</p><h1>Vissterfte in de stadsvijver</h1>
+  <p class="lead">Het is juli. In de stadsvijver drijven al een week elke ochtend dode vissen. Metingen van de gemeente laten zien dat er ’s ochtends te weinig zuurstof in het water is opgelost. Vissen hebben minstens 4 mg zuurstof per liter water nodig.</p>
+  <p>De gemeente financiert jullie instituut om uit te zoeken waardoor het zuurstofgehalte zo laag wordt.</p>
+  <div class="card" style="margin:14px 0"><h3>Hoofdvraag</h3><p style="font-size:18px;margin:0">Welke factor zorgt ervoor dat het zuurstofgehalte in de vijver onder de 4 mg/L zakt?</p></div>
+  </div>${POND}</div>
+  <div class="grid2" style="margin-top:8px">
+  <div class="card"><h3>Zo werkt een ronde</h3><ol class="small" style="padding-left:18px;margin:0">
+  <li>Een gebeurtenis: tegenslag, kans of iets van de financier.</li>
+  <li>Elke rol is om de beurt aan zet. Alleen de rol die aan zet is, mag zijn knoppen gebruiken.</li>
+  <li>Aan het eind van de ronde gaan de vaste lasten van het budget af (${k(4)} per ronde).</li></ol></div>
+  <div class="card"><h3>Winnen en verliezen</h3><ul class="small" style="padding-left:18px;margin:0">
+  <li>Een geslaagde publicatie levert geld en expertise op. Een factor uitsluiten telt net zo goed.</li>
+  <li>Het eindrapport mag na minstens 3 gepubliceerde deelonderzoeken. Elke genoemde oorzaak moet met eigen bewijs onderbouwd zijn.</li>
+  <li>Een fout eindrapport, een leeg budget of het einde van ronde 8 betekent: financiering stopgezet.</li></ul></div></div>
+  <div class="row" style="margin-top:16px"><button data-act="toSetup">Terug</button><button class="btn-main" data-act="startGame">Start het instituut</button></div></div>`;
+}
+
+function gameHTML(){
+  const r=cur();const R=ROLES[r];
+  const dots=Array.from({length:S.maxRounds},(_,i)=>`<i class="${i+1<S.round?'done':i+1===S.round?'now':''}"></i>`).join('');
+  const top=`<div class="top"><div class="in"><b>Het Lab</b>
+  <div class="stat"><span>Ronde ${S.round} van ${S.maxRounds}</span><div class="dots">${dots}</div></div>
+  <div class="stat"><span>Budget</span><strong>${k(S.budget)}</strong></div>
+  <div class="stat"><span>Expertise</span><strong>${S.expertise}</strong></div>
+  <div class="turn"><span class="tiny">Aan zet</span><br><strong>${R.naam}</strong> · ${esc(playerFor(r))}</div>
+  <button data-act="openReport">Eindrapport</button><button data-act="openMenu">Opslaan</button></div></div>`;
+  return top+`<div class="wrap"><div class="game">
+  <div class="side">${instituutHTML()}</div>
+  <div class="col">${roleHTML(r)}</div>
+  <div class="col">${dataHTML()}</div>
+  </div></div>`;
+}
+function instituutHTML(){
+  const pct=Math.max(0,Math.min(100,S.budget/60*100));
+  const lv=availLevels();
+  const fx=[];
+  if(S.fx.verstoord===S.round&&!hasRole('kwal'))fx.push(['bad','Temperatuurschommeling']);
+  if(S.fx.stuk===S.round&&!has('onderhoud')&&S.owned.length>1)fx.push(['bad','Beste instrument kapot']);
+  Object.keys(S.cal).forEach(l=>fx.push(['bad',INST[l].naam+' ongeijkt']));
+  if(S.fx.leenTot>=S.round)fx.push(['good','Zuurstofmeter geleend']);
+  if(S.oproep)fx.push(['good','Oproep: '+F(S.oproep.f).naam.toLowerCase()+' (t/m ronde '+S.oproep.tot+')']);
+  if(S.guest)fx.push(['good','Gast: '+ROLES[S.guest.role].naam.toLowerCase()]);
+  return `<div class="card"><h3>Financiering</h3><div class="meter ${S.budget<10?'low':''}"><i style="width:${pct}%"></i></div>
+  <p class="small" style="margin-top:6px">${k(S.budget)} · vaste lasten ${k(fixedCost())} per ronde</p>
+  <p class="small muted" style="margin:0">Meetslots deze ronde: ${S.slots-S.slotsUsed} van ${S.slots}</p></div>
+  <div class="card"><h3>Team</h3><ul class="roles">${[...CORE.slice(0,1),...S.chosen,...(S.guest&&!S.chosen.includes(S.guest.role)?[S.guest.role]:[]),'tech','analist'].map(rr=>`<li class="${rr===cur()?'act':''}"><span>${ROLES[rr].naam}${turnOrder().includes(rr)?'':' <small>(achtergrond)</small>'}</span><small>${esc(playerFor(rr))}</small></li>`).join('')}</ul></div>
+  <div class="card"><h3>Instrumenten zuurstof</h3>${[1,2,3].map(l=>`<div class="small row" style="justify-content:space-between"><span>${INST[l].naam} <span class="muted">± ${num(INST[l].sigma,1)} mg/L</span></span>${S.owned.includes(l)?'<span class="tag good">in bezit</span>':lv.includes(l)?'<span class="tag good">geleend</span>':`<span class="tag">${k(INST[l].prijs)}</span>`}</div>`).join('')}
+  ${fx.length?`<div class="row" style="margin-top:10px">${fx.map(([c,t])=>`<span class="tag ${c}">${esc(t)}</span>`).join('')}</div>`:''}
+  <details style="margin-top:10px"><summary class="small">Basisacties voor iedereen</summary>
+  <p class="tiny muted">Duurder dan via een specialist, maar altijd mogelijk.</p>
+  ${[2,3].filter(l=>!S.owned.includes(l)).map(l=>`<button class="small" style="width:100%;margin-bottom:6px" data-act="buy" data-lv="${l}" data-disc="0" ${S.budget<INST[l].prijs?'disabled':''}>Koop ${INST[l].naam} (${k(INST[l].prijs)})</button>`).join('')}
+  ${Object.keys(S.cal).length?`<button class="small" style="width:100%" data-act="calib" data-cost="6" ${S.budget<6?'disabled':''}>Externe ijkdienst (${k(6)})</button>`:''}
+  </details></div>
+  <div class="card"><h3>Logboek</h3><div class="log">${S.log.slice().reverse().map(l=>`<div><span class="muted tiny">R${l.r}</span> ${esc(l.t)}</div>`).join('')}</div></div>`;
+}
+function roleHead(r){return `<div class="rolehead"><div class="badge">${ROLES[r].kort}</div><div><h2 style="margin:0">${ROLES[r].naam}</h2><span class="muted small">${esc(playerFor(r))}</span></div></div><div class="task">${esc(ROLES[r].taak)}</div>`}
+function endBtn(){const last=S.turnIdx===turnOrder().length-1;return `<div class="row" style="margin-top:14px"><button class="btn-main" data-act="endTurn">${last?'Ronde afsluiten':'Klaar, volgende rol'}</button></div>`}
+function skillsHTML(r){
+  const sk=ROLES[r].skills||[];if(!sk.length)return '';
+  return `<details style="margin-top:12px"><summary class="small">Skills van deze rol (expertise: ${S.expertise})</summary>${sk.map(s=>`<div class="skill"><span><strong class="small">${s.naam}</strong><br><span class="tiny muted">${esc(s.txt)}</span></span>${has(s.id)?'<span class="tag good">actief</span>':`<button class="small" data-act="skill" data-id="${s.id}" data-cost="${s.kost}" ${S.expertise<s.kost?'disabled':''}>${s.kost} exp.</button>`}</div>`).join('')}</details>`;
+}
+function roleHTML(r){
+  let h='<div class="card">'+roleHead(r);
+  const st=active();
+  if(r==='leider'){
+    if(st){const f=F(st.f);h+=`<p>Er loopt een deelonderzoek: <strong>${esc(f.naam)}</strong>.</p><p class="small">Hypothese: ${hypTxt(st.hyp)}.<br>Constant gehouden: ${st.controls.length?st.controls.map(id=>{const c=f.controls.find(c=>c.id===id);return esc(c?c.naam:id)}).join(', '):'niets'}.</p>
+      <button class="btn-warn small" data-act="stopStudy">Onderzoek stopzetten</button>`}
+    else{
+      const avail=FACTORS.filter(f=>!f.needs||hasRole(f.needs));
+      const pub=S.studies.filter(s=>s.status==='gepubliceerd').map(s=>s.f);
+      const fsel=ui.tx&&F(ui.tx)?F(ui.tx):null;
+      h+=`<fieldset><legend>Deelvraag</legend>${avail.map(f=>`<label class="chk"><input type="radio" name="fac" value="${f.id}" ${fsel&&fsel.id===f.id?'checked':''} data-ch="fac"><span>${esc(f.vraag)} ${pub.includes(f.id)?'<span class="tag good">gepubliceerd</span>':''}</span></label>`).join('')}</fieldset>`;
+      if(fsel){
+        const opts=ui.ctrlOrder&&ui.ctrlOrder.f===fsel.id?ui.ctrlOrder.list:(ui.ctrlOrder={f:fsel.id,list:shuffle([...fsel.controls.map(c=>({id:c.id,naam:c.naam})),...fsel.decoys.map((d,i)=>({id:'dec'+i,naam:d}))])}).list;
+        h+=`<p class="small muted">${esc(fsel.opzet)}</p>
+        <fieldset><legend>Hypothese (wordt dicht vastgelegd)</legend>${['stijgt','daalt','geen'].map(v=>`<label class="chk"><input type="radio" name="hyp" value="${v}"> ${v==='geen'?`${esc(fsel.als[0].toUpperCase()+fsel.als.slice(1))} heeft geen invloed op het zuurstofgehalte`:`Als ${esc(fsel.als)} toeneemt, ${v} het zuurstofgehalte`}</label>`).join('')}</fieldset>
+        <fieldset><legend>Welke variabelen houden jullie constant?</legend>${opts.map(o=>`<label class="chk"><input type="checkbox" name="ctrl" value="${o.id}"> ${esc(o.naam)}</label>`).join('')}</fieldset>
+        <p id="leidermsg" class="small" style="color:var(--warn)"></p>
+        <button class="btn-main" data-act="startStudy">Onderzoek starten</button>`;
+      }
+    }
+  }
+  if(r==='pm'){
+    const disc=has('onderhandel')?0.5:0.75;
+    h+=`<h3>Inkopen met korting</h3>${[2,3].map(l=>S.owned.includes(l)?`<p class="small">${INST[l].naam}: <span class="tag good">in bezit</span></p>`:`<button style="width:100%;margin-bottom:8px" data-act="buy" data-lv="${l}" data-disc="1" ${S.budget<INST[l].prijs*disc?'disabled':''}>Koop ${INST[l].naam} voor ${k(INST[l].prijs*disc)} <span class="muted small">(± ${num(INST[l].sigma,1)} mg/L)</span></button>`).join('')}
+    ${S.oproep?`<p class="small">Lopende subsidie-oproep: <strong>${esc(F(S.oproep.f).naam)}</strong>, publiceren t/m ronde ${S.oproep.tot}.</p>`:''}`;
+  }
+  if(r==='kwal'){
+    const c=has('ijkroutine')?1:3;const cals=Object.keys(S.cal);
+    h+=cals.length?`<p>Ongeijkt: ${cals.map(l=>INST[l].naam).join(', ')}. Metingen daarmee vallen systematisch te hoog uit.</p><button class="btn-main" data-act="calib" data-cost="${c}" ${S.budget<c?'disabled':''}>Instrumenten ijken (${k(c)})</button>`:'<p class="muted">Alle instrumenten zijn goed geijkt.</p>';
+    h+=`<p class="small muted" style="margin-top:10px">Zolang jij in het team zit, hebben temperatuurschommelingen in het lab geen effect.</p>`;
+  }
+  if(r==='lit'){
+    const c=has('bieb')?0:1;const left=BRONNEN.filter(b=>!S.bronnen.includes(b.id));
+    h+=`<p>Zoek een bron. Bekijk daarna in het tabblad <strong>Bronnen</strong> wat erin staat, en bespreek met het team hoe betrouwbaar hij is.</p>
+    <button class="btn-main" data-act="lit" ${S.budget<c||!left.length||ui.litDone===S.round+'-'+S.turnIdx?'disabled':''}>${left.length?`Bron zoeken (${c?k(c):'gratis'})`:'Alle bronnen gevonden'}</button>`;
+  }
+  if(r==='tech'){
+    if(!st)h+='<p class="muted">Er is nog geen onderzoeksopzet. De onderzoeksleider moet eerst een deelonderzoek starten.</p>';
+    else{
+      const f=F(st.f);const lv=availLevels();if(!lv.includes(ui.inst))ui.inst=Math.max(...lv);
+      const c=measCost(f);const left=S.slots-S.slotsUsed;
+      h+=`<p class="small">Deelvraag: <strong>${esc(f.vraag)}</strong></p>
+      <fieldset><legend>Instrument</legend>${lv.map(l=>`<label class="chk"><input type="radio" name="inst" value="${l}" ${ui.inst===l?'checked':''} data-ch="inst"> ${INST[l].naam} <span class="muted small">± ${num(INST[l].sigma,1)} mg/L${S.cal[l]?' · ongeijkt!':''}</span></label>`).join('')}</fieldset>
+      <fieldset><legend>${esc(f.xnaam[0].toUpperCase()+f.xnaam.slice(1))}${f.eenheid?' ('+esc(f.eenheid)+')':''}</legend><div class="xbtns">${f.xs.map(x=>`<button class="${ui.mx===x?'sel':''}" data-act="pickx" data-x="${x}">${esc(xval(f,x))}</button>`).join('')}</div></fieldset>
+      <div class="row"><label class="small" style="flex:1">Aantal metingen<input type="number" min="1" max="${Math.max(1,left)}" value="${ui.reps}" data-ch="reps"></label>
+      <button class="btn-main" data-act="measure" ${ui.mx==null||left<1?'disabled':''} style="align-self:flex-end">Meten</button></div>
+      <p class="small muted">${left} meetslots over · ${k(c)} per meting${has('routine')?` · nog ${Math.max(0,3-S.freeUsed)} gratis`:''}</p>`;
+    }
+  }
+  if(r==='analist'){
+    if(!st||!st.meas.length)h+='<p class="muted">Er zijn nog geen metingen om te verwerken.</p>';
+    else{
+      const f=F(st.f);const g=groups(st);const hi=g[g.length-1];
+      h+=`<p class="small">Hypothese van de onderzoeksleider: <strong>${hypTxt(st.hyp)}</strong>.</p>
+      <fieldset><legend>Wat laten de data zien?</legend>${['stijgt','daalt','geen'].map(v=>`<label class="chk"><input type="radio" name="claim" value="${v}"> ${v==='geen'?`${esc(f.als[0].toUpperCase()+f.als.slice(1))} heeft geen invloed op het zuurstofgehalte`:`Als ${esc(f.als)} toeneemt, ${v} het zuurstofgehalte`}</label>`).join('')}</fieldset>
+      <fieldset><legend>De hypothese is dus</legend><label class="chk"><input type="radio" name="steun" value="ondersteund"> ondersteund</label><label class="chk"><input type="radio" name="steun" value="weerlegd"> weerlegd</label></fieldset>
+      ${S.level>=2?`<fieldset><legend>Type verband</legend>${[['recht','recht evenredig'],['lineair','lineair verband (niet door de oorsprong)'],['omgekeerd','omgekeerd evenredig'],['geen','geen verband']].map(([v,t])=>`<label class="chk"><input type="radio" name="verband" value="${v}"> ${t}</label>`).join('')}</fieldset>`:''}
+      ${S.level>=3?`<fieldset><legend>Resultaat</legend><label class="small">Noteer het gemiddelde zuurstofgehalte bij ${esc(xlab(f,hi.x))} in mg/L, in het juiste aantal significante cijfers.<input type="text" id="sigval" inputmode="decimal" placeholder="bijv. 6,4"></label></fieldset>`:''}
+      ${hasRole('rapp')&&S.level>=2?`<fieldset><legend>Discussie (rapporteur: ${esc(playerFor('rapp'))})</legend><select id="beperking"><option value="">Kies een beperking van het onderzoek</option>${BEPERKINGEN.map(b=>`<option value="${b.id}">${esc(b.txt)}</option>`).join('')}</select></fieldset>`:''}
+      <p id="analistmsg" class="small" style="color:var(--warn)"></p>
+      <div class="row"><button class="btn-main" data-act="publish">Publicatie indienen</button>${has('kritisch')?'<button data-act="check">Bewijscheck</button>':''}
+      ${st.meas.some(q=>q.cal)?'<button class="btn-warn" data-act="dropCal">Ongeijkte metingen verwijderen</button>':''}</div>`;
+    }
+  }
+  h+=skillsHTML(r)+endBtn()+'</div>';
+  return h;
+}
+function dataHTML(){
+  const tabs=[['data','Onderzoek'],['pub','Publicaties'],['bron','Bronnen ('+(S.bronnen.length+S.hints.length)+')']];
+  let h=`<div class="card"><div class="tabs">${tabs.map(([id,t])=>`<button class="${ui.tab===id?'on':''}" data-act="tab" data-id="${id}">${t}</button>`).join('')}</div>`;
+  if(ui.tab==='data'){
+    const st=active();
+    if(!st)h+='<p class="muted">Geen lopend deelonderzoek.</p><p class="small">Gepubliceerd: '+S.studies.filter(s=>s.status==='gepubliceerd').length+' van minstens 3 voor het eindrapport.</p>';
+    else{
+      const f=F(st.f);const g=groups(st);
+      h+=`<h3>${esc(f.naam)}</h3><p class="small muted">Afhankelijke variabele: zuurstofgehalte (mg/L)</p>`;
+      if(!g.length)h+='<p class="muted">Nog geen metingen.</p>';
+      else h+=`<div class="scroll"><table><thead><tr><th>${esc(f.xnaam)}</th><th>metingen (mg/L)</th>${S.level<3?'<th class="num">gemiddelde</th>':''}</tr></thead><tbody>${g.map(q=>`<tr><td>${esc(xlab(f,q.x))}</td><td class="vals">${q.list.map(m=>`<span class="${m.cal?'cal':''}" title="${INST[m.lv].naam}">${m.s}</span>`).join('')}</td>${S.level<3?`<td class="num">${num(q.meanDisp,q.dec)}</td>`:''}</tr>`).join('')}</tbody></table></div>
+      ${st.meas.some(q=>q.cal)?'<p class="tiny" style="color:var(--warn)">Rood: gemeten met een ongeijkt instrument.</p>':''}`;
+      if(S.level>=2)h+=`<div class="fig" id="fig"><svg id="graph" aria-label="Grafiek van de metingen"></svg></div><p class="tiny muted">Losse metingen, zonder trendlijn. De rode stippellijn is het minimum voor vissen (4 mg/L).</p>`;
+    }
+  }
+  if(ui.tab==='pub'){
+    const done=S.studies.filter(s=>s.res||s.status!=='actief');
+    h+=done.length?done.slice().reverse().map(s=>{const f=F(s.f);return `<div class="study"><strong>${s.n}. ${esc(f.naam)}</strong> ${s.status==='gepubliceerd'?'<span class="tag good">gepubliceerd</span>':s.status==='afgewezen'?'<span class="tag bad">afgewezen</span>':s.status==='gestopt'?'<span class="tag">gestopt</span>':'<span class="tag">loopt</span>'}
+      <p class="small" style="margin:6px 0 0">Hypothese: ${hypTxt(s.hyp)}${s.res?` · conclusie: ${hypTxt(s.res.claim)} (hypothese ${s.res.steun})`:''}</p>${s.res?s.res.msgs.map(m=>`<p class="tiny muted" style="margin:4px 0 0">${esc(m)}</p>`).join(''):''}</div>`}).join(''):'<p class="muted">Nog niets gepubliceerd.</p>';
+  }
+  if(ui.tab==='bron'){
+    const bs=S.bronnen.map(id=>BRONNEN.find(b=>b.id===id));
+    h+=(bs.length||S.hints.length)?bs.map(b=>`<div class="bron"><b>${esc(b.type)} · ${esc(b.bron)}</b>${esc(b.tekst)}</div>`).join('')+S.hints.map(t=>`<div class="bron"><b>Eigen waarneming</b>${esc(t)}</div>`).join(''):'<p class="muted">Nog geen bronnen. De literatuuronderzoeker kan ze zoeken.</p>';
+  }
+  return h+'</div>';
+}
+function drawGraph(){
+  const svg=$('#graph');const st=active();if(!svg||!st)return;
+  const f=F(st.f);
+  const draw=()=>{const W=svg.clientWidth,H=svg.clientHeight;if(!W)return;
+    const L=44,Rm=14,T=12,B=40;const x0=f.xs[0],x1=f.xs[f.xs.length-1];const pad=(x1-x0)*0.06;
+    const X=x=>L+(x-(x0-pad))/((x1+pad)-(x0-pad))*(W-L-Rm);const Y=y=>T+(1-y/12)*(H-T-B);
+    let s='';
+    for(let y=0;y<=12;y+=2)s+=`<line x1="${L}" x2="${W-Rm}" y1="${Y(y)}" y2="${Y(y)}" stroke="currentColor" stroke-opacity=".12"/><text x="${L-8}" y="${Y(y)+4}" text-anchor="end" font-size="12" fill="currentColor" opacity=".7">${y}</text>`;
+    f.xs.forEach(x=>{s+=`<text x="${X(x)}" y="${H-B+18}" text-anchor="middle" font-size="12" fill="currentColor" opacity=".7">${esc(xval(f,x))}</text>`});
+    s+=`<line x1="${L}" x2="${W-Rm}" y1="${Y(4)}" y2="${Y(4)}" stroke="var(--warn)" stroke-dasharray="6 5" stroke-width="1.5"/>`;
+    s+=`<line x1="${L}" x2="${L}" y1="${T}" y2="${H-B}" stroke="currentColor" stroke-opacity=".5"/><line x1="${L}" x2="${W-Rm}" y1="${H-B}" y2="${H-B}" stroke="currentColor" stroke-opacity=".5"/>`;
+    s+=`<text x="${(L+W-Rm)/2}" y="${H-6}" text-anchor="middle" font-size="12" fill="currentColor">${esc(f.xnaam)}${f.eenheid?' ('+esc(f.eenheid)+')':''}</text>`;
+    s+=`<text x="12" y="${T+(H-T-B)/2}" transform="rotate(-90 12 ${T+(H-T-B)/2})" text-anchor="middle" font-size="12" fill="currentColor">zuurstof (mg/L)</text>`;
+    const cnt={};st.meas.forEach(m=>{const i=cnt[m.x]=(cnt[m.x]||0)+1;const jit=((i%5)-2)*3;
+      s+=`<circle cx="${X(m.x)+jit}" cy="${Y(Math.min(12,parseFloat(m.s.replace(',','.'))))}" r="4.5" fill="${m.cal?'var(--warn)':'var(--pond)'}" fill-opacity=".8"/>`});
+    svg.innerHTML=s;};
+  draw();if(window._ro)window._ro.disconnect();window._ro=new ResizeObserver(draw);window._ro.observe(svg);
+}
+function endHTML(){
+  const o=S.over;const pub=S.studies.filter(s=>s.status==='gepubliceerd').length;
+  const sp=S.ledger.filter(l=>l.d<0).reduce((a,l)=>{a[l.why]=(a[l.why]||0)-l.d;return a},{});
+  return `<div class="wrap"><div class="end-hero ${o.won?'':'lost'}"><p style="margin:0;opacity:.85">${o.won?'Eindrapport goedgekeurd':'Financiering stopgezet'} · ronde ${o.r}</p><h1 style="margin:.2em 0">${o.won?'Gelukt!':'Helaas'}</h1><p style="font-size:18px;max-width:70ch;margin:0">${esc(o.msg)}</p></div>
+  <div class="grid2">
+  <div class="card"><h2>In cijfers</h2><table><tbody>
+  <tr><td>Deelonderzoeken gestart</td><td class="num">${S.studies.length}</td></tr><tr><td>Gepubliceerd</td><td class="num">${pub}</td></tr>
+  <tr><td>Afgewezen</td><td class="num">${S.studies.filter(s=>s.status==='afgewezen').length}</td></tr>
+  <tr><td>Metingen</td><td class="num">${S.studies.reduce((a,s)=>a+s.meas.length,0)}</td></tr>
+  <tr><td>Eindbudget</td><td class="num">${k(S.budget)}</td></tr></tbody></table>
+  <h3 style="margin-top:14px">Waar ging het geld naartoe?</h3><table><tbody>${Object.entries(sp).sort((a,b)=>b[1]-a[1]).map(([w,v])=>`<tr><td>${esc(w)}</td><td class="num">${k(v)}</td></tr>`).join('')}</tbody></table></div>
+  <div class="card"><h2>Nabespreking</h2><ol style="padding-left:18px;margin:0">
+  <li>Waar kozen jullie voor herhalen, en waar voor een nauwkeuriger instrument? Waarom?</li>
+  <li>Welke controlevariabele vergaten jullie (bijna), en wat deed dat met de data?</li>
+  <li>Welke hypotheses werden weerlegd? Wat leverde dat op voor de hoofdvraag?</li>
+  <li>Temperatuur heeft wel invloed op het zuurstofgehalte. Waarom is het toch niet de oorzaak?</li>
+  <li>Welke bronnen waren betrouwbaar, en hoe kon je dat beoordelen?</li></ol>
+  ${S.bronnen.length?`<h3 style="margin-top:14px">De bronnen ontmaskerd</h3>${S.bronnen.map(id=>{const b=BRONNEN.find(x=>x.id===id);return `<p class="small" style="margin:4px 0">${b.ok?'<span class="tag good">betrouwbaar</span>':'<span class="tag bad">onbetrouwbaar</span>'} ${esc(b.type)}: ${esc(b.bron)}</p>`}).join('')}`:''}
+  </div></div>
+  <div class="card" style="margin-top:16px"><h2>Logboek van de deelonderzoeken</h2>
+  ${S.studies.map(s=>{const f=F(s.f);const g=groups(s);return `<div class="study"><strong>${s.n}. ${esc(f.naam)}</strong> <span class="tag ${s.status==='gepubliceerd'?'good':s.status==='afgewezen'?'bad':''}">${s.status}</span>
+   <p class="small" style="margin:6px 0 0">Hypothese: ${hypTxt(s.hyp)}. Constant gehouden: ${s.controls.map(id=>{const c=f.controls.find(c=>c.id===id);return c?esc(c.naam):esc(f.decoys[+id.slice(3)])+' (niet nodig)'}).join(', ')||'niets'}.${s.missing.length?` <span style="color:var(--warn)">Vergeten: ${s.missing.map(id=>esc(f.controls.find(c=>c.id===id).naam)).join(', ')}.</span>`:''}</p>
+   <p class="small" style="margin:4px 0 0">${g.map(q=>`${esc(xlab(f,q.x))}: n = ${q.n}, gem. ${num(q.meanDisp,q.dec)}`).join(' · ')||'geen metingen'}</p>
+   ${s.res?`<p class="small" style="margin:4px 0 0">Conclusie: ${hypTxt(s.res.claim)} (hypothese ${s.res.steun}). ${s.res.msgs.map(esc).join(' ')}</p>`:''}</div>`}).join('')||'<p class="muted">Er zijn geen deelonderzoeken gedaan.</p>'}
+  <div class="row"><button data-act="copyLog">Logboek kopiëren</button><button class="btn-main" data-act="newFromEnd">Nieuw spel</button><span id="copymsg" class="small muted"></span></div></div></div>`;
+}
+function logText(){
+  return 'Het Lab: logboek\n'+S.players.join(', ')+'\nUitkomst: '+S.over.msg+'\n\n'+S.studies.map(s=>{const f=F(s.f);return `${s.n}. ${f.naam} [${s.status}] hypothese: ${hypTxt(s.hyp)}; vergeten: ${s.missing.map(id=>f.controls.find(c=>c.id===id).naam).join(', ')||'-'}; ${groups(s).map(q=>`${xlab(f,q.x)} n=${q.n} gem=${num(q.meanDisp,q.dec)}`).join('; ')}${s.res?'; conclusie: '+hypTxt(s.res.claim)+' ('+s.res.steun+')':''}`}).join('\n')+'\n\nVerloop:\n'+S.log.map(l=>`R${l.r} ${l.t}`).join('\n');
+}
+
+/* ================= EVENTS (DOM) ================= */
+document.addEventListener('change',e=>{
+  const t=e.target;const ch=t.dataset.ch;
+  if(ui.screen==='setup'){
+    const s=ui.setup;
+    if(ch==='lvl'){s.level=+t.value;render()}
+    if(ch==='role'){if(t.checked){if(s.chosen.length>=2){t.checked=false;$('#setupmsg').textContent='Kies maximaal 2 extra rollen.';return}s.chosen.push(t.value)}else s.chosen=s.chosen.filter(r=>r!==t.value);autoAssign();render()}
+    if(t.dataset.as){s.assign[t.dataset.as]=t.value}
+  }
+  if(ui.screen==='game'){
+    if(ch==='fac'){ui.tx=t.value;render()}
+    if(ch==='inst'){ui.inst=+t.value}
+    if(ch==='reps'){ui.reps=Math.max(1,parseInt(t.value)||1)}
+  }
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(ui.screen==='setup'&&t.dataset.pl!=null){ui.setup.players[+t.dataset.pl]=t.value;autoAssign();$('#assignbox').innerHTML=assignHTML()}
+});
+function autoAssign(){
+  const s=ui.setup;const pl=s.players.map(p=>p.trim()).filter(Boolean);const roles=[...CORE,...s.chosen];
+  if(!pl.length)return;
+  roles.forEach((r,i)=>{if(!pl.includes(s.assign[r]))s.assign[r]=pl[i%pl.length]});
+  const used=new Set(roles.map(r=>s.assign[r]));
+  if(pl.some(p=>!used.has(p)))roles.forEach((r,i)=>s.assign[r]=pl[i%pl.length]);
+}
+document.addEventListener('click',e=>{
+  if(e.target.dataset&&e.target.dataset.ov&&!S?.event)return;
+  const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
+  const go=sc=>{ui.screen=sc;render();window.scrollTo(0,0)};
+  switch(a){
+    case 'toSetup': if(!ui.setup)ui.setup={level:1,players:['','','',''],chosen:['kwal'],assign:{}};go('setup');break;
+    case 'toStart': go('start');break;
+    case 'toIntro':{const s=ui.setup;const pl=s.players.map(p=>p.trim()).filter(Boolean);
+      if(pl.length<3){$('#setupmsg').textContent='Vul minstens 3 spelersnamen in.';return}
+      if(new Set(pl).size!==pl.length){$('#setupmsg').textContent='Gebruik verschillende namen.';return}
+      if(s.chosen.length<1){$('#setupmsg').textContent='Kies minstens 1 extra rol.';return}
+      autoAssign();const roles=[...CORE,...s.chosen];const used=new Set(roles.map(r=>s.assign[r]));
+      const idle=pl.filter(p=>!used.has(p));if(idle.length){$('#setupmsg').textContent=`${idle.join(', ')} heeft nog geen rol.`;return}
+      go('intro');break}
+    case 'startGame':{const s=ui.setup;const pl=s.players.map(p=>p.trim()).filter(Boolean);const as={};[...CORE,...s.chosen].forEach(r=>as[r]=s.assign[r]);
+      newGame({level:s.level,players:pl,chosen:s.chosen.slice(),assign:as});ui.tab='data';ui.tx=null;ui.mx=null;go('game');break}
+    case 'resume': S=loadSaved();ui.screen=S.over?'end':'game';render();break;
+    case 'showImport': $('#importbox').classList.toggle('hidden');break;
+    case 'doImport':{try{const txt=$('#importcode').value.trim();S=JSON.parse(decodeURIComponent(escape(atob(txt))));if(!S||!S.studies)throw 0;save();ui.screen=S.over?'end':'game';render()}catch(err){$('#importmsg').textContent='Deze code werkt niet. Controleer of hij helemaal gekopieerd is.'}break}
+    case 'tab': ui.tab=b.dataset.id;render();break;
+    case 'endTurn': ui.tx=null;ui.mx=null;ui.ctrlOrder=null;endTurn();break;
+    case 'startStudy':{const fac=document.querySelector('input[name=fac]:checked');const hyp=document.querySelector('input[name=hyp]:checked');
+      if(!fac||!hyp){$('#leidermsg').textContent='Kies een deelvraag en leg een hypothese vast.';return}
+      const ctrls=[...document.querySelectorAll('input[name=ctrl]:checked')].map(i=>i.value);
+      ui.ctrlOrder=null;startStudy(fac.value,hyp.value,ctrls);ui.tx=null;break}
+    case 'stopStudy': stopStudy();break;
+    case 'pickx': ui.mx=+b.dataset.x;render();break;
+    case 'measure':{const inp=document.querySelector('[data-ch=reps]');if(inp)ui.reps=Math.max(1,parseInt(inp.value)||1);measure(ui.mx,ui.reps,ui.inst);break}
+    case 'buy':{const lv=+b.dataset.lv;const disc=b.dataset.disc==='1'?(has('onderhandel')?0.5:0.75):1;const c=INST[lv].prijs*disc;if(S.budget<c)return;spend(c,'Instrumenten');S.owned.push(lv);ui.inst=Math.max(...S.owned);log(`${INST[lv].naam} gekocht voor ${k(c)}.`);save();render();break}
+    case 'calib':{const c=+b.dataset.cost;if(S.budget<c)return;spend(c,'IJken');S.cal={};log(`Instrumenten geijkt (${k(c)}).`);save();render();break}
+    case 'lit':{const c=has('bieb')?0:1;const left=BRONNEN.filter(x=>!S.bronnen.includes(x.id));if(!left.length||S.budget<c)return;const bb=left[Math.floor(Math.random()*left.length)];
+      if(c)spend(c,'Bronnen');S.bronnen.push(bb.id);ui.litDone=S.round+'-'+S.turnIdx;ui.tab='bron';log(`Nieuwe bron gevonden: ${bb.type.toLowerCase()}.`);save();render();break}
+    case 'skill':{const c=+b.dataset.cost;if(S.expertise<c)return;S.expertise-=c;S.skills.push(b.dataset.id);log(`Skill vrijgespeeld: ${b.closest('.skill').querySelector('strong').textContent}.`);
+      if(b.dataset.id==='efficient')S.slots+=3;save();render();break}
+    case 'publish':{const claim=document.querySelector('input[name=claim]:checked');const steun=document.querySelector('input[name=steun]:checked');const verb=document.querySelector('input[name=verband]:checked');
+      if(!claim||!steun||(S.level>=2&&!verb)){$('#analistmsg').textContent='Vul alle onderdelen van de conclusie in.';return}
+      const sv=$('#sigval');const bp=$('#beperking');
+      publish({claim:claim.value,steun:steun.value,verband:verb?verb.value:null,sigval:sv?sv.value:'',beperking:bp?bp.value:''});break}
+    case 'check': evidencePreview();break;
+    case 'dropCal':{const st=active();const n=st.meas.length;st.meas=st.meas.filter(q=>!q.cal);log(`${n-st.meas.length} ongeijkte metingen verwijderd.`);save();render();break}
+    case 'closeModal': closeModal();render();break;
+    case 'evTalent':{const r=document.querySelector('input[name=trole]:checked').value;chooseEvent([r,$('#tplayer').value]);break}
+    case 'evYes': chooseEvent(true);break;
+    case 'evNo': chooseEvent(false);break;
+    case 'evClose': closeModal();closeEvent();break;
+    case 'openReport': openReport();break;
+    case 'sendReport':{const ids=[...document.querySelectorAll('input[name=oorzaak]:checked')].map(i=>i.value);if(!ids.length){$('#reportmsg').textContent='Kies minstens één oorzaak.';return}
+      if(b.dataset.confirm!=='1'){b.dataset.confirm='1';b.textContent='Zeker weten? Klik nogmaals';return}submitReport(ids);break}
+    case 'openMenu': openMenu();break;
+    case 'copyCode':{const t=$('#savecode');t.select();navigator.clipboard&&navigator.clipboard.writeText(t.value).then(()=>{$('#copied').textContent='Gekopieerd.'},()=>{$('#copied').textContent='Kopiëren lukte niet: selecteer de code en kopieer hem zelf.'});break}
+    case 'quit': closeModal();ui.screen='start';render();break;
+    case 'copyLog':{navigator.clipboard&&navigator.clipboard.writeText(logText()).then(()=>{$('#copymsg').textContent='Gekopieerd.'},()=>{$('#copymsg').textContent='Kopiëren lukte niet.'});break}
+    case 'newFromEnd': clearSave();S=null;ui.setup=null;go('start');break;
+  }
+});
+function openReport(){
+  const pub=S.studies.filter(s=>s.status==='gepubliceerd');
+  const opts=[...FACTORS.filter(f=>!f.needs||hasRole(f.needs)).map(f=>({id:f.id,naam:f.naam})),...EXTRA_OORZAKEN];
+  if(pub.length<3){openModal(`<div class="cardart"></div><h2>Eindrapport</h2><p>De gemeente wil pas een eindrapport als er minstens 3 deelonderzoeken gepubliceerd zijn. Jullie hebben er nu ${pub.length}.</p><div class="row"><button class="btn-main" data-act="closeModal">Terug</button></div>`);return}
+  openModal(`<div class="cardart"></div><h2>Eindrapport</h2><p><strong>Welke factor zorgt ervoor dat het zuurstofgehalte onder de 4 mg/L zakt?</strong></p>
+  <p class="small muted">Elke oorzaak die jullie noemen, moet onderbouwd zijn met eigen gepubliceerd onderzoek. Een fout rapport betekent het einde van de financiering.</p>
+  <fieldset><legend>Oorzaak of oorzaken</legend>${opts.map(o=>`<label class="chk"><input type="checkbox" name="oorzaak" value="${o.id}"> ${esc(o.naam)}</label>`).join('')}</fieldset>
+  <p id="reportmsg" class="small" style="color:var(--warn)"></p>
+  <div class="row"><button data-act="closeModal">Nog niet</button><button class="btn-main" data-act="sendReport">Indienen</button></div>`);
+}
+function openMenu(){
+  let code='';try{code=btoa(unescape(encodeURIComponent(JSON.stringify(S))))}catch(e){}
+  openModal(`<div class="cardart"></div><h2>Opslaan</h2><p>Het spel wordt na elke actie automatisch opgeslagen in deze browser. Op een andere laptop verder? Kopieer dan deze code en laad hem daar via “Spel laden met code”.</p>
+  <textarea id="savecode" readonly>${esc(code)}</textarea><div class="row" style="margin-top:8px"><button data-act="copyCode">Code kopiëren</button><span id="copied" class="small muted"></span></div>
+  <div class="row" style="margin-top:16px"><button class="btn-main" data-act="closeModal">Verder spelen</button><button data-act="quit">Naar startscherm</button></div>`);
+}
+
+render();
+window.__lab={get S(){return S},render,newGame,measure,publish,evidence,startStudy,groups,endTurn,submitReport,ui};
+}
+</script>
+</body>
+</html>
