@@ -159,6 +159,7 @@ textarea{width:100%;min-height:80px;font:inherit;padding:8px;border-radius:8px;b
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 document.getElementById('beamer').onclick=()=>document.body.classList.toggle('hs-beamer');
 const nl=(x,d=2)=>x.toFixed(d).replace('.',',');
+const num2=x=>(x>=1&&x<1000)?String(parseFloat(x.toPrecision(2))).replace('.',','):sci(x,2); /* 35 m/s i.p.v. 3,5·10^1 */
 function sci(x,sig=3){ // wetenschappelijke notatie met komma
   if(x===0) return '0';
   const e=Math.floor(Math.log10(Math.abs(x))); let m=x/Math.pow(10,e);
@@ -419,15 +420,17 @@ const sig3=x=>parseFloat(x.toPrecision(3));
 function randLog(a,b){return Math.exp(Math.log(a)+Math.random()*(Math.log(b)-Math.log(a)));}
 function newRk(){
   if(rkType==='db'){const d=DEELTJES[Math.floor(Math.random()*DEELTJES.length)];const v=sig3(randLog(d.v[0],d.v[1]));const lam=h/(d.m*v);
-    rk={vraag:`Bereken de de Broglie-golflengte van ${d.n} met een snelheid van ${sci(v,2)} m/s.`,ant:lam,eenh:'m',
-     uitw:`<i>λ</i> = ${frac('<i>h</i>','<i>m</i>·<i>v</i>')} = ${frac('6,626·10<sup>−34</sup> J·s',sci(d.m,4)+' kg × '+sci(v,2)+' m/s')} = <b>${sci(lam,2)} m</b>`};}
+    if((d.m===me&&(v===2e6||v===5e5))||(d.m===mp&&v===3e5)||(d.m===0.058&&v===50))return newRk(); /* voorbeelden uit de lesdia's */
+    rk={vraag:`Bereken de de Broglie-golflengte van ${d.n} met een snelheid van ${num2(v)} m/s.`,ant:lam,eenh:'m',
+     uitw:`<i>λ</i> = ${frac('<i>h</i>','<i>m</i>·<i>v</i>')} = ${frac('6,626·10<sup>−34</sup> J·s',sci(d.m,4)+' kg × '+num2(v)+' m/s')} = <b>${sci(lam,2)} m</b>`};}
   else if(rkType==='bohr'){const nl_=1+Math.floor(Math.random()*3);const nh=nl_+1+Math.floor(Math.random()*3);
+    if(nl_===2&&(nh===3||nh===4))return newRk(); /* voorbeelden uit de lesdia's */
     const E=13.6*(1/(nl_*nl_)-1/(nh*nh));const EJ=E*eV;const lam=h*c0/EJ;
     rk={vraag:`Een elektron in een waterstofatoom springt van schil <i>n</i> = ${nh} naar schil <i>n</i> = ${nl_}. Bereken de golflengte van het uitgezonden licht.`,ant:lam,eenh:'m',
      uitw:`Δ<i>E</i> = <i>E</i><sub>${nh}</sub> − <i>E</i><sub>${nl_}</sub> = ${frac('−13,6 eV',nh*nh)} − ${frac('−13,6 eV',nl_*nl_)} = ${nl(E,3)} eV<br>
      Δ<i>E</i> = ${nl(E,3)} eV × 1,602·10<sup>−19</sup> ${frac('J','eV')} = ${sci(EJ,4)} J<br>
      <i>λ</i> = ${frac('<i>h</i>·<i>c</i>','Δ<i>E</i>')} = ${frac('6,626·10<sup>−34</sup> J·s × 2,998·10<sup>8</sup> m/s',sci(EJ,4)+' J')} = <b>${sci(lam,3)} m</b> (${Math.round(lam*1e9)} nm${lam>380e-9&&lam<750e-9?', zichtbaar licht':lam<380e-9?', ultraviolet':', infrarood'})`};}
-  else if(rkType==='heis'){const d=Math.random()<0.6?{n:'een elektron',m:me}:{n:'een proton',m:mp};const dx=sig3(randLog(1e-11,1e-8));const dv=h/(4*Math.PI*dx*d.m);
+  else if(rkType==='heis'){const d=Math.random()<0.6?{n:'een elektron',m:me}:{n:'een proton',m:mp};const dx=sig3(randLog(1e-11,1e-8));if(dx===1e-10)return newRk();const dv=h/(4*Math.PI*dx*d.m);
     rk={vraag:`De plaats van ${d.n} is bekend met een onzekerheid Δ<i>x</i> = ${sci(dx,2)} m. Bereken de kleinst mogelijke onzekerheid in de snelheid.`,ant:dv,eenh:'m/s',
      uitw:`Δ<i>p</i> ≥ ${frac('<i>h</i>','4π·Δ<i>x</i>')} = ${frac('6,626·10<sup>−34</sup> J·s','4π × '+sci(dx,2)+' m')} = ${sci(h/(4*Math.PI*dx),3)} kg·m/s<br>
      Δ<i>v</i> ≥ ${frac('Δ<i>p</i>','<i>m</i>')} = ${frac(sci(h/(4*Math.PI*dx),3)+' kg·m/s',sci(d.m,4)+' kg')} = <b>${sci(dv,2)} m/s</b>`};}
