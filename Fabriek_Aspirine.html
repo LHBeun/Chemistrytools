@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fabrieksspel</title>
+<style>
+:root{
+  --papier:#f3efe6; --vel:#fffdf8; --rand:#e3dccb; --rand2:#d6cdb8;
+  --inkt:#2b2a27; --inkt2:#3e3b35; --grijs:#7a756b; --goud:#a0701f; --goud2:#e2a84b;
+  --nacht:#24323f; --nacht2:#33475a; --nachttekst:#cfd9e2;
+  --goed:#3f8f63; --goedbg:#e5f2ea; --fout:#b4473a; --foutbg:#f8e6e2; --hint:#fbf1da;
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --sans: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Consolas, 'Liberation Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--papier);color:var(--inkt);font-size:15px;line-height:1.6}
+button{font-family:inherit}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
+aside{background:var(--nacht);color:var(--nachttekst);padding:26px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
+aside h1{font-family:var(--serif);font-size:23px;color:#fff;font-weight:600;line-height:1.2}
+aside .sub{font-size:12.5px;color:#8aa0b3;margin:4px 0 18px}
+.lijn{display:flex;gap:4px;background:#1b2731;border-radius:10px;padding:4px;margin-bottom:18px}
+.lijn button{flex:1;border:0;border-radius:7px;padding:7px 6px;font-size:13.5px;font-weight:700;background:transparent;color:#9fb2c3;cursor:pointer}
+.lijn button.on{background:var(--goud2);color:var(--nacht)}
+aside nav a{display:flex;gap:12px;align-items:center;padding:10px 10px;border-radius:9px;font-size:14.5px;margin-bottom:4px;color:#b9c7d3;cursor:pointer;user-select:none;line-height:1.3}
+aside nav a:hover{background:#2c3d4d}
+aside nav a i{font-style:normal;flex:none;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #5d7387;font-size:12.5px;font-weight:700}
+aside nav a.on{background:var(--nacht2);color:#fff}
+aside nav a.on i{background:var(--goud2);border-color:var(--goud2);color:var(--nacht)}
+aside nav a.klaar i{background:#5aa37c;border-color:#5aa37c;color:#fff}
+aside nav a small{display:block;font-size:11.5px;color:#8aa0b3}
+aside .voet{margin-top:auto;padding-top:16px;display:flex;flex-direction:column;gap:8px}
+aside .voet button{background:transparent;border:1px solid #4b6074;color:#cfd9e2;border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer;text-align:left}
+aside .voet button:hover{background:#2c3d4d}
+.wp{display:grid;grid-template-columns:minmax(380px,1fr) minmax(520px,680px);min-height:100vh}
+.tekst{padding:34px 38px 60px;max-width:780px}
+.kicker{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--goud);font-weight:700}
+.tekst h2{font-family:var(--serif);font-size:31px;margin:3px 0 14px;font-weight:600;line-height:1.2}
+.tekst h3{font-family:var(--serif);font-size:19px;margin:20px 0 6px;font-weight:600}
+.tekst p{margin-bottom:10px;color:var(--inkt2)}
+.tekst ul,.tekst ol{margin:0 0 10px 20px;color:var(--inkt2)}
+.tekst li{margin-bottom:3px}
+.kader{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--goud2);border-radius:8px;padding:10px 14px;margin:10px 0 12px;color:var(--inkt2)}
+.kader.proces{border-left-color:#5d7387}
+.vgl{font-family:var(--serif);font-size:17px;margin-top:6px;color:var(--inkt)}
+.tabs{display:flex;gap:4px;margin:20px 0 14px;border-bottom:1px solid var(--rand2)}
+.tabs button{background:none;border:0;padding:9px 14px;font-size:14px;font-weight:600;color:var(--grijs);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--inkt);border-bottom-color:var(--goud2)}
+.tabs .tel{font-weight:500;font-size:12px;color:var(--grijs);margin-left:4px}
+.vb{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:16px 18px;margin:4px 0 14px}
+.vb .vbkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--goud);margin-bottom:4px}
+.vb .vbvraag{font-weight:600;margin-bottom:8px}
+.vbstap{display:flex;gap:12px;padding:8px 0;border-top:1px dashed var(--rand2)}
+.vbstap .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
+.vbstap .b{color:var(--inkt2)}
+.oknop{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.oknop .dot{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--rand2);background:var(--vel);display:grid;place-items:center;font-size:12.5px;font-weight:700;color:var(--grijs);cursor:pointer}
+.oknop .dot.on{border-color:var(--inkt);color:var(--inkt);box-shadow:0 0 0 2px var(--inkt) inset}
+.oknop .dot.goed{background:var(--goed);border-color:var(--goed);color:#fff}
+.oknop .dot.ster{border-style:dashed}
+.oknop .rechts{margin-left:auto;font-size:13px;color:var(--grijs)}
+.opdkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--grijs);margin-bottom:4px}
+.opdkop .st{color:var(--goud)}
+.stap{display:flex;gap:12px;padding:13px 15px;background:var(--vel);border:1px solid var(--rand);border-radius:11px;margin-bottom:10px}
+.stap>.n{flex:none;width:25px;height:25px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12.5px;font-weight:700;margin-top:1px}
+.stap.dicht{opacity:.42}
+.stap.dicht .inv{display:none}
+.stap.goed{border-color:#bcdcc8;background:#fbfefc}
+.stap.goed>.n{background:var(--goed)}
+.stap .inh{flex:1;min-width:0}
+.stap .vr{margin-bottom:8px}
+.rij{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input.in{font-family:var(--mono);font-size:15px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;background:#fff;min-width:0;width:220px;color:var(--inkt)}
+input.in:focus,textarea.in:focus,select.sel:focus{outline:2px solid var(--goud2);outline-offset:0;border-color:var(--goud2)}
+textarea.in{font-family:var(--sans);font-size:14.5px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;width:100%;min-height:74px;background:#fff;color:var(--inkt)}
+select.sel{border:1px solid var(--rand2);border-radius:8px;padding:7px 9px;font-size:14px;background:#fff;color:var(--inkt);font-family:inherit}
+.btn{border:0;border-radius:8px;padding:8px 15px;font-weight:600;font-size:14px;cursor:pointer;background:var(--inkt);color:#fff}
+.btn:hover{background:#45433e}
+.btn.g{background:#ebe4d4;color:var(--inkt)}
+.btn.g:hover{background:#e0d7c3}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.klein{padding:5px 11px;font-size:13px}
+.fb{margin-top:8px;padding:8px 11px;border-radius:8px;font-size:14px}
+.fb.goed{background:var(--goedbg);color:#255c3d}
+.fb.fout{background:var(--foutbg);color:#7c2c22}
+.fb.hint{background:var(--hint);color:#6b4d12}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px}
+.chip{border:1.5px solid var(--rand2);background:#fff;border-radius:999px;padding:4px 12px;font-size:14px;cursor:pointer;user-select:none;color:var(--inkt)}
+.chip:hover{border-color:#b9ad93}
+.chip.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.chip.x{padding:3px 6px 3px 12px}
+.chip.x b{margin-left:6px;font-weight:700;color:var(--grijs)}
+.opties{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.optie{border:1.5px solid var(--rand2);background:#fff;border-radius:9px;padding:8px 12px;font-size:14.5px;cursor:pointer;text-align:left;color:var(--inkt)}
+.optie:hover{border-color:#b9ad93}
+.optie.aan{border-color:var(--nacht);background:#eef2f6}
+.model{background:var(--hint);border-radius:8px;padding:8px 11px;font-size:14px;color:#5b4210;margin-top:8px}
+.model b{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.klaarbanner{background:var(--goedbg);border:1px solid #bcdcc8;color:#255c3d;border-radius:11px;padding:12px 15px;margin:4px 0 12px}
+.uitw{background:#fff;border:1px solid var(--rand);border-radius:8px;padding:8px 11px;margin-top:8px;font-size:14.5px;color:var(--inkt2)}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;line-height:1.25}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 3px}
+.frac>span:last-child{padding:0 3px}
+.simkol{background:var(--vel);border-left:1px solid var(--rand);padding:22px 22px 30px;display:flex;flex-direction:column;gap:12px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.simkop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.simkop b{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--goud)}
+.simkop span{font-size:12.5px;color:var(--grijs)}
+.doek{border:1px solid var(--rand);border-radius:12px;background:#fbf8f1;overflow:hidden}
+.doek svg{display:block;width:100%;height:auto}
+.legenda{font-size:12.5px;color:var(--grijs);line-height:1.5}
+.bouw{display:grid;gap:10px}
+.bouw .vak{background:var(--vel);border:1px solid var(--rand);border-radius:11px;padding:12px 14px}
+.bouw h4{font-size:13px;letter-spacing:1.1px;text-transform:uppercase;color:var(--grijs);margin-bottom:8px}
+.strlijst{list-style:none;margin:0!important}
+.strlijst li{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px dashed var(--rand2);font-size:14px}
+.strlijst li:first-child{border-top:0}
+.nr{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--inkt);font-size:12px;font-weight:700;margin-right:6px;flex:none}
+.stroomkeuze{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.stroomkeuze button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--rand2);background:#fff;font-weight:700;cursor:pointer;color:var(--inkt)}
+.stroomkeuze button.on{background:var(--goud2);border-color:var(--goud2)}
+.stroomkeuze button.goed{border-color:var(--goed);color:var(--goed)}
+.stroomkeuze button.fout{border-color:var(--fout);color:var(--fout)}
+body.beamer .wp{zoom:1.25}
+@media (max-width:1100px){.app{grid-template-columns:1fr}aside{position:static;height:auto}.wp{grid-template-columns:1fr}.simkol{position:static;height:auto;border-left:0;border-top:1px solid var(--rand)}.tekst{padding:24px 20px 30px}}
+@media (prefers-reduced-motion:no-preference){.nieuw{animation:verschijn .6s ease-out}@keyframes verschijn{from{opacity:0}to{opacity:1}}}
+
+.ld{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--nacht);border-radius:8px;padding:9px 14px;margin:0 0 12px;color:var(--inkt2)}
+.ld b{display:block;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--nacht);margin-bottom:2px}
+.ld ol{margin:4px 0 0 20px}
+aside nav a.slot{opacity:.45;cursor:not-allowed}
+table.regels{border-collapse:collapse;font-size:14px;background:#fff;margin:4px 0}
+table.regels th,table.regels td{border:1px solid var(--rand2);padding:4px 9px;text-align:left;vertical-align:top}
+table.regels th{background:#f3ead6}
+.besl{background:#fff;border:1px solid var(--rand);border-radius:11px;padding:13px 15px;margin:12px 0}
+.bvraag{font-weight:600;margin:8px 0 6px}
+.bkeus{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-top:1px dashed var(--rand2);font-size:14.5px}
+.bkeus:first-of-type{border-top:0}
+.binfo{font-size:13px;color:var(--grijs);margin:-2px 0 6px}
+input.schuif{width:280px;accent-color:var(--goud)}
+.besl output{font-family:var(--mono);font-weight:700;min-width:90px}
+.poortinfo{font-size:14px;color:var(--grijs)}
+.fadeinfo{font-size:14px;color:var(--inkt2);margin-bottom:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.startrij{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.btn.groot{padding:11px 22px;font-size:15.5px;background:var(--goud);}
+.btn.groot:hover{background:#8a5f17}
+.bezig{margin:14px 0;display:flex;flex-direction:column;gap:6px;color:var(--grijs);font-size:14px}
+.bezig .balk{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--goud2) 0%,var(--goud2) 50%,#efe6d3 50%);background-size:200% 100%;animation:loopt 1.2s linear forwards}
+@keyframes loopt{from{background-position:100% 0}to{background-position:0 0}}
+.resultaat{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:14px 16px;margin:12px 0}
+.meet{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
+.meet div{background:#fff;border:1px solid var(--rand);border-radius:9px;padding:7px 10px}
+.meet small{display:block;font-size:11.5px;color:var(--grijs);text-transform:uppercase;letter-spacing:.8px;font-weight:700}
+.meet b{font-family:var(--serif);font-size:18px}
+.badge{border-radius:8px;padding:8px 11px;font-size:14.5px;margin:6px 0 10px}
+.badge.ok{background:var(--goedbg);color:#255c3d}
+.badge.nok{background:var(--foutbg);color:#7c2c22}
+table.kas{width:100%;border-collapse:collapse;font-size:14px}
+table.kas td{padding:4px 2px;border-top:1px dashed var(--rand2)}
+table.kas td:last-child{text-align:right;font-family:var(--mono);white-space:nowrap}
+table.kas tr.tot td{border-top:1.5px solid var(--inkt);font-weight:700}
+.min{color:var(--fout)}.plus{color:var(--goed)}
+.saldo{background:var(--nacht);color:#fff;border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;align-items:baseline}
+.saldo small{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:#8aa0b3}
+.saldo b{font-family:var(--mono);font-size:22px}
+.saldo b.min{color:#f0a294}
+.vak{background:#fff;border:1px solid var(--rand);border-radius:11px;padding:10px 14px}
+.vak h4{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--grijs);margin-bottom:4px}
+.kbrij{display:flex;justify-content:space-between;font-size:13.5px;padding:3px 0;border-top:1px dashed var(--rand2)}
+.kbrij:first-of-type{border-top:0}
+.kbrij b{font-family:var(--mono)}
+.codevak{font-family:var(--mono);font-size:28px;letter-spacing:2px;background:#fff;border:2px dashed var(--goud2);border-radius:12px;padding:14px 18px;display:inline-block;margin:6px 0 10px}
+.grafiek{background:#fff;border:1px solid var(--rand);border-radius:9px;margin:6px 0 10px}
+.grafiek svg{display:block;width:100%;height:auto}
+.vglrij{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 0 12px;background:#fff;border:1px solid var(--rand);border-radius:10px;padding:10px}
+.vglrij figure{margin:0;text-align:center}
+.vglrij figcaption{font-size:12.5px;color:var(--grijs)}
+.vglrij .pijl{font-size:24px;color:var(--inkt2)}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <h1 id="titel"></h1>
+    <div class="sub" id="sub"></div>
+    <nav id="nav"></nav>
+    <div class="voet">
+      <button data-a="code">Opslagcode</button>
+      <button data-a="beamer">Beamerstand</button>
+      <button data-a="wis">Opnieuw beginnen</button>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<script>
+/* Fabrieksspel-motor: gedeeld door alle fabrieken. Scenario roept FAB.start(SC) aan. */
+(function(){
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fr=(a,b)=>`<span class="frac"><span>${a}</span><span>${b}</span></span>`;
+const sub=f=>f.replace(/(\d+)/g,'<sub>$1</sub>');
+const nl=(v,d)=>{let s=d==null?String(+(+v).toPrecision(4)):(+v).toFixed(d);return s.replace('.',',').replace('-','−')};
+const eur=v=>{const n=Math.abs(v).toFixed(2).split('.');return (v<-0.004?'−':'')+'€ '+n[0].replace(/\B(?=(\d{3})+$)/g,'.')+','+n[1]};
+function parseNum(t){t=String(t).trim().replace(/\s/g,'').replace(/,/g,'.').replace(/−/g,'-').replace(/[%€]/g,'');t=t.replace(/[·×x*]10\^?/i,'e').replace(/e\+?/,'e');return t===''?NaN:Number(t)}
+function mkR(seed){let s=seed>>>0;const f=()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+  f.int=(a,b,st=1)=>a+st*Math.floor(f()*(Math.floor((b-a)/st+1e-9)+1));f.pick=a=>a[Math.floor(f()*a.length)];return f}
+const g=(v,a,o)=>Object.assign({t:'getal',v,a},o||{});
+const k=(v,o,a,h)=>({t:'keuze',v,o,a,h});
+window.FAB={fr,sub,nl,eur,g,k,start};
+
+let SC,KEY,S,T={};
+function start(sc){
+  SC=sc;KEY=SC.key;S={ri:-1,tab:'uitleg',geld:SC.start,r:{},log:[],view:null};
+  try{const t=JSON.parse(localStorage.getItem(KEY));if(t&&t.r)S=Object.assign(S,t)}catch(e){}
+  S.view=null;
+  document.title=SC.titel;$('#titel').textContent=SC.titel;$('#sub').textContent=SC.sub;
+  document.addEventListener('click',klik);document.addEventListener('input',invoer);
+  document.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target.id)return;const b=e.target.closest('.rij')&&e.target.closest('.rij').querySelector('[data-a=check],[data-a=vast]');if(b)b.click()});
+  render();
+  window.__fab={SC,S:()=>S,T:()=>T,render,check,rs,poortL,naL,KZ,batch,codeMaak,codeLees};
+}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const RR=i=>SC.rondes[i==null?S.ri:i];
+const KZ=(R,p)=>typeof R.keuzes==='function'?R.keuzes(p,S):(R.keuzes||[]);
+function nieuw(i,oud){const R=RR(i),seed=(Math.random()*4294967296)>>>0,p=R.gen?R.gen(mkR(seed),S):{},K={};
+  const kz=KZ(R,p);kz.forEach(x=>{if(x.def!=null)K[x.id]=x.def});
+  return{seed,p,K,vast:!kz.length,ps:0,ns:0,res:null,klaar:false,ooit:!!(oud&&(oud.ooit||oud.klaar)),tussen:false}}
+function rs(i){i=i==null?S.ri:i;if(!S.r[i])S.r[i]=nieuw(i);return S.r[i]}
+const poortL=(R,r)=>R.poort?R.poort(r.p,r.K,S):[];
+const naL=(R,r)=>R.na&&r.res?R.na(r.p,r.K,r.res,S):[];
+const gedaan=i=>!!(S.r[i]&&(S.r[i].klaar||S.r[i].ooit));
+const open=i=>i<=0||gedaan(i-1)||gedaan(i);
+
+/* ---------- render ---------- */
+function render(){
+  $('#nav').innerHTML=`<a data-a="ronde" data-v="-1" class="${S.ri===-1&&!S.view?'on':''}"><i>⌂</i><span>Start<small>leerdoelen en spelregels</small></span></a>`+
+   SC.rondes.map((R,i)=>{const d=gedaan(i),o=open(i);return `<a data-a="ronde" data-v="${i}" class="${S.ri===i&&!S.view?'on':''} ${d?'klaar':''} ${o?'':'slot'}"><i>${d?'✓':o?(R.ster?'★':i+1):'🔒'}</i><span>${R.k}<small>${R.ster?'★ uitdaging':'ronde '+(i+1)}</small></span></a>`}).join('');
+  let t,sim;
+  if(S.view==='code'){t=codeView();sim=simkol(-1)}
+  else if(S.ri===-1){t=intro();sim=simkol(-1)}
+  else{const R=RR(),r=rs();
+    t=`<div class="kicker">${R.ster?'★ ':''}Ronde ${S.ri+1} · ${SC.kort}</div><h2>${R.t}</h2>
+    <div class="tabs"><button data-a="tab" data-v="uitleg" class="${S.tab==='uitleg'?'on':''}">Uitleg en voorbeeld</button><button data-a="tab" data-v="fab" class="${S.tab==='fab'?'on':''}">De fabriek${r.klaar?' ✓':''}</button></div>`;
+    t+=S.tab==='uitleg'?uitleg(R):fabriek(R,r);sim=simkol(S.ri)}
+  $('#main').innerHTML=`<div class="wp"><div class="tekst">${t}</div><div class="simkol">${sim}</div></div>`;
+}
+function intro(){
+  const eerste=SC.rondes.findIndex((_,i)=>!gedaan(i));
+  return `<div class="kicker">Fabrieksspel · ${SC.kort}</div><h2>${SC.titel}</h2>${SC.intro}
+  <div class="ld"><b>Leerdoelen</b><ol>${SC.ld.map(x=>`<li>${x}</li>`).join('')}</ol></div>
+  <h3>Zo werkt het spel</h3><ol>
+   <li>Elke ronde is één productiebatch. Je krijgt een <b>bestelling</b> met eisen.</li>
+   <li>Lees eerst de <b>uitleg en het voorbeeld</b>. Daar staat precies hoe je het aanpakt.</li>
+   <li>Je neemt <b>beslissingen</b> (hoeveel grondstof, welke temperatuur, welke methode).</li>
+   <li>Bij de <b>rekenpoort</b> reken je uit wat je fabriek gaat doen. Pas als je berekening klopt, kun je de batch starten.</li>
+   <li>Na de batch lees je de <b>metingen</b> en je <b>kasboek</b>. Soms volgen er nog vragen over het resultaat.</li>
+   <li>Ronden met ★ zijn extra uitdagingen. Een ronde nog eens spelen met een nieuwe bestelling mag altijd.</li></ol>
+  <p>Je voortgang wordt op deze laptop bewaard. Werk je de volgende les op een andere laptop? Noteer dan je <b>opslagcode</b> (knop links onderin).</p>
+  <button class="btn" data-a="ronde" data-v="${eerste<0?0:eerste}">${eerste>0?'Verder met ronde '+(eerste+1):'Start ronde 1'}</button>`}
+function uitleg(R){
+  let h=`<div class="ld"><b>Leerdoel${R.ld.length>1?'en':''} van deze ronde</b>${R.ld.map(i=>`<div>${SC.ld[i]}</div>`).join('')}</div>${R.uitleg}`;
+  if(R.vb)h+=`<div class="vb"><div class="vbkop">Voorbeeld</div><div class="vbvraag">${R.vb.v}</div>${R.vb.s.map((x,i)=>`<div class="vbstap"><div class="n">${i+1}</div><div class="b">${x}</div></div>`).join('')}</div>`;
+  return h+`<button class="btn" data-a="tab" data-v="fab">Naar de fabriek</button>`}
+function fabriek(R,r){
+  const p=r.p,kz=KZ(R,p),po=poortL(R,r),pe=!!R.poortEerst;
+  let h='';
+  if(r.klaar)h+=`<div class="klaarbanner">Deze ronde is klaar.</div>`;
+  h+=`<div class="kader proces"><div class="opdkop">Bestelling</div>${R.bestelling(p,S)}</div>`;
+  const bb=()=>kz.length?besl(kz,r):'';
+  const pb=()=>po.length?`<h3>Rekenpoort</h3><p class="poortinfo">${pe?'Reken eerst uit wat je nodig hebt. Daarna neem je je beslissing.':'Reken uit wat je fabriek gaat doen. Pas als je berekening klopt, kun je de batch starten.'}</p>${stappen(po,r.ps,'p',R.fade&&!r.tussen&&r.ps<po.length,r)}`:'';
+  if(pe){h+=pb();if(r.ps>=po.length)h+=bb()}else{h+=bb();if(r.vast)h+=pb()}
+  if(!r.res){if(r.vast&&r.ps>=po.length)h+=`<div class="startrij"><button class="btn groot" data-a="batch">Start de batch ▶</button></div>`;return h}
+  if(Date.now()-(r.t0||0)<1200){setTimeout(render,1250);return h+`<div class="bezig"><div class="balk"></div><span>De batch draait…</span></div>`}
+  const res=r.res;
+  h+=`<div class="resultaat"><div class="opdkop">Resultaat van de batch</div>${res.html||''}<div class="badge ${res.ok?'ok':'nok'}">${res.msg}</div>${kasTabel(res.regels)}</div>`;
+  const na=naL(R,r);
+  if(na.length)h+=`<h3>Vragen over je resultaat</h3>${stappen(na,r.ns,'n',false,r)}`;
+  if(r.klaar){h+=`<div class="startrij">${S.ri<SC.rondes.length-1?`<button class="btn" data-a="ronde" data-v="${S.ri+1}">Volgende ronde →</button>`:''}<button class="btn g" data-a="opnieuw">Nog een batch met een nieuwe bestelling</button></div>`}
+  return h}
+function toon(x,v){if(x.t==='kies')return v==null?'—':(x.opties[v].t||x.opties[v]);return nl(v)+' '+(x.u||'')}
+function besl(kz,r){
+  let h=`<div class="besl"><div class="opdkop">Jouw beslissingen</div>`;
+  kz.forEach(x=>{const v=r.K[x.id];
+    if(r.vast){h+=`<div class="bkeus"><span>${x.label}</span><b>${toon(x,v)}</b></div>`;return}
+    h+=`<div class="bvraag">${x.label}</div>`;
+    if(x.t==='schuif')h+=`<div class="rij"><input type="range" class="schuif" min="${x.min}" max="${x.max}" step="${x.step||1}" value="${v==null?x.min:v}" data-k="${x.id}"><output id="o-${x.id}">${nl(v==null?x.min:v)} ${x.u||''}</output></div>`;
+    if(x.t==='getal')h+=`<div class="rij"><input class="in" id="k-${x.id}" inputmode="decimal" value="${v==null?'':nl(v)}"><span>${x.u||''}</span></div>`;
+    if(x.t==='kies'&&x.chips)h+=`<div class="chips">${x.opties.map((o,j)=>`<span class="chip ${v===j?'aan':''}" data-a="kk" data-k="${x.id}" data-v="${j}">${o.t||o}</span>`).join('')}</div>`;
+    else if(x.t==='kies')h+=`<div class="opties">${x.opties.map((o,j)=>`<button class="optie ${v===j?'aan':''}" data-a="kk" data-k="${x.id}" data-v="${j}">${o.t||o}</button>`).join('')}</div>`;
+    if(x.info)h+=`<div class="binfo">${x.info}</div>`});
+  if(r.vast){if(!r.res)h+=`<button class="btn g klein" data-a="wijzig">Beslissingen wijzigen</button>`}
+  else h+=`<div class="rij"><button class="btn" data-a="vast">Leg beslissingen vast</button></div>`;
+  if(r.kfb)h+=`<div class="fb hint">${r.kfb}</div>`;
+  return h+'</div>'}
+function stappen(L,done,pre,fade,r){
+  if(fade){const i=L.length-1;return `<div class="fadeinfo">Je mag direct het eindantwoord geven. Lukt dat niet? <button class="btn g klein" data-a="tussen">Toon de tussenstappen</button></div>`+stap(L[i],i,done<i?i:done,pre)}
+  return L.map((s,i)=>stap(s,i,done,pre)).join('')}
+function stap(s,i,done,pre){
+  const st=i<done?'goed':i===done?'':'dicht',tk=S.ri+'-'+pre+'-'+i,cur=T[tk]||{};
+  let h=`<div class="stap ${st}"><div class="n">${i+1}</div><div class="inh"><div class="vr">${s.v}</div>`;
+  if(i<done){h+=s.t==='getal'?`<div class="uitw">${s.w||nl(s.a)+' '+(s.u||'')}</div>`:`<div class="fb goed">${s.o[s.a]}${s.uitleg?' '+s.uitleg:''}</div>`;return h+'</div></div>'}
+  h+='<div class="inv">';
+  if(s.t==='getal')h+=`<div class="rij"><input class="in" id="g-${pre}-${i}" inputmode="decimal" value="${esc(cur.txt||'')}">${s.u?`<span>${s.u}</span>`:''}<button class="btn" data-a="check" data-p="${pre}" data-i="${i}">Controleer</button></div>${cur.tries>=3&&!cur.showW?`<button class="btn g klein" style="margin-top:6px" data-a="showw" data-p="${pre}" data-i="${i}">Toon het antwoord</button>`:''}${cur.showW?`<div class="uitw">${s.w||nl(s.a)+' '+(s.u||'')}</div>`:''}`;
+  if(s.t==='keuze'){const ord=s.o.map((_,j)=>j).sort((a,b)=>((a*7+i*3+S.ri)%5)-((b*7+i*3+S.ri)%5));
+    h+=`<div class="opties">${ord.map(j=>`<button class="optie ${cur.v===j?'aan':''}" data-a="kies" data-p="${pre}" data-i="${i}" data-v="${j}">${s.o[j]}</button>`).join('')}</div><button class="btn" data-a="check" data-p="${pre}" data-i="${i}">Controleer</button>`}
+  h+='</div>';if(cur.fb)h+=`<div class="fb ${cur.fb[0]}">${cur.fb[1]}</div>`;
+  return h+'</div></div>'}
+function kasTabel(L){if(!L||!L.length)return'';const tot=L.reduce((a,x)=>a+x[1],0);
+  return `<table class="kas">${L.map(x=>`<tr><td>${x[0]}</td><td class="${x[1]<0?'min':'plus'}">${eur(x[1])}</td></tr>`).join('')}<tr class="tot"><td>Resultaat van deze batch</td><td class="${tot<0?'min':'plus'}">${eur(tot)}</td></tr></table>`}
+function simkol(i){
+  const r=i>=0?rs(i):null;
+  let h=`<div class="simkop"><b>Jouw fabriek</b><span>${i>=0?'ronde '+(i+1):'overzicht'}</span></div><div class="doek">${SC.schema(i,r,S)}</div>
+  <div class="saldo"><small>Kassa</small><b class="${S.geld<0?'min':''}">${eur(S.geld)}</b></div>`;
+  const L=S.log.slice(-5).reverse();
+  if(L.length)h+=`<div class="vak kasboek"><h4>Kasboek</h4>${L.map(x=>{const t=x.regels.reduce((a,y)=>a+y[1],0);return `<div class="kbrij"><span>Ronde ${x.ronde}${x.extra?' · '+x.extra:''}</span><b class="${t<0?'min':'plus'}">${eur(t)}</b></div>`}).join('')}</div>`;
+  if(SC.legenda)h+=`<div class="legenda">${SC.legenda}</div>`;
+  return h}
+/* ---------- opslagcode ---------- */
+function hash(s){let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))%1296;return h.toString(36).toUpperCase().padStart(2,'0')}
+function codeMaak(){let m=0;SC.rondes.forEach((_,i)=>{if(gedaan(i))m|=1<<i});const b=SC.code+'-'+m.toString(36).toUpperCase()+'-'+Math.round(S.geld);return b+'-'+hash(b)}
+function codeLees(c){c=String(c).trim().toUpperCase().replace(/\s/g,'');const d=c.split('-');if(d.length!==4||d[0]!==SC.code)return false;
+  const b=d.slice(0,3).join('-');if(hash(b)!==d[3])return false;const m=parseInt(d[1],36),geld=parseInt(d[2],10);if(isNaN(m)||isNaN(geld))return false;
+  S.r={};SC.rondes.forEach((_,i)=>{if(m&(1<<i)){S.r[i]=nieuw(i);S.r[i].ooit=true}});S.geld=geld;S.log=[];S.ri=-1;save();return true}
+function codeView(){return `<div class="kicker">Opslagcode</div><h2>Verder op een andere laptop</h2>
+  <p>Schrijf deze code op. Op een andere laptop typ je hem hieronder in; je afgeronde rondes en je kassa komen dan terug.</p>
+  <div class="codevak">${codeMaak()}</div>
+  <h3>Code invoeren</h3><div class="rij"><input class="in" id="codein" placeholder="${SC.code}-…" value="${esc(T.code||'')}"><button class="btn" data-a="codelaad">Laad code</button></div>${T.codefb?`<div class="fb ${T.codefb[0]}">${T.codefb[1]}</div>`:''}`}
+/* ---------- acties ---------- */
+function invoer(e){const el=e.target;if(!el.classList.contains('schuif'))return;const r=rs(),x=KZ(RR(),r.p).find(y=>y.id===el.dataset.k);r.K[x.id]=+el.value;const o=$('#o-'+x.id);if(o)o.textContent=nl(+el.value)+' '+(x.u||'');save()}
+function vast(){const R=RR(),r=rs(),kz=KZ(R,r.p);
+  for(const x of kz){if(x.t==='getal'){const v=parseNum($('#k-'+x.id).value);if(isNaN(v)){r.kfb=`Vul een getal in bij: ${x.label}`;return}
+      if(v<x.min||v>x.max){r.kfb=`Kies bij “${x.label}” een waarde tussen ${nl(x.min)} en ${nl(x.max)} ${x.u||''}.`;return}r.K[x.id]=v}
+    if(x.t==='kies'&&r.K[x.id]==null){r.kfb=`Maak eerst een keuze bij: ${x.label}`;return}}
+  r.kfb=null;r.vast=true;if(!R.poortEerst){r.ps=0;r.tussen=false;clearT('p')}save()}
+function clearT(pre){Object.keys(T).forEach(x=>{if(x.startsWith(S.ri+'-'+pre))delete T[x]})}
+function batch(){const R=RR(),r=rs();if(r.res||!r.vast||r.ps<poortL(R,r).length)return;
+  const res=R.run(r.p,r.K,S);r.res=res;r.t0=Date.now();r.ns=0;S.geld+=res.regels.reduce((a,x)=>a+x[1],0);S.log.push({ronde:S.ri+1,regels:res.regels});
+  if(!naL(R,r).length)klaar();save()}
+function klaar(){const R=RR(),r=rs();if(r.klaar)return;r.klaar=true;
+  if(R.bonus){const b=R.bonus(r.p,r.K,r.res,S);if(b){S.geld+=b[1];r.res.regels.push(b);S.log.push({ronde:S.ri+1,regels:[b],extra:'bonus'})}}}
+function check(pre,i){
+  const R=RR(),r=rs(),L=pre==='p'?poortL(R,r):naL(R,r),s=L[i],tk=S.ri+'-'+pre+'-'+i,cur=T[tk]=T[tk]||{};let ok=false,msg='Nog niet goed.';
+  if(s.t==='getal'){const inp=$('#g-'+pre+'-'+i);cur.txt=inp.value;const x=parseNum(inp.value);
+    if(isNaN(x)){cur.fb=['hint','Dit getal kan ik niet lezen. Typ bijvoorbeeld 12,5 of 3,2·10^4.'];return}
+    ok=s.abs!=null?Math.abs(x-s.a)<=s.abs:Math.abs(x-s.a)<=Math.abs(s.a)*(s.rel||.01);
+    if(!ok){cur.tries=(cur.tries||0)+1;const f=(s.fout||[]).find(([v])=>Math.abs(x-v)<=Math.abs(v)*.015);
+      if(f)msg=f[1];else if(Math.abs(x/s.a/1e3-1)<.015||Math.abs(x*1e3/s.a-1)<.015)msg='Nog niet goed: je zit er een factor 1000 naast. Kijk naar de eenheid (g of kg?).';else msg='Nog niet goed.'+(s.h?' Tip: '+s.h:'')}}
+  if(s.t==='keuze'){if(cur.v==null){cur.fb=['hint','Kies eerst een antwoord.'];return}ok=cur.v===s.a;
+    if(!ok){msg=(s.fo&&s.fo[cur.v])||('Nog niet goed.'+(s.h?' Tip: '+s.h:''))}}
+  if(ok){cur.fb=null;if(pre==='p'){r.ps=(R.fade&&!r.tussen)?L.length:i+1}else{r.ns=i+1;if(r.ns>=L.length)klaar()}save()}
+  else cur.fb=['fout',msg]}
+function klik(e){const el=e.target.closest('[data-a]');if(!el)return;const a=el.dataset.a,v=el.dataset.v;
+  switch(a){
+    case 'ronde':{const i=+v;if(i>=0&&!open(i))return;S.ri=i;S.view=null;S.tab='uitleg';T={};if(i>=0)rs(i);save();window.scrollTo(0,0);break}
+    case 'tab':S.tab=v;save();window.scrollTo(0,0);break;
+    case 'kk':{const r=rs();r.K[el.dataset.k]=+v;r.kfb=null;break}
+    case 'vast':vast();break;
+    case 'wijzig':{const r=rs();if(!r.res){r.vast=false;if(!RR().poortEerst){r.ps=0;clearT('p')}}save();break}
+    case 'tussen':rs().tussen=true;save();break;
+    case 'batch':batch();break;
+    case 'check':check(el.dataset.p,+el.dataset.i);break;
+    case 'kies':{const tk=S.ri+'-'+el.dataset.p+'-'+el.dataset.i;T[tk]=T[tk]||{};T[tk].v=+v;T[tk].fb=null;break}
+    case 'showw':{const tk=S.ri+'-'+el.dataset.p+'-'+el.dataset.i;T[tk]=T[tk]||{};T[tk].showW=true;break}
+    case 'opnieuw':S.r[S.ri]=nieuw(S.ri,S.r[S.ri]);T={};save();window.scrollTo(0,0);break;
+    case 'code':S.view='code';T.codefb=null;break;
+    case 'codelaad':{T.code=$('#codein').value;if(codeLees(T.code)){T.codefb=['goed','Code geladen. Je afgeronde rondes en je kassa zijn terug.']}else T.codefb=['fout','Deze code klopt niet. Controleer letters en cijfers.'];break}
+    case 'beamer':document.body.classList.toggle('beamer');return;
+    case 'wis':if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Zeker weten? Klik nogmaals';return}
+      S={ri:-1,tab:'uitleg',geld:SC.start,r:{},log:[],view:null};T={};save();el.dataset.c='';el.textContent='Opnieuw beginnen';break;
+    default:return}
+  render()}
+})();
+
+</script>
+<script>
+(function(){
+const {fr,nl,eur,g,k}=FAB;
+const MS=138.118,MAN=102.088,MA=180.154,MZ=60.052,MW=18.015;
+const GM='g mol<sup>−1</sup>';
+const PR={sal:4,anh:2,tech:6,apo:15,vast:100};
+const SALf='C<sub>7</sub>H<sub>6</sub>O<sub>3</sub>',ASPf='C<sub>9</sub>H<sub>8</sub>O<sub>4</sub>',ANHf='C<sub>4</sub>H<sub>6</sub>O<sub>3</sub>',AZf='C<sub>2</sub>H<sub>4</sub>O<sub>2</sub>';
+const meet=L=>`<div class="meet">${L.map(([a,b])=>`<div><small>${a}</small><b>${b}</b></div>`).join('')}</div>`;
+const kg=(v,d=1)=>nl(v,d)+' kg';
+
+/* ---------- structuurformules (alle atomen) ---------- */
+const R3=Math.sqrt(3)/2;
+const ring=[[R3,.5],[0,1],[-R3,.5],[-R3,-.5],[0,-1],[R3,-.5]];
+const ringB=[[0,1,2],[1,2,1],[2,3,2],[3,4,1],[4,5,2],[5,0,1]];
+function bouwRing(extra,eb){const a=ring.map(p=>[p[0],p[1],'C']).concat(extra);const b=ringB.concat(eb);const st=a.length;
+  [[0,2],[-2*R3,1],[-2*R3,-1],[0,-2]].forEach((p,i)=>{a.push([p[0],p[1],'H']);b.push([[1,2,3,4][i],st+i,1])});return{a,b}}
+const SAL=bouwRing([[2*R3,1,'C'],[2*R3,2,'O'],[3*R3,.5,'O'],[4*R3,1,'H'],[2*R3,-1,'O'],[3*R3,-1.5,'H']],[[0,6,1],[6,7,2],[6,8,1],[8,9,1],[5,10,1],[10,11,1]]);
+const ASP=bouwRing([[2*R3,1,'C'],[2*R3,2,'O'],[3*R3,.5,'O'],[4*R3,1,'H'],[2*R3,-1,'O'],[3*R3,-1.5,'C'],[4*R3,-1,'O'],[3*R3,-2.5,'C'],[2*R3,-3,'H'],[4*R3,-3,'H'],[3*R3,-3.5,'H']],
+  [[0,6,1],[6,7,2],[6,8,1],[8,9,1],[5,10,1],[10,11,1],[11,12,2],[11,13,1],[13,14,1],[13,15,1],[13,16,1]]);
+const ANH={a:[[0,0,'C'],[-1,0,'H'],[0,1,'H'],[0,-1,'H'],[1,0,'C'],[1,1,'O'],[2,0,'O'],[3,0,'C'],[3,1,'O'],[4,0,'C'],[5,0,'H'],[4,1,'H'],[4,-1,'H']],
+  b:[[0,1,1],[0,2,1],[0,3,1],[0,4,1],[4,5,2],[4,6,1],[6,7,1],[7,8,2],[7,9,1],[9,10,1],[9,11,1],[9,12,1]]};
+const AZ={a:[[0,0,'C'],[-1,0,'H'],[0,1,'H'],[0,-1,'H'],[1,0,'C'],[1,1,'O'],[2,0,'O'],[3,0,'H']],b:[[0,1,1],[0,2,1],[0,3,1],[0,4,1],[4,5,2],[4,6,1],[6,7,1]]};
+function mol(M,s=30,kleur){const xs=M.a.map(a=>a[0]),ys=M.a.map(a=>a[1]);const x0=Math.min(...xs)-.5,x1=Math.max(...xs)+.5,y0=Math.min(...ys)-.5,y1=Math.max(...ys)+.5;
+  const X=x=>((x-x0)*s).toFixed(1),Y=y=>((y1-y)*s).toFixed(1);let h='';
+  M.b.forEach(([i,j,o])=>{const [ax,ay]=M.a[i],[bx,by]=M.a[j];const dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,sh=.3;
+    const p=[ax+ux*sh,ay+uy*sh,bx-ux*sh,by-uy*sh];const offs=o===2?[-.07,.07]:[0];
+    offs.forEach(f=>{const nx=-uy*f,ny=ux*f;h+=`<line x1="${X(p[0]+nx)}" y1="${Y(p[1]+ny)}" x2="${X(p[2]+nx)}" y2="${Y(p[3]+ny)}" stroke="#2b2a27" stroke-width="1.6"/>`})});
+  M.a.forEach(([x,y,l],i)=>{const c=kleur&&kleur[i]?kleur[i]:(l==='O'?'#b4473a':'#2b2a27');h+=`<text x="${X(x)}" y="${(+Y(y)+5).toFixed(1)}" text-anchor="middle" font-size="${s*.55}" font-family="Segoe UI,system-ui,sans-serif" font-weight="${kleur&&kleur[i]?700:400}" fill="${c}">${l}</text>`});
+  return `<svg viewBox="0 0 ${((x1-x0)*s).toFixed(0)} ${((y1-y0)*s).toFixed(0)}" style="height:${((y1-y0)*s*.9).toFixed(0)}px;max-width:100%">${h}</svg>`}
+const vgl=(L)=>`<div class="vglrij">${L.map(x=>typeof x==='string'?`<span class="pijl">${x}</span>`:`<figure>${x[0]}<figcaption>${x[1]}</figcaption></figure>`).join('')}</div>`;
+
+/* ---------- fabrieksschema ---------- */
+function schema(ri,r){
+  const res=r&&r.res&&!(Date.now()-(r.t0||0)<1200)?r.res:null,K=r?r.K:{},p=r?r.p:{};
+  const lab=(x,y,t,c)=>`<text x="${x}" y="${y}" text-anchor="middle" font-size="12" fill="${c||'#3e3b35'}" font-family="Segoe UI,system-ui,sans-serif">${t}</text>`;
+  const open=n=>ri<0||ri>=n;const dim=x=>x?'':'opacity="0.28"';
+  const ms=K.ms!=null?K.ms:p.ms;const T=K.T!=null&&ri===4?K.T+' °C':'reactor';
+  return `<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg"><rect width="600" height="300" fill="#fbf8f1"/>
+  <path d="M 85 110 H 140 M 85 200 H 120 V 150 H 140 M 240 170 H 280 M 360 170 H 400 M 470 170 H 500" stroke="#7a756b" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <rect x="20" y="80" width="65" height="60" rx="8" fill="#fff" stroke="#24323f" stroke-width="2"/>${lab(52,72,'salicylzuur')}${ms!=null?lab(52,115,kg(ms,0)):''}
+  <rect x="20" y="170" width="65" height="60" rx="8" fill="#fff" stroke="#24323f" stroke-width="2"/>${lab(52,250,'azijnzuur-')}${lab(52,264,'anhydride')}
+  <rect x="140" y="80" width="100" height="150" rx="16" fill="#fff" stroke="#24323f" stroke-width="2"/><rect x="142" y="140" width="96" height="88" rx="12" fill="#efe1c6"/>
+  <path d="M 190 80 V 60" stroke="#24323f" stroke-width="2"/><path d="M 175 60 H 205" stroke="#24323f" stroke-width="3"/><path d="M 190 120 V 200 M 175 200 H 205" stroke="#7a756b" stroke-width="2"/>
+  <path d="M 150 240 q 10 12 20 0 q 10 12 20 0 q 10 12 20 0 q 10 12 20 0" fill="none" stroke="#b4473a" stroke-width="2"/>${lab(190,70+0,'')}${lab(190,268,T)}
+  <g ${dim(open(3))}><path d="M 280 130 H 360 L 345 210 H 295 Z" fill="#fff" stroke="#24323f" stroke-width="2"/>
+   ${[0,1,2,3,4].map(i=>`<path d="M ${300+i*10} ${160+(i%2)*14} l 6 -8 l 6 8 z" fill="#cfe3f2" stroke="#5d7387"/>`).join('')}${lab(320,120,'kristalliseren')}${lab(320,228,'en filtreren')}</g>
+  <g ${dim(open(5))}><rect x="400" y="130" width="70" height="80" rx="8" fill="#fff" stroke="#24323f" stroke-width="2"/>
+   <path d="M 418 150 V 190 q 0 8 8 8 h 18 q 8 0 8 -8 V 150" fill="none" stroke="#5d7387" stroke-width="2"/><path d="M 414 150 H 456" stroke="#5d7387" stroke-width="2"/>${lab(435,120,'kwaliteits-')}${lab(435,228,'controle')}</g>
+  <rect x="500" y="140" width="80" height="60" rx="10" fill="#fff" stroke="#24323f" stroke-width="2"/>${lab(540,130,'aspirine')}
+  ${res&&res.prod!=null?lab(540,175,kg(res.prod)):''}
+  ${ri>=0&&ri<3?lab(330,285,'kristalliseren en kwaliteitscontrole gaan later open','#7a756b'):''}</svg>`}
+
+/* ---------- grafiek ronde 5 ---------- */
+const KAT=['geen katalysator','een paar druppels geconcentreerd zwavelzuur','een paar druppels natronloog','een schepje koperpoeder'];
+const kR=(T,c)=>.05*Math.pow(2,(T-20)/10)*(c===1?15:1);
+const Xr=(T,c,t)=>1-Math.exp(-kR(T,c)*t);
+function grafiek(T,c){const x=t=>40+t*230,y=v=>170-v*140;let pad='';for(let t=0;t<=2.001;t+=.04)pad+=(t?'L':'M')+x(t).toFixed(1)+' '+y(Xr(T,c,t)).toFixed(1)+' ';
+  return `<div class="grafiek"><svg viewBox="0 0 560 200"><path d="M40 30 V170 H520" stroke="#3e3b35" fill="none"/>
+  ${[0,.5,1,1.5,2].map(t=>`<text x="${x(t)}" y="186" font-size="11" text-anchor="middle" fill="#7a756b">${nl(t)}</text>`).join('')}
+  ${[0,50,100].map(v=>`<text x="34" y="${y(v/100)+4}" font-size="11" text-anchor="end" fill="#7a756b">${v}%</text><path d="M40 ${y(v/100)} H520" stroke="#eee3cc"/>`).join('')}
+  <text x="520" y="198" font-size="11" text-anchor="end" fill="#7a756b">tijd (uur)</text><text x="44" y="22" font-size="11" fill="#7a756b">omgezet salicylzuur bij ${T} °C, ${KAT[c]}</text>
+  <path d="${pad}" stroke="#a0701f" stroke-width="2.5" fill="none"/><circle cx="${x(1)}" cy="${y(Xr(T,c,1))}" r="5" fill="#24323f"/></svg></div>`}
+
+/* ---------- kwaliteitscontrole ---------- */
+const TEST=['smeltpunt bepalen','dunnelaagchromatografie','IR-spectrum opnemen','ijzer(III)chlorideoplossing toevoegen','pH meten met indicatorpapier','vlamkleur bepalen'];
+function dlc(vuil){const lane=(x,sp,t)=>`<text x="${x}" y="196" font-size="11" text-anchor="middle" fill="#3e3b35">${t}</text>`+sp.map(r=>`<ellipse cx="${x}" cy="${170-r*140}" rx="9" ry="5" fill="#6a53d1" opacity=".75"/>`).join('');
+  return `<div class="grafiek"><svg viewBox="0 0 420 205"><rect x="60" y="10" width="300" height="170" fill="#fff" stroke="#7a756b"/><path d="M60 170 H360" stroke="#a0701f" stroke-dasharray="4 3"/><path d="M60 30 H360" stroke="#7a756b" stroke-dasharray="2 3"/>
+  <text x="365" y="34" font-size="10" fill="#7a756b">front</text><text x="365" y="174" font-size="10" fill="#7a756b">start</text>
+  ${lane(120,[.55],'salicylzuur')}${lane(210,[.40],'aspirine')}${lane(300,vuil?[.40,.55]:[.40],'jouw product')}</svg></div>`}
+function testRes(t,vuil){return[
+  ()=>meet([['smelttraject',vuil?'124–131 °C':'134–136 °C'],['literatuurwaarde aspirine','135 °C']]),
+  ()=>dlc(vuil),
+  ()=>`<table class="regels"><tr><th>golfgetal (cm<sup>−1</sup>)</th><th>vorm</th></tr><tr><td>2500–3300</td><td>brede band</td></tr>${vuil?'<tr><td>3230</td><td>scherpere piek bovenop de brede band</td></tr>':''}<tr><td>1750</td><td>sterk</td></tr><tr><td>1690</td><td>sterk</td></tr></table>`,
+  ()=>meet([['kleur na toevoegen',vuil?'paars':'geel (kleur van de oplossing)']]),
+  ()=>meet([['pH','≈ 3']]),
+  ()=>meet([['vlamkleur','geen kleur']])][t]()}
+
+const rondes=[
+/* 1 */{k:'De reactie',t:'Van salicylzuur naar aspirine',ld:[0,1],
+ uitleg:`<p>Aspirine heet systematisch <b>acetylsalicylzuur</b>. Je maakt het uit salicylzuur en azijnzuuranhydride. Dit zijn de structuurformules van de beginstoffen:</p>
+ ${vgl([[mol(SAL),'salicylzuur, '+SALf],'+',[mol(ANH),'azijnzuuranhydride, '+ANHf],'→','?'])}
+ <p>Een <b>zuuranhydride</b> reageert met een OH-groep. Daarbij ontstaan een <b>ester</b> en een carbonzuur. Kijk in het voorbeeld hoe dat gaat met ethanol.</p>
+ <p>Het rekenschema is hetzelfde als altijd:</p>
+ <div class="kader proces">massa beginstof → mol beginstof → <i>(molverhouding)</i> → mol product → massa product</div>`,
+ vb:{v:'Ethanol reageert met azijnzuuranhydride. Bereken hoeveel kg ester ontstaat uit 46,0 kg ethanol (azijnzuuranhydride in overmaat).',s:[
+  `De OH-groep van ethanol reageert met het anhydride: C<sub>2</sub>H<sub>5</sub>OH + ${ANHf} → C<sub>4</sub>H<sub>8</sub>O<sub>2</sub> (ethylethanoaat, een ester) + ${AZf} (azijnzuur).`,
+  `Molaire massa ethanol: 46,07 ${GM}; ethylethanoaat: 4 × 12,01 + 8 × 1,008 + 2 × 16,00 = 88,10 ${GM}.`,
+  `n(ethanol) = 46,0·10<sup>3</sup> g × ${fr('1 mol','46,07 g')} = 998,5 mol. Molverhouding 1 : 1, dus n(ester) = 998,5 mol.`,
+  `m(ester) = 998,5 mol × ${fr('88,10 g','1 mol')} = 8,797·10<sup>4</sup> g = 88,0 kg.`]},
+ keuzes:[{id:'ms',t:'schuif',label:'Hoeveel kg salicylzuur zet je in?',min:50,max:200,step:5,def:100,u:'kg'}],
+ bestelling:()=>`Een groothandel koopt ruwe aspirine voor ${eur(PR.tech)} per kg en zuivert het zelf. Salicylzuur kost ${eur(PR.sal)} per kg; azijnzuuranhydride gebruik je in overmaat. Vaste kosten per batch: ${eur(PR.vast)}.<br><b>Neem aan</b> dat alle salicylzuur reageert.`,
+ poort:(p,K)=>{const n=K.ms*1000/MS;return[
+  Object.assign(k('Welke groep van salicylzuur reageert met azijnzuuranhydride?',['de OH-groep die direct aan de ring zit','de OH-groep van de carboxylgroep','een H-atoom van de ring','de C=O-groep van de carboxylgroep'],0),{fo:{1:'De carboxylgroep blijft in aspirine bestaan: aspirine is nog steeds een zuur.',2:'Een anhydride reageert met een OH-groep, niet met een H-atoom van de ring.',3:'Een anhydride reageert met een OH-groep.'}}),
+  Object.assign(k('Welke karakteristieke groep ontstaat er in aspirine?',['een estergroep','een amidegroep','een ethergroep','een aldehydegroep','een extra carboxylgroep'],0),{fo:{1:'Voor een amide is een N-atoom nodig; dat zit in geen van de beginstoffen.',2:'Bij een ether zit een O-atoom tussen twee C-atomen zonder C=O ernaast. Hier ontstaat O–C=O.',3:'Er ontstaat geen C–H aan een C=O aan het eind van een keten.',4:'Kijk naar de groep die bij de OH-groep aan de ring ontstaat: O–C(=O)–CH₃.'}}),
+  Object.assign(k('Welk tweede product ontstaat er?',['azijnzuur (ethaanzuur)','water','ethanol','koolstofdioxide'],0),{fo:{1:'Water ontstaat bij een verestering met een carbonzuur. Hier reageert een anhydride: de helft ervan wordt een carbonzuur.',2:'Er ontstaat geen alcohol: kijk wat er overblijft van het anhydride.',3:'Tel de atomen: er ontstaat geen CO₂.'}}),
+  g(`Bereken de molaire massa van salicylzuur (${SALf}).`,138.12,{u:GM,rel:.002}),
+  g(`Bereken de molaire massa van aspirine (${ASPf}).`,180.16,{u:GM,rel:.002}),
+  g(`Bereken hoeveel mol salicylzuur je inzet (${K.ms} kg).`,n,{u:'mol',fout:[[K.ms/MS,'Reken kg eerst om naar g: 1 kg = 10³ g.']]}),
+  g('Bereken hoeveel kg aspirine er ontstaat.',n*MA/1000,{u:'kg',fout:[[K.ms,'Je nam aan dat de massa gelijk blijft. De verhouding 1 : 1 geldt voor mol, niet voor kg.']],w:`${nl(n)} mol × ${fr('180,16 g','1 mol')} = ${nl(n*MA/1000,1)} kg`})]},
+ run:(p,K)=>{const a=K.ms*MA/MS;return{prod:a,html:vgl([[mol(ASP,22),'aspirine'],'+',[mol(AZ,22),'azijnzuur']])+meet([['ruwe aspirine',kg(a)]]),ok:true,
+  msg:`Gelukt: ${K.ms} kg salicylzuur leverde ${kg(a)} ruwe aspirine.`,
+  regels:[[`Salicylzuur ${K.ms} kg × ${eur(PR.sal)}`,-K.ms*PR.sal],['Azijnzuuranhydride (overmaat)',-K.ms*1.1],['Vaste kosten',-PR.vast],[`Ruwe aspirine ${kg(a)} × ${eur(PR.tech)}`,a*PR.tech]]}}},
+
+/* 2 */{k:'Beperkende stof',t:'Welke stof raakt als eerste op?',ld:[1],
+ uitleg:`<p>Meestal heb je niet precies de goede verhouding. De stof die als eerste op is, heet de <b>beperkende stof</b>: die bepaalt hoeveel product er ontstaat. Van de andere stof blijft iets over: die is <b>in overmaat</b>.</p>
+ <ol><li>Reken van beide beginstoffen het aantal mol uit.</li><li>Vergelijk met de molverhouding uit de reactievergelijking (hier 1 : 1).</li><li>Reken met de beperkende stof door naar het product.</li></ol>`,
+ vb:{v:'23,0 kg ethanol reageert met 40,0 kg azijnzuuranhydride. Bereken hoeveel kg ester ontstaat en hoeveel kg van de stof in overmaat overblijft.',s:[
+  `n(ethanol) = 23,0·10<sup>3</sup> g × ${fr('1 mol','46,07 g')} = 499,2 mol; n(anhydride) = 40,0·10<sup>3</sup> g × ${fr('1 mol','102,09 g')} = 391,8 mol.`,
+  'Verhouding 1 : 1: er is minder mol anhydride, dus azijnzuuranhydride is de beperkende stof.',
+  `m(ester) = 391,8 mol × ${fr('88,10 g','1 mol')} = 3,452·10<sup>4</sup> g = 34,5 kg.`,
+  `Over: 499,2 mol − 391,8 mol = 107,4 mol ethanol; 107,4 mol × ${fr('46,07 g','1 mol')} = 4,95·10<sup>3</sup> g = 4,95 kg.`]},
+ gen:R=>{const ms=R.int(80,160,5),r=R.pick([.8,.85,.9,1.15,1.25,1.35]);return{ms,ma:Math.round(ms/MS*r*MAN)}},
+ bestelling:p=>`Je magazijn levert <b>${p.ms} kg salicylzuur</b> en <b>${p.ma} kg azijnzuuranhydride</b>. Alles gaat de reactor in. De groothandel betaalt ${eur(PR.tech)} per kg ruwe aspirine.<br><b>Neem aan</b> dat de beperkende stof volledig reageert.`,
+ poort:p=>{const ns=p.ms*1000/MS,na=p.ma*1000/MAN,b=ns<na?0:1,nb=Math.min(ns,na);return[
+  g('Bereken hoeveel mol salicylzuur je hebt.',ns,{u:'mol'}),g('Bereken hoeveel mol azijnzuuranhydride je hebt.',na,{u:'mol'}),
+  Object.assign(k('Welke stof is de beperkende stof?',['salicylzuur','azijnzuuranhydride','geen van beide: ze zijn precies in de juiste verhouding'],b),{h:'Vergelijk het aantal mol, niet het aantal kg.'}),
+  g('Bereken hoeveel kg aspirine er ontstaat.',nb*MA/1000,{u:'kg',fout:[[Math.max(ns,na)*MA/1000,'Je rekende met de stof in overmaat. Reken met de beperkende stof.']]})]},
+ run:p=>{const ns=p.ms*1000/MS,na=p.ma*1000/MAN,a=Math.min(ns,na)*MA/1000;return{prod:a,html:meet([['ruwe aspirine',kg(a)]]),ok:true,msg:`De reactie is klaar: ${kg(a)} ruwe aspirine. Er is nog iets over in de reactor.`,
+  regels:[[`Salicylzuur ${p.ms} kg × ${eur(PR.sal)}`,-p.ms*PR.sal],[`Azijnzuuranhydride ${p.ma} kg × ${eur(PR.anh)}`,-p.ma*PR.anh],['Vaste kosten',-PR.vast],[`Ruwe aspirine ${kg(a)} × ${eur(PR.tech)}`,a*PR.tech]]}},
+ na:p=>{const ns=p.ms*1000/MS,na=p.ma*1000/MAN,over=ns>na?(ns-na)*MS/1000:(na-ns)*MAN/1000;return[
+  g(`Bereken hoeveel kg ${ns>na?'salicylzuur':'azijnzuuranhydride'} er na de reactie overblijft.`,over,{u:'kg',h:'Trek het aantal mol van elkaar af en reken het verschil om naar kg.',fout:[[Math.abs(p.ms-p.ma),'Je trok de massa’s van elkaar af. Trek het aantal mol af en reken daarna om naar kg.']]})]}},
+
+/* 3 */{k:'Overmaat',t:'Een overmaat volgens voorschrift',ld:[1],poortEerst:true,
+ uitleg:`<p>In de fabriek kies je de overmaat bewust. Je neemt één beginstof in overmaat, zodat de andere vrijwel volledig reageert. Welke stof neem je in overmaat?</p>
+ <ul><li>De <b>goedkopere</b> stof: daarvan geeft het overschot het minste verlies.</li><li>De stof die je na afloop het <b>makkelijkst verwijdert</b>.</li></ul>
+ <p>Een voorschrift noemt de overmaat vaak als verhouding in mol, bijvoorbeeld "1,5 keer zoveel mol". Dat reken je terug naar kilogram.</p>`,
+ vb:{v:'Een voorschrift zegt: gebruik twee keer zoveel mol azijnzuuranhydride als salicylzuur. Bereken hoeveel kg azijnzuuranhydride je nodig hebt bij 50,0 kg salicylzuur.',s:[
+  `n(salicylzuur) = 50,0·10<sup>3</sup> g × ${fr('1 mol','138,12 g')} = 362,0 mol.`,'n(azijnzuuranhydride) = 2 × 362,0 mol = 724,0 mol.',
+  `m(azijnzuuranhydride) = 724,0 mol × ${fr('102,09 g','1 mol')} = 7,391·10<sup>4</sup> g = 73,9 kg.`]},
+ gen:R=>({ms:R.int(100,200,5)}),
+ bestelling:p=>`Je zet <b>${p.ms} kg salicylzuur</b> in. Het voorschrift zegt: gebruik <b>1,5 keer zoveel mol</b> azijnzuuranhydride als salicylzuur. Met te weinig anhydride reageert niet alle salicylzuur; met te veel verspil je grondstof.`,
+ poort:p=>{const ns=p.ms*1000/MS,na=1.5*ns;return[
+  g('Bereken hoeveel mol salicylzuur je inzet.',ns,{u:'mol'}),
+  g('Bereken hoeveel mol azijnzuuranhydride je volgens het voorschrift nodig hebt.',na,{u:'mol',fout:[[ns,'Het voorschrift vraagt 1,5 keer zoveel mol, niet evenveel.'],[ns/1.5,'Andersom: je hebt 1,5 keer zoveel mol azijnzuuranhydride nodig, dus meer.']]}),
+  g('Bereken hoeveel kg azijnzuuranhydride je nodig hebt.',na*MAN/1000,{u:'kg',fout:[[p.ms*1.5,'De factor 1,5 geldt voor mol, niet voor kg. Reken via mol.'],[ns*MAN/1000,'Je bent de factor 1,5 vergeten.']]})]},
+ keuzes:[{id:'ma',t:'getal',label:'Hoeveel kg azijnzuuranhydride voeg je toe?',min:10,max:500,u:'kg'}],
+ run:(p,K)=>{const ns=p.ms*1000/MS,rt=K.ma*1000/MAN/ns,X=rt>=1.47?1:Math.min(rt,1)*.9,a=ns*X*MA/1000;const ok=rt>=1.47&&rt<=1.53;
+  return{prod:a,html:meet([['verhouding anhydride : salicylzuur',nl(rt,2)+' : 1 (mol)'],['ruwe aspirine',kg(a)]]),ok,
+   msg:ok?'Precies volgens voorschrift: vrijwel alle salicylzuur heeft gereageerd.':rt<1.47?'Te weinig azijnzuuranhydride: niet alle salicylzuur heeft gereageerd. Je opbrengst is lager en er zit salicylzuur in je product.':'Meer anhydride dan nodig: dat overschot heb je voor niets gekocht.',
+   regels:[[`Salicylzuur ${p.ms} kg × ${eur(PR.sal)}`,-p.ms*PR.sal],[`Azijnzuuranhydride ${nl(K.ma)} kg × ${eur(PR.anh)}`,-K.ma*PR.anh],['Vaste kosten',-PR.vast],[`Ruwe aspirine ${kg(a)} × ${eur(PR.tech)}`,a*PR.tech]]}},
+ na:()=>[Object.assign(k('Leg uit waarom je azijnzuuranhydride in overmaat gebruikt en niet salicylzuur.',[
+  'Azijnzuuranhydride is goedkoper, en het overschot verwijder je makkelijk: het reageert met water tot azijnzuur, dat oplost en wegspoelt.',
+  'Een overmaat azijnzuuranhydride maakt de reactie exotherm.','Azijnzuuranhydride is de katalysator van de reactie en wordt dus niet verbruikt.','Salicylzuur reageert alleen als het in ondermaat aanwezig is.'],0),
+  {fo:{1:'Of een reactie exotherm is, hangt niet af van de hoeveelheid beginstof.',2:'Azijnzuuranhydride reageert mee: het staat in de reactievergelijking.',3:'Er is geen regel dat een stof alleen in ondermaat reageert.'}})]},
+
+/* 4 */{k:'Zuiveren en rendement',t:'Herkristalliseren: zuiverheid tegenover rendement',ld:[2],
+ uitleg:`<p>Ruwe aspirine bevat nog salicylzuur en azijnzuur. Een apotheek wil aspirine van minstens 98% zuiverheid. Daarvoor <b>herkristalliseer</b> je:</p>
+ <ol><li>Los de ruwe aspirine op in zo weinig mogelijk warm oplosmiddel.</li><li>Laat afkoelen: aspirine lost bij lage temperatuur slecht op en kristalliseert uit. De verontreinigingen blijven grotendeels opgelost.</li><li>Filtreer de kristallen af en droog ze.</li></ol>
+ <p>Bij elke herkristallisatie blijft ook een deel van de aspirine opgelost achter in de vloeistof. Je product wordt zuiverder, maar je houdt minder over. Het rendement daalt dus.</p>
+ <div class="kader">rendement = ${fr('werkelijke opbrengst','theoretische opbrengst')} × 100%</div>
+ <p>De werkelijke opbrengst is de massa aspirine in je product: massa product × zuiverheid.</p>`,
+ vb:{v:'Uit 60,0 kg salicylzuur krijg je 64,0 kg product dat voor 97,0% uit aspirine bestaat. Bereken het rendement.',s:[
+  `Theoretisch: n(salicylzuur) = 60,0·10<sup>3</sup> g × ${fr('1 mol','138,12 g')} = 434,4 mol = n(aspirine); m = 434,4 mol × ${fr('180,16 g','1 mol')} = 78,26 kg.`,
+  `Aspirine in het product: ${fr('97,0','100')} × 64,0 kg = 62,08 kg.`,`rendement = ${fr('62,08 kg','78,26 kg')} × 100% = 79,3%.`]},
+ gen:R=>({ms:R.int(100,180,5),y:R.int(900,950)/1000}),
+ keuzes:[{id:'n',t:'schuif',label:'Hoe vaak herkristalliseer je?',min:0,max:3,step:1,def:0,u:'keer',info:'Elke herkristallisatie kost € 40,00 aan oplosmiddel en energie.'}],
+ bestelling:p=>`Je zet <b>${p.ms} kg salicylzuur</b> om (anhydride in overmaat). Een apotheek koopt aspirine van <b>minstens 98% zuiverheid</b> voor ${eur(PR.apo)} per kg product. Minder zuiver? Dan gaat het als ruwe aspirine weg voor ${eur(PR.tech)} per kg.`,
+ run:(p,K)=>{const th=p.ms*MA/MS,P=[85,95,98.5,99.6][K.n],a=th*p.y*Math.pow(.88,K.n),prod=Math.round(a/(P/100)*10)/10,goed=P>=98;
+  return{prod,P,th,html:meet([['product',kg(prod)],['zuiverheid',nl(P,1)+'%']]),ok:goed,
+   msg:goed?`Na ${K.n} keer herkristalliseren is je product ${nl(P,1)}% zuiver: goed genoeg voor de apotheek.${K.n===3?' Was twee keer ook genoeg geweest?':''}`:`Na ${K.n} keer herkristalliseren is je product ${nl(P,1)}% zuiver. Dat is te weinig voor de apotheek.`,
+   regels:[[`Salicylzuur ${p.ms} kg × ${eur(PR.sal)}`,-p.ms*PR.sal],['Azijnzuuranhydride (overmaat)',-p.ms*1.1],['Vaste kosten',-PR.vast],...(K.n?[[`Herkristalliseren ${K.n} ×`,-40*K.n]]:[]),
+    goed?[`Aspirine ${kg(prod)} × ${eur(PR.apo)}`,prod*PR.apo]:[`Ruwe aspirine ${kg(prod)} × ${eur(PR.tech)}`,prod*PR.tech]]}},
+ na:(p,K,res)=>{const a=res.prod*res.P/100;return[
+  g('Bereken de theoretische opbrengst aan aspirine.',res.th,{u:'kg'}),
+  g('Bereken de massa aspirine in je product.',a,{u:'kg',fout:[[res.prod,'Je product is niet helemaal zuiver. Neem het percentage aspirine van de massa van het product.']]}),
+  g('Bereken het rendement.',a/res.th*100,{u:'%',abs:.3,fout:[[res.prod/res.th*100,'Gebruik de massa aspirine in je product, niet de massa van het hele product.'],[res.th/a*100,'Je deelde andersom.']]}),
+  Object.assign(k('Leg uit waarom het rendement lager wordt naarmate je vaker herkristalliseert.',[
+   'Bij elke herkristallisatie blijft een deel van de aspirine opgelost achter in de vloeistof die je wegfiltreert.','Bij het verwarmen ontleedt aspirine telkens volledig.','De verontreinigingen reageren met aspirine tot salicylzuur.','Het filter houdt bij elke stap de helft van de kristallen tegen.'],0),
+   {fo:{1:'Als aspirine volledig zou ontleden, hield je niets over.',2:'Verontreinigingen blijven opgelost; ze reageren niet met aspirine.',3:'Het filter houdt de kristallen juist vast: die vang je op.'}})]}},
+
+/* 5 */{k:'Temperatuur en katalysator',t:'De reactie versnellen',ld:[3],
+ uitleg:`<p>Een reactie verloopt alleen als deeltjes <b>effectief botsen</b>: ze moeten botsen met genoeg energie (minstens de activeringsenergie).</p>
+ <ul><li>Bij een <b>hogere temperatuur</b> bewegen de deeltjes sneller. Ze botsen vaker, en een groter deel van de botsingen heeft genoeg energie.</li>
+ <li>Een <b>katalysator</b> verlaagt de activeringsenergie: meer botsingen zijn effectief. De katalysator wordt zelf niet verbruikt. Voor deze reactie werkt een sterk zuur, zoals geconcentreerd zwavelzuur, als katalysator.</li>
+ <li>Een base zoals natronloog splitst esters juist (hydrolyse). Die wil je hier niet in je reactor.</li>
+ <li>Boven ongeveer 90 °C begint aspirine te ontleden.</li></ul>
+ <p>Verwarmen kost energie. Je zoekt dus de goedkoopste instelling waarbij in één uur vrijwel alles reageert.</p>`,
+ vb:{v:'Een student laat ethanol met azijnzuuranhydride reageren. Bij 20 °C zonder katalysator is na een uur 5% omgezet. Ze wil binnen een uur klaar zijn. Wat kan ze doen?',s:[
+  'Optie 1: de temperatuur verhogen. Dat kost energie, maar de deeltjes botsen vaker en harder.','Optie 2: een paar druppels sterk zuur als katalysator toevoegen. Dat kost weinig en verlaagt de activeringsenergie.','Meestal combineer je een katalysator met een matige temperatuur.']},
+ gen:R=>({ms:R.int(100,160,5)}),
+ keuzes:[{id:'T',t:'schuif',label:'Temperatuur in de reactor',min:20,max:100,step:5,def:20,u:'°C',info:'Verwarmen kost € 3,00 per graad boven 20 °C.'},
+  {id:'c',t:'kies',label:'Wat voeg je toe?',opties:KAT,info:'Een katalysator kost € 10,00 per batch.'}],
+ bestelling:p=>`Je zet <b>${p.ms} kg salicylzuur</b> in (anhydride in overmaat). De reactie mag <b>één uur</b> duren. De groothandel betaalt ${eur(PR.tech)} per kg ruwe aspirine. Kies temperatuur en toevoeging met een zo hoog mogelijke winst.`,
+ run:(p,K)=>{let X=Xr(K.T,K.c,1),notes=[];if(K.c===2){X*=.25;notes.push('De natronloog splitste een groot deel van de gevormde ester weer.')}
+  if(K.T>90){X*=1-(K.T-90)*.04;notes.push('Bij deze temperatuur ontleedde een deel van de aspirine.')}
+  const a=p.ms*MA/MS*X;return{prod:a,X,html:meet([['omgezet',nl(X*100,0)+'%'],['ruwe aspirine',kg(a)]])+grafiek(K.T,K.c),ok:X>.9,
+   msg:(X>.9?`In één uur is ${nl(X*100,0)}% van het salicylzuur omgezet.`:`In één uur is maar ${nl(X*100,0)}% van het salicylzuur omgezet.`)+(notes.length?' '+notes.join(' '):''),
+   regels:[[`Salicylzuur ${p.ms} kg × ${eur(PR.sal)}`,-p.ms*PR.sal],['Azijnzuuranhydride (overmaat)',-p.ms*1.1],['Vaste kosten',-PR.vast],['Verwarmen',-3*(K.T-20)],...(K.c?[['Toevoeging',-10]]:[]),[`Ruwe aspirine ${kg(a)} × ${eur(PR.tech)}`,a*PR.tech]]}},
+ na:()=>[
+  Object.assign(k('Leg uit waarom de reactie sneller verloopt bij een hogere temperatuur.',['De deeltjes bewegen sneller: ze botsen vaker, en meer botsingen hebben genoeg energie om effectief te zijn.','De activeringsenergie wordt lager.','Er ontstaan meer deeltjes salicylzuur.','De concentratie van de beginstoffen wordt hoger.'],0),
+   {fo:{1:'De activeringsenergie verandert niet door de temperatuur; dat doet een katalysator.',2:'Het aantal deeltjes verandert niet door te verwarmen.',3:'De concentratie verandert niet door te verwarmen.'}}),
+  Object.assign(k('Wat doet de katalysator?',['Hij verlaagt de activeringsenergie, waardoor meer botsingen effectief zijn. Hij wordt zelf niet verbruikt.','Hij levert extra energie aan de reactie.','Hij reageert mee en komt in de aspirine terecht.','Hij zorgt ervoor dat er meer aspirine ontstaat dan theoretisch mogelijk is.'],0),
+   {fo:{1:'Een katalysator levert geen energie; hij biedt een andere reactieweg met een lagere activeringsenergie.',2:'Een katalysator wordt niet verbruikt en komt niet in het product.',3:'Een katalysator verandert de theoretische opbrengst niet, alleen de snelheid.'}})]},
+
+/* 6 */{k:'Kwaliteitscontrole',t:'Is de aspirine zuiver?',ld:[4],
+ uitleg:`<p>De apotheek wil bewijs dat je aspirine geen salicylzuur meer bevat. Je kiest een analysemethode die verschil laat zien tussen aspirine en salicylzuur.</p>
+ <table class="regels"><tr><th>methode</th><th>wat neem je waar?</th></tr>
+ <tr><td>smeltpunt</td><td>Eén stof heeft een scherp smeltpunt (aspirine: 135 °C). Een mengsel smelt lager en over een traject.</td></tr>
+ <tr><td>dunnelaagchromatografie</td><td>Elke stof geeft een eigen vlek. Vergelijk de hoogte (R<sub>f</sub>) met referentiestoffen.</td></tr>
+ <tr><td>IR-spectrum</td><td>Pieken horen bij bindingen in karakteristieke groepen, zoals O–H en C=O.</td></tr>
+ <tr><td>ijzer(III)chloride</td><td>Geeft een paarse kleur met een OH-groep die direct aan een benzeenring zit.</td></tr></table>
+ <p>Een methode is alleen bruikbaar als de uitkomst voor aspirine en salicylzuur verschilt.</p>`,
+ vb:{v:'Een leerling wil weten of zijn keukenzout (NaCl) suiker bevat. Hij meet de pH van een oplossing. Is dat een goede test?',s:[
+  'Een oplossing van keukenzout en een oplossing van suiker zijn allebei neutraal (pH 7).','De pH is dus gelijk, of er nu suiker in zit of niet: de test zegt niets.','Een bruikbare test laat een verschil zien, bijvoorbeeld verwarmen: suiker verkoolt, zout niet.']},
+ gen:R=>({vuil:R()<.5}),
+ keuzes:[{id:'t',t:'kies',chips:1,label:'Welke test voer je uit?',opties:TEST}],
+ bestelling:()=>`Er staat een partij aspirine klaar voor de apotheek. Een goedgekeurd keuringsrapport levert ${eur(150)} op. Kies een test, voer hem uit en trek een conclusie. Voldoet je test niet? Speel de ronde opnieuw met een andere test.`,
+ run:(p,K)=>{const nut=K.t<4;return{nut,vuil:p.vuil,html:`<div class="opdkop">Uitkomst: ${TEST[K.t]}</div>`+testRes(K.t,p.vuil),ok:nut,msg:nut?'Je test heeft een uitkomst. Trek hieronder je conclusie.':'Je test heeft een uitkomst, maar is die bruikbaar? Trek hieronder je conclusie.',regels:[['Analyse',-20]]}},
+ na:(p,K,res)=>[Object.assign(k('Welke conclusie trek je uit deze test?',['Het product bevat nog salicylzuur.','Het product is (vrijwel) zuiver aspirine.','Met deze test kun je dat niet bepalen.'],res.nut?(res.vuil?0:1):2),
+  {h:res.nut?'Vergelijk de uitkomst met wat je zou verwachten voor zuivere aspirine (zie de uitleg).':'Zou de uitkomst anders zijn als er wel of geen salicylzuur in zat?'})],
+ bonus:(p,K,res)=>res.nut?['Keuringsrapport goedgekeurd',150]:null},
+
+/* 7 */{k:'Atoomeconomie',t:'Atoomeconomie en hergebruik van azijnzuur',ld:[5],ster:true,poortEerst:true,
+ uitleg:`<p>De <b>atoomeconomie</b> geeft aan welk deel van de massa van de beginstoffen in het gewenste product terechtkomt:</p>
+ <div class="kader">atoomeconomie = ${fr('massa gewenst product','massa van alle beginstoffen')} × 100%</div>
+ <p>Je rekent met de molaire massa’s, keer de coëfficiënten uit de reactievergelijking. Er bestaat ook een route met azijnzuur in plaats van azijnzuuranhydride:</p>
+ <div class="kader">${SALf} + ${AZf} ⇄ ${ASPf} + H<sub>2</sub>O</div>
+ <p>Die reactie is een <b>evenwicht</b>: er ontstaat water, en aspirine en water reageren ook weer terug. De route met azijnzuuranhydride verloopt aflopend. Bij die route ontstaat azijnzuur als bijproduct, dat je kunt hergebruiken.</p>`,
+ vb:{v:'Bereken de atoomeconomie voor de vorming van ethylethanoaat uit ethanol en azijnzuuranhydride.',s:[
+  `C<sub>2</sub>H<sub>5</sub>OH + ${ANHf} → C<sub>4</sub>H<sub>8</sub>O<sub>2</sub> + ${AZf}`,`atoomeconomie = ${fr('88,10 g mol<sup>−1</sup>','46,07 g mol<sup>−1</sup> + 102,09 g mol<sup>−1</sup>')} × 100% = 59,5%.`]},
+ bestelling:()=>`Het bedrijf wil weten hoe duurzaam de productie is. Vergelijk de twee routes en kies wat je doet met het azijnzuur dat bij jouw route ontstaat (per batch 50 kg).`,
+ poort:()=>[g('Bereken de atoomeconomie van de route met azijnzuuranhydride.',MA/(MS+MAN)*100,{u:'%',abs:.2,fout:[[MA/(MS+MAN+MA+MZ)*100,'In de noemer staan alleen de beginstoffen, niet de producten.'],[MZ/(MS+MAN)*100,'In de teller staat het gewenste product: aspirine.']]}),
+  g('Bereken de atoomeconomie van de route met azijnzuur.',MA/(MS+MZ)*100,{u:'%',abs:.2,fout:[[MA/(MS+MZ+MA+MW)*100,'In de noemer staan alleen de beginstoffen.']]})],
+ keuzes:[{id:'h',t:'kies',label:'Wat doe je met het azijnzuur uit je reactor?',opties:[{t:'Laten verwerken als afval (− € 0,20 per kg)',pr:-.2,du:0},{t:'Verkopen aan een azijnfabriek (+ € 0,30 per kg)',pr:.3,du:1},{t:'Terug omzetten in azijnzuuranhydride en zelf hergebruiken (bespaart € 0,80 per kg, kost € 0,35 per kg aan energie)',pr:.45,du:2}]}],
+ run:(p,K)=>{const H=rondes[6].keuzes[0].opties[K.h];return{html:meet([['azijnzuur','50 kg'],['duurzaamheid',H.du+' van 2 punten']]),ok:H.du>0,msg:H.du===2?'Je sluit de kringloop: het azijnzuur wordt weer grondstof.':H.du===1?'Je azijnzuur wordt elders gebruikt in plaats van weggegooid.':'Je azijnzuur wordt afval; daarmee is de lage atoomeconomie ook echt verlies.',regels:[['Azijnzuur 50 kg',50*H.pr]]}},
+ na:()=>[Object.assign(k('Leg uit waarom de industrie toch azijnzuuranhydride gebruikt, terwijl de route met azijnzuur een hogere atoomeconomie heeft.',[
+  'Met azijnzuur ontstaat een evenwicht, waardoor de omzetting onvolledig blijft; met azijnzuuranhydride verloopt de reactie aflopend.',
+  'Azijnzuur is giftiger dan azijnzuuranhydride.','Met azijnzuur ontstaat een andere stof dan aspirine.','Bij de route met azijnzuur ontstaat geen aspirine, alleen water.'],0),
+  {fo:{1:'Daar gaat het niet om: kijk naar het type reactie (⇄).',2:'Beide routes geven aspirine.',3:'Kijk naar de reactievergelijking: er ontstaat aspirine en water.'}})]}
+];
+
+FAB.start({key:'fabriek-aspirine-v1',code:'AS',titel:'Aspirinefabriek',kort:'Aspirine · 5V',sub:'Fabrieksspel · 5V',start:1000,
+ intro:`<p>Jij runt een fabriek die aspirine (acetylsalicylzuur) maakt. Elke ronde krijg je een nieuwe bestelling. Je rekent aan de reactie, kiest de juiste overmaat, zuivert je product en bewijst met een analysemethode dat het zuiver is.</p>`,
+ ld:['Je kunt aangeven welke groep van salicylzuur reageert met azijnzuuranhydride, welke karakteristieke groep er ontstaat en welk tweede product er vrijkomt.',
+  'Je kunt de massa aspirine berekenen, de beperkende stof bepalen en terugrekenen hoeveel stof in overmaat nodig is.',
+  'Je kunt het rendement berekenen en de afweging tussen zuiverheid en rendement bij herkristalliseren uitleggen.',
+  'Je kunt met het botsende-deeltjesmodel uitleggen hoe temperatuur en een katalysator de reactiesnelheid beïnvloeden.',
+  'Je kunt een geschikte analysemethode kiezen om de zuiverheid van aspirine te controleren, en de uitkomst interpreteren.',
+  '★ Je kunt de atoomeconomie van twee routes berekenen en vergelijken, en hergebruik van stoffen afwegen.'],
+ legenda:'Atoommassa’s: H 1,008 · C 12,01 · O 16,00. Machten van tien typ je als 2,5·10^4 of 2,5e4.',
+ schema,rondes});
+})();
+
+</script>
+</body>
+</html>
