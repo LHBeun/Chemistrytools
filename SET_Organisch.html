@@ -135,6 +135,7 @@ body.beamer .wp{zoom:1.25}
 .kaart.sel{border-color:var(--goud2);box-shadow:0 0 0 3px var(--goud2) inset;transform:translateY(-2px)}
 .kaart.goed{border-color:var(--goed);box-shadow:0 0 0 3px var(--goed) inset}
 .kaart.fout{border-color:var(--fout);box-shadow:0 0 0 3px var(--fout) inset}
+.kaart.start{border-color:#24323f;box-shadow:0 0 0 3px #24323f inset}
 .kaart.hint{box-shadow:0 0 0 3px #6aa0d8 inset}
 .kaart svg{width:100%;max-width:150px;height:auto}
 .kaart .naam{font-family:var(--serif);font-size:17px;text-align:center;line-height:1.3;word-break:break-word;padding:8px}
@@ -170,7 +171,7 @@ const CARDS=[{"naam": "pentaan", "smiles": "CCCCC", "vorm": "lineair", "ctot": 5
 function drawStructure(card){
   const {vorm, ctot, db, haltypes} = card;
   const W=180, H=180;
-  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  let svg = `<svg viewBox="-22 -22 ${W+44} ${H+44}" xmlns="http://www.w3.org/2000/svg">`;
   const stroke = 'stroke="#1f2a24" stroke-width="2.4" fill="none" stroke-linecap="round"';
 
   function doubleLine(x1,y1,x2,y2,offx,offy){
@@ -178,7 +179,10 @@ function drawStructure(card){
            `<line x1="${x1+offx}" y1="${y1+offy}" x2="${x2+offx}" y2="${y2+offy}" ${stroke}/>`;
   }
   function haloLabel(x,y,dx,dy,text){
-    return `<text x="${x+dx}" y="${y+dy}" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="600" fill="#1f2a24" text-anchor="middle">${text}</text>`;
+    const vx=dx, vy=dy-5, L=Math.hypot(vx,vy)||1, ux=vx/L, uy=vy/L;
+    const lx=x+ux*26, ly=y+uy*26;
+    return `<line x1="${x}" y1="${y}" x2="${(x+ux*17).toFixed(1)}" y2="${(y+uy*17).toFixed(1)}" ${stroke}/>`+
+      `<text x="${lx.toFixed(1)}" y="${(ly+5).toFixed(1)}" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="600" fill="#1f2a24" text-anchor="middle">${text}</text>`;
   }
 
   if(vorm==='cyclisch'){
@@ -206,8 +210,8 @@ function drawStructure(card){
     if(haltypes.length===1){
       svg += haloLabel(hx,hy, 16*Math.cos(outAng), 16*Math.sin(outAng)+5, haltypes[0]);
     } else if(haltypes.length===2){
-      svg += haloLabel(hx,hy, 16*Math.cos(outAng-0.5), 16*Math.sin(outAng-0.5)+5, haltypes[0]);
-      svg += haloLabel(hx,hy, 16*Math.cos(outAng+0.5), 16*Math.sin(outAng+0.5)+5, haltypes[1]);
+      svg += haloLabel(hx,hy, 16*Math.cos(outAng-0.75), 16*Math.sin(outAng-0.75)+5, haltypes[0]);
+      svg += haloLabel(hx,hy, 16*Math.cos(outAng+0.75), 16*Math.sin(outAng+0.75)+5, haltypes[1]);
     }
   } else {
     // lineair or vertakt: zigzag chain
@@ -258,29 +262,39 @@ const why=(cs,traits)=>traits.filter(t=>{const v=cs.map(c=>c[t]);return !(v.ever
 
 /* ============ WERKPLAATSEN ============ */
 const WP=[
- {k:'Kenmerken aflezen',t:'Kenmerken aflezen',n:6,opdr:['Ronde 1','Ronde 2','Ronde 3','★ Alleen structuren'],
+ {k:'Kenmerken aflezen',t:'Kenmerken aflezen',n:6,opdr:['Ronde 1','Ronde 2','Ronde 3','★ Met halogeenatomen'],
   uitleg:`<p>Elke kaart is één stof. Een kaart heeft drie <b>kenmerken</b>, en elk kenmerk heeft drie mogelijke waarden.</p>
-  <div class="kader"><ul style="margin-bottom:0"><li><b>Aantal C-atomen:</b> 5, 6 of 7. Tel <i>alle</i> C-atomen, ook die in een zijtak. 2-methylpentaan heeft er dus 6.</li><li><b>Dubbele bindingen:</b> 0, 1 of 2. In de naam: -aan = 0, -een = 1, -dieen = 2.</li><li><b>Vorm:</b> lineair (een rechte keten), vertakt (met een zijtak) of cyclisch (een ring, "cyclo-" in de naam).</li></ul></div>
-  <p>Een kaart toont de <b>naam</b> of de <b>structuur</b>. In de structuur is elke hoek of elk uiteinde een C-atoom; de H-atomen zijn weggelaten. Een dubbele streep is een dubbele binding.</p>`,
-  vb:{c:'2-methylpenta-1,3-dieen',s:['C-atomen: de hoofdketen "penta" heeft er 5, de zijtak "methyl" 1. Samen 6.','Dubbele bindingen: "-dieen", dus 2.','Vorm: er is een zijtak, dus vertakt.']}},
+  <div class="kader"><ul style="margin-bottom:0"><li><b>Aantal C-atomen:</b> 5, 6 of 7. Tel <i>alle</i> C-atomen, ook die in een zijtak.</li><li><b>Dubbele bindingen:</b> 0, 1 of 2.</li><li><b>Vorm:</b> lineair (een rechte keten), vertakt (met een zijtak) of cyclisch (een ring).</li></ul></div>
+  <p>Elke kaart toont de <b>structuur</b> van de stof. Elke hoek en elk uiteinde is een C-atoom; de H-atomen zijn weggelaten om de kaart overzichtelijk te houden. Een dubbele streep is een dubbele binding.</p>
+  <p>In de ★-ronde komt er een vierde kenmerk bij: het aantal <b>halogeenatomen</b> (0, 1 of 2; F, Cl en Br tellen alle drie mee).</p>`,
+  vb:{c:'2-methylpenta-1,3-dieen',s:['C-atomen: tel alle hoeken en uiteinden, ook in de zijtak: 5 in de lange keten en 1 in de zijtak, samen 6.','Dubbele bindingen: er zijn twee dubbele strepen, dus 2.','Vorm: er steekt een zijtak uit de keten, dus vertakt.']}},
  {k:'Maak de set af',t:'Maak de set af',n:5,opdr:['Ronde 1','Ronde 2','Ronde 3','★ Zonder hulptabel'],
   uitleg:`<p>Drie kaarten vormen een <b>set</b> als voor <b>elk</b> kenmerk geldt: de drie kaarten zijn allemaal gelijk, óf allemaal verschillend.</p>
   <div class="kader"><b>De truc:</b> bij twee kaarten ligt de derde vast. Kijk per kenmerk:<ul style="margin:4px 0 0"><li>Zijn de twee kaarten gelijk? Dan heeft de derde dezelfde waarde.</li><li>Zijn ze verschillend? Dan heeft de derde de waarde die nog over is.</li></ul></div>
   <p>Gebruik de hulptabel: vul per kenmerk in welke waarde de derde kaart moet hebben. Zoek daarna de kaart die daarbij past.</p>`,
-  vb:{tri:['hexaan','cyclohexeen','2-methylpenta-1,3-dieen'],s:['C-atomen: 6 en 6, gelijk. De derde heeft er ook 6.','Dubbele bindingen: 0 en 1, verschillend. De derde heeft er 2.','Vorm: lineair en cyclisch, verschillend. De derde is vertakt.','Gezocht: 6 C-atomen, 2 dubbele bindingen, vertakt. Dat is 2-methylpenta-1,3-dieen.']}},
+  vb:{tri:['hexaan','cyclohexeen','2-methylpenta-1,3-dieen'],s:['Kaart A: 6 C-atomen, 0 dubbele bindingen, lineair. Kaart B: 6 C-atomen, 1 dubbele binding, cyclisch.','C-atomen: 6 en 6, gelijk. De derde heeft er ook 6.','Dubbele bindingen: 0 en 1, verschillend. De derde heeft er 2.','Vorm: lineair en cyclisch, verschillend. De derde is vertakt.','Gezocht: 6 C-atomen, 2 dubbele bindingen, vertakt. Dat is kaart C rechts.']}},
  {k:'Eén kaart gegeven',t:'Eén kaart gegeven',n:4,opdr:['Ronde 1','Ronde 2','Ronde 3','★ Acht kaarten op tafel'],
   uitleg:`<p>Nu krijg je één kaart. Op tafel liggen andere kaarten, en precies twee daarvan vormen samen met jouw kaart een set.</p>
   <div class="kader"><b>Aanpak:</b> neem een kaart van tafel en bedenk met de truc uit werkplaats 2 welke derde kaart erbij hoort. Ligt die op tafel? Dan heb je de set. Zo niet, probeer de volgende kaart.</div>`,
-  vb:{s:['Gegeven: cyclopentaan (5 C, 0 dubbele bindingen, cyclisch).','Probeer hept-1-een (7 C, 1, lineair). De derde moet dan zijn: 6 C, 2 dubbele bindingen, vertakt.','Dat is 2-methylpenta-1,3-dieen. Ligt die op tafel? Dan is dit de set.']}},
+  vb:{s:['Gegeven (links): 5 C-atomen, 0 dubbele bindingen, cyclisch.','Probeer een kaart van tafel (midden): 7 C-atomen, 1 dubbele binding, lineair. De derde moet dan zijn: 6 C-atomen, 2 dubbele bindingen, vertakt.','Ligt die kaart op tafel (rechts)? Dan is dit de set.']}},
+ {k:'Kenmerken uit de naam',t:'Kenmerken uit de naam',n:5,opdr:['Ronde 1: korte namen','Ronde 2: met plaatsnummers','Ronde 3: zonder leesschema','★ Met halogeenatomen'],
+  uitleg:`<p>Je hoeft een naam niet eerst uit te tekenen om de kenmerken te weten. Je kunt ze direct uit de naam aflezen met dit <b>leesschema</b>:</p>
+  <div class="kader"><table class="hulp"><tr><th>Kenmerk</th><th>Waar vind je het in de naam?</th></tr>
+  <tr><td>C-atomen</td><td>stam van de hoofdketen (pent = 5, hex = 6, hept = 7) <b>plus</b> de C-atomen in een zijtak (methyl = 1)</td></tr>
+  <tr><td>Dubbele bindingen</td><td>-aan = 0, -een = 1, -dieen = 2</td></tr>
+  <tr><td>Vorm</td><td>cyclo- = cyclisch; een zijtak (methyl) = vertakt; anders lineair</td></tr>
+  <tr><td>Halogeenatomen</td><td>fluor, chloor, broom in de naam; di- = 2</td></tr></table></div>
+  <p>De plaatsnummers (zoals de 2 in 2-methyl) heb je voor deze kenmerken niet nodig.</p>`,
+  vb:{c:'2-methylpent-1-een',s:['C-atomen: hoofdketen "pent" = 5, zijtak "methyl" = 1. Samen 6.','Dubbele bindingen: "-een" = 1.','Vorm: er is een zijtak (methyl), dus vertakt.','De plaatsnummers 2 en 1 heb je hiervoor niet nodig.']}},
  {k:'Vrij spel ★',t:'Vrij spel',n:5,opdr:['Basis: 9 kaarten','★ Gevorderd: 4 kenmerken'],
-  uitleg:`<p>Nu het echte spel. Er liggen negen kaarten op tafel, en er zit altijd minstens één set tussen. Vind er vijf.</p>
-  <div class="kader">Selecteer drie kaarten. Is het een set, dan worden ze vervangen. Zo niet, dan zie je per kenmerk wat er niet klopt.</div>
-  <p>In de gevorderde versie komt er een vierde kenmerk bij: <b>het aantal halogeenatomen</b> (0, 1 of 2; F, Cl en Br tellen alle drie mee). Er liggen dan twaalf kaarten.</p>`,
+  uitleg:`<p>Nu het echte spel. Er liggen negen kaarten op tafel. Eén kaart is gemarkeerd als <b>startkaart</b>: die hoort bij een set. Zoek de twee kaarten die erbij horen, net als in werkplaats 3. Vind er vijf.</p>
+  <div class="kader">Selecteer drie kaarten. Is het een set, dan worden ze vervangen en krijg je een nieuwe startkaart. Zo niet, dan zie je per kenmerk wat er niet klopt.</div>
+  <p>In de gevorderde versie komt er een vierde kenmerk bij: <b>het aantal halogeenatomen</b> (0, 1 of 2; F, Cl en Br tellen alle drie mee). Er liggen dan twaalf kaarten, en één kaart toont een <b>naam</b> in plaats van een structuur. Gebruik daarvoor het leesschema uit werkplaats 4.</p>`,
   vb:null}
 ];
 
 /* ============ STATE ============ */
-const KEY='set-v2';let S={wp:0,tab:'uitleg',opd:{},prog:{},naam:true};
+const KEY='set-v3';let S={wp:0,tab:'uitleg',opd:{},prog:{}};
 try{const t=JSON.parse(localStorage.getItem(KEY));if(t&&t.prog)S=Object.assign(S,t)}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 let G=null; // huidige ronde
@@ -289,21 +303,26 @@ const ster=()=>W().opdr[oi()].startsWith('★');
 
 function kaartHTML(c,o={}){
   const toonStr=o.vorm?o.vorm==='s':(c._v==='s');
-  const body=toonStr?drawStructure(c)+(S.naam&&o.help&&!ster()?`<div class="ondernaam">${esc(c.naam)}</div>`:''):`<div class="naam">${esc(c.naam)}</div>`;
+  const body=toonStr?drawStructure(c):`<div class="naam">${esc(c.naam)}</div>`;
   return `<div class="kaart ${o.cls||''}" ${o.act?`data-a="${o.act}" data-v="${o.idx}"`:''}>${o.lbl?`<span class="lbl">${o.lbl}</span>`:''}${body}</div>`;
 }
-const vis=c=>({...c,_v:Math.random()<0.5?'s':'n'});
+const vis=c=>({...c,_v:'s'});
+const niveau=n=>(/\d/.test(n)?1:0)+(/methyl/.test(n)?1:0)+(/dieen/.test(n)?1:0);
+const naamPool=()=>{const r=oi(),vb=WP[3].vb.c;let p=(r===3?CARDS:CARDS.filter(c=>c.hal===0)).filter(c=>c.naam!==vb);
+  if(r===0)p=p.filter(c=>niveau(c.naam)===0);else if(r===1)p=p.filter(c=>niveau(c.naam)<=2);return p};
 
 /* ============ RONDES ============ */
 function nieuweRonde(){
   const w=S.wp,st=ster();G={wp:w,o:oi(),done:0,fb:null,sel:[],hint:null};
-  if(w===0)G.card=st?{...rnd(pool(BASIS)),_v:'s'}:vis(rnd(pool(BASIS)));
+  if(w===0){G.traits=st?['ctot','db','vorm','hal']:BASIS;G.card=vis(rnd(pool(G.traits)))}
   if(w===1)maakAf();
   if(w===2)eenGegeven();
-  if(w===3){G.traits=oi()===1?['ctot','db','vorm','hal']:BASIS;G.board=[];vulBord()}
+  if(w===3){G.traits=st?['ctot','db','vorm','hal']:BASIS;G.card={...rnd(naamPool()),_v:'n'}}
+  if(w===4){G.traits=oi()===1?['ctot','db','vorm','hal']:BASIS;G.board=[];G.start=null;vulBord()}
 }
 function volgende(){const w=S.wp;G.fb=null;G.sel=[];G.ans={};G.hint=null;
-  if(w===0)G.card=ster()?{...rnd(pool(BASIS)),_v:'s'}:vis(rnd(pool(BASIS)));
+  if(w===0)G.card=vis(rnd(pool(G.traits)));
+  if(w===3){let c;do{c=rnd(naamPool())}while(G.card&&c.naam===G.card.naam);G.card={...c,_v:'n'}}
   if(w===1)maakAf();if(w===2)eenGegeven()}
 function maakAf(){
   let a,b;do{a=rnd(pool(BASIS));b=rnd(pool(BASIS))}while(a===b);
@@ -329,9 +348,14 @@ function vulBord(){
   for(let tries=0;tries<400;tries++){
     const bord=G.board.slice();const u=new Set(used);
     while(bord.length<n){const x=rnd(pool(G.traits));if(u.has(x.naam))continue;u.add(x.naam);bord.push(vis(x))}
-    if(eenSet(bord)){G.board=bord;return}
+    if(eenSet(bord)){G.board=bord;kiesStart();naamKaart();return}
   }
 }
+function setsMet(bord,i){const r=[];for(let j=0;j<bord.length;j++)for(let k=j+1;k<bord.length;k++)if(j!==i&&k!==i&&isSet([bord[i],bord[j],bord[k]],G.traits))r.push([i,j,k]);return r}
+function kiesStart(){const i=G.board.findIndex(c=>c.naam===G.start);if(i>=0&&setsMet(G.board,i).length)return;
+  const s=eenSet(G.board);G.start=G.board[rnd(s)].naam}
+function naamKaart(){if(G.traits.length!==4){G.board.forEach(c=>c._v='s');return}
+  if(G.board.some(c=>c._v==='n'))return;const kand=G.board.filter(c=>c.naam!==G.start&&!/cyclo/.test(c.naam)&&((c.hal===0&&niveau(c.naam)===0)||(c.hal===1&&niveau(c.naam)===1)));const reserve=G.board.filter(c=>c.naam!==G.start&&c.hal<=1&&niveau(c.naam)<=2);if(kand.length)rnd(kand)._v='n';else if(reserve.length)rnd(reserve)._v='n'}
 function eenSet(bord){for(let i=0;i<bord.length;i++)for(let j=i+1;j<bord.length;j++)for(let k=j+1;k<bord.length;k++)if(isSet([bord[i],bord[j],bord[k]],G.traits))return[i,j,k];return null}
 
 /* ============ RENDER ============ */
@@ -345,10 +369,11 @@ function render(){
     if(w.vb)t+=`<div class="vb"><div class="vbkop">Voorbeeld</div>${w.vb.s.map((x,i)=>`<div class="vbstap"><div class="n">${i+1}</div><div class="b">${x}</div></div>`).join('')}</div>`;
     t+=`<button class="btn" data-a="tab" data-v="opdr">Naar het oefenen</button>`;
     const C=nm=>CARDS.find(c=>c.naam===nm);
-    if(S.wp===0)sim=`<div class="simkop"><b>Voorbeeld</b></div><div class="tafel drie">${kaartHTML(C(w.vb.c),{vorm:'n',cls:'vast'})}${kaartHTML(C(w.vb.c),{vorm:'s',cls:'vast'})}</div><div class="legenda">Dezelfde stof als naam en als structuur.</div>`;
-    if(S.wp===1)sim=`<div class="simkop"><b>Voorbeeld</b></div><div class="tafel drie">${w.vb.tri.map((n,i)=>kaartHTML(C(n),{vorm:i===1?'s':'n',cls:i===2?'goed':'vast'})).join('')}</div>`;
-    if(S.wp===2)sim=`<div class="simkop"><b>Voorbeeld</b></div><div class="tafel drie">${['cyclopentaan','hept-1-een','2-methylpenta-1,3-dieen'].map((n,i)=>kaartHTML(C(n),{vorm:i===0?'s':'n',cls:'goed'})).join('')}</div><div class="legenda">C-atomen 5, 7, 6 · dubbele bindingen 0, 1, 2 · vorm cyclisch, lineair, vertakt: alles verschillend, dus een set.</div>`;
-    if(S.wp===3)sim=`<div class="simkop"><b>Zo ziet een set eruit</b></div><div class="tafel drie">${['hexaan','hex-1-een','hexa-1,3-dieen'].map((n,i)=>kaartHTML(C(n),{vorm:i===1?'s':'n',cls:'goed'})).join('')}</div><div class="legenda">C-atomen gelijk (6), dubbele bindingen verschillend (0, 1, 2), vorm gelijk (lineair).</div>`;
+    if(S.wp===0)sim=`<div class="simkop"><b>Voorbeeld</b></div><div class="tafel drie"><div></div>${kaartHTML(C(w.vb.c),{vorm:'s',cls:'vast'})}<div></div></div>`;
+    if(S.wp===1)sim=`<div class="simkop"><b>Voorbeeld</b></div><div class="tafel drie">${w.vb.tri.map((n,i)=>kaartHTML(C(n),{vorm:'s',lbl:'ABC'[i],cls:i===2?'goed':'vast'})).join('')}</div>`;
+    if(S.wp===2)sim=`<div class="simkop"><b>Voorbeeld</b></div><div class="tafel drie">${['cyclopentaan','hept-1-een','2-methylpenta-1,3-dieen'].map((n,i)=>kaartHTML(C(n),{vorm:'s',cls:'goed'})).join('')}</div><div class="legenda">C-atomen 5, 7, 6 · dubbele bindingen 0, 1, 2 · vorm cyclisch, lineair, vertakt: alles verschillend, dus een set.</div>`;
+    if(S.wp===3)sim=`<div class="simkop"><b>Voorbeeld</b></div><div class="tafel drie"><div></div>${kaartHTML(C(w.vb.c),{vorm:'n',cls:'vast'})}<div></div></div><div class="legenda">Uitgetekend ziet deze stof er zo uit:</div><div class="tafel drie"><div></div>${kaartHTML(C(w.vb.c),{vorm:'s',cls:'vast'})}<div></div></div><div class="legenda">Dat tekenen hoeft niet: het leesschema geeft de kenmerken direct.</div>`;
+    if(S.wp===4)sim=`<div class="simkop"><b>Zo ziet een set eruit</b></div><div class="tafel drie">${['hexaan','hex-1-een','hexa-1,3-dieen'].map((n,i)=>kaartHTML(C(n),{vorm:'s',cls:'goed'})).join('')}</div><div class="legenda">C-atomen gelijk (6), dubbele bindingen verschillend (0, 1, 2), vorm gelijk (lineair).</div>`;
   } else {
     if(!G||G.wp!==S.wp||G.o!==oi())nieuweRonde();
     const r=oefen();t+=r.t;sim=r.sim;
@@ -359,13 +384,16 @@ function kop(){const w=W();return `<div class="oknop">${w.opdr.map((x,i)=>`<div 
   <div class="opdkop">${esc(w.opdr[oi()])}</div>${S.prog[key()]?'<div class="klaarbanner">Deze ronde is af. Je mag doorgaan met oefenen.</div>':''}`}
 const fbHTML=()=>G.fb?`<div class="fb ${G.fb[0]}">${G.fb[1]}</div>`:'';
 const telHTML=n=>`<div class="teller">${Math.min(G.done,n)} van ${n} goed</div>`;
-const naamToggle=()=>ster()?'':`<label class="schakel"><input type="checkbox" data-a="naamtoggle" ${S.naam?'checked':''}> Toon bij structuren ook de naam (steun)</label>`;
+const naamToggle=()=>'';
 function oefen(){
   const w=W();let t=kop(),sim='';
-  if(S.wp===0){
-    t+=`<p>Bepaal de drie kenmerken van de kaart rechts.</p>${BASIS.map(tr=>`<div class="kgroep"><b>${TR[tr].n}</b><div class="chips">${TR[tr].v.map(v=>`<span class="chip ${G.ans&&G.ans[tr]===v?'aan':''}" data-a="ans" data-t="${tr}" data-v="${v}">${v}</span>`).join('')}</div></div>`).join('')}
-    <div class="rij"><button class="btn" data-a="checkK">Controleer</button>${telHTML(w.n)}</div>${fbHTML()}${naamToggle()}`;
-    sim=`<div class="simkop"><b>Kaart</b></div><div class="tafel drie"><div></div>${kaartHTML(G.card,{cls:'vast',help:true})}<div></div></div>`;
+  if(S.wp===0||S.wp===3){
+    const tr=G.traits,schema=S.wp===3&&oi()<2;
+    t+=`<p>Bepaal de ${tr.length===4?'vier':'drie'} kenmerken van de kaart rechts.${S.wp===3?' Lees ze uit de naam; tekenen hoeft niet.':''}</p>${tr.map(x=>`<div class="kgroep"><b>${TR[x].n}</b><div class="chips">${TR[x].v.map(v=>`<span class="chip ${G.ans&&G.ans[x]===v?'aan':''}" data-a="ans" data-t="${x}" data-v="${v}">${v}</span>`).join('')}</div></div>`).join('')}
+    <div class="rij"><button class="btn" data-a="checkK">Controleer</button>${telHTML(w.n)}</div>${fbHTML()}`;
+    sim=`<div class="simkop"><b>Kaart</b></div><div class="tafel drie"><div></div>${kaartHTML(G.card,{cls:'vast'})}<div></div></div>`;
+    if(schema)sim+=`<div class="simkop"><b>Leesschema</b></div><table class="hulp"><tr><td>C-atomen</td><td>stam + zijtak (pent 5, hex 6, hept 7, methyl 1)</td></tr><tr><td>Dubbele bindingen</td><td>-aan 0 · -een 1 · -dieen 2</td></tr><tr><td>Vorm</td><td>cyclo- = cyclisch · methyl = vertakt · anders lineair</td></tr></table>`;
+    else if(S.wp===3)sim+=`<div class="legenda">Het leesschema is nu weg: probeer het uit je hoofd.</div>`;
   }
   if(S.wp===1){
     const hulp=!ster();
@@ -378,9 +406,9 @@ function oefen(){
     t+=`<p>Kies de <b>twee</b> kaarten van tafel die samen met de gegeven kaart een set vormen.</p><div class="rij"><button class="btn" data-a="checkEen" ${G.sel.length!==2?'disabled':''}>Controleer</button>${telHTML(w.n)}</div>${fbHTML()}${naamToggle()}`;
     sim=`<div class="simkop"><b>Gegeven kaart</b></div><div class="tafel drie"><div></div>${kaartHTML(G.a,{cls:'vast',help:true})}<div></div></div><div class="simkop"><b>Tafel</b></div><div class="tafel">${G.tafel.map((c,i)=>kaartHTML(c,{act:'kies2',idx:i,cls:G.sel.includes(i)?'sel':'',help:true})).join('')}</div>`;
   }
-  if(S.wp===3){
-    t+=`<p>Vind ${w.n} sets. ${G.traits.length===4?'Let op: nu telt ook het aantal halogeenatomen mee.':''}</p><div class="rij"><button class="btn" data-a="checkSet" ${G.sel.length!==3?'disabled':''}>Controleer set</button><button class="btn g" data-a="hint">Hint</button>${telHTML(w.n)}</div>${fbHTML()}`;
-    sim=`<div class="simkop"><b>Tafel</b><span>${G.traits.map(t=>TR[t].n.toLowerCase()).join(' · ')}</span></div><div class="tafel">${G.board.map((c,i)=>kaartHTML(c,{act:'kies3',idx:i,cls:G.sel.includes(i)?'sel':(G.hint===i?'hint':'')})).join('')}</div>`;
+  if(S.wp===4){
+    t+=`<p>Vind ${w.n} sets. De omlijnde <b>startkaart</b> hoort bij een set. ${G.traits.length===4?'Let op: nu telt ook het aantal halogeenatomen mee.':''}</p><div class="rij"><button class="btn" data-a="checkSet" ${G.sel.length!==3?'disabled':''}>Controleer set</button><button class="btn g" data-a="hint">Hint</button>${telHTML(w.n)}</div>${fbHTML()}`;
+    sim=`<div class="simkop"><b>Tafel</b><span>${G.traits.map(t=>TR[t].n.toLowerCase()).join(' · ')}</span></div><div class="tafel">${G.board.map((c,i)=>kaartHTML(c,{act:'kies3',idx:i,lbl:c.naam===G.start?'start':'',cls:(G.sel.includes(i)?'sel ':'')+(c.naam===G.start?'start ':'')+(G.hint===i?'hint':'')})).join('')}</div>`;
   }
   return{t,sim};
 }
@@ -397,10 +425,10 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!
     case 'wis':if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Zeker weten? Klik nogmaals';return}S.prog={};G=null;save();break;
     case 'naamtoggle':S.naam=el.checked;save();break;
     case 'ans':{G.ans=G.ans||{};const t=el.dataset.t;G.ans[t]=t==='vorm'?v:+v;G.fb=null;break}
-    case 'checkK':{const c=G.card;if(!G.ans||BASIS.some(t=>G.ans[t]==null)){G.fb=['hint','Kies bij elk kenmerk een waarde.'];break}
-      const bad=BASIS.filter(t=>G.ans[t]!==c[t]);
+    case 'checkK':{const c=G.card,tr=G.traits;if(!G.ans||tr.some(t=>G.ans[t]==null)){G.fb=['hint','Kies bij elk kenmerk een waarde.'];break}
+      const bad=tr.filter(t=>G.ans[t]!==c[t]);
       if(!bad.length){goed('Goed!');const d=G.done,f=G.fb;volgende();G.done=d;G.fb=f;G.ans={}}
-      else G.fb=['fout',bad.map(t=>t==='ctot'?'Het aantal C-atomen klopt niet. Tel ook de C-atomen in een zijtak mee.':t==='db'?'Het aantal dubbele bindingen klopt niet. Kijk naar -aan, -een of -dieen (of naar de dubbele strepen).':'De vorm klopt niet. Een ring is cyclisch; een zijtak maakt een keten vertakt.').join(' ')];
+      else G.fb=['fout',bad.map(t=>t==='ctot'?'Het aantal C-atomen klopt niet. Tel ook de C-atomen in een zijtak mee.':t==='db'?(c._v==='n'?'Het aantal dubbele bindingen klopt niet. Kijk naar -aan, -een of -dieen.':'Het aantal dubbele bindingen klopt niet. Tel de dubbele strepen.'):t==='hal'?'Het aantal halogeenatomen klopt niet.'+(c._v==='n'?' Let op di- (= 2).':' Tel F, Cl en Br.'):'De vorm klopt niet. Een ring is cyclisch; een zijtak maakt een keten vertakt.').join(' ')];
       break}
     case 'kies1':G.sel=[+v];G.res=null;G.fb=null;break;
     case 'checkHulp':{const bad=BASIS.filter(t=>{const want=G.a[t]===G.b[t]?G.a[t]:TR[t].v.find(x=>x!==G.a[t]&&x!==G.b[t]);return String(G.ans[t])!==String(want)});
@@ -413,7 +441,7 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!
       if(isSet([G.a,...cs],BASIS)){goed('Goed, dat is de set!');const d=G.done,f=G.fb;volgende();G.done=d;G.fb=f}
       else G.fb=['fout',why([G.a,...cs],BASIS).join(' ')];break}
     case 'kies3':{const i=+v;G.sel=G.sel.includes(i)?G.sel.filter(x=>x!==i):[...G.sel,i].slice(-3);G.fb=null;break}
-    case 'hint':{const s=eenSet(G.board);G.hint=s?s[0]:null;G.fb=['hint','Eén kaart van een set is blauw omlijnd.'];break}
+    case 'hint':{const i=G.board.findIndex(c=>c.naam===G.start);const s=setsMet(G.board,i)[0];G.hint=s?s[1]:null;G.fb=['hint','Nog een kaart van de set met de startkaart is blauw omlijnd.'];break}
     case 'checkSet':{const cs=G.sel.map(i=>G.board[i]);
       if(isSet(cs,G.traits)){goed('Set gevonden!');G.board=G.board.filter((_,i)=>!G.sel.includes(i));G.sel=[];G.hint=null;vulBord()}
       else G.fb=['fout',why(cs,G.traits).join(' ')];break}
