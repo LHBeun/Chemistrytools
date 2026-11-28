@@ -95,9 +95,46 @@
   .vstatus{font-size:.8rem;margin-top:5px;color:#444;line-height:1.4;}
   .vstatus .te{color:#8a2f20;font-weight:bold;} .vstatus .binnen{color:var(--good);font-weight:bold;}
   .kernklaar{margin:8px 0 0;padding-top:8px;border-top:1px solid #cfe0cc;}
+
+/* ---------- stations (instap) ---------- */
+#stwrap{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh;background:#f3efe6;font-family:'Segoe UI',system-ui,sans-serif;color:#2b2a27;position:relative;z-index:2}
+.staside{background:#24323f;color:#cfd9e2;padding:26px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+.staside h1{font-family:Georgia,serif;font-size:23px;color:#fff;font-weight:600;margin:0;line-height:1.2;border:0;padding:0;text-align:left}
+.stsub{font-size:12.5px;color:#8aa0b3;margin:4px 0 18px}
+#stnav a{display:flex;gap:12px;align-items:center;padding:10px;border-radius:9px;font-size:14.5px;margin-bottom:4px;color:#b9c7d3;cursor:pointer;line-height:1.3}
+#stnav a:hover{background:#2c3d4d}#stnav a i{font-style:normal;flex:none;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #5d7387;font-size:12.5px;font-weight:700}
+#stnav a.on{background:#33475a;color:#fff}#stnav a.on i{background:#e2a84b;border-color:#e2a84b;color:#24323f}#stnav a.klaar i{background:#5aa37c;border-color:#5aa37c;color:#fff}
+#stnav a small{display:block;font-size:11.5px;color:#8aa0b3}
+.stvoet{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+.stvoet button{background:transparent;border:1px solid #4b6074;color:#cfd9e2;border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer;text-align:left;font-family:inherit}
+.stvoet button small{display:block;font-size:11px;color:#8aa0b3}
+#stmain{padding:32px 38px 60px;max-width:1150px}
+.stkicker{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:#a0701f;font-weight:700}
+#stmain h2{font-family:Georgia,serif;font-size:30px;margin:3px 0 10px;font-weight:600;text-align:left}
+#stmain p{text-align:left}
+.stintro{color:#3e3b35;max-width:75ch;margin:0 0 16px;line-height:1.6}
+.stgrid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px;align-items:start}
+.stkader{background:#fffdf8;border:1px solid #e3dccb;border-left:4px solid #e2a84b;border-radius:8px;padding:11px 15px;margin:0 0 12px;line-height:1.6}
+.stkader b:first-child{display:block;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:#a0701f}
+.ststap{background:#fffdf8;border:1px solid #e3dccb;border-radius:11px;padding:13px 15px;margin-bottom:12px}
+.ststap.goed{border-color:#bcdcc8;background:#fbfefc}.ststap.ster{border-style:dashed}
+.stlbl{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:#a0701f;margin-bottom:4px}
+.stvr{margin-bottom:8px;font-weight:600}
+.stopties{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.stoptie{border:1.5px solid #d6cdb8;background:#fff;border-radius:9px;padding:8px 12px;font:inherit;font-size:14.5px;cursor:pointer;text-align:left}
+.stoptie.aan{border-color:#24323f;background:#eef2f6}
+.strij{display:flex;gap:8px;align-items:center}
+.stin{font-family:ui-monospace,Consolas,monospace;font-size:15px;border:1px solid #d6cdb8;border-radius:8px;padding:7px 9px;width:140px}
+.stbtn{border:0;border-radius:8px;padding:8px 15px;font:inherit;font-weight:600;font-size:14px;cursor:pointer;background:#2b2a27;color:#fff}
+.stfb{margin-top:8px;padding:8px 11px;border-radius:8px;font-size:14px}.stfb.goed{background:#e5f2ea;color:#255c3d}.stfb.fout{background:#f8e6e2;color:#7c2c22}
+.stplaat{background:#fffdf8;border:1px solid #e3dccb;border-radius:12px;padding:10px;position:sticky;top:20px}
+.stplaat svg{width:100%;height:auto;display:block}
+.stleg{font-size:13px;color:#3e3b35;margin-top:8px;line-height:1.5}
+@media (max-width:1000px){#stwrap{grid-template-columns:1fr}.staside{position:static;height:auto}.stgrid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
+<div id="route" style="display:none">
 <header>
   <div class="hknoppen"><button id="verken-btn">Verkenmodus</button><button id="reset-btn">Opnieuw beginnen</button></div>
   <h1>Chemische Evolutie — Van Molecuul tot Brein</h1>
@@ -117,6 +154,7 @@
 <div class="progress" id="progress"></div>
 <main id="main-area"></main>
 <footer>6 VWO · per grootheid eerst begrijpen, dan rekenen · kern: fase 1–4 · ★ verdieping: fase 5–8 · verkenmodus: schuiven zonder rekenen · marge ±3%</footer>
+</div>
 
 <script>
 const TOL = 0.03;
@@ -894,6 +932,83 @@ renderStage();
   alles(document);
   new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) alles(n); })))
     .observe(document.documentElement, { childList: true, subtree: true });
+})();
+</script>
+<script>
+/* ================= STATIONS (instap) ================= */
+(function(){
+const q=s=>document.querySelector(s);
+const ST=[
+ {si:0,k:'Oersoep',t:'Van gas naar de eerste moleculen',
+  begrip:'Een reactie heeft een <b>venster</b>: te koud en de vorming gaat te traag, te heet en het product valt sneller uit elkaar dan het ontstaat. De reactiesnelheid neemt sterk toe met de temperatuur.',
+  vraag:{v:'Waarom is er een <b>bovengrens</b> aan de temperatuur in de oersoep?',o:['Boven die temperatuur valt het gevormde product sneller uit elkaar dan het ontstaat.','Boven die temperatuur verdampt alle methaan.','Boven die temperatuur stopt elke reactie.'],a:0},
+  ster:{v:'Bereken met de Arrhenius-vergelijking de laagste temperatuur waarbij de vormingsreactie k = 5,0·10<sup>−5</sup> s<sup>−1</sup> haalt. E<sub>a</sub> = 75 kJ mol<sup>−1</sup>, A = 2,5·10<sup>9</sup> s<sup>−1</sup>, R = 8,314 J mol<sup>−1</sup> K<sup>−1</sup>.',a:286,u:'K',tip:'T = E<sub>a</sub> / (R · ln(A/k)). Reken E<sub>a</sub> om naar J mol<sup>−1</sup>.'}},
+ {si:1,k:'Polymeren',t:'Van monomeer naar polymeer',
+  begrip:'Aminozuren koppelen tot peptiden in een <b>condensatiereactie</b>: bij elke koppeling ontstaat een watermolecuul. Het is een evenwicht, dus weinig water helpt de koppeling.',
+  vraag:{v:'Waarom helpt het als een getijdenpoel opdroogt?',o:['Water is een reactieproduct: minder water verschuift het evenwicht naar de peptiden.','Zonder water kunnen aminozuren niet bewegen.','Opdrogen maakt de aminozuren zuurder.'],a:0},
+  ster:{v:'De aminogroep (pK<sub>z</sub> = 9,6) moet voor minstens 10% als –NH₂ aanwezig zijn. Bereken de laagste pH.',a:8.65,u:'',tip:'pH = pK<sub>z</sub> + log([A⁻]/[HA]), met [A⁻] : [HA] = 10 : 90.'}},
+ {si:2,k:'Membraan',t:'Van polymeer naar protocel',
+  begrip:'<b>Amfifiele</b> moleculen hebben een hydrofiele kop en een hydrofobe staart. In water gaan ze vanzelf in een <b>dubbellaag</b> zitten: de koppen naar het water, de staarten naar elkaar toe. Zo ontstaat een afgesloten blaasje met een eigen binnenkant.',
+  vraag:{v:'Hoe zijn de moleculen in de dubbellaag gericht?',o:['De hydrofiele koppen naar het water, de hydrofobe staarten naar elkaar toe.','De hydrofobe staarten naar het water.','Willekeurig: dat maakt niet uit.'],a:0},
+  sterKeuze:{v:'Vetzuren met een cis-dubbele binding maken een membraan soepeler. Leg uit waarom.',o:['De knik in de staart zorgt dat de staarten minder dicht tegen elkaar liggen: zwakkere vanderwaalsbinding.','Een dubbele binding is polair.','De dubbele binding maakt de staart langer.'],a:0}},
+ {si:3,k:'RNA-wereld',t:'Een molecuul dat zichzelf kopieert',
+  begrip:'Een RNA-streng kan dienen als <b>mal</b>: losse bouwstenen gaan via waterstofbruggen tegenover de passende basen liggen en worden aan elkaar gekoppeld. Zo ontstaat een kopie, en is er voor het eerst <b>erfelijkheid</b>.',
+  vraag:{v:'Waarom mag de temperatuur niet te hoog zijn voor zelfreplicatie?',o:['De waterstofbruggen tussen de basenparen breken: de dubbele streng valt uit elkaar.','RNA verbrandt boven 30 °C.','Bij hoge temperatuur ontstaat te veel water.'],a:0},
+  sterKeuze:{v:'Mg²⁺-ionen helpen de RNA-streng stabiel te houden. Wat doen ze?',o:['Ze schermen de negatief geladen fosfaatgroepen af, zodat die elkaar minder afstoten.','Ze vormen waterstofbruggen tussen de basen.','Ze breken de streng in stukken.'],a:0}},
+ {si:7,k:'Zenuwcel',t:'Een elektrisch signaal',
+  begrip:'Over het membraan van een zenuwcel staat een <b>spanning</b>, doordat er binnen en buiten de cel andere ionen zijn. Gaan er kanalen voor Na⁺ open, dan stroomt Na⁺ de cel in en slaat de spanning om: een <b>actiepotentiaal</b>.',
+  vraag:{v:'Wat gebeurt er met de spanning over het membraan als de Na⁺-kanalen opengaan?',o:['Na⁺ stroomt naar binnen; de binnenkant wordt minder negatief.','Na⁺ stroomt naar buiten; de binnenkant wordt negatiever.','Er verandert niets, want Na⁺ is neutraal.'],a:0},
+  sterKeuze:{v:'Bij een hogere temperatuur gaat de geleiding sneller, maar te heet werkt het niet meer. Welke grens hoort bij te heet?',o:['Eiwitten van de ionkanalen denatureren.','Natriumionen verdampen.','Het membraan wordt een vaste stof.'],a:0}}
+];
+const KEY='chemevo-stations-v1';let S={i:0,af:{},ster:{}};
+try{const t=JSON.parse(localStorage.getItem(KEY));if(t&&t.af)S=Object.assign(S,t)}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let T={},modus='stations';
+const wrap=document.createElement('div');wrap.id='stwrap';wrap.innerHTML=`<aside class="staside"><h1>Chemische evolutie</h1><div class="stsub">Van molecuul tot brein · 6V</div><nav id="stnav"></nav><div class="stvoet"><button data-c="route">Volledige route ★<small>8 fasen, rekenen met de formules</small></button><button data-c="wis">Voortgang wissen</button></div></aside><div id="stmain"></div>`;
+document.body.insertBefore(wrap,document.body.firstChild);
+const route=q('#route');
+function render(){
+  wrap.style.display=modus==='stations'?'':'none';route.style.display=modus==='route'?'':'none';
+  q('#stnav').innerHTML=ST.map((s,i)=>`<a data-c="st" data-v="${i}" class="${S.i===i?'on':''} ${S.af[i]?'klaar':''}"><i>${S.af[i]?'✓':i+1}</i><span>${s.k}<small>${s.t}</small></span></a>`).join('');
+  if(modus!=='stations')return;
+  const s=ST[S.i],st=stages[s.si],c=T[S.i]||{};
+  let h=`<div class="stkicker">Station ${S.i+1} van ${ST.length}</div><h2>${s.t}</h2><p class="stintro">${st.intro}</p>
+  <div class="stgrid"><div><div class="stkader"><b>Het idee</b>${s.begrip}</div>`;
+  const vr=s.vraag;
+  h+=`<div class="ststap ${S.af[S.i]?'goed':''}"><div class="stvr">${vr.v}</div>`;
+  if(S.af[S.i])h+=`<div class="stfb goed">${vr.o[vr.a]}</div>`;
+  else h+=`<div class="stopties">${vr.o.map((_,j)=>j).sort((a,b)=>((a*5+S.i*3)%7)-((b*5+S.i*3)%7)).map(j=>`<button class="stoptie ${c.v===j?'aan':''}" data-c="kies" data-v="${j}">${vr.o[j]}</button>`).join('')}</div><button class="stbtn" data-c="check">Controleer</button>${c.fb?`<div class="stfb fout">${c.fb}</div>`:''}`;
+  h+=`</div>`;
+  if(S.af[S.i]){
+    const sk=s.ster||s.sterKeuze;const sc=T['s'+S.i]||{};
+    h+=`<div class="ststap ster ${S.ster[S.i]?'goed':''}"><div class="stlbl">★ Uitdaging</div><div class="stvr">${sk.v}</div>`;
+    if(S.ster[S.i])h+=`<div class="stfb goed">${s.ster?String(sk.a).replace('.',',')+(sk.u?' '+sk.u:''):sk.o[sk.a]}</div>`;
+    else if(s.ster)h+=`<div class="strij"><input class="stin" id="stin" inputmode="decimal" value="${sc.txt||''}">${sk.u?`<span>${sk.u}</span>`:''}<button class="stbtn" data-c="sterchk">Controleer</button></div>${sc.fb?`<div class="stfb fout">${sc.fb}</div>`:''}`;
+    else h+=`<div class="stopties">${sk.o.map((_,j)=>j).sort((a,b)=>((a*3+S.i)%5)-((b*3+S.i)%5)).map(j=>`<button class="stoptie ${sc.v===j?'aan':''}" data-c="sterkies" data-v="${j}">${sk.o[j]}</button>`).join('')}</div><button class="stbtn" data-c="sterchk">Controleer</button>${sc.fb?`<div class="stfb fout">${sc.fb}</div>`:''}`;
+    h+=`</div>`;
+    h+=S.i<ST.length-1?`<button class="stbtn" data-c="st" data-v="${S.i+1}">Naar station ${S.i+2} →</button>`:`<div class="stkader"><b>Klaar</b>Je hebt de route van molecuul tot zenuwcel in vijf stappen doorlopen. Wil je rekenen met de echte formules (Arrhenius, Henderson-Hasselbalch, Nernst, GHK)? Kies dan <b>Volledige route ★</b>.</div>`;
+  }
+  h+=`</div><div class="stplaat">${st.svg(S.af[S.i]?1:.25)}<div class="stleg">${S.af[S.i]?'Deze stap is gelukt.':'Beantwoord de vraag om deze stap te laten slagen.'}</div></div></div>`;
+  q('#stmain').innerHTML=h;
+}
+document.addEventListener('click',e=>{const el=e.target.closest('[data-c]');if(!el)return;const a=el.dataset.c,v=el.dataset.v;
+  switch(a){
+    case 'st':S.i=+v;save();modus='stations';window.scrollTo(0,0);break;
+    case 'route':modus='route';window.scrollTo(0,0);break;
+    case 'kies':(T[S.i]=T[S.i]||{}).v=+v;T[S.i].fb=null;break;
+    case 'check':{const c=T[S.i]||{};if(c.v==null){(T[S.i]=c).fb='Kies eerst een antwoord.';break}if(c.v===ST[S.i].vraag.a){S.af[S.i]=true;save()}else c.fb='Nog niet goed. Lees het idee nog eens.';break}
+    case 'sterkies':(T['s'+S.i]=T['s'+S.i]||{}).v=+v;T['s'+S.i].fb=null;break;
+    case 'sterchk':{const s=ST[S.i],c=T['s'+S.i]=T['s'+S.i]||{};
+      if(s.ster){const inp=q('#stin');c.txt=inp.value;const x=Number(inp.value.replace(',','.'));if(isNaN(x)||!inp.value.trim()){c.fb='Typ een getal.';break}
+        if(Math.abs(x-s.ster.a)/Math.abs(s.ster.a)<=0.03){S.ster[S.i]=true;save()}else c.fb='Nog niet goed. Tip: '+s.ster.tip}
+      else{if(c.v==null){c.fb='Kies eerst een antwoord.';break}if(c.v===s.sterKeuze.a){S.ster[S.i]=true;save()}else c.fb='Nog niet goed.'}break}
+    case 'wis':if(el.dataset.k!=='1'){el.dataset.k='1';el.textContent='Zeker weten? Klik nogmaals';return}S={i:0,af:{},ster:{}};T={};save();el.dataset.k='';el.textContent='Voortgang wissen';break;
+    default:return}
+  render()});
+const terug=document.createElement('button');terug.textContent='← Naar de stations';terug.onclick=()=>{modus='stations';render();window.scrollTo(0,0)};
+const hk=q('#route .hknoppen');if(hk)hk.insertBefore(terug,hk.firstChild);
+render();
+window.__ce={ST,S:()=>S,render,setModus:m=>{modus=m;render()}};
 })();
 </script>
 </body>
