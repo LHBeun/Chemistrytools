@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fabrieksspel</title>
+<style>
+:root{
+  --papier:#f3efe6; --vel:#fffdf8; --rand:#e3dccb; --rand2:#d6cdb8;
+  --inkt:#2b2a27; --inkt2:#3e3b35; --grijs:#7a756b; --goud:#a0701f; --goud2:#e2a84b;
+  --nacht:#24323f; --nacht2:#33475a; --nachttekst:#cfd9e2;
+  --goed:#3f8f63; --goedbg:#e5f2ea; --fout:#b4473a; --foutbg:#f8e6e2; --hint:#fbf1da;
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --sans: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Consolas, 'Liberation Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--papier);color:var(--inkt);font-size:15px;line-height:1.6}
+button{font-family:inherit}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
+aside{background:var(--nacht);color:var(--nachttekst);padding:26px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
+aside h1{font-family:var(--serif);font-size:23px;color:#fff;font-weight:600;line-height:1.2}
+aside .sub{font-size:12.5px;color:#8aa0b3;margin:4px 0 18px}
+.lijn{display:flex;gap:4px;background:#1b2731;border-radius:10px;padding:4px;margin-bottom:18px}
+.lijn button{flex:1;border:0;border-radius:7px;padding:7px 6px;font-size:13.5px;font-weight:700;background:transparent;color:#9fb2c3;cursor:pointer}
+.lijn button.on{background:var(--goud2);color:var(--nacht)}
+aside nav a{display:flex;gap:12px;align-items:center;padding:10px 10px;border-radius:9px;font-size:14.5px;margin-bottom:4px;color:#b9c7d3;cursor:pointer;user-select:none;line-height:1.3}
+aside nav a:hover{background:#2c3d4d}
+aside nav a i{font-style:normal;flex:none;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #5d7387;font-size:12.5px;font-weight:700}
+aside nav a.on{background:var(--nacht2);color:#fff}
+aside nav a.on i{background:var(--goud2);border-color:var(--goud2);color:var(--nacht)}
+aside nav a.klaar i{background:#5aa37c;border-color:#5aa37c;color:#fff}
+aside nav a small{display:block;font-size:11.5px;color:#8aa0b3}
+aside .voet{margin-top:auto;padding-top:16px;display:flex;flex-direction:column;gap:8px}
+aside .voet button{background:transparent;border:1px solid #4b6074;color:#cfd9e2;border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer;text-align:left}
+aside .voet button:hover{background:#2c3d4d}
+.wp{display:grid;grid-template-columns:minmax(380px,1fr) minmax(520px,680px);min-height:100vh}
+.tekst{padding:34px 38px 60px;max-width:780px}
+.kicker{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--goud);font-weight:700}
+.tekst h2{font-family:var(--serif);font-size:31px;margin:3px 0 14px;font-weight:600;line-height:1.2}
+.tekst h3{font-family:var(--serif);font-size:19px;margin:20px 0 6px;font-weight:600}
+.tekst p{margin-bottom:10px;color:var(--inkt2)}
+.tekst ul,.tekst ol{margin:0 0 10px 20px;color:var(--inkt2)}
+.tekst li{margin-bottom:3px}
+.kader{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--goud2);border-radius:8px;padding:10px 14px;margin:10px 0 12px;color:var(--inkt2)}
+.kader.proces{border-left-color:#5d7387}
+.vgl{font-family:var(--serif);font-size:17px;margin-top:6px;color:var(--inkt)}
+.tabs{display:flex;gap:4px;margin:20px 0 14px;border-bottom:1px solid var(--rand2)}
+.tabs button{background:none;border:0;padding:9px 14px;font-size:14px;font-weight:600;color:var(--grijs);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--inkt);border-bottom-color:var(--goud2)}
+.tabs .tel{font-weight:500;font-size:12px;color:var(--grijs);margin-left:4px}
+.vb{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:16px 18px;margin:4px 0 14px}
+.vb .vbkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--goud);margin-bottom:4px}
+.vb .vbvraag{font-weight:600;margin-bottom:8px}
+.vbstap{display:flex;gap:12px;padding:8px 0;border-top:1px dashed var(--rand2)}
+.vbstap .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
+.vbstap .b{color:var(--inkt2)}
+.oknop{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.oknop .dot{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--rand2);background:var(--vel);display:grid;place-items:center;font-size:12.5px;font-weight:700;color:var(--grijs);cursor:pointer}
+.oknop .dot.on{border-color:var(--inkt);color:var(--inkt);box-shadow:0 0 0 2px var(--inkt) inset}
+.oknop .dot.goed{background:var(--goed);border-color:var(--goed);color:#fff}
+.oknop .dot.ster{border-style:dashed}
+.oknop .rechts{margin-left:auto;font-size:13px;color:var(--grijs)}
+.opdkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--grijs);margin-bottom:4px}
+.opdkop .st{color:var(--goud)}
+.stap{display:flex;gap:12px;padding:13px 15px;background:var(--vel);border:1px solid var(--rand);border-radius:11px;margin-bottom:10px}
+.stap>.n{flex:none;width:25px;height:25px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12.5px;font-weight:700;margin-top:1px}
+.stap.dicht{opacity:.42}
+.stap.dicht .inv{display:none}
+.stap.goed{border-color:#bcdcc8;background:#fbfefc}
+.stap.goed>.n{background:var(--goed)}
+.stap .inh{flex:1;min-width:0}
+.stap .vr{margin-bottom:8px}
+.rij{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input.in{font-family:var(--mono);font-size:15px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;background:#fff;min-width:0;width:220px;color:var(--inkt)}
+input.in:focus,textarea.in:focus,select.sel:focus{outline:2px solid var(--goud2);outline-offset:0;border-color:var(--goud2)}
+textarea.in{font-family:var(--sans);font-size:14.5px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;width:100%;min-height:74px;background:#fff;color:var(--inkt)}
+select.sel{border:1px solid var(--rand2);border-radius:8px;padding:7px 9px;font-size:14px;background:#fff;color:var(--inkt);font-family:inherit}
+.btn{border:0;border-radius:8px;padding:8px 15px;font-weight:600;font-size:14px;cursor:pointer;background:var(--inkt);color:#fff}
+.btn:hover{background:#45433e}
+.btn.g{background:#ebe4d4;color:var(--inkt)}
+.btn.g:hover{background:#e0d7c3}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.klein{padding:5px 11px;font-size:13px}
+.fb{margin-top:8px;padding:8px 11px;border-radius:8px;font-size:14px}
+.fb.goed{background:var(--goedbg);color:#255c3d}
+.fb.fout{background:var(--foutbg);color:#7c2c22}
+.fb.hint{background:var(--hint);color:#6b4d12}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px}
+.chip{border:1.5px solid var(--rand2);background:#fff;border-radius:999px;padding:4px 12px;font-size:14px;cursor:pointer;user-select:none;color:var(--inkt)}
+.chip:hover{border-color:#b9ad93}
+.chip.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.chip.x{padding:3px 6px 3px 12px}
+.chip.x b{margin-left:6px;font-weight:700;color:var(--grijs)}
+.opties{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.optie{border:1.5px solid var(--rand2);background:#fff;border-radius:9px;padding:8px 12px;font-size:14.5px;cursor:pointer;text-align:left;color:var(--inkt)}
+.optie:hover{border-color:#b9ad93}
+.optie.aan{border-color:var(--nacht);background:#eef2f6}
+.model{background:var(--hint);border-radius:8px;padding:8px 11px;font-size:14px;color:#5b4210;margin-top:8px}
+.model b{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.klaarbanner{background:var(--goedbg);border:1px solid #bcdcc8;color:#255c3d;border-radius:11px;padding:12px 15px;margin:4px 0 12px}
+.uitw{background:#fff;border:1px solid var(--rand);border-radius:8px;padding:8px 11px;margin-top:8px;font-size:14.5px;color:var(--inkt2)}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;line-height:1.25}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 3px}
+.frac>span:last-child{padding:0 3px}
+.simkol{background:var(--vel);border-left:1px solid var(--rand);padding:22px 22px 30px;display:flex;flex-direction:column;gap:12px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.simkop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.simkop b{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--goud)}
+.simkop span{font-size:12.5px;color:var(--grijs)}
+.doek{border:1px solid var(--rand);border-radius:12px;background:#fbf8f1;overflow:hidden}
+.doek svg{display:block;width:100%;height:auto}
+.legenda{font-size:12.5px;color:var(--grijs);line-height:1.5}
+.bouw{display:grid;gap:10px}
+.bouw .vak{background:var(--vel);border:1px solid var(--rand);border-radius:11px;padding:12px 14px}
+.bouw h4{font-size:13px;letter-spacing:1.1px;text-transform:uppercase;color:var(--grijs);margin-bottom:8px}
+.strlijst{list-style:none;margin:0!important}
+.strlijst li{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px dashed var(--rand2);font-size:14px}
+.strlijst li:first-child{border-top:0}
+.nr{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--inkt);font-size:12px;font-weight:700;margin-right:6px;flex:none}
+.stroomkeuze{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.stroomkeuze button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--rand2);background:#fff;font-weight:700;cursor:pointer;color:var(--inkt)}
+.stroomkeuze button.on{background:var(--goud2);border-color:var(--goud2)}
+.stroomkeuze button.goed{border-color:var(--goed);color:var(--goed)}
+.stroomkeuze button.fout{border-color:var(--fout);color:var(--fout)}
+body.beamer .wp{zoom:1.25}
+@media (max-width:1100px){.app{grid-template-columns:1fr}aside{position:static;height:auto}.wp{grid-template-columns:1fr}.simkol{position:static;height:auto;border-left:0;border-top:1px solid var(--rand)}.tekst{padding:24px 20px 30px}}
+@media (prefers-reduced-motion:no-preference){.nieuw{animation:verschijn .6s ease-out}@keyframes verschijn{from{opacity:0}to{opacity:1}}}
+
+.ld{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--nacht);border-radius:8px;padding:9px 14px;margin:0 0 12px;color:var(--inkt2)}
+.ld b{display:block;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--nacht);margin-bottom:2px}
+.ld ol{margin:4px 0 0 20px}
+aside nav a.slot{opacity:.45;cursor:not-allowed}
+table.regels{border-collapse:collapse;font-size:14px;background:#fff;margin:4px 0}
+table.regels th,table.regels td{border:1px solid var(--rand2);padding:4px 9px;text-align:left;vertical-align:top}
+table.regels th{background:#f3ead6}
+.besl{background:#fff;border:1px solid var(--rand);border-radius:11px;padding:13px 15px;margin:12px 0}
+.bvraag{font-weight:600;margin:8px 0 6px}
+.bkeus{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-top:1px dashed var(--rand2);font-size:14.5px}
+.bkeus:first-of-type{border-top:0}
+.binfo{font-size:13px;color:var(--grijs);margin:-2px 0 6px}
+input.schuif{width:280px;accent-color:var(--goud)}
+.besl output{font-family:var(--mono);font-weight:700;min-width:90px}
+.poortinfo{font-size:14px;color:var(--grijs)}
+.fadeinfo{font-size:14px;color:var(--inkt2);margin-bottom:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.startrij{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.btn.groot{padding:11px 22px;font-size:15.5px;background:var(--goud);}
+.btn.groot:hover{background:#8a5f17}
+.bezig{margin:14px 0;display:flex;flex-direction:column;gap:6px;color:var(--grijs);font-size:14px}
+.bezig .balk{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--goud2) 0%,var(--goud2) 50%,#efe6d3 50%);background-size:200% 100%;animation:loopt 1.2s linear forwards}
+@keyframes loopt{from{background-position:100% 0}to{background-position:0 0}}
+.resultaat{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:14px 16px;margin:12px 0}
+.meet{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
+.meet div{background:#fff;border:1px solid var(--rand);border-radius:9px;padding:7px 10px}
+.meet small{display:block;font-size:11.5px;color:var(--grijs);text-transform:uppercase;letter-spacing:.8px;font-weight:700}
+.meet b{font-family:var(--serif);font-size:18px}
+.badge{border-radius:8px;padding:8px 11px;font-size:14.5px;margin:6px 0 10px}
+.badge.ok{background:var(--goedbg);color:#255c3d}
+.badge.nok{background:var(--foutbg);color:#7c2c22}
+table.kas{width:100%;border-collapse:collapse;font-size:14px}
+table.kas td{padding:4px 2px;border-top:1px dashed var(--rand2)}
+table.kas td:last-child{text-align:right;font-family:var(--mono);white-space:nowrap}
+table.kas tr.tot td{border-top:1.5px solid var(--inkt);font-weight:700}
+.min{color:var(--fout)}.plus{color:var(--goed)}
+.saldo{background:var(--nacht);color:#fff;border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;align-items:baseline}
+.saldo small{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:#8aa0b3}
+.saldo b{font-family:var(--mono);font-size:22px}
+.saldo b.min{color:#f0a294}
+.vak{background:#fff;border:1px solid var(--rand);border-radius:11px;padding:10px 14px}
+.vak h4{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--grijs);margin-bottom:4px}
+.kbrij{display:flex;justify-content:space-between;font-size:13.5px;padding:3px 0;border-top:1px dashed var(--rand2)}
+.kbrij:first-of-type{border-top:0}
+.kbrij b{font-family:var(--mono)}
+.codevak{font-family:var(--mono);font-size:28px;letter-spacing:2px;background:#fff;border:2px dashed var(--goud2);border-radius:12px;padding:14px 18px;display:inline-block;margin:6px 0 10px}
+.grafiek{background:#fff;border:1px solid var(--rand);border-radius:9px;margin:6px 0 10px}
+.grafiek svg{display:block;width:100%;height:auto}
+.vglrij{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 0 12px;background:#fff;border:1px solid var(--rand);border-radius:10px;padding:10px}
+.vglrij figure{margin:0;text-align:center}
+.vglrij figcaption{font-size:12.5px;color:var(--grijs)}
+.vglrij .pijl{font-size:24px;color:var(--inkt2)}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <h1 id="titel"></h1>
+    <div class="sub" id="sub"></div>
+    <nav id="nav"></nav>
+    <div class="voet">
+      <button data-a="code">Opslagcode</button>
+      <button data-a="beamer">Beamerstand</button>
+      <button data-a="wis">Opnieuw beginnen</button>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<script>
+/* Fabrieksspel-motor: gedeeld door alle fabrieken. Scenario roept FAB.start(SC) aan. */
+(function(){
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fr=(a,b)=>`<span class="frac"><span>${a}</span><span>${b}</span></span>`;
+const sub=f=>f.replace(/(\d+)/g,'<sub>$1</sub>');
+const nl=(v,d)=>{let s=d==null?String(+(+v).toPrecision(4)):(+v).toFixed(d);return s.replace('.',',').replace('-','−')};
+const eur=v=>{const n=Math.abs(v).toFixed(2).split('.');return (v<-0.004?'−':'')+'€ '+n[0].replace(/\B(?=(\d{3})+$)/g,'.')+','+n[1]};
+function parseNum(t){t=String(t).trim().replace(/\s/g,'').replace(/,/g,'.').replace(/−/g,'-').replace(/[%€]/g,'');t=t.replace(/[·×x*]10\^?/i,'e').replace(/e\+?/,'e');return t===''?NaN:Number(t)}
+function mkR(seed){let s=seed>>>0;const f=()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+  f.int=(a,b,st=1)=>a+st*Math.floor(f()*(Math.floor((b-a)/st+1e-9)+1));f.pick=a=>a[Math.floor(f()*a.length)];return f}
+const g=(v,a,o)=>Object.assign({t:'getal',v,a},o||{});
+const k=(v,o,a,h)=>({t:'keuze',v,o,a,h});
+window.FAB={fr,sub,nl,eur,g,k,start};
+
+let SC,KEY,S,T={};
+function start(sc){
+  SC=sc;KEY=SC.key;S={ri:-1,tab:'uitleg',geld:SC.start,r:{},log:[],view:null};
+  try{const t=JSON.parse(localStorage.getItem(KEY));if(t&&t.r)S=Object.assign(S,t)}catch(e){}
+  S.view=null;
+  document.title=SC.titel;$('#titel').textContent=SC.titel;$('#sub').textContent=SC.sub;
+  document.addEventListener('click',klik);document.addEventListener('input',invoer);
+  document.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target.id)return;const b=e.target.closest('.rij')&&e.target.closest('.rij').querySelector('[data-a=check],[data-a=vast]');if(b)b.click()});
+  render();
+  window.__fab={SC,S:()=>S,T:()=>T,render,check,rs,poortL,naL,KZ,batch,codeMaak,codeLees};
+}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const RR=i=>SC.rondes[i==null?S.ri:i];
+const KZ=(R,p)=>typeof R.keuzes==='function'?R.keuzes(p,S):(R.keuzes||[]);
+function nieuw(i,oud){const R=RR(i),seed=(Math.random()*4294967296)>>>0,p=R.gen?R.gen(mkR(seed),S):{},K={};
+  const kz=KZ(R,p);kz.forEach(x=>{if(x.def!=null)K[x.id]=x.def});
+  return{seed,p,K,vast:!kz.length,ps:0,ns:0,res:null,klaar:false,ooit:!!(oud&&(oud.ooit||oud.klaar)),tussen:false}}
+function rs(i){i=i==null?S.ri:i;if(!S.r[i])S.r[i]=nieuw(i);return S.r[i]}
+const poortL=(R,r)=>R.poort?R.poort(r.p,r.K,S):[];
+const naL=(R,r)=>R.na&&r.res?R.na(r.p,r.K,r.res,S):[];
+const gedaan=i=>!!(S.r[i]&&(S.r[i].klaar||S.r[i].ooit));
+const open=i=>i<=0||gedaan(i-1)||gedaan(i);
+
+/* ---------- render ---------- */
+function render(){
+  $('#nav').innerHTML=`<a data-a="ronde" data-v="-1" class="${S.ri===-1&&!S.view?'on':''}"><i>⌂</i><span>Start<small>leerdoelen en spelregels</small></span></a>`+
+   SC.rondes.map((R,i)=>{const d=gedaan(i),o=open(i);return `<a data-a="ronde" data-v="${i}" class="${S.ri===i&&!S.view?'on':''} ${d?'klaar':''} ${o?'':'slot'}"><i>${d?'✓':o?(R.ster?'★':i+1):'🔒'}</i><span>${R.k}<small>${R.ster?'★ uitdaging':'ronde '+(i+1)}</small></span></a>`}).join('');
+  let t,sim;
+  if(S.view==='code'){t=codeView();sim=simkol(-1)}
+  else if(S.ri===-1){t=intro();sim=simkol(-1)}
+  else{const R=RR(),r=rs();
+    t=`<div class="kicker">${R.ster?'★ ':''}Ronde ${S.ri+1} · ${SC.kort}</div><h2>${R.t}</h2>
+    <div class="tabs"><button data-a="tab" data-v="uitleg" class="${S.tab==='uitleg'?'on':''}">Uitleg en voorbeeld</button><button data-a="tab" data-v="fab" class="${S.tab==='fab'?'on':''}">De fabriek${r.klaar?' ✓':''}</button></div>`;
+    t+=S.tab==='uitleg'?uitleg(R):fabriek(R,r);sim=simkol(S.ri)}
+  $('#main').innerHTML=`<div class="wp"><div class="tekst">${t}</div><div class="simkol">${sim}</div></div>`;
+}
+function intro(){
+  const eerste=SC.rondes.findIndex((_,i)=>!gedaan(i));
+  return `<div class="kicker">Fabrieksspel · ${SC.kort}</div><h2>${SC.titel}</h2>${SC.intro}
+  <div class="ld"><b>Leerdoelen</b><ol>${SC.ld.map(x=>`<li>${x}</li>`).join('')}</ol></div>
+  <h3>Zo werkt het spel</h3><ol>
+   <li>Elke ronde is één productiebatch. Je krijgt een <b>bestelling</b> met eisen.</li>
+   <li>Lees eerst de <b>uitleg en het voorbeeld</b>. Daar staat precies hoe je het aanpakt.</li>
+   <li>Je neemt <b>beslissingen</b> (hoeveel grondstof, welke temperatuur, welke methode).</li>
+   <li>Bij de <b>rekenpoort</b> reken je uit wat je fabriek gaat doen. Pas als je berekening klopt, kun je de batch starten.</li>
+   <li>Na de batch lees je de <b>metingen</b> en je <b>kasboek</b>. Soms volgen er nog vragen over het resultaat.</li>
+   <li>Ronden met ★ zijn extra uitdagingen. Een ronde nog eens spelen met een nieuwe bestelling mag altijd.</li></ol>
+  <p>Je voortgang wordt op deze laptop bewaard. Werk je de volgende les op een andere laptop? Noteer dan je <b>opslagcode</b> (knop links onderin).</p>
+  <button class="btn" data-a="ronde" data-v="${eerste<0?0:eerste}">${eerste>0?'Verder met ronde '+(eerste+1):'Start ronde 1'}</button>`}
+function uitleg(R){
+  let h=`<div class="ld"><b>Leerdoel${R.ld.length>1?'en':''} van deze ronde</b>${R.ld.map(i=>`<div>${SC.ld[i]}</div>`).join('')}</div>${R.uitleg}`;
+  if(R.vb)h+=`<div class="vb"><div class="vbkop">Voorbeeld</div><div class="vbvraag">${R.vb.v}</div>${R.vb.s.map((x,i)=>`<div class="vbstap"><div class="n">${i+1}</div><div class="b">${x}</div></div>`).join('')}</div>`;
+  return h+`<button class="btn" data-a="tab" data-v="fab">Naar de fabriek</button>`}
+function fabriek(R,r){
+  const p=r.p,kz=KZ(R,p),po=poortL(R,r),pe=!!R.poortEerst;
+  let h='';
+  if(r.klaar)h+=`<div class="klaarbanner">Deze ronde is klaar.</div>`;
+  h+=`<div class="kader proces"><div class="opdkop">Bestelling</div>${R.bestelling(p,S)}</div>`;
+  const bb=()=>kz.length?besl(kz,r):'';
+  const pb=()=>po.length?`<h3>Rekenpoort</h3><p class="poortinfo">${pe?'Reken eerst uit wat je nodig hebt. Daarna neem je je beslissing.':'Reken uit wat je fabriek gaat doen. Pas als je berekening klopt, kun je de batch starten.'}</p>${stappen(po,r.ps,'p',R.fade&&!r.tussen&&r.ps<po.length,r)}`:'';
+  if(pe){h+=pb();if(r.ps>=po.length)h+=bb()}else{h+=bb();if(r.vast)h+=pb()}
+  if(!r.res){if(r.vast&&r.ps>=po.length)h+=`<div class="startrij"><button class="btn groot" data-a="batch">Start de batch ▶</button></div>`;return h}
+  if(Date.now()-(r.t0||0)<1200){setTimeout(render,1250);return h+`<div class="bezig"><div class="balk"></div><span>De batch draait…</span></div>`}
+  const res=r.res;
+  h+=`<div class="resultaat"><div class="opdkop">Resultaat van de batch</div>${res.html||''}<div class="badge ${res.ok?'ok':'nok'}">${res.msg}</div>${kasTabel(res.regels)}</div>`;
+  const na=naL(R,r);
+  if(na.length)h+=`<h3>Vragen over je resultaat</h3>${stappen(na,r.ns,'n',false,r)}`;
+  if(r.klaar){h+=`<div class="startrij">${S.ri<SC.rondes.length-1?`<button class="btn" data-a="ronde" data-v="${S.ri+1}">Volgende ronde →</button>`:''}<button class="btn g" data-a="opnieuw">Nog een batch met een nieuwe bestelling</button></div>`}
+  return h}
+function toon(x,v){if(x.t==='kies')return v==null?'—':(x.opties[v].t||x.opties[v]);return nl(v)+' '+(x.u||'')}
+function besl(kz,r){
+  let h=`<div class="besl"><div class="opdkop">Jouw beslissingen</div>`;
+  kz.forEach(x=>{const v=r.K[x.id];
+    if(r.vast){h+=`<div class="bkeus"><span>${x.label}</span><b>${toon(x,v)}</b></div>`;return}
+    h+=`<div class="bvraag">${x.label}</div>`;
+    if(x.t==='schuif')h+=`<div class="rij"><input type="range" class="schuif" min="${x.min}" max="${x.max}" step="${x.step||1}" value="${v==null?x.min:v}" data-k="${x.id}"><output id="o-${x.id}">${nl(v==null?x.min:v)} ${x.u||''}</output></div>`;
+    if(x.t==='getal')h+=`<div class="rij"><input class="in" id="k-${x.id}" inputmode="decimal" value="${v==null?'':nl(v)}"><span>${x.u||''}</span></div>`;
+    if(x.t==='kies'&&x.chips)h+=`<div class="chips">${x.opties.map((o,j)=>`<span class="chip ${v===j?'aan':''}" data-a="kk" data-k="${x.id}" data-v="${j}">${o.t||o}</span>`).join('')}</div>`;
+    else if(x.t==='kies')h+=`<div class="opties">${x.opties.map((o,j)=>`<button class="optie ${v===j?'aan':''}" data-a="kk" data-k="${x.id}" data-v="${j}">${o.t||o}</button>`).join('')}</div>`;
+    if(x.info)h+=`<div class="binfo">${x.info}</div>`});
+  if(r.vast){if(!r.res)h+=`<button class="btn g klein" data-a="wijzig">Beslissingen wijzigen</button>`}
+  else h+=`<div class="rij"><button class="btn" data-a="vast">Leg beslissingen vast</button></div>`;
+  if(r.kfb)h+=`<div class="fb hint">${r.kfb}</div>`;
+  return h+'</div>'}
+function stappen(L,done,pre,fade,r){
+  if(fade){const i=L.length-1;return `<div class="fadeinfo">Je mag direct het eindantwoord geven. Lukt dat niet? <button class="btn g klein" data-a="tussen">Toon de tussenstappen</button></div>`+stap(L[i],i,done<i?i:done,pre)}
+  return L.map((s,i)=>stap(s,i,done,pre)).join('')}
+function stap(s,i,done,pre){
+  const st=i<done?'goed':i===done?'':'dicht',tk=S.ri+'-'+pre+'-'+i,cur=T[tk]||{};
+  let h=`<div class="stap ${st}"><div class="n">${i+1}</div><div class="inh"><div class="vr">${s.v}</div>`;
+  if(i<done){h+=s.t==='getal'?`<div class="uitw">${s.w||nl(s.a)+' '+(s.u||'')}</div>`:`<div class="fb goed">${s.o[s.a]}${s.uitleg?' '+s.uitleg:''}</div>`;return h+'</div></div>'}
+  h+='<div class="inv">';
+  if(s.t==='getal')h+=`<div class="rij"><input class="in" id="g-${pre}-${i}" inputmode="decimal" value="${esc(cur.txt||'')}">${s.u?`<span>${s.u}</span>`:''}<button class="btn" data-a="check" data-p="${pre}" data-i="${i}">Controleer</button></div>${cur.tries>=3&&!cur.showW?`<button class="btn g klein" style="margin-top:6px" data-a="showw" data-p="${pre}" data-i="${i}">Toon het antwoord</button>`:''}${cur.showW?`<div class="uitw">${s.w||nl(s.a)+' '+(s.u||'')}</div>`:''}`;
+  if(s.t==='keuze'){const ord=s.o.map((_,j)=>j).sort((a,b)=>((a*7+i*3+S.ri)%5)-((b*7+i*3+S.ri)%5));
+    h+=`<div class="opties">${ord.map(j=>`<button class="optie ${cur.v===j?'aan':''}" data-a="kies" data-p="${pre}" data-i="${i}" data-v="${j}">${s.o[j]}</button>`).join('')}</div><button class="btn" data-a="check" data-p="${pre}" data-i="${i}">Controleer</button>`}
+  h+='</div>';if(cur.fb)h+=`<div class="fb ${cur.fb[0]}">${cur.fb[1]}</div>`;
+  return h+'</div></div>'}
+function kasTabel(L){if(!L||!L.length)return'';const tot=L.reduce((a,x)=>a+x[1],0);
+  return `<table class="kas">${L.map(x=>`<tr><td>${x[0]}</td><td class="${x[1]<0?'min':'plus'}">${eur(x[1])}</td></tr>`).join('')}<tr class="tot"><td>Resultaat van deze batch</td><td class="${tot<0?'min':'plus'}">${eur(tot)}</td></tr></table>`}
+function simkol(i){
+  const r=i>=0?rs(i):null;
+  let h=`<div class="simkop"><b>Jouw fabriek</b><span>${i>=0?'ronde '+(i+1):'overzicht'}</span></div><div class="doek">${SC.schema(i,r,S)}</div>
+  <div class="saldo"><small>Kassa</small><b class="${S.geld<0?'min':''}">${eur(S.geld)}</b></div>`;
+  const L=S.log.slice(-5).reverse();
+  if(L.length)h+=`<div class="vak kasboek"><h4>Kasboek</h4>${L.map(x=>{const t=x.regels.reduce((a,y)=>a+y[1],0);return `<div class="kbrij"><span>Ronde ${x.ronde}${x.extra?' · '+x.extra:''}</span><b class="${t<0?'min':'plus'}">${eur(t)}</b></div>`}).join('')}</div>`;
+  if(SC.legenda)h+=`<div class="legenda">${SC.legenda}</div>`;
+  return h}
+/* ---------- opslagcode ---------- */
+function hash(s){let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))%1296;return h.toString(36).toUpperCase().padStart(2,'0')}
+function codeMaak(){let m=0;SC.rondes.forEach((_,i)=>{if(gedaan(i))m|=1<<i});const b=SC.code+'-'+m.toString(36).toUpperCase()+'-'+Math.round(S.geld);return b+'-'+hash(b)}
+function codeLees(c){c=String(c).trim().toUpperCase().replace(/\s/g,'');const d=c.split('-');if(d.length!==4||d[0]!==SC.code)return false;
+  const b=d.slice(0,3).join('-');if(hash(b)!==d[3])return false;const m=parseInt(d[1],36),geld=parseInt(d[2],10);if(isNaN(m)||isNaN(geld))return false;
+  S.r={};SC.rondes.forEach((_,i)=>{if(m&(1<<i)){S.r[i]=nieuw(i);S.r[i].ooit=true}});S.geld=geld;S.log=[];S.ri=-1;save();return true}
+function codeView(){return `<div class="kicker">Opslagcode</div><h2>Verder op een andere laptop</h2>
+  <p>Schrijf deze code op. Op een andere laptop typ je hem hieronder in; je afgeronde rondes en je kassa komen dan terug.</p>
+  <div class="codevak">${codeMaak()}</div>
+  <h3>Code invoeren</h3><div class="rij"><input class="in" id="codein" placeholder="${SC.code}-…" value="${esc(T.code||'')}"><button class="btn" data-a="codelaad">Laad code</button></div>${T.codefb?`<div class="fb ${T.codefb[0]}">${T.codefb[1]}</div>`:''}`}
+/* ---------- acties ---------- */
+function invoer(e){const el=e.target;if(!el.classList.contains('schuif'))return;const r=rs(),x=KZ(RR(),r.p).find(y=>y.id===el.dataset.k);r.K[x.id]=+el.value;const o=$('#o-'+x.id);if(o)o.textContent=nl(+el.value)+' '+(x.u||'');save()}
+function vast(){const R=RR(),r=rs(),kz=KZ(R,r.p);
+  for(const x of kz){if(x.t==='getal'){const v=parseNum($('#k-'+x.id).value);if(isNaN(v)){r.kfb=`Vul een getal in bij: ${x.label}`;return}
+      if(v<x.min||v>x.max){r.kfb=`Kies bij “${x.label}” een waarde tussen ${nl(x.min)} en ${nl(x.max)} ${x.u||''}.`;return}r.K[x.id]=v}
+    if(x.t==='kies'&&r.K[x.id]==null){r.kfb=`Maak eerst een keuze bij: ${x.label}`;return}}
+  r.kfb=null;r.vast=true;if(!R.poortEerst){r.ps=0;r.tussen=false;clearT('p')}save()}
+function clearT(pre){Object.keys(T).forEach(x=>{if(x.startsWith(S.ri+'-'+pre))delete T[x]})}
+function batch(){const R=RR(),r=rs();if(r.res||!r.vast||r.ps<poortL(R,r).length)return;
+  const res=R.run(r.p,r.K,S);r.res=res;r.t0=Date.now();r.ns=0;S.geld+=res.regels.reduce((a,x)=>a+x[1],0);S.log.push({ronde:S.ri+1,regels:res.regels});
+  if(!naL(R,r).length)klaar();save()}
+function klaar(){const R=RR(),r=rs();if(r.klaar)return;r.klaar=true;
+  if(R.bonus){const b=R.bonus(r.p,r.K,r.res,S);if(b){S.geld+=b[1];r.res.regels.push(b);S.log.push({ronde:S.ri+1,regels:[b],extra:'bonus'})}}}
+function check(pre,i){
+  const R=RR(),r=rs(),L=pre==='p'?poortL(R,r):naL(R,r),s=L[i],tk=S.ri+'-'+pre+'-'+i,cur=T[tk]=T[tk]||{};let ok=false,msg='Nog niet goed.';
+  if(s.t==='getal'){const inp=$('#g-'+pre+'-'+i);cur.txt=inp.value;const x=parseNum(inp.value);
+    if(isNaN(x)){cur.fb=['hint','Dit getal kan ik niet lezen. Typ bijvoorbeeld 12,5 of 3,2·10^4.'];return}
+    ok=s.abs!=null?Math.abs(x-s.a)<=s.abs:Math.abs(x-s.a)<=Math.abs(s.a)*(s.rel||.01);
+    if(!ok){cur.tries=(cur.tries||0)+1;const f=(s.fout||[]).find(([v])=>Math.abs(x-v)<=Math.abs(v)*.015);
+      if(f)msg=f[1];else if(Math.abs(x/s.a/1e3-1)<.015||Math.abs(x*1e3/s.a-1)<.015)msg='Nog niet goed: je zit er een factor 1000 naast. Kijk naar de eenheid (g of kg?).';else msg='Nog niet goed.'+(s.h?' Tip: '+s.h:'')}}
+  if(s.t==='keuze'){if(cur.v==null){cur.fb=['hint','Kies eerst een antwoord.'];return}ok=cur.v===s.a;
+    if(!ok){msg=(s.fo&&s.fo[cur.v])||('Nog niet goed.'+(s.h?' Tip: '+s.h:''))}}
+  if(ok){cur.fb=null;if(pre==='p'){r.ps=(R.fade&&!r.tussen)?L.length:i+1}else{r.ns=i+1;if(r.ns>=L.length)klaar()}save()}
+  else cur.fb=['fout',msg]}
+function klik(e){const el=e.target.closest('[data-a]');if(!el)return;const a=el.dataset.a,v=el.dataset.v;
+  switch(a){
+    case 'ronde':{const i=+v;if(i>=0&&!open(i))return;S.ri=i;S.view=null;S.tab='uitleg';T={};if(i>=0)rs(i);save();window.scrollTo(0,0);break}
+    case 'tab':S.tab=v;save();window.scrollTo(0,0);break;
+    case 'kk':{const r=rs();r.K[el.dataset.k]=+v;r.kfb=null;break}
+    case 'vast':vast();break;
+    case 'wijzig':{const r=rs();if(!r.res){r.vast=false;if(!RR().poortEerst){r.ps=0;clearT('p')}}save();break}
+    case 'tussen':rs().tussen=true;save();break;
+    case 'batch':batch();break;
+    case 'check':check(el.dataset.p,+el.dataset.i);break;
+    case 'kies':{const tk=S.ri+'-'+el.dataset.p+'-'+el.dataset.i;T[tk]=T[tk]||{};T[tk].v=+v;T[tk].fb=null;break}
+    case 'showw':{const tk=S.ri+'-'+el.dataset.p+'-'+el.dataset.i;T[tk]=T[tk]||{};T[tk].showW=true;break}
+    case 'opnieuw':S.r[S.ri]=nieuw(S.ri,S.r[S.ri]);T={};save();window.scrollTo(0,0);break;
+    case 'code':S.view='code';T.codefb=null;break;
+    case 'codelaad':{T.code=$('#codein').value;if(codeLees(T.code)){T.codefb=['goed','Code geladen. Je afgeronde rondes en je kassa zijn terug.']}else T.codefb=['fout','Deze code klopt niet. Controleer letters en cijfers.'];break}
+    case 'beamer':document.body.classList.toggle('beamer');return;
+    case 'wis':if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Zeker weten? Klik nogmaals';return}
+      S={ri:-1,tab:'uitleg',geld:SC.start,r:{},log:[],view:null};T={};save();el.dataset.c='';el.textContent='Opnieuw beginnen';break;
+    default:return}
+  render()}
+})();
+
+</script>
+<script>
+(function(){
+const {fr,nl,eur,g,k}=FAB;
+const meet=L=>`<div class="meet">${L.map(([a,b])=>`<div><small>${a}</small><b>${b}</b></div>`).join('')}</div>`;
+const kg=(v,d=0)=>nl(v,d)+' kg';
+const pc=(v,d=1)=>nl(v,d)+'%';
+const PCT=`<div class="kader">percentage = ${fr('deel','geheel')} × 100%</div>`;
+
+/* ---------- fabrieksschema ---------- */
+function schema(ri,r){
+  const res=r&&r.res&&!(Date.now()-(r.t0||0)<1200)?r.res:null,K=r?r.K:{};
+  const lab=(x,y,t,c)=>`<text x="${x}" y="${y}" text-anchor="middle" font-size="12" fill="${c||'#3e3b35'}" font-family="Segoe UI,system-ui,sans-serif">${t}</text>`;
+  const open=n=>ri<0||ri>=n;const dim=x=>x?'':'opacity="0.28"';
+  const T=K.T!=null&&ri===0?K.T+' °C':'verhitten';
+  return `<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg"><rect width="600" height="300" fill="#fbf8f1"/>
+  <path d="M 95 170 H 130 M 210 170 H 250 M 330 170 H 370 M 450 170 H 480" stroke="#7a756b" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <rect x="25" y="100" width="70" height="130" rx="30" fill="#fff" stroke="#24323f" stroke-width="2"/><rect x="27" y="140" width="66" height="88" rx="26" fill="#fbfaf5"/>${lab(60,90,'melk')}
+  <g><rect x="130" y="120" width="80" height="100" rx="10" fill="#fff" stroke="#24323f" stroke-width="2"/>
+   <path d="M 140 145 h 60 M 140 165 h 60 M 140 185 h 60 M 140 205 h 60" stroke="#b4473a" stroke-width="2"/>${lab(170,110,'pasteuriseren')}${lab(170,240,T)}</g>
+  <g ${dim(open(1))}><rect x="250" y="110" width="80" height="120" rx="12" fill="#fff" stroke="#24323f" stroke-width="2"/><rect x="252" y="160" width="76" height="68" rx="10" fill="#d9b48a"/>
+   <path d="M 290 95 V 200 M 275 200 h 30" stroke="#7a756b" stroke-width="2"/>${lab(290,250,'mengen')}</g>
+  <g ${dim(open(3))}><rect x="370" y="130" width="80" height="80" rx="8" fill="#fff" stroke="#24323f" stroke-width="2"/>
+   <path d="M 385 150 h 18 v 45 h -18 z M 412 150 h 18 v 45 h -18 z" fill="#efe6d3" stroke="#5d7387"/>${lab(410,230,'verpakken')}</g>
+  <g ${dim(open(4))}><rect x="480" y="130" width="90" height="80" rx="8" fill="#fff" stroke="#24323f" stroke-width="2"/>
+   <path d="M 505 150 v 35 q 0 10 10 10 h 20 q 10 0 10 -10 v -35" fill="none" stroke="#5d7387" stroke-width="2"/>${lab(525,230,'controle')}</g>
+  ${ri>=0&&ri<4?lab(370,285,'mengen, verpakken en controle gaan later open','#7a756b'):''}</svg>`}
+
+/* ---------- pasteuriseren ---------- */
+const TIJD=[5,15,60,300,1800],TIJDT=['5 seconden','15 seconden','1 minuut','5 minuten','30 minuten'];
+const over=(T,t)=>100000*Math.pow(10,-t/(2.5*Math.pow(10,(72-T)/5)));
+const verlies=(T,t)=>Math.min(100,t/15*Math.pow(2,(T-72)/3));
+const fmtB=v=>v>=1?nl(Math.round(v),0):'minder dan 1';
+function balk(L){return `<div class="vak" style="margin:6px 0 10px">${L.map(([t,v,c])=>`<div style="display:flex;align-items:center;gap:10px;margin:4px 0;font-size:13.5px"><span style="width:150px">${t}</span><span style="flex:1;background:#efe6d3;border-radius:5px;height:14px;overflow:hidden"><span style="display:block;height:100%;width:${Math.max(0,Math.min(100,v))}%;background:${c}"></span></span><b style="width:50px;text-align:right">${nl(v,0)}%</b></div>`).join('')}</div>`}
+
+const VERP=[
+ {t:'doorzichtige glazen fles',licht:0,breek:1,kg:3,rec:2,pr:.35},
+ {t:'bruine glazen fles',licht:1,breek:1,kg:3,rec:2,pr:.38},
+ {t:'doorzichtige plastic fles',licht:0,breek:0,kg:1,rec:1,pr:.12},
+ {t:'witte plastic fles',licht:1,breek:0,kg:1,rec:1,pr:.14},
+ {t:'kartonnen pak met binnenlaagje',licht:1,breek:0,kg:1,rec:1,pr:.10},
+ {t:'blik',licht:1,breek:0,kg:2,rec:2,pr:.30}];
+
+const rondes=[
+/* 1 */{k:'Pasteuriseren',t:'Melk veilig maken',ld:[0],
+ uitleg:`<p>Rauwe melk kan bacteriën bevatten die je ziek maken of de melk snel laten bederven. Daarom wordt melk in de fabriek even verhit. Dat heet <b>pasteuriseren</b>, naar de Franse onderzoeker Louis Pasteur.</p>
+ <ul><li>Hoe <b>heter</b> en hoe <b>langer</b>, hoe meer bacteriën doodgaan. Bij hoge temperatuur gaan de eiwitten in de bacterie kapot.</li>
+ <li>Maar hoe heter en hoe langer, hoe meer <b>vitamines</b> verloren gaan en hoe meer de <b>smaak</b> verandert ("gekookte smaak").</li></ul>
+ <p>Je zoekt dus een goede <b>afweging</b>: de melk moet veilig zijn, maar ook lekker blijven. Een veelgebruikte keuze in fabrieken is kort verhitten op een niet te hoge temperatuur.</p>`,
+ vb:{v:'Bij het koken van een ei werkt het net zo. Wat gebeurt er als je een ei 3 minuten kookt, en wat als je het 15 minuten kookt?',s:['Na 3 minuten is het eiwit gestold en zijn bacteriën aan de buitenkant dood: veilig en zacht.','Na 15 minuten is het ei ook veilig, maar hard en droog. De smaak is veranderd.','Langer verhitten is dus niet altijd beter. Je kiest de kortste tijd die veilig is.']},
+ keuzes:[{id:'T',t:'schuif',label:'Temperatuur',min:55,max:95,step:1,def:60,u:'°C'},{id:'t',t:'kies',chips:1,label:'Hoe lang verhit je?',opties:TIJDT}],
+ bestelling:()=>`In de rauwe melk zitten <b>100 000 bacteriën per mL</b>. De supermarkt wil melk met <b>minder dan 1 bacterie per mL</b> en met minstens 90% van de vitamines nog erin. Kies een temperatuur en een tijd.`,
+ run:(p,K)=>{const t=TIJD[K.t],o=over(K.T,t),v=verlies(K.T,t),veilig=o<1,lekker=v<=10;
+  return{html:meet([['bacteriën over per mL',fmtB(o)],['vitamines over',pc(100-v,0)]])+balk([['vitamines over',100-v,'#3f8f63'],['bacteriën gedood',o>=100000?0:100-o/1000,'#b4473a']]),ok:veilig&&lekker,
+  msg:veilig&&lekker?'Goed gekozen: de melk is veilig en de vitamines zijn grotendeels bewaard.':!veilig?'De melk is nog niet veilig: er leven nog te veel bacteriën. Verhit heter of langer.':'De melk is veilig, maar er zijn te veel vitamines verloren gegaan en de smaak is veranderd. Probeer korter of minder heet.',
+  regels:[['Rauwe melk 1000 kg',-350],['Energie voor verhitten',-Math.round((K.T-20)*Math.log10(t+1)*2)],[veilig&&lekker?'Verkoop melk aan supermarkt':veilig?'Verkoop als kookmelk (lagere prijs)':'Melk afgekeurd',veilig&&lekker?600:veilig?400:0]]}},
+ na:()=>[Object.assign(k('Waarom gaan bacteriën dood als je de melk verhit?',['De eiwitten in de bacteriën gaan kapot door de hitte.','De bacteriën verdampen samen met het water.','De melk wordt zuur, en daar kunnen bacteriën niet tegen.','Bacteriën bevriezen bij een hoge temperatuur.'],0),{fo:{1:'Bij 72 °C kookt melk nog niet, en bacteriën verdampen niet.',2:'Melk wordt door verhitten niet zuur.',3:'Bevriezen gebeurt bij lage temperatuur, niet bij hoge.'}}),
+  Object.assign(k('Waarom verhit je melk niet gewoon een half uur op 95 °C?',['Dan gaan er veel vitamines verloren en verandert de smaak.','Dan worden de bacteriën juist sterker.','Dan wordt de melk zwaarder.','Dan ontstaan er nieuwe bacteriën.'],0),{fo:{1:'Bacteriën worden niet sterker door hitte; ze gaan juist dood.',2:'De massa van melk verandert niet door verhitten (er verdampt hooguit wat water).',3:'Door verhitten ontstaan geen bacteriën.'}})]},
+
+/* 2 */{k:'Rekenen met procenten',t:'Chocolademelk: hoeveel procent cacao?',ld:[1],
+ uitleg:`<p>Een percentage zegt hoeveel van elke 100 delen ergens in zit. Je berekent het zo:</p>${PCT}
+ <ul><li>Het <b>deel</b> is de stof waar je naar vraagt, bijvoorbeeld de suiker.</li><li>Het <b>geheel</b> is het hele mengsel: alles bij elkaar opgeteld.</li></ul>
+ <p>Let op: als je cacao door melk mengt, is het geheel de melk <b>plus</b> de cacao.</p>`,
+ vb:{v:'Je lost 12 g suiker op in 188 g water. Hoeveel procent suiker zit er in de suikeroplossing?',s:['Deel: 12 g suiker.','Geheel: 12 g + 188 g = 200 g suikeroplossing.',`percentage = ${fr('12 g','200 g')} × 100% = 6%.`]},
+ gen:R=>({s:R.int(5,20),w:R.pick([45,95,145,195]),pr:R.int(2,6)/100}),
+ keuzes:[{id:'c',t:'schuif',label:'Hoeveel kg cacaopoeder meng je door 960 kg melk?',min:10,max:80,step:5,def:20,u:'kg'}],
+ bestelling:()=>`Een klant wil chocolademelk met <b>tussen 4% en 6% cacao</b>. Je mengt cacaopoeder door 960 kg melk. Cacaopoeder kost ${eur(3)} per kg.<br>Eerst oefen je even met procenten.`,
+ poort:(p,K)=>[
+  g(`Oefenen: in ${p.s+p.w} g yoghurt zit ${p.s} g suiker. Bereken hoeveel procent suiker de yoghurt bevat.`,p.s/(p.s+p.w)*100,{u:'%',abs:.15,h:'Deel gedeeld door geheel, keer 100%.',fout:[[p.s/p.w*100,'Het geheel is de hele yoghurt, en dat getal staat al in de vraag.'],[(p.s+p.w)/p.s*100,'Je deelde andersom: deel gedeeld door geheel.']]}),
+  g(`Oefenen: een pak melk van 1000 g bevat ${nl(p.pr*1000,0)} g vet. Bereken het vetpercentage.`,p.pr*100,{u:'%',abs:.05,fout:[[1000/(p.pr*1000)*100,'Je deelde andersom: deel gedeeld door geheel.']]}),
+  g('Bereken hoeveel kg chocolademelk je in totaal maakt.',960+K.c,{u:'kg',abs:.1,h:'Tel alles bij elkaar op.'}),
+  g('Bereken hoeveel procent cacao je chocolademelk bevat.',K.c/(960+K.c)*100,{u:'%',abs:.1,fout:[[K.c/960*100,'Het geheel is de melk plus de cacao, niet alleen de melk.']]})],
+ run:(p,K)=>{const P=K.c/(960+K.c)*100,ok=P>=4&&P<=6;return{html:meet([['chocolademelk',kg(960+K.c)],['cacao',pc(P)]]),ok,
+  msg:ok?'Precies goed: de klant is blij met je chocolademelk.':P<4?'Te weinig cacao: de chocolademelk is te slap. De klant betaalt minder.':'Te veel cacao: de chocolademelk is te bitter en dik. De klant betaalt minder.',
+  regels:[['Melk 960 kg',-330],[`Cacaopoeder ${K.c} kg × ${eur(3)}`,-3*K.c],[ok?'Verkoop chocolademelk':'Verkoop met korting',ok?620:380]]}}},
+
+/* 3 */{k:'Recept op maat',t:'Terugrekenen: hoeveel suiker moet erin?',ld:[1],poortEerst:true,
+ uitleg:`<p>Nu weet je welk percentage de klant wil, en hoeveel product. Je rekent uit hoeveel van elke stof je nodig hebt:</p>
+ <div class="kader">deel = ${fr('percentage','100%')} × geheel</div>
+ <p>De rest van het geheel is dan de andere stof: geheel min deel.</p>`,
+ vb:{v:'Je wilt 300 kg vruchtenyoghurt maken met 15% fruit. Hoeveel kg fruit en hoeveel kg yoghurt heb je nodig?',s:[`Fruit: ${fr('15','100')} × 300 kg = 45 kg.`,'Yoghurt: 300 kg − 45 kg = 255 kg.','Controle: 45 kg + 255 kg = 300 kg, en 45 kg van de 300 kg is 15%.']},
+ gen:R=>({tot:R.pick([400,500,600,800]),p:R.pick([6,7,8,9,12])}),
+ bestelling:p=>`Een school bestelt <b>${p.tot} kg yoghurtdrank</b> met <b>${p.p}% suiker</b>. De rest is yoghurt.`,
+ poort:p=>[g('Bereken hoeveel kg suiker je nodig hebt.',p.p/100*p.tot,{u:'kg',abs:.1,fout:[[p.tot/p.p,'Je deelde het geheel door het percentage. Neem het percentage van het geheel: percentage gedeeld door 100, keer het geheel.']]}),
+  g('Bereken hoeveel kg yoghurt je nodig hebt.',p.tot-p.p/100*p.tot,{u:'kg',abs:.1,h:'Geheel min suiker.'})],
+ keuzes:[{id:'s',t:'getal',label:'Hoeveel kg suiker doe je in de mengtank?',min:0,max:200,u:'kg'},{id:'y',t:'getal',label:'Hoeveel kg yoghurt doe je in de mengtank?',min:0,max:1000,u:'kg'}],
+ run:(p,K)=>{const tot=K.s+K.y,P=K.s/tot*100,ok=Math.abs(tot-p.tot)<=2&&Math.abs(P-p.p)<=.2;
+  return{html:meet([['yoghurtdrank',kg(tot,1)],['suiker',pc(P)]]),ok,msg:ok?'Precies volgens bestelling.':Math.abs(tot-p.tot)>2?`Je maakte ${kg(tot,1)} in plaats van ${kg(p.tot)}.`:`Het suikerpercentage is ${pc(P)} in plaats van ${p.p}%.`,
+  regels:[[`Suiker ${nl(K.s)} kg × ${eur(1)}`,-K.s],[`Yoghurt ${nl(K.y)} kg × ${eur(.6)}`,-.6*K.y],[ok?'Verkoop aan school':'Verkoop met korting',(ok?1.2:.8)*Math.min(tot,p.tot)]]}}},
+
+/* 4 */{k:'Verpakking',t:'De juiste verpakking kiezen',ld:[2],
+ uitleg:`<p>Een verpakking moet de melk beschermen. Welke verpakking je kiest, hangt af van de <b>eigenschappen</b> van het materiaal:</p>
+ <ul><li><b>Licht</b> laat vitamines in melk afbreken en geeft een vieze bijsmaak. Een goede melkverpakking houdt licht tegen.</li>
+ <li><b>Breekbaar</b> materiaal, zoals glas, kan kapotgaan bij vervoer.</li><li>Een <b>zware</b> verpakking kost meer brandstof bij vervoer.</li>
+ <li>Is het materiaal <b>te recyclen</b>? Glas en blik kun je goed hergebruiken.</li><li>En natuurlijk: wat kost het?</li></ul>
+ <p>Er is bijna nooit één perfecte verpakking. Je weegt de eigenschappen tegen elkaar af.</p>`,
+ vb:{v:'Waarom zit zonnebrandcrème meestal in een plastic tube en niet in een glazen pot?',s:['Je neemt zonnebrandcrème mee naar het strand: glas kan breken en is zwaar.','Een tube kun je knijpen, zodat je er makkelijk iets uit krijgt.','De eigenschappen van plastic passen dus beter bij hoe je het product gebruikt.']},
+ gen:R=>({}),
+ keuzes:[{id:'v',t:'kies',label:'Welke verpakking kies je?',opties:VERP.map(x=>`${x.t} (${eur(x.pr)} per stuk)`)}],
+ bestelling:()=>`Een supermarktketen wil 2000 liter melk, verdeeld over 2000 verpakkingen. De melk ligt dagen in een verlicht schap en wordt met vrachtwagens door het land vervoerd. Kies de verpakking.`,
+ run:(p,K)=>{const v=VERP[K.v],pt=(v.licht?3:0)+(v.breek?0:2)+(v.kg===1?1:0)+v.rec,kl=[];if(!v.licht)kl.push('klanten klagen over een vieze bijsmaak (licht)');if(v.breek)kl.push('bij het vervoer gaan flessen kapot');if(v.kg>1)kl.push('de zware verpakking kost extra brandstof');
+  return{pt,v,html:meet([['score',pt+' van 8 punten'],['klachten',kl.length?kl.length:'geen']]),ok:pt>=6,msg:kl.length?'Let op: '+kl.join('; ')+'.':'Geen klachten: de melk blijft goed en komt heel aan.',
+  regels:[[`Verpakking 2000 × ${eur(v.pr)}`,-2000*v.pr],['Verkoop melk',1100],...(v.breek?[['Kapotte flessen',-120]]:[]),...(v.licht?[]:[['Teruggestuurde melk',-200]]),...(v.kg>1?[['Extra brandstof',-60]]:[])]}},
+ na:(p,K,res)=>[Object.assign(k('Welke eigenschap van een verpakking is het belangrijkst om de smaak en de vitamines van melk te beschermen?',['Het houdt licht tegen.','Het is doorzichtig, zodat je de melk ziet.','Het is zwaar en stevig.','Het is gemaakt van glas.'],0),{fo:{1:'Juist doorzichtig is slecht: licht breekt de vitamines af.',2:'Gewicht beschermt de smaak niet, en maakt vervoer duurder.',3:'Doorzichtig glas laat licht door; dat beschermt de melk niet.'}})]},
+
+/* 5 */{k:'Kwaliteitscontrole',t:'Meten in het lab',ld:[3],
+ uitleg:`<p>Voordat melk de fabriek verlaat, <b>meet</b> het lab of hij aan de eisen voldoet. Dit zijn de eisen voor volle melk:</p>
+ <table class="regels"><tr><th>meting</th><th>eis</th><th>wat zegt het?</th></tr>
+ <tr><td>temperatuur bij bewaren</td><td>hoogstens 7 °C</td><td>In warme melk groeien bacteriën snel.</td></tr>
+ <tr><td>pH</td><td>6,6 tot 6,8</td><td>Als melkzuurbacteriën groeien, maken ze melkzuur: de pH daalt en de melk wordt zuur.</td></tr>
+ <tr><td>vetgehalte</td><td>minstens 3,5%</td><td>Anders mag het geen volle melk heten.</td></tr></table>
+ <p>Het vetgehalte bereken je als percentage: massa vet gedeeld door massa melk, keer 100%.</p>`,
+ vb:{v:'Een monster van 500 g halfvolle melk bevat 8 g vet. Halfvolle melk moet tussen 1,5% en 1,8% vet bevatten. Voldoet het?',s:[`vetgehalte = ${fr('8 g','500 g')} × 100% = 1,6%.`,'1,6% ligt tussen 1,5% en 1,8%: het monster voldoet.']},
+ gen:R=>{const fout=R.pick(['T','pH','vet']);const vetg=fout==='vet'?R.pick([28,30,32]):R.pick([36,37,38]);return{fout,vetg,T:fout==='T'?R.pick([11,12,14]):R.pick([4,5,6]),pH:fout==='pH'?R.pick(['6,1','6,2','6,3']):R.pick(['6,6','6,7','6,7'])}},
+ bestelling:p=>`Het lab heeft partij 3 gemeten. Een monster van <b>1000 g</b> bevat <b>${p.vetg} g vet</b>. De bewaartemperatuur is <b>${p.T} °C</b> en de pH is <b>${p.pH}</b>. Keur de partij goed of af. Een juiste keuring levert ${eur(100)} op.`,
+ poort:p=>[g('Bereken het vetgehalte van partij 3.',p.vetg/10,{u:'%',abs:.05,fout:[[1000/p.vetg*100,'Je deelde andersom: deel (vet) gedeeld door geheel (melk).']]}),
+  Object.assign(k('Voldoet partij 3 aan alle eisen?',['Ja, alle metingen voldoen.','Nee, de temperatuur is te hoog.','Nee, de pH is te laag.','Nee, het vetgehalte is te laag.'],{T:1,pH:2,vet:3}[p.fout]),{h:'Vergelijk elke meting met de tabel in de uitleg.'})],
+ run:p=>({html:meet([['partij 3','afgekeurd']]),ok:true,msg:'Goed gekeurd. De partij gaat niet naar de winkel.',regels:[['Keuring',100],['Partij afgekeurd',-300]]}),
+ na:p=>p.fout==='pH'?[Object.assign(k('Hoe komt het dat de pH van deze melk te laag is?',['Melkzuurbacteriën hebben melkzuur gemaakt, zodat de melk zuur werd.','Er is te veel vet in de melk gekomen.','De melk is te lang gepasteuriseerd.','De koeien hebben te veel water gedronken.'],0),{fo:{1:'Vet maakt melk niet zuurder.',2:'Pasteuriseren maakt melk niet zuur.',3:'Water heeft een pH van ongeveer 7; dat verlaagt de pH niet.'}})]:
+  p.fout==='T'?[Object.assign(k('Waarom is een te hoge bewaartemperatuur een probleem?',['Bacteriën groeien bij een hogere temperatuur sneller, zodat de melk sneller bederft.','De melk gaat bij 12 °C koken.','Het vet smelt en verdwijnt uit de melk.','Bij een hogere temperatuur gaan alle bacteriën dood.'],0),{fo:{1:'Melk kookt pas bij ongeveer 100 °C.',2:'Het vet blijft in de melk.',3:'Bacteriën gaan pas bij veel hogere temperaturen dood.'}})]:
+  [Object.assign(k('De fabriek wil van deze partij toch iets verkopen. Welke naam mag erop?',['Halfvolle of magere melk, want het vetgehalte is lager dan 3,5%.','Volle melk, want er zit vet in.','Room, want het vetgehalte is hoog.','Karnemelk, want de pH is goed.'],0),{fo:{1:'Volle melk moet minstens 3,5% vet bevatten.',2:'Room bevat veel meer vet, ongeveer 30%.',3:'Karnemelk is een ander product; dat heeft niets met het vetgehalte te maken.'}})]},
+
+/* 6 */{k:'Twee mengsels mengen',t:'Room en melk mengen',ld:[4],ster:true,poortEerst:true,
+ uitleg:`<p>Soms meng je twee mengsels die allebei vet bevatten. Je kunt dan niet de percentages bij elkaar optellen. Werk zo:</p>
+ <ol><li>Reken van elk mengsel uit hoeveel kg vet erin zit (deel = percentage/100 × geheel).</li><li>Tel de kilogrammen vet bij elkaar op.</li><li>Tel de totale massa bij elkaar op.</li><li>Bereken het nieuwe percentage.</li></ol>`,
+ vb:{v:'Je mengt 100 kg melk met 4% vet en 100 kg melk met 2% vet. Hoeveel procent vet heeft het mengsel?',s:[`Vet: ${fr('4','100')} × 100 kg = 4 kg en ${fr('2','100')} × 100 kg = 2 kg; samen 6 kg vet.`,'Totale massa: 100 kg + 100 kg = 200 kg.',`percentage = ${fr('6 kg','200 kg')} × 100% = 3%. (Niet 4% + 2% = 6%!)`]},
+ gen:R=>({r:R.pick([50,100,150]),m:R.pick([850,900,950])}),
+ bestelling:p=>`Je mengt <b>${p.r} kg room met 30% vet</b> door <b>${p.m} kg magere melk met 0,5% vet</b>. Een klant wil een product met <b>tussen 3,5% en 5,0% vet</b>. Voldoet je mengsel?`,
+ poort:p=>{const a=.3*p.r,b=.005*p.m;return[g('Bereken hoeveel kg vet er in de room zit.',a,{u:'kg',abs:.05}),g('Bereken hoeveel kg vet er in de magere melk zit.',b,{u:'kg',abs:.05}),
+  g('Bereken het vetpercentage van het mengsel.',(a+b)/(p.r+p.m)*100,{u:'%',abs:.05,fout:[[30.5,'Je mag de percentages niet optellen. Reken met kilogrammen vet.'],[(a+b)/p.m*100,'Het geheel is room plus melk.']]})]},
+ keuzes:[{id:'j',t:'kies',label:'Lever je dit mengsel aan de klant?',opties:['Ja, het voldoet','Nee, het voldoet niet']}],
+ run:(p,K)=>{const P=(.3*p.r+.005*p.m)/(p.r+p.m)*100,ok=(P>=3.5&&P<=5)===(K.j===0);return{html:meet([['vetgehalte',pc(P,2)]]),ok,msg:ok?'Goede beslissing.':'Kijk nog eens naar je berekening en de eis van de klant.',regels:[[ok?'Tevreden klant':'Verkeerde levering',ok?300:-150]]}}}
+];
+
+FAB.start({key:'fabriek-zuivel-v1',code:'ZU',titel:'Zuivelfabriek',kort:'Zuivel · klas 2',sub:'Fabrieksspel · science klas 2',start:500,
+ intro:`<p>Jij runt een zuivelfabriek. Je maakt melk veilig, mengt chocolademelk en yoghurtdrank in de juiste verhouding, kiest een verpakking en controleert in het lab of alles aan de eisen voldoet.</p>`,
+ ld:['Je kunt uitleggen waarom melk gepasteuriseerd wordt, en de afweging maken tussen veiligheid (bacteriën) en kwaliteit (vitamines en smaak).',
+  'Je kunt een percentage berekenen en terugrekenen hoeveel je van een stof nodig hebt voor een mengsel.',
+  'Je kunt een verpakking kiezen op basis van de eigenschappen van het materiaal.',
+  'Je kunt met metingen controleren of een product aan de eisen voldoet, en een afgekeurde partij verklaren.',
+  '★ Je kunt het percentage berekenen als je twee mengsels samenvoegt.'],
+ schema,rondes});
+})();
+
+</script>
+</body>
+</html>

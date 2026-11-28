@@ -131,6 +131,7 @@ const TOOLS = [
   {title:'Enzymkinetiek', file:'Enzymkinetiek.html', groep:'bio', jaar:'6', desc:'Het actieve centrum op deeltjesniveau (bindingen, pH, denaturatie, remmers) en Vmax en Km meten en vergelijken.'},
   {title:'Chemische Evolutie', file:'Chemische_Evolutie.html', groep:'bio', jaar:'5-6', desc:'Vijf stations van molecuul tot zenuwcel, elk met één begrip en één vraag (★ met een berekening). De volledige route met alle formules blijft als verdieping.'},
   // Practicum, onderzoek en spel
+  {title:'Fabrieksspel: Zuivelfabriek', file:'Fabriek_Zuivel.html', groep:'praktijk', jaar:'2', desc:'Science klas 2: pasteuriseren (bacteriën tegenover vitamines), rekenen met procenten en terugrekenen, verpakking kiezen op eigenschappen, kwaliteitscontrole met metingen, ★ twee mengsels mengen.'},
   {title:'Bunsenbrander Demo', file:'Bunsenbrander_Animatie.html', groep:'praktijk', jaar:'3-6', desc:'Bekijk hier hoe je een bunsenbrander veilig bedient.'},
   {title:'Het Lab: onderzoeksspel', file:'Het_Lab.html', groep:'praktijk', jaar:'3-6', desc:'Coöperatief spel (3V t/m 6V, één laptop per team): runnen jullie onderzoeksinstituut, meten met ruis, publiceren en de vissterfte in de stadsvijver verklaren voordat het geld op is. Drie niveaus.'},
   {title:'PWS-dossiers: onderzoeken onder de loep', file:'PWS_Dossiers.html', groep:'praktijk', jaar:'5', desc:'4 havo en 5 vwo, start van het profielwerkstuk: beoordeel acht onderzoeken van fictieve groepjes, wijs de fout aan, benoem en repareer hem, en exporteer je antwoorden als PDF.'},
@@ -142,14 +143,14 @@ const TOOLS = [
 
 /* ============================================================ */
 
-const JAREN = ['3','4','5','6'];
+const JAREN = ['2','3','4','5','6'];
 let actief = 'alle';
 function bereik(j){ const m = String(j).split('-').map(Number); return m.length > 1 ? [m[0], m[1]] : [m[0], m[0]]; }
-function label(j){ const [a, b] = bereik(j); return a === b ? a + 'V' : a + '–' + b + 'V'; }
+function label(j){ const [a, b] = bereik(j); return a === 2 && b === 2 ? 'kl 2' : a === b ? a + 'V' : a + '–' + b + 'V'; }
 function inJaar(t, j){ const [a, b] = bereik(t.jaar); return +j >= a && +j <= b; }
 function renderPills(){
   const el = document.getElementById('pills');
-  el.innerHTML = ['alle', ...JAREN].map(j => `<button class="pill ${j === actief ? 'active' : ''}" data-j="${j}">${j === 'alle' ? 'Alle' : j + ' vwo'}</button>`).join('');
+  el.innerHTML = ['alle', ...JAREN].map(j => `<button class="pill ${j === actief ? 'active' : ''}" data-j="${j}">${j === 'alle' ? 'Alle' : j === '2' ? 'klas 2' : j + ' vwo'}</button>`).join('');
   el.querySelectorAll('.pill').forEach(p => p.addEventListener('click', () => { actief = p.dataset.j; renderPills(); renderLijst(); }));
 }
 function renderLijst(){
