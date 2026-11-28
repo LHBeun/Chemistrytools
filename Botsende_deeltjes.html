@@ -108,6 +108,13 @@ select.sel{border:1px solid var(--rand2);border-radius:8px;padding:7px 9px;font-
 .optie.aan{border-color:var(--nacht);background:#eef2f6}
 .typtip{font-size:12.5px;color:var(--grijs);margin-top:14px;line-height:1.5}
 .typtip code{font-family:var(--mono);background:#ebe4d4;border-radius:4px;padding:0 4px;font-size:12px}
+aside .kc{display:flex;gap:6px}aside .kc input{flex:1;min-width:0;background:#1b2731;border:1px solid #4b6074;color:#fff;border-radius:8px;padding:7px 9px;font-size:13px;text-transform:uppercase}
+aside .kc button{flex:none}aside .kcinfo{font-size:12px;color:#e2a84b}
+aside .voet button.inlever{border-color:#e2a84b;color:#f3d08f}
+.inleverpaneel textarea{width:100%;min-height:110px;font-family:var(--mono);font-size:12.5px;border:1px solid var(--rand2);border-radius:8px;padding:8px;background:#fff;word-break:break-all}
+.inleverpaneel .deel{margin:10px 0}.inleverpaneel .deel b{display:block;margin-bottom:4px}
+.exitband{background:#fdf3dc;border:1px solid #e9cf95;border-radius:10px;padding:9px 13px;margin:0 0 12px;font-size:14.5px}
+a.btn{display:inline-block;text-decoration:none}
 .klaarbanner{background:var(--goedbg);border:1px solid #bcdcc8;color:#255c3d;border-radius:11px;padding:12px 15px;margin:4px 0 12px}
 
 /* ---------- simulatiekolom ---------- */
@@ -354,6 +361,9 @@ body.beamer table.b45{font-size:15px}
     <div class="sub">3 vwo · reactiesnelheid en het botsende-deeltjesmodel</div>
     <nav id="nav"></nav>
     <div class="voet">
+      <div class="kc"><input id="kcin" placeholder="klascode (optioneel)" autocomplete="off"><button id="kcknop">Gebruik</button></div>
+      <div class="kcinfo" id="kcinfo"></div>
+      <button id="inleverknop" class="inlever">Inleveren: maak je code</button>
       <button id="beamerknop">Beamerstand</button>
       <button id="resetknop">Voortgang wissen</button>
       <div class="klein">Een model: de deeltjes bewegen in twee dimensies en de getallen zijn niet die van één bestaande reactie.</div>
@@ -505,6 +515,30 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 function laad(){ try { return JSON.parse(localStorage.getItem('botsende-deeltjes-v1')) || {}; } catch (e){ return {}; } }
 function bewaar(o){ try { localStorage.setItem('botsende-deeltjes-v1', JSON.stringify(o)); } catch (e){} }
+
+/* ---------- logboek (voor de docent: antwoorden, foutenanalyse en inzet) ---------- */
+const LOGKEY = 'botsende-deeltjes-log-v1', KCKEY = 'botsende-deeltjes-klascode';
+function nieuwLog(){ return { t0: Date.now(), ev: [], ctx: {} }; }
+let LOG = (() => { try { const l = JSON.parse(localStorage.getItem(LOGKEY)); return l && l.ev ? l : nieuwLog(); } catch (e){ return nieuwLog(); } })();
+function bewaarLog(){ if (LOG.ev.length > 4000) LOG.ev = LOG.ev.slice(-4000); try { localStorage.setItem(LOGKEY, JSON.stringify(LOG)); } catch (e){} }
+const kaal = h => String(h == null ? '' : h).replace(/<sup>(.*?)<\/sup>/g, '^$1').replace(/<sub>(.*?)<\/sub>/g, '$1').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ').trim();
+/* gebeurtenis: [tijd s, werkplaats-id, serie, opdracht, stap, soort (c/h/a/x), invoer, goed 1/0, melding] */
+function logEv(w, p, k, soort, invoer, ok, msg){
+  LOG.ev.push([Math.round((Date.now() - LOG.t0) / 1000), w.id, p.sid, p.idx, k, soort, invoer == null ? '' : String(invoer).slice(0, 160), ok ? 1 : 0, kaal(msg).slice(0, 160)]);
+  bewaarLog();
+}
+function logSerie(w, p){
+  LOG.ctx[w.id + '|' + p.sid] = { kc: STAAT.klascode || '', x: p.exit ? 1 : 0, o: p.serie.map(o => [kaal(o.titel), kaal(o.vraag).slice(0, 220), o.ster ? 1 : 0, o.stappen.map(st => kaal(st.vr).slice(0, 140))]) };
+  bewaarLog();
+}
+/* activiteit (lezen, scrollen, simulatie): hoogstens één keer per 30 s, telt mee voor actieve tijd, niet als antwoord */
+let laatsteAct = 0;
+function logAct(){ const nu = Date.now(); if (nu - laatsteAct < 30000) return; laatsteAct = nu; const w = WPS[STAAT.wp]; LOG.ev.push([Math.round((nu - LOG.t0) / 1000), w ? w.id : '', '', -1, -1, 'x', STAAT.tab || '', 1, '']); bewaarLog(); }
+['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(t => document.addEventListener(t, logAct, { passive:true, capture:true }));
+/* zelfde serie voor iedereen met dezelfde klascode */
+function hashStr(t){ let h = 2166136261; for (const c of t){ h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function metZaad(zaad, fn){ if (!zaad) return fn(); const orig = Math.random; Math.random = mulberry(hashStr(zaad)); try { return fn(); } finally { Math.random = orig; } }
 const nl = (x, d = 2) => Number(x).toLocaleString('nl-NL', { maximumFractionDigits: d, minimumFractionDigits: d });
 const sig = (x, n = 3) => { if (!x) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return nl(x, d); };
 // ============================================================
@@ -1770,7 +1804,7 @@ requestAnimationFrame(tick);
    ===================================================================== */
 const WPS = [];
 const TEKENINGEN = {};
-const STAAT = { wp:0, tab:'uitleg', voortgang: laad(), niveau: '5V' };
+const STAAT = { wp:0, tab:'uitleg', voortgang: laad(), niveau: '5V', klascode: (() => { try { return localStorage.getItem(KCKEY) || ''; } catch (e){ return ''; } })() };
 const PER_WP = {};             /* per werkplaats: { serie, idx, st:[{stap, goed:[], getoond, pogingen}] } */
 let SIM = null;
 
@@ -1804,24 +1838,43 @@ function open(i){
 }
 
 function nieuweSerie(w){
-  const serie = w.maakSerie();
-  PER_WP[w.id] = { serie, idx:0, serieNr: (PER_WP[w.id] ? PER_WP[w.id].serieNr + 1 : 0), st: serie.map(() => ({ stap:0, getoond:false, klaar:false, pogingen:{} })) };
+  const serieNr = PER_WP[w.id] ? PER_WP[w.id].serieNr + 1 : 0, nr = serieNr + 1;
+  const serie = metZaad(STAAT.klascode && STAAT.klascode + '|' + w.id + '|' + nr, () => w.maakSerie());
+  PER_WP[w.id] = { serie, idx:0, serieNr, nr, sid: String(nr) + (STAAT.klascode ? '@' + STAAT.klascode : '') + '#' + (Date.now() % 100000).toString(36), st: serie.map(() => ({ stap:0, getoond:false, klaar:false, pogingen:{} })) };
+  logSerie(w, PER_WP[w.id]);
 }
+/* exit-ticket: drie opdrachten, zonder hint en zonder 'toon antwoord', één poging per stap; bij voorkeur opdrachten zonder proef in de simulatie */
+function exitP(w){
+  const key = w.id + '#E';
+  if (!PER_WP[key]){
+    const volle = metZaad(STAAT.klascode && STAAT.klascode + '|' + w.id + '|exit', () => w.maakSerie()).filter(o => !o.ster && !o.geenExit);
+    const zonderSim = volle.filter(o => !o.stappen.some(st => st.type === 'sim')), metSim = volle.filter(o => o.stappen.some(st => st.type === 'sim'));
+    const serie = zonderSim.concat(metSim).slice(0, 3);
+    PER_WP[key] = { serie, exit:true, serieNr:'E', sid: 'E' + (STAAT.klascode ? '@' + STAAT.klascode : '') + '#' + (Date.now() % 100000).toString(36), idx:0, st: serie.map(() => ({ stap:0, getoond:false, klaar:false, pogingen:{}, fout:{} })) };
+    logSerie(w, PER_WP[key]);
+  }
+  return PER_WP[key];
+}
+const curP = w => STAAT.tab === 'exit' ? exitP(w) : PER_WP[w.id];
 
 function renderTekst(){
   const w = WPS[STAAT.wp], p = PER_WP[w.id];
+  const pe = PER_WP[w.id + '#E'], nExit = pe ? pe.st.filter(x => x.klaar).length : 0;
   const nGoed = p.st.filter((s, k) => s.klaar && !s.getoond && !p.serie[k].ster).length, nTot = p.serie.filter(o => !o.ster).length;
   let h = `<div class="kicker">${w.ster ? 'Werkplaats ★ · verdieping' : 'Werkplaats ' + (STAAT.wp + 1) + ' · ' + w.par}</div><h2>${w.titel}</h2>
     <div class="tabs"><button data-t="uitleg" class="${STAAT.tab === 'uitleg' ? 'on' : ''}">Uitleg en voorbeeld</button>
-    <button data-t="opd" class="${STAAT.tab === 'opd' ? 'on' : ''}">Opdrachten<span class="tel">${nGoed}/${nTot}</span></button></div>`;
+    <button data-t="opd" class="${STAAT.tab === 'opd' ? 'on' : ''}">Opdrachten<span class="tel">${nGoed}/${nTot}</span></button>
+    <button data-t="exit" class="${STAAT.tab === 'exit' ? 'on' : ''}">Exit-ticket<span class="tel">${nExit}/${pe ? pe.serie.length : 3}</span></button></div>`;
   if (STAAT.tab === 'uitleg'){
     h += w.uitleg() + renderVoorbeeld(w);
+  } else if (STAAT.tab === 'exit'){
+    h += `<div class="exitband"><b>Exit-ticket.</b> Opdrachten zonder hints. Je hebt per stap één poging; daarna zie je het juiste antwoord. Lever daarna je code in (knop links).</div>` + renderOpdracht(w, exitP(w));
   } else {
     h += renderOpdracht(w, p);
   }
   $('#tekst').innerHTML = h;
-  $$('#tekst .tabs button').forEach(b => b.onclick = () => { STAAT.tab = b.dataset.t; renderTekst(); if (STAAT.tab === 'opd') zetOpdrachtInSim(); else SIM.opdracht && SIM.opdracht(null); });
-  if (STAAT.tab === 'uitleg') koppelVoorbeeld(w); else koppelOpdracht(w, p);
+  $$('#tekst .tabs button').forEach(b => b.onclick = () => { STAAT.tab = b.dataset.t; renderTekst(); if (STAAT.tab !== 'uitleg') zetOpdrachtInSim(); else SIM.opdracht && SIM.opdracht(null); });
+  if (STAAT.tab === 'uitleg') koppelVoorbeeld(w); else koppelOpdracht(w, curP(w));
 }
 
 /* ---------- uitgewerkt voorbeeld, stap voor stap ---------- */
@@ -1844,13 +1897,15 @@ function renderOpdracht(w, p){
   const o = p.serie[p.idx], s = p.st[p.idx];
   const nTot = p.serie.filter(x => !x.ster).length;
   let h = '';
-  if (STAAT.voortgang[w.id] && STAAT.voortgang[w.id].klaar && p.st.every((x, k) => p.serie[k].ster || (x.klaar && !x.getoond)))
+  EXITMODUS = !!p.exit;
+  if (p.exit && p.st.every(x => x.klaar)) h += `<div class="klaarbanner"><b>Exit-ticket klaar.</b> Klik links op <b>Inleveren: maak je code</b>.</div>`;
+  else if (!p.exit && STAAT.voortgang[w.id] && STAAT.voortgang[w.id].klaar && p.st.every((x, k) => p.serie[k].ster || (x.klaar && !x.getoond)))
     h += `<div class="klaarbanner"><b>Werkplaats afgerond.</b> Probeer ook de ★-opdrachten, of oefen met een nieuwe serie.</div>`;
   h += `<div class="oknop">` + p.serie.map((x, k) => {
     const st = p.st[k];
     return `<span class="dot ${k === p.idx ? 'on' : ''} ${st.klaar && !st.getoond ? 'goed' : ''} ${x.ster ? 'ster' : ''}" data-k="${k}" title="${x.titel}">${x.ster ? '★' : k + 1}</span>`;
-  }).join('') + `<span class="rechts"><button class="btn g klein" id="nieuweserie">Nieuwe serie</button></span></div>`;
-  h += `<div class="opdkop">${o.ster ? '<span class="st">★ </span>' : ''}Opdracht ${o.ster ? '★' : p.idx + 1}${o.ster ? '' : ' van ' + nTot} · ${o.titel}</div>`;
+  }).join('') + (p.exit ? '' : `<span class="rechts"><button class="btn g klein" id="nieuweserie">Nieuwe serie</button></span>`) + `</div>`;
+  h += `<div class="opdkop">${o.ster ? '<span class="st">★ </span>' : ''}${p.exit ? 'Exit-ticket ' : 'Opdracht '}${o.ster ? '★' : p.idx + 1}${o.ster ? '' : ' van ' + nTot} · ${o.titel}</div>`;
   if (o.vraag) h += `<div class="opdvraag">${o.vraag}</div>`;
   o.stappen.forEach((st, k) => {
     const dicht = k > s.stap, goed = k < s.stap || s.klaar;
@@ -1866,12 +1921,13 @@ function renderOpdracht(w, p){
   else if (o.stappen.some(x => x.type === 'getal')) h += `<div class="typtip">${GETALTIP}</div>`;
   return h;
 }
+let EXITMODUS = false;
 const TEKENTIP = 'Tekenen: kies een atoomsoort en klik op het raster. Sleep vanaf een atoom om een binding met een nieuw of bestaand atoom te maken. Klik op een binding voor een dubbele binding. <b>+H aanvullen</b> zet ontbrekende H-atomen, maar je mag ze ook zelf zetten. <b>~</b> is een open binding: de keten gaat verder.';
 const GETALTIP = 'Typ een getal met een komma, bijvoorbeeld <code>2,4</code> of <code>35</code>.';
 const TYPTIP = 'Zo typ je (voorbeelden met titaan en chromaat): <code>Ti2(CrO4)3</code> · ion <code>Ti3+</code> of <code>CrO4 2-</code> · pijl <code>-></code> · toestand <code>(s)</code> <code>(aq)</code> <code>(l)</code> · coëfficiënt ervoor: <code>3 CrO4 2-(aq)</code>.';
 
 function invoerHTML(st, k){
-  const knoppen = `<button class="btn" data-ctl="${k}">Controleer</button><button class="btn g" data-hint="${k}">Hint</button><button class="btn g" data-toon="${k}" style="display:none">Toon antwoord</button>`;
+  const knoppen = `<button class="btn" data-ctl="${k}">Controleer</button>` + (EXITMODUS ? '' : `<button class="btn g" data-hint="${k}">Hint</button><button class="btn g" data-toon="${k}" style="display:none">Toon antwoord</button>`);
   if (st.type === 'sim') return `<div class="rij">${knoppen}</div>`;
   if (st.type === 'tekst') return `<div class="rij"><input class="in" id="in${k}" autocomplete="off" spellcheck="false" placeholder="${st.ph || ''}">${knoppen}</div><div class="voorbeeldweergave" id="vw${k}"></div>`;
   if (st.type === 'chips') return `<div class="chips" id="ch${k}">${st.opties.map((x, j) => `<span class="chip" data-j="${j}">${x.html}</span>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
@@ -1885,7 +1941,7 @@ function invoerHTML(st, k){
 function koppelOpdracht(w, p){
   const o = p.serie[p.idx], s = p.st[p.idx];
   $$('.oknop .dot').forEach(d => d.onclick = () => { p.idx = +d.dataset.k; renderTekst(); zetOpdrachtInSim(); });
-  $('#nieuweserie').onclick = () => { nieuweSerie(w); renderTekst(); zetOpdrachtInSim(); };
+  const ns = $('#nieuweserie'); if (ns) ns.onclick = () => { nieuweSerie(w); renderTekst(); zetOpdrachtInSim(); };
   const v = $('#volgende'); if (v) v.onclick = () => { p.idx++; renderTekst(); zetOpdrachtInSim(); };
   o.stappen.forEach((st, k) => {
     if (k !== s.stap || s.klaar) return;
@@ -1909,9 +1965,11 @@ function koppelOpdracht(w, p){
       c.classList.toggle('aan');
     });
     $(`[data-ctl="${k}"]`).onclick = () => controleer(w, p, k);
-    $(`[data-hint="${k}"]`).onclick = () => { const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = st.hint; };
+    if (p.exit) return;
+    $(`[data-hint="${k}"]`).onclick = () => { const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = st.hint; logEv(w, p, k, 'h', '', 0, ''); };
     $(`[data-toon="${k}"]`).onclick = () => {
       s.getoond = true; const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = 'Antwoord: ' + st.antwoord();
+      logEv(w, p, k, 'a', '', 0, '');
       setTimeout(() => stapGoed(w, p, k), 1400);
     };
     if ((s.pogingen[k] || 0) >= 2) $(`[data-toon="${k}"]`).style.display = '';
@@ -1925,10 +1983,28 @@ function waardeVan(st, k){
   if (st.type === 'teken') return st._tv;
   if (st.type === 'getal') return $('#in' + k).value;
 }
+function invoerTekst(st, v){
+  if (st.type === 'tekst' || st.type === 'getal') return v;
+  if (st.type === 'chips' || st.type === 'keuze') return v.map(j => kaal(st.opties[j].html)).join(' | ');
+  if (st.type === 'selects') return v.map((x, j) => { const o = st.selects[j].opties.find(y => String(y.v) === String(x)); return o ? kaal(o.t) : '—'; }).join(' | ');
+  if (st.type === 'sim') return typeof simStand === 'function' ? Object.entries(simStand()).map(([a, b]) => a + '=' + b).join(' ') : '';
+  if (st.type === 'teken') return '(tekening)';
+  return '';
+}
 function controleer(w, p, k){
   const o = p.serie[p.idx], s = p.st[p.idx], st = o.stappen[k];
-  const r = st.check(waardeVan(st, k));
+  const waarde = waardeVan(st, k);
+  const r = st.check(waarde);
   const fb = $('#fb' + k);
+  if (p.exit){
+    /* een proef in de simulatie mag je opnieuw doen: alleen het goede resultaat telt */
+    if (st.type === 'sim' && !r.ok){ fb.className = 'fb toon hint'; fb.innerHTML = r.msg || 'Voer eerst de proef uit in de simulatie.'; return; }
+    logEv(w, p, k, 'c', invoerTekst(st, waarde), r.ok, r.ok ? '' : r.msg);
+    if (r.ok){ fb.className = 'fb toon goed'; fb.innerHTML = 'Goed.'; setTimeout(() => stapGoed(w, p, k), 650); }
+    else { s.fout[k] = 1; fb.className = 'fb toon fout'; fb.innerHTML = 'Niet goed. Het juiste antwoord: ' + st.antwoord(); $(`[data-ctl="${k}"]`).disabled = true; setTimeout(() => stapGoed(w, p, k), 2600); }
+    return;
+  }
+  logEv(w, p, k, 'c', invoerTekst(st, waarde), r.ok, r.ok ? '' : r.msg);
   if (r.ok){ fb.className = 'fb toon goed'; fb.innerHTML = r.msg || 'Goed!'; setTimeout(() => stapGoed(w, p, k), 650); }
   else {
     s.pogingen[k] = (s.pogingen[k] || 0) + 1;
@@ -1942,7 +2018,7 @@ function stapGoed(w, p, k){
   s.stap = k + 1;
   if (s.stap >= o.stappen.length) s.klaar = true;
   SIM.stapGoed && SIM.stapGoed(o, k);
-  if (s.klaar){
+  if (s.klaar && !p.exit){
     const nietSter = p.serie.map((x, j) => [x, p.st[j]]).filter(([x]) => !x.ster);
     if (nietSter.every(([, y]) => y.klaar && !y.getoond)){
       STAAT.voortgang[w.id] = { klaar:true }; bewaar(STAAT.voortgang); renderNav();
@@ -1951,8 +2027,8 @@ function stapGoed(w, p, k){
   renderTekst();
 }
 function zetOpdrachtInSim(){
-  const w = WPS[STAAT.wp], p = PER_WP[w.id];
-  SIM.opdracht && SIM.opdracht(STAAT.tab === 'opd' ? p.serie[p.idx] : null, STAAT.tab === 'opd' ? p.st[p.idx] : null);
+  const w = WPS[STAAT.wp], p = curP(w), aan = STAAT.tab !== 'uitleg';
+  SIM.opdracht && SIM.opdracht(aan ? p.serie[p.idx] : null, aan ? p.st[p.idx] : null);
 }
 
 /* lus */
@@ -2397,8 +2473,62 @@ WPS.push({
 /* ---------- start ---------- */
 $('#beamerknop').onclick = () => document.body.classList.toggle('beamer');
 $('#resetknop').onclick = () => { if (confirm('Alle voortgang wissen?')){ STAAT.voortgang = {}; bewaar({}); for (const k in PER_WP) delete PER_WP[k]; open(STAAT.wp); } };
+function toonKc(){ $('#kcinfo').textContent = STAAT.klascode ? 'Klascode: ' + STAAT.klascode + ' (iedereen dezelfde opdrachten)' : ''; $('#kcin').value = STAAT.klascode; }
+$('#kcknop').onclick = () => {
+  const c = $('#kcin').value.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 12);
+  if (c === STAAT.klascode) return;
+  STAAT.klascode = c; try { localStorage.setItem(KCKEY, c); } catch (e){}
+  for (const k in PER_WP) delete PER_WP[k];
+  toonKc(); open(STAAT.wp);
+};
+$('#kcin').onkeydown = e => { if (e.key === 'Enter') $('#kcknop').click(); };
+toonKc();
+
+/* ---------- inleveren: code maken ---------- */
+async function comprimeer(t){
+  const bytes = new TextEncoder().encode(t);
+  let uit = bytes, soort = 'J';
+  if (window.CompressionStream){ try { uit = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer()); soort = 'D'; } catch (e){ uit = bytes; soort = 'J'; } }
+  let s = ''; for (let i = 0; i < uit.length; i += 8192) s += String.fromCharCode.apply(null, uit.subarray(i, i + 8192));
+  return soort + btoa(s);
+}
+async function maakCode(wpId){
+  const ev = LOG.ev.filter(e => !wpId || e[1] === wpId);
+  const keys = [], ctx = [];
+  const kev = ev.map(e => { const key = e[1] + '|' + e[2]; let i = keys.indexOf(key); if (i < 0){ i = keys.length; keys.push(key); ctx.push(LOG.ctx[key] || null); } return [e[0], i, e[3], e[4], e[5], e[6], e[7], e[8]]; });
+  const pakket = { v:2, tool:'BD', tn:'Botsende deeltjes', wpn: Object.fromEntries(WPS.map(w => [w.id, w.titel])), kc: STAAT.klascode || '', t0: LOG.t0, keys, ctx, ev: kev };
+  const body = await comprimeer(JSON.stringify(pakket));
+  const chk = (hashStr(body) % 46656).toString(36).toUpperCase().padStart(3, '0');
+  const MAX = 3900, n = Math.max(1, Math.ceil(body.length / MAX)), delen = [];
+  for (let i = 0; i < n; i++) delen.push(`BD1-${chk}-${i + 1}/${n}-` + body.slice(i * MAX, (i + 1) * MAX));
+  return { delen, aantal: ev.filter(e => e[5] === 'c').length };
+}
+/* inleverformulier: per klas via ?inleveren=<link> in de tool-link */
+const FORMS_URL = (() => { try { const u = new URLSearchParams(location.search).get('inleveren'); if (u && /^https:\/\/(forms\.office\.com|forms\.microsoft\.com|forms\.cloud\.microsoft)\//.test(u)) return u; } catch (e){} return ''; })();
+const heeftForms = () => /^https:\/\//.test(FORMS_URL);
+function toonInleveren(){
+  parkeer(); SIM = null;
+  $$('#nav a').forEach(a => a.classList.remove('on'));
+  const opties = WPS.filter(zichtbaar).map(w => { const n = LOG.ev.filter(e => e[1] === w.id && e[5] === 'c').length; return `<option value="${w.id}" ${WPS[STAAT.wp].id === w.id ? 'selected' : ''}>${w.titel} (${n} antwoorden)</option>`; }).join('');
+  $('#main').innerHTML = `<div class="wp"><section class="tekst inleverpaneel"><div class="kicker">Inleveren</div><h2>Je code voor de docent</h2>
+    <p>De code bevat je antwoorden in deze tool, maar geen naam. Kopieer de code en plak hem in het inleverformulier${heeftForms() ? '' : ' van je docent'}.</p>
+    <div class="rij"><label>Welke werkplaats? <select class="sel" id="ilwp"><option value="">alle werkplaatsen</option>${opties}</select></label><button class="btn" id="ilmaak">Maak code</button></div>
+    <div id="ilcode"></div>
+    <p class="klein" style="margin-top:24px;color:var(--grijs);font-size:13px">Je antwoorden worden alleen op deze laptop bewaard. <button class="btn g klein" id="ilwis">Logboek wissen</button></p></section><section class="simkol"></section></div>`;
+  $('#ilwp').value = '';
+  $('#ilmaak').onclick = async () => {
+    const r = await maakCode($('#ilwp').value);
+    $('#ilcode').innerHTML = (r.delen.length > 1 ? `<p><b>Je code bestaat uit ${r.delen.length} delen.</b> Plak elk deel in een eigen vak in Forms.</p>` : '') +
+      r.delen.map((d, i) => `<div class="deel"><b>${r.delen.length > 1 ? 'Deel ' + (i + 1) : 'Code'} (${r.aantal} antwoorden)</b><textarea readonly id="ilt${i}">${d}</textarea><button class="btn klein" data-kop="${i}">Kopieer</button></div>`).join('') +
+      (heeftForms() ? `<p style="margin-top:14px"><a class="btn" href="${FORMS_URL}" target="_blank" rel="noopener">Open het inleverformulier ↗</a></p>` : '');
+    $$('[data-kop]').forEach(b => b.onclick = () => { const t = $('#ilt' + b.dataset.kop); t.select(); try { navigator.clipboard.writeText(t.value); } catch (e){ document.execCommand('copy'); } b.textContent = 'Gekopieerd ✓'; });
+  };
+  $('#ilwis').onclick = () => { if (confirm('Weet je zeker dat je je logboek wilt wissen? Lever eerst je code in.')){ LOG = nieuwLog(); bewaarLog(); for (const k in PER_WP) delete PER_WP[k]; toonInleveren(); } };
+}
+$('#inleverknop').onclick = toonInleveren;
 open(0);
 requestAnimationFrame(lus);
+window.__bd = { WPS, PER_WP, STAAT, LOG: () => LOG, maakCode, exitP, curP, controleer, stapGoed, renderTekst, open };
 </script>
 </body>
 </html>
