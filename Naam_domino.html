@@ -3,299 +3,482 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Naam-domino</title>
+<title>Systematische namen</title>
 <style>
-/* Layout: één kolom speelveld — boven de opdracht (zoek-balk), dan de ketting, dan de hand met tegels */
-:root{ color-scheme:light;
-  --bg:#ffffff; --panel:#f4f7f9; --tile:#fffdf7; --tile-edge:#c9d2da; --ink:#17232d; --muted:#5a6873;
-  --accent:#1f6f8b; --accent-soft:#d5e8ef; --good:#2e8b57; --good-soft:#dcefe3; --bad:#c2452d; --bad-soft:#f6ded8;
-  --display:'Segoe UI Black','Arial Black',system-ui,sans-serif; --body:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+:root{
+  --papier:#f3efe6; --vel:#fffdf8; --rand:#e3dccb; --rand2:#d6cdb8;
+  --inkt:#2b2a27; --inkt2:#3e3b35; --grijs:#7a756b; --goud:#a0701f; --goud2:#e2a84b;
+  --nacht:#24323f; --nacht2:#33475a; --nachttekst:#cfd9e2;
+  --goed:#3f8f63; --goedbg:#e5f2ea; --fout:#b4473a; --foutbg:#f8e6e2; --hint:#fbf1da;
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --sans: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Consolas, 'Liberation Mono', monospace;
 }
-*{box-sizing:border-box} html,body{background:var(--bg);margin:0}
-body{color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45}
-.wrap{max-width:1040px;margin:0 auto;padding-inline:16px;padding-block:20px 40px;display:grid;gap:18px}
-header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px}
-h1{font-family:var(--display);font-weight:700;font-size:clamp(1.6rem,4vw,2.3rem);margin:0;letter-spacing:-.01em;text-wrap:balance}
-h1 .pip{display:inline-block;width:.42em;height:.42em;border-radius:50%;background:var(--accent);vertical-align:.18em;margin:0 .08em}
-.sub{margin:4px 0 0;color:var(--muted);max-width:60ch}
-.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.seg{display:inline-flex;border:1px solid var(--tile-edge);border-radius:999px;overflow:hidden;background:var(--panel)}
-.seg button{border:0;background:transparent;color:var(--ink);font:inherit;padding:8px 14px;cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--accent);color:var(--bg);font-weight:700}
-.btn{border:1px solid var(--tile-edge);background:var(--panel);color:var(--ink);font:inherit;padding:8px 14px;border-radius:999px;cursor:pointer}
-.btn:hover{border-color:var(--accent)}
-button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.stats{display:flex;gap:18px;flex-wrap:wrap;font-variant-numeric:tabular-nums;color:var(--muted);font-size:.95rem}
-.stats b{color:var(--ink)}
-.task{background:var(--accent-soft);border-radius:14px;padding:14px 18px;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px}
-.task .lbl{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
-.task .name{font-family:var(--display);font-weight:500;font-size:clamp(1.15rem,3.4vw,1.6rem);overflow-wrap:anywhere}
-.section-lbl{font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0 0 8px}
-.chain{display:flex;flex-wrap:wrap;gap:6px}
-.hand{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
-.tile{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr);align-items:stretch;background:var(--tile);border:1.5px solid var(--tile-edge);border-radius:10px;
-  color:var(--ink);font:inherit;padding:0;text-align:left;min-height:62px;box-shadow:0 1px 0 var(--tile-edge)}
-.tile .f{display:flex;align-items:center;justify-content:center;font-size:1.35rem;font-weight:700;padding:8px;border-right:1.5px dashed var(--tile-edge)}
-.tile .n{display:flex;align-items:center;padding:8px 10px;font-size:.92rem;hyphens:manual;min-width:0}
-.hand .tile{cursor:pointer;transition:transform .12s ease,border-color .12s}
-.hand .tile:hover{transform:translateY(-2px);border-color:var(--accent)}
-.chain .tile{min-height:44px;grid-template-columns:auto auto}
-.chain .tile .f{font-size:1rem;padding:4px 8px}
-.chain .tile .n{font-size:.8rem;padding:4px 8px}
-.chain .tile.start{border-color:var(--accent)}
-.chain .tile.new{border-color:var(--good);background:var(--good-soft)}
-.tile.wrong{border-color:var(--bad);background:var(--bad-soft);animation:shake .35s}
-@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
-@media (prefers-reduced-motion: reduce){.tile.wrong{animation:none}.hand .tile{transition:none}}
-.feedback{min-height:1.5em;font-weight:700}
-.feedback.ok{color:var(--good)} .feedback.no{color:var(--bad)}
-.done{background:var(--panel);border:1.5px solid var(--good);border-radius:14px;padding:18px;display:grid;gap:10px}
-.done h2{font-family:var(--display);font-weight:700;font-size:1.35rem;margin:0}
-.done ul{margin:0;padding-left:1.2em}
-.hint{color:var(--muted);font-size:.92rem;margin:0}
-sub{font-size:.68em;line-height:0}
-[hidden]{display:none!important}
-.wrap-inner{display:grid;gap:18px}
-.card{background:var(--panel);border:1.5px solid var(--tile-edge);border-radius:14px;padding:18px;display:grid;gap:10px}
-.card .lbl{margin:0;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
-.card .prompt{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(1.4rem,4.5vw,2.1rem);overflow-wrap:anywhere}
-.row{display:flex;gap:8px;flex-wrap:wrap}
-#w-input{flex:1 1 220px;min-width:0;font:inherit;font-size:1.2rem;padding:10px 12px;border:1.5px solid var(--tile-edge);border-radius:10px;background:var(--tile);color:var(--ink)}
-#w-input:focus{outline:3px solid var(--accent);outline-offset:1px}
-.btn.primary{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:700}
-.preview{margin:0;min-height:1.4em;color:var(--muted);font-size:1.1rem}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-.feedback .note{display:block;font-weight:400;color:var(--muted)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--papier);color:var(--inkt);font-size:15px;line-height:1.6}
+button{font-family:inherit}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
+aside{background:var(--nacht);color:var(--nachttekst);padding:26px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
+aside h1{font-family:var(--serif);font-size:23px;color:#fff;font-weight:600;line-height:1.2}
+aside .sub{font-size:12.5px;color:#8aa0b3;margin:4px 0 18px}
+.lijn{display:flex;gap:4px;background:#1b2731;border-radius:10px;padding:4px;margin-bottom:18px}
+.lijn button{flex:1;border:0;border-radius:7px;padding:7px 6px;font-size:13.5px;font-weight:700;background:transparent;color:#9fb2c3;cursor:pointer}
+.lijn button.on{background:var(--goud2);color:var(--nacht)}
+aside nav a{display:flex;gap:12px;align-items:center;padding:10px 10px;border-radius:9px;font-size:14.5px;margin-bottom:4px;color:#b9c7d3;cursor:pointer;user-select:none;line-height:1.3}
+aside nav a:hover{background:#2c3d4d}
+aside nav a i{font-style:normal;flex:none;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #5d7387;font-size:12.5px;font-weight:700}
+aside nav a.on{background:var(--nacht2);color:#fff}
+aside nav a.on i{background:var(--goud2);border-color:var(--goud2);color:var(--nacht)}
+aside nav a.klaar i{background:#5aa37c;border-color:#5aa37c;color:#fff}
+aside nav a small{display:block;font-size:11.5px;color:#8aa0b3}
+aside .voet{margin-top:auto;padding-top:16px;display:flex;flex-direction:column;gap:8px}
+aside .voet button{background:transparent;border:1px solid #4b6074;color:#cfd9e2;border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer;text-align:left}
+aside .voet button:hover{background:#2c3d4d}
+.wp{display:grid;grid-template-columns:minmax(380px,1fr) minmax(520px,680px);min-height:100vh}
+.tekst{padding:34px 38px 60px;max-width:780px}
+.kicker{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--goud);font-weight:700}
+.tekst h2{font-family:var(--serif);font-size:31px;margin:3px 0 14px;font-weight:600;line-height:1.2}
+.tekst h3{font-family:var(--serif);font-size:19px;margin:20px 0 6px;font-weight:600}
+.tekst p{margin-bottom:10px;color:var(--inkt2)}
+.tekst ul,.tekst ol{margin:0 0 10px 20px;color:var(--inkt2)}
+.tekst li{margin-bottom:3px}
+.kader{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--goud2);border-radius:8px;padding:10px 14px;margin:10px 0 12px;color:var(--inkt2)}
+.kader.proces{border-left-color:#5d7387}
+.vgl{font-family:var(--serif);font-size:17px;margin-top:6px;color:var(--inkt)}
+.tabs{display:flex;gap:4px;margin:20px 0 14px;border-bottom:1px solid var(--rand2)}
+.tabs button{background:none;border:0;padding:9px 14px;font-size:14px;font-weight:600;color:var(--grijs);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--inkt);border-bottom-color:var(--goud2)}
+.tabs .tel{font-weight:500;font-size:12px;color:var(--grijs);margin-left:4px}
+.vb{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:16px 18px;margin:4px 0 14px}
+.vb .vbkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--goud);margin-bottom:4px}
+.vb .vbvraag{font-weight:600;margin-bottom:8px}
+.vbstap{display:flex;gap:12px;padding:8px 0;border-top:1px dashed var(--rand2)}
+.vbstap .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
+.vbstap .b{color:var(--inkt2)}
+.oknop{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.oknop .dot{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--rand2);background:var(--vel);display:grid;place-items:center;font-size:12.5px;font-weight:700;color:var(--grijs);cursor:pointer}
+.oknop .dot.on{border-color:var(--inkt);color:var(--inkt);box-shadow:0 0 0 2px var(--inkt) inset}
+.oknop .dot.goed{background:var(--goed);border-color:var(--goed);color:#fff}
+.oknop .dot.ster{border-style:dashed}
+.oknop .rechts{margin-left:auto;font-size:13px;color:var(--grijs)}
+.opdkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--grijs);margin-bottom:4px}
+.opdkop .st{color:var(--goud)}
+.stap{display:flex;gap:12px;padding:13px 15px;background:var(--vel);border:1px solid var(--rand);border-radius:11px;margin-bottom:10px}
+.stap>.n{flex:none;width:25px;height:25px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12.5px;font-weight:700;margin-top:1px}
+.stap.dicht{opacity:.42}
+.stap.dicht .inv{display:none}
+.stap.goed{border-color:#bcdcc8;background:#fbfefc}
+.stap.goed>.n{background:var(--goed)}
+.stap .inh{flex:1;min-width:0}
+.stap .vr{margin-bottom:8px}
+.rij{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input.in{font-family:var(--mono);font-size:15px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;background:#fff;min-width:0;width:220px;color:var(--inkt)}
+input.in:focus,textarea.in:focus,select.sel:focus{outline:2px solid var(--goud2);outline-offset:0;border-color:var(--goud2)}
+textarea.in{font-family:var(--sans);font-size:14.5px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;width:100%;min-height:74px;background:#fff;color:var(--inkt)}
+select.sel{border:1px solid var(--rand2);border-radius:8px;padding:7px 9px;font-size:14px;background:#fff;color:var(--inkt);font-family:inherit}
+.btn{border:0;border-radius:8px;padding:8px 15px;font-weight:600;font-size:14px;cursor:pointer;background:var(--inkt);color:#fff}
+.btn:hover{background:#45433e}
+.btn.g{background:#ebe4d4;color:var(--inkt)}
+.btn.g:hover{background:#e0d7c3}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.klein{padding:5px 11px;font-size:13px}
+.fb{margin-top:8px;padding:8px 11px;border-radius:8px;font-size:14px}
+.fb.goed{background:var(--goedbg);color:#255c3d}
+.fb.fout{background:var(--foutbg);color:#7c2c22}
+.fb.hint{background:var(--hint);color:#6b4d12}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px}
+.chip{border:1.5px solid var(--rand2);background:#fff;border-radius:999px;padding:4px 12px;font-size:14px;cursor:pointer;user-select:none;color:var(--inkt)}
+.chip:hover{border-color:#b9ad93}
+.chip.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.chip.x{padding:3px 6px 3px 12px}
+.chip.x b{margin-left:6px;font-weight:700;color:var(--grijs)}
+.opties{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.optie{border:1.5px solid var(--rand2);background:#fff;border-radius:9px;padding:8px 12px;font-size:14.5px;cursor:pointer;text-align:left;color:var(--inkt)}
+.optie:hover{border-color:#b9ad93}
+.optie.aan{border-color:var(--nacht);background:#eef2f6}
+.model{background:var(--hint);border-radius:8px;padding:8px 11px;font-size:14px;color:#5b4210;margin-top:8px}
+.model b{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.klaarbanner{background:var(--goedbg);border:1px solid #bcdcc8;color:#255c3d;border-radius:11px;padding:12px 15px;margin:4px 0 12px}
+.uitw{background:#fff;border:1px solid var(--rand);border-radius:8px;padding:8px 11px;margin-top:8px;font-size:14.5px;color:var(--inkt2)}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;line-height:1.25}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 3px}
+.frac>span:last-child{padding:0 3px}
+.simkol{background:var(--vel);border-left:1px solid var(--rand);padding:22px 22px 30px;display:flex;flex-direction:column;gap:12px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.simkop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.simkop b{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--goud)}
+.simkop span{font-size:12.5px;color:var(--grijs)}
+.doek{border:1px solid var(--rand);border-radius:12px;background:#fbf8f1;overflow:hidden}
+.doek svg{display:block;width:100%;height:auto}
+.legenda{font-size:12.5px;color:var(--grijs);line-height:1.5}
+.bouw{display:grid;gap:10px}
+.bouw .vak{background:var(--vel);border:1px solid var(--rand);border-radius:11px;padding:12px 14px}
+.bouw h4{font-size:13px;letter-spacing:1.1px;text-transform:uppercase;color:var(--grijs);margin-bottom:8px}
+.strlijst{list-style:none;margin:0!important}
+.strlijst li{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px dashed var(--rand2);font-size:14px}
+.strlijst li:first-child{border-top:0}
+.nr{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--inkt);font-size:12px;font-weight:700;margin-right:6px;flex:none}
+.stroomkeuze{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.stroomkeuze button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--rand2);background:#fff;font-weight:700;cursor:pointer;color:var(--inkt)}
+.stroomkeuze button.on{background:var(--goud2);border-color:var(--goud2)}
+.stroomkeuze button.goed{border-color:var(--goed);color:var(--goed)}
+.stroomkeuze button.fout{border-color:var(--fout);color:var(--fout)}
+body.beamer .wp{zoom:1.25}
+@media (max-width:1100px){.app{grid-template-columns:1fr}aside{position:static;height:auto}.wp{grid-template-columns:1fr}.simkol{position:static;height:auto;border-left:0;border-top:1px solid var(--rand)}.tekst{padding:24px 20px 30px}}
+@media (prefers-reduced-motion:no-preference){.nieuw{animation:verschijn .6s ease-out}@keyframes verschijn{from{opacity:0}to{opacity:1}}}
+
+.ld{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--nacht);border-radius:8px;padding:9px 14px;margin:0 0 12px;color:var(--inkt2)}
+.ld b{display:block;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--nacht);margin-bottom:2px}
+table.spiek{border-collapse:collapse;font-size:14px;background:#fff;margin:4px 0 8px;width:100%}
+table.spiek th,table.spiek td{border:1px solid var(--rand2);padding:4px 8px;text-align:left}
+table.spiek th{background:#f3ead6;font-weight:600}
+.formule{font-family:var(--serif);font-size:20px}
+.groot{font-family:var(--serif);font-size:26px;color:var(--inkt)}
+.twrij{display:grid;grid-template-columns:auto auto auto;gap:6px 12px;align-items:center;margin-bottom:8px;justify-content:start}
+.preview{font-family:var(--serif);font-size:17px;min-height:1.4em;margin-top:4px;color:var(--grijs)}
+.telling{display:flex;flex-direction:column;gap:8px;background:#fbf8f1;border:1px solid var(--rand);border-radius:12px;padding:12px 14px}
+.telling .r{display:flex;align-items:center;gap:10px}
+.telling .r b{width:34px;font-family:var(--serif);font-size:18px}
+.telling .bol{width:20px;height:20px;border-radius:50%;display:inline-block;border:1.5px solid rgba(0,0,0,.25)}
+.telling .r span.w{margin-left:auto;font-size:13px;color:var(--grijs)}
+details.sp summary{cursor:pointer;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--goud);margin-bottom:6px}
+.lijn{margin-bottom:6px}
+.conv{font-size:12px;color:#8aa0b3;margin:0 2px 16px;line-height:1.4}
+.dset{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px}
+.dtaak{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--goud2);border-radius:10px;padding:12px 16px;margin-bottom:10px}
+.dtaak .l{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--goud)}
+.dtaak .nm{font-family:var(--serif);font-size:26px}
+.hand{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:8px}
+.tile{display:flex;border:1.5px solid var(--rand2);border-radius:9px;background:#fff;overflow:hidden;cursor:pointer;font:inherit;padding:0;text-align:left;color:var(--inkt)}
+.tile:hover{border-color:#b9ad93}
+.tile .f{flex:none;min-width:62px;display:flex;align-items:center;justify-content:center;white-space:nowrap;font-family:var(--serif);font-size:18px;background:#faf6ec;border-right:1.5px dashed var(--rand2);padding:6px 8px}
+.tile .n{padding:6px 9px;font-size:13.5px;line-height:1.3;overflow-wrap:anywhere;hyphens:manual;display:flex;align-items:center}
+.tile.fout{animation:schud .35s}
+@keyframes schud{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.ketting{display:flex;flex-direction:column;gap:6px}
+.ketting .tile{cursor:default}
+.ketting .tile.start{border-color:var(--goud2)}
+.ketting .tile.nieuw{border-color:var(--goed)}
+.dstats{display:flex;gap:16px;flex-wrap:wrap;font-size:13.5px;color:var(--grijs);font-variant-numeric:tabular-nums;margin-bottom:6px}
+.dstats b{color:var(--inkt)}
+code{font-family:var(--mono);background:#f3ead6;border-radius:4px;padding:0 4px}
 </style>
 </head>
 <body>
-
-<div class="wrap">
-  <header>
-    <div>
-      <h1>Naam<span class="pip"></span>domino</h1>
-      <p class="sub" id="sub-domino">Leg de ketting rond: kies steeds de tegel met de <b>formule</b> die hoort bij de <b>naam</b> aan het eind van de ketting. Gebruik je aantekeningen.</p>
-      <p class="sub" id="sub-schrijf" hidden>Schrijf zelf de formule of de naam op. Fout? Je krijgt een tweede kans, en wat nog niet lukt komt later terug.</p>
+<div class="app">
+  <aside>
+    <h1>Systematische namen</h1>
+    <div class="sub">Molecuulstoffen met twee atoomsoorten · 3V</div>
+    <div class="lijn"><button data-a="conv" data-v="huidig" id="c-huidig">Huidig</button><button data-a="conv" data-v="nieuw" id="c-nieuw">Nieuw</button></div>
+    <div class="conv" id="convuitleg"></div>
+    <nav id="nav"></nav>
+    <div class="voet">
+      <button data-a="beamer">Beamerstand</button>
+      <button data-a="wis">Voortgang wissen</button>
     </div>
-    <div class="controls">
-      <div class="seg" role="group" aria-label="Kies een modus">
-        <button id="mode-domino" aria-pressed="true">Domino</button>
-        <button id="mode-schrijf" aria-pressed="false">Opschrijven</button>
-      </div>
-      <div class="seg" role="group" aria-label="Kies een set">
-        <button id="set-basis" aria-pressed="true">Basis</button>
-        <button id="set-uitdaging" aria-pressed="false">Uitdaging</button>
-        <button id="set-triviaal" aria-pressed="false">Triviale namen</button>
-      </div>
-      <button class="btn" id="nieuw">Nieuw spel</button>
-    </div>
-  </header>
-
-  <div id="domino" class="wrap-inner">
-  <div class="stats" aria-live="polite">
-    <span>Gelegd: <b id="st-gelegd">0</b> / <b id="st-totaal">0</b></span>
-    <span>Fouten: <b id="st-fouten">0</b></span>
-    <span>Tijd: <b id="st-tijd">0:00</b></span>
-    <span id="st-best"></span>
-  </div>
-
-  <div class="task" id="task">
-    <span class="lbl">Zoek de formule van</span>
-    <span class="name" id="target"></span>
-  </div>
-  <div class="feedback" id="feedback" aria-live="polite"></div>
-
-  <section>
-    <p class="section-lbl">De ketting</p>
-    <div class="chain" id="chain"></div>
-  </section>
-
-  <section id="hand-sec">
-    <p class="section-lbl">Jouw tegels</p>
-    <div class="hand" id="hand"></div>
-  </section>
-
-  <div class="done" id="done" hidden></div>
-  </div>
-
-  <div id="schrijf" class="wrap-inner" hidden>
-    <div class="stats"><span>Nog te gaan: <b id="w-nr">12</b></span><span>Eerste keer goed: <b id="w-goed">0</b></span></div>
-    <div class="card" id="w-card">
-      <p class="lbl" id="w-vraag">Geef de formule van</p>
-      <p class="prompt" id="w-prompt"></p>
-      <form id="w-form" autocomplete="off">
-        <label for="w-input" class="sr">Jouw antwoord</label>
-        <div class="row"><input id="w-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="typ je antwoord">
-        <button class="btn primary" type="submit" id="w-check">Controleer</button></div>
-        <p class="preview" id="w-preview" aria-hidden="true"></p>
-      </form>
-      <p class="feedback" id="w-fb" aria-live="polite"></p>
-      <button class="btn" id="w-next" hidden>Volgende</button>
-    </div>
-    <div class="done" id="w-done" hidden></div>
-  </div>
+  </aside>
+  <main id="main"></main>
 </div>
-
 <script>
-const SETS={
-  basis:[["SO2","zwaveldioxide"],["CO","koolstofmono-oxide"],["N2O","distikstofmono-oxide"],["Cl2","chloor"],["PCl5","fosforpentachloride"],
-    ["CO2","koolstofdioxide"],["SO3","zwaveltrioxide"],["N2","stikstof"],["CCl4","koolstoftetrachloride"],["NO2","stikstofdioxide"],
-    ["O2","zuurstof"],["N2O4","distikstoftetraoxide"],["CS2","koolstofdisulfide"],["Br2","broom"],["P2O5","difosforpentaoxide"],
-    ["I2","jood"],["H2","waterstof"],["F2","fluor"]],
-  triviaal:[["H2O","water"],["NH3","ammoniak"],["CH4","methaan"],["C2H6O","alcohol"],["H2SO4","zwavelzuur"],["CO2","koolstofdioxide"],["SO2","zwaveldioxide"]],
-  uitdaging:[["Cl2O7","dichloorheptaoxide"],["P4O10","tetrafosfordecaoxide"],["N2O5","distikstofpentaoxide"],["N2O3","distikstoftrioxide"],
-    ["NO","stikstofmono-oxide"],["N2O","distikstofmono-oxide"],["NO2","stikstofdioxide"],["SiF4","siliciumtetrafluoride"],["SF6","zwavelhexafluoride"],
-    ["PCl3","fosfortrichloride"],["CF4","koolstoftetrafluoride"],["NI3","stikstoftrijodide"],["S2Cl2","dizwaveldichloride"],["IF7","joodheptafluoride"],
-    ["Br2","broom"],["F2","fluor"]]
-};
-const $=id=>document.getElementById(id);
-const fmt=f=>'<span>'+f.replace(/(\d+)/g,'<sub>$1</sub>')+'</span>';
-const shy=n=>n.replace(/(di|tri|tetra|penta|hexa|hepta|deca)(?=(oxide|chloride|fluoride|sulfide|jodide|stikstof|fosfor|chloor|zwavel))/g,'$1\u00AD')
-  .replace(/(koolstof|stikstof|zwavel|fosfor|chloor|silicium|jood)(?=[a-z])/g,'$1\u00AD');
-function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-let st={};
-function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
-function newGame(setName){
-  setName=setName||st.set||'basis';
-  const order=shuffle(SETS[setName]);
-  const tiles=order.map((s,i)=>({id:i,formula:s[0],name:order[(i+1)%order.length][1]}));
-  st={set:setName,order,tiles,chain:[tiles[0]],hand:shuffle(tiles.slice(1)),fouten:0,log:[],t0:null,t:0,done:false,lastNew:null};
-  clearInterval(window._tick);
-  $('set-basis').setAttribute('aria-pressed',setName==='basis');
-  $('set-uitdaging').setAttribute('aria-pressed',setName==='uitdaging');
-  $('set-triviaal').setAttribute('aria-pressed',setName==='triviaal');
-  $('feedback').textContent='';$('feedback').className='feedback';
-  $('done').hidden=true;$('hand-sec').hidden=false;$('task').hidden=false;
-  render();
+{
+/* ============ NAAMGEVING ============ */
+const EL={C:'koolstof',N:'stikstof',S:'zwavel',P:'fosfor',Si:'silicium',Cl:'chloor',I:'jood',Br:'broom',H:'waterstof',O:'zuurstof',F:'fluor',
+  Na:'natrium',Ca:'calcium',K:'kalium',Mg:'magnesium',Al:'aluminium',Li:'lithium'};
+const STAM={O:'oxide',S:'sulfide',Cl:'chloride',F:'fluoride',Br:'bromide',I:'jodide'};
+const METAAL=new Set(['Na','Ca','K','Mg','Al','Li']);
+const BRINCLHOF=['Br','I','N','Cl','H','O','F'];
+const TW=['','mono','di','tri','tetra','penta','hexa','hepta','okta','nona','deca'];
+const KLEUR={C:'#3b3b3b',N:'#4f7cc7',S:'#e3c043',P:'#e08a3c',Si:'#b49a7a',Cl:'#5fb25f',I:'#7d4fa8',Br:'#9c4a3a',H:'#f4f4f4',O:'#d9473f',F:'#9fd3c9',
+  Na:'#a98fd8',Ca:'#8fa3a8',K:'#c49ad8',Mg:'#7fbf9f',Al:'#bfc3c8',Li:'#d6a0b8'};
+const TRIV={H2O:'water',NH3:'ammoniak',CH4:'methaan',C6H12O6:'glucose',H2SO4:'zwavelzuur',C2H6O:'ethanol'};
+let CONV='huidig';
+const parse=f=>[...f.matchAll(/([A-Z][a-z]?)(\d*)/g)].map(m=>[m[1],m[2]?+m[2]:1]);
+function deel2(f){const p=parse(f);if(p.length<2)return '';const[s,n]=p[1];const zout=METAAL.has(p[0][0]);
+  const tw=zout?(n>1?TW[n]:''):TW[n];return (tw==='mono'&&STAM[s][0]==='o'?'mono-':tw)+STAM[s]}
+function naam(f){if(TRIV[f])return TRIV[f];const p=parse(f);
+  if(p.length===1)return (CONV==='nieuw'?TW[p[0][1]]:'')+EL[p[0][0]];
+  return (p[0][1]>1?TW[p[0][1]]:'')+EL[p[0][0]]+deel2(f)}
+const sub=f=>f.replace(/\d+/g,d=>'<sub>'+d+'</sub>');
+const fm=f=>`<span class="formule">${sub(f)}</span>`;
+const nm=n=>`<b>${n}</b>`;
+const nrm=s=>String(s).toLowerCase().replace(/\s+/g,'');
+const variant=s=>nrm(s).replace(/-/g,'').replace(/monoxide/g,'monooxide').replace(/(tetr|pent|hex|hept|dec)oxide/g,'$1aoxide');
+const canonF=s=>String(s).replace(/\s+/g,'').replace(/[₀-₉]/g,c=>'₀₁₂₃₄₅₆₇₈₉'.indexOf(c));
+const isEl=f=>parse(f).length===1;
+const isZout=f=>METAAL.has(parse(f)[0][0]);
+
+function oordeelNaam(ans,f,goed){
+  goed=goed||naam(f);const a=nrm(ans);
+  if(a===nrm(goed))return{ok:true};
+  if(f==='C2H6O'&&a==='alcohol')return{ok:true,note:'Ook goed: alcohol is de alledaagse naam voor ethanol.'};
+  if(variant(ans)===variant(goed))return{ok:true,note:'Let op de schrijfwijze: '+goed+'.'};
+  if(TRIV[f])return{ok:false,h:'Dit is een triviale naam: die moet je uit je hoofd kennen.'};
+  const p=parse(f);
+  if(p.length===1){
+    if(CONV==='huidig'&&a==='di'+nrm(EL[p[0][0]]))return{ok:false,h:'Met de huidige namen heet de stof gewoon zoals het element, zonder telwoord.'};
+    if(CONV==='nieuw'&&a===nrm(EL[p[0][0]]))return{ok:false,h:'Met de nieuwe namen krijgt ook de stof van een BrINClHOF-element een telwoord: het molecuul is opgebouwd uit twee atomen.'};
+    return{ok:false,h:'Dit is de stof van één element. Welk element is het?'}}
+  if(a.startsWith('mono'))return{ok:false,h:'Bij het eerste element laat je mono weg.'};
+  if(isZout(f)&&a===nrm(EL[p[0][0]]+STAM[p[1][0]])&&(p[0][1]>1||p[1][1]>1))return{ok:false,h:'Met de nieuwe namen krijgt ook een zout telwoorden: kijk naar de indexen in de formule.'};
+  if(isZout(f)&&a.includes('mono'))return{ok:false,h:'Bij zouten schrijf je nooit mono.'};
+  if(!isZout(f)&&p[1][1]===1&&!a.includes('mono'))return{ok:false,h:'Bij het tweede element schrijf je mono wél.'};
+  if(!/ide$/.test(a))return{ok:false,h:'De naam eindigt op -ide.'};
+  if(!a.startsWith(nrm((p[0][1]>1?TW[p[0][1]]:'')+EL[p[0][0]])))return{ok:false,h:'Kijk naar het eerste deel: het element dat links in de formule staat, met telwoord als er meer dan één atoom is.'};
+  return{ok:false,h:'Kijk naar het tweede deel: telwoord + stam + -ide.'};
 }
-function targetName(){return st.chain[st.chain.length-1].name}
-function tileHTML(t,cls=''){return `<span class="f">${fmt(t.formula)}</span><span class="n">${shy(t.name)}</span>`}
-function render(){
-  $('target').textContent=targetName();
-  $('chain').innerHTML=st.chain.map((t,i)=>`<div class="tile ${i===0?'start':''} ${t.id===st.lastNew?'new':''}">${tileHTML(t)}</div>`).join('');
-  const hand=$('hand');hand.innerHTML='';
-  st.hand.forEach(t=>{const b=document.createElement('button');b.className='tile';b.id='tile-'+t.id;b.innerHTML=tileHTML(t);
-    b.setAttribute('aria-label',`tegel ${t.formula}, met naam ${t.name}`);b.onclick=()=>pick(t,b);hand.appendChild(b)});
-  $('st-gelegd').textContent=st.chain.length;$('st-totaal').textContent=st.tiles.length;$('st-fouten').textContent=st.fouten;
-  const best=store('best-'+st.set);$('st-best').innerHTML=best?`Beste tijd ${st.set}: <b>${best}</b>`:'';
-}
-function clock(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
-function startClock(){if(st.t0)return;st.t0=Date.now();window._tick=setInterval(()=>{st.t=Math.round((Date.now()-st.t0)/1000);$('st-tijd').textContent=clock(st.t)},500)}
-function pick(t,el){
-  if(st.done)return;startClock();
-  const need=targetName();
-  const want=st.order.find(s=>s[1]===need)[0];
-  if(t.formula===want){
-    st.hand=st.hand.filter(x=>x.id!==t.id);st.chain.push(t);st.lastNew=t.id;
-    $('feedback').textContent='Goed: '+need+' is '+t.formula.replace(/\d+/g,d=>d.split('').map(c=>'₀₁₂₃₄₅₆₇₈₉'[c]).join(''))+'.';$('feedback').className='feedback ok';
-    if(st.hand.length===0)finish();else render();
-  }else{
-    st.fouten++;st.log.push([need,t.formula]);
-    $('st-fouten').textContent=st.fouten;
-    $('feedback').textContent='Niet goed. Kijk nog eens naar de telwoorden en het eerste element.';$('feedback').className='feedback no';
-    el.classList.remove('wrong');void el.offsetWidth;el.classList.add('wrong');
-  }
-}
-function finish(){
-  st.done=true;clearInterval(window._tick);st.t=Math.round((Date.now()-st.t0)/1000);$('st-tijd').textContent=clock(st.t);
-  render();$('hand-sec').hidden=true;$('task').hidden=true;$('feedback').textContent='';
-  const prev=store('best-'+st.set);let rec='';
-  const toSec=s=>{const[a,b]=s.split(':');return +a*60+ +b};
-  if(st.fouten===0&&(!prev||st.t<toSec(prev))){store('best-'+st.set,clock(st.t));rec=' Nieuwe beste tijd zonder fouten!'}
-  const sub=f=>fmt(f);
-  const errs=st.log.length?`<p class="hint">Hier ging het mis. Bekijk deze nog eens in je aantekeningen:</p><ul>${st.log.map(([n,f])=>`<li>bij <b>${n}</b> koos je ${sub(f)}; goed is ${sub(st.order.find(s=>s[1]===n)[0])}</li>`).join('')}</ul>`:'<p class="hint">Geen enkele fout. Probeer de andere set, of speel nog eens voor een snellere tijd.</p>';
-  $('done').innerHTML=`<h2>De ketting is rond!</h2><p>De laatste naam, <b>${targetName()}</b>, hoort bij de startformule ${sub(st.chain[0].formula)}. Tijd: <b>${clock(st.t)}</b> · fouten: <b>${st.fouten}</b>.${rec}</p>${errs}<div><button class="btn" id="again">Nog een keer (andere volgorde)</button></div>`;
-  $('done').hidden=false;$('again').onclick=()=>newGame(st.set);
+function oordeelFormule(ans,f){
+  const a=canonF(ans);if(a===f)return{ok:true};
+  if(f==='C2H6O'&&(a==='C2H5OH'||a==='CH3CH2OH'))return{ok:true,note:'Ook goed. In de les schrijven we C₂H₆O.'};
+  if(a.toLowerCase()===f.toLowerCase())return{ok:false,h:'Let op de hoofdletters: elk symbool begint met één hoofdletter. Co is kobalt, CO is koolstofmono-oxide.'};
+  if(isEl(f)&&a===parse(f)[0][0])return{ok:false,h:'Dit is een BrINClHOF-element. Hoe is de stof opgebouwd?'};
+  const p=parse(f);if(p.length===2&&a===p[1][0]+(p[1][1]>1?p[1][1]:'')+p[0][0]+(p[0][1]>1?p[0][1]:''))return{ok:false,h:'Het element dat als eerste in de naam staat, schrijf je ook als eerste in de formule.'};
+  return{ok:false,h:'Kijk naar de telwoorden: die worden de index achter het symbool. Geen telwoord bij het eerste element betekent één atoom.'};
 }
 
-// ---------- Opschrijven ----------
-let mode='domino', W={};
-const ALTF={C2H6O:['C2H5OH','CH3CH2OH']}, ALTN={alcohol:['ethanol']};
-const canonF=f=>f.replace(/\s+/g,'');
-const nrm=n=>n.toLowerCase().replace(/\s+/g,'');
-const variant=n=>nrm(n).replace(/-/g,'').replace(/monoxide/g,'monooxide').replace(/tetroxide/g,'tetraoxide').replace(/pentoxide/g,'pentaoxide')
-  .replace(/hexoxide/g,'hexaoxide').replace(/heptoxide/g,'heptaoxide').replace(/decoxide/g,'decaoxide');
-const isElement=f=>/^[A-Z][a-z]?2$/.test(f);
-const subChars=f=>f.replace(/\d/g,c=>'₀₁₂₃₄₅₆₇₈₉'[c]);
-function newWrite(){
-  const set=st.set||'basis';
-  const items=shuffle(SETS[set]).slice(0,12).map(([f,n])=>({f,n,dir:Math.random()<.5?'f':'n',tries:0,missed:false}));
-  W={set,queue:items,total:items.length,done:0,goed:0,missed:[],cur:null};
-  $('w-done').hidden=true;$('w-card').hidden=false;
-  nextItem();
+/* ============ WERKPLAATSEN ============ */
+const spiekTW=()=>`<table class="spiek"><tr><th>aantal</th><th>telwoord</th><th>aantal</th><th>telwoord</th></tr>${[1,2,3].map(i=>`<tr><td>${i}</td><td>${TW[i]}</td><td>${i+3}</td><td>${TW[i+3]}</td></tr>`).join('')}</table>`;
+const spiekIDE=()=>`<table class="spiek"><tr><th>element</th><th>in de naam</th></tr>${Object.keys(STAM).map(s=>`<tr><td>${EL[s]} (${s})</td><td>-${STAM[s]}</td></tr>`).join('')}</table>`;
+const spiekBR=()=>`<table class="spiek"><tr><th>element</th><th>stof</th><th>formule</th></tr>${BRINCLHOF.map(s=>`<tr><td>${s}</td><td>${naam(s+'2')}</td><td>${sub(s+'2')}</td></tr>`).join('')}</table>`;
+const spiekTRIV=()=>`<table class="spiek"><tr><th>naam</th><th>formule</th></tr>${Object.entries(TRIV).map(([f,n])=>`<tr><td>${n}${f==='C2H6O'?' (alcohol)':''}</td><td>${sub(f)}</td></tr>`).join('')}</table>`;
+
+const WP=[
+{id:'tw',k:'Telwoorden',t:'Telwoorden: hoeveel atomen?',
+ ld:'Je kunt bij een aantal atomen (1 tot en met 6) in een molecuul het juiste telwoord geven, en bij een telwoord het aantal atomen.',
+ uitleg:()=>`<p>Een systematische naam vertelt hoe een molecuul is opgebouwd. Een <b>telwoord</b> geeft aan hoeveel atomen van een atoomsoort in één molecuul zitten.</p>
+ <div class="kader">${spiekTW()}</div>
+ <p>In de <b>naam</b> staat het telwoord vóór de elementnaam (tri<i>oxide</i>). In de <b>formule</b> staat de index achter het symbool (O<sub>3</sub>). Een beetje zoals bij drieënzeventig: je zegt de drie eerst, maar schrijft hem achteraan.</p>
+ <p>Een index 1 schrijf je niet in de formule: in CO zit één koolstofatoom en één zuurstofatoom.</p>`,
+ vb:{v:`Welke telwoorden horen bij ${fm('N2O3')}?`,s:()=>['N heeft index 2: twee stikstofatomen. Telwoord: <b>di</b>.','O heeft index 3: drie zuurstofatomen. Telwoord: <b>tri</b>.']},
+ spiek:()=>spiekTW(),
+ opdr:[{naam:'SO₃',f:'SO3',steps:[{t:'tw'}]},{naam:'PCl₅',f:'PCl5',steps:[{t:'tw'}]},{naam:'N₂O₄',f:'N2O4',steps:[{t:'tw'}]},
+  {naam:'CS₂',f:'CS2',steps:[{t:'tw'}]},
+  {naam:'Van telwoord naar formule',ster:1,f:'PBr3',verborgen:1,intro:'Een molecuul is opgebouwd uit fosforatomen en broomatomen. In de naam staat bij fosfor geen telwoord en bij broom het telwoord tri.',steps:[{t:'form',v:'Geef de formule. Fosfor staat in de naam als eerste.'}]}]},
+{id:'naam',k:'De naam opbouwen',t:'De naam opbouwen',
+ ld:'Je kunt de systematische naam geven van een molecuulstof die is opgebouwd uit twee atoomsoorten.',
+ uitleg:()=>`<p>Een naam heeft twee delen. Je volgt de formule van links naar rechts.</p>
+ <div class="kader"><ol style="margin-bottom:0"><li><b>Eerste deel:</b> het element dat links in de formule staat, met telwoord. <b>Mono laat je hier weg.</b></li><li><b>Tweede deel:</b> telwoord + stam van het tweede element + <b>-ide</b>. Hier schrijf je mono <b>wél</b>.</li><li>Komen er twee o's naast elkaar (mono + oxide), dan zet je er een koppelteken tussen: <b>mono-oxide</b>.</li></ol></div>
+ <div class="kader">${spiekIDE()}</div>`,
+ vb:{v:`Geef de naam van ${fm('N2O')}.`,s:()=>['Eerste deel: twee stikstofatomen, dus <b>distikstof</b>.','Tweede deel: één zuurstofatoom, dus mono + oxide = <b>mono-oxide</b> (met koppelteken).','Naam: <b>distikstofmono-oxide</b>.']},
+ spiek:()=>spiekTW()+spiekIDE(),
+ opdr:[{naam:'CCl₄',f:'CCl4',steps:[{t:'deel2'},{t:'naam'}]},{naam:'NO',f:'NO',steps:[{t:'deel2'},{t:'naam'}]},
+  {naam:'P₂O₅',f:'P2O5',steps:[{t:'deel2'},{t:'naam'}]},{naam:'SiF₄',f:'SiF4',steps:[{t:'deel2'},{t:'naam'}]},
+  {naam:'ICl',f:'ICl',ster:1,steps:[{t:'naam'}]}]},
+{id:'br',k:'BrINClHOF',t:'De BrINClHOF-elementen',
+ ld:'Je kunt de zeven elementen noemen waarvan de stof is opgebouwd uit moleculen van twee atomen, en je kunt van die stoffen de naam en de formule geven.',
+ uitleg:()=>`<p>Van zeven elementen is de stof opgebouwd uit <b>moleculen van twee atomen</b>. Onthoud ze met <b>BrINClHOF</b>: Br, I, N, Cl, H, O, F.</p>
+ <div class="kader">${spiekBR()}</div>
+ ${CONV==='huidig'?'<p>Met de huidige namen heet de stof hetzelfde als het element: de stof zuurstof heeft de formule O<sub>2</sub>.</p>':'<p>Met de nieuwe namen krijgt ook deze stof een telwoord, net als andere molecuulstoffen: de stof met formule O<sub>2</sub> heet <b>dizuurstof</b>.</p>'}
+ <p>Een los symbool van een BrINClHOF-element, zoals O, staat voor één <b>atoom</b>. De stof schrijf je altijd met index 2.</p>`,
+ vb:{v:()=>`Geef de formule van de stof ${nm(naam('N2'))}.`,s:()=>['Stikstof (N) is een van de BrINClHOF-elementen.','De stof is opgebouwd uit moleculen van twee stikstofatomen.','Formule: <b>N<sub>2</sub></b>.']},
+ spiek:()=>spiekBR(),
+ opdr:[{naam:'Formule van een stof',f:'Cl2',verborgen:1,intro:()=>`Het gaat om de stof ${nm(naam('Cl2'))}.`,steps:[{t:'form',v:'Geef de formule.'}]},
+  {naam:'H₂',f:'H2',steps:[{t:'naam'}]},
+  {naam:'Welke elementen?',steps:[{t:'multi',v:'Van welke van deze elementen is de stof opgebouwd uit moleculen van twee atomen? Kies alle goede.',o:['Na','N','S','Cl','C','H','Fe','I','P','O'],a:[1,3,5,7,9]}]},
+  {naam:'Formule van een stof',f:'I2',verborgen:1,intro:()=>`Het gaat om de stof ${nm(naam('I2'))}.`,steps:[{t:'form',v:'Geef de formule.'}]},
+  {naam:'Atoom of stof?',ster:1,steps:[{t:'keuze',v:'Waar staat het losse symbool <b>Cl</b> voor?',o:['Voor een chlooratoom.',()=>`Voor de stof ${naam('Cl2')}.`,'Voor allebei.'],a:0},
+   {t:'keuze',v:'En waar staat het losse symbool <b>Fe</b> (ijzer) voor?',o:['Voor allebei: een ijzeratoom en de stof ijzer.','Alleen voor een ijzeratoom.','Alleen voor de stof ijzer.'],a:0}]}]},
+{id:'mix',k:'Formule en naam',t:'Van naam naar formule en terug',
+ ld:'Je kunt bij een systematische naam de formule geven en bij een formule de naam, ook door elkaar.',
+ uitleg:()=>`<p>Van <b>naam naar formule</b> werk je andersom:</p>
+ <div class="kader"><ol style="margin-bottom:0"><li>Schrijf de symbolen in dezelfde volgorde als in de naam.</li><li>Elk telwoord wordt de index achter het symbool.</li><li>Staat er bij het eerste element geen telwoord, dan is er één atoom: geen index.</li></ol></div>
+ <p>Let op de hoofdletters: elk symbool begint met één hoofdletter. Co is kobalt, CO is koolstofmono-oxide.</p>`,
+ vb:{v:'Geef de formule van <b>stikstoftrijodide</b>.',s:()=>['Volgorde: eerst stikstof (N), dan jood (I).','Bij stikstof staat geen telwoord: één atoom. Bij jodide staat tri: index 3.','Formule: <b>NI<sub>3</sub></b>.']},
+ spiek:()=>spiekTW()+spiekIDE()+spiekBR(),
+ opdr:[{naam:'Naam → formule',f:'CO',verborgen:1,intro:()=>`${nm(naam('CO'))}`,steps:[{t:'form',v:'Geef de formule.'}]},
+  {naam:'SO₂',f:'SO2',steps:[{t:'naam'}]},
+  {naam:'Naam → formule',f:'N2O5',verborgen:1,intro:()=>`${nm(naam('N2O5'))}`,steps:[{t:'form',v:'Geef de formule.'}]},
+  {naam:'PCl₃',f:'PCl3',steps:[{t:'naam'}]},
+  {naam:'Naam → formule',f:'SF6',verborgen:1,intro:()=>`${nm(naam('SF6'))}`,steps:[{t:'form',v:'Geef de formule.'}]},
+  {naam:'O₂',f:'O2',steps:[{t:'naam'}]},
+  {naam:'Cl₂O₇',f:'Cl2O7',ster:1,intro:'Hepta betekent zeven.',steps:[{t:'naam'}]}]},
+{id:'triv',k:'Triviale namen',t:'Triviale namen',
+ ld:'Je kent van zes stoffen de triviale naam en de formule: water, ammoniak, methaan, glucose, zwavelzuur en ethanol.',
+ uitleg:()=>`<p>Sommige stoffen hebben een <b>triviale naam</b>: een naam die niets zegt over de bouw van het molecuul. Die leer je uit je hoofd.</p>
+ <div class="kader">${spiekTRIV()}</div>
+ <p>Koolstofdioxide en zwaveldioxide ken je misschien ook uit het dagelijks leven, maar dat zijn gewoon systematische namen.</p>`,
+ vb:{v:'Geef de formule van <b>methaan</b>.',s:()=>['Methaan is een triviale naam: je kunt de formule niet uit de naam afleiden.','Uit je hoofd: <b>CH<sub>4</sub></b>.']},
+ spiek:()=>spiekTRIV(),
+ opdr:[{naam:'Naam → formule',f:'H2O',verborgen:1,intro:'<b>water</b>',steps:[{t:'form',v:'Geef de formule.'}]},
+  {naam:'NH₃',f:'NH3',steps:[{t:'naam'}]},
+  {naam:'Naam → formule',f:'C6H12O6',verborgen:1,intro:'<b>glucose</b>',steps:[{t:'form',v:'Geef de formule.'}]},
+  {naam:'H₂SO₄',f:'H2SO4',steps:[{t:'naam'}]},
+  {naam:'Naam → formule',f:'C2H6O',verborgen:1,intro:'<b>ethanol</b> (alcohol)',steps:[{t:'form',v:'Geef de formule.'}]},
+  {naam:'Systematisch of triviaal?',ster:1,steps:[{t:'multi',v:'Welke van deze namen zijn systematische namen? Kies alle goede.',o:['water','koolstofdioxide','ammoniak','zwaveldioxide','methaan','zwavelzuur'],a:[1,3]}]}]},
+{id:'zout',k:'Zouten',alleen:'nieuw',t:'Zouten met telwoorden',
+ ld:'Je kunt met de nieuwe naamgeving de naam geven van een zout dat is opgebouwd uit twee atoomsoorten, en bij zo’n naam de formule.',
+ uitleg:()=>`<p>Een zout is opgebouwd uit ionen van een metaal en een niet-metaal. Met de nieuwe naamgeving krijgen ook zouten telwoorden. Ze geven de verhouding uit de formule.</p>
+ <div class="kader"><ol style="margin-bottom:0"><li>Eerst het metaal, met telwoord als de index groter is dan 1.</li><li>Dan het niet-metaal: telwoord + stam + -ide.</li><li><b>Bij zouten schrijf je nooit mono</b>, ook niet bij het tweede deel: NaCl heet natriumchloride.</li></ol></div>`,
+ vb:{v:`Geef de naam van ${fm('MgCl2')}.`,s:()=>['Eerste deel: één magnesium: <b>magnesium</b>.','Tweede deel: index 2 bij Cl: di + chloride = <b>dichloride</b>.','Naam: <b>magnesiumdichloride</b>.']},
+ spiek:()=>spiekTW()+spiekIDE(),
+ opdr:[{naam:'NaCl',f:'NaCl',steps:[{t:'naam'}]},{naam:'CaCl₂',f:'CaCl2',steps:[{t:'naam'}]},{naam:'K₂O',f:'K2O',steps:[{t:'naam'}]},
+  {naam:'Naam → formule',f:'AlCl3',verborgen:1,intro:()=>nm(naam('AlCl3')),steps:[{t:'form',v:'Geef de formule.'}]},
+  {naam:'Al₂S₃',f:'Al2S3',ster:1,steps:[{t:'naam'}]}]},
+{id:'domino',k:'Naamdomino',t:'Naamdomino',spel:1}
+];
+const SETS={
+ basis:{k:'Basis',f:['SO2','CO','N2O','Cl2','PCl5','CO2','SO3','N2','CCl4','NO2','O2','N2O4','CS2','Br2','P2O5','I2','H2','F2']},
+ uitdaging:{k:'Uitdaging',f:['Cl2O7','P4O10','N2O5','N2O3','NO','N2O','NO2','SiF4','SF6','PCl3','CF4','NI3','S2Cl2','IF7','Br2','F2']},
+ triviaal:{k:'Triviaal',f:['H2O','NH3','CH4','C6H12O6','H2SO4','C2H6O','CO2','SO2']},
+ zouten:{k:'Zouten',alleen:'nieuw',f:['NaCl','CaCl2','K2O','AlCl3','Al2O3','MgO','MgCl2','Na2S','LiF','CaBr2','KI','Al2S3']}
+};
+
+/* ============ STATE ============ */
+const KEY='naamdomino-v2';let S={wp:'tw',tab:'uitleg',opd:{},steps:{},prog:{},conv:'huidig',best:{}};
+try{const t=JSON.parse(localStorage.getItem(KEY));if(t&&t.prog)S=Object.assign(S,t)}catch(e){}
+CONV=S.conv;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let T={};const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const vis=()=>WP.filter(w=>!w.alleen||w.alleen===CONV);
+const W=()=>WP.find(w=>w.id===S.wp)||WP[0];
+const oi=()=>Math.min(S.opd[S.wp]||0,W().opdr.length-1);const O=()=>W().opdr[oi()];const key=()=>S.wp+'-'+oi();
+const val=x=>typeof x==='function'?x():x;
+
+/* ============ RENDER ============ */
+function render(){
+  if(!vis().includes(W()))S.wp='tw';
+  $('#c-huidig').className=CONV==='huidig'?'on':'';$('#c-nieuw').className=CONV==='nieuw'?'on':'';
+  $('#convuitleg').innerHTML=(CONV==='huidig'?'Huidige namen: ':'Nieuwe namen: ')+(CONV==='huidig'?'O<sub>2</sub> = zuurstof · CaCl<sub>2</sub> = calciumchloride':'O<sub>2</sub> = dizuurstof · CaCl<sub>2</sub> = calciumdichloride');
+  $('#nav').innerHTML=vis().map((w,i)=>{if(w.spel){const b=S.best[CONV+'-basis'];return `<a data-a="wp" data-v="${w.id}" class="${S.wp===w.id?'on':''}"><i>★</i><span>${w.k}<small>${b?'beste tijd basis '+b:'spel: leg de ketting'}</small></span></a>`}
+    const d=w.opdr.filter((_,j)=>S.prog[w.id+'-'+j]).length;return `<a data-a="wp" data-v="${w.id}" class="${S.wp===w.id?'on':''} ${d===w.opdr.length?'klaar':''}"><i>${d===w.opdr.length?'✓':i+1}</i><span>${w.k}<small>${d} van ${w.opdr.length} opdrachten</small></span></a>`}).join('');
+  const w=W();
+  if(w.spel){domino();return}
+  const done=w.opdr.filter((_,j)=>S.prog[w.id+'-'+j]).length;const nr=vis().indexOf(w)+1;
+  let t=`<div class="kicker">Werkplaats ${nr} · 3V</div><h2>${w.t}</h2><div class="tabs"><button data-a="tab" data-v="uitleg" class="${S.tab==='uitleg'?'on':''}">Uitleg en voorbeeld</button><button data-a="tab" data-v="opdr" class="${S.tab==='opdr'?'on':''}">Opdrachten<span class="tel">${done}/${w.opdr.length}</span></button></div>`;
+  let sim='';
+  if(S.tab==='uitleg'){
+    t+=`<div class="ld"><b>Leerdoel</b>${w.ld}</div>`+w.uitleg()+`<div class="vb"><div class="vbkop">Voorbeeld</div><div class="vbvraag">${val(w.vb.v)}</div>${w.vb.s().map((x,i)=>`<div class="vbstap"><div class="n">${i+1}</div><div class="b">${x}</div></div>`).join('')}</div><button class="btn" data-a="tab" data-v="opdr">Naar de opdrachten</button>`;
+    sim=`<div class="simkop"><b>Spiekkaart</b></div>${w.spiek()}`;
+  } else {const r=opdr();t+=r.t;sim=r.sim}
+  $('#main').innerHTML=`<div class="wp"><div class="tekst">${t}</div><div class="simkol">${sim}</div></div>`;
+  const inp=$('#f-in');if(inp){const pv=()=>{$('#f-pv').innerHTML=inp.value.trim()?'= '+sub(canonF(inp.value)):''};inp.addEventListener('input',pv);pv()}
 }
-function nextItem(){
-  W.cur=W.queue.shift();
-  if(!W.cur){finishWrite();return}
-  W.cur.tries=0;
-  $('w-vraag').textContent=W.cur.dir==='f'?'Geef de formule van':'Geef de naam van';
-  $('w-prompt').innerHTML=W.cur.dir==='f'?W.cur.n:fmt(W.cur.f);
-  $('w-input').value='';$('w-preview').innerHTML='';$('w-input').disabled=false;$('w-check').disabled=false;
-  $('w-input').placeholder=W.cur.dir==='f'?'bijvoorbeeld SO2':'bijvoorbeeld zwaveldioxide';
-  $('w-fb').innerHTML='';$('w-fb').className='feedback';$('w-next').hidden=true;
-  $('w-nr').textContent=W.queue.length+1;$('w-goed').textContent=W.goed;
-  try{$('w-input').focus({preventScroll:true})}catch(e){}
+function telling(f){
+  return `<div class="telling">${parse(f).map(([e,n])=>`<div class="r"><b>${e}</b>${Array(n).fill(`<span class="bol" style="background:${KLEUR[e]}"></span>`).join('')}<span class="w">${n} ${n===1?'atoom':'atomen'}</span></div>`).join('')}</div>`;
 }
-function judge(ans){
-  const it=W.cur;
-  if(it.dir==='f'){
-    const a=canonF(ans);
-    if(a===it.f)return{ok:true};
-    if((ALTF[it.f]||[]).includes(a))return{ok:true,note:'Ook goed. In het boek schrijven ze '+subChars(it.f)+'.'};
-    if(a.toLowerCase()===it.f.toLowerCase())return{ok:false,hint:'Let op de hoofdletters: elk elementsymbool begint met één hoofdletter. Bijvoorbeeld: Co is kobalt, CO is koolstofmono-oxide.'};
-    if(isElement(it.f)&&a===it.f.replace('2',''))return{ok:false,hint:'Dit is een van de zeven BrINClHOF-elementen. Hoe komen die voor?'};
-    return{ok:false,hint:'Kijk naar de telwoorden: die geven het aantal atomen van elk element.'};
-  }else{
-    const a=nrm(ans);
-    if(a===nrm(it.n))return{ok:true};
-    if((ALTN[it.n]||[]).includes(a))return{ok:true,note:'Klopt. In het boek heet deze stof '+it.n+'.'};
-    if(variant(ans)===variant(it.n))return{ok:true,note:'Let op: in de methode schrijf je '+it.n+'.'};
-    if(isElement(it.f)&&(a==='di'+nrm(it.n)))return{ok:false,hint:'Bij een element noem je alleen de naam van het element, zonder telwoord.'};
-    if(/oxide|chloride|fluoride|sulfide|jodide/.test(a)&&!/(oxide|chloride|fluoride|sulfide|jodide)$/.test(a))return{ok:false,hint:'Het laatste deel van de naam eindigt op -ide.'};
-    return{ok:false,hint:'Eerst het eerste element (met telwoord, behalve mono), dan het tweede element met telwoord en -ide.'};
+function opdr(){
+  const w=W(),o=O(),k=key(),nDone=S.steps[k]||0;
+  let t=`<div class="oknop">${w.opdr.map((x,i)=>`<div class="dot ${i===oi()?'on':''} ${S.prog[w.id+'-'+i]?'goed':''} ${x.ster?'ster':''}" data-a="opd" data-v="${i}">${i+1}</div>`).join('')}<span class="rechts">${o.ster?'★ uitdaging':''}</span></div>
+  <div class="opdkop">Opdracht ${oi()+1} ${o.ster?'<span class="st">★</span>':''}</div>`;
+  if(S.prog[k])t+=`<div class="klaarbanner">Deze opdracht is af.</div>`;
+  const kop=o.f&&!o.verborgen?`<div class="groot">${sub(o.f)}</div>`:'';
+  const intro=o.intro?`<div style="${o.verborgen?'font-family:var(--serif);font-size:20px':(kop?'margin-top:6px':'')}">${val(o.intro)}</div>`:'';
+  t+=`<div class="kader proces">${kop}${intro}${!kop&&!intro?esc(o.naam):''}</div>`;
+  t+=o.steps.map((s,i)=>stap(s,i,nDone,o,k)).join('');
+  const toon=o.f&&(!o.verborgen||S.prog[k]);
+  let sim=`<div class="simkop"><b>${toon?'Atomen geteld':'Hulp'}</b><span>${toon?sub(o.f):''}</span></div>`;
+  if(toon)sim+=telling(o.f)+`<div class="legenda">Elke bol is één atoom in één ${isZout(o.f)?'formule-eenheid (de verhouding in het zout)':'molecuul'}. De bolletjes laten alleen het aantal zien, niet hoe de atomen aan elkaar vastzitten.</div>`;
+  if(S.prog[k]&&o.f)sim+=`<div class="kader"><div class="groot">${sub(o.f)}</div><div style="font-size:18px">${naam(o.f)}${o.f==='C2H6O'?' (alcohol)':''}</div></div>`;
+  sim+=`<details class="sp"><summary>Spiekkaart</summary>${w.spiek()}</details><div class="legenda">Probeer het eerst zonder spiekkaart: zo onthoud je het beter.</div>`;
+  return {t,sim};
+}
+function stap(s,i,nDone,o,k){
+  const st=i<nDone?'goed':i===nDone?'':'dicht';const tk=k+'-'+i;const cur=T[tk]||{};
+  const p=o.f?parse(o.f):[];
+  const title=s.t==='tw'?'Kies bij elk element het telwoord.':s.t==='deel2'?'Geef het tweede deel van de naam.':s.t==='naam'?'Geef de naam.':val(s.v);
+  let h=`<div class="stap ${st}"><div class="n">${i+1}</div><div class="inh"><div class="vr">${title}</div>`;
+  if(i<nDone){
+    if(s.t==='tw')h+=`<div class="fb goed">${p.map(([e,n])=>`${e}: ${n} ${n===1?'atoom':'atomen'} → ${TW[n]}`).join(' · ')}</div>`;
+    if(s.t==='deel2')h+=`<div class="fb goed">${deel2(o.f)}</div>`;
+    if(s.t==='naam')h+=`<div class="fb goed">${naam(o.f)}${cur.note?' · '+cur.note:''}</div>`;
+    if(s.t==='form')h+=`<div class="fb goed">${sub(o.f)}${cur.note?' · '+cur.note:''}</div>`;
+    if(s.t==='keuze')h+=`<div class="fb goed">${val(s.o[s.a])}</div>`;
+    if(s.t==='multi')h+=`<div class="fb goed">${s.a.map(j=>s.o[j]).join(', ')}</div>`;
+    return h+'</div></div>';
   }
+  h+='<div class="inv">';
+  if(s.t==='tw')h+=`<div class="twrij">${p.map(([e,n],j)=>`<span class="formule">${e}</span><span class="legenda">index ${n===1?'(geen) = 1':n}</span><select class="sel" id="tw-${j}"><option value="">telwoord…</option>${TW.slice(1,7).map(x=>`<option ${cur['t'+j]===x?'selected':''}>${x}</option>`).join('')}</select>`).join('')}</div><button class="btn" data-a="check" data-i="${i}">Controleer</button>`;
+  if(s.t==='deel2'||s.t==='naam')h+=`<div class="rij"><input class="in" id="n-in" style="width:300px" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${s.t==='deel2'?'bijvoorbeeld trioxide':'typ de naam'}" value="${esc(cur.txt||'')}"><button class="btn" data-a="check" data-i="${i}">Controleer</button></div>`;
+  if(s.t==='form')h+=`<div class="rij"><input class="in" id="f-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="bijvoorbeeld SO2" value="${esc(cur.txt||'')}"><button class="btn" data-a="check" data-i="${i}">Controleer</button></div><div class="preview" id="f-pv"></div><div class="legenda">Typ de index als gewoon cijfer: SO2 wordt SO<sub>2</sub>.</div>`;
+  if(s.t==='keuze')h+=`<div class="opties">${s.o.map((x,j)=>`<button class="optie ${cur.v===j?'aan':''}" data-a="kies" data-i="${i}" data-v="${j}">${val(x)}</button>`).join('')}</div><button class="btn" data-a="check" data-i="${i}">Controleer</button>`;
+  if(s.t==='multi')h+=`<div class="chips">${s.o.map((x,j)=>`<span class="chip ${(cur.sel||[]).includes(j)?'aan':''}" data-a="chip" data-i="${i}" data-v="${j}">${x}</span>`).join('')}</div><button class="btn" data-a="check" data-i="${i}">Controleer</button>`;
+  if(cur.tries>=2&&(s.t==='naam'||s.t==='form'||s.t==='deel2'))h+=`<div class="model"><b>Het goede antwoord</b>${s.t==='form'?sub(o.f):s.t==='deel2'?deel2(o.f):naam(o.f)}. Typ het over en kijk waar het verschil zat.</div>`;
+  h+='</div>';if(cur.fb)h+=`<div class="fb ${cur.fb[0]}">${cur.fb[1]}</div>`;
+  return h+'</div></div>';
 }
-function checkWrite(ev){
-  ev.preventDefault();
-  const ans=$('w-input').value.trim(); if(!ans)return;
-  const it=W.cur; it.tries++;
-  const r=judge(ans);
-  const answer=it.dir==='f'?fmt(it.f):it.n;
-  if(r.ok){
-    if(it.tries===1&&!it.missed)W.goed++;
-    W.done++;
-    $('w-fb').innerHTML='Goed!'+(r.note?'<span class="note">'+r.note+'</span>':'');$('w-fb').className='feedback ok';
-    endItem();
-  }else if(it.tries<2){
-    $('w-fb').innerHTML='Nog niet goed.<span class="note">'+r.hint+' Probeer het nog een keer.</span>';$('w-fb').className='feedback no';
-    $('w-input').select();
-  }else{
-    $('w-fb').innerHTML='Het goede antwoord is: '+answer+'<span class="note">Deze komt straks nog een keer terug.</span>';$('w-fb').className='feedback no';
-    if(!it.missed)W.missed.push(it);
-    it.missed=true; W.queue.splice(Math.min(3,W.queue.length),0,it);
-    endItem();
+function check(i){
+  const o=O(),k=key(),s=o.steps[i],tk=k+'-'+i,cur=T[tk]=T[tk]||{};let r={ok:false,h:'Nog niet goed.'};
+  if(s.t==='tw'){const p=parse(o.f);const bad=[];p.forEach(([e,n],j)=>{const v=$('#tw-'+j).value;cur['t'+j]=v;if(v!==TW[n])bad.push(e)});
+    if(p.some((_,j)=>!cur['t'+j])){cur.fb=['hint','Kies bij elk element een telwoord.'];render();return}
+    r=bad.length?{ok:false,h:`Nog niet goed bij ${bad.join(' en ')}. Tel de atomen: de index staat achter het symbool, en geen index betekent één atoom.`}:{ok:true}}
+  if(s.t==='deel2'||s.t==='naam'){const v=$('#n-in').value;cur.txt=v;if(!v.trim()){cur.fb=['hint','Typ eerst een antwoord.'];render();return}
+    if(s.t==='naam')r=oordeelNaam(v,o.f);
+    else{const g=deel2(o.f);r=nrm(v)===nrm(g)?{ok:true}:variant(v)===variant(g)?{ok:true,note:'Let op de schrijfwijze: '+g+'.'}:
+      nrm(v)===nrm(g.replace(/^mono-?/,''))?{ok:false,h:'Bij het tweede element schrijf je mono wél.'}:!/ide$/.test(nrm(v))?{ok:false,h:'Het tweede deel eindigt op -ide.'}:{ok:false,h:'Telwoord + stam + -ide. Kijk naar de index van het tweede element.'}}}
+  if(s.t==='form'){const v=$('#f-in').value;cur.txt=v;if(!v.trim()){cur.fb=['hint','Typ eerst een formule.'];render();return}r=oordeelFormule(v,o.f)}
+  if(s.t==='keuze'){if(cur.v==null){cur.fb=['hint','Kies eerst een antwoord.'];render();return}r=cur.v===s.a?{ok:true}:{ok:false,h:'Nog niet goed. Lees de uitleg over atomen en stoffen nog eens.'}}
+  if(s.t==='multi'){const sel=(cur.sel||[]).slice().sort();if(!sel.length){cur.fb=['hint','Kies minstens één antwoord.'];render();return}
+    const mis=s.a.filter(j=>!sel.includes(j)).length,teveel=sel.filter(j=>!s.a.includes(j)).length;
+    r=!mis&&!teveel?{ok:true}:{ok:false,h:`Nog niet goed: ${teveel?teveel+' gekozen '+(teveel===1?'antwoord is':'antwoorden zijn')+' fout':''}${teveel&&mis?' en ':''}${mis?'je mist er nog '+mis:''}.`}}
+  if(r.ok){cur.fb=null;cur.note=r.note;S.steps[k]=i+1;if(i+1>=o.steps.length)S.prog[k]=true;save()}
+  else{cur.tries=(cur.tries||0)+1;cur.fb=['fout',r.h]}
+  render();
+  const nx=$('#n-in')||$('#f-in');if(nx&&!r.ok)try{nx.focus();nx.select()}catch(e){}
+}
+
+/* ============ DOMINO ============ */
+let D=null;
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const shy=n=>n.replace(/(mono|di|tri|tetra|penta|hexa|hepta|deca)(?=[a-z])/g,'$1­').replace(/(koolstof|stikstof|zwavel|fosfor|chloor|silicium|jood|broom|fluor|natrium|calcium|kalium|magnesium|aluminium|lithium)(?=[a-z])/g,'$1­');
+const clock=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+function nieuwSpel(set){
+  set=set||(D&&D.set)||'basis';if(SETS[set].alleen&&SETS[set].alleen!==CONV)set='basis';
+  const order=shuffle(SETS[set].f);const tiles=order.map((f,i)=>({id:i,f,n:naam(order[(i+1)%order.length])}));
+  clearInterval(window._tick);
+  D={set,conv:CONV,order,tiles,chain:[tiles[0]],hand:shuffle(tiles.slice(1)),fouten:0,log:[],t0:null,t:0,klaar:false,laatst:null,fb:null};
+}
+function tileHTML(x){return `<span class="f"><span>${sub(x.f)}</span></span><span class="n">${shy(x.n)}</span>`}
+function domino(){
+  if(!D||D.conv!==CONV)nieuwSpel();
+  const doel=D.chain[D.chain.length-1].n;const best=S.best[CONV+'-'+D.set];
+  let t=`<div class="kicker">Spel · 3V</div><h2>Naamdomino</h2>
+  <p>Elke tegel heeft links een formule en rechts een naam. De naam op de laatste tegel van de ketting hoort bij een formule op een tegel in je hand. Leg die tegel aan, tot de ketting rond is. Fouten tellen mee, en de klok loopt vanaf je eerste tegel.</p>
+  <div class="dset">${Object.entries(SETS).filter(([_,v])=>!v.alleen||v.alleen===CONV).map(([k,v])=>`<button class="btn ${D.set===k?'':'g'} klein" data-a="set" data-v="${k}">${v.k}</button>`).join('')}<button class="btn g klein" data-a="set" data-v="${D.set}">Opnieuw schudden</button></div>
+  <div class="dstats"><span>Gelegd: <b>${D.chain.length}/${D.tiles.length}</b></span><span>Fouten: <b>${D.fouten}</b></span><span>Tijd: <b id="d-tijd">${clock(D.t)}</b></span>${best?`<span>Beste tijd zonder fouten: <b>${best}</b></span>`:''}</div>`;
+  if(!D.klaar){
+    t+=`<div class="dtaak"><div class="l">Zoek de formule van</div><div class="nm">${doel}</div></div>`;
+    if(D.fb)t+=`<div class="fb ${D.fb[0]}">${D.fb[1]}</div>`;
+    t+=`<div class="opdkop" style="margin-top:12px">Jouw tegels</div><div class="hand">${D.hand.map(x=>`<button class="tile" id="tile-${x.id}" data-a="leg" data-v="${x.id}" aria-label="tegel ${x.f}, naam ${x.n}">${tileHTML(x)}</button>`).join('')}</div>`;
+  } else {
+    t+=`<div class="klaarbanner"><b>De ketting is rond!</b> De laatste naam, <b>${doel}</b>, hoort bij de startformule ${sub(D.chain[0].f)}. Tijd: <b>${clock(D.t)}</b> · fouten: <b>${D.fouten}</b>.${D.rec?' Nieuwe beste tijd zonder fouten!':''}</div>`;
+    t+=D.log.length?`<p>Hier ging het mis. Bekijk deze nog eens:</p><ul>${D.log.map(([n,f])=>`<li>bij <b>${n}</b> koos je ${sub(f)}; goed is ${sub(D.order.find(g=>naam(g)===n))}</li>`).join('')}</ul>`:'<p>Geen enkele fout. Probeer een andere set, of speel nog eens voor een snellere tijd.</p>';
+    t+=`<button class="btn" data-a="set" data-v="${D.set}">Nog een keer</button>`;
   }
-  $('w-goed').textContent=W.goed;
+  const sim=`<div class="simkop"><b>De ketting</b><span>${SETS[D.set].k}</span></div><div class="ketting">${D.chain.map((x,i)=>`<div class="tile ${i===0?'start':''} ${x.id===D.laatst?'nieuw':''}">${tileHTML(x)}</div>`).join('')}</div>`;
+  $('#main').innerHTML=`<div class="wp"><div class="tekst">${t}</div><div class="simkol">${sim}</div></div>`;
 }
-function endItem(){$('w-input').disabled=true;$('w-check').disabled=true;$('w-next').hidden=false;try{$('w-next').focus()}catch(e){}}
-function finishWrite(){
-  $('w-card').hidden=true;
-  const list=W.missed.length?'<p class="hint">Deze gingen nog niet in één keer goed. Zoek ze op in je aantekeningen:</p><ul>'+W.missed.map(it=>'<li>'+fmt(it.f)+' = '+it.n+'</li>').join('')+'</ul>':'<p class="hint">Alles in één keer goed. Probeer de set Uitdaging.</p>';
-  $('w-done').innerHTML='<h2>Ronde klaar</h2><p>Eerste keer goed: <b>'+W.goed+' van de '+W.total+'</b>.</p>'+list+'<div><button class="btn" id="w-again">Nieuwe ronde</button></div>';
-  $('w-done').hidden=false;$('w-again').onclick=newWrite;
+function leg(id){
+  if(D.klaar)return;
+  if(!D.t0){D.t0=Date.now();window._tick=setInterval(()=>{D.t=Math.round((Date.now()-D.t0)/1000);const e=$('#d-tijd');if(e)e.textContent=clock(D.t)},500)}
+  const x=D.hand.find(h=>h.id===id);const doel=D.chain[D.chain.length-1].n;const want=D.order.find(f=>naam(f)===doel);
+  if(x.f===want){D.hand=D.hand.filter(h=>h.id!==id);D.chain.push(x);D.laatst=id;D.fb=['goed',`Goed: ${doel} is ${sub(want)}.`];
+    if(!D.hand.length){D.klaar=true;clearInterval(window._tick);D.t=Math.round((Date.now()-D.t0)/1000);
+      const prev=S.best[CONV+'-'+D.set];const sec=s=>{const[a,b]=s.split(':');return +a*60+ +b};
+      if(D.fouten===0&&(!prev||D.t<sec(prev))){S.best[CONV+'-'+D.set]=clock(D.t);D.rec=true;save()}}
+    render()}
+  else{D.fouten++;D.log.push([doel,x.f]);D.fb=['fout','Niet goed. Kijk nog eens naar de telwoorden en het eerste element.'];render();
+    const el=$('#tile-'+id);if(el)el.classList.add('fout')}
 }
-$('w-form').addEventListener('submit',checkWrite);
-$('w-next').onclick=nextItem;
-$('w-input').addEventListener('input',()=>{const v=$('w-input').value;$('w-preview').innerHTML=(W.cur&&W.cur.dir==='f'&&v.trim())?'= '+fmt(canonF(v)):''});
-function setMode(m){
-  mode=m;$('mode-domino').setAttribute('aria-pressed',m==='domino');$('mode-schrijf').setAttribute('aria-pressed',m==='schrijf');
-  $('domino').hidden=m!=='domino';$('schrijf').hidden=m!=='schrijf';
-  $('sub-domino').hidden=m!=='domino';$('sub-schrijf').hidden=m!=='schrijf';
-  if(m==='schrijf')newWrite();
+
+document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el)return;const a=el.dataset.a,v=el.dataset.v;
+  switch(a){
+    case 'wp':S.wp=v;S.tab='uitleg';T={};save();window.scrollTo(0,0);break;
+    case 'tab':S.tab=v;save();window.scrollTo(0,0);break;
+    case 'opd':S.opd[S.wp]=+v;T={};save();break;
+    case 'conv':CONV=S.conv=v;T={};save();break;
+    case 'beamer':document.body.classList.toggle('beamer');return;
+    case 'wis':if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Zeker weten? Klik nogmaals';return}S.prog={};S.steps={};S.best={};T={};save();el.dataset.c='';el.textContent='Voortgang wissen';break;
+    case 'kies':{const tk=key()+'-'+el.dataset.i;T[tk]=T[tk]||{};T[tk].v=+v;T[tk].fb=null;break}
+    case 'chip':{const tk=key()+'-'+el.dataset.i;T[tk]=T[tk]||{};const s=T[tk].sel=T[tk].sel||[];const j=+v;T[tk].sel=s.includes(j)?s.filter(x=>x!==j):[...s,j];T[tk].fb=null;break}
+    case 'check':check(+el.dataset.i);return;
+    case 'set':nieuwSpel(v);break;
+    case 'leg':leg(+v);return;
+    default:return}
+  render()});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.target.id==='n-in'||e.target.id==='f-in')){const b=e.target.parentNode.querySelector('[data-a=check]');if(b)b.click()}});
+render();
+window.__nd={WP,SETS,S:()=>S,naam,deel2,check,render,oordeelNaam,oordeelFormule,setConv:c=>{CONV=S.conv=c},D:()=>D,leg,nieuwSpel};
 }
-$('mode-domino').onclick=()=>setMode('domino');$('mode-schrijf').onclick=()=>setMode('schrijf');
-$('set-basis').onclick=()=>{newGame('basis');if(mode==='schrijf')newWrite()};$('set-uitdaging').onclick=()=>{newGame('uitdaging');if(mode==='schrijf')newWrite()};$('set-triviaal').onclick=()=>{newGame('triviaal');if(mode==='schrijf')newWrite()};$('nieuw').onclick=()=>{newGame(st.set);if(mode==='schrijf')newWrite()};
-newGame('basis');
 </script>
 </body>
 </html>
