@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Chemisch Rekenen — Mol als spil</title>
+<style>
+    :root {
+        --bg: #eef2f6;
+        --card-bg: #ffffff;
+        --border: #dbe3ea;
+        --text: #1f2a37;
+        --text-muted: #64748b;
+        --accent: #1c6fae;
+        --accent-dark: #14507d;
+        --accent-soft: #e5f1fa;
+        --success: #2f9e57;
+        --success-soft: #e5f6ea;
+        --danger: #c94b4b;
+        --danger-soft: #fbe9e7;
+        --warn-soft: #fff6e0;
+        --radius: 10px;
+        --shadow: 0 1px 3px rgba(15,35,55,0.08), 0 4px 14px rgba(15,35,55,0.05);
+    }
+    * { box-sizing: border-box; }
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+        padding: 28px; background: var(--bg); color: var(--text); line-height: 1.45;
+    }
+    h2 {
+        margin: 0 0 16px 0; font-size: 20px; font-weight: 700; color: var(--text);
+        padding-left: 12px; border-left: 4px solid var(--accent);
+    }
+    h4 { margin: 18px 0 8px 0; font-size: 13.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .box-wide { border: 1px solid var(--border); padding: 24px; border-radius: var(--radius); max-width: 780px; background: var(--card-bg); box-shadow: var(--shadow); margin: 0 auto; }
+    input[type="text"] {
+        padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px;
+        font-size: 14px; background: #fff; color: var(--text); min-width: 160px;
+    }
+    input[type="text"]:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    select {
+        padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px;
+        background: #fff; color: var(--text); font-size: 13.5px;
+    }
+    button {
+        padding: 8px 16px; border: none; border-radius: 7px; background: var(--accent);
+        color: #fff; font-size: 13.5px; font-weight: 600; cursor: pointer;
+        transition: background 0.15s ease, transform 0.05s ease; margin-right: 8px;
+    }
+    button:hover { filter: brightness(0.92); }
+    button:active { transform: translateY(1px); }
+    .module-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px;
+        background: var(--accent-soft); padding: 14px 16px; border-radius: 8px;
+    }
+    .module-grid label { font-size: 13.5px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .module-actions { margin-top: 10px; }
+    .module-actions button { background: #8b95a1; padding: 5px 12px; font-size: 12px; }
+    .niveau-row { margin: 8px 0 4px 0; }
+    .start-btn { margin-top: 18px; font-size: 14.5px; padding: 10px 22px; }
+    .score-line {
+        display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted);
+        font-weight: 600; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    }
+    #rekVraag { font-size: 16px; font-weight: 600; margin: 6px 0 16px 0; line-height: 1.5; }
+    .antwoord-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .actie-row { margin-bottom: 12px; }
+    .frac { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 3px; line-height: 1.25; }
+    .frac > span:first-child { border-bottom: 1px solid currentColor; padding: 0 3px; }
+    .frac > span:last-child { padding: 0 3px; }
+    .stapregel { margin: 6px 0; }
+    .gegeven { margin-top: 6px; color: var(--text-muted); font-size: 13.5px; }
+    .opmerking { color: #a15c00; font-size: 13.5px; margin-top: 4px; }
+    #rekFeedback { font-size: 14.5px; font-weight: 600; min-height: 22px; }
+    .secundair { background: #8b95a1; }
+    .niveau-badge {
+        display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 11.5px;
+        font-weight: 700; background: var(--accent-soft); color: var(--accent-dark); margin-left: 8px;
+    }
+</style>
+<style id="huisstijl">
+:root{--hs-acc:#1F5FBF;--hs-acc-d:#174a96;--hs-soft:#E8F0FC;--hs-given:#F3F7FD;--hs-ok:#1A7F37;--hs-ok-soft:#E4F4E8;
+--hs-err:#C62828;--hs-err-soft:#FDECEC;--hs-key:#FFF0A0;--hs-muted:#595959;--hs-line:#D5DCE8;--hs-bg:#F6F8FB;--hs-card:#fff;
+--hs-text:#1d2330;--hs-font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+html,body{background:var(--hs-bg)!important;color:var(--hs-text)}
+body{font-family:var(--hs-font)!important}
+.hs-header{display:block!important;background:var(--hs-acc)!important;color:#fff;margin-bottom:18px;padding:0!important;border:none!important;border-radius:0!important}
+.hs-header .hs-wrap{max-width:var(--hs-max,1100px);margin:0 auto;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hs-header h1{margin:0!important;padding:0!important;font-size:1.5rem!important;font-weight:650!important;color:#fff!important;text-align:left!important;letter-spacing:.2px;font-family:var(--hs-font)!important}
+.hs-header h1{flex:1 1 auto}
+.hs-header button{flex:0 0 auto;width:auto!important;margin:0!important;box-shadow:none!important;font-weight:500!important;font-family:var(--hs-font)!important;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px!important;border:1.5px solid #fff!important;background:transparent!important;color:#fff!important}
+.hs-header button:hover{background:rgba(255,255,255,.15)}
+body.hs-beamer>*:not(.hs-header):not(.hs-own):not(script):not(.hs-nozoom){zoom:1.3}
+.hs-own{background:var(--hs-acc)!important;color:#fff!important;border:none!important}
+.hs-own h1{color:#fff!important;font-family:var(--hs-font)!important}
+.hs-own .sub,.hs-own .subtitle{color:rgba(255,255,255,.85)!important}
+.hs-own>button:last-child{font:inherit;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px;border:1.5px solid #fff;background:transparent;color:#fff;margin-left:auto;flex:0 0 auto}
+.hs-own>button:last-child:hover{background:rgba(255,255,255,.15)}
+
+:root{--hs-max:812px;--bg:#F6F8FB;--border:#D5DCE8;--text:#1d2330;--text-muted:#595959;--accent:#1F5FBF;--accent-dark:#174a96;--accent-soft:#E8F0FC;--success:#1A7F37;--success-soft:#E4F4E8;--danger:#C62828;--danger-soft:#FDECEC}
+</style>
+</head>
+<body>
+
+<div class="box-wide">
+<h2>Chemisch rekenen: vrij oefenen</h2><p style="margin:-6px 0 12px"><a href="Chemisch_Rekenen.html">← terug naar de werkplaatsen</a></p>
+
+<div id="setupPanel">
+    <h4>Onderwerpen</h4>
+    <div class="module-grid">
+        <label><input type="checkbox" class="modChk" value="massaMol" checked onchange="bijwerkMaxStappen()"> Molmassa</label>
+        <label><input type="checkbox" class="modChk" value="molairVolume" checked onchange="bijwerkMaxStappen()"> Molair volume (gas)</label>
+        <label><input type="checkbox" class="modChk" value="dichtheid" checked onchange="bijwerkMaxStappen()"> Dichtheid</label>
+        <label><input type="checkbox" class="modChk" value="concentratie" checked onchange="bijwerkMaxStappen()"> Concentratie (mol/L, g/L)</label>
+        <label><input type="checkbox" class="modChk" value="molverhouding" checked onchange="bijwerkMaxStappen()"> Molverhouding (reactievergelijking)</label>
+        <label style="grid-column: 1 / -1; padding-left:18px;"><input type="checkbox" id="terugrekenenChk" checked> ↳ Ook terugrekenen (vanuit gewenst product de benodigde reactant berekenen)</label>
+        <label><input type="checkbox" class="modChk" value="rendement" checked onchange="bijwerkMaxStappen()"> Rendement</label>
+        <label><input type="checkbox" class="modChk" value="massaPercentage" checked onchange="bijwerkMaxStappen()"> Massapercentage / ppm / ppb</label>
+        <label><input type="checkbox" class="modChk" value="volumePercentage" checked onchange="bijwerkMaxStappen()"> Volumepercentage / ppm / ppb</label>
+        <label><input type="checkbox" class="modChk" value="samenstelling" checked onchange="bijwerkMaxStappen()"> Samenstelling van een stof (massa% element, atoomverhouding)</label>
+        <label><input type="checkbox" class="modChk" value="voorvoegsels" checked onchange="bijwerkMaxStappen()"> Voorvoegsels (kilo, milli, micro, nano, ...)</label>
+        <label><input type="checkbox" class="modChk" value="machtenVanTien" checked onchange="bijwerkMaxStappen()"> Machten van 10 / wetenschappelijke notatie</label>
+    </div>
+    <div class="module-actions">
+        <button onclick="setAlleModules(true)">Alles aan</button>
+        <button onclick="setAlleModules(false)">Alles uit</button>
+    </div>
+
+    <h4>Gegevens in de vraag</h4>
+    <div class="module-grid">
+        <label><input type="checkbox" id="molmassaGevenChk"> Molmassa's staan erbij (anders zelf uitrekenen)</label>
+        <label><input type="checkbox" id="vmGevenChk" checked> Vm staat erbij (anders opzoeken in Binas)</label>
+    </div>
+
+    <h4>Aantal rekenstappen</h4>
+    <p style="color:var(--text-muted); font-size:13.5px; margin:0 0 8px 0;">
+        Het maximale aantal rekenstappen dat je kunt kiezen wordt bepaald door het aantal onderwerpen dat je hebt geselecteerd.
+    </p>
+    <div class="niveau-row">
+        Minimaal:
+        <select id="minStappenSelect" onchange="bijwerkMaxStappen()">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+        </select>
+        Maximaal:
+        <select id="maxStappenSelect">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4" selected>4</option>
+        </select>
+    </div>
+
+    <button class="start-btn" onclick="startSessie()">Start oefenen</button>
+</div>
+
+<div id="oefenPanel" style="display:none">
+    <div class="score-line">
+        <span>Score: <span id="scoreWeergave">0</span> punten</span>
+        <span>Vraag <span id="vraagTeller">0</span><span class="niveau-badge" id="niveauBadge"></span></span>
+    </div>
+    <p id="rekVraag"></p>
+    <p id="rekGegeven" class="gegeven"></p>
+    <div class="antwoord-row">
+        <input type="text" id="rekAntwoord" placeholder="bijv. 0,254 of 2,54·10^-3" onkeydown="if(event.key==='Enter') controleerRekAntwoord();">
+        <span id="rekEenheid" style="color:var(--text-muted); font-size:13.5px;"></span>
+    </div>
+    <div class="actie-row">
+        <button onclick="controleerRekAntwoord()">Controleer</button>
+        <button class="secundair" onclick="toonRekAntwoord()">Toon antwoord</button>
+        <button class="secundair" onclick="terugNaarSetup()">Andere instellingen</button>
+    </div>
+    <p id="rekFeedback"></p>
+    <p id="rekOpmerking" class="opmerking"></p>
+    <p id="stappenUitleg" style="font-size:13px; color:var(--text-muted); margin:0 0 4px 0;"></p>
+    <div class="actie-row" id="stappenKnoppenRij"></div>
+    <div id="stappenWeergave" style="font-size:13.5px; color:var(--text); line-height:1.7;"></div>
+    <div class="actie-row">
+        <button id="volgendeVraagBtn" style="display:none;" onclick="nieuweRekVraag()">Volgende vraag →</button>
+    </div>
+</div>
+
+</div>
+
+<script>
+/* ===================================================================
+   ATOOMMASSA'S EN FORMULE-PARSER
+   Ondersteunt haakjes (Al2(SO4)3) en hydraten (CuSO4.5H2O of CuSO4·5H2O).
+   =================================================================== */
+
+const ATOMIC_MASS = {
+    H:1.008, He:4.00, Li:6.94, C:12.01, N:14.01, O:16.00, F:19.00, Ne:20.18,
+    Na:22.99, Mg:24.31, Al:26.98, Si:28.09, P:30.97, S:32.07, Cl:35.45, Ar:39.95,
+    K:39.10, Ca:40.08, Cr:52.00, Mn:54.94, Fe:55.85, Ni:58.69, Cu:63.55, Zn:65.38,
+    Br:79.90, Ag:107.87, Sn:118.71, I:126.90, Ba:137.33, Pb:207.2, Hg:200.59
+};
+
+function fmt(v) { return String(Number(Number(v).toPrecision(4))); }
+
+function parseSimpleFormula(formula) {
+    let i = 0;
+    function parseGroup() {
+        let comp = {};
+        while (i < formula.length) {
+            if (formula[i] === '(') {
+                i++;
+                const inner = parseGroup();
+                if (formula[i] === ')') i++;
+                let numStr = '';
+                while (i < formula.length && /[0-9]/.test(formula[i])) { numStr += formula[i]; i++; }
+                const mult = numStr ? parseInt(numStr) : 1;
+                for (const el in inner) comp[el] = (comp[el] || 0) + inner[el] * mult;
+            } else if (formula[i] === ')') {
+                break;
+            } else if (/[A-Z]/.test(formula[i])) {
+                let sym = formula[i]; i++;
+                while (i < formula.length && /[a-z]/.test(formula[i])) { sym += formula[i]; i++; }
+                let numStr = '';
+                while (i < formula.length && /[0-9]/.test(formula[i])) { numStr += formula[i]; i++; }
+                const count = numStr ? parseInt(numStr) : 1;
+                comp[sym] = (comp[sym] || 0) + count;
+            } else {
+                i++;
+            }
+        }
+        return comp;
+    }
+    return parseGroup();
+}
+
+function parseFormula(formula) {
+    let total = {};
+    formula.split(/[·.]/).forEach((part, idx) => {
+        let mult = 1, rest = part;
+        if (idx > 0) {
+            const m = part.match(/^(\d+)/);
+            if (m) { mult = parseInt(m[1]); rest = part.slice(m[0].length); }
+        }
+        const comp = parseSimpleFormula(rest);
+        for (const el in comp) total[el] = (total[el] || 0) + comp[el] * mult;
+    });
+    return total;
+}
+
+function molarMass(formula) {
+    const comp = parseFormula(formula.replace(/\d*[+-]$/, ''));
+    let mass = 0;
+    for (const el in comp) mass += (ATOMIC_MASS[el] || 0) * comp[el];
+    return mass;
+}
+
+/* ===================================================================
+   HULPFUNCTIES
+   =================================================================== */
+
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function randChoice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function roundSig(num, decimals) { const f = Math.pow(10, decimals); return Math.round(num * f) / f; }
+
+// randInt, maar herkanst zolang de uitkomst in 'verboden' zit. Gebruikt om te voorkomen dat een
+// rekenparameter (volume, concentratie, mol, massa) toevallig op exact 1 uitkomt: delen of
+// vermenigvuldigen door 1 verhult de rekenstap in plaats van hem te oefenen.
+function randIntSkip(min, max, verboden) {
+    let v;
+    do { v = randInt(min, max); } while (verboden.includes(v));
+    return v;
+}
+// randChoice, maar filtert eerst triviale waarden (bijv. 1) uit de array — met terugval op de
+// volledige array als filteren niets zou overlaten.
+function randChoiceSkip(arr, verboden) {
+    const gefilterd = arr.filter(v => !verboden.includes(v));
+    return randChoice(gefilterd.length ? gefilterd : arr);
+}
+
+// Bouwt één regel van een stapsgewijze uitleg: omschrijving + tussenwaarde + eenheid.
+// Willekeurig gegeven met precies `sig` significante cijfers (standaard 3), zonder
+// volgnul in een heel getal (dus nooit "120" of "5"): zo is altijd ondubbelzinnig
+// hoeveel significante cijfers een gegeven heeft.
+function gv(lo, hi, sig = 3) {
+    for (let p = 0; p < 200; p++) {
+        let v = lo + Math.random() * (hi - lo);
+        v = Number(v.toPrecision(sig));
+        if (v < lo || v > hi) continue;
+        if (Number.isInteger(v) && /0$/.test(String(v))) continue;
+        if (sigfigsOf(v) !== sig) continue;
+        return v;
+    }
+    return Number((lo + (hi - lo) / 3).toPrecision(sig));
+}
+
+function stap(omschrijving, waarde, eenheid) {
+    return { omschrijving, waarde, eenheid };
+}
+
+// --- Significante cijfers ---
+// Rondt het EINDANTWOORD af op het aantal significante cijfers van de minst nauwkeurige
+// gegeven waarde (molmassa/Vm/reactiecoëfficiënten tellen niet mee — dat zijn referentiegegevens,
+// geen gemeten grootheden). Rendementspercentages tellen als 2 significante cijfers.
+function sigfigsOf(num) {
+    if (num === 0) return 1;
+    const s = Math.abs(num).toString();
+    if (s.indexOf('e') >= 0) {
+        const mantissa = s.split('e')[0].replace('.', '').replace(/^0+/, '');
+        return mantissa.length || 1;
+    }
+    if (s.indexOf('.') >= 0) {
+        const [heel, decimaal] = s.split('.');
+        const heelStripped = heel.replace(/^0+/, '');
+        if (heelStripped === '' || heelStripped === '0') {
+            return decimaal.replace(/^0+/, '').length || 1;
+        }
+        return (heelStripped + decimaal).length;
+    }
+    // Heel getal zonder decimaalteken: dit zijn door de tool gegenereerde
+    // oefenwaarden, geen dubbelzinnig gerapporteerde meetdata — dus ALLE cijfers
+    // tellen als significant (geen "volgnullen zijn onzeker"-uitzondering).
+    return s.replace(/^0+/, '').length || 1;
+}
+
+function rondAfSig(getal, sig) {
+    if (getal === 0) return 0;
+    const teken = getal < 0 ? -1 : 1;
+    getal = Math.abs(getal);
+    const mag = Math.floor(Math.log10(getal));
+    const factor = Math.pow(10, sig - 1 - mag);
+    return teken * Math.round(getal * factor) / factor;
+}
+
+// Een rendement (bijv. 85%) telt als 2 significante cijfers.
+function minSig(...vals) { return Math.min(...vals.map(v => (typeof v === 'object' ? v.sig : sigfigsOf(v)))); }
+const RENDEMENT_SIGFIGS = { sig: 2 };
+
+/* ===================================================================
+   CHEMIE-DATA VOOR VRAAGGENERATIE
+   =================================================================== */
+
+const COMPOUNDS = [
+    { naam: 'keukenzout', formule: 'NaCl' },
+    { naam: 'calciumcarbonaat (kalksteen)', formule: 'CaCO3' },
+    { naam: 'glucose', formule: 'C6H12O6' },
+    { naam: 'magnesiumoxide', formule: 'MgO' },
+    { naam: 'ijzer(III)oxide (roest)', formule: 'Fe2O3' },
+    { naam: 'calciumhydroxide (gebluste kalk)', formule: 'Ca(OH)2' },
+    { naam: 'aluminiumsulfaat', formule: 'Al2(SO4)3' },
+    { naam: 'gehydrateerd kopersulfaat', formule: 'CuSO4.5H2O' },
+    { naam: 'ammoniumsulfaat (kunstmest)', formule: '(NH4)2SO4' },
+    { naam: 'magnesiumfosfaat', formule: 'Mg3(PO4)2' }
+];
+const COMPOUNDS_BASIS = COMPOUNDS.slice(0, 5);
+
+// Stoffen die daadwerkelijk goed oplossen in water — gebruikt voor concentratie-/
+// oplossingsvragen. CaCO3, MgO, Fe2O3, Ca(OH)2 en Mg3(PO4)2 staan bewust NIET in deze
+// lijst: die zijn (vrijwel) onoplosbaar, dus "los X g CaCO3 op tot een oplossing" is
+// scheikundig onzin.
+const OPLOSBARE_STOFFEN = [
+    { naam: 'keukenzout', formule: 'NaCl' },
+    { naam: 'glucose', formule: 'C6H12O6' },
+    { naam: 'aluminiumsulfaat', formule: 'Al2(SO4)3' },
+    { naam: 'gehydrateerd kopersulfaat', formule: 'CuSO4.5H2O' },
+    { naam: 'ammoniumsulfaat (kunstmest)', formule: '(NH4)2SO4' }
+];
+
+const GASSEN = [
+    { naam: 'zuurstofgas', formule: 'O2' },
+    { naam: 'koolstofdioxide', formule: 'CO2' },
+    { naam: 'stikstofgas', formule: 'N2' },
+    { naam: 'waterstofgas', formule: 'H2' },
+    { naam: 'methaan', formule: 'CH4' },
+    { naam: 'propaan', formule: 'C3H8' }
+];
+
+// Stoffen met een (indicatieve) dichtheid, voor de dichtheid-module en voor
+// ketens die massa/volume via dichtheid combineren met molmassa.
+const DICHTHEID_STOFFEN = [
+    { naam: 'water', formule: 'H2O', dichtheid: 1.00, dT: '1.00' },
+    { naam: 'ethanol', formule: 'C2H6O', dichtheid: 0.789, dT: '0.789' },
+    { naam: 'natriumchloride (vast)', formule: 'NaCl', dichtheid: 2.16, dT: '2.16' },
+    { naam: 'ijzer (vast)', formule: 'Fe', dichtheid: 7.87, dT: '7.87' },
+    { naam: 'aluminium (vast)', formule: 'Al', dichtheid: 2.70, dT: '2.70' },
+    { naam: 'kwik', formule: 'Hg', dichtheid: 13.6, dT: '13.6' }
+];
+
+const REACTIES = [
+    { tekst: 'N2 + 3 H2 → 2 NH3', stoffen: [
+        {formule:'N2',coef:1,kant:'reactant'},{formule:'H2',coef:3,kant:'reactant'},{formule:'NH3',coef:2,kant:'product'}
+    ]},
+    { tekst: 'CH4 + 2 O2 → CO2 + 2 H2O', stoffen: [
+        {formule:'CH4',coef:1,kant:'reactant'},{formule:'O2',coef:2,kant:'reactant'},{formule:'CO2',coef:1,kant:'product'},{formule:'H2O',coef:2,kant:'product'}
+    ]},
+    { tekst: 'CaCO3 → CaO + CO2', stoffen: [
+        {formule:'CaCO3',coef:1,kant:'reactant'},{formule:'CaO',coef:1,kant:'product'},{formule:'CO2',coef:1,kant:'product'}
+    ]},
+    { tekst: '2 Mg + O2 → 2 MgO', stoffen: [
+        {formule:'Mg',coef:2,kant:'reactant'},{formule:'O2',coef:1,kant:'reactant'},{formule:'MgO',coef:2,kant:'product'}
+    ]},
+    { tekst: 'C3H8 + 5 O2 → 3 CO2 + 4 H2O', stoffen: [
+        {formule:'C3H8',coef:1,kant:'reactant'},{formule:'O2',coef:5,kant:'reactant'},{formule:'CO2',coef:3,kant:'product'},{formule:'H2O',coef:4,kant:'product'}
+    ]},
+    { tekst: '2 Al + 3 Cl2 → 2 AlCl3', stoffen: [
+        {formule:'Al',coef:2,kant:'reactant'},{formule:'Cl2',coef:3,kant:'reactant'},{formule:'AlCl3',coef:2,kant:'product'}
+    ]},
+    { tekst: 'Fe2O3 + 3 CO → 2 Fe + 3 CO2', stoffen: [
+        {formule:'Fe2O3',coef:1,kant:'reactant'},{formule:'CO',coef:3,kant:'reactant'},{formule:'Fe',coef:2,kant:'product'},{formule:'CO2',coef:3,kant:'product'}
+    ]},
+    // Reacties in oplossing (neerslagreacties) — alleen deze worden gebruikt voor vragen
+    // die concentratie met molverhouding combineren, en alleen daar.
+    { tekst: 'Ag+ + Cl- → AgCl', oplossingGeschikt: true, stoffen: [
+        {formule:'Ag+',coef:1,kant:'reactant'},{formule:'Cl-',coef:1,kant:'reactant'},{formule:'AgCl',coef:1,kant:'product'}
+    ]},
+    { tekst: 'Pb2+ + 2 I- → PbI2', oplossingGeschikt: true, stoffen: [
+        {formule:'Pb2+',coef:1,kant:'reactant'},{formule:'I-',coef:2,kant:'reactant'},{formule:'PbI2',coef:1,kant:'product'}
+    ]}
+];
+
+// Welke stoffen uit de reacties zijn gassen (nodig om molair-volume-stappen geldig te houden),
+// en namen voor stoffen die niet al in COMPOUNDS/GASSEN staan.
+const GAS_FORMULAS = new Set(['N2', 'H2', 'NH3', 'CH4', 'O2', 'CO2', 'C3H8', 'Cl2', 'CO']);
+const EXTRA_NAMEN = {
+    CaO: 'calciumoxide', Mg: 'magnesium', MgO: 'magnesiumoxide', Al: 'aluminium', Cl2: 'chloorgas',
+    AlCl3: 'aluminiumchloride', CO: 'koolstofmonoxide', Fe: 'ijzer', H2O: 'water', NH3: 'ammoniak',
+    'Ag+': 'zilverionen', 'Cl-': 'chloride-ionen', AgCl: 'zilverchloride',
+    'Pb2+': 'lood(II)ionen', 'I-': 'jodide-ionen', PbI2: 'lood(II)jodide'
+};
+function naamVoor(formule) {
+    const c = COMPOUNDS.find(x => x.formule === formule) || GASSEN.find(x => x.formule === formule);
+    if (c) return c.naam;
+    return EXTRA_NAMEN[formule] || formule;
+}
+
+// Alle mogelijke (stof A, stof B)-paren binnen elke reactie, gebruikt om ketenvragen met
+// molverhouding op te bouwen (elk paar bevat de reactie zelf + de coëfficiënten van A en B).
+function alleStofParen() {
+    const lijst = [];
+    REACTIES.forEach(r => {
+        r.stoffen.forEach(s1 => {
+            r.stoffen.forEach(s2 => {
+                if (s1.formule !== s2.formule) lijst.push({ reactie: r, a: s1, b: s2 });
+            });
+        });
+    });
+    return lijst;
+}
+const ALLE_STOF_PAREN = alleStofParen();
+function opl(fn) { fn.oplossing = true; return fn; }
+function kiesStofPaar(filterFn) {
+    // Stof A is altijd de reactant die "reageert" in de vraagtekst — nooit een product,
+    // anders zou de vraag suggereren dat je een reactieproduct laat "reageren".
+    // Reacties in oplossing (ionen) alleen bij concentratievragen: die filteren daar zelf op.
+    const kandidaten = ALLE_STOF_PAREN.filter(p => p.a.kant === 'reactant' && filterFn(p) &&
+        (p.reactie.oplossingGeschikt !== true || filterFn.oplossing === true));
+    return kandidaten.length ? randChoice(kandidaten) : null;
+}
+
+/* ===================================================================
+   VRAAGGENERATOREN — één per onderwerp, elk met een niveau-parameter (1-5)
+   Elke generator geeft terug: { prompt, answer, unit }
+   =================================================================== */
+
+function genMassaMol(level) {
+    const pool = level >= 3 ? COMPOUNDS : COMPOUNDS_BASIS;
+    const c = randChoice(pool);
+    const M = molarMass(c.formule);
+    if (Math.random() < 0.5) {
+        const n = level <= 2 ? randChoice([0.25, 0.75, 1.5, 2.5, 7.5]) : gv(0.1, 4.0);
+        const m = n * M;
+        return {
+            prompt: `Je hebt ${n} mol ${c.naam} (${c.formule}, M = ${M.toFixed(2)} g/mol). Bereken de massa.`,
+            exact: m, sig: minSig(n), answer: rondAfSig(m, minSig(n)), unit: 'g',
+            stappen: [ stap(`massa = mol × molmassa = ${n} mol × ${M.toFixed(2)} g/mol`, m, 'g') ]
+        };
+    } else {
+        const m = level <= 2 ? randChoice([12, 25, 48, 75]) : gv(15, 300);
+        const n = m / M;
+        return {
+            prompt: `Je hebt ${m} g ${c.naam} (${c.formule}, M = ${M.toFixed(2)} g/mol). Bereken het aantal mol.`,
+            exact: n, sig: minSig(m), answer: rondAfSig(n, minSig(m)), unit: 'mol',
+            stappen: [ stap(`mol = massa / molmassa = ${m} g / ${M.toFixed(2)} g/mol`, n, 'mol') ]
+        };
+    }
+}
+
+function genMolairVolume(level) {
+    const g = randChoice(GASSEN);
+    const vm = kiesVm(), cond = vmConditie(vm);
+    if (Math.random() < 0.5) {
+        const n = level <= 2 ? randChoice([0.25, 1.5, 2.5, 7.5]) : gv(0.1, 5.0);
+        const V = n * vm;
+        return {
+            prompt: `Bereken het volume van ${n} mol ${g.naam} (${g.formule}) bij ${cond} (Vm = ${vm} L/mol).`,
+            exact: V, sig: minSig(n), answer: rondAfSig(V, minSig(n)), unit: 'L',
+            stappen: [ stap(`volume = mol × Vm = ${n} mol × ${vm} L/mol`, V, 'L') ]
+        };
+    } else {
+        const V = level <= 2 ? randChoice([1.5, 2.5, 5.6, 12]) : gv(0.5, 20.0);
+        const n = V / vm;
+        return {
+            prompt: `Je hebt ${V} L ${g.naam} (${g.formule}) bij ${cond} (Vm = ${vm} L/mol). Bereken het aantal mol.`,
+            exact: n, sig: minSig(V), answer: rondAfSig(n, minSig(V)), unit: 'mol',
+            stappen: [ stap(`mol = volume / Vm = ${V} L / ${vm} L/mol`, n, 'mol') ]
+        };
+    }
+}
+
+function genConcentratie(level) {
+    const c = randChoice(OPLOSBARE_STOFFEN);
+    const M = molarMass(c.formule);
+    const V = level <= 2 ? randChoice([0.15, 0.25, 0.75, 1.5, 2.5]) : gv(0.1, 3.0);
+    const mode = randChoice(['nV_naar_c', 'mV_naar_c', 'cV_naar_n', 'cV_naar_m']);
+    if (mode === 'nV_naar_c') {
+        const n = level <= 2 ? randChoice([0.15, 0.25, 0.45, 0.75]) : gv(0.05, 2.0);
+        const cVal = n / V;
+        return {
+            prompt: `Je lost ${n} mol ${c.naam} (${c.formule}) op tot ${V} L oplossing. Bereken de concentratie (mol/L).`,
+            exact: cVal, sig: minSig(n, V), answer: rondAfSig(cVal, minSig(n, V)), unit: 'mol/L',
+            stappen: [ stap(`concentratie = mol / volume = ${n} mol / ${V} L`, cVal, 'mol/L') ]
+        };
+    } else if (mode === 'mV_naar_c') {
+        const m = level <= 2 ? randChoice([15, 25, 45, 75]) : gv(5, 200);
+        const cVal = m / V;
+        return {
+            prompt: `Je lost ${m} g ${c.naam} (${c.formule}) op tot ${V} L oplossing. Bereken de concentratie (g/L).`,
+            exact: cVal, sig: minSig(m, V), answer: rondAfSig(cVal, minSig(m, V)), unit: 'g/L',
+            stappen: [ stap(`concentratie = massa / volume = ${m} g / ${V} L`, cVal, 'g/L') ]
+        };
+    } else if (mode === 'cV_naar_n') {
+        const cVal = level <= 2 ? randChoice([0.15, 0.25, 0.75, 1.5]) : gv(0.05, 3.0);
+        const n = cVal * V;
+        return {
+            prompt: `Je hebt ${V} L oplossing met concentratie ${cVal} mol/L ${c.naam} (${c.formule}). Bereken het aantal mol.`,
+            exact: n, sig: minSig(cVal, V), answer: rondAfSig(n, minSig(cVal, V)), unit: 'mol',
+            stappen: [ stap(`mol = concentratie × volume = ${cVal} mol/L × ${V} L`, n, 'mol') ]
+        };
+    } else {
+        const cVal = level <= 2 ? randChoice([15, 25, 45]) : gv(5, 100);
+        const m = cVal * V;
+        return {
+            prompt: `Je hebt ${V} L oplossing met concentratie ${cVal} g/L ${c.naam} (${c.formule}). Bereken de massa opgeloste stof.`,
+            exact: m, sig: minSig(cVal, V), answer: rondAfSig(m, minSig(cVal, V)), unit: 'g',
+            stappen: [ stap(`massa = concentratie × volume = ${cVal} g/L × ${V} L`, m, 'g') ]
+        };
+    }
+}
+
+function genMolverhouding(level) {
+    const r = randChoice(REACTIES.filter(x => !x.oplossingGeschikt));
+    const reactantIdxen = r.stoffen.map((s, i) => s.kant === 'reactant' ? i : -1).filter(i => i >= 0);
+    const idxA = randChoice(reactantIdxen); // A is altijd de reactant die "reageert"
+    let idxB = randInt(0, r.stoffen.length - 1);
+    while (idxB === idxA) idxB = randInt(0, r.stoffen.length - 1);
+    const a = r.stoffen[idxA], b = r.stoffen[idxB];
+    const terug = terugrekenenAan && b.kant === 'product' && Math.random() < 0.5;
+    if (!terug) {
+        const nGiven = level <= 2 ? randChoice([1.5, 2.5, 3.5, 0.75]) : gv(0.1, 4.0);
+        const nAsk = nGiven * (b.coef / a.coef);
+        return {
+            prompt: `Reactie: ${r.tekst}. Je hebt ${nGiven} mol ${a.formule}. ${b.kant === 'product' ? `Hoeveel mol ${b.formule} kan hieruit maximaal ontstaan?` : `Hoeveel mol ${b.formule} kan hiermee reageren?`}`,
+            exact: nAsk, sig: minSig(nGiven), answer: rondAfSig(nAsk, minSig(nGiven)), unit: 'mol',
+            stappen: [ stap(`mol ${b.formule} = mol ${a.formule} × (coëfficiënt ${b.formule} / coëfficiënt ${a.formule}) = ${nGiven} mol × (${b.coef}/${a.coef})`, nAsk, 'mol') ]
+        };
+    }
+    // terugrekenen: gegeven een gewenste hoeveelheid van B, bereken hoeveel A (reactant) nodig is
+    const nBGewenst = level <= 2 ? randChoice([1.5, 2.5, 3.5, 0.75]) : gv(0.1, 4.0);
+    const nANodig = nBGewenst * (a.coef / b.coef);
+    return {
+        prompt: `Reactie: ${r.tekst}. Je wilt ${nBGewenst} mol ${b.formule} maken. Hoeveel mol ${a.formule} heb je hiervoor minimaal nodig?`,
+        exact: nANodig, sig: minSig(nBGewenst), answer: rondAfSig(nANodig, minSig(nBGewenst)), unit: 'mol',
+        stappen: [ stap(`mol ${a.formule} nodig = mol ${b.formule} × (coëfficiënt ${a.formule} / coëfficiënt ${b.formule}) = ${nBGewenst} mol × (${a.coef}/${b.coef})`, nANodig, 'mol') ]
+    };
+}
+
+
+function genMassaPercentage(level) {
+    const totaal = randInt(50, 1000);
+    const askUnit = level <= 2 ? '%' : randChoice(['%', 'ppm', 'ppb']);
+    if (askUnit === '%') {
+        const pct = randInt(5, 60);
+        const deel = roundSig(totaal * pct / 100, 2);
+        const antwoord = deel / totaal * 100;
+        return {
+            prompt: `Een mengsel van ${totaal} g bevat ${deel} g van stof X. Bereken het massapercentage van stof X.`,
+            exact: antwoord, sig: minSig(deel, totaal), answer: rondAfSig(antwoord, minSig(deel, totaal)), unit: '%',
+            stappen: [ stap(`massapercentage = (deel / totaal) × 100% = (${deel} / ${totaal}) × 100%`, antwoord, '%') ]
+        };
+    } else if (askUnit === 'ppm') {
+        const ppm = randChoice([5, 10, 25, 50, 100, 250, 500]);
+        const deelMg = roundSig(ppm * totaal / 1000, 3);
+        return {
+            prompt: `Een mengsel van ${totaal} g bevat ${deelMg} mg van spoorstof X. Bereken de concentratie van stof X in ppm (1 ppm = 1 mg per kg mengsel).`,
+            answer: ppm, unit: 'ppm',
+            stappen: [ stap(`ppm = (massa spoorstof in mg × 1000) / massa mengsel in g = (${deelMg} × 1000) / ${totaal}`, ppm, 'ppm') ]
+        };
+    } else {
+        const ppb = randChoice([50, 100, 250, 500, 1000]);
+        const deelUg = roundSig(ppb * totaal / 1000, 3);
+        return {
+            prompt: `Een mengsel van ${totaal} g bevat ${deelUg} µg van spoorstof X. Bereken de concentratie van stof X in ppb (1 ppb = 1 µg per kg mengsel).`,
+            answer: ppb, unit: 'ppb',
+            stappen: [ stap(`ppb = (massa spoorstof in µg × 1000) / massa mengsel in g = (${deelUg} × 1000) / ${totaal}`, ppb, 'ppb') ]
+        };
+    }
+}
+
+function genVolumePercentage(level) {
+    const totaal = randInt(50, 1000);
+    const askUnit = level <= 2 ? '%' : randChoice(['%', 'ppm', 'ppb']);
+    if (askUnit === '%') {
+        const pct = randInt(5, 60);
+        const deel = roundSig(totaal * pct / 100, 2);
+        const antwoord = deel / totaal * 100;
+        return {
+            prompt: `Een mengsel van ${totaal} mL bevat ${deel} mL van stof X. Bereken het volumepercentage van stof X.`,
+            exact: antwoord, sig: minSig(deel, totaal), answer: rondAfSig(antwoord, minSig(deel, totaal)), unit: '%',
+            stappen: [ stap(`volumepercentage = (deel / totaal) × 100% = (${deel} / ${totaal}) × 100%`, antwoord, '%') ]
+        };
+    } else if (askUnit === 'ppm') {
+        const ppm = randChoice([5, 10, 25, 50, 100, 250, 500]);
+        const deelUl = roundSig(ppm * totaal / 1000, 3);
+        return {
+            prompt: `Een mengsel van ${totaal} mL bevat ${deelUl} µL van spoorstof X. Bereken de concentratie van stof X in ppm (1 ppm = 1 µL per liter mengsel).`,
+            answer: ppm, unit: 'ppm',
+            stappen: [ stap(`ppm = (volume spoorstof in µL × 1000) / volume mengsel in mL = (${deelUl} × 1000) / ${totaal}`, ppm, 'ppm') ]
+        };
+    } else {
+        const ppb = randChoice([50, 100, 250, 500, 1000]);
+        const deelNl = roundSig(ppb * totaal / 1000, 3);
+        return {
+            prompt: `Een mengsel van ${totaal} mL bevat ${deelNl} nL van spoorstof X. Bereken de concentratie van stof X in ppb (1 ppb = 1 nL per liter mengsel).`,
+            answer: ppb, unit: 'ppb',
+            stappen: [ stap(`ppb = (volume spoorstof in nL × 1000) / volume mengsel in mL = (${deelNl} × 1000) / ${totaal}`, ppb, 'ppb') ]
+        };
+    }
+}
+
+function genElementPercentage(level) {
+    const pool = level >= 3 ? COMPOUNDS : COMPOUNDS_BASIS;
+    const c = randChoice(pool);
+    const comp = parseFormula(c.formule);
+    const elementen = Object.keys(comp);
+    const el = randChoice(elementen);
+    const M = molarMass(c.formule);
+    const massaEl = comp[el] * ATOMIC_MASS[el];
+    const pct = massaEl / M * 100;
+    return {
+        prompt: `Bereken het massapercentage ${el} in ${c.naam} (${c.formule}).`,
+        answer: roundSig(pct, 1), exact: pct, unit: '%',
+        stappen: [ stap(`massapercentage ${el} = (aantal ${el}-atomen × atoommassa ${el}) / molmassa × 100% = (${comp[el]} × ${ATOMIC_MASS[el]}) / ${M.toFixed(2)} × 100%`, pct, '%') ]
+    };
+}
+
+function genMolRatio(level) {
+    const c = randChoice(COMPOUNDS);
+    const comp = parseFormula(c.formule);
+    const elementen = Object.keys(comp);
+    if (elementen.length < 2) return genElementPercentage(level);
+    const elA = randChoice(elementen);
+    let elB = randChoice(elementen);
+    while (elB === elA) elB = randChoice(elementen);
+    const ratio = comp[elA] / comp[elB];
+    return {
+        prompt: `In ${c.naam} (${c.formule}): hoeveel mol ${elA}-atomen zitten er per mol ${elB}-atomen?`,
+        answer: roundSig(ratio, 3), unit: `mol ${elA} per mol ${elB}`,
+        stappen: [ stap(`verhouding = aantal ${elA}-atomen / aantal ${elB}-atomen = ${comp[elA]} / ${comp[elB]}`, ratio, `mol ${elA} per mol ${elB}`) ]
+    };
+}
+
+function genSamenstelling(level) {
+    return Math.random() < 0.5 ? genElementPercentage(level) : genMolRatio(level);
+}
+
+// Voorkomt dat JS automatisch naar wetenschappelijke weergave omschakelt bij hele
+// kleine/grote getallen, zodat de vraagtekst altijd een gewoon decimaal getal toont.
+function formatPlain(num) {
+    if (Math.abs(num) < 1e-6 || Math.abs(num) >= 1e15) return num.toString();
+    let s = num.toFixed(10);
+    if (s.indexOf('.') >= 0) s = s.replace(/0+$/, '').replace(/\.$/, '');
+    return s;
+}
+
+const VOORVOEGSELS = [
+    { symbool: 'k', factor: 1e3 },
+    { symbool: '', factor: 1 },
+    { symbool: 'd', factor: 1e-1 },
+    { symbool: 'c', factor: 1e-2 },
+    { symbool: 'm', factor: 1e-3 },
+    { symbool: 'µ', factor: 1e-6 },
+    { symbool: 'n', factor: 1e-9 }
+];
+const BASISEENHEDEN = ['g', 'L', 'm', 's'];
+
+function genVoorvoegsel(level) {
+    const eenheid = randChoice(BASISEENHEDEN);
+    const van = randChoice(VOORVOEGSELS);
+    let naar = randChoice(VOORVOEGSELS);
+    while (naar.factor === van.factor || Math.abs(Math.log10(naar.factor / van.factor)) > 6.01) {
+        naar = randChoice(VOORVOEGSELS);
+    }
+    const waarde = randChoice([0.5, 1, 2, 2.5, 5, 10, 25, 50, 100, 250, 500]);
+    const antwoord = parseFloat((waarde * van.factor / naar.factor).toPrecision(10));
+    return {
+        prompt: `Zet om: ${waarde} ${van.symbool}${eenheid} = ? ${naar.symbool}${eenheid}`,
+        answer: antwoord, exact: antwoord, unit: naar.symbool + eenheid,
+        stappen: [ stap(`${waarde} ${van.symbool || ''}${eenheid} × (${van.factor} / ${naar.factor})`, antwoord, naar.symbool + eenheid) ]
+    };
+}
+
+function genMachtVanTien(level) {
+    const type = randChoice(['grondtal', 'exponent', 'vermenigvuldigen', 'delen']);
+    if (type === 'grondtal' || type === 'exponent') {
+        const a = gv(1.01, 9.99, randChoice([2, 3]));
+        const n = randInt(-5, 5);
+        const getal = formatPlain(parseFloat((a * Math.pow(10, n)).toPrecision(10)));
+        if (type === 'grondtal') {
+            return {
+                prompt: `Schrijf ${getal} in wetenschappelijke notatie als a × 10^n (met 1 ≤ a < 10). Geef het grondtal a.`,
+                answer: a, unit: '(grondtal, geen eenheid)',
+                stappen: [ stap(`${getal} = ${a} × 10^${n}`, a, '(grondtal)') ]
+            };
+        }
+        return {
+            prompt: `Schrijf ${getal} in wetenschappelijke notatie als a × 10^n (met 1 ≤ a < 10). Geef de exponent n.`,
+            answer: n, unit: '(exponent, geen eenheid)',
+            stappen: [ stap(`${getal} = ${a} × 10^${n}`, n, '(exponent)') ]
+        };
+    } else if (type === 'vermenigvuldigen') {
+        const n1 = randInt(-5, 5), n2 = randInt(-5, 5);
+        return {
+            prompt: `Bereken de exponent: 10^${n1} × 10^${n2} = 10^?`,
+            answer: n1 + n2, unit: '(exponent)',
+            stappen: [ stap(`bij vermenigvuldigen tel je de exponenten op: ${n1} + ${n2}`, n1 + n2, '(exponent)') ]
+        };
+    } else {
+        const n1 = randInt(-5, 5), n2 = randInt(-5, 5);
+        return {
+            prompt: `Bereken de exponent: 10^${n1} / 10^${n2} = 10^?`,
+            answer: n1 - n2, unit: '(exponent)',
+            stappen: [ stap(`bij delen trek je de exponenten van elkaar af: ${n1} − ${n2}`, n1 - n2, '(exponent)') ]
+        };
+    }
+}
+
+// Alleen deze drie blijven losse 1-staps-vragen (percentage/samenstelling laten zich niet
+// natuurlijk tot een keten combineren met de andere onderwerpen).
+const FLAT_GENERATORS = {
+    massaPercentage: genMassaPercentage,
+    volumePercentage: genVolumePercentage,
+    samenstelling: genSamenstelling,
+    voorvoegsels: genVoorvoegsel,
+    machtenVanTien: genMachtVanTien
+};
+
+/* ===================================================================
+   KETENVRAGEN — de overige vijf onderwerpen (massaMol, molairVolume,
+   concentratie, molverhouding, rendement) worden gecombineerd tot vragen
+   met een instelbaar aantal rekenstappen. Elke template geeft aan welke
+   onderwerpen ("ops") ervoor nodig zijn, zodat alleen ingeschakelde
+   combinaties gebruikt worden.
+   =================================================================== */
+
+function kiesRendementPct() { return randChoice([60, 70, 75, 80, 85, 90, 95]); }
+function kiesVm() { return randChoice([22.4, 24.5]); }
+function vmConditie(vm) { return vm === 22.4 ? 'T = 273 K en p = p0' : 'T = 298 K en p = p0'; }
+
+function k1_dichtheid() {
+    const s = randChoice(DICHTHEID_STOFFEN);
+    const mode = randChoice(['mV_naar_rho', 'rhoV_naar_m', 'rhom_naar_V']);
+    if (mode === 'mV_naar_rho') {
+        const V = gv(1.0, 50.0);
+        const m = roundSig(V * s.dichtheid, 2);
+        const rho = m / V;
+        return {
+            prompt: `Je hebt ${m} g ${s.naam}. Dit neemt een volume in van ${V} mL. Bereken de dichtheid.`,
+            exact: rho, sig: minSig(m, V), answer: rondAfSig(rho, minSig(m, V)), unit: 'g/mL',
+            stappen: [ stap(`dichtheid = massa / volume = ${m} g / ${V} mL`, rho, 'g/mL') ]
+        };
+    } else if (mode === 'rhoV_naar_m') {
+        const V = gv(1.0, 50.0);
+        const m = V * s.dichtheid;
+        return {
+            prompt: `${s.naam} heeft een dichtheid van ${s.dT} g/mL. Bereken de massa van ${V} mL ${s.naam}.`,
+            exact: m, sig: minSig(V), answer: rondAfSig(m, minSig(V)), unit: 'g',
+            stappen: [ stap(`massa = dichtheid × volume = ${s.dT} g/mL × ${V} mL`, m, 'g') ]
+        };
+    } else {
+        const m = gv(10, 500);
+        const V = m / s.dichtheid;
+        return {
+            prompt: `${s.naam} heeft een dichtheid van ${s.dT} g/mL. Bereken het volume van ${m} g ${s.naam}.`,
+            exact: V, sig: minSig(m), answer: rondAfSig(V, minSig(m)), unit: 'mL',
+            stappen: [ stap(`volume = massa / dichtheid = ${m} g / ${s.dT} g/mL`, V, 'mL') ]
+        };
+    }
+}
+
+function k2_molmassaDichtheid() {
+    const s = randChoice(DICHTHEID_STOFFEN);
+    const M = molarMass(s.formule);
+    if (Math.random() < 0.5) {
+        const n = gv(0.1, 4.0), m = n * M, V = m / s.dichtheid;
+        return {
+            prompt: `Je hebt ${n} mol ${s.naam} (${s.formule}, M = ${M.toFixed(2)} g/mol, dichtheid ${s.dT} g/mL). Bereken het volume.`,
+            exact: V, sig: minSig(n), answer: rondAfSig(V, minSig(n)), unit: 'mL',
+            stappen: [
+                stap(`massa = mol × molmassa = ${n} mol × ${M.toFixed(2)} g/mol`, m, 'g'),
+                stap(`volume = massa / dichtheid = ${fmt(m)} g / ${s.dT} g/mL`, V, 'mL')
+            ]
+        };
+    }
+    const V = gv(1.0, 50.0), m = V * s.dichtheid, n = m / M;
+    return {
+        prompt: `Je hebt ${V} mL ${s.naam} (${s.formule}, M = ${M.toFixed(2)} g/mol, dichtheid ${s.dT} g/mL). Bereken het aantal mol.`,
+        exact: n, sig: minSig(V), answer: rondAfSig(n, minSig(V)), unit: 'mol',
+        stappen: [
+            stap(`massa = dichtheid × volume = ${s.dT} g/mL × ${V} mL`, m, 'g'),
+            stap(`mol = massa / molmassa = ${fmt(m)} g / ${M.toFixed(2)} g/mol`, n, 'mol')
+        ]
+    };
+}
+
+function k3_massaMolverhoudingDichtheid() {
+    const paar = kiesStofPaar(p => DICHTHEID_STOFFEN.some(d => d.formule === p.b.formule) && p.b.kant === 'product');
+    if (!paar) return k3_massaMolverhoudingMassa();
+    const { reactie, a, b } = paar;
+    const dInfo = DICHTHEID_STOFFEN.find(d => d.formule === b.formule);
+    const Ma = molarMass(a.formule), Mb = molarMass(b.formule);
+    const massaA = gv(10, 300), nA = massaA / Ma, nB = nA * (b.coef / a.coef), massaB = nB * Mb, volumeB = massaB / dInfo.dichtheid;
+    return {
+        prompt: `Reactie: ${reactie.tekst}. Je laat ${massaA} g ${naamVoor(a.formule)} (${a.formule}) volledig reageren. ${dInfo.naam} heeft een dichtheid van ${dInfo.dT} g/mL. Bereken het volume ${dInfo.naam} (${b.formule}) dat hierbij ontstaat.`,
+        exact: volumeB, sig: minSig(massaA), answer: rondAfSig(volumeB, minSig(massaA)), unit: 'mL',
+        stappen: [
+            stap(`mol ${a.formule} = massa / molmassa = ${massaA} g / ${Ma.toFixed(2)} g/mol`, nA, 'mol'),
+            stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef}) = ${fmt(nA)} mol × (${b.coef}/${a.coef})`, nB, 'mol'),
+            stap(`massa ${b.formule} = mol × molmassa = ${fmt(nB)} mol × ${Mb.toFixed(2)} g/mol`, massaB, 'g'),
+            stap(`volume ${b.formule} = massa / dichtheid = ${fmt(massaB)} g / ${dInfo.dT} g/mL`, volumeB, 'mL')
+        ]
+    };
+}
+
+function k1_rendement() {
+    const c = randChoice(COMPOUNDS);
+    const M = molarMass(c.formule);
+    const theoretisch = gv(10, 400);
+    const rendementPct = kiesRendementPct();
+    const werkelijk = Number((theoretisch * rendementPct / 100).toPrecision(3));
+    if (Math.random() < 0.5) {
+        const rendement = werkelijk / theoretisch * 100;
+        return {
+            prompt: `Theoretische opbrengst: ${theoretisch} g ${naamVoor(c.formule)} (${c.formule}). Werkelijke opbrengst: ${werkelijk} g. Bereken het rendement.`,
+            exact: rendement, sig: minSig(werkelijk, theoretisch), answer: rondAfSig(rendement, minSig(werkelijk, theoretisch)), unit: '%',
+            stappen: [ stap(`rendement = (werkelijk / theoretisch) × 100% = (${werkelijk} / ${theoretisch}) × 100%`, rendement, '%') ]
+        };
+    }
+    return {
+        prompt: `Theoretische opbrengst: ${theoretisch} g ${naamVoor(c.formule)} (${c.formule}). Rendement: ${rendementPct}%. Bereken de werkelijke opbrengst.`,
+        exact: werkelijk, sig: minSig(theoretisch, RENDEMENT_SIGFIGS), answer: rondAfSig(werkelijk, minSig(theoretisch, RENDEMENT_SIGFIGS)), unit: 'g',
+        stappen: [ stap(`werkelijke opbrengst = theoretisch × rendement = ${theoretisch} g × ${rendementPct}%`, werkelijk, 'g') ]
+    };
+}
+
+function k2_massaVolume() {
+    const g = randChoice(GASSEN);
+    const M = molarMass(g.formule);
+    const vm = kiesVm(), cond = vmConditie(vm);
+    if (Math.random() < 0.5) {
+        const m = gv(5, 200), n = m / M, V = n * vm;
+        return {
+            prompt: `Je hebt ${m} g ${g.naam} (${g.formule}, M = ${M.toFixed(2)} g/mol). Bereken het volume van dit gas bij ${cond} (Vm = ${vm} L/mol).`,
+            exact: V, sig: minSig(m), answer: rondAfSig(V, minSig(m)), unit: 'L',
+            stappen: [
+                stap(`mol = massa / molmassa = ${m} g / ${M.toFixed(2)} g/mol`, n, 'mol'),
+                stap(`volume = mol × Vm = ${fmt(n)} mol × ${vm} L/mol`, V, 'L')
+            ]
+        };
+    }
+    const V = gv(0.5, 20.0), n = V / vm, m = n * M;
+    return {
+        prompt: `Je hebt ${V} L ${g.naam} (${g.formule}) bij ${cond}. Bereken de massa van dit gas (Vm = ${vm} L/mol).`,
+        exact: m, sig: minSig(V), answer: rondAfSig(m, minSig(V)), unit: 'g',
+        stappen: [
+            stap(`mol = volume / Vm = ${V} L / ${vm} L/mol`, n, 'mol'),
+            stap(`massa = mol × molmassa = ${fmt(n)} mol × ${M.toFixed(2)} g/mol`, m, 'g')
+        ]
+    };
+}
+
+function k2_massaMolverhouding() {
+    const paar = kiesStofPaar(() => true);
+    const { reactie, a, b } = paar;
+    const Ma = molarMass(a.formule), Mb = molarMass(b.formule);
+    const variant = randChoice(terugrekenenAan && b.kant === 'product' ? ['massaA_molB', 'molA_massaB', 'terug_massaB_massaA'] : ['massaA_molB', 'molA_massaB']);
+    if (variant === 'massaA_molB') {
+        const massaA = gv(5, 300), nA = massaA / Ma, nB = nA * (b.coef / a.coef);
+        return {
+            prompt: `Reactie: ${reactie.tekst}. Je hebt ${massaA} g ${naamVoor(a.formule)} (${a.formule}, M = ${Ma.toFixed(2)} g/mol). Bereken hoeveel mol ${naamVoor(b.formule)} (${b.formule}) ${b.kant === 'product' ? 'hieruit maximaal kan ontstaan' : 'hiermee kan reageren'}.`,
+            exact: nB, sig: minSig(massaA), answer: rondAfSig(nB, minSig(massaA)), unit: 'mol',
+            stappen: [
+                stap(`mol ${a.formule} = massa / molmassa = ${massaA} g / ${Ma.toFixed(2)} g/mol`, nA, 'mol'),
+                stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef}) = ${fmt(nA)} mol × (${b.coef}/${a.coef})`, nB, 'mol')
+            ]
+        };
+    } else if (variant === 'molA_massaB') {
+        const nA = gv(0.1, 4.0), nB = nA * (b.coef / a.coef), massaB = nB * Mb;
+        return {
+            prompt: `Reactie: ${reactie.tekst}. Je hebt ${nA} mol ${naamVoor(a.formule)} (${a.formule}). Bereken de massa ${naamVoor(b.formule)} (${b.formule}, M = ${Mb.toFixed(2)} g/mol) die ${b.kant === 'product' ? 'hieruit maximaal kan ontstaan' : 'hiermee kan reageren'}.`,
+            exact: massaB, sig: minSig(nA), answer: rondAfSig(massaB, minSig(nA)), unit: 'g',
+            stappen: [
+                stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef}) = ${nA} mol × (${b.coef}/${a.coef})`, nB, 'mol'),
+                stap(`massa ${b.formule} = mol × molmassa = ${fmt(nB)} mol × ${Mb.toFixed(2)} g/mol`, massaB, 'g')
+            ]
+        };
+    }
+    // terugrekenen: gewenste massa B (doel) -> benodigde massa A
+    const massaBGewenst = gv(5, 300), nBGewenst = massaBGewenst / Mb, nANodig = nBGewenst * (a.coef / b.coef), massaANodig = nANodig * Ma;
+    return {
+        prompt: `Reactie: ${reactie.tekst}. Je wilt ${massaBGewenst} g ${naamVoor(b.formule)} (${b.formule}, M = ${Mb.toFixed(2)} g/mol) maken. Hoeveel gram ${naamVoor(a.formule)} (${a.formule}) heb je hiervoor minimaal nodig?`,
+        exact: massaANodig, sig: minSig(massaBGewenst), answer: rondAfSig(massaANodig, minSig(massaBGewenst)), unit: 'g',
+        stappen: [
+            stap(`mol ${b.formule} nodig = massa / molmassa = ${massaBGewenst} g / ${Mb.toFixed(2)} g/mol`, nBGewenst, 'mol'),
+            stap(`mol ${a.formule} nodig = mol ${b.formule} × (${a.coef}/${b.coef}) = ${fmt(nBGewenst)} mol × (${a.coef}/${b.coef})`, nANodig, 'mol'),
+            stap(`massa ${a.formule} nodig = mol × molmassa = ${fmt(nANodig)} mol × ${Ma.toFixed(2)} g/mol`, massaANodig, 'g')
+        ]
+    };
+}
+
+function k2_volumeMolverhouding() {
+    const paar = kiesStofPaar(p => GAS_FORMULAS.has(p.a.formule));
+    if (!paar) return k2_massaMolverhouding();
+    const { reactie, a, b } = paar;
+    const vm = kiesVm(), cond = vmConditie(vm);
+    if (!terugrekenenAan || b.kant !== 'product' || Math.random() < 0.5) {
+        const Va = gv(0.5, 10.0), nA = Va / vm, nB = nA * (b.coef / a.coef);
+        if (!GAS_FORMULAS.has(b.formule)) {
+            const Mb = molarMass(b.formule), massaB = nB * Mb;
+            return {
+                prompt: `Reactie: ${reactie.tekst}. Je hebt ${Va} L ${naamVoor(a.formule)} (${a.formule}) bij ${cond} (Vm = ${vm} L/mol). Bereken de massa ${naamVoor(b.formule)} (${b.formule}, M = ${Mb.toFixed(2)} g/mol) die ${b.kant === 'product' ? 'hieruit maximaal kan ontstaan' : 'hiermee kan reageren'}.`,
+                exact: massaB, sig: minSig(Va), answer: rondAfSig(massaB, minSig(Va)), unit: 'g',
+                stappen: [
+                    stap(`mol ${a.formule} = volume / Vm = ${Va} L / ${vm} L/mol`, nA, 'mol'),
+                    stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef}) = ${fmt(nA)} mol × (${b.coef}/${a.coef})`, nB, 'mol'),
+                    stap(`massa ${b.formule} = mol × molmassa = ${fmt(nB)} mol × ${Mb.toFixed(2)} g/mol`, massaB, 'g')
+                ]
+            };
+        }
+        const Vb = nB * vm;
+        return {
+            prompt: `Reactie: ${reactie.tekst}. Je hebt ${Va} L ${naamVoor(a.formule)} (${a.formule}) bij ${cond} (Vm = ${vm} L/mol). Bereken het volume ${naamVoor(b.formule)} (${b.formule}) dat ${b.kant === 'product' ? 'hieruit maximaal kan ontstaan' : 'hiermee kan reageren'} (zelfde omstandigheden).`,
+            exact: Vb, sig: minSig(Va), answer: rondAfSig(Vb, minSig(Va)), unit: 'L',
+            stappen: [
+                stap(`mol ${a.formule} = volume / Vm = ${Va} L / ${vm} L/mol`, nA, 'mol'),
+                stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef}) = ${fmt(nA)} mol × (${b.coef}/${a.coef})`, nB, 'mol'),
+                stap(`volume ${b.formule} = mol × Vm = ${fmt(nB)} mol × ${vm} L/mol`, Vb, 'L')
+            ]
+        };
+    }
+    // terugrekenen: gewenste hoeveelheid B (doel) -> benodigd volume A
+    if (!GAS_FORMULAS.has(b.formule)) {
+        const Mb = molarMass(b.formule);
+        const massaBGewenst = gv(5, 300), nBGewenst = massaBGewenst / Mb, nANodig = nBGewenst * (a.coef / b.coef), VaNodig = nANodig * vm;
+        return {
+            prompt: `Reactie: ${reactie.tekst}. Je wilt ${massaBGewenst} g ${naamVoor(b.formule)} (${b.formule}, M = ${Mb.toFixed(2)} g/mol) maken. Hoeveel L ${naamVoor(a.formule)} (${a.formule}) heb je hiervoor nodig bij ${cond} (Vm = ${vm} L/mol)?`,
+            exact: VaNodig, sig: minSig(massaBGewenst), answer: rondAfSig(VaNodig, minSig(massaBGewenst)), unit: 'L',
+            stappen: [
+                stap(`mol ${b.formule} nodig = massa / molmassa = ${massaBGewenst} g / ${Mb.toFixed(2)} g/mol`, nBGewenst, 'mol'),
+                stap(`mol ${a.formule} nodig = mol ${b.formule} × (${a.coef}/${b.coef}) = ${fmt(nBGewenst)} mol × (${a.coef}/${b.coef})`, nANodig, 'mol'),
+                stap(`volume ${a.formule} nodig = mol × Vm = ${fmt(nANodig)} mol × ${vm} L/mol`, VaNodig, 'L')
+            ]
+        };
+    }
+    const VbGewenst = gv(0.5, 10.0), nBGewenst = VbGewenst / vm, nANodig = nBGewenst * (a.coef / b.coef), VaNodig = nANodig * vm;
+    return {
+        prompt: `Reactie: ${reactie.tekst}. Je wilt ${VbGewenst} L ${naamVoor(b.formule)} (${b.formule}) maken bij ${cond}. Hoeveel L ${naamVoor(a.formule)} (${a.formule}) heb je hiervoor nodig (zelfde omstandigheden)?`,
+        exact: VaNodig, sig: minSig(VbGewenst), answer: rondAfSig(VaNodig, minSig(VbGewenst)), unit: 'L',
+        stappen: [
+            stap(`mol ${b.formule} nodig = volume / Vm = ${VbGewenst} L / ${vm} L/mol`, nBGewenst, 'mol'),
+            stap(`mol ${a.formule} nodig = mol ${b.formule} × (${a.coef}/${b.coef}) = ${fmt(nBGewenst)} mol × (${a.coef}/${b.coef})`, nANodig, 'mol'),
+            stap(`volume ${a.formule} nodig = mol × Vm = ${fmt(nANodig)} mol × ${vm} L/mol`, VaNodig, 'L')
+        ]
+    };
+}
+
+function k2_concentratieMolverhouding() {
+    const paar = kiesStofPaar(opl(p => p.reactie.oplossingGeschikt === true));
+    const { reactie, a, b } = paar;
+    if (!terugrekenenAan || b.kant !== 'product' || Math.random() < 0.5) {
+        const V = gv(0.1, 3.0), cVal = gv(0.1, 3.0);
+        const nA = cVal * V, nB = nA * (b.coef / a.coef);
+        return {
+            prompt: `Reactie: ${reactie.tekst}. Je hebt ${V} L oplossing met concentratie ${cVal} mol/L ${naamVoor(a.formule)} (${a.formule}). Bereken hoeveel mol ${naamVoor(b.formule)} (${b.formule}) ${b.kant === 'product' ? 'hieruit maximaal kan ontstaan' : 'hiermee kan reageren'}.`,
+            exact: nB, sig: minSig(V, cVal), answer: rondAfSig(nB, minSig(V, cVal)), unit: 'mol',
+            stappen: [
+                stap(`mol ${a.formule} = concentratie × volume = ${cVal} mol/L × ${V} L`, nA, 'mol'),
+                stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef}) = ${fmt(nA)} mol × (${b.coef}/${a.coef})`, nB, 'mol')
+            ]
+        };
+    }
+    // terugrekenen: gewenste hoeveelheid B (doel) -> benodigd volume van de A-oplossing
+    const cValA = gv(0.1, 3.0);
+    const nBGewenst = gv(0.1, 3.0), nANodig = nBGewenst * (a.coef / b.coef), VNodig = nANodig / cValA;
+    return {
+        prompt: `Reactie: ${reactie.tekst}. Je wilt ${nBGewenst} mol ${naamVoor(b.formule)} (${b.formule}) maken. Je hebt een oplossing van ${naamVoor(a.formule)} (${a.formule}) met concentratie ${cValA} mol/L. Hoeveel liter van deze oplossing heb je hiervoor minimaal nodig?`,
+        exact: VNodig, sig: minSig(nBGewenst, cValA), answer: rondAfSig(VNodig, minSig(nBGewenst, cValA)), unit: 'L',
+        stappen: [
+            stap(`mol ${a.formule} nodig = mol ${b.formule} × (${a.coef}/${b.coef}) = ${nBGewenst} mol × (${a.coef}/${b.coef})`, nANodig, 'mol'),
+            stap(`volume nodig = mol / concentratie = ${fmt(nANodig)} mol / ${cValA} mol/L`, VNodig, 'L')
+        ]
+    };
+}
+
+// Leerdoel: de concentratie (mol/L) rechtstreeks afleiden uit een inweeg-scenario zoals in het
+// lab — je weegt een massa af en lost die op tot een bepaald volume — in plaats van pas te starten
+// vanaf een al gegeven aantal mol. Vereist massaMol + concentratie beide aan.
+function k2_massaMolConcentratie() {
+    const c = randChoice(OPLOSBARE_STOFFEN);
+    const M = molarMass(c.formule);
+    if (!terugrekenenAan || Math.random() < 0.5) {
+        const m = gv(5, 200);
+        const V = gv(0.1, 3.0);
+        const n = m / M, cVal = n / V;
+        return {
+            prompt: `Je lost ${m} g ${c.naam} (${c.formule}, M = ${M.toFixed(2)} g/mol) op tot ${V} L oplossing. Bereken de concentratie (mol/L).`,
+            exact: cVal, sig: minSig(m, V), answer: rondAfSig(cVal, minSig(m, V)), unit: 'mol/L',
+            stappen: [
+                stap(`mol = massa / molmassa = ${m} g / ${M.toFixed(2)} g/mol`, n, 'mol'),
+                stap(`concentratie = mol / volume = ${fmt(n)} mol / ${V} L`, cVal, 'mol/L')
+            ]
+        };
+    }
+    // terugrekenen: gewenste concentratie en volume van de oplossing -> in te wegen massa
+    const V = gv(0.1, 3.0);
+    const cVal = gv(0.1, 3.0);
+    const n = cVal * V, m = n * M;
+    return {
+        prompt: `Je wilt ${V} L oplossing maken met concentratie ${cVal} mol/L ${c.naam} (${c.formule}, M = ${M.toFixed(2)} g/mol). Hoeveel gram moet je afwegen?`,
+        exact: m, sig: minSig(V, cVal), answer: rondAfSig(m, minSig(V, cVal)), unit: 'g',
+        stappen: [
+            stap(`mol nodig = concentratie × volume = ${cVal} mol/L × ${V} L`, n, 'mol'),
+            stap(`massa = mol × molmassa = ${fmt(n)} mol × ${M.toFixed(2)} g/mol`, m, 'g')
+        ]
+    };
+}
+
+function k2_massaRendement() {
+    const c = randChoice(COMPOUNDS);
+    const M = molarMass(c.formule);
+    const rendementPct = kiesRendementPct();
+    if (Math.random() < 0.5) {
+        const nTh = gv(0.2, 3.0), massaTh = nTh * M, massaWerk = massaTh * rendementPct / 100;
+        return {
+            prompt: `Je verwacht theoretisch ${nTh} mol ${naamVoor(c.formule)} (${c.formule}, M = ${M.toFixed(2)} g/mol) te vormen. Het rendement van de reactie is ${rendementPct}%. Bereken de werkelijke massa die je krijgt.`,
+            exact: massaWerk, sig: minSig(nTh, RENDEMENT_SIGFIGS), answer: rondAfSig(massaWerk, minSig(nTh, RENDEMENT_SIGFIGS)), unit: 'g',
+            stappen: [
+                stap(`theoretische massa = mol × molmassa = ${nTh} mol × ${M.toFixed(2)} g/mol`, massaTh, 'g'),
+                stap(`werkelijke massa = theoretische massa × rendement = ${fmt(massaTh)} g × ${rendementPct}%`, massaWerk, 'g')
+            ]
+        };
+    }
+    const massaWerk = gv(5, 250), massaTh = massaWerk / (rendementPct / 100), nTh = massaTh / M;
+    return {
+        prompt: `Je krijgt werkelijk ${massaWerk} g ${naamVoor(c.formule)} (${c.formule}, M = ${M.toFixed(2)} g/mol) bij een rendement van ${rendementPct}%. Bereken hoeveel mol er theoretisch (bij 100% rendement) gevormd had moeten worden.`,
+        exact: nTh, sig: minSig(massaWerk, RENDEMENT_SIGFIGS), answer: rondAfSig(nTh, minSig(massaWerk, RENDEMENT_SIGFIGS)), unit: 'mol',
+        stappen: [
+            stap(`theoretische massa = werkelijke massa / rendement = ${massaWerk} g / ${rendementPct}%`, massaTh, 'g'),
+            stap(`theoretisch mol = massa / molmassa = ${fmt(massaTh)} g / ${M.toFixed(2)} g/mol`, nTh, 'mol')
+        ]
+    };
+}
+
+function k2_molverhoudingRendement() {
+    const paar = kiesStofPaar(p => p.b.kant === 'product');
+    const { reactie, a, b } = paar;
+    const nA = gv(0.2, 4.0), nBTh = nA * (b.coef / a.coef);
+    const rendementPct = kiesRendementPct(), nBWerk = nBTh * rendementPct / 100;
+    return {
+        prompt: `Reactie: ${reactie.tekst}. Je hebt ${nA} mol ${naamVoor(a.formule)} (${a.formule}). Het rendement van de reactie is ${rendementPct}%. Bereken hoeveel mol ${naamVoor(b.formule)} (${b.formule}) je werkelijk krijgt.`,
+        exact: nBWerk, sig: minSig(nA, RENDEMENT_SIGFIGS), answer: rondAfSig(nBWerk, minSig(nA, RENDEMENT_SIGFIGS)), unit: 'mol',
+        stappen: [
+            stap(`theoretisch mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef}) = ${nA} mol × (${b.coef}/${a.coef})`, nBTh, 'mol'),
+            stap(`werkelijk mol = theoretisch mol × rendement = ${fmt(nBTh)} mol × ${rendementPct}%`, nBWerk, 'mol')
+        ]
+    };
+}
+
+function k3_massaMolverhoudingMassa() {
+    const paar = kiesStofPaar(p => p.b.kant === 'product');
+    const { reactie, a, b } = paar;
+    const Ma = molarMass(a.formule), Mb = molarMass(b.formule);
+    if (!terugrekenenAan || b.kant !== 'product' || Math.random() < 0.5) {
+        const massaA = gv(10, 300), nA = massaA / Ma, nB = nA * (b.coef / a.coef), massaB = nB * Mb;
+        return {
+            prompt: `Reactie: ${reactie.tekst}. Je laat ${massaA} g ${naamVoor(a.formule)} (${a.formule}) volledig reageren. Bereken de massa ${naamVoor(b.formule)} (${b.formule}) die hierbij maximaal ontstaat.`,
+            exact: massaB, sig: minSig(massaA), answer: rondAfSig(massaB, minSig(massaA)), unit: 'g',
+            stappen: [
+                stap(`mol ${a.formule} = massa / molmassa = ${massaA} g / ${Ma.toFixed(2)} g/mol`, nA, 'mol'),
+                stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef}) = ${fmt(nA)} mol × (${b.coef}/${a.coef})`, nB, 'mol'),
+                stap(`massa ${b.formule} = mol × molmassa = ${fmt(nB)} mol × ${Mb.toFixed(2)} g/mol`, massaB, 'g')
+            ]
+        };
+    }
+    // terugrekenen: gewenste massa B (doel) -> benodigde massa A
+    const massaBGewenst = gv(10, 300), nBGewenst = massaBGewenst / Mb, nANodig = nBGewenst * (a.coef / b.coef), massaANodig = nANodig * Ma;
+    return {
+        prompt: `Reactie: ${reactie.tekst}. Je wilt ${massaBGewenst} g ${naamVoor(b.formule)} (${b.formule}) maken. Hoeveel gram ${naamVoor(a.formule)} (${a.formule}) heb je hiervoor minimaal nodig?`,
+        exact: massaANodig, sig: minSig(massaBGewenst), answer: rondAfSig(massaANodig, minSig(massaBGewenst)), unit: 'g',
+        stappen: [
+            stap(`mol ${b.formule} nodig = massa / molmassa = ${massaBGewenst} g / ${Mb.toFixed(2)} g/mol`, nBGewenst, 'mol'),
+            stap(`mol ${a.formule} nodig = mol ${b.formule} × (${a.coef}/${b.coef}) = ${fmt(nBGewenst)} mol × (${a.coef}/${b.coef})`, nANodig, 'mol'),
+            stap(`massa ${a.formule} nodig = mol × molmassa = ${fmt(nANodig)} mol × ${Ma.toFixed(2)} g/mol`, massaANodig, 'g')
+        ]
+    };
+}
+
+function k3_massaMolverhoudingVolume() {
+    const paar = kiesStofPaar(p => GAS_FORMULAS.has(p.b.formule) && p.b.kant === 'product');
+    if (!paar) return k3_massaMolverhoudingMassa();
+    const { reactie, a, b } = paar;
+    const Ma = molarMass(a.formule);
+    const vm = kiesVm(), cond = vmConditie(vm);
+    if (!terugrekenenAan || b.kant !== 'product' || Math.random() < 0.5) {
+        const massaA = gv(10, 300), nA = massaA / Ma, nB = nA * (b.coef / a.coef), Vb = nB * vm;
+        return {
+            prompt: `Reactie: ${reactie.tekst}. Je laat ${massaA} g ${naamVoor(a.formule)} (${a.formule}, M = ${Ma.toFixed(2)} g/mol) volledig reageren. Bereken het volume ${naamVoor(b.formule)} (${b.formule}) dat hierbij ontstaat, bij ${cond} (Vm = ${vm} L/mol).`,
+            exact: Vb, sig: minSig(massaA), answer: rondAfSig(Vb, minSig(massaA)), unit: 'L',
+            stappen: [
+                stap(`mol ${a.formule} = massa / molmassa = ${massaA} g / ${Ma.toFixed(2)} g/mol`, nA, 'mol'),
+                stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef}) = ${fmt(nA)} mol × (${b.coef}/${a.coef})`, nB, 'mol'),
+                stap(`volume ${b.formule} = mol × Vm = ${fmt(nB)} mol × ${vm} L/mol`, Vb, 'L')
+            ]
+        };
+    }
+    // terugrekenen: gewenst volume B (doel) -> benodigde massa A
+    const VbGewenst = gv(0.5, 10.0), nBGewenst = VbGewenst / vm, nANodig = nBGewenst * (a.coef / b.coef), massaANodig = nANodig * Ma;
+    return {
+        prompt: `Reactie: ${reactie.tekst}. Je wilt ${VbGewenst} L ${naamVoor(b.formule)} (${b.formule}) maken bij ${cond} (Vm = ${vm} L/mol). Hoeveel gram ${naamVoor(a.formule)} (${a.formule}, M = ${Ma.toFixed(2)} g/mol) heb je hiervoor minimaal nodig?`,
+        exact: massaANodig, sig: minSig(VbGewenst), answer: rondAfSig(massaANodig, minSig(VbGewenst)), unit: 'g',
+        stappen: [
+            stap(`mol ${b.formule} nodig = volume / Vm = ${VbGewenst} L / ${vm} L/mol`, nBGewenst, 'mol'),
+            stap(`mol ${a.formule} nodig = mol ${b.formule} × (${a.coef}/${b.coef}) = ${fmt(nBGewenst)} mol × (${a.coef}/${b.coef})`, nANodig, 'mol'),
+            stap(`massa ${a.formule} nodig = mol × molmassa = ${fmt(nANodig)} mol × ${Ma.toFixed(2)} g/mol`, massaANodig, 'g')
+        ]
+    };
+}
+
+function k3_volumeMolverhoudingMassa() {
+    const paar = kiesStofPaar(p => GAS_FORMULAS.has(p.a.formule) && p.b.kant === 'product');
+    if (!paar) return k3_massaMolverhoudingMassa();
+    const { reactie, a, b } = paar;
+    const vm = kiesVm(), cond = vmConditie(vm);
+    const Mb = molarMass(b.formule);
+    if (!terugrekenenAan || b.kant !== 'product' || Math.random() < 0.5) {
+        const Va = gv(0.5, 10.0), nA = Va / vm, nB = nA * (b.coef / a.coef), massaB = nB * Mb;
+        return {
+            prompt: `Reactie: ${reactie.tekst}. Je laat ${Va} L ${naamVoor(a.formule)} (${a.formule}) bij ${cond} (Vm = ${vm} L/mol) volledig reageren. Bereken de massa ${naamVoor(b.formule)} (${b.formule}, M = ${Mb.toFixed(2)} g/mol) die hierbij maximaal ontstaat.`,
+            exact: massaB, sig: minSig(Va), answer: rondAfSig(massaB, minSig(Va)), unit: 'g',
+            stappen: [
+                stap(`mol ${a.formule} = volume / Vm = ${Va} L / ${vm} L/mol`, nA, 'mol'),
+                stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef}) = ${fmt(nA)} mol × (${b.coef}/${a.coef})`, nB, 'mol'),
+                stap(`massa ${b.formule} = mol × molmassa = ${fmt(nB)} mol × ${Mb.toFixed(2)} g/mol`, massaB, 'g')
+            ]
+        };
+    }
+    // terugrekenen: gewenste massa B (doel) -> benodigd volume A
+    const massaBGewenst = gv(10, 300), nBGewenst = massaBGewenst / Mb, nANodig = nBGewenst * (a.coef / b.coef), VaNodig = nANodig * vm;
+    return {
+        prompt: `Reactie: ${reactie.tekst}. Je wilt ${massaBGewenst} g ${naamVoor(b.formule)} (${b.formule}, M = ${Mb.toFixed(2)} g/mol) maken. Hoeveel L ${naamVoor(a.formule)} (${a.formule}) heb je hiervoor nodig bij ${cond} (Vm = ${vm} L/mol)?`,
+        exact: VaNodig, sig: minSig(massaBGewenst), answer: rondAfSig(VaNodig, minSig(massaBGewenst)), unit: 'L',
+        stappen: [
+            stap(`mol ${b.formule} nodig = massa / molmassa = ${massaBGewenst} g / ${Mb.toFixed(2)} g/mol`, nBGewenst, 'mol'),
+            stap(`mol ${a.formule} nodig = mol ${b.formule} × (${a.coef}/${b.coef}) = ${fmt(nBGewenst)} mol × (${a.coef}/${b.coef})`, nANodig, 'mol'),
+            stap(`volume ${a.formule} nodig = mol × Vm = ${fmt(nANodig)} mol × ${vm} L/mol`, VaNodig, 'L')
+        ]
+    };
+}
+
+function k3_concentratieMolverhoudingMassa() {
+    const paar = kiesStofPaar(opl(p => p.reactie.oplossingGeschikt === true && p.b.kant === 'product'));
+    const { reactie, a, b } = paar;
+    const Mb = molarMass(b.formule);
+    if (!terugrekenenAan || b.kant !== 'product' || Math.random() < 0.5) {
+        const V = gv(0.1, 3.0), cVal = gv(0.1, 3.0);
+        const nA = cVal * V, nB = nA * (b.coef / a.coef), massaB = nB * Mb;
+        return {
+            prompt: `Reactie: ${reactie.tekst}. Je hebt ${V} L oplossing met concentratie ${cVal} mol/L ${naamVoor(a.formule)} (${a.formule}). Bereken de massa ${naamVoor(b.formule)} (${b.formule}, M = ${Mb.toFixed(2)} g/mol) die ${b.kant === 'product' ? 'hieruit maximaal kan ontstaan' : 'hiermee kan reageren'}.`,
+            exact: massaB, sig: minSig(V, cVal), answer: rondAfSig(massaB, minSig(V, cVal)), unit: 'g',
+            stappen: [
+                stap(`mol ${a.formule} = concentratie × volume = ${cVal} mol/L × ${V} L`, nA, 'mol'),
+                stap(`mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef}) = ${fmt(nA)} mol × (${b.coef}/${a.coef})`, nB, 'mol'),
+                stap(`massa ${b.formule} = mol × molmassa = ${fmt(nB)} mol × ${Mb.toFixed(2)} g/mol`, massaB, 'g')
+            ]
+        };
+    }
+    // terugrekenen: gewenste massa B (doel) -> benodigd volume van de A-oplossing
+    const cValA = gv(0.1, 3.0);
+    const massaBGewenst = gv(10, 300), nBGewenst = massaBGewenst / Mb, nANodig = nBGewenst * (a.coef / b.coef), VNodig = nANodig / cValA;
+    return {
+        prompt: `Reactie: ${reactie.tekst}. Je wilt ${massaBGewenst} g ${naamVoor(b.formule)} (${b.formule}, M = ${Mb.toFixed(2)} g/mol) maken. Je hebt een oplossing van ${naamVoor(a.formule)} (${a.formule}) met concentratie ${cValA} mol/L. Hoeveel liter van deze oplossing heb je hiervoor minimaal nodig?`,
+        exact: VNodig, sig: minSig(massaBGewenst, cValA), answer: rondAfSig(VNodig, minSig(massaBGewenst, cValA)), unit: 'L',
+        stappen: [
+            stap(`mol ${b.formule} nodig = massa / molmassa = ${massaBGewenst} g / ${Mb.toFixed(2)} g/mol`, nBGewenst, 'mol'),
+            stap(`mol ${a.formule} nodig = mol ${b.formule} × (${a.coef}/${b.coef}) = ${fmt(nBGewenst)} mol × (${a.coef}/${b.coef})`, nANodig, 'mol'),
+            stap(`volume nodig = mol / concentratie = ${fmt(nANodig)} mol / ${cValA} mol/L`, VNodig, 'L')
+        ]
+    };
+}
+
+function k3_massaMolverhoudingRendement() {
+    const paar = kiesStofPaar(p => p.b.kant === 'product');
+    const { reactie, a, b } = paar;
+    const Ma = molarMass(a.formule);
+    const massaA = gv(10, 300), nA = massaA / Ma, nBTh = nA * (b.coef / a.coef);
+    const rendementPct = kiesRendementPct(), nBWerk = nBTh * rendementPct / 100;
+    return {
+        prompt: `Reactie: ${reactie.tekst}. Je laat ${massaA} g ${naamVoor(a.formule)} (${a.formule}, M = ${Ma.toFixed(2)} g/mol) reageren. Het rendement van deze reactie is ${rendementPct}%. Bereken hoeveel mol ${naamVoor(b.formule)} (${b.formule}) je werkelijk krijgt.`,
+        exact: nBWerk, sig: minSig(massaA, RENDEMENT_SIGFIGS), answer: rondAfSig(nBWerk, minSig(massaA, RENDEMENT_SIGFIGS)), unit: 'mol',
+        stappen: [
+            stap(`mol ${a.formule} = massa / molmassa = ${massaA} g / ${Ma.toFixed(2)} g/mol`, nA, 'mol'),
+            stap(`theoretisch mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef}) = ${fmt(nA)} mol × (${b.coef}/${a.coef})`, nBTh, 'mol'),
+            stap(`werkelijk mol = theoretisch mol × rendement = ${fmt(nBTh)} mol × ${rendementPct}%`, nBWerk, 'mol')
+        ]
+    };
+}
+
+function k4_massaMolverhoudingRendementMassa() {
+    const paar = kiesStofPaar(p => p.b.kant === 'product');
+    const { reactie, a, b } = paar;
+    const Ma = molarMass(a.formule), Mb = molarMass(b.formule);
+    const massaA = gv(10, 300), nA = massaA / Ma, nBTh = nA * (b.coef / a.coef);
+    const rendementPct = kiesRendementPct(), nBWerk = nBTh * rendementPct / 100, massaBWerk = nBWerk * Mb;
+    return {
+        prompt: `Reactie: ${reactie.tekst}. Je laat ${massaA} g ${naamVoor(a.formule)} (${a.formule}, M = ${Ma.toFixed(2)} g/mol) reageren. Het rendement van deze reactie is ${rendementPct}%. Bereken de werkelijke massa ${naamVoor(b.formule)} (${b.formule}, M = ${Mb.toFixed(2)} g/mol) die je krijgt.`,
+        exact: massaBWerk, sig: minSig(massaA, RENDEMENT_SIGFIGS), answer: rondAfSig(massaBWerk, minSig(massaA, RENDEMENT_SIGFIGS)), unit: 'g',
+        stappen: [
+            stap(`mol ${a.formule} = massa / molmassa = ${massaA} g / ${Ma.toFixed(2)} g/mol`, nA, 'mol'),
+            stap(`theoretisch mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef}) = ${fmt(nA)} mol × (${b.coef}/${a.coef})`, nBTh, 'mol'),
+            stap(`werkelijk mol ${b.formule} = theoretisch mol × rendement = ${fmt(nBTh)} mol × ${rendementPct}%`, nBWerk, 'mol'),
+            stap(`werkelijke massa ${b.formule} = mol × molmassa = ${fmt(nBWerk)} mol × ${Mb.toFixed(2)} g/mol`, massaBWerk, 'g')
+        ]
+    };
+}
+
+function k4_concentratieMolverhoudingRendementMassa() {
+    const paar = kiesStofPaar(opl(p => p.reactie.oplossingGeschikt === true && p.b.kant === 'product'));
+    const { reactie, a, b } = paar;
+    const Mb = molarMass(b.formule);
+    const V = gv(0.1, 3.0), cVal = gv(0.1, 3.0);
+    const nA = cVal * V, nBTh = nA * (b.coef / a.coef);
+    const rendementPct = kiesRendementPct(), nBWerk = nBTh * rendementPct / 100, massaBWerk = nBWerk * Mb;
+    return {
+        prompt: `Reactie: ${reactie.tekst}. Je hebt ${V} L oplossing met concentratie ${cVal} mol/L ${naamVoor(a.formule)} (${a.formule}). Het rendement van de reactie is ${rendementPct}%. Bereken de werkelijke massa ${naamVoor(b.formule)} (${b.formule}, M = ${Mb.toFixed(2)} g/mol) die je krijgt.`,
+        exact: massaBWerk, sig: minSig(V, cVal, RENDEMENT_SIGFIGS), answer: rondAfSig(massaBWerk, minSig(V, cVal, RENDEMENT_SIGFIGS)), unit: 'g',
+        stappen: [
+            stap(`mol ${a.formule} = concentratie × volume = ${cVal} mol/L × ${V} L`, nA, 'mol'),
+            stap(`theoretisch mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef}) = ${fmt(nA)} mol × (${b.coef}/${a.coef})`, nBTh, 'mol'),
+            stap(`werkelijk mol ${b.formule} = theoretisch mol × rendement = ${fmt(nBTh)} mol × ${rendementPct}%`, nBWerk, 'mol'),
+            stap(`werkelijke massa ${b.formule} = mol × molmassa = ${fmt(nBWerk)} mol × ${Mb.toFixed(2)} g/mol`, massaBWerk, 'g')
+        ]
+    };
+}
+
+function k4_volumeMolverhoudingRendementMassa() {
+    const paar = kiesStofPaar(p => GAS_FORMULAS.has(p.a.formule) && p.b.kant === 'product');
+    if (!paar) return k4_massaMolverhoudingRendementMassa();
+    const { reactie, a, b } = paar;
+    const vm = kiesVm(), cond = vmConditie(vm);
+    const Mb = molarMass(b.formule);
+    const Va = gv(0.5, 10.0), nA = Va / vm, nBTh = nA * (b.coef / a.coef);
+    const rendementPct = kiesRendementPct(), nBWerk = nBTh * rendementPct / 100, massaBWerk = nBWerk * Mb;
+    return {
+        prompt: `Reactie: ${reactie.tekst}. Je laat ${Va} L ${naamVoor(a.formule)} (${a.formule}) bij ${cond} (Vm = ${vm} L/mol) reageren. Het rendement van deze reactie is ${rendementPct}%. Bereken de werkelijke massa ${naamVoor(b.formule)} (${b.formule}, M = ${Mb.toFixed(2)} g/mol) die je krijgt.`,
+        exact: massaBWerk, sig: minSig(Va, RENDEMENT_SIGFIGS), answer: rondAfSig(massaBWerk, minSig(Va, RENDEMENT_SIGFIGS)), unit: 'g',
+        stappen: [
+            stap(`mol ${a.formule} = volume / Vm = ${Va} L / ${vm} L/mol`, nA, 'mol'),
+            stap(`theoretisch mol ${b.formule} = mol ${a.formule} × (${b.coef}/${a.coef}) = ${fmt(nA)} mol × (${b.coef}/${a.coef})`, nBTh, 'mol'),
+            stap(`werkelijk mol ${b.formule} = theoretisch mol × rendement = ${fmt(nBTh)} mol × ${rendementPct}%`, nBWerk, 'mol'),
+            stap(`werkelijke massa ${b.formule} = mol × molmassa = ${fmt(nBWerk)} mol × ${Mb.toFixed(2)} g/mol`, massaBWerk, 'g')
+        ]
+    };
+}
+
+const KETEN_TEMPLATES = {
+    1: [
+        { fn: () => genMassaMol(2), ops: ['massaMol'] },
+        { fn: () => genMolairVolume(2), ops: ['molairVolume'] },
+        { fn: () => genConcentratie(2), ops: ['concentratie'] },
+        { fn: () => genMolverhouding(2), ops: ['molverhouding'] },
+        { fn: k1_rendement, ops: ['rendement'] },
+        { fn: k1_dichtheid, ops: ['dichtheid'] }
+    ],
+    2: [
+        { fn: k2_massaVolume, ops: ['massaMol', 'molairVolume'] },
+        { fn: k2_massaMolverhouding, ops: ['massaMol', 'molverhouding'] },
+        { fn: k2_volumeMolverhouding, ops: ['molairVolume', 'molverhouding'] },
+        { fn: k2_concentratieMolverhouding, ops: ['concentratie', 'molverhouding'] },
+        { fn: k2_massaMolConcentratie, ops: ['massaMol', 'concentratie'] },
+        { fn: k2_massaRendement, ops: ['massaMol', 'rendement'] },
+        { fn: k2_molverhoudingRendement, ops: ['molverhouding', 'rendement'] },
+        { fn: k2_molmassaDichtheid, ops: ['massaMol', 'dichtheid'] }
+    ],
+    3: [
+        { fn: k3_massaMolverhoudingMassa, ops: ['massaMol', 'molverhouding'] },
+        { fn: k3_massaMolverhoudingVolume, ops: ['massaMol', 'molverhouding', 'molairVolume'] },
+        { fn: k3_volumeMolverhoudingMassa, ops: ['molairVolume', 'molverhouding', 'massaMol'] },
+        { fn: k3_concentratieMolverhoudingMassa, ops: ['concentratie', 'molverhouding', 'massaMol'] },
+        { fn: k3_massaMolverhoudingRendement, ops: ['massaMol', 'molverhouding', 'rendement'] },
+        { fn: k3_massaMolverhoudingDichtheid, ops: ['massaMol', 'molverhouding', 'dichtheid'] }
+    ],
+    4: [
+        { fn: k4_massaMolverhoudingRendementMassa, ops: ['massaMol', 'molverhouding', 'rendement'] },
+        { fn: k4_concentratieMolverhoudingRendementMassa, ops: ['concentratie', 'molverhouding', 'rendement', 'massaMol'] },
+        { fn: k4_volumeMolverhoudingRendementMassa, ops: ['molairVolume', 'molverhouding', 'rendement', 'massaMol'] }
+    ]
+};
+
+/* ===================================================================
+   SESSIE-STATUS EN UI-LOGICA
+   =================================================================== */
+
+let chainOps = [];      // subset van massaMol/molairVolume/concentratie/molverhouding/rendement
+let flatOps = [];        // subset van massaPercentage/volumePercentage/samenstelling
+let terugrekenenAan = true; // modifier: mogen molverhoudingsvragen ook 'terugrekenen' zijn?
+let minStappen = 1;
+let maxStappen = 4;
+let score = 0;
+let vraagTeller = 0;
+let currentQuestion = null;
+
+const CHAIN_OP_KEYS = ['massaMol', 'molairVolume', 'dichtheid', 'concentratie', 'molverhouding', 'rendement'];
+const FLAT_OP_KEYS = ['massaPercentage', 'volumePercentage', 'samenstelling', 'voorvoegsels', 'machtenVanTien'];
+
+function setAlleModules(aan) {
+    document.querySelectorAll('.modChk').forEach(chk => { chk.checked = aan; });
+    bijwerkMaxStappen();
+}
+
+// Het maximale aantal rekenstappen dat te kiezen is, wordt bepaald door het aantal
+// geselecteerde onderwerpen (meer onderwerpen aan = langere ketens mogelijk, tot ons
+// ingebouwde maximum van 4). Opties die daardoor niet meer haalbaar zijn worden
+// uitgeschakeld, en een te hoge huidige keuze wordt automatisch verlaagd.
+function bijwerkMaxStappen() {
+    // Alleen onderwerpen die in een keten kunnen meedoen tellen mee voor het aantal stappen.
+    const aantalGeselecteerd = Array.from(document.querySelectorAll('.modChk:checked')).filter(c => CHAIN_OP_KEYS.includes(c.value)).length;
+    const maxToegestaan = Math.max(1, Math.min(4, aantalGeselecteerd));
+    const maxSelect = document.getElementById('maxStappenSelect');
+    const minSelect = document.getElementById('minStappenSelect');
+    Array.from(maxSelect.options).forEach(opt => {
+        opt.disabled = parseInt(opt.value) > maxToegestaan;
+    });
+    Array.from(minSelect.options).forEach(opt => {
+        opt.disabled = parseInt(opt.value) > maxToegestaan;
+    });
+    if (parseInt(maxSelect.value) > maxToegestaan) maxSelect.value = String(maxToegestaan);
+    if (parseInt(minSelect.value) > maxToegestaan) minSelect.value = String(maxToegestaan);
+}
+
+// Kiest een vraag gegeven het ingestelde stappenbereik. Probeert een paar keer een
+// willekeurig aantal stappen binnen [minStappen, maxStappen]; als daarvoor met de huidige
+// modules geen enkele template beschikbaar is, wordt gewoon een ander aantal geprobeerd
+// (zo blijft de tool altijd werken, ook met maar een paar modules aan).
+function kiesVraag() {
+    for (let poging = 0; poging < 25; poging++) {
+        const stappen = randInt(minStappen, maxStappen);
+        if (stappen === 1 && flatOps.length > 0 && (chainOps.length === 0 || Math.random() < 0.35)) {
+            const modKey = randChoice(flatOps);
+            const q = FLAT_GENERATORS[modKey](3);
+            return { ...q, steps: 1 };
+        }
+        const kandidaten = (KETEN_TEMPLATES[stappen] || []).filter(t => t.ops.every(o => chainOps.includes(o)));
+        if (kandidaten.length > 0) {
+            const q = randChoice(kandidaten).fn();
+            return { ...q, steps: stappen };
+        }
+    }
+    return null;
+}
+
+function stapBereikbaar(stap) {
+    if (stap === 1 && flatOps.length > 0) return true;
+    return (KETEN_TEMPLATES[stap] || []).some(t => t.ops.every(o => chainOps.includes(o)));
+}
+
+function startSessie() {
+    const gekozenModules = Array.from(document.querySelectorAll('.modChk'))
+        .filter(chk => chk.checked).map(chk => chk.value);
+    if (gekozenModules.length === 0) {
+        alert('Kies minstens één onderwerp om te oefenen.');
+        return;
+    }
+    chainOps = gekozenModules.filter(m => CHAIN_OP_KEYS.includes(m));
+    flatOps = gekozenModules.filter(m => FLAT_OP_KEYS.includes(m));
+    terugrekenenAan = document.getElementById('terugrekenenChk').checked;
+    molmassaGeven = document.getElementById('molmassaGevenChk').checked;
+    vmGeven = document.getElementById('vmGevenChk').checked;
+    minStappen = parseInt(document.getElementById('minStappenSelect').value);
+    maxStappen = parseInt(document.getElementById('maxStappenSelect').value);
+    if (minStappen > maxStappen) { const tmp = minStappen; minStappen = maxStappen; maxStappen = tmp; }
+    let bereikbaar = false;
+    for (let s = minStappen; s <= maxStappen; s++) { if (stapBereikbaar(s)) { bereikbaar = true; break; } }
+    if (!bereikbaar) {
+        alert('Met deze combinatie van onderwerpen kan ik geen vraag maken binnen ' + minStappen + '–' + maxStappen + ' rekenstappen. ' +
+              'Tip: ketens van 3 stappen hebben "molverhouding" nodig, en 4 stappen lukt alleen met "molverhouding" én "rendement".');
+        return;
+    }
+    score = 0; vraagTeller = 0;
+    document.getElementById('setupPanel').style.display = 'none';
+    document.getElementById('oefenPanel').style.display = 'block';
+    updateScoreWeergave();
+    nieuweRekVraag();
+}
+
+function terugNaarSetup() {
+    document.getElementById('oefenPanel').style.display = 'none';
+    document.getElementById('setupPanel').style.display = 'block';
+}
+
+function updateScoreWeergave() {
+    document.getElementById('scoreWeergave').innerText = score;
+    document.getElementById('vraagTeller').innerText = vraagTeller;
+    const badge = document.getElementById('niveauBadge');
+    if (currentQuestion) {
+        badge.innerText = currentQuestion.steps + ' rekenstap' + (currentQuestion.steps === 1 ? '' : 'pen');
+    } else {
+        badge.innerText = '';
+    }
+}
+
+let stappenGetoond = [];
+let molmassaGeven = true, vmGeven = true, beantwoord = false;
+
+// --- Weergave: formules met subscript, ladingen met superscript, decimale komma ---
+function mooi(t) {
+    t = String(t);
+    t = t.replace(/(\d)\.(\d)(?=H2O)/g, '$1·$2');                       // hydraat CuSO4.5H2O
+    t = t.replace(/10\^(-?\d+|\?|n)/g, '10<sup>$1</sup>');
+    t = t.replace(/([A-Za-z])(\d?)([+-])(?=[\s),.;]|$)/g, '$1<sup>$2$3</sup>'); // Ag+, Pb2+, I-
+    t = t.replace(/([A-Za-z\)])(\d+)/g, '$1<sub>$2</sub>');              // CO2, (NH4)2, p0
+    t = t.replace(/(\d)\.(\d)/g, '$1,$2');                               // decimale komma
+    return t;
+}
+// Getal met precies `sig` significante cijfers, als tekst met decimale komma.
+function getalTekst(v, sig) {
+    let s = sig ? Number(v).toPrecision(sig) : String(Number(Number(v).toPrecision(6)));
+    if (/e/.test(s)) {
+        const [mant, exp] = s.split('e');
+        return mant.replace('.', ',') + '·10<sup>' + parseInt(exp) + '</sup>';
+    }
+    return s.replace('.', ',');
+}
+// Breuken met een breukstreep in de uitwerking ("a / b" met spaties = deling).
+function frac(a, b) { return `<span class="frac"><span>${a}</span><span>${b}</span></span>`; }
+function stapHTML(tekst) {
+    return tekst.split(' = ').map(seg => {
+        seg = seg.replace(/\((\d+)\/(\d+)\)/g, (m, a, b) => frac(a, b));
+        seg = seg.replace(/\(([^()]+?) \/ ([^()]+?)\)/g, (m, a, b) => frac(a, b));
+        const i = seg.indexOf(' / ');
+        if (i >= 0) {
+            let l = seg.slice(0, i), r = seg.slice(i + 3);
+            if (/^\(.*\)$/.test(l)) l = l.slice(1, -1);
+            seg = frac(l, r);
+        }
+        return seg;
+    }).join(' = ');
+}
+
+// Haalt molmassa's en Vm uit de vraagtekst en zet ze (als dat aan staat) in een aparte regel "Gegeven".
+function verwerkGegevens(q) {
+    let prompt = q.prompt;
+    const stappenTekst = (q.stappen || []).map(s => s.omschrijving).join(' ');
+    prompt = prompt.replace(/, M = [\d.]+ g\/mol/g, '');
+    const vmMatch = prompt.match(/ ?\(Vm = ([\d.]+) L\/mol\)/);
+    prompt = prompt.replace(/ ?\(Vm = [\d.]+ L\/mol\)/g, '');
+    const gegeven = [];
+    if (molmassaGeven) {
+        const gezien = new Set();
+        const re = /\(([A-Z][A-Za-z0-9()·.+-]*)\)/g; let m;
+        while ((m = re.exec(prompt))) {
+            const f = m[1];
+            if (gezien.has(f)) continue; gezien.add(f);
+            const M = molarMass(f).toFixed(2);
+            if (stappenTekst.includes(M + ' g/mol')) gegeven.push(`M(${f}) = ${M} g/mol`);
+        }
+    }
+    if (vmGeven && vmMatch) gegeven.push(`Vm = ${vmMatch[1]} L/mol`);
+    return { prompt, gegeven };
+}
+
+// --- Antwoord inlezen: komma of punt, en 2,5·10^-3 / 2,5*10^-3 / 2,5x10^-3 / 2.5e-3 ---
+function leesAntwoord(str) {
+    let s = String(str).trim().replace(/\s+/g, '').replace(/,/g, '.').replace(/−/g, '-');
+    let mant = s, exp = 0;
+    let m = s.match(/^([-+]?\d*\.?\d+)(?:[xX×*·]10\^?([-+]?\d+))$/);
+    if (m) { mant = m[1]; exp = parseInt(m[2]); }
+    else if ((m = s.match(/^([-+]?\d*\.?\d+)[eE]([-+]?\d+)$/))) { mant = m[1]; exp = parseInt(m[2]); }
+    else if (!/^[-+]?\d*\.?\d+$/.test(s)) return null;
+    const val = parseFloat(mant) * Math.pow(10, exp);
+    // significante cijfers van wat de leerling intypte
+    let d = mant.replace(/^[-+]/, '');
+    const heeftPunt = d.includes('.');
+    d = d.replace('.', '').replace(/^0+/, '');
+    let sigMax = d.length || 1, sigMin = sigMax;
+    if (!heeftPunt) sigMin = (d.replace(/0+$/, '').length) || 1;   // 1200: 2 t/m 4 significante cijfers
+    return { val, sigMin, sigMax };
+}
+
+
+function nieuweRekVraag() {
+    const q = kiesVraag();
+    if (!q) {
+        document.getElementById('rekVraag').innerText = 'Kon geen vraag genereren met deze instellingen — kies andere onderwerpen of een ander aantal stappen.';
+        document.getElementById('rekEenheid').innerText = '';
+        document.getElementById('stappenKnoppenRij').innerHTML = '';
+        document.getElementById('stappenWeergave').innerHTML = '';
+        document.getElementById('stappenUitleg').innerText = '';
+        document.getElementById('volgendeVraagBtn').style.display = 'none';
+        return;
+    }
+    currentQuestion = { ...q, points: q.steps };
+    if (currentQuestion.exact === undefined) currentQuestion.exact = currentQuestion.answer;
+    vraagTeller++;
+    beantwoord = false;
+    const vg = verwerkGegevens(currentQuestion);
+    document.getElementById('rekVraag').innerHTML = mooi(vg.prompt);
+    document.getElementById('rekGegeven').innerHTML = vg.gegeven.length ? 'Gegeven: ' + mooi(vg.gegeven.join(';   ')) : '';
+    document.getElementById('rekOpmerking').innerText = '';
+    document.getElementById('rekEenheid').innerHTML = currentQuestion.unit ? ('Eenheid: ' + mooi(currentQuestion.unit)) : '';
+    document.getElementById('rekAntwoord').value = '';
+    document.getElementById('rekFeedback').innerText = '';
+    document.getElementById('rekAntwoord').focus();
+    document.getElementById('volgendeVraagBtn').style.display = 'none';
+    stappenGetoond = new Array((currentQuestion.stappen || []).length).fill(false);
+    renderStappenKnoppen();
+    renderStappenWeergave();
+    updateScoreWeergave();
+}
+
+// Toont een rij knoppen "Stap 1", "Stap 2", ... waarmee je per stap een hint kunt
+// opvragen terwijl je nog aan het rekenen bent. Bij een 1-staps-vraag heeft dit geen
+// toegevoegde waarde t.o.v. "Toon antwoord", dus dan tonen we geen knoppen.
+function renderStappenKnoppen() {
+    const rij = document.getElementById('stappenKnoppenRij');
+    const uitleg = document.getElementById('stappenUitleg');
+    const stappen = currentQuestion.stappen || [];
+    if (stappen.length <= 1) { rij.innerHTML = ''; uitleg.innerText = ''; return; }
+    uitleg.innerText = 'Klik op Stap 1 om de uitwerking van de eerste stap te zien.';
+    let html = '';
+    stappen.forEach((s, i) => {
+        html += `<button class="secundair" style="padding:5px 10px; font-size:12px;" onclick="toonStap(${i})">Stap ${i + 1}</button>`;
+    });
+    rij.innerHTML = html;
+}
+
+function toonStap(i) {
+    stappenGetoond[i] = true;
+    renderStappenWeergave();
+}
+
+function renderStappenWeergave() {
+    const div = document.getElementById('stappenWeergave');
+    const stappen = currentQuestion.stappen || [];
+    let html = '';
+    stappen.forEach((s, i) => {
+        if (stappenGetoond[i]) {
+            html += `<div class="stapregel">Stap ${i + 1}: ${stapHTML(mooi(s.omschrijving))} = <b>${getalTekst(s.waarde, typeof s.waarde === 'number' ? 4 : 0)} ${mooi(s.eenheid)}</b></div>`;
+        }
+    });
+    div.innerHTML = html;
+}
+
+// Wordt aangeroepen zodra er een antwoord is ingevuld (goed of fout) of op
+// "Toon antwoord" is geklikt: dan zijn alle tussenstappen altijd zichtbaar.
+function toonAlleStappen() {
+    stappenGetoond = stappenGetoond.map(() => true);
+    renderStappenWeergave();
+    document.getElementById('stappenKnoppenRij').innerHTML = '';
+    document.getElementById('stappenUitleg').innerText = '';
+}
+
+function antwoordTekst(q) {
+    return getalTekst(q.sig ? rondAfSig(q.exact, q.sig) : q.answer, q.sig || 0) + ' ' + mooi(q.unit);
+}
+
+// Goed = binnen 1% van de exacte uitkomst, óf gelijk aan de exacte uitkomst afgerond op het
+// juiste aantal significante cijfers. Gehele uitkomsten (exponenten) moeten exact kloppen.
+function isAntwoordGoed(inv, q) {
+    if (!inv || isNaN(inv.val)) return false;
+    const ex = q.exact;
+    if (Number.isInteger(ex) && /exponent|grondtal/.test(q.unit) && !/grondtal/.test(q.unit)) return inv.val === ex;
+    if (ex === 0) return inv.val === 0;
+    if (Math.abs(inv.val - ex) <= Math.abs(ex) * 0.01) return true;
+    if (q.sig) {
+        const afgerond = rondAfSig(ex, q.sig);
+        if (Math.abs(inv.val - afgerond) <= Math.abs(afgerond) * 1e-9) return true;
+    }
+    return false;
+}
+
+function controleerRekAntwoord() {
+    const feedback = document.getElementById('rekFeedback');
+    const opm = document.getElementById('rekOpmerking');
+    if (beantwoord) return;
+    const invoer = document.getElementById('rekAntwoord').value;
+    if (!invoer.trim()) { feedback.innerText = 'Vul eerst een antwoord in.'; feedback.style.color = 'var(--text-muted)'; return; }
+    const inv = leesAntwoord(invoer);
+    if (!inv) { feedback.innerText = 'Dat getal kan ik niet lezen. Gebruik bijvoorbeeld 0,254 of 2,54·10^-3.'; feedback.style.color = 'var(--text-muted)'; return; }
+    beantwoord = true;
+    const q = currentQuestion;
+    const goed = isAntwoordGoed(inv, q);
+    toonAlleStappen();
+    document.getElementById('volgendeVraagBtn').style.display = 'inline-block';
+    if (goed) {
+        score += q.points;
+        feedback.innerHTML = `Goed! (+${q.points} punt${q.points === 1 ? '' : 'en'})`;
+        feedback.style.color = 'var(--success)';
+        updateScoreWeergave();
+        if (q.sig && (q.sig < inv.sigMin || q.sig > inv.sigMax)) {
+            opm.innerHTML = `Goed gerekend, maar let op de significantie: geef je antwoord in ${q.sig} significante cijfers, dus ${antwoordTekst(q)}.`;
+        }
+    } else {
+        feedback.innerHTML = `Nog niet goed. Het antwoord is ${antwoordTekst(q)}. Hieronder staan alle rekenstappen.`;
+        feedback.style.color = 'var(--danger)';
+    }
+}
+
+function toonRekAntwoord() {
+    if (!beantwoord) beantwoord = true;   // na "Toon antwoord" geen punten meer
+    const feedback = document.getElementById('rekFeedback');
+    feedback.innerHTML = `Antwoord: <b>${antwoordTekst(currentQuestion)}</b>`;
+    feedback.style.color = 'var(--text-muted)';
+    toonAlleStappen();
+    document.getElementById('volgendeVraagBtn').style.display = 'inline-block';
+}
+
+bijwerkMaxStappen();
+</script>
+
+
+<script id="huisstijl-js">
+window.HS_CFG={"sel": "h2"};
+(function(){
+  var cfg=window.HS_CFG||{};
+  var b=document.createElement('button'); b.type='button'; b.textContent='Beamerstand'; b.title='Alles groter, voor op het digibord';
+  b.onclick=function(){document.body.classList.toggle('hs-beamer'); window.dispatchEvent(new Event('resize'));};
+  var hd;
+  if(cfg.own){ hd=document.querySelector(cfg.own); hd.classList.add('hs-own'); hd.appendChild(b); }
+  else {
+    var h=cfg.title?null:document.querySelector(cfg.sel||'h1');
+    hd=document.createElement('header'); hd.className='hs-header';
+    var w=document.createElement('div'); w.className='hs-wrap'; hd.appendChild(w);
+    var t=document.createElement('h1'); t.innerHTML=cfg.title||(h?h.innerHTML:document.title); w.appendChild(t);
+    w.appendChild(b); if(h) h.remove();
+    var cs=getComputedStyle(document.body);
+    var px=function(a,b){return '-'+(parseFloat(cs[a])+parseFloat(cs[b]))+'px';};
+    hd.style.margin=px('paddingTop','marginTop')+' '+px('paddingRight','marginRight')+' 18px '+px('paddingLeft','marginLeft');
+    document.body.insertBefore(hd, document.body.firstChild);
+  }
+  // zwevende elementen (tooltips) niet mee-zoomen in beamerstand
+  document.querySelectorAll('body *').forEach(function(e){ if(e!==hd && !hd.contains(e) && getComputedStyle(e).position==='fixed'){ e.classList.add('hs-nozoom'); document.body.appendChild(e); } });
+  // komma als decimaalteken in alles wat op het scherm komt
+  var dec=function(s){ return String(s).replace(/(\d)\.(\d)/g,'$1,$2'); };
+  var C=CanvasRenderingContext2D.prototype, ft=C.fillText, st=C.strokeText, mt=C.measureText;
+  C.fillText=function(t,x,y,m){ return m===undefined?ft.call(this,dec(t),x,y):ft.call(this,dec(t),x,y,m); };
+  C.strokeText=function(t,x,y,m){ return m===undefined?st.call(this,dec(t),x,y):st.call(this,dec(t),x,y,m); };
+  C.measureText=function(t){ return mt.call(this,dec(t)); };
+  var SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,INPUT:1};
+  var fix=function(root){ var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null), n;
+    while((n=w.nextNode())){ if(n.parentNode && SKIP[n.parentNode.nodeName]) continue; var v=n.nodeValue, d=dec(v); if(d!==v) n.nodeValue=d; } };
+  fix(document.body);
+  new MutationObserver(function(ms){ ms.forEach(function(m){ if(m.type==='characterData'){ if(!SKIP[m.target.parentNode&&m.target.parentNode.nodeName]){ var d=dec(m.target.nodeValue); if(d!==m.target.nodeValue) m.target.nodeValue=d; } } else m.addedNodes.forEach(function(a){ if(a.nodeType===3){ if(a.parentNode&&!SKIP[a.parentNode.nodeName]){ var d=dec(a.nodeValue); if(d!==a.nodeValue) a.nodeValue=d; } } else if(a.nodeType===1 && !SKIP[a.nodeName]) fix(a); }); }); })
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+  // invoer met komma accepteren
+  var pf=window.parseFloat; window.parseFloat=function(x){ return pf(typeof x==='string'?x.replace(',','.'):x); };
+})();
+</script>
+</body>
+</html>
