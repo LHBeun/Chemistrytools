@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fabrieksspel</title>
+<style>
+:root{
+  --papier:#f3efe6; --vel:#fffdf8; --rand:#e3dccb; --rand2:#d6cdb8;
+  --inkt:#2b2a27; --inkt2:#3e3b35; --grijs:#7a756b; --goud:#a0701f; --goud2:#e2a84b;
+  --nacht:#24323f; --nacht2:#33475a; --nachttekst:#cfd9e2;
+  --goed:#3f8f63; --goedbg:#e5f2ea; --fout:#b4473a; --foutbg:#f8e6e2; --hint:#fbf1da;
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --sans: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Consolas, 'Liberation Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--papier);color:var(--inkt);font-size:15px;line-height:1.6}
+button{font-family:inherit}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
+aside{background:var(--nacht);color:var(--nachttekst);padding:26px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
+aside h1{font-family:var(--serif);font-size:23px;color:#fff;font-weight:600;line-height:1.2}
+aside .sub{font-size:12.5px;color:#8aa0b3;margin:4px 0 18px}
+.lijn{display:flex;gap:4px;background:#1b2731;border-radius:10px;padding:4px;margin-bottom:18px}
+.lijn button{flex:1;border:0;border-radius:7px;padding:7px 6px;font-size:13.5px;font-weight:700;background:transparent;color:#9fb2c3;cursor:pointer}
+.lijn button.on{background:var(--goud2);color:var(--nacht)}
+aside nav a{display:flex;gap:12px;align-items:center;padding:10px 10px;border-radius:9px;font-size:14.5px;margin-bottom:4px;color:#b9c7d3;cursor:pointer;user-select:none;line-height:1.3}
+aside nav a:hover{background:#2c3d4d}
+aside nav a i{font-style:normal;flex:none;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #5d7387;font-size:12.5px;font-weight:700}
+aside nav a.on{background:var(--nacht2);color:#fff}
+aside nav a.on i{background:var(--goud2);border-color:var(--goud2);color:var(--nacht)}
+aside nav a.klaar i{background:#5aa37c;border-color:#5aa37c;color:#fff}
+aside nav a small{display:block;font-size:11.5px;color:#8aa0b3}
+aside .voet{margin-top:auto;padding-top:16px;display:flex;flex-direction:column;gap:8px}
+aside .voet button{background:transparent;border:1px solid #4b6074;color:#cfd9e2;border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer;text-align:left}
+aside .voet button:hover{background:#2c3d4d}
+.wp{display:grid;grid-template-columns:minmax(380px,1fr) minmax(520px,680px);min-height:100vh}
+.tekst{padding:34px 38px 60px;max-width:780px}
+.kicker{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--goud);font-weight:700}
+.tekst h2{font-family:var(--serif);font-size:31px;margin:3px 0 14px;font-weight:600;line-height:1.2}
+.tekst h3{font-family:var(--serif);font-size:19px;margin:20px 0 6px;font-weight:600}
+.tekst p{margin-bottom:10px;color:var(--inkt2)}
+.tekst ul,.tekst ol{margin:0 0 10px 20px;color:var(--inkt2)}
+.tekst li{margin-bottom:3px}
+.kader{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--goud2);border-radius:8px;padding:10px 14px;margin:10px 0 12px;color:var(--inkt2)}
+.kader.proces{border-left-color:#5d7387}
+.vgl{font-family:var(--serif);font-size:17px;margin-top:6px;color:var(--inkt)}
+.tabs{display:flex;gap:4px;margin:20px 0 14px;border-bottom:1px solid var(--rand2)}
+.tabs button{background:none;border:0;padding:9px 14px;font-size:14px;font-weight:600;color:var(--grijs);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--inkt);border-bottom-color:var(--goud2)}
+.tabs .tel{font-weight:500;font-size:12px;color:var(--grijs);margin-left:4px}
+.vb{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:16px 18px;margin:4px 0 14px}
+.vb .vbkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--goud);margin-bottom:4px}
+.vb .vbvraag{font-weight:600;margin-bottom:8px}
+.vbstap{display:flex;gap:12px;padding:8px 0;border-top:1px dashed var(--rand2)}
+.vbstap .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
+.vbstap .b{color:var(--inkt2)}
+.oknop{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.oknop .dot{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--rand2);background:var(--vel);display:grid;place-items:center;font-size:12.5px;font-weight:700;color:var(--grijs);cursor:pointer}
+.oknop .dot.on{border-color:var(--inkt);color:var(--inkt);box-shadow:0 0 0 2px var(--inkt) inset}
+.oknop .dot.goed{background:var(--goed);border-color:var(--goed);color:#fff}
+.oknop .dot.ster{border-style:dashed}
+.oknop .rechts{margin-left:auto;font-size:13px;color:var(--grijs)}
+.opdkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--grijs);margin-bottom:4px}
+.opdkop .st{color:var(--goud)}
+.stap{display:flex;gap:12px;padding:13px 15px;background:var(--vel);border:1px solid var(--rand);border-radius:11px;margin-bottom:10px}
+.stap>.n{flex:none;width:25px;height:25px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12.5px;font-weight:700;margin-top:1px}
+.stap.dicht{opacity:.42}
+.stap.dicht .inv{display:none}
+.stap.goed{border-color:#bcdcc8;background:#fbfefc}
+.stap.goed>.n{background:var(--goed)}
+.stap .inh{flex:1;min-width:0}
+.stap .vr{margin-bottom:8px}
+.rij{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input.in{font-family:var(--mono);font-size:15px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;background:#fff;min-width:0;width:220px;color:var(--inkt)}
+input.in:focus,textarea.in:focus,select.sel:focus{outline:2px solid var(--goud2);outline-offset:0;border-color:var(--goud2)}
+textarea.in{font-family:var(--sans);font-size:14.5px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;width:100%;min-height:74px;background:#fff;color:var(--inkt)}
+select.sel{border:1px solid var(--rand2);border-radius:8px;padding:7px 9px;font-size:14px;background:#fff;color:var(--inkt);font-family:inherit}
+.btn{border:0;border-radius:8px;padding:8px 15px;font-weight:600;font-size:14px;cursor:pointer;background:var(--inkt);color:#fff}
+.btn:hover{background:#45433e}
+.btn.g{background:#ebe4d4;color:var(--inkt)}
+.btn.g:hover{background:#e0d7c3}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.klein{padding:5px 11px;font-size:13px}
+.fb{margin-top:8px;padding:8px 11px;border-radius:8px;font-size:14px}
+.fb.goed{background:var(--goedbg);color:#255c3d}
+.fb.fout{background:var(--foutbg);color:#7c2c22}
+.fb.hint{background:var(--hint);color:#6b4d12}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px}
+.chip{border:1.5px solid var(--rand2);background:#fff;border-radius:999px;padding:4px 12px;font-size:14px;cursor:pointer;user-select:none;color:var(--inkt)}
+.chip:hover{border-color:#b9ad93}
+.chip.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.chip.x{padding:3px 6px 3px 12px}
+.chip.x b{margin-left:6px;font-weight:700;color:var(--grijs)}
+.opties{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.optie{border:1.5px solid var(--rand2);background:#fff;border-radius:9px;padding:8px 12px;font-size:14.5px;cursor:pointer;text-align:left;color:var(--inkt)}
+.optie:hover{border-color:#b9ad93}
+.optie.aan{border-color:var(--nacht);background:#eef2f6}
+.model{background:var(--hint);border-radius:8px;padding:8px 11px;font-size:14px;color:#5b4210;margin-top:8px}
+.model b{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.klaarbanner{background:var(--goedbg);border:1px solid #bcdcc8;color:#255c3d;border-radius:11px;padding:12px 15px;margin:4px 0 12px}
+.uitw{background:#fff;border:1px solid var(--rand);border-radius:8px;padding:8px 11px;margin-top:8px;font-size:14.5px;color:var(--inkt2)}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;line-height:1.25}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 3px}
+.frac>span:last-child{padding:0 3px}
+.simkol{background:var(--vel);border-left:1px solid var(--rand);padding:22px 22px 30px;display:flex;flex-direction:column;gap:12px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.simkop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.simkop b{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--goud)}
+.simkop span{font-size:12.5px;color:var(--grijs)}
+.doek{border:1px solid var(--rand);border-radius:12px;background:#fbf8f1;overflow:hidden}
+.doek svg{display:block;width:100%;height:auto}
+.legenda{font-size:12.5px;color:var(--grijs);line-height:1.5}
+.bouw{display:grid;gap:10px}
+.bouw .vak{background:var(--vel);border:1px solid var(--rand);border-radius:11px;padding:12px 14px}
+.bouw h4{font-size:13px;letter-spacing:1.1px;text-transform:uppercase;color:var(--grijs);margin-bottom:8px}
+.strlijst{list-style:none;margin:0!important}
+.strlijst li{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px dashed var(--rand2);font-size:14px}
+.strlijst li:first-child{border-top:0}
+.nr{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--inkt);font-size:12px;font-weight:700;margin-right:6px;flex:none}
+.stroomkeuze{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.stroomkeuze button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--rand2);background:#fff;font-weight:700;cursor:pointer;color:var(--inkt)}
+.stroomkeuze button.on{background:var(--goud2);border-color:var(--goud2)}
+.stroomkeuze button.goed{border-color:var(--goed);color:var(--goed)}
+.stroomkeuze button.fout{border-color:var(--fout);color:var(--fout)}
+body.beamer .wp{zoom:1.25}
+@media (max-width:1100px){.app{grid-template-columns:1fr}aside{position:static;height:auto}.wp{grid-template-columns:1fr}.simkol{position:static;height:auto;border-left:0;border-top:1px solid var(--rand)}.tekst{padding:24px 20px 30px}}
+@media (prefers-reduced-motion:no-preference){.nieuw{animation:verschijn .6s ease-out}@keyframes verschijn{from{opacity:0}to{opacity:1}}}
+
+.ld{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--nacht);border-radius:8px;padding:9px 14px;margin:0 0 12px;color:var(--inkt2)}
+.ld b{display:block;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--nacht);margin-bottom:2px}
+.ld ol{margin:4px 0 0 20px}
+aside nav a.slot{opacity:.45;cursor:not-allowed}
+table.regels{border-collapse:collapse;font-size:14px;background:#fff;margin:4px 0}
+table.regels th,table.regels td{border:1px solid var(--rand2);padding:4px 9px;text-align:left;vertical-align:top}
+table.regels th{background:#f3ead6}
+.besl{background:#fff;border:1px solid var(--rand);border-radius:11px;padding:13px 15px;margin:12px 0}
+.bvraag{font-weight:600;margin:8px 0 6px}
+.bkeus{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-top:1px dashed var(--rand2);font-size:14.5px}
+.bkeus:first-of-type{border-top:0}
+.binfo{font-size:13px;color:var(--grijs);margin:-2px 0 6px}
+input.schuif{width:280px;accent-color:var(--goud)}
+.besl output{font-family:var(--mono);font-weight:700;min-width:90px}
+.poortinfo{font-size:14px;color:var(--grijs)}
+.fadeinfo{font-size:14px;color:var(--inkt2);margin-bottom:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.startrij{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.btn.groot{padding:11px 22px;font-size:15.5px;background:var(--goud);}
+.btn.groot:hover{background:#8a5f17}
+.bezig{margin:14px 0;display:flex;flex-direction:column;gap:6px;color:var(--grijs);font-size:14px}
+.bezig .balk{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--goud2) 0%,var(--goud2) 50%,#efe6d3 50%);background-size:200% 100%;animation:loopt 1.2s linear forwards}
+@keyframes loopt{from{background-position:100% 0}to{background-position:0 0}}
+.resultaat{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:14px 16px;margin:12px 0}
+.meet{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
+.meet div{background:#fff;border:1px solid var(--rand);border-radius:9px;padding:7px 10px}
+.meet small{display:block;font-size:11.5px;color:var(--grijs);text-transform:uppercase;letter-spacing:.8px;font-weight:700}
+.meet b{font-family:var(--serif);font-size:18px}
+.badge{border-radius:8px;padding:8px 11px;font-size:14.5px;margin:6px 0 10px}
+.badge.ok{background:var(--goedbg);color:#255c3d}
+.badge.nok{background:var(--foutbg);color:#7c2c22}
+table.kas{width:100%;border-collapse:collapse;font-size:14px}
+table.kas td{padding:4px 2px;border-top:1px dashed var(--rand2)}
+table.kas td:last-child{text-align:right;font-family:var(--mono);white-space:nowrap}
+table.kas tr.tot td{border-top:1.5px solid var(--inkt);font-weight:700}
+.min{color:var(--fout)}.plus{color:var(--goed)}
+.saldo{background:var(--nacht);color:#fff;border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;align-items:baseline}
+.saldo small{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:#8aa0b3}
+.saldo b{font-family:var(--mono);font-size:22px}
+.saldo b.min{color:#f0a294}
+.vak{background:#fff;border:1px solid var(--rand);border-radius:11px;padding:10px 14px}
+.vak h4{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--grijs);margin-bottom:4px}
+.kbrij{display:flex;justify-content:space-between;font-size:13.5px;padding:3px 0;border-top:1px dashed var(--rand2)}
+.kbrij:first-of-type{border-top:0}
+.kbrij b{font-family:var(--mono)}
+.codevak{font-family:var(--mono);font-size:28px;letter-spacing:2px;background:#fff;border:2px dashed var(--goud2);border-radius:12px;padding:14px 18px;display:inline-block;margin:6px 0 10px}
+.grafiek{background:#fff;border:1px solid var(--rand);border-radius:9px;margin:6px 0 10px}
+.grafiek svg{display:block;width:100%;height:auto}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <h1 id="titel"></h1>
+    <div class="sub" id="sub"></div>
+    <nav id="nav"></nav>
+    <div class="voet">
+      <button data-a="code">Opslagcode</button>
+      <button data-a="beamer">Beamerstand</button>
+      <button data-a="wis">Opnieuw beginnen</button>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<script>
+/* Fabrieksspel-motor: gedeeld door alle fabrieken. Scenario roept FAB.start(SC) aan. */
+(function(){
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fr=(a,b)=>`<span class="frac"><span>${a}</span><span>${b}</span></span>`;
+const sub=f=>f.replace(/(\d+)/g,'<sub>$1</sub>');
+const nl=(v,d)=>{let s=d==null?String(+(+v).toPrecision(4)):(+v).toFixed(d);return s.replace('.',',').replace('-','−')};
+const eur=v=>{const n=Math.abs(v).toFixed(2).split('.');return (v<-0.004?'−':'')+'€ '+n[0].replace(/\B(?=(\d{3})+$)/g,'.')+','+n[1]};
+function parseNum(t){t=String(t).trim().replace(/\s/g,'').replace(/,/g,'.').replace(/−/g,'-').replace(/[%€]/g,'');t=t.replace(/[·×x*]10\^?/i,'e').replace(/e\+?/,'e');return t===''?NaN:Number(t)}
+function mkR(seed){let s=seed>>>0;const f=()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+  f.int=(a,b,st=1)=>a+st*Math.floor(f()*(Math.floor((b-a)/st+1e-9)+1));f.pick=a=>a[Math.floor(f()*a.length)];return f}
+const g=(v,a,o)=>Object.assign({t:'getal',v,a},o||{});
+const k=(v,o,a,h)=>({t:'keuze',v,o,a,h});
+window.FAB={fr,sub,nl,eur,g,k,start};
+
+let SC,KEY,S,T={};
+function start(sc){
+  SC=sc;KEY=SC.key;S={ri:-1,tab:'uitleg',geld:SC.start,r:{},log:[],view:null};
+  try{const t=JSON.parse(localStorage.getItem(KEY));if(t&&t.r)S=Object.assign(S,t)}catch(e){}
+  S.view=null;
+  document.title=SC.titel;$('#titel').textContent=SC.titel;$('#sub').textContent=SC.sub;
+  document.addEventListener('click',klik);document.addEventListener('input',invoer);
+  document.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target.id)return;const b=e.target.closest('.rij')&&e.target.closest('.rij').querySelector('[data-a=check],[data-a=vast]');if(b)b.click()});
+  render();
+  window.__fab={SC,S:()=>S,T:()=>T,render,check,rs,poortL,naL,KZ,batch,codeMaak,codeLees};
+}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const RR=i=>SC.rondes[i==null?S.ri:i];
+const KZ=(R,p)=>typeof R.keuzes==='function'?R.keuzes(p,S):(R.keuzes||[]);
+function nieuw(i,oud){const R=RR(i),seed=(Math.random()*4294967296)>>>0,p=R.gen?R.gen(mkR(seed),S):{},K={};
+  const kz=KZ(R,p);kz.forEach(x=>{if(x.def!=null)K[x.id]=x.def});
+  return{seed,p,K,vast:!kz.length,ps:0,ns:0,res:null,klaar:false,ooit:!!(oud&&(oud.ooit||oud.klaar)),tussen:false}}
+function rs(i){i=i==null?S.ri:i;if(!S.r[i])S.r[i]=nieuw(i);return S.r[i]}
+const poortL=(R,r)=>R.poort?R.poort(r.p,r.K,S):[];
+const naL=(R,r)=>R.na&&r.res?R.na(r.p,r.K,r.res,S):[];
+const gedaan=i=>!!(S.r[i]&&(S.r[i].klaar||S.r[i].ooit));
+const open=i=>i<=0||gedaan(i-1)||gedaan(i);
+
+/* ---------- render ---------- */
+function render(){
+  $('#nav').innerHTML=`<a data-a="ronde" data-v="-1" class="${S.ri===-1&&!S.view?'on':''}"><i>⌂</i><span>Start<small>leerdoelen en spelregels</small></span></a>`+
+   SC.rondes.map((R,i)=>{const d=gedaan(i),o=open(i);return `<a data-a="ronde" data-v="${i}" class="${S.ri===i&&!S.view?'on':''} ${d?'klaar':''} ${o?'':'slot'}"><i>${d?'✓':o?(R.ster?'★':i+1):'🔒'}</i><span>${R.k}<small>${R.ster?'★ uitdaging':'ronde '+(i+1)}</small></span></a>`}).join('');
+  let t,sim;
+  if(S.view==='code'){t=codeView();sim=simkol(-1)}
+  else if(S.ri===-1){t=intro();sim=simkol(-1)}
+  else{const R=RR(),r=rs();
+    t=`<div class="kicker">${R.ster?'★ ':''}Ronde ${S.ri+1} · ${SC.kort}</div><h2>${R.t}</h2>
+    <div class="tabs"><button data-a="tab" data-v="uitleg" class="${S.tab==='uitleg'?'on':''}">Uitleg en voorbeeld</button><button data-a="tab" data-v="fab" class="${S.tab==='fab'?'on':''}">De fabriek${r.klaar?' ✓':''}</button></div>`;
+    t+=S.tab==='uitleg'?uitleg(R):fabriek(R,r);sim=simkol(S.ri)}
+  $('#main').innerHTML=`<div class="wp"><div class="tekst">${t}</div><div class="simkol">${sim}</div></div>`;
+}
+function intro(){
+  const eerste=SC.rondes.findIndex((_,i)=>!gedaan(i));
+  return `<div class="kicker">Fabrieksspel · ${SC.kort}</div><h2>${SC.titel}</h2>${SC.intro}
+  <div class="ld"><b>Leerdoelen</b><ol>${SC.ld.map(x=>`<li>${x}</li>`).join('')}</ol></div>
+  <h3>Zo werkt het spel</h3><ol>
+   <li>Elke ronde is één productiebatch. Je krijgt een <b>bestelling</b> met eisen.</li>
+   <li>Lees eerst de <b>uitleg en het voorbeeld</b>. Daar staat precies hoe je het aanpakt.</li>
+   <li>Je neemt <b>beslissingen</b> (hoeveel grondstof, welke temperatuur, welke methode).</li>
+   <li>Bij de <b>rekenpoort</b> reken je uit wat je fabriek gaat doen. Pas als je berekening klopt, kun je de batch starten.</li>
+   <li>Na de batch lees je de <b>metingen</b> en je <b>kasboek</b>. Soms volgen er nog vragen over het resultaat.</li>
+   <li>Ronden met ★ zijn extra uitdagingen. Een ronde nog eens spelen met een nieuwe bestelling mag altijd.</li></ol>
+  <p>Je voortgang wordt op deze laptop bewaard. Werk je de volgende les op een andere laptop? Noteer dan je <b>opslagcode</b> (knop links onderin).</p>
+  <button class="btn" data-a="ronde" data-v="${eerste<0?0:eerste}">${eerste>0?'Verder met ronde '+(eerste+1):'Start ronde 1'}</button>`}
+function uitleg(R){
+  let h=`<div class="ld"><b>Leerdoel${R.ld.length>1?'en':''} van deze ronde</b>${R.ld.map(i=>`<div>${SC.ld[i]}</div>`).join('')}</div>${R.uitleg}`;
+  if(R.vb)h+=`<div class="vb"><div class="vbkop">Voorbeeld</div><div class="vbvraag">${R.vb.v}</div>${R.vb.s.map((x,i)=>`<div class="vbstap"><div class="n">${i+1}</div><div class="b">${x}</div></div>`).join('')}</div>`;
+  return h+`<button class="btn" data-a="tab" data-v="fab">Naar de fabriek</button>`}
+function fabriek(R,r){
+  const p=r.p,kz=KZ(R,p),po=poortL(R,r),pe=!!R.poortEerst;
+  let h='';
+  if(r.klaar)h+=`<div class="klaarbanner">Deze ronde is klaar.</div>`;
+  h+=`<div class="kader proces"><div class="opdkop">Bestelling</div>${R.bestelling(p,S)}</div>`;
+  const bb=()=>kz.length?besl(kz,r):'';
+  const pb=()=>po.length?`<h3>Rekenpoort</h3><p class="poortinfo">${pe?'Reken eerst uit wat je nodig hebt. Daarna neem je je beslissing.':'Reken uit wat je fabriek gaat doen. Pas als je berekening klopt, kun je de batch starten.'}</p>${stappen(po,r.ps,'p',R.fade&&!r.tussen&&r.ps<po.length,r)}`:'';
+  if(pe){h+=pb();if(r.ps>=po.length)h+=bb()}else{h+=bb();if(r.vast)h+=pb()}
+  if(!r.res){if(r.vast&&r.ps>=po.length)h+=`<div class="startrij"><button class="btn groot" data-a="batch">Start de batch ▶</button></div>`;return h}
+  if(Date.now()-(r.t0||0)<1200){setTimeout(render,1250);return h+`<div class="bezig"><div class="balk"></div><span>De batch draait…</span></div>`}
+  const res=r.res;
+  h+=`<div class="resultaat"><div class="opdkop">Resultaat van de batch</div>${res.html||''}<div class="badge ${res.ok?'ok':'nok'}">${res.msg}</div>${kasTabel(res.regels)}</div>`;
+  const na=naL(R,r);
+  if(na.length)h+=`<h3>Vragen over je resultaat</h3>${stappen(na,r.ns,'n',false,r)}`;
+  if(r.klaar){h+=`<div class="startrij">${S.ri<SC.rondes.length-1?`<button class="btn" data-a="ronde" data-v="${S.ri+1}">Volgende ronde →</button>`:''}<button class="btn g" data-a="opnieuw">Nog een batch met een nieuwe bestelling</button></div>`}
+  return h}
+function toon(x,v){if(x.t==='kies')return v==null?'—':(x.opties[v].t||x.opties[v]);return nl(v)+' '+(x.u||'')}
+function besl(kz,r){
+  let h=`<div class="besl"><div class="opdkop">Jouw beslissingen</div>`;
+  kz.forEach(x=>{const v=r.K[x.id];
+    if(r.vast){h+=`<div class="bkeus"><span>${x.label}</span><b>${toon(x,v)}</b></div>`;return}
+    h+=`<div class="bvraag">${x.label}</div>`;
+    if(x.t==='schuif')h+=`<div class="rij"><input type="range" class="schuif" min="${x.min}" max="${x.max}" step="${x.step||1}" value="${v==null?x.min:v}" data-k="${x.id}"><output id="o-${x.id}">${nl(v==null?x.min:v)} ${x.u||''}</output></div>`;
+    if(x.t==='getal')h+=`<div class="rij"><input class="in" id="k-${x.id}" inputmode="decimal" value="${v==null?'':nl(v)}"><span>${x.u||''}</span></div>`;
+    if(x.t==='kies'&&x.chips)h+=`<div class="chips">${x.opties.map((o,j)=>`<span class="chip ${v===j?'aan':''}" data-a="kk" data-k="${x.id}" data-v="${j}">${o.t||o}</span>`).join('')}</div>`;
+    else if(x.t==='kies')h+=`<div class="opties">${x.opties.map((o,j)=>`<button class="optie ${v===j?'aan':''}" data-a="kk" data-k="${x.id}" data-v="${j}">${o.t||o}</button>`).join('')}</div>`;
+    if(x.info)h+=`<div class="binfo">${x.info}</div>`});
+  if(r.vast){if(!r.res)h+=`<button class="btn g klein" data-a="wijzig">Beslissingen wijzigen</button>`}
+  else h+=`<div class="rij"><button class="btn" data-a="vast">Leg beslissingen vast</button></div>`;
+  if(r.kfb)h+=`<div class="fb hint">${r.kfb}</div>`;
+  return h+'</div>'}
+function stappen(L,done,pre,fade,r){
+  if(fade){const i=L.length-1;return `<div class="fadeinfo">Je mag direct het eindantwoord geven. Lukt dat niet? <button class="btn g klein" data-a="tussen">Toon de tussenstappen</button></div>`+stap(L[i],i,done<i?i:done,pre)}
+  return L.map((s,i)=>stap(s,i,done,pre)).join('')}
+function stap(s,i,done,pre){
+  const st=i<done?'goed':i===done?'':'dicht',tk=S.ri+'-'+pre+'-'+i,cur=T[tk]||{};
+  let h=`<div class="stap ${st}"><div class="n">${i+1}</div><div class="inh"><div class="vr">${s.v}</div>`;
+  if(i<done){h+=s.t==='getal'?`<div class="uitw">${s.w||nl(s.a)+' '+(s.u||'')}</div>`:`<div class="fb goed">${s.o[s.a]}${s.uitleg?' '+s.uitleg:''}</div>`;return h+'</div></div>'}
+  h+='<div class="inv">';
+  if(s.t==='getal')h+=`<div class="rij"><input class="in" id="g-${pre}-${i}" inputmode="decimal" value="${esc(cur.txt||'')}">${s.u?`<span>${s.u}</span>`:''}<button class="btn" data-a="check" data-p="${pre}" data-i="${i}">Controleer</button></div>${cur.tries>=3&&!cur.showW?`<button class="btn g klein" style="margin-top:6px" data-a="showw" data-p="${pre}" data-i="${i}">Toon het antwoord</button>`:''}${cur.showW?`<div class="uitw">${s.w||nl(s.a)+' '+(s.u||'')}</div>`:''}`;
+  if(s.t==='keuze'){const ord=s.o.map((_,j)=>j).sort((a,b)=>((a*7+i*3+S.ri)%5)-((b*7+i*3+S.ri)%5));
+    h+=`<div class="opties">${ord.map(j=>`<button class="optie ${cur.v===j?'aan':''}" data-a="kies" data-p="${pre}" data-i="${i}" data-v="${j}">${s.o[j]}</button>`).join('')}</div><button class="btn" data-a="check" data-p="${pre}" data-i="${i}">Controleer</button>`}
+  h+='</div>';if(cur.fb)h+=`<div class="fb ${cur.fb[0]}">${cur.fb[1]}</div>`;
+  return h+'</div></div>'}
+function kasTabel(L){if(!L||!L.length)return'';const tot=L.reduce((a,x)=>a+x[1],0);
+  return `<table class="kas">${L.map(x=>`<tr><td>${x[0]}</td><td class="${x[1]<0?'min':'plus'}">${eur(x[1])}</td></tr>`).join('')}<tr class="tot"><td>Resultaat van deze batch</td><td class="${tot<0?'min':'plus'}">${eur(tot)}</td></tr></table>`}
+function simkol(i){
+  const r=i>=0?rs(i):null;
+  let h=`<div class="simkop"><b>Jouw fabriek</b><span>${i>=0?'ronde '+(i+1):'overzicht'}</span></div><div class="doek">${SC.schema(i,r,S)}</div>
+  <div class="saldo"><small>Kassa</small><b class="${S.geld<0?'min':''}">${eur(S.geld)}</b></div>`;
+  const L=S.log.slice(-5).reverse();
+  if(L.length)h+=`<div class="vak kasboek"><h4>Kasboek</h4>${L.map(x=>{const t=x.regels.reduce((a,y)=>a+y[1],0);return `<div class="kbrij"><span>Ronde ${x.ronde}${x.extra?' · '+x.extra:''}</span><b class="${t<0?'min':'plus'}">${eur(t)}</b></div>`}).join('')}</div>`;
+  if(SC.legenda)h+=`<div class="legenda">${SC.legenda}</div>`;
+  return h}
+/* ---------- opslagcode ---------- */
+function hash(s){let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))%1296;return h.toString(36).toUpperCase().padStart(2,'0')}
+function codeMaak(){let m=0;SC.rondes.forEach((_,i)=>{if(gedaan(i))m|=1<<i});const b=SC.code+'-'+m.toString(36).toUpperCase()+'-'+Math.round(S.geld);return b+'-'+hash(b)}
+function codeLees(c){c=String(c).trim().toUpperCase().replace(/\s/g,'');const d=c.split('-');if(d.length!==4||d[0]!==SC.code)return false;
+  const b=d.slice(0,3).join('-');if(hash(b)!==d[3])return false;const m=parseInt(d[1],36),geld=parseInt(d[2],10);if(isNaN(m)||isNaN(geld))return false;
+  S.r={};SC.rondes.forEach((_,i)=>{if(m&(1<<i)){S.r[i]=nieuw(i);S.r[i].ooit=true}});S.geld=geld;S.log=[];S.ri=-1;save();return true}
+function codeView(){return `<div class="kicker">Opslagcode</div><h2>Verder op een andere laptop</h2>
+  <p>Schrijf deze code op. Op een andere laptop typ je hem hieronder in; je afgeronde rondes en je kassa komen dan terug.</p>
+  <div class="codevak">${codeMaak()}</div>
+  <h3>Code invoeren</h3><div class="rij"><input class="in" id="codein" placeholder="${SC.code}-…" value="${esc(T.code||'')}"><button class="btn" data-a="codelaad">Laad code</button></div>${T.codefb?`<div class="fb ${T.codefb[0]}">${T.codefb[1]}</div>`:''}`}
+/* ---------- acties ---------- */
+function invoer(e){const el=e.target;if(!el.classList.contains('schuif'))return;const r=rs(),x=KZ(RR(),r.p).find(y=>y.id===el.dataset.k);r.K[x.id]=+el.value;const o=$('#o-'+x.id);if(o)o.textContent=nl(+el.value)+' '+(x.u||'');save()}
+function vast(){const R=RR(),r=rs(),kz=KZ(R,r.p);
+  for(const x of kz){if(x.t==='getal'){const v=parseNum($('#k-'+x.id).value);if(isNaN(v)){r.kfb=`Vul een getal in bij: ${x.label}`;return}
+      if(v<x.min||v>x.max){r.kfb=`Kies bij “${x.label}” een waarde tussen ${nl(x.min)} en ${nl(x.max)} ${x.u||''}.`;return}r.K[x.id]=v}
+    if(x.t==='kies'&&r.K[x.id]==null){r.kfb=`Maak eerst een keuze bij: ${x.label}`;return}}
+  r.kfb=null;r.vast=true;if(!R.poortEerst){r.ps=0;r.tussen=false;clearT('p')}save()}
+function clearT(pre){Object.keys(T).forEach(x=>{if(x.startsWith(S.ri+'-'+pre))delete T[x]})}
+function batch(){const R=RR(),r=rs();if(r.res||!r.vast||r.ps<poortL(R,r).length)return;
+  const res=R.run(r.p,r.K,S);r.res=res;r.t0=Date.now();r.ns=0;S.geld+=res.regels.reduce((a,x)=>a+x[1],0);S.log.push({ronde:S.ri+1,regels:res.regels});
+  if(!naL(R,r).length)klaar();save()}
+function klaar(){const R=RR(),r=rs();if(r.klaar)return;r.klaar=true;
+  if(R.bonus){const b=R.bonus(r.p,r.K,r.res,S);if(b){S.geld+=b[1];r.res.regels.push(b);S.log.push({ronde:S.ri+1,regels:[b],extra:'bonus'})}}}
+function check(pre,i){
+  const R=RR(),r=rs(),L=pre==='p'?poortL(R,r):naL(R,r),s=L[i],tk=S.ri+'-'+pre+'-'+i,cur=T[tk]=T[tk]||{};let ok=false,msg='Nog niet goed.';
+  if(s.t==='getal'){const inp=$('#g-'+pre+'-'+i);cur.txt=inp.value;const x=parseNum(inp.value);
+    if(isNaN(x)){cur.fb=['hint','Dit getal kan ik niet lezen. Typ bijvoorbeeld 12,5 of 3,2·10^4.'];return}
+    ok=s.abs!=null?Math.abs(x-s.a)<=s.abs:Math.abs(x-s.a)<=Math.abs(s.a)*(s.rel||.01);
+    if(!ok){cur.tries=(cur.tries||0)+1;const f=(s.fout||[]).find(([v])=>Math.abs(x-v)<=Math.abs(v)*.015);
+      if(f)msg=f[1];else if(Math.abs(x/s.a/1e3-1)<.015||Math.abs(x*1e3/s.a-1)<.015)msg='Nog niet goed: je zit er een factor 1000 naast. Kijk naar de eenheid (g of kg?).';else msg='Nog niet goed.'+(s.h?' Tip: '+s.h:'')}}
+  if(s.t==='keuze'){if(cur.v==null){cur.fb=['hint','Kies eerst een antwoord.'];return}ok=cur.v===s.a;
+    if(!ok){msg=(s.fo&&s.fo[cur.v])||('Nog niet goed.'+(s.h?' Tip: '+s.h:''))}}
+  if(ok){cur.fb=null;if(pre==='p'){r.ps=(R.fade&&!r.tussen)?L.length:i+1}else{r.ns=i+1;if(r.ns>=L.length)klaar()}save()}
+  else cur.fb=['fout',msg]}
+function klik(e){const el=e.target.closest('[data-a]');if(!el)return;const a=el.dataset.a,v=el.dataset.v;
+  switch(a){
+    case 'ronde':{const i=+v;if(i>=0&&!open(i))return;S.ri=i;S.view=null;S.tab='uitleg';T={};if(i>=0)rs(i);save();window.scrollTo(0,0);break}
+    case 'tab':S.tab=v;save();window.scrollTo(0,0);break;
+    case 'kk':{const r=rs();r.K[el.dataset.k]=+v;r.kfb=null;break}
+    case 'vast':vast();break;
+    case 'wijzig':{const r=rs();if(!r.res){r.vast=false;if(!RR().poortEerst){r.ps=0;clearT('p')}}save();break}
+    case 'tussen':rs().tussen=true;save();break;
+    case 'batch':batch();break;
+    case 'check':check(el.dataset.p,+el.dataset.i);break;
+    case 'kies':{const tk=S.ri+'-'+el.dataset.p+'-'+el.dataset.i;T[tk]=T[tk]||{};T[tk].v=+v;T[tk].fb=null;break}
+    case 'showw':{const tk=S.ri+'-'+el.dataset.p+'-'+el.dataset.i;T[tk]=T[tk]||{};T[tk].showW=true;break}
+    case 'opnieuw':S.r[S.ri]=nieuw(S.ri,S.r[S.ri]);T={};save();window.scrollTo(0,0);break;
+    case 'code':S.view='code';T.codefb=null;break;
+    case 'codelaad':{T.code=$('#codein').value;if(codeLees(T.code)){T.codefb=['goed','Code geladen. Je afgeronde rondes en je kassa zijn terug.']}else T.codefb=['fout','Deze code klopt niet. Controleer letters en cijfers.'];break}
+    case 'beamer':document.body.classList.toggle('beamer');return;
+    case 'wis':if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Zeker weten? Klik nogmaals';return}
+      S={ri:-1,tab:'uitleg',geld:SC.start,r:{},log:[],view:null};T={};save();el.dataset.c='';el.textContent='Opnieuw beginnen';break;
+    default:return}
+  render()}
+})();
+
+</script>
+<script>
+(function(){
+const {fr,nl,eur,g,k}=FAB;
+const MG=180.156,ME=46.068,MC=44.01,TH=2*ME/MG,TC=2*MC/MG;
+const GM='g mol<sup>−1</sup>';
+const PR={glu:0.20,ruw:1.20,zuiver:2.60,vast:40};
+const GLU='C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>',ETH='C<sub>2</sub>H<sub>5</sub>OH',CO2='CO<sub>2</sub>',H2O='H<sub>2</sub>O',O2='O<sub>2</sub>';
+const meet=L=>`<div class="meet">${L.map(([a,b])=>`<div><small>${a}</small><b>${b}</b></div>`).join('')}</div>`;
+const kg=(v,d=1)=>nl(v,d)+' kg';
+const MMg=()=>g(`Bereken de molaire massa van glucose (${GLU}).`,180.16,{u:GM,rel:.002,h:'Tel de atoommassa’s op: 6 × C + 12 × H + 6 × O.'});
+const MMe=()=>g(`Bereken de molaire massa van ethanol (${ETH}).`,46.07,{u:GM,rel:.002,h:'Tel alle atomen in C₂H₅OH: 2 C, 6 H en 1 O.'});
+const VGL=k('Welke reactievergelijking hoort bij de vergisting van glucose?',[
+  `${GLU} → 2 ${ETH} + 2 ${CO2}`,`${GLU} → ${ETH} + ${CO2}`,`${GLU} + 6 ${O2} → 6 ${CO2} + 6 ${H2O}`,`${GLU} → 2 ${ETH} + 2 ${CO2} + ${H2O}`,`${GLU} → 3 ${ETH}`],0,
+  'Vergisting gebeurt zonder zuurstof. Tel daarna per atoomsoort links en rechts van de pijl.');
+VGL.fo={1:'Tel de atomen: links 6 C-atomen, rechts maar 3. Deze vergelijking klopt niet.',2:'Dit is de verbranding (of de ademhaling) van glucose: daar is zuurstof voor nodig. Bij vergisting is er geen zuurstof.',3:'Tel de H- en O-atomen: rechts heb je er te veel. Deze vergelijking klopt niet.',4:'Tel de atomen: rechts staan 18 H-atomen en 3 O-atomen, links 12 en 6. Bovendien ontstaat er ook CO₂.'};
+function contract(e,best,prijs){const L=[];let ok,msg;
+  if(e<best*.98){L.push([`Levering ${kg(e)} × ${eur(prijs)}`,e*prijs],['Boete: te weinig geleverd',-100]);ok=false;msg=`Te weinig: de klant wilde ${kg(best,0)}, je leverde ${kg(e)}. Controleer je berekening van de benodigde glucose.`}
+  else{const over=Math.max(0,e-best);L.push([`Levering ${kg(best,0)} × ${eur(prijs)}`,best*prijs]);if(over>0.05)L.push([`Overschot ${kg(over)} × ${eur(.5)}`,over*.5]);
+    ok=e<=best*1.02;msg=ok?'Bestelling precies geleverd. De klant is tevreden.':`Je hebt ${kg(over)} te veel gemaakt. Dat overschot levert minder op dan de glucose kostte.`}
+  return{L,ok,msg}}
+
+/* ----- fabrieksschema ----- */
+function schema(ri,r,S){
+  const all=ri<0,sch=all||ri>=5;const p=r?r.p:{},K=r?r.K:{},res=r&&r.res&&!(Date.now()-(r.t0||0)<1200)?r.res:null;
+  const glu=K.glu!=null?K.glu:p.glu;const pv=res?(res.prod!=null?res.prod:res.e):null;const T=ri===4&&K.T!=null?K.T:null;
+  const dim=x=>x?'':'opacity="0.28"';
+  const lab=(x,y,t,c)=>`<text x="${x}" y="${y}" text-anchor="middle" font-size="12" fill="${c||'#3e3b35'}" font-family="Segoe UI,system-ui,sans-serif">${t}</text>`;
+  let bel='';for(let j=0;j<7;j++){const x=168+((j*37)%74),y=120+((j*53)%70);bel+=`<circle cx="${x}" cy="${y}" r="${2.5+(j%3)}" fill="none" stroke="#a0701f" stroke-width="1.2"/>`}
+  const vul=res?150:110;
+  return `<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="300" fill="#fbf8f1"/>
+  <path d="M 92 200 H 150 M 252 200 H 300 M 352 200 H 395 M 445 120 H 470 V 200 H 500" stroke="#7a756b" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <g><path d="M 30 70 L 30 190 L 61 225 L 92 190 L 92 70 Z" fill="#efe6d3" stroke="#24323f" stroke-width="2"/>
+   <rect x="31" y="110" width="60" height="80" fill="#fff6e0"/>${lab(61,60,'glucose')}${glu!=null?lab(61,150,kg(glu,0)):''}</g>
+  <g><rect x="150" y="70" width="102" height="160" rx="14" fill="#fff" stroke="#24323f" stroke-width="2"/>
+   <rect x="152" y="${230-vul}" width="98" height="${vul-2}" rx="10" fill="#e9dcb8"/>${bel}
+   ${lab(190,60,'vergistingstank')}${lab(201,250,T!=null?T+' °C':'met gist')}
+   <path d="M 240 70 V 30 H 262" stroke="#7a756b" stroke-width="3" fill="none"/>${lab(287,34,'CO₂ ↑','#a0701f')}</g>
+  <g ${dim(sch)}><path d="M 300 160 H 352 L 334 205 H 318 Z" fill="#fff" stroke="#24323f" stroke-width="2"/>
+   <path d="M 306 166 H 346" stroke="#a0701f" stroke-width="2" stroke-dasharray="4 3"/>${lab(326,150,'filter')}${lab(326,224,'gist eruit','#7a756b')}</g>
+  <g ${dim(sch)}><rect x="395" y="40" width="50" height="190" rx="8" fill="#fff" stroke="#24323f" stroke-width="2"/>
+   ${[70,100,130,160,190].map(y=>`<path d="M 400 ${y} H 440" stroke="#d6cdb8" stroke-width="2"/>`).join('')}
+   <path d="M 405 230 q 15 18 30 0" fill="#f2b46b" stroke="#b4473a" stroke-width="1.5"/>${lab(420,30,'destillatiekolom')}${lab(420,262,'verwarmen','#b4473a')}</g>
+  <g><rect x="500" y="150" width="78" height="80" rx="10" fill="#fff" stroke="#24323f" stroke-width="2"/>
+   ${pv!=null?`<rect x="502" y="${228-Math.min(74,pv/6)}" width="74" height="${Math.min(74,pv/6)}" rx="8" fill="#cfe3f2"/>`:''}
+   ${lab(539,140,ri>=5||all?'ethanol':'naar klant')}${pv!=null?lab(539,200,kg(pv,0)):''}</g>
+  ${!all&&!sch?lab(372,285,'filter en destillatiekolom gaan open in ronde 6','#7a756b'):''}
+  </svg>`}
+
+/* ----- grafiek ronde 5 ----- */
+const kT=T=>1.1*Math.exp(-(((T-34)/8)**2));
+const dEff=(T,d)=>T<=38?d:Math.min(d,Math.max(.2,(44-T)/3));
+const X=(T,d)=>1-Math.exp(-kT(T)*dEff(T,d));
+function grafiek(T,d){
+  const x=t=>40+t*80,y=v=>170-v*140;let pad='';for(let t=0;t<=6.001;t+=.1)pad+=(t?'L':'M')+x(t).toFixed(1)+' '+y(X(T,t)).toFixed(1)+' ';
+  return `<div class="grafiek"><svg viewBox="0 0 560 200"><path d="M40 30 V170 H520" stroke="#3e3b35" fill="none"/>
+  ${[0,1,2,3,4,5,6].map(t=>`<text x="${x(t)}" y="186" font-size="11" text-anchor="middle" fill="#7a756b">${t}</text>`).join('')}
+  ${[0,50,100].map(v=>`<text x="34" y="${y(v/100)+4}" font-size="11" text-anchor="end" fill="#7a756b">${v}%</text><path d="M40 ${y(v/100)} H520" stroke="#eee3cc"/>`).join('')}
+  <text x="520" y="198" font-size="11" text-anchor="end" fill="#7a756b">tijd (dagen)</text><text x="44" y="22" font-size="11" fill="#7a756b">omgezette glucose bij ${T} °C</text>
+  <path d="${pad}" stroke="#a0701f" stroke-width="2.5" fill="none"/><circle cx="${x(d)}" cy="${y(X(T,d))}" r="5" fill="#24323f"/></svg></div>`}
+
+const METH=['filtreren','centrifugeren','bezinken en decanteren','destilleren','indampen','extraheren','adsorberen'];
+const VASTWEG=[0,1,2];
+
+const rondes=[
+/* 1 */{k:'Van suiker naar ethanol',t:'Van glucose naar ethanol',ld:[0,1],
+ uitleg:`<p>Gist zet glucose om in ethanol en koolstofdioxide. Dat heet <b>vergisting</b>. Er is daarbij geen zuurstof nodig. Het koolstofdioxide ontwijkt als gas.</p>
+ <div class="kader">glucose → ethanol + koolstofdioxide</div>
+ <p>Een reactievergelijking klopt als links en rechts van de pijl van elke atoomsoort evenveel atomen staan.</p>
+ <p>Om de massa van een product te berekenen volg je steeds hetzelfde schema:</p>
+ <div class="kader proces">massa beginstof → <i>(molaire massa)</i> → mol beginstof → <i>(molverhouding)</i> → mol product → <i>(molaire massa)</i> → massa product</div>
+ <p>De molverhouding lees je af uit de coëfficiënten in de kloppende vergelijking. Die verhouding geldt voor mol, niet voor kilogram.</p>`,
+ vb:{v:`Bij de verbranding van glucose ontstaat koolstofdioxide. Bereken hoeveel kg ${CO2} ontstaat uit 120 kg glucose.`,s:[
+  `Kloppende vergelijking: ${GLU} + 6 ${O2} → 6 ${CO2} + 6 ${H2O}. Links en rechts staan 6 C, 12 H en 18 O.`,
+  `Molaire massa glucose: 6 × 12,01 + 12 × 1,008 + 6 × 16,00 = 180,16 ${GM}. Molaire massa ${CO2}: 12,01 + 2 × 16,00 = 44,01 ${GM}.`,
+  `120 kg = 120·10<sup>3</sup> g, dus n(glucose) = 120·10<sup>3</sup> g × ${fr('1 mol','180,16 g')} = 666,1 mol.`,
+  `Molverhouding glucose : ${CO2} = 1 : 6, dus n(${CO2}) = 6 × 666,1 mol = 3997 mol.`,
+  `m(${CO2}) = 3997 mol × ${fr('44,01 g','1 mol')} = 1,759·10<sup>5</sup> g = 175,9 kg.`]},
+ keuzes:[{id:'glu',t:'schuif',label:'Hoeveel kg glucose zet je in?',min:100,max:600,step:10,def:300,u:'kg'}],
+ bestelling:()=>`Een destilleerderij koopt al je ethanol (nog gemengd met water) voor ${eur(PR.ruw)} per kg ethanol. Glucose kost ${eur(PR.glu)} per kg en een batch kost ${eur(PR.vast)} aan vaste kosten. Je tank kan maximaal 600 kg glucose verwerken.<br><b>Neem aan</b> dat alle glucose reageert.`,
+ poort:(p,K)=>{const n=K.glu*1000/MG;return[VGL,MMg(),MMe(),
+  g(`Bereken hoeveel mol glucose je inzet (${K.glu} kg).`,n,{u:'mol',h:'Reken eerst kg om naar g: 1 kg = 10³ g.',fout:[[K.glu/MG,'Je rekende met kg in plaats van g. Reken eerst om: 1 kg = 10³ g.']]}),
+  g('Bereken hoeveel mol ethanol er ontstaat.',2*n,{u:'mol',fout:[[n,'Kijk naar de coëfficiënten: 1 mol glucose levert 2 mol ethanol.'],[n/2,'Andersom: 1 mol glucose levert 2 mol ethanol, dus je krijgt meer mol ethanol dan mol glucose.']]}),
+  g('Bereken hoeveel kg ethanol er ontstaat.',2*n*ME/1000,{u:'kg',fout:[[n*ME/1000,'Je bent de molverhouding vergeten: er ontstaat 2 mol ethanol per mol glucose.'],[K.glu*2,'De verhouding 1 : 2 geldt voor mol, niet voor kg. Reken via mol.']],w:`${nl(2*n,4)} mol × ${fr('46,07 g','1 mol')} = ${nl(2*n*ME/1000,1)} kg`})]},
+ run:(p,K)=>{const e=K.glu*TH,c=K.glu*TC;return{e,html:meet([['ethanol gemaakt',kg(e)],['CO₂ ontweken',kg(c)]]),ok:true,
+  msg:`Gelukt. Je ${K.glu} kg glucose leverde ${kg(e)} ethanol en ${kg(c)} CO₂. Samen is dat weer ${kg(e+c)}: de massa blijft behouden.`,
+  regels:[[`Glucose ${K.glu} kg × ${eur(PR.glu)}`,-K.glu*PR.glu],['Vaste kosten',-PR.vast],[`Ethanol ${kg(e)} × ${eur(PR.ruw)}`,e*PR.ruw]]}}},
+
+/* 2 */{k:'Bestelling op maat',t:'Terugrekenen: hoeveel glucose heb je nodig?',ld:[1],poortEerst:true,
+ uitleg:`<p>Nu weet je hoeveel ethanol de klant wil hebben. Je rekent dan <b>terug</b>: hetzelfde schema, maar je begint bij het product.</p>
+ <div class="kader proces">massa product → mol product → <i>(molverhouding)</i> → mol beginstof → massa beginstof</div>
+ <p>Let op de richting van de molverhouding. Uit 1 mol glucose ontstaat 2 mol ethanol. Voor elke 2 mol ethanol heb je dus 1 mol glucose nodig.</p>`,
+ vb:{v:`Je wilt met vergisting 88,0 kg ${CO2} maken. Bereken hoeveel kg glucose je nodig hebt.`,s:[
+  `${GLU} → 2 ${ETH} + 2 ${CO2}, dus glucose : ${CO2} = 1 : 2.`,
+  `n(${CO2}) = 88,0·10<sup>3</sup> g × ${fr('1 mol','44,01 g')} = 2000 mol.`,
+  `n(glucose) = ${fr('2000 mol','2')} = 1000 mol.`,
+  `m(glucose) = 1000 mol × ${fr('180,16 g','1 mol')} = 1,80·10<sup>5</sup> g = 180 kg.`]},
+ gen:R=>({e:R.int(150,300,5)}),
+ bestelling:p=>`Een klant bestelt precies <b>${p.e} kg ethanol</b> en betaalt ${eur(1)} per kg. Lever je minder dan 98% van de bestelling, dan betaal je ${eur(100)} boete. Een overschot verkoop je voor ${eur(.5)} per kg.<br><b>Neem aan</b> dat alle glucose reageert.`,
+ poort:p=>{const ne=p.e*1000/ME,ng=ne/2;return[
+  g(`Bereken hoeveel mol ethanol de klant wil (${p.e} kg).`,ne,{u:'mol',h:'Reken kg om naar g en deel door de molaire massa van ethanol (46,07 g mol⁻¹).'}),
+  g('Bereken hoeveel mol glucose daarvoor nodig is.',ng,{u:'mol',fout:[[ne*2,'Let op de richting: voor 2 mol ethanol heb je 1 mol glucose nodig, dus minder mol glucose.']]}),
+  g('Bereken hoeveel kg glucose je moet inzetten.',ng*MG/1000,{u:'kg',fout:[[p.e/2,'De verhouding 1 : 2 geldt voor mol, niet voor kg. Reken via mol.'],[p.e*2,'De verhouding 1 : 2 geldt voor mol, niet voor kg. Reken via mol.'],[ne*MG/1000,'Je bent de molverhouding vergeten: je hebt maar half zoveel mol glucose nodig als mol ethanol.']],w:`${nl(ng,4)} mol × ${fr('180,16 g','1 mol')} = ${nl(ng*MG/1000,1)} kg`})]},
+ keuzes:[{id:'glu',t:'getal',label:'Hoeveel kg glucose zet je in?',min:10,max:800,u:'kg'}],
+ run:(p,K)=>{const e=K.glu*TH,c=contract(e,p.e,1);return{e,html:meet([['bestelling',kg(p.e,0)],['ethanol gemaakt',kg(e)]]),ok:c.ok,msg:c.msg,
+  regels:[[`Glucose ${nl(K.glu)} kg × ${eur(PR.glu)}`,-K.glu*PR.glu],['Vaste kosten',-PR.vast],...c.L]}}},
+
+/* 3 */{k:'Rendement',t:'Rendement: minder dan je had berekend',ld:[2],
+ uitleg:`<p>Met je berekening uit ronde 1 vind je de <b>theoretische opbrengst</b>: de opbrengst als alle glucose reageert. In een echte tank ontstaat altijd minder. De opbrengst die je werkelijk meet, heet de <b>werkelijke opbrengst</b>.</p>
+ <div class="kader">rendement = ${fr('werkelijke opbrengst','theoretische opbrengst')} × 100%</div>
+ <p>Waarom is het rendement van vergisting lager dan 100%?</p>
+ <ul><li>De gist gebruikt een deel van de glucose om te groeien en om energie te krijgen.</li><li>Er ontstaan kleine hoeveelheden bijproducten, bijvoorbeeld glycerol.</li><li>Bij het overpompen blijft er wat in de leidingen achter.</li></ul>`,
+ vb:{v:'Een kleine brouwerij vergist 250 kg glucose en meet 113,6 kg ethanol. Bereken het rendement.',s:[
+  `Theoretisch: n(glucose) = 250·10<sup>3</sup> g × ${fr('1 mol','180,16 g')} = 1388 mol, dus n(ethanol) = 2 × 1388 mol = 2775 mol.`,
+  `Theoretische opbrengst: 2775 mol × ${fr('46,07 g','1 mol')} = 1,279·10<sup>5</sup> g = 127,9 kg.`,
+  `rendement = ${fr('113,6 kg','127,9 kg')} × 100% = 88,8%.`]},
+ gen:R=>({glu:R.int(400,700,10),rend:R.int(860,940)/10}),
+ bestelling:p=>`Je zet <b>${p.glu} kg glucose</b> in. Na afloop meet je hoeveel ethanol er werkelijk is ontstaan. De destilleerderij betaalt ${eur(PR.ruw)} per kg ethanol, plus ${eur(50)} extra voor een volledig kwaliteitsrapport met het rendement.`,
+ run:p=>{const th=p.glu*TH,e=Math.round(th*p.rend*10)/1000;return{e,html:meet([['glucose ingezet',kg(p.glu,0)],['ethanol gemeten',kg(e)]]),ok:true,
+  msg:`De batch is klaar: je meet ${kg(e)} ethanol. Bereken nu het rendement voor je kwaliteitsrapport.`,
+  regels:[[`Glucose ${p.glu} kg × ${eur(PR.glu)}`,-p.glu*PR.glu],['Vaste kosten',-PR.vast],[`Ethanol ${kg(e)} × ${eur(PR.ruw)}`,e*PR.ruw]]}},
+ na:(p,K,res)=>{const th=p.glu*TH,rd=res.e/th*100;return[
+  g('Bereken de theoretische opbrengst aan ethanol.',th,{u:'kg',h:'Gebruik het rekenschema van ronde 1: glucose → mol → mol ethanol → kg.',fout:[[th/2,'Je bent de molverhouding vergeten: 1 mol glucose levert 2 mol ethanol.']]}),
+  g('Bereken het rendement.',rd,{u:'%',abs:.3,fout:[[th/res.e*100,'Je deelde andersom. Het rendement is de werkelijke opbrengst gedeeld door de theoretische opbrengst. Het kan niet boven 100% komen.']]}),
+  Object.assign(k('Welke oorzaak verklaart dat het rendement lager is dan 100%?',[
+   'De gist gebruikt een deel van de glucose om te groeien en energie te krijgen.',
+   'Het CO₂ neemt massa mee, waardoor er minder ethanol ontstaat dan je berekende.',
+   'Een deel van de ethanol reageert terug tot glucose.',
+   'Bij vergisting geldt de wet van behoud van massa niet.'],0),{fo:{1:'Het CO₂ zat al in je berekening: die gaat uit van de kloppende vergelijking met 2 CO₂. Het verklaart dus niet waarom je minder meet dan je berekende.',2:'Vergisting is een aflopende reactie: ethanol wordt in de tank niet terug omgezet in glucose.',3:'Massa blijft bij elke reactie behouden. Zoek de oorzaak in wat er nog meer met de glucose gebeurt.'}})]},
+ bonus:()=>['Bonus: kwaliteitsrapport',50]},
+
+/* 4 */{k:'Rekenen met rendement',t:'Terugrekenen met het rendement',ld:[1,2],poortEerst:true,fade:true,
+ uitleg:`<p>Door het rendement krijg je minder ethanol dan je theoretisch berekent. Wil je een bestelling precies leveren, dan moet je dus <b>meer</b> glucose inzetten.</p>
+ <p>Reken eerst uit welke theoretische opbrengst je nodig hebt:</p>
+ <div class="kader">theoretische opbrengst = ${fr('gewenste opbrengst','rendement')} × 100%</div>
+ <p>Daarna reken je terug naar glucose zoals in ronde 2. Bij deze ronde mag je direct het eindantwoord invullen. Lukt dat niet, open dan de tussenstappen.</p>`,
+ vb:{v:'Een klant bestelt 150 kg ethanol. Het rendement van de fabriek is 85,0%. Bereken hoeveel kg glucose je moet inzetten.',s:[
+  `Theoretische opbrengst = ${fr('150 kg','85,0%')} × 100% = 176,5 kg ethanol.`,
+  `n(ethanol) = 176,5·10<sup>3</sup> g × ${fr('1 mol','46,07 g')} = 3831 mol, dus n(glucose) = ${fr('3831 mol','2')} = 1915 mol.`,
+  `m(glucose) = 1915 mol × ${fr('180,16 g','1 mol')} = 3,451·10<sup>5</sup> g = 345,1 kg.`]},
+ gen:(R,S)=>({e:R.int(200,350,5),rend:(S.r[2]&&S.r[2].p&&S.r[2].p.rend)||90}),
+ bestelling:p=>`Een klant bestelt <b>${p.e} kg ethanol</b> voor ${eur(1)} per kg, met dezelfde voorwaarden als in ronde 2 (boete ${eur(100)} bij te weinig). Het rendement van jouw fabriek is <b>${nl(p.rend,1)}%</b>; dat heb je in ronde 3 gemeten.`,
+ poort:p=>{const th=p.e/(p.rend/100),ne=th*1000/ME,ng=ne/2,m=ng*MG/1000;return[
+  g('Bereken de theoretische opbrengst aan ethanol die je nodig hebt.',th,{u:'kg',fout:[[p.e*p.rend/100,'Door het rendement krijg je minder dan theoretisch. De theoretische opbrengst moet dus groter zijn dan de bestelling: deel door het rendement.']]}),
+  g('Bereken hoeveel mol ethanol dat is.',ne,{u:'mol'}),
+  g('Bereken hoeveel mol glucose nodig is.',ng,{u:'mol',fout:[[ne*2,'Voor 2 mol ethanol heb je 1 mol glucose nodig.']]}),
+  g('Bereken hoeveel kg glucose je moet inzetten.',m,{u:'kg',fout:[[p.e/TH,'Je bent het rendement vergeten. Met deze hoeveelheid glucose lever je te weinig.'],[p.e*p.rend/100/TH,'Je vermenigvuldigde met het rendement. Je moet juist meer glucose inzetten: deel door het rendement.']],w:`${nl(m,1)} kg glucose`})]},
+ keuzes:[{id:'glu',t:'getal',label:'Hoeveel kg glucose zet je in?',min:10,max:900,u:'kg'}],
+ run:(p,K)=>{const e=K.glu*TH*p.rend/100,c=contract(e,p.e,1);return{e,html:meet([['bestelling',kg(p.e,0)],['ethanol gemaakt',kg(e)],['rendement',nl(p.rend,1)+'%']]),ok:c.ok,msg:c.msg,
+  regels:[[`Glucose ${nl(K.glu)} kg × ${eur(PR.glu)}`,-K.glu*PR.glu],['Vaste kosten',-PR.vast],...c.L]}}},
+
+/* 5 */{k:'Temperatuur en tijd',t:'Temperatuur en tijd in de vergistingstank',ld:[3],
+ uitleg:`<p>Gist bestaat uit levende cellen. De omzetting van glucose gebeurt door <b>enzymen</b> in die cellen.</p>
+ <ul><li>Bij een <b>lage temperatuur</b> werken de enzymen langzaam: de vergisting duurt lang.</li>
+ <li>Bij een hogere temperatuur gaat het sneller, tot ongeveer 35 °C.</li>
+ <li>Boven ongeveer 40 °C gaan de enzymen kapot (ze <b>denatureren</b>) en sterft de gist. De vergisting stopt dan.</li></ul>
+ <p>Hoe langer je wacht, hoe meer glucose is omgezet, maar per dag komt er steeds minder bij. Dat de vergisting klaar is, neem je waar doordat er geen gasbelletjes (CO₂) meer ontstaan.</p>
+ <p>Tijd en temperatuur kosten geld: tankhuur per dag, en energie om te verwarmen of te koelen. Je zoekt dus de beste <b>afweging</b>, niet de hoogste opbrengst.</p>`,
+ vb:{v:'Een bakker laat deeg rijzen. Leg uit waarom dat in een warme keuken (30 °C) sneller gaat dan in de koelkast (5 °C), maar niet in de oven (200 °C).',s:[
+  'Het deeg rijst doordat gist CO₂ maakt.','Bij 30 °C werken de enzymen van de gist snel; bij 5 °C langzaam.','In de oven denatureren de enzymen en sterft de gist: er ontstaat geen CO₂ meer (het deeg wordt gebakken).']},
+ gen:R=>({glu:R.int(450,600,10)}),
+ keuzes:[{id:'T',t:'schuif',label:'Temperatuur in de tank',min:15,max:45,step:1,def:20,u:'°C',info:'Buitentemperatuur 15 °C. Elke graad verschil kost € 1,00 per dag.'},
+         {id:'d',t:'schuif',label:'Aantal dagen in de tank',min:1,max:6,step:1,def:2,u:'dagen',info:'Tankhuur € 15,00 per dag.'}],
+ bestelling:p=>`Je zet <b>${p.glu} kg glucose</b> in. De destilleerderij betaalt ${eur(PR.ruw)} per kg ethanol. Het maximale rendement van je fabriek is 92%. Kies een temperatuur en een tijd met een zo hoog mogelijke winst.`,
+ run:(p,K)=>{const x=X(K.T,K.d),e=p.glu*TH*.92*x,ko=Math.abs(K.T-15)*K.d;
+  return{e,x,html:meet([['glucose omgezet',nl(x*100,0)+'%'],['ethanol gemaakt',kg(e)]])+grafiek(K.T,K.d),ok:x>.5,
+  msg:x>.5?`Bij ${K.T} °C is na ${K.d} dagen ${nl(x*100,0)}% van de glucose omgezet. Kijk in de grafiek of meer dagen nog veel zou opleveren.`:`Er is maar ${nl(x*100,0)}% van de glucose omgezet. ${K.T>40?'Bij deze temperatuur sterft de gist.':'De gist werkt bij deze temperatuur te langzaam.'}`,
+  regels:[[`Glucose ${p.glu} kg × ${eur(PR.glu)}`,-p.glu*PR.glu],['Vaste kosten',-PR.vast],[`Tankhuur ${K.d} dagen`,-15*K.d],[`Verwarmen/koelen`,-ko],[`Ethanol ${kg(e)} × ${eur(PR.ruw)}`,e*PR.ruw]]}},
+ na:()=>[
+  Object.assign(k('Leg uit waarom de vergisting bij 45 °C bijna stilvalt.',[
+   'De enzymen in de gist denatureren en de gist sterft.','Ethanol kookt bij 45 °C en verdampt uit de tank.','Bij een hoge temperatuur bewegen de deeltjes langzamer.','Glucose lost bij 45 °C niet meer op in water.'],0),
+   {fo:{1:'Het kookpunt van ethanol is 78 °C (bij p₀). Bij 45 °C kookt ethanol dus niet.',2:'Bij een hogere temperatuur bewegen deeltjes juist sneller.',3:'Glucose lost bij een hogere temperatuur juist beter op.'}}),
+  Object.assign(k('Hoe neem je in de fabriek waar dat de vergisting klaar is?',[
+   'Er ontstaan geen gasbelletjes (CO₂) meer.','De vloeistof wordt kleurloos.','Het mengsel begint te koken.','De temperatuur in de tank daalt tot 0 °C.'],0),
+   {fo:{1:'Het mengsel blijft troebel door de gist; een kleurverandering zegt niets over de vergisting.',2:'De tank wordt niet tot het kookpunt verwarmd.',3:'De temperatuur regel jij zelf; die zegt niets over de vergisting.'}})]},
+
+/* 6 */{k:'Scheiden',t:'Ethanol uit het mengsel halen',ld:[4],
+ uitleg:`<p>Na de vergisting heb je een troebel mengsel: water, opgeloste ethanol en vaste gistcellen. Elke scheidingsmethode berust op een verschil in een <b>stofeigenschap</b>.</p>
+ <table class="regels"><tr><th>methode</th><th>berust op verschil in</th></tr>
+ <tr><td>filtreren</td><td>deeltjesgrootte: niet-opgeloste vaste deeltjes blijven achter op het filter</td></tr>
+ <tr><td>centrifugeren</td><td>dichtheid: niet-opgeloste deeltjes worden snel naar de bodem geslingerd</td></tr>
+ <tr><td>bezinken en decanteren</td><td>dichtheid: vaste deeltjes zakken langzaam naar de bodem, je giet de vloeistof af</td></tr>
+ <tr><td>destilleren</td><td>kookpunt: de stof met het laagste kookpunt verdampt het eerst</td></tr>
+ <tr><td>indampen</td><td>kookpunt: de vloeistof verdampt, opgeloste vaste stoffen blijven achter</td></tr>
+ <tr><td>extraheren</td><td>oplosbaarheid in een extractiemiddel</td></tr>
+ <tr><td>adsorberen</td><td>aanhechting aan een adsorptiemiddel, zoals actieve kool</td></tr></table>
+ <p>Ethanol heeft een kookpunt van 78 °C en water van 100 °C (bij p<sub>0</sub>). De damp bij het destilleren bevat dus meer ethanol dan de vloeistof, maar het blijft een mengsel. Daarom destilleer je soms meerdere keren. Met gewoon destilleren kom je nooit boven ongeveer 95% ethanol.</p>
+ <p>Een gistcel die in de destillatiekolom terechtkomt, brandt aan. Haal vaste stoffen er dus <b>eerst</b> uit.</p>`,
+ vb:{v:'Je hebt zeewater met zand erin. Je wilt er zuiver water uit halen. Welke methoden gebruik je, en in welke volgorde?',s:[
+  'Zand is niet opgelost: dat verwijder je eerst met filtreren (verschil in deeltjesgrootte).','Het zout is wel opgelost. Water heeft een veel lager kookpunt dan zout: met destilleren vang je het water op.',
+  'Wil je juist het zout, dan kun je indampen: het water verdampt en het zout blijft achter.']},
+ gen:R=>({m:4000,e:R.int(330,420,5)}),
+ keuzes:[{id:'s1',t:'kies',chips:1,label:'Stap 1 van het scheiden',opties:METH},{id:'s2',t:'kies',chips:1,label:'Stap 2 van het scheiden',opties:METH},
+  {id:'n',t:'schuif',label:'Hoe vaak destilleer je?',min:1,max:4,step:1,def:1,u:'keer',info:'Eén keer destilleren kost € 120,00 aan energie.'}],
+ bestelling:p=>`Na de vergisting heb je ${p.m} kg troebel mengsel: water, <b>${p.e} kg ethanol</b> en vaste gistcellen. Een brandstofbedrijf koopt ethanol van <b>minstens 90% (massa)</b> voor ${eur(PR.zuiver)} per kg ethanol. Is het minder dan 90%, dan gaat het als ruwe ethanol weg voor ${eur(PR.ruw)} per kg ethanol.`,
+ poort:()=>[
+  Object.assign(k('Op welk verschil in stofeigenschap berust het scheiden van ethanol en water door destilleren?',['kookpunt','deeltjesgrootte','dichtheid','oplosbaarheid in water','kleur'],0),{fo:{1:'Ethanol en water zijn allebei vloeistoffen die volledig mengen; hun moleculen gaan allebei door elk filter.',2:'Ethanol en water mengen volledig, dus ze ontmengen niet op dichtheid.',3:'Ethanol en water lossen volledig in elkaar op.',4:'Ethanol en water zijn allebei kleurloos.'}}),
+  Object.assign(k('Waarom kun je de gistcellen met filtreren verwijderen?',['Gistcellen zijn niet opgelost: het zijn vaste deeltjes die groter zijn dan de poriën van het filter.','Gistcellen hebben een hoger kookpunt dan water.','Gistcellen lossen op in ethanol, maar niet in water.','Gistcellen zijn lichter dan water en blijven drijven.'],0),{fo:{1:'Bij filtreren verwarm je niets; het kookpunt speelt geen rol.',2:'Gistcellen lossen niet op: dat is juist waarom het filter ze tegenhoudt.',3:'Filtreren berust niet op dichtheid.'}})],
+ run:(p,K)=>{const s1=METH[K.s1],pur=[0,45,78,91,95][K.n],gistWeg=VASTWEG.includes(K.s1),dest=K.s1===3||K.s2===3;let e=p.e,ok=true,msg='';
+  if(K.s1===4||K.s2===4)return{e:0,prod:0,pur:0,html:meet([['product','0 kg']]),ok:false,msg:'Bij indampen verdampt de ethanol samen met het water: je houdt niets over om te verkopen.',regels:[]};
+  if(!dest){const prod=p.m-60,pr=Math.round(e/prod*100);return{e,prod,pur:pr,html:meet([['product',kg(prod,0)],['ethanol in product',pr+'%']]),ok:false,
+    msg:`Zonder destilleren blijft je ethanol opgelost in water (${pr}%). Het brandstofbedrijf koopt dit niet; het gaat weg als ruwe ethanol.`,regels:[[`Ruwe ethanol ${kg(e)} × ${eur(PR.ruw)}`,e*PR.ruw]]}}
+  const L=[[`Energie: ${K.n} × destilleren`,-120*K.n]];
+  if(!gistWeg){ok=false;e*=.5;L.push(['Kolom schoonmaken',-200]);msg=K.s1===3?'Je destilleerde met de gist er nog in: de gist brandde aan in de kolom. Schoonmaken kost € 200,00 en de helft van je ethanol is verloren. Haal vaste stoffen er eerst uit.':`Met ${s1} haal je de gistcellen er niet uit. Ze brandden aan in de kolom: schoonmaken kost € 200,00 en de helft van je ethanol is verloren.`}
+  e*=Math.pow(.97,K.n);const prod=Math.round(e/(pur/100)*10)/10,eIn=prod*pur/100,goed=pur>=90;
+  L.push(goed?[`Ethanol ${kg(eIn)} × ${eur(PR.zuiver)}`,eIn*PR.zuiver]:[`Ruwe ethanol ${kg(eIn)} × ${eur(PR.ruw)}`,eIn*PR.ruw]);
+  if(ok)msg=goed?`Na ${K.n} keer destilleren is je product ${pur}% ethanol. Dat voldoet aan de eis.${K.n===4?' Zou drie keer ook genoeg zijn geweest?':''}`:`Na ${K.n} keer destilleren is je product pas ${pur}% ethanol. Dat is te weinig voor het brandstofbedrijf; het gaat weg als ruwe ethanol.`;
+  return{e:eIn,prod,pur,html:meet([['product',kg(prod)],['ethanol in product',pur+'%']]),ok:ok&&goed,msg,regels:L}},
+ na:(p,K,res)=>res.prod?[g(`Je product weegt ${kg(res.prod)} en bestaat voor ${res.pur}% uit ethanol. Bereken de massa ethanol in je product.`,res.prod*res.pur/100,{u:'kg',h:`Neem ${res.pur}% van de massa van het product: ${fr(String(res.pur),'100')} × ${kg(res.prod)}.`,fout:[[res.prod/res.pur*100,'Je deelde door het percentage. Je wilt een deel van het geheel: vermenigvuldig met het percentage en deel door 100.']]})]:[]},
+
+/* 7 */{k:'Grondstof en CO₂',t:'Duurzaam produceren: grondstof en CO₂',ld:[5],ster:true,poortEerst:true,fade:true,
+ uitleg:`<p>Bio-ethanol maak je uit planten. Welke plant je kiest, maakt veel uit:</p>
+ <ul><li><b>Suikerbieten en suikerriet</b> bevatten suiker die gist direct kan vergisten. Ze nemen wel landbouwgrond in die ook voor voedsel kan worden gebruikt.</li>
+ <li><b>Maïs</b> bevat zetmeel. Dat moet je eerst afbreken tot glucose (hydrolyse).</li>
+ <li><b>Snoeiafval en stro</b> bevatten cellulose. Dat is afval, dus er is geen concurrentie met voedsel, maar het afbreken tot glucose is lastig en duur. Dit heet bio-ethanol van de tweede generatie.</li></ul>
+ <p>Het CO₂ uit de vergisting was eerst door de plant opgenomen bij de fotosynthese. Toch kost de productie ook energie, bijvoorbeeld voor transport, kunstmest en destilleren. Het CO₂ uit de tank kun je laten ontsnappen, verkopen aan een tuinder (planten groeien sneller met extra CO₂) of ondergronds opslaan.</p>`,
+ vb:{v:`Bereken hoeveel kg ${CO2} er ontstaat bij de vergisting van 240 kg glucose.`,s:[
+  `n(glucose) = 240·10<sup>3</sup> g × ${fr('1 mol','180,16 g')} = 1332 mol.`,`glucose : ${CO2} = 1 : 2, dus n(${CO2}) = 2 × 1332 mol = 2664 mol.`,
+  `m(${CO2}) = 2664 mol × ${fr('44,01 g','1 mol')} = 1,172·10<sup>5</sup> g = 117,2 kg.`]},
+ gen:R=>({glu:R.int(500,800,10)}),
+ bestelling:p=>`Voor de volgende batch heb je grondstof nodig die <b>${p.glu} kg glucose</b> oplevert. Kies een grondstof en een bestemming voor het CO₂. Je krijgt punten voor winst én voor duurzaamheid. <b>Neem aan</b> dat alle glucose reageert.`,
+ poort:p=>{const n=p.glu*1000/MG;return[g('Bereken hoeveel mol glucose dat is.',n,{u:'mol'}),g('Bereken hoeveel mol CO₂ er ontstaat.',2*n,{u:'mol'}),
+  g(`Bereken hoeveel kg CO₂ er bij deze batch ontstaat.`,p.glu*TC,{u:'kg',fout:[[p.glu*TC/2,'Je bent de molverhouding vergeten: per mol glucose ontstaat 2 mol CO₂.'],[p.glu*2,'De verhouding 1 : 2 geldt voor mol, niet voor kg.']],w:`${nl(p.glu*TC,1)} kg CO₂`})]},
+ keuzes:[{id:'gs',t:'kies',label:'Welke grondstof koop je?',opties:[
+   {t:'Suikerbieten uit Nederland (€ 0,22 per kg glucose)',pr:.22,du:2,uit:'korte transportafstand, maar landbouwgrond'},
+   {t:'Maïs (€ 0,16 per kg glucose, plus € 0,04 voor het afbreken van zetmeel)',pr:.20,du:1,uit:'concurreert met voedsel en veevoer'},
+   {t:'Suikerriet uit Brazilië (€ 0,15 per kg glucose)',pr:.15,du:0,uit:'goedkoop, maar lang transport per schip'},
+   {t:'Snoeiafval en stro (€ 0,05 per kg glucose, plus € 0,13 voor het afbreken van cellulose)',pr:.18,du:3,uit:'afval: geen concurrentie met voedsel'}]},
+  {id:'co',t:'kies',label:'Wat doe je met het CO₂?',opties:[{t:'Laten ontsnappen naar de lucht',pr:0,du:0},{t:'Verkopen aan een tuinder met kassen (+ € 0,04 per kg)',pr:.04,du:2},{t:'Ondergronds opslaan (− € 0,03 per kg)',pr:-.03,du:2}]}],
+ run:(p,K)=>{const G=rondes[6].keuzes[0].opties[K.gs],C=rondes[6].keuzes[1].opties[K.co],e=p.glu*TH*.9,c=p.glu*TC,pt=G.du+C.du;
+  return{e,html:meet([['ethanol (rendement 90%)',kg(e)],['CO₂',kg(c)],['duurzaamheid',pt+' van 5 punten']]),ok:pt>=3,
+   msg:`Duurzaamheid: ${pt} van de 5 punten. Grondstof: ${G.uit}. ${C.du?'Je CO₂ komt niet in de lucht terecht.':'Je CO₂ gaat de lucht in.'}`,
+   regels:[[`Grondstof ${p.glu} kg glucose`,-p.glu*G.pr],['Vaste kosten',-PR.vast],[`Ethanol ${kg(e)} × ${eur(PR.ruw)}`,e*PR.ruw],...(C.pr?[[`CO₂ ${kg(c,0)}`,c*C.pr]]:[])]}},
+ na:()=>[Object.assign(k('Leg uit of bio-ethanol helemaal CO₂-neutraal is.',[
+  'Niet helemaal: het CO₂ uit vergisting en verbranding was eerst door de plant opgenomen, maar transport, kunstmest en destilleren kosten extra energie en dus extra CO₂.',
+  'Ja, want bij vergisting komt geen CO₂ vrij.',
+  'Ja, want bij de verbranding van bio-ethanol ontstaat geen CO₂.',
+  'Nee, want CO₂ uit planten is schadelijker dan CO₂ uit aardolie.'],0),{fo:{1:'Bij vergisting ontstaat wel CO₂: kijk naar de reactievergelijking.',2:'Ethanol is opgebouwd uit C-, H- en O-atomen; bij verbranding ontstaat dus CO₂ en water.',3:'Een CO₂-molecuul is hetzelfde, waar het ook vandaan komt.'}})]},
+
+/* 8 */{k:'Hoeveel suiker per tank?',t:'Het massapercentage ethanol in de tank',ld:[5],ster:true,
+ uitleg:`<p>Gist kan niet tegen te veel ethanol. Boven ongeveer <b>12 massaprocent</b> ethanol stopt de gist met werken. De glucose die dan nog over is, gaat verloren.</p>
+ <div class="kader">massapercentage = ${fr('massa ethanol','massa mengsel')} × 100%</div>
+ <p>Let op: het CO₂ ontwijkt als gas uit de tank. De massa van het mengsel in de tank wordt dus kleiner. Volgens de wet van behoud van massa is de massa CO₂ gelijk aan de massa glucose min de massa ethanol.</p>`,
+ vb:{v:'Een tank bevat 2000 kg mengsel van water en 300 kg glucose. Alle glucose reageert. Bereken het massapercentage ethanol na de vergisting.',s:[
+  `Ethanol: 300 kg glucose levert 153,4 kg ethanol (rekenschema van ronde 1).`,`CO₂: 300 kg − 153,4 kg = 146,6 kg (behoud van massa).`,
+  `Massa mengsel na de vergisting: 2000 kg − 146,6 kg = 1853 kg.`,`massapercentage = ${fr('153,4 kg','1853 kg')} × 100% = 8,28%.`]},
+ gen:()=>({m:4000}),
+ keuzes:[{id:'glu',t:'schuif',label:'Hoeveel kg glucose los je op in de tank?',min:200,max:1200,step:20,def:600,u:'kg'}],
+ bestelling:p=>`De tank bevat ${p.m} kg mengsel van water en de glucose die je kiest. Je verkoopt de ethanol voor ${eur(PR.ruw)} per kg; glucose kost ${eur(PR.glu)} per kg. Kies zoveel glucose dat de gist net niet stopt. <b>Neem aan</b> dat alle glucose reageert zolang de gist werkt.`,
+ poort:(p,K)=>{const e=K.glu*TH,c=K.glu-e,mm=p.m-c,pc=e/mm*100;return[
+  g(`Bereken hoeveel kg ethanol ontstaat uit ${K.glu} kg glucose.`,e,{u:'kg'}),
+  g('Bereken hoeveel kg CO₂ er ontwijkt.',c,{u:'kg',h:'Gebruik behoud van massa: massa glucose min massa ethanol.'}),
+  g('Bereken de massa van het mengsel in de tank na de vergisting.',mm,{u:'kg',fout:[[p.m,'Het CO₂ ontwijkt als gas. Trek de massa CO₂ af van de massa van het mengsel.']]}),
+  g('Bereken het massapercentage ethanol na de vergisting.',pc,{u:'%',abs:.1,fout:[[e/p.m*100,'Je deelde door de massa vóór de vergisting. Het CO₂ is ontweken: gebruik de massa van het mengsel na de vergisting.']]})]},
+ run:(p,K)=>{let e=K.glu*TH,pc=e/(p.m-K.glu+e)*100,ok=pc<=12,gE=K.glu;
+  if(!ok){gE=480/(TH+.12*(1-TH));e=gE*TH}
+  return{e,html:meet([['ethanol gemaakt',kg(e)],['ethanol in tank',nl(Math.min(pc,12),1)+'%'],['glucose verloren',kg(K.glu-gE)]]),ok:ok&&pc>11,
+   msg:ok?(pc>11?'Mooi gekozen: de gist werkt tot het eind en de tank wordt goed benut.':`De gist stopte niet, maar met ${nl(pc,1)}% ethanol benut je de tank niet volledig. Er kon meer glucose in.`):`Bij ${nl(pc,1)}% zou de gist allang gestopt zijn. Bij 12% hield de gist op; ${kg(K.glu-gE)} glucose ging verloren.`,
+   regels:[[`Glucose ${K.glu} kg × ${eur(PR.glu)}`,-K.glu*PR.glu],['Vaste kosten',-PR.vast],[`Ethanol ${kg(e)} × ${eur(PR.ruw)}`,e*PR.ruw]]}},
+ na:()=>[Object.assign(k('Je wilt toch meer ethanol per tank maken. Welke aanpassing helpt?',[
+  'Een gistsoort gebruiken die tegen een hoger ethanolpercentage kan.','Meer glucose toevoegen.','De temperatuur verhogen tot 50 °C.','Het CO₂ in de tank houden.'],0),
+  {fo:{1:'Meer glucose helpt niet: de gist stopt bij 12% ethanol, wat je ook toevoegt.',2:'Bij 50 °C sterft de gist.',3:'Daarmee wordt het mengsel zwaarder, maar de gist stopt nog steeds bij hetzelfde gehalte ethanol. Bovendien bouwt de druk in de tank op.'}})]}
+];
+
+FAB.start({key:'fabriek-bioethanol-v1',code:'BE',titel:'Bio-ethanolfabriek',kort:'Bio-ethanol · 4V',sub:'Fabrieksspel · 4V',start:1000,
+ intro:`<p>Jij runt een fabriek die van glucose bio-ethanol maakt, een brandstof uit planten. Elke ronde krijg je een nieuwe bestelling. Gaandeweg komen er meer onderdelen van de fabriek bij: rendement, temperatuur en tijd, en het scheiden van het product.</p>`,
+ ld:['Je kunt de kloppende reactievergelijking van de vergisting van glucose herkennen door atomen te tellen.',
+  'Je kunt vanuit de massa glucose de massa ethanol berekenen, en terugrekenen hoeveel glucose nodig is voor een bestelling.',
+  'Je kunt het rendement berekenen, ermee rekenen en uitleggen waarom het lager is dan 100%.',
+  'Je kunt uitleggen hoe temperatuur en tijd de vergisting beïnvloeden.',
+  'Je kunt scheidingsmethoden kiezen voor het mengsel na de vergisting en uitleggen op welke stofeigenschap ze berusten.',
+  '★ Je kunt grondstoffen en CO₂-gebruik afwegen op kosten en duurzaamheid, en het massapercentage ethanol in de tank berekenen.'],
+ legenda:'Atoommassa’s: H 1,008 · C 12,01 · O 16,00. Machten van tien typ je als 2,5·10^4 of 2,5e4.',
+ schema,rondes});
+})();
+
+</script>
+</body>
+</html>
