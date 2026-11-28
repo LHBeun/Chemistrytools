@@ -243,18 +243,48 @@ body.zonder-sb .sidebar{display:none}
 .lac-bron button{font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid var(--bd);background:var(--sf);color:var(--mu);cursor:pointer}
 .lac-bron button.active{background:var(--amb);border-color:var(--am);color:var(--amd);font-weight:600}
 #res-card,#ctg-card{margin-bottom:14px}
+
+/* ===== werkplaats-schil (labjournaal) ===== */
+body{background:#f3efe6}
+.ljapp{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
+aside.lj{background:#24323f;color:#cfd9e2;padding:26px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
+aside.lj h1{font-family:Georgia,'Iowan Old Style',serif;font-size:23px;color:#fff;font-weight:600}
+.ljsub{font-size:12.5px;color:#8aa0b3;margin:4px 0 22px}
+#ljnav a{display:flex;gap:12px;align-items:center;padding:10px;border-radius:9px;font-size:14.5px;margin-bottom:4px;color:#b9c7d3;cursor:pointer;line-height:1.3}
+#ljnav a:hover{background:#2c3d4d}
+#ljnav a i{font-style:normal;flex:none;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #5d7387;font-size:12.5px;font-weight:700}
+#ljnav a.on{background:#33475a;color:#fff}#ljnav a.on i{background:#e2a84b;border-color:#e2a84b;color:#24323f}
+#ljnav a.klaar i{background:#5aa37c;border-color:#5aa37c;color:#fff}
+#ljnav a small{display:block;font-size:11.5px;color:#8aa0b3}
+.ljvoet{margin-top:auto;padding-top:16px;display:flex;flex-direction:column;gap:8px}
+.ljvoet button{background:transparent;border:1px solid #4b6074;color:#cfd9e2;border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer;text-align:left}
+.ljmain{min-width:0}
+.ljkop{padding:30px 34px 0}
+.ljkick{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:#a0701f;font-weight:700}
+.ljkop h2{font-family:Georgia,'Iowan Old Style',serif;font-size:31px;margin:3px 0 10px;font-weight:600;line-height:1.2}
+.ljtabs{display:flex;gap:4px;border-bottom:1px solid #d6cdb8;flex-wrap:wrap}
+.ljtabs button{background:none;border:0;padding:9px 14px;font-size:14px;font-weight:600;color:#7a756b;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.ljtabs button.on{color:#2b2a27;border-bottom-color:#e2a84b}
+.ljuitleg{padding:18px 34px 40px;max-width:820px;font-size:15px;line-height:1.65;color:#3e3b35}
+.ljuitleg h3{font-family:Georgia,serif;font-size:20px;margin:18px 0 6px;color:#2b2a27}
+.ljuitleg .ljblok{background:#fffdf8;border:1px solid #e3dccb;border-left:4px solid #e2a84b;border-radius:10px;padding:12px 16px;margin-bottom:14px}
+.ljuitleg .ljdoel{background:#fffdf8;border:1px solid #e3dccb;border-radius:10px;padding:10px 16px;margin:6px 0 14px}
+.ljapp .layout{min-height:auto;background:transparent}
+.ljapp .main{height:auto;overflow:visible;padding:18px 34px 40px}
+.ljapp .sidebar{display:flex;flex-wrap:wrap;gap:4px;border:0;background:transparent;padding:12px 34px 0}
+.ljapp .sidebar .slbl{width:100%}
+.ljapp .sidebar .pbtn{width:auto;background:#fff;border:1px solid #e3dccb}
+.ljapp .layout{grid-template-columns:1fr!important;display:block}
+.ljapp.verborgen-sim .layout{display:none}
+#aa-content .aagrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+#aa-content .aakaart{background:#fff;border:1px solid #e3dccb;border-radius:10px;padding:8px;text-align:center;font-size:13px}
+@media(max-width:1000px){.ljapp{grid-template-columns:1fr}aside.lj{position:static;height:auto}}
 </style>
 </head>
 <body>
-<header class="hs-header"><div class="hs-wrap"><h1>Eiwitten</h1>
-  <div class="tab-bar">
-    <button class="tab active" onclick="showTab('opdrachten')">Opdrachten</button>
-    <button class="tab" onclick="showTab('translatie')">Translatie &amp; codons</button>
-    <button class="tab" onclick="showTab('mutaties')">Mutaties</button>
-    <button class="tab" onclick="showTab('activiteit')">Enzymactiviteit</button>
-    <button class="tab" onclick="showTab('neerslag')">Neerslag</button>
-  </div>
-  <button id="beamer" type="button" onclick="document.body.classList.toggle('hs-beamer')">Beamerstand</button></div></header>
+<div class="ljapp"><aside class="lj"><h1>Eiwitten</h1><div class="ljsub">Van aminozuur tot enzym · 6V</div><nav id="ljnav"></nav>
+<div class="ljvoet"><button onclick="document.body.classList.toggle('hs-beamer')">Beamerstand</button><button id="ljwis">Voortgang wissen</button></div></aside>
+<div class="ljmain"><div class="ljkop" id="ljkop"></div><div class="ljuitleg" id="ljuitleg"></div>
 <div class="layout">
   <aside class="sidebar" id="sidebar"></aside>
   <main class="main">
@@ -407,8 +437,10 @@ body.zonder-sb .sidebar{display:none}
     <div id="t-protein-bars"></div>
   </div>
 </div>
+  <div class="panel" id="tab-aa"><div id="aa-content"></div></div>
   </main>
 </div>
+</div></div>
 <script>
 // ── CODON TABLE ──────────────────────────────────────────────────────────────
 const CT={UUU:'Phe',UUC:'Phe',UUA:'Leu',UUG:'Leu',CUU:'Leu',CUC:'Leu',CUA:'Leu',CUG:'Leu',AUU:'Ile',AUC:'Ile',AUA:'Ile',AUG:'Met',GUU:'Val',GUC:'Val',GUA:'Val',GUG:'Val',UCU:'Ser',UCC:'Ser',UCA:'Ser',UCG:'Ser',CCU:'Pro',CCC:'Pro',CCA:'Pro',CCG:'Pro',ACU:'Thr',ACC:'Thr',ACA:'Thr',ACG:'Thr',GCU:'Ala',GCC:'Ala',GCA:'Ala',GCG:'Ala',UAU:'Tyr',UAC:'Tyr',UAA:'Stop',UAG:'Stop',CAU:'His',CAC:'His',CAA:'Gln',CAG:'Gln',AAU:'Asn',AAC:'Asn',AAA:'Lys',AAG:'Lys',GAU:'Asp',GAC:'Asp',GAA:'Glu',GAG:'Glu',UGU:'Cys',UGC:'Cys',UGA:'Stop',UGG:'Trp',CGU:'Arg',CGC:'Arg',CGA:'Arg',CGG:'Arg',AGU:'Ser',AGC:'Ser',AGA:'Arg',AGG:'Arg',GGU:'Gly',GGC:'Gly',GGA:'Gly',GGG:'Gly'};
@@ -635,7 +667,7 @@ function showTab(t){
   renderTab();
   if(t==='neerslag'){updNeerPH();updNeerT();}
 }
-function renderTab(){if(curTab==='opdrachten')return;if(curTab==='translatie')renderTrans();else if(curTab==='mutaties')renderMut();else initAct();}
+function renderTab(){if(curTab==='opdrachten'||curTab==='aa')return;if(curTab==='translatie')renderTrans();else if(curTab==='mutaties')renderMut();else initAct();}
 
 // ── CODON TABLE PANEL HTML ────────────────────────────────────────────────────
 function ctPanel(){return `<div class="codon-table-panel"><h3>Codonentabel</h3>${buildCT()}</div>`;}
@@ -1414,7 +1446,7 @@ function ster(){
     hint:'Zoek de zijketens van Glu en Val op in tabel 67H1.',
     uitw:()=>'GAG (Glu) → GUG (Val). Een hydrofiele, negatief geladen zijketen wordt hydrofoob. Die hydrofobe plekken aan het oppervlak plakken aan andere hemoglobinemoleculen: er ontstaan vezels die de rode bloedcel sikkelvormig maken.' };
 }
-const NIVEAUS=[opd1,opd2,opd3,opd4,opd5,opd6,opd7,opd8,opd9,opd10,ster];
+let NIVEAUS=[opd1,opd2,opd3,opd4,opd5,opd6,opd7,opd8,opd9,opd10,ster];
 
 let serie;
 function nieuweSerie(){ serie={i:0,items:NIVEAUS.map(f=>f()),status:NIVEAUS.map(()=>'')}; renderSerie(); }
@@ -1429,7 +1461,7 @@ function renderSerie(){
 function renderVraag(el,q){
   const st={deel:0,tries:0,fout:false};
   const laatste=serie.i===serie.items.length-1;
-  let h='<details class="instr" open><summary>'+q.instr.titel+'</summary><div class="in">'+q.instr.html+'</div></details>'+
+  let h='<details class="instr"><summary>Uitleg terugkijken: '+q.instr.titel.replace('Nieuw: ','')+'</summary><div class="in">'+q.instr.html+'</div></details>'+
     '<div class="task"><div class="lbl">Opdracht '+(serie.i+1)+' van '+serie.items.length+' · '+q.titel+'</div><div class="desc">'+q.vraag+'</div></div>';
   q.parts.forEach((p,i)=>{
     h+='<div class="part" id="part'+i+'" style="'+(i?'display:none':'')+'">'+(p.vraag?'<div class="pq">'+(q.parts.length>1?'<b>'+String.fromCharCode(97+i)+'.</b> ':'')+p.vraag+'</div>':'');
@@ -1451,7 +1483,7 @@ function renderVraag(el,q){
     st.deel++;st.tries=0;$('.toonb').style.display='none';
     if(st.deel<q.parts.length){pe().style.display='';const inp=pe().querySelector('input');if(inp)inp.focus();}
     else{$('.hintb').style.display='none';const u=$('.uitwbox');u.style.display='block';u.innerHTML='<div class="kop">Uitwerking</div>'+q.uitw();
-      serie.status[serie.i]=st.fout?'done':'ok';document.querySelectorAll('.dot')[serie.i].className='dot cur '+serie.status[serie.i];
+      serie.status[serie.i]=st.fout?'done':'ok';ljSave();document.querySelectorAll('.dot')[serie.i].className='dot cur '+serie.status[serie.i];
       document.getElementById('score').textContent='Score: '+serie.status.filter(s=>s==='ok').length+' / '+serie.items.length;$('.volg').style.display='';}
   }
   function fout(msg){st.tries++;fb('err','<b>Nog niet goed.</b> '+(msg||''));if(st.tries>=2)$('.toonb').style.display='';}
@@ -1482,7 +1514,36 @@ function renderVraag(el,q){
   });
 }
 
-buildSB(); renderTrans(); document.body.classList.add('zonder-sb'); nieuweSerie();
+
+// ===== werkplaatsen =====
+const WPS=[
+ {k:'Aminozuren en peptiden',fns:[opd1,opd2,opd3],sims:[['aa','Aminozuren bekijken']],
+  doel:['Je herkent een aminozuur aan de zijketen (Binas 67H1).','Je legt uit hoe een peptidebinding ontstaat en welk molecuul daarbij afsplitst.','Je berekent het aantal peptidebindingen en het aantal mogelijke volgordes.']},
+ {k:'Van mRNA naar eiwit',fns:[opd4,opd5],sims:[['translatie','Translatie verkennen']],
+  doel:['Je vertaalt mRNA met de codonentabel (Binas 71G) naar een aminozuurvolgorde.','Je herkent het startcodon en de stopcodons.']},
+ {k:'Mutaties',fns:[opd6,opd7,ster],sims:[['mutaties','Mutaties verkennen']],
+  doel:['Je legt uit wat een puntmutatie met de aminozuurvolgorde doet (wel of geen gevolg).','Je legt uit waarom een frameshift grote gevolgen heeft.','★ Je verbindt een mutatie met de eigenschappen van een eiwit.']},
+ {k:'Lading en pH',fns:[opd8,opd9],sims:[['neerslag','Neerslaan bij het iso-elektrisch punt']],
+  doel:['Je bepaalt de lading van een peptide bij een gegeven pH.','Je legt uit wat het iso-elektrisch punt is en waarom een eiwit daar neerslaat.']},
+ {k:'Denaturatie en enzymen',fns:[opd10],sims:[['neerslag','Denaturatie door verhitting'],['activiteit','Enzymactiviteit']],
+  doel:['Je legt uit welke bindingen bij denaturatie verbroken worden en welke niet.','Je verklaart waarom een enzym alleen bij een bepaalde pH en temperatuur goed werkt.']}
+];
+let LJ={wp:0,sub:'uitleg'};let LJP={};try{LJP=JSON.parse(localStorage.getItem('eiwitten-v2'))||{}}catch(e){}
+function ljSave(){const k=LJ.wp;LJP[k]=LJP[k]||{};serie.status.forEach((st,i)=>{if(st)LJP[k][i]=1});try{localStorage.setItem('eiwitten-v2',JSON.stringify(LJP))}catch(e){};ljNav()}
+function ljNav(){document.getElementById('ljnav').innerHTML=WPS.map((w,i)=>{const d=Object.keys(LJP[i]||{}).length,n=w.fns.length;return `<a class="${i===LJ.wp?'on':''} ${d>=n?'klaar':''}" onclick="ljWP(${i})"><i>${d>=n?'✓':i+1}</i><span>${w.k}<small>${d} van ${n} opdrachten</small></span></a>`}).join('')}
+function ljKop(){const w=WPS[LJ.wp];document.getElementById('ljkop').innerHTML=`<div class="ljkick">Werkplaats ${LJ.wp+1}</div><h2>${w.k}</h2><div class="ljtabs"><button class="${LJ.sub==='uitleg'?'on':''}" onclick="ljSub('uitleg')">Uitleg en voorbeeld</button><button class="${LJ.sub==='opdr'?'on':''}" onclick="ljSub('opdr')">Opdrachten</button>${w.sims.map(([t,n],j)=>`<button class="${LJ.sub==='sim'+j?'on':''}" onclick="ljSub('sim${j}')">Verkennen: ${n}</button>`).join('')}</div>`}
+function ljWP(i){LJ.wp=i;LJ.sub='uitleg';NIVEAUS=WPS[i].fns;nieuweSerie();ljNav();ljSub('uitleg');window.scrollTo(0,0)}
+function ljSub(t){LJ.sub=t;ljKop();const w=WPS[LJ.wp];const u=document.getElementById('ljuitleg');const app=document.querySelector('.ljapp');
+  if(t==='uitleg'){app.classList.add('verborgen-sim');u.style.display='';
+    u.innerHTML=`<div class="ljdoel"><b>Leerdoelen</b><ul style="margin:4px 0 0 18px">${w.doel.map(d=>`<li>${d}</li>`).join('')}</ul></div>`+w.fns.map(f=>{const q=f();const tt=q.instr.titel.replace('Nieuw: ','');return `<h3>${tt[0].toUpperCase()+tt.slice(1)}</h3><div class="ljblok">${q.instr.html}</div>`}).join('')+`<button class="btn btn-p" onclick="ljSub('opdr')">Naar de opdrachten</button>`;
+  } else {u.style.display='none';app.classList.remove('verborgen-sim');
+    if(t==='opdr')showTab('opdrachten');else{const tab=w.sims[+t.slice(3)][0];showTab(tab);if(tab==='aa')ljAA();
+      if(tab==='neerslag'&&typeof swNeer==='function'){try{swNeer(LJ.wp===4?'t':'ph')}catch(e){}}}}
+}
+function ljAA(){document.getElementById('aa-content').innerHTML='<div class="ptitle" style="margin-bottom:4px">De 20 aminozuren</div><div class="psub2">Vergelijk de zijketens. Dezelfde structuren staan in Binas tabel 67H1.</div><div class="aagrid">'+AA_LIST.map(a=>`<div class="aakaart">${aaSVG(a,130)}<div><b>${a}</b> · ${AA1[a]}</div><div>${(AA_FULL[a]||'').toLowerCase()}</div></div>`).join('')+'</div>'}
+document.getElementById('ljwis').onclick=function(){if(this.dataset.c!=='1'){this.dataset.c='1';this.textContent='Zeker weten? Klik nogmaals';return}LJP={};try{localStorage.removeItem('eiwitten-v2')}catch(e){};this.dataset.c='';this.textContent='Voortgang wissen';ljNav()};
+buildSB(); renderTrans(); document.body.classList.add('zonder-sb'); NIVEAUS=WPS[0].fns; nieuweSerie(); ljNav(); ljSub('uitleg');
+
 </script>
 </body>
 </html>
