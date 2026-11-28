@@ -1186,7 +1186,8 @@ const SIM3 = {
     for (let i = 0; i < nfu; i++){
       for (let j = 0; j < z.nk; j++) uit.push(z.kat); for (let j = 0; j < z.na; j++) uit.push(z.an);
     }
-    return uit.map(ion => ({ ion, r: ionStraal(ion) * 0.9, x: rnd(bx + 22, bx + 118), y: rnd(by + 50, by + 112), vx:0, vy:0, bron: by, vast:false }));
+    return uit.map(ion => { const r = ionStraal(ion) * 0.9, gr = { x0: bx + 4 + r, x1: bx + 136 - r, y0: by + 38 + r, y1: by + 137 - r };
+      return { ion, r, gr, x: rnd(gr.x0, gr.x1), y: rnd(gr.y0, gr.y1), vx:0, vy:0, bron: by, vast:false }; });
   },
   zet(){
     $('#s3a').value = this.A.join('|'); $('#s3b').value = this.B.join('|');
@@ -1214,7 +1215,7 @@ const SIM3 = {
     if (this.fase !== 'apart' || this.geslotenVoor()) return;
     if (this.A.join() === this.B.join()){ $('#s3w').innerHTML = 'Kies twee verschillende oplossingen.'; return; }
     this.fase = 'gieten'; this.klok = 0;
-    this.ionen.forEach((i, k) => { i.tx = rnd(275, 545); i.ty = rnd(180, 330); i.vertraging = k * 0.05; });
+    this.ionen.forEach((i, k) => { i.tx = rnd(266 + i.r, 554 - i.r); i.ty = rnd(160 + i.r, 330); i.vertraging = k * 0.05; });
     this.an = mengAnalyse(this.A, this.B); this.stat();
   },
   stat(){
@@ -1275,14 +1276,33 @@ const SIM3 = {
     this.troebel = Math.max(0, this.troebel - dt * 0.18);
     for (const i of this.ionen){
       if (this.fase === 'apart'){
-        i.x += Math.sin(tijd * 1.3 + i.y) * 0.15; i.y += Math.cos(tijd * 1.1 + i.x) * 0.15;
+        i.vx += rnd(-1, 1) * 90 * dt; i.vy += rnd(-1, 1) * 90 * dt; i.vx *= Math.pow(0.3, dt); i.vy *= Math.pow(0.3, dt);
+        i.x += i.vx * dt; i.y += i.vy * dt;
+        if (i.x < i.gr.x0 || i.x > i.gr.x1) i.vx *= -1; if (i.y < i.gr.y0 || i.y > i.gr.y1) i.vy *= -1;
+        i.x = Math.max(i.gr.x0, Math.min(i.gr.x1, i.x)); i.y = Math.max(i.gr.y0, Math.min(i.gr.y1, i.y));
       } else if (this.fase === 'gemengd'){
         if (i.vast){ const k = 1 - Math.pow(0.08, dt); i.x = lerp(i.x, i.tx, k); i.y = lerp(i.y, i.ty, k); }
         else {
           i.vx += rnd(-1, 1) * 240 * dt; i.vy += rnd(-1, 1) * 240 * dt; i.vx *= Math.pow(0.3, dt); i.vy *= Math.pow(0.3, dt);
           i.x += i.vx * dt; i.y += i.vy * dt;
-          i.x = Math.max(272, Math.min(548, i.x)); i.y = Math.max(140, Math.min(330, i.y));
+          i.x = Math.max(263 + i.r, Math.min(557 - i.r, i.x)); i.y = Math.max(143 + i.r, Math.min(367 - i.r, i.y));
         }
+      }
+    }
+    /* ionen niet over elkaar heen: duw overlappende ionen uit elkaar (vaste ionen van de neerslag blijven staan) */
+    if (this.fase !== 'gieten'){
+      const L = this.ionen;
+      for (let n = 0; n < 2; n++) for (let a = 0; a < L.length; a++) for (let b = a + 1; b < L.length; b++){
+        const p = L[a], q = L[b]; if (p.vast && q.vast) continue;
+        if (this.fase === 'apart' && p.bron !== q.bron) continue;
+        let dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy); const min = p.r + q.r + 2;
+        if (d >= min) continue; if (d < 0.01){ dx = rnd(-1, 1); dy = rnd(-1, 1); d = Math.hypot(dx, dy); }
+        const o = (min - d) / d, wp = p.vast ? 0 : q.vast ? 1 : 0.5, wq = 1 - wp;
+        p.x -= dx * o * wp; p.y -= dy * o * wp; q.x += dx * o * wq; q.y += dy * o * wq;
+      }
+      for (const i of L) if (!i.vast){
+        if (this.fase === 'apart'){ i.x = Math.max(i.gr.x0, Math.min(i.gr.x1, i.x)); i.y = Math.max(i.gr.y0, Math.min(i.gr.y1, i.y)); }
+        else { i.x = Math.max(263 + i.r, Math.min(557 - i.r, i.x)); i.y = Math.max(143 + i.r, Math.min(367 - i.r, i.y)); }
       }
     }
     for (const m of this.water){ m.x += Math.sin(tijd + m.y) * 0.25; m.y += Math.cos(tijd * 0.8 + m.x) * 0.25; m.h += dt * 0.6; }
@@ -1297,7 +1317,7 @@ const SIM3 = {
   draw(){
     const c = this.c; c.clearRect(0, 0, c.W, c.H);
     if (this.fase === 'apart') this.heapAlle = null;
-    const tint = p => (ION[p[0]].opl || 'rgba(120,175,225,.16)');
+    const KLEURLOOS = 'rgba(205,212,218,.22)', tint = p => (ION[p[0]].opl || KLEURLOOS);
     const apart = this.fase === 'apart';
     /* kleine bekers */
     if (apart || this.fase === 'gieten'){
@@ -1308,10 +1328,9 @@ const SIM3 = {
     tekst(c, 'A: ' + zoutVan(this.A).naam, 100, 187, { i:true, px:12 }); tekst(c, 'B: ' + zoutVan(this.B).naam, 100, 377, { i:true, px:12 });
     /* grote beker */
     const lvl = apart ? 0 : this.fase === 'gieten' ? 230 * Math.min(1, this.klok) : 230;
-    let mix = 'rgba(120,175,225,.16)'; const t1 = ION[this.A[0]].opl, t2 = ION[this.B[0]].opl; if (!apart && (t1 || t2)) mix = t1 || t2;
+    let mix = KLEURLOOS; const t1 = ION[this.A[0]].opl, t2 = ION[this.B[0]].opl; if (!apart && (t1 || t2)) mix = t1 || t2;
     vloeistofVlak(c, 260, 120, 300, 250, lvl, mix);
     if (this.troebel > 0 && this.kleur){ c.save(); c.globalAlpha = this.troebel * 0.35; vloeistofVlak(c, 260, 120, 300, 250, lvl, this.kleur); c.restore(); }
-    if (!apart) for (const m of this.water) tekenWater(c, m.x, m.y, m.h, 0.35 * m.a, 0.85);
     /* neerslag: wolk achter de ionen */
     if (this.heap.length){
       const vast = this.ionen.filter(i => i.vast);
