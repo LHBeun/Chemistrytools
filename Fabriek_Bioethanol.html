@@ -174,6 +174,10 @@ table.kas tr.tot td{border-top:1.5px solid var(--inkt);font-weight:700}
 .codevak{font-family:var(--mono);font-size:28px;letter-spacing:2px;background:#fff;border:2px dashed var(--goud2);border-radius:12px;padding:14px 18px;display:inline-block;margin:6px 0 10px}
 .grafiek{background:#fff;border:1px solid var(--rand);border-radius:9px;margin:6px 0 10px}
 .grafiek svg{display:block;width:100%;height:auto}
+.vglrij{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 0 12px;background:#fff;border:1px solid var(--rand);border-radius:10px;padding:10px}
+.vglrij figure{margin:0;text-align:center}
+.vglrij figcaption{font-size:12.5px;color:var(--grijs)}
+.vglrij .pijl{font-size:24px;color:var(--inkt2)}
 </style>
 </head>
 <body>
@@ -453,7 +457,7 @@ const rondes=[
  poort:(p,K)=>{const n=K.glu*1000/MG;return[VGL,MMg(),MMe(),
   g(`Bereken hoeveel mol glucose je inzet (${K.glu} kg).`,n,{u:'mol',h:'Reken eerst kg om naar g: 1 kg = 10³ g.',fout:[[K.glu/MG,'Je rekende met kg in plaats van g. Reken eerst om: 1 kg = 10³ g.']]}),
   g('Bereken hoeveel mol ethanol er ontstaat.',2*n,{u:'mol',fout:[[n,'Kijk naar de coëfficiënten: 1 mol glucose levert 2 mol ethanol.'],[n/2,'Andersom: 1 mol glucose levert 2 mol ethanol, dus je krijgt meer mol ethanol dan mol glucose.']]}),
-  g('Bereken hoeveel kg ethanol er ontstaat.',2*n*ME/1000,{u:'kg',fout:[[n*ME/1000,'Je bent de molverhouding vergeten: er ontstaat 2 mol ethanol per mol glucose.'],[K.glu*2,'De verhouding 1 : 2 geldt voor mol, niet voor kg. Reken via mol.']],w:`${nl(2*n,4)} mol × ${fr('46,07 g','1 mol')} = ${nl(2*n*ME/1000,1)} kg`})]},
+  g('Bereken hoeveel kg ethanol er ontstaat.',2*n*ME/1000,{u:'kg',fout:[[n*ME/1000,'Je bent de molverhouding vergeten: er ontstaat 2 mol ethanol per mol glucose.'],[K.glu*2,'De verhouding 1 : 2 geldt voor mol, niet voor kg. Reken via mol.']],w:`${nl(2*n)} mol × ${fr('46,07 g','1 mol')} = ${nl(2*n*ME/1000,1)} kg`})]},
  run:(p,K)=>{const e=K.glu*TH,c=K.glu*TC;return{e,html:meet([['ethanol gemaakt',kg(e)],['CO₂ ontweken',kg(c)]]),ok:true,
   msg:`Gelukt. Je ${K.glu} kg glucose leverde ${kg(e)} ethanol en ${kg(c)} CO₂. Samen is dat weer ${kg(e+c)}: de massa blijft behouden.`,
   regels:[[`Glucose ${K.glu} kg × ${eur(PR.glu)}`,-K.glu*PR.glu],['Vaste kosten',-PR.vast],[`Ethanol ${kg(e)} × ${eur(PR.ruw)}`,e*PR.ruw]]}}},
@@ -472,7 +476,7 @@ const rondes=[
  poort:p=>{const ne=p.e*1000/ME,ng=ne/2;return[
   g(`Bereken hoeveel mol ethanol de klant wil (${p.e} kg).`,ne,{u:'mol',h:'Reken kg om naar g en deel door de molaire massa van ethanol (46,07 g mol⁻¹).'}),
   g('Bereken hoeveel mol glucose daarvoor nodig is.',ng,{u:'mol',fout:[[ne*2,'Let op de richting: voor 2 mol ethanol heb je 1 mol glucose nodig, dus minder mol glucose.']]}),
-  g('Bereken hoeveel kg glucose je moet inzetten.',ng*MG/1000,{u:'kg',fout:[[p.e/2,'De verhouding 1 : 2 geldt voor mol, niet voor kg. Reken via mol.'],[p.e*2,'De verhouding 1 : 2 geldt voor mol, niet voor kg. Reken via mol.'],[ne*MG/1000,'Je bent de molverhouding vergeten: je hebt maar half zoveel mol glucose nodig als mol ethanol.']],w:`${nl(ng,4)} mol × ${fr('180,16 g','1 mol')} = ${nl(ng*MG/1000,1)} kg`})]},
+  g('Bereken hoeveel kg glucose je moet inzetten.',ng*MG/1000,{u:'kg',fout:[[p.e/2,'De verhouding 1 : 2 geldt voor mol, niet voor kg. Reken via mol.'],[p.e*2,'De verhouding 1 : 2 geldt voor mol, niet voor kg. Reken via mol.'],[ne*MG/1000,'Je bent de molverhouding vergeten: je hebt maar half zoveel mol glucose nodig als mol ethanol.']],w:`${nl(ng)} mol × ${fr('180,16 g','1 mol')} = ${nl(ng*MG/1000,1)} kg`})]},
  keuzes:[{id:'glu',t:'getal',label:'Hoeveel kg glucose zet je in?',min:10,max:800,u:'kg'}],
  run:(p,K)=>{const e=K.glu*TH,c=contract(e,p.e,1);return{e,html:meet([['bestelling',kg(p.e,0)],['ethanol gemaakt',kg(e)]]),ok:c.ok,msg:c.msg,
   regels:[[`Glucose ${nl(K.glu)} kg × ${eur(PR.glu)}`,-K.glu*PR.glu],['Vaste kosten',-PR.vast],...c.L]}}},
