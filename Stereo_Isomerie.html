@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stereo-isomerie</title>
+<style>
+:root{
+  --papier:#f3efe6; --vel:#fffdf8; --rand:#e3dccb; --rand2:#d6cdb8;
+  --inkt:#2b2a27; --inkt2:#3e3b35; --grijs:#7a756b; --goud:#a0701f; --goud2:#e2a84b;
+  --nacht:#24323f; --nacht2:#33475a; --nachttekst:#cfd9e2;
+  --goed:#3f8f63; --goedbg:#e5f2ea; --fout:#b4473a; --foutbg:#f8e6e2; --hint:#fbf1da;
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --sans: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Consolas, 'Liberation Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--papier);color:var(--inkt);font-size:15px;line-height:1.6}
+button{font-family:inherit}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
+aside{background:var(--nacht);color:var(--nachttekst);padding:26px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
+aside h1{font-family:var(--serif);font-size:23px;color:#fff;font-weight:600;line-height:1.2}
+aside .sub{font-size:12.5px;color:#8aa0b3;margin:4px 0 18px}
+.lijn{display:flex;gap:4px;background:#1b2731;border-radius:10px;padding:4px;margin-bottom:18px}
+.lijn button{flex:1;border:0;border-radius:7px;padding:7px 6px;font-size:13.5px;font-weight:700;background:transparent;color:#9fb2c3;cursor:pointer}
+.lijn button.on{background:var(--goud2);color:var(--nacht)}
+aside nav a{display:flex;gap:12px;align-items:center;padding:10px 10px;border-radius:9px;font-size:14.5px;margin-bottom:4px;color:#b9c7d3;cursor:pointer;user-select:none;line-height:1.3}
+aside nav a:hover{background:#2c3d4d}
+aside nav a i{font-style:normal;flex:none;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #5d7387;font-size:12.5px;font-weight:700}
+aside nav a.on{background:var(--nacht2);color:#fff}
+aside nav a.on i{background:var(--goud2);border-color:var(--goud2);color:var(--nacht)}
+aside nav a.klaar i{background:#5aa37c;border-color:#5aa37c;color:#fff}
+aside nav a small{display:block;font-size:11.5px;color:#8aa0b3}
+aside .voet{margin-top:auto;padding-top:16px;display:flex;flex-direction:column;gap:8px}
+aside .voet button{background:transparent;border:1px solid #4b6074;color:#cfd9e2;border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer;text-align:left}
+aside .voet button:hover{background:#2c3d4d}
+.wp{display:grid;grid-template-columns:minmax(380px,1fr) minmax(520px,680px);min-height:100vh}
+.tekst{padding:34px 38px 60px;max-width:780px}
+.kicker{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--goud);font-weight:700}
+.tekst h2{font-family:var(--serif);font-size:31px;margin:3px 0 14px;font-weight:600;line-height:1.2}
+.tekst h3{font-family:var(--serif);font-size:19px;margin:20px 0 6px;font-weight:600}
+.tekst p{margin-bottom:10px;color:var(--inkt2)}
+.tekst ul,.tekst ol{margin:0 0 10px 20px;color:var(--inkt2)}
+.tekst li{margin-bottom:3px}
+.kader{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--goud2);border-radius:8px;padding:10px 14px;margin:10px 0 12px;color:var(--inkt2)}
+.kader.proces{border-left-color:#5d7387}
+.vgl{font-family:var(--serif);font-size:17px;margin-top:6px;color:var(--inkt)}
+.tabs{display:flex;gap:4px;margin:20px 0 14px;border-bottom:1px solid var(--rand2)}
+.tabs button{background:none;border:0;padding:9px 14px;font-size:14px;font-weight:600;color:var(--grijs);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--inkt);border-bottom-color:var(--goud2)}
+.tabs .tel{font-weight:500;font-size:12px;color:var(--grijs);margin-left:4px}
+.vb{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:16px 18px;margin:4px 0 14px}
+.vb .vbkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--goud);margin-bottom:4px}
+.vb .vbvraag{font-weight:600;margin-bottom:8px}
+.vbstap{display:flex;gap:12px;padding:8px 0;border-top:1px dashed var(--rand2)}
+.vbstap .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
+.vbstap .b{color:var(--inkt2)}
+.oknop{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.oknop .dot{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--rand2);background:var(--vel);display:grid;place-items:center;font-size:12.5px;font-weight:700;color:var(--grijs);cursor:pointer}
+.oknop .dot.on{border-color:var(--inkt);color:var(--inkt);box-shadow:0 0 0 2px var(--inkt) inset}
+.oknop .dot.goed{background:var(--goed);border-color:var(--goed);color:#fff}
+.oknop .dot.ster{border-style:dashed}
+.oknop .rechts{margin-left:auto;font-size:13px;color:var(--grijs)}
+.opdkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--grijs);margin-bottom:4px}
+.opdkop .st{color:var(--goud)}
+.stap{display:flex;gap:12px;padding:13px 15px;background:var(--vel);border:1px solid var(--rand);border-radius:11px;margin-bottom:10px}
+.stap>.n{flex:none;width:25px;height:25px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12.5px;font-weight:700;margin-top:1px}
+.stap.dicht{opacity:.42}
+.stap.dicht .inv{display:none}
+.stap.goed{border-color:#bcdcc8;background:#fbfefc}
+.stap.goed>.n{background:var(--goed)}
+.stap .inh{flex:1;min-width:0}
+.stap .vr{margin-bottom:8px}
+.rij{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input.in{font-family:var(--mono);font-size:15px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;background:#fff;min-width:0;width:220px;color:var(--inkt)}
+input.in:focus,textarea.in:focus,select.sel:focus{outline:2px solid var(--goud2);outline-offset:0;border-color:var(--goud2)}
+textarea.in{font-family:var(--sans);font-size:14.5px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;width:100%;min-height:74px;background:#fff;color:var(--inkt)}
+select.sel{border:1px solid var(--rand2);border-radius:8px;padding:7px 9px;font-size:14px;background:#fff;color:var(--inkt);font-family:inherit}
+.btn{border:0;border-radius:8px;padding:8px 15px;font-weight:600;font-size:14px;cursor:pointer;background:var(--inkt);color:#fff}
+.btn:hover{background:#45433e}
+.btn.g{background:#ebe4d4;color:var(--inkt)}
+.btn.g:hover{background:#e0d7c3}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.klein{padding:5px 11px;font-size:13px}
+.fb{margin-top:8px;padding:8px 11px;border-radius:8px;font-size:14px}
+.fb.goed{background:var(--goedbg);color:#255c3d}
+.fb.fout{background:var(--foutbg);color:#7c2c22}
+.fb.hint{background:var(--hint);color:#6b4d12}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px}
+.chip{border:1.5px solid var(--rand2);background:#fff;border-radius:999px;padding:4px 12px;font-size:14px;cursor:pointer;user-select:none;color:var(--inkt)}
+.chip:hover{border-color:#b9ad93}
+.chip.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.chip.x{padding:3px 6px 3px 12px}
+.chip.x b{margin-left:6px;font-weight:700;color:var(--grijs)}
+.opties{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.optie{border:1.5px solid var(--rand2);background:#fff;border-radius:9px;padding:8px 12px;font-size:14.5px;cursor:pointer;text-align:left;color:var(--inkt)}
+.optie:hover{border-color:#b9ad93}
+.optie.aan{border-color:var(--nacht);background:#eef2f6}
+.model{background:var(--hint);border-radius:8px;padding:8px 11px;font-size:14px;color:#5b4210;margin-top:8px}
+.model b{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.klaarbanner{background:var(--goedbg);border:1px solid #bcdcc8;color:#255c3d;border-radius:11px;padding:12px 15px;margin:4px 0 12px}
+.uitw{background:#fff;border:1px solid var(--rand);border-radius:8px;padding:8px 11px;margin-top:8px;font-size:14.5px;color:var(--inkt2)}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;line-height:1.25}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 3px}
+.frac>span:last-child{padding:0 3px}
+.simkol{background:var(--vel);border-left:1px solid var(--rand);padding:22px 22px 30px;display:flex;flex-direction:column;gap:12px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.simkop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.simkop b{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--goud)}
+.simkop span{font-size:12.5px;color:var(--grijs)}
+.doek{border:1px solid var(--rand);border-radius:12px;background:#fbf8f1;overflow:hidden}
+.doek svg{display:block;width:100%;height:auto}
+.legenda{font-size:12.5px;color:var(--grijs);line-height:1.5}
+.bouw{display:grid;gap:10px}
+.bouw .vak{background:var(--vel);border:1px solid var(--rand);border-radius:11px;padding:12px 14px}
+.bouw h4{font-size:13px;letter-spacing:1.1px;text-transform:uppercase;color:var(--grijs);margin-bottom:8px}
+.strlijst{list-style:none;margin:0!important}
+.strlijst li{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px dashed var(--rand2);font-size:14px}
+.strlijst li:first-child{border-top:0}
+.nr{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--inkt);font-size:12px;font-weight:700;margin-right:6px;flex:none}
+.stroomkeuze{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.stroomkeuze button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--rand2);background:#fff;font-weight:700;cursor:pointer;color:var(--inkt)}
+.stroomkeuze button.on{background:var(--goud2);border-color:var(--goud2)}
+.stroomkeuze button.goed{border-color:var(--goed);color:var(--goed)}
+.stroomkeuze button.fout{border-color:var(--fout);color:var(--fout)}
+body.beamer .wp{zoom:1.25}
+@media (max-width:1100px){.app{grid-template-columns:1fr}aside{position:static;height:auto}.wp{grid-template-columns:1fr}.simkol{position:static;height:auto;border-left:0;border-top:1px solid var(--rand)}.tekst{padding:24px 20px 30px}}
+@media (prefers-reduced-motion:no-preference){.nieuw{animation:verschijn .6s ease-out}@keyframes verschijn{from{opacity:0}to{opacity:1}}}
+
+.ld{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--nacht);border-radius:8px;padding:9px 14px;margin:0 0 12px;color:var(--inkt2)}
+.ld b{display:block;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--nacht);margin-bottom:2px}
+.tek{background:#fff;border:1px solid var(--rand);border-radius:10px;padding:8px;display:flex;justify-content:center;overflow-x:auto;margin:6px 0}
+.mol{display:block;max-width:100%;height:auto;margin:4px auto}
+.molkeus{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:10px}
+.molkeus .optie{padding:6px;display:flex;flex-direction:column;align-items:center}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 10px}
+.duo .v3{background:#fff;border:1px solid var(--rand);border-radius:10px;touch-action:none;cursor:grab;position:relative}
+.duo .v3 b{position:absolute;top:6px;left:10px;font-size:12px;color:var(--grijs)}
+.duo .v3 svg{display:block;width:100%;height:auto}
+.leg3{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--grijs);margin:4px 0 8px}
+.leg3 i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px;border:1px solid #888}
+.klikmol circle.at{fill:transparent;cursor:pointer}
+.klikmol circle.at:hover{fill:rgba(226,168,75,.25)}
+.klikmol circle.at.aan{fill:rgba(226,168,75,.45);stroke:#a0701f;stroke-width:1.5}
+.teller{font-size:13px;color:var(--grijs)}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <h1>Stereo-isomerie</h1>
+    <div class="sub">Cis-trans en spiegelbeelden · 5V</div>
+    <nav id="nav"></nav>
+    <div class="voet">
+      <button data-a="beamer">Beamerstand</button>
+      <button data-a="wis">Voortgang wissen</button>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<script>
+{
+const VAL={C:4,O:2,N:3,Cl:1,Br:1,F:1,I:1,H:1};
+// notatie: atomen gescheiden door bindingen - = #; atoom: [v]X[u=..,d=..] (u = boven, d = onder; u==O is een =O boven)   v = knik (gaat vanaf hier omlaag)
+// zijgroepen: Cl Br F I OH NH2 =O CH3 C2H5 C3H7 OCH3 OC2H5
+function bouw(spec){
+  const atoms=[],bonds=[];const add=(el,x,y)=>{atoms.push({el,x,y});return atoms.length-1};
+  const toks=spec.match(/v?[A-Z][a-z]?(\[[^\]]*\])?|[-=#_]/g);let lang=false;
+  let dir=[1,0],prev=null,bo=1,x=0,y=0;
+  for(const t of toks){
+    if(t==='-'||t==='='||t==='#'||t==='_'){bo=t==='-'?1:t==='#'?3:2;lang=t==='_';continue}
+    const m=t.match(/^(v?)([A-Z][a-z]?)(?:\[([^\]]*)\])?$/);
+    if(prev!==null){if(m[1])dir=[0,1];const L=lang?2.0:1.25;x+=dir[0]*L;y+=dir[1]*L;lang=false}
+    const i=add(m[2],x,y);if(prev!==null)bonds.push([prev,i,bo]);bo=1;
+    if(m[3])m[3].split(',').forEach(g=>{const k=g[0],v=g.slice(2);const up=[dir[1],-dir[0]];const d=k==='u'?up:[-up[0],-up[1]];zij(i,v,d)});
+    prev=i}
+  function zij(i,g,d){const p=atoms[i];let a,b2;
+    const at=(el,n)=>add(el,p.x+d[0]*n,p.y+d[1]*n);
+    if(g==='=O'){a=at('O',1);bonds.push([i,a,2]);return}
+    if(['Cl','Br','F','I'].includes(g)){a=at(g,1);bonds.push([i,a,1]);return}
+    if(g==='OH'){a=at('O',1);bonds.push([i,a,1]);return}
+    if(g==='NH2'){a=at('N',1);bonds.push([i,a,1]);return}
+    const ket={CH3:['C'],C2H5:['C','C'],C3H7:['C','C','C'],OCH3:['O','C'],OC2H5:['O','C','C']}[g];
+    let last=i;ket.forEach((el,n)=>{const j=at(el,n+1);bonds.push([last,j,1]);last=j})}
+  // H-atomen
+  const H=[];const dirs=[[0,-1],[0,1],[-1,0],[1,0]];
+  atoms.forEach((a,i)=>{if(a.el==='H')return;
+    const nb=bonds.filter(b=>b[0]===i||b[1]===i).map(b=>{const j=b[0]===i?b[1]:b[0];const dx=atoms[j].x-a.x,dy=atoms[j].y-a.y,L=Math.hypot(dx,dy);return{d:[Math.round(dx/L),Math.round(dy/L)],o:b[2]}});
+    let n=VAL[a.el]-nb.reduce((s,b)=>s+b.o,0);if(n<=0)return;
+    const bezet=d=>nb.some(b=>b.d[0]===d[0]&&b.d[1]===d[1]);
+    let pref=dirs.slice();
+    const tri=nb.find(b=>b.o===3);
+    if(tri)pref=[[-tri.d[0],-tri.d[1]],...dirs];
+    else if(a.el==='N')pref=[[-1,0],[1,0],...dirs];
+    else if(a.el!=='C'&&nb.length)pref=[[-nb[0].d[0],-nb[0].d[1]],...dirs];
+    for(const d of pref){if(n<=0)break;if(bezet(d)||H.some(h=>h.p===i&&h.d[0]===d[0]&&h.d[1]===d[1]))continue;H.push({p:i,d});n--}});
+  return{atoms,bonds,H}}
+function svg(spec,schaal){
+  const m=bouw(spec),G=(schaal||1)*52,HD=.64;
+  const pts=m.atoms.map(a=>[a.x,a.y]).concat(m.H.map(h=>[m.atoms[h.p].x+h.d[0]*HD,m.atoms[h.p].y+h.d[1]*HD]));
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);const x0=Math.min(...xs),y0=Math.min(...ys),pad=.45;
+  const W=(Math.max(...xs)-x0+2*pad)*G,Hh=(Math.max(...ys)-y0+2*pad)*G;
+  const X=x=>(x-x0+pad)*G,Y=y=>(y-y0+pad)*G;
+  const r=el=>el.length>1?13:9;
+  let s='';
+  const lijn=(ax,ay,bx,by,ra,rb,o)=>{const dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L;
+    const x1=ax+ux*ra,y1=ay+uy*ra,x2=bx-ux*rb,y2=by-uy*rb;const nx=-uy*4,ny=ux*4;
+    const off=o===1?[0]:o===2?[-1,1]:[-1.6,0,1.6];
+    return off.map(k=>`<line x1="${(x1+nx*k).toFixed(1)}" y1="${(y1+ny*k).toFixed(1)}" x2="${(x2+nx*k).toFixed(1)}" y2="${(y2+ny*k).toFixed(1)}"/>`).join('')};
+  m.bonds.forEach(([i,j,o])=>{const a=m.atoms[i],b=m.atoms[j];s+=lijn(X(a.x),Y(a.y),X(b.x),Y(b.y),r(a.el),r(b.el),o)});
+  m.H.forEach(h=>{const a=m.atoms[h.p];s+=lijn(X(a.x),Y(a.y),X(a.x+h.d[0]*HD),Y(a.y+h.d[1]*HD),r(a.el),7,1)});
+  let t='';
+  m.atoms.forEach(a=>{t+=`<text x="${X(a.x).toFixed(1)}" y="${Y(a.y).toFixed(1)}" class="${a.el==='C'?'':'het'}">${a.el}</text>`});
+  m.H.forEach(h=>{const a=m.atoms[h.p];t+=`<text x="${X(a.x+h.d[0]*HD).toFixed(1)}" y="${Y(a.y+h.d[1]*HD).toFixed(1)}" class="h">H</text>`});
+  return `<svg class="mol" viewBox="0 0 ${W.toFixed(0)} ${Hh.toFixed(0)}" width="${W.toFixed(0)}" style="max-height:${(Hh*1.15).toFixed(0)}px"><g stroke="#2b2a27" stroke-width="1.6" stroke-linecap="round">${s}</g><g font-family="Segoe UI,system-ui,sans-serif" font-size="16" text-anchor="middle" dominant-baseline="central" fill="#2b2a27">${t}</g><style>.h{font-size:14px;fill:#4a4740}.het{font-weight:600;fill:#a33b2f}</style></svg>`}
+
+
+/* ============ ASYMMETRISCHE C-ATOMEN ============ */
+function graaf(spec){const m=bouw(spec);const n=m.atoms.length;const nb=[...Array(n)].map(()=>[]);
+  m.bonds.forEach(([a,b,o])=>{nb[a].push([b,o]);nb[b].push([a,o])});
+  m.H.forEach(h=>nb[h.p].push(['H',1]));return{m,nb}}
+function tak(G,i,van){if(i==='H')return'H';const el=G.m.atoms[i].el;const kids=G.nb[i].filter(([j])=>j!==van).map(([j,o])=>o+tak(G,j,i)).sort();return el+'('+kids.join(',')+')'}
+function asym(spec){const G=graaf(spec);return G.m.atoms.map((a,i)=>i).filter(i=>{if(G.m.atoms[i].el!=='C')return false;const n=G.nb[i];
+  if(n.length!==4||n.some(([_,o])=>o!==1))return false;const t=n.map(([j])=>tak(G,j,i));return new Set(t).size===4})}
+function svgKlik(spec,sel,schaal,toon){
+  const raw=svg(spec,schaal);const m=bouw(spec),G=(schaal||1)*52,HD=.64;
+  const pts=m.atoms.map(a=>[a.x,a.y]).concat(m.H.map(h=>[m.atoms[h.p].x+h.d[0]*HD,m.atoms[h.p].y+h.d[1]*HD]));
+  const x0=Math.min(...pts.map(p=>p[0])),y0=Math.min(...pts.map(p=>p[1])),pad=.45;
+  const X=x=>(x-x0+pad)*G,Y=y=>(y-y0+pad)*G;
+  let c='';m.atoms.forEach((a,i)=>{if(a.el!=='C')return;const on=sel.includes(i);
+    c+=`<circle class="at ${on?'aan':''}" ${toon?'':`data-a="atoom" data-v="${i}"`} cx="${X(a.x).toFixed(1)}" cy="${Y(a.y).toFixed(1)}" r="14"/>`;
+    if(on&&toon)c+=`<text x="${(X(a.x)+11).toFixed(1)}" y="${(Y(a.y)-10).toFixed(1)}" font-size="14" fill="#a0701f" font-weight="700">*</text>`});
+  return raw.replace('</svg>',`<g class="klikmol">${c}</g></svg>`).replace('<svg class="mol"','<svg class="mol klikmol"')}
+
+/* ============ 3D EN WIG-STREEP ============ */
+const GR={H:{k:'#f4f4f4',r:9,n:'H'},OH:{k:'#d9473f',r:13,n:'OH'},CH3:{k:'#7d7d7d',r:14,n:'CH₃'},C2H5:{k:'#4f4f4f',r:15,n:'C₂H₅'},NH2:{k:'#4f7cc7',r:13,n:'NH₂'},COOH:{k:'#2f2f5f',r:15,n:'COOH'},Cl:{k:'#5fb25f',r:14,n:'Cl'}};
+const STOF=[{n:'butaan-2-ol',g:['H','OH','CH3','C2H5']},{n:'alanine (2-aminopropaanzuur)',g:['H','NH2','CH3','COOH']},{n:'2-chloorbutaan',g:['H','Cl','CH3','C2H5']}];
+const TET=[[0,1,0],[0.943,-0.333,0],[-0.471,-0.333,0.816],[-0.471,-0.333,-0.816]];
+const det=(a,b,c)=>a[0]*(b[1]*c[2]-b[2]*c[1])-a[1]*(b[0]*c[2]-b[2]*c[0])+a[2]*(b[0]*c[1]-b[1]*c[0]);
+const chir=pos=>Math.sign(det(pos[0],pos[1],pos[2])); // pos[g] = vector van groep g
+const perm=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const pariteit=p=>{let s=0;for(let i=0;i<p.length;i++)for(let j=i+1;j<p.length;j++)if(p[i]>p[j])s++;return s%2};
+function rotM(ax,ay){const cx=Math.cos(ax),sx=Math.sin(ax),cy=Math.cos(ay),sy=Math.sin(ay);return[[cy,0,sy],[sx*sy,cx,-sx*cy],[-cx*sy,sx,cx*cy]]}
+const mul=(A,B)=>A.map(r=>[0,1,2].map(j=>r[0]*B[0][j]+r[1]*B[1][j]+r[2]*B[2][j]));
+const app=(R,v)=>[0,1,2].map(i=>R[i][0]*v[0]+R[i][1]*v[1]+R[i][2]*v[2]);
+function maakPaar(){const st=STOF[Math.floor(Math.random()*STOF.length)];const a=perm([0,1,2,3]);
+  const zelfde=Math.random()<.5;let b;do{b=perm([0,1,2,3])}while((pariteit(b)===pariteit(a))!==zelfde||b.join()===a.join());
+  return{st,A:{p:a,R:rotM(.3,.4)},B:{p:b,R:rotM(Math.random()*6,Math.random()*6)},zelfde}}
+// p[i] = welke tetraëderpositie groep i heeft
+function teken3D(v){const st=v.st;const items=[{z:0,s:''}];let s='';const cx=110,cy=105,L=62;
+  const at=st.g.map((gn,i)=>{const p=app(v.R,TET[v.p[i]]);return{gn,x:cx+p[0]*L,y:cy-p[1]*L,z:p[2]}});
+  const all=at.concat([{gn:'C',x:cx,y:cy,z:0}]).sort((a,b)=>a.z-b.z);
+  all.forEach(a=>{if(a.gn==='C'){s+=`<circle cx="${cx}" cy="${cy}" r="14" fill="#333" stroke="#111"/><text x="${cx}" y="${cy+4}" font-size="11" fill="#fff" text-anchor="middle">C</text>`;return}
+    const G=GR[a.gn];const r=G.r*(1+a.z*.18);
+    s+=`<line x1="${cx}" y1="${cy}" x2="${a.x}" y2="${a.y}" stroke="#555" stroke-width="5" stroke-linecap="round" opacity="${a.z<0?.6:1}"/><circle cx="${a.x}" cy="${a.y}" r="${r}" fill="${G.k}" stroke="#333" opacity="${a.z<0?.75:1}"/><text x="${a.x}" y="${a.y+4}" font-size="10" text-anchor="middle" fill="${a.gn==='H'?'#333':'#fff'}">${G.n}</text>`});
+  return `<svg viewBox="0 0 220 210">${s}</svg>`}
+// wig-streep: posities 0 omhoog (vlak), 1 links-onder (vlak), 2 rechts-onder (wig), 3 rechts (streep)
+const WPOS=[[0,1,0],[-0.943,-0.333,0],[0.471,-0.333,0.816],[0.471,-0.333,-0.816]];
+const W2D=[[0,-58],[-55,22],[42,44],[56,-8]];
+function wig(st,p){const cx=95,cy=80;let s='';
+  st.g.forEach((gn,i)=>{const q=p[i];const[dx,dy]=W2D[q];const x=cx+dx,y=cy+dy;
+    if(q<2)s+=`<line x1="${cx}" y1="${cy}" x2="${cx+dx*.72}" y2="${cy+dy*.72}" stroke="#2b2a27" stroke-width="2"/>`;
+    if(q===2){const L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,nx=-uy,ny=ux,ex=cx+dx*.72,ey=cy+dy*.72;s+=`<polygon points="${cx},${cy} ${ex+nx*6},${ey+ny*6} ${ex-nx*6},${ey-ny*6}" fill="#2b2a27"/>`}
+    if(q===3){for(let t=.15;t<.75;t+=.1){const L=Math.hypot(dx,dy),nx=-dy/L,ny=dx/L,w=2+6*t;const px=cx+dx*t,py=cy+dy*t;s+=`<line x1="${px+nx*w}" y1="${py+ny*w}" x2="${px-nx*w}" y2="${py-ny*w}" stroke="#2b2a27" stroke-width="1.6"/>`}}
+    const anc=q===0?'middle':q===1?'end':'start';const tx=q===0?x:q===1?cx+dx*.8:cx+dx*.8+4;
+    s+=`<text x="${tx}" y="${y+5}" font-size="15" text-anchor="${anc}" fill="#2b2a27">${GR[gn].n}</text>`});
+  s+=`<text x="${cx}" y="${cy+5}" font-size="15" text-anchor="middle" font-weight="600">C</text>`;
+  return `<svg viewBox="0 0 210 160" width="210">${s}</svg>`}
+function maakWig(){const st=STOF[Math.floor(Math.random()*STOF.length)];const a=perm([0,1,2,3]);const zelfde=Math.random()<.5;let b;
+  do{b=perm([0,1,2,3])}while((pariteit(b)===pariteit(a))!==zelfde||b.join()===a.join());return{st,a,b,zelfde}}
+
+/* ============ WERKPLAATSEN ============ */
+const g=(v,a,o)=>Object.assign({t:'getal',v,a},o||{});
+const k=(v,o,a,h)=>({t:'keuze',v,o,a,h});
+const mu=(v,o,a,h)=>({t:'multi',v,o,a,h});
+const WP=[
+{k:'Cis-trans',t:'Cis-trans-isomerie',
+ ld:'Je kunt uitleggen wanneer een stof cis-trans-isomerie vertoont, en je herkent de cis- en de trans-vorm.',
+ uitleg:`<p>Om een C=C-binding kunnen de atomen niet vrij draaien. Zitten er aan beide C-atomen van de dubbele binding twee <b>verschillende</b> groepen, dan zijn er twee stoffen mogelijk:</p>
+ <div class="kader"><ul style="margin-bottom:0"><li><b>cis</b>: de twee gelijke (of vergelijkbare) groepen zitten aan dezelfde kant;</li><li><b>trans</b>: ze zitten aan verschillende kanten.</li></ul></div>
+ <p>Heeft één C-atoom van de C=C twee gelijke groepen (bijvoorbeeld twee H-atomen), dan is er geen cis-trans-isomerie. Ook een ring kan niet vrij draaien: bij een ring met twee groepen aan verschillende C-atomen bestaan ook cis en trans.</p>`,
+ vb:{v:'Bestaat but-2-een in een cis- en een trans-vorm?',svg:()=>svg('C[u=CH3]_C[u=CH3]',.7)+svg('C[u=CH3]_C[d=CH3]',.7),s:['Elk C-atoom van de C=C draagt een H-atoom en een CH₃-groep: twee verschillende groepen.','Dus ja. Links: beide CH₃-groepen aan dezelfde kant, cis-but-2-een. Rechts: aan verschillende kanten, trans-but-2-een.']},
+ opdr:[{naam:'Welke is cis?',steps:[{t:'plaatje',v:'Welke tekening is cis-pent-2-een?',o:[[()=>svg('C[u=CH3]_C[u=C2H5]',.6),1],[()=>svg('C[u=CH3]_C[d=C2H5]',.6),0],[()=>svg('C=C-C-C-C',.6),0]]}]},
+  {naam:'Wel of niet?',steps:[mu('Welke van deze stoffen vertonen cis-trans-isomerie? Kies alle goede.',['but-2-een','but-1-een','2-methylbut-2-een','pent-2-een','1,2-dichlooretheen','1,1-dichlooretheen'],[0,3,4],'Kijk bij elk C-atoom van de C=C of de twee groepen verschillend zijn.')]},
+  {naam:'But-1-een',steps:[k('Leg uit waarom but-1-een geen cis-trans-isomerie vertoont.',['Het eerste C-atoom van de C=C draagt twee H-atomen: twee gelijke groepen.','De dubbele binding zit aan het eind van de keten, en daar kan het molecuul vrij draaien.','But-1-een heeft te weinig C-atomen.'],0)]},
+  {naam:'Ring',steps:[k('Vertoont 1,2-dimethylcyclohexaan cis-trans-isomerie?',['Ja: de ring kan niet vrij draaien, en beide C-atomen dragen een H-atoom en een CH₃-groep.','Nee: er is geen C=C-binding.','Nee: de twee CH₃-groepen zijn gelijk.'],0)]},
+  {naam:'Twee dubbele bindingen',ster:1,steps:[g('Hoeveel stereo-isomeren heeft hexa-2,4-dieen (CH₃–CH=CH–CH=CH–CH₃)?',3,{abs:0,h:'Elke C=C kan cis of trans zijn. Let op: het molecuul is symmetrisch.'})]}]},
+{k:'Asymmetrisch C-atoom',t:'Het asymmetrische C-atoom',
+ ld:'Je kunt een asymmetrisch C-atoom herkennen: een C-atoom met vier verschillende groepen.',
+ uitleg:`<p>Een C-atoom met vier <b>verschillende</b> atomen of atoomgroepen eraan heet een <b>asymmetrisch C-atoom</b> (C*). Zo'n molecuul heeft een spiegelbeeld dat er niet mee samenvalt, net als je linker- en rechterhand: <b>spiegelbeeldisomerie</b>.</p>
+ <div class="kader"><ol style="margin-bottom:0"><li>Een C-atoom met een dubbele binding, of met twee of meer H-atomen, is nooit asymmetrisch.</li><li>Vergelijk de vier groepen als geheel: een CH<sub>3</sub>-groep en een C<sub>2</sub>H<sub>5</sub>-groep zijn verschillend, ook al begint allebei met een C-atoom.</li></ol></div>`,
+ vb:{v:'Heeft butaan-2-ol een asymmetrisch C-atoom?',svg:()=>svgKlik('C-C[u=OH]-C-C',asym('C-C[u=OH]-C-C'),.7,true),s:['C1 en C4 hebben drie H-atomen; C3 heeft twee H-atomen. Die vallen af.','C2 draagt: H, OH, CH₃ en C₂H₅. Vier verschillende groepen.','C2 is asymmetrisch (*).']},
+ opdr:[{naam:'Klik C*',spec:'C-C-C[u=OH]-C-C-C',steps:[{t:'klik'}]},
+  {naam:'Klik C*',spec:'C-C[u=Cl]-C',steps:[{t:'klik'}]},
+  {naam:'Alanine',spec:'C-C[d=NH2]-C[u==O]-O',steps:[{t:'klik'}]},
+  {naam:'Twee chlooratomen',spec:'C-C[u=Cl]-C[d=Cl]-C-C',steps:[{t:'klik'}]},
+  {naam:'Zijtak',ster:1,spec:'C-C-C[u=CH3]-C-C-C',steps:[{t:'klik'}]}]},
+{k:'Spiegelbeelden in 3D',t:'Spiegelbeelden in 3D',
+ ld:'Je kunt van twee ruimtelijke modellen bepalen of ze dezelfde stof zijn of elkaars spiegelbeeld.',
+ uitleg:`<p>Twee moleculen met een asymmetrisch C-atoom kunnen <b>dezelfde stof</b> zijn (je kunt het ene model zo draaien dat het precies op het andere past), of elkaars <b>spiegelbeeld</b> (hoe je ook draait, ze passen nooit).</p>
+ <div class="kader"><ol style="margin-bottom:0"><li>Draai het rechter model met de muis tot één groep (bijvoorbeeld H) dezelfde kant op wijst als bij het linker model.</li><li>Draai daarna om die as tot een tweede groep ook past.</li><li>Kijk naar de laatste twee groepen: zitten ze op dezelfde plek, dan is het dezelfde stof. Zijn ze verwisseld, dan zijn het spiegelbeelden.</li></ol></div>
+ <p>Twee groepen verwisselen maakt van een molecuul zijn spiegelbeeld.</p>`,
+ vb:{v:'Hoe controleer je of twee modellen dezelfde stof zijn?',s:['Leg de H-atomen van beide modellen in dezelfde richting.','Draai tot de OH-groepen ook gelijk liggen.','Liggen CH₃ en C₂H₅ dan ook gelijk: dezelfde stof. Zijn die twee verwisseld: spiegelbeelden.']},
+ opdr:[{naam:'Ronde 1',steps:[{t:'paar',n:4}]},{naam:'Ronde 2',steps:[{t:'paar',n:4}]},{naam:'Zonder fouten',ster:1,steps:[{t:'paar',n:5,streng:1}]}]},
+{k:'Aantal stereo-isomeren',t:'Hoeveel stereo-isomeren?',
+ ld:'Je kunt het aantal stereo-isomeren van een stof bepalen, met cis-trans-isomerie en asymmetrische C-atomen samen.',
+ uitleg:`<p>Elk "stereo-element" geeft twee mogelijkheden: een C=C met cis-trans (cis of trans) en een asymmetrisch C-atoom (de ene of de andere ruimtelijke bouw).</p>
+ <div class="kader formules">maximaal aantal stereo-isomeren = 2<sup>n</sup>, met n = aantal stereo-elementen</div>
+ <p>Is het molecuul symmetrisch, dan kunnen sommige combinaties dezelfde stof zijn: dan zijn het er minder.</p>`,
+ vb:{v:'Hoeveel stereo-isomeren heeft pent-3-een-2-ol (CH₃–CH(OH)–CH=CH–CH₃)?',svg:()=>svgKlik('C-C[u=OH]-C=C-C',asym('C-C[u=OH]-C=C-C'),.65,true),s:['C2 is asymmetrisch: 1 stereo-element.','De C=C heeft aan beide kanten twee verschillende groepen: cis-trans, nog 1 stereo-element.','2² = 4 stereo-isomeren.']},
+ opdr:[{naam:'Butaan-2-ol',steps:[g('Hoeveel stereo-isomeren heeft butaan-2-ol?',2,{abs:0})]},
+  {naam:'Twee C*',spec:'C-C[u=Cl]-C[d=Cl]-C-C',steps:[g('Hoeveel stereo-isomeren heeft 2,3-dichloorpentaan?',4,{abs:0,h:'Tel de asymmetrische C-atomen.'})]},
+  {naam:'Hex-4-een-3-ol',spec:'C-C-C[u=OH]-C=C-C',steps:[g('Hoeveel stereo-isomeren heeft hex-4-een-3-ol?',4,{abs:0,h:'Tel de asymmetrische C-atomen én de C=C met cis-trans.'})]},
+  {naam:'Geen enkele',steps:[k('Welke stof heeft géén stereo-isomeren?',['propaan-2-ol','butaan-2-ol','but-2-een','alanine'],0)]},
+  {naam:'Symmetrisch',ster:1,spec:'C-C[u=OH]-C[d=OH]-C',steps:[g('Butaan-2,3-diol heeft twee asymmetrische C-atomen. Hoeveel stereo-isomeren zijn er?',3,{abs:0,h:'Het molecuul is symmetrisch. Eén van de vier combinaties is zijn eigen spiegelbeeld.'})]}]},
+{k:'Wig-streepnotatie',t:'De wig-streepnotatie lezen',
+ ld:'Je kunt een ruimtelijke tekening in wig-streepnotatie lezen, en van twee tekeningen bepalen of ze dezelfde stof zijn of spiegelbeelden.',
+ uitleg:`<p>Op papier teken je de ruimtelijke bouw met drie soorten lijnen:</p>
+ <div class="kader"><ul style="margin-bottom:0"><li>gewone lijn: de binding ligt in het vlak van het papier;</li><li><b>wig</b> (dik driehoekje): de binding komt naar je toe;</li><li><b>streepjes</b>: de binding gaat van je af, achter het papier.</li></ul></div>
+ <p>Vergelijk je twee tekeningen, kijk dan of je de ene in de andere kunt draaien. Twee groepen van plaats wisselen geeft het spiegelbeeld; twee keer wisselen geeft weer dezelfde stof.</p>`,
+ vb:{v:'Hoe lees je deze tekening van butaan-2-ol?',svg:()=>wig(STOF[0],[0,1,2,3]),s:['H en OH liggen in het vlak van het papier.','CH₃ komt naar je toe (wig).','C₂H₅ gaat van je af (streepjes).']},
+ opdr:[{naam:'Naar je toe',steps:[{t:'wigvraag'}]},
+  {naam:'Ronde 1',steps:[{t:'wig',n:4}]},{naam:'Ronde 2',steps:[{t:'wig',n:4}]},
+  {naam:'Twee keer wisselen',ster:1,steps:[k('In een tekening wissel je eerst H en OH van plaats, en daarna CH₃ en C₂H₅. Wat heb je dan getekend?',['Dezelfde stof: twee keer wisselen heft elkaar op.','Het spiegelbeeld.','Een andere stof met een andere molecuulformule.'],0)]}]}
+];
+
+/* ============ STATE ============ */
+const KEY='stereo-v1';let S={wp:0,tab:'uitleg',opd:{},steps:{},prog:{}};
+try{const t=JSON.parse(localStorage.getItem(KEY));if(t&&t.prog)S=Object.assign(S,t)}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let T={};const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const W=()=>WP[S.wp];const oi=()=>Math.min(S.opd[S.wp]||0,W().opdr.length-1);const O=()=>W().opdr[oi()];const key=()=>S.wp+'-'+oi();
+const volg=(n,i)=>[...Array(n).keys()].sort((x,y)=>((x*7+i*5+3)%11)-((y*7+i*5+3)%11));
+const legenda=()=>`<div class="leg3">${['H','OH','CH3','C2H5','NH2','COOH','Cl'].map(x=>`<span><i style="background:${GR[x].k}"></i>${GR[x].n}</span>`).join('')}</div>`;
+
+function render(){
+  $('#nav').innerHTML=WP.map((w,i)=>{const d=w.opdr.filter((_,j)=>S.prog[i+'-'+j]).length;return `<a data-a="wp" data-v="${i}" class="${S.wp===i?'on':''} ${d===w.opdr.length?'klaar':''}"><i>${d===w.opdr.length?'✓':i+1}</i><span>${w.k}<small>${d} van ${w.opdr.length} opdrachten</small></span></a>`}).join('');
+  const w=W(),done=w.opdr.filter((_,j)=>S.prog[S.wp+'-'+j]).length;
+  let t=`<div class="kicker">Werkplaats ${S.wp+1} · 5V</div><h2>${w.t}</h2><div class="tabs"><button data-a="tab" data-v="uitleg" class="${S.tab==='uitleg'?'on':''}">Uitleg en voorbeeld</button><button data-a="tab" data-v="opdr" class="${S.tab==='opdr'?'on':''}">Opdrachten<span class="tel">${done}/${w.opdr.length}</span></button></div>`;
+  let sim='';
+  if(S.tab==='uitleg'){
+    t+=`<div class="ld"><b>Leerdoel</b>${w.ld}</div>${w.uitleg}<div class="vb"><div class="vbkop">Voorbeeld</div><div class="vbvraag">${w.vb.v}</div>${w.vb.s.map((x,i)=>`<div class="vbstap"><div class="n">${i+1}</div><div class="b">${x}</div></div>`).join('')}</div><button class="btn" data-a="tab" data-v="opdr">Naar de opdrachten</button>`;
+    if(w.vb.svg)sim=`<div class="simkop"><b>Voorbeeld</b></div><div class="tek">${w.vb.svg()}</div>`;
+    if(S.wp===2){if(!T.demo)T.demo=maakPaar();sim=`<div class="simkop"><b>Probeer: draai de modellen</b></div>${duo(T.demo,'demo')}${legenda()}<div class="legenda">${T.demo.zelfde?'Deze twee zijn dezelfde stof.':'Deze twee zijn elkaars spiegelbeeld.'}</div>`}
+    $('#main').innerHTML=`<div class="wp"><div class="tekst">${t}</div><div class="simkol">${sim}</div></div>`;bindDrag();return}
+  const r=opdr();t+=r.t;sim=r.sim;
+  $('#main').innerHTML=`<div class="wp"><div class="tekst">${t}</div><div class="simkol">${sim}</div></div>`;bindDrag();
+}
+function duo(P,id){return `<div class="duo"><div class="v3" data-v3="${id}-A"><b>A</b>${teken3D({st:P.st,...P.A})}</div><div class="v3" data-v3="${id}-B"><b>B</b>${teken3D({st:P.st,...P.B})}</div></div>`}
+function bindDrag(){document.querySelectorAll('[data-v3]').forEach(el=>{let sx,sy,act=false;
+  const [id,zij]=el.dataset.v3.split('-');
+  const P=()=>id==='demo'?T.demo:(T[key()+'-p']||{}).paar;
+  el.onpointerdown=e=>{act=true;sx=e.clientX;sy=e.clientY;el.setPointerCapture(e.pointerId)};
+  el.onpointermove=e=>{if(!act||!P())return;const dx=e.clientX-sx,dy=e.clientY-sy;sx=e.clientX;sy=e.clientY;const M=P()[zij];M.R=mul(rotM(dy*.012,dx*.012),M.R);el.innerHTML=`<b>${zij}</b>`+teken3D({st:P().st,...M})};
+  el.onpointerup=()=>{act=false}})}
+function opdr(){
+  const w=W(),o=O(),k=key(),nD=S.steps[k]||0;
+  let t=`<div class="oknop">${w.opdr.map((x,i)=>`<div class="dot ${i===oi()?'on':''} ${S.prog[S.wp+'-'+i]?'goed':''} ${x.ster?'ster':''}" data-a="opd" data-v="${i}">${i+1}</div>`).join('')}<span class="rechts">${o.ster?'★ uitdaging':''}</span></div>
+  <div class="opdkop">Opdracht ${oi()+1} ${o.ster?'<span class="st">★</span>':''} · ${o.naam}</div>`;
+  if(S.prog[k])t+=`<div class="klaarbanner">Deze opdracht is af.</div>`;
+  t+=o.steps.map((s,i)=>stap(s,i,nD,k,o)).join('');
+  let sim='';
+  if(o.spec&&S.wp===3)sim=`<div class="simkop"><b>Structuurformule</b></div><div class="tek">${svg(o.spec,.6)}</div>`;
+  if(S.wp===2)sim=`<div class="simkop"><b>Legenda</b></div>${legenda()}<div class="legenda">Sleep over een model om het te draaien.</div>`;
+  if(S.wp===1)sim=`<div class="simkop"><b>Zo herken je C*</b></div><div class="kader">Vier verschillende groepen. Geen dubbele binding, en niet twee of meer H-atomen.</div>`;
+  if(S.wp===4)sim=`<div class="simkop"><b>Legenda</b></div><div class="kader">gewone lijn: in het vlak<br>wig: naar je toe<br>streepjes: van je af</div>`;
+  if(S.wp===0)sim=`<div class="simkop"><b>Onthoud</b></div><div class="kader">Cis-trans kan alleen als <b>elk</b> C-atoom van de C=C twee verschillende groepen draagt.</div>`;
+  return{t,sim}}
+function stap(s,i,nD,k,o){
+  const st=i<nD?'goed':i===nD?'':'dicht';const tk=k+'-'+i;const cur=T[tk]=T[tk]||{};
+  const titel=s.t==='klik'?'Klik op alle asymmetrische C-atomen. Is er geen, klik dan op "Geen C*".':s.t==='paar'?`Zijn A en B dezelfde stof of elkaars spiegelbeeld? Draai de modellen met de muis. (${s.n} goed nodig)`:s.t==='wig'?`Zijn deze twee tekeningen dezelfde stof of elkaars spiegelbeeld? (${s.n} goed nodig)`:s.t==='wigvraag'?'Welke groep komt in deze tekening naar je toe?':s.v;
+  let h=`<div class="stap ${st}"><div class="n">${i+1}</div><div class="inh"><div class="vr">${titel}</div>`;
+  if(i<nD){
+    if(s.t==='getal')h+=`<div class="fb goed">${s.a}</div>`;
+    if(s.t==='keuze')h+=`<div class="fb goed">${s.o[s.a]}</div>`;
+    if(s.t==='multi')h+=`<div class="fb goed">${s.a.map(j=>s.o[j]).join(', ')}</div>`;
+    if(s.t==='plaatje')h+=`<div class="molkeus">${s.o.filter(x=>x[1]).map(x=>`<div class="optie aan">${x[0]()}</div>`).join('')}</div>`;
+    if(s.t==='klik'){const a=asym(o.spec);h+=`<div class="tek">${svgKlik(o.spec,a,.7,true)}</div><div class="fb goed">${a.length?a.length+' asymmetrisch C-atoom'+(a.length>1?'en':''):'Geen asymmetrisch C-atoom.'}</div>`}
+    if(['paar','wig','wigvraag'].includes(s.t))h+=`<div class="fb goed">Goed gedaan.</div>`;
+    return h+'</div></div>'}
+  if(st==='dicht')return h+'</div></div>';
+  h+='<div class="inv">';
+  if(s.t==='getal')h+=`<div class="rij"><input class="in" id="g-${i}" inputmode="numeric" value="${esc(cur.txt||'')}"><button class="btn" data-a="check" data-i="${i}">Controleer</button></div>`;
+  if(s.t==='keuze')h+=`<div class="opties">${volg(s.o.length,i+oi()).map(j=>`<button class="optie ${cur.v===j?'aan':''}" data-a="kies" data-i="${i}" data-v="${j}">${s.o[j]}</button>`).join('')}</div><button class="btn" data-a="check" data-i="${i}">Controleer</button>`;
+  if(s.t==='multi')h+=`<div class="chips">${s.o.map((x,j)=>`<span class="chip ${(cur.sel||[]).includes(j)?'aan':''}" data-a="chip" data-i="${i}" data-v="${j}">${x}</span>`).join('')}</div><button class="btn" data-a="check" data-i="${i}">Controleer</button>`;
+  if(s.t==='plaatje')h+=`<div class="molkeus">${volg(s.o.length,oi()).map(j=>`<button class="optie ${(cur.sel||[]).includes(j)?'aan':''}" data-a="chip" data-i="${i}" data-v="${j}">${s.o[j][0]()}</button>`).join('')}</div><button class="btn" data-a="check" data-i="${i}">Controleer</button>`;
+  if(s.t==='klik')h+=`<div class="tek">${svgKlik(o.spec,cur.sel||[],.8)}</div><div class="rij"><button class="btn" data-a="check" data-i="${i}">Controleer</button><button class="btn g" data-a="geen" data-i="${i}">Geen C*</button></div>`;
+  if(s.t==='paar'){const p=T[k+'-p']=T[k+'-p']||{goed:0,paar:maakPaar()};
+    h+=`<div class="legenda">Stof: ${p.paar.st.n}</div>${duo(p.paar,'o')}${legenda()}<div class="rij"><button class="btn" data-a="paar" data-v="1" data-i="${i}">Dezelfde stof</button><button class="btn" data-a="paar" data-v="0" data-i="${i}">Spiegelbeelden</button><span class="teller">${p.goed} van ${s.n} goed</span></div>`}
+  if(s.t==='wig'){const p=T[k+'-w']=T[k+'-w']||{goed:0,paar:maakWig()};
+    h+=`<div class="legenda">Stof: ${p.paar.st.n}</div><div class="duo"><div class="tek">${wig(p.paar.st,p.paar.a)}</div><div class="tek">${wig(p.paar.st,p.paar.b)}</div></div><div class="rij"><button class="btn" data-a="wigk" data-v="1" data-i="${i}">Dezelfde stof</button><button class="btn" data-a="wigk" data-v="0" data-i="${i}">Spiegelbeelden</button><span class="teller">${p.goed} van ${s.n} goed</span></div>`}
+  if(s.t==='wigvraag'){const p=T[k+'-q']=T[k+'-q']||{st:STOF[1],p:perm([0,1,2,3])};
+    h+=`<div class="tek">${wig(p.st,p.p)}</div><div class="opties">${p.st.g.map((gn,j)=>`<button class="optie ${cur.v===j?'aan':''}" data-a="kies" data-i="${i}" data-v="${j}">${GR[gn].n}</button>`).join('')}</div><button class="btn" data-a="check" data-i="${i}">Controleer</button>`}
+  h+='</div>';if(cur.fb)h+=`<div class="fb ${cur.fb[0]}">${cur.fb[1]}</div>`;
+  return h+'</div></div>'}
+function klaar(i){const o=O(),k=key();S.steps[k]=i+1;if(i+1>=o.steps.length)S.prog[k]=true;save()}
+function check(i,extra){
+  const o=O(),k=key(),s=o.steps[i],tk=k+'-'+i,cur=T[tk]=T[tk]||{};let ok=false,msg='Nog niet goed.'+(s.h?' Tip: '+s.h:'');
+  if(s.t==='getal'){const v=$('#g-'+i).value;cur.txt=v;const x=Number(v.replace(',','.'));if(!v.trim()||isNaN(x)){cur.fb=['hint','Typ een getal.'];render();return}ok=Math.abs(x-s.a)<=(s.abs||0)}
+  if(s.t==='keuze'){if(cur.v==null){cur.fb=['hint','Kies eerst een antwoord.'];render();return}ok=cur.v===s.a}
+  if(s.t==='wigvraag'){if(cur.v==null){cur.fb=['hint','Kies eerst een groep.'];render();return}const p=T[k+'-q'];ok=p.p[cur.v]===2;msg='Nog niet goed. Zoek de dikke wig.'}
+  if(s.t==='multi'||s.t==='plaatje'){const sel=cur.sel||[];if(!sel.length){cur.fb=['hint','Kies minstens één antwoord.'];render();return}
+    const goed=s.t==='multi'?s.a:s.o.map((x,j)=>x[1]?j:-1).filter(j=>j>=0);const mis=goed.filter(j=>!sel.includes(j)).length,tv=sel.filter(j=>!goed.includes(j)).length;ok=!mis&&!tv;
+    if(!ok)msg=`Nog niet goed: ${tv?tv+' gekozen '+(tv===1?'antwoord is':'antwoorden zijn')+' fout':''}${tv&&mis?' en ':''}${mis?'je mist er nog '+mis:''}.`+(s.h?' Tip: '+s.h:'')}
+  if(s.t==='klik'){const sel=extra==='geen'?[]:(cur.sel||[]);if(extra!=='geen'&&!sel.length){cur.fb=['hint','Klik eerst op een C-atoom, of kies "Geen C*".'];render();return}
+    const a=asym(o.spec);const mis=a.filter(x=>!sel.includes(x)).length,tv=sel.filter(x=>!a.includes(x)).length;ok=!mis&&!tv;
+    msg=!a.length?'Nog niet goed. Kijk nog eens: heeft elk gekozen C-atoom echt vier verschillende groepen?':`Nog niet goed: ${tv?tv+' gekozen C-atoom'+(tv>1?'en zijn':' is')+' niet asymmetrisch':''}${tv&&mis?' en ':''}${mis?'je mist er nog '+mis:''}.`}
+  if(ok){cur.fb=null;klaar(i)}else cur.fb=['fout',msg];
+  render()}
+function rondeAntwoord(i,soort,v){const o=O(),k=key(),s=o.steps[i],tk=k+'-'+i,cur=T[tk]=T[tk]||{};const p=T[k+(soort==='paar'?'-p':'-w')];
+  const goedAntw=(v===1)===p.paar.zelfde;
+  if(goedAntw){p.goed++;cur.fb=['goed',`Goed: ${p.paar.zelfde?'dezelfde stof':'spiegelbeelden'}.`]}
+  else{if(s.streng)p.goed=0;cur.fb=['fout',`Nog niet goed: het ${p.paar.zelfde?'was dezelfde stof':'waren spiegelbeelden'}. ${soort==='paar'?'Draai de modellen tot twee groepen gelijk liggen en vergelijk de andere twee.':'Tel hoe vaak je twee groepen moet wisselen om van de ene tekening de andere te maken: oneven is spiegelbeeld.'}${s.streng?' Je teller begint opnieuw.':''}`]}
+  if(p.goed>=s.n){cur.fb=null;klaar(i)}else p.paar=soort==='paar'?maakPaar():maakWig();
+  render()}
+document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el)return;const a=el.dataset.a,v=el.dataset.v;
+  switch(a){
+    case 'wp':S.wp=+v;S.tab='uitleg';T={};save();window.scrollTo(0,0);break;
+    case 'tab':S.tab=v;save();window.scrollTo(0,0);break;
+    case 'opd':S.opd[S.wp]=+v;T={};save();break;
+    case 'kies':{const tk=key()+'-'+el.dataset.i;T[tk]=T[tk]||{};T[tk].v=+v;T[tk].fb=null;break}
+    case 'chip':{const tk=key()+'-'+el.dataset.i;T[tk]=T[tk]||{};const s=T[tk].sel||[];const j=+v;const st=O().steps[+el.dataset.i];
+      T[tk].sel=st.t==='plaatje'?[j]:(s.includes(j)?s.filter(x=>x!==j):[...s,j]);T[tk].fb=null;break}
+    case 'atoom':{const n=S.steps[key()]||0;const tk=key()+'-'+n;T[tk]=T[tk]||{};const s=T[tk].sel||[];const j=+v;T[tk].sel=s.includes(j)?s.filter(x=>x!==j):[...s,j];T[tk].fb=null;break}
+    case 'check':check(+el.dataset.i);return;
+    case 'geen':check(+el.dataset.i,'geen');return;
+    case 'paar':rondeAntwoord(+el.dataset.i,'paar',+v);return;
+    case 'wigk':rondeAntwoord(+el.dataset.i,'wig',+v);return;
+    case 'beamer':document.body.classList.toggle('beamer');return;
+    case 'wis':if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Zeker weten? Klik nogmaals';return}S.prog={};S.steps={};T={};save();el.dataset.c='';el.textContent='Voortgang wissen';break;
+    default:return}
+  render()});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id&&e.target.id.startsWith('g-')){const b=e.target.parentNode.querySelector('[data-a=check]');if(b)b.click()}});
+render();
+window.__st={WP,S:()=>S,T:()=>T,check,render,asym,rondeAntwoord,key,chir,TET,WPOS,pariteit};
+}
+</script>
+</body>
+</html>
