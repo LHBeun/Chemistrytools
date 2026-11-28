@@ -1,1004 +1,372 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<title>BOE-schema — Chemisch Evenwicht VWO</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evenwichten: BOE-schema</title>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#ffffff;--panel:#f7f7f5;--border:#d8d8d4;
-  --accent:#6b8a12;--text:#1c1e1f;--muted:#5f6469;
-  --ok:#2f8a5b;--err:#b8402f;--warn:#b8862a;
-  --mono:'Courier New',monospace;
+  --papier:#f3efe6; --vel:#fffdf8; --rand:#e3dccb; --rand2:#d6cdb8;
+  --inkt:#2b2a27; --inkt2:#3e3b35; --grijs:#7a756b; --goud:#a0701f; --goud2:#e2a84b;
+  --nacht:#24323f; --nacht2:#33475a; --nachttekst:#cfd9e2;
+  --goed:#3f8f63; --goedbg:#e5f2ea; --fout:#b4473a; --foutbg:#f8e6e2; --hint:#fbf1da;
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --sans: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Consolas, 'Liberation Mono', monospace;
 }
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;padding:24px 16px;min-height:100vh}
-.wrap{max-width:860px;margin:0 auto}
-h1{font-size:1.25em;font-weight:700;color:var(--accent);margin-bottom:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--papier);color:var(--inkt);font-size:15px;line-height:1.6}
+button{font-family:inherit}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
+aside{background:var(--nacht);color:var(--nachttekst);padding:26px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
+aside h1{font-family:var(--serif);font-size:23px;color:#fff;font-weight:600;line-height:1.2}
+aside .sub{font-size:12.5px;color:#8aa0b3;margin:4px 0 18px}
+.lijn{display:flex;gap:4px;background:#1b2731;border-radius:10px;padding:4px;margin-bottom:18px}
+.lijn button{flex:1;border:0;border-radius:7px;padding:7px 6px;font-size:13.5px;font-weight:700;background:transparent;color:#9fb2c3;cursor:pointer}
+.lijn button.on{background:var(--goud2);color:var(--nacht)}
+aside nav a{display:flex;gap:12px;align-items:center;padding:10px 10px;border-radius:9px;font-size:14.5px;margin-bottom:4px;color:#b9c7d3;cursor:pointer;user-select:none;line-height:1.3}
+aside nav a:hover{background:#2c3d4d}
+aside nav a i{font-style:normal;flex:none;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #5d7387;font-size:12.5px;font-weight:700}
+aside nav a.on{background:var(--nacht2);color:#fff}
+aside nav a.on i{background:var(--goud2);border-color:var(--goud2);color:var(--nacht)}
+aside nav a.klaar i{background:#5aa37c;border-color:#5aa37c;color:#fff}
+aside nav a small{display:block;font-size:11.5px;color:#8aa0b3}
+aside .voet{margin-top:auto;padding-top:16px;display:flex;flex-direction:column;gap:8px}
+aside .voet button{background:transparent;border:1px solid #4b6074;color:#cfd9e2;border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer;text-align:left}
+aside .voet button:hover{background:#2c3d4d}
+.wp{display:grid;grid-template-columns:minmax(380px,1fr) minmax(520px,680px);min-height:100vh}
+.tekst{padding:34px 38px 60px;max-width:780px}
+.kicker{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--goud);font-weight:700}
+.tekst h2{font-family:var(--serif);font-size:31px;margin:3px 0 14px;font-weight:600;line-height:1.2}
+.tekst h3{font-family:var(--serif);font-size:19px;margin:20px 0 6px;font-weight:600}
+.tekst p{margin-bottom:10px;color:var(--inkt2)}
+.tekst ul,.tekst ol{margin:0 0 10px 20px;color:var(--inkt2)}
+.tekst li{margin-bottom:3px}
+.kader{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--goud2);border-radius:8px;padding:10px 14px;margin:10px 0 12px;color:var(--inkt2)}
+.kader.proces{border-left-color:#5d7387}
+.vgl{font-family:var(--serif);font-size:17px;margin-top:6px;color:var(--inkt)}
+.tabs{display:flex;gap:4px;margin:20px 0 14px;border-bottom:1px solid var(--rand2)}
+.tabs button{background:none;border:0;padding:9px 14px;font-size:14px;font-weight:600;color:var(--grijs);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--inkt);border-bottom-color:var(--goud2)}
+.tabs .tel{font-weight:500;font-size:12px;color:var(--grijs);margin-left:4px}
+.vb{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:16px 18px;margin:4px 0 14px}
+.vb .vbkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--goud);margin-bottom:4px}
+.vb .vbvraag{font-weight:600;margin-bottom:8px}
+.vbstap{display:flex;gap:12px;padding:8px 0;border-top:1px dashed var(--rand2)}
+.vbstap .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
+.vbstap .b{color:var(--inkt2)}
+.oknop{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.oknop .dot{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--rand2);background:var(--vel);display:grid;place-items:center;font-size:12.5px;font-weight:700;color:var(--grijs);cursor:pointer}
+.oknop .dot.on{border-color:var(--inkt);color:var(--inkt);box-shadow:0 0 0 2px var(--inkt) inset}
+.oknop .dot.goed{background:var(--goed);border-color:var(--goed);color:#fff}
+.oknop .dot.ster{border-style:dashed}
+.oknop .rechts{margin-left:auto;font-size:13px;color:var(--grijs)}
+.opdkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--grijs);margin-bottom:4px}
+.opdkop .st{color:var(--goud)}
+.stap{display:flex;gap:12px;padding:13px 15px;background:var(--vel);border:1px solid var(--rand);border-radius:11px;margin-bottom:10px}
+.stap>.n{flex:none;width:25px;height:25px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12.5px;font-weight:700;margin-top:1px}
+.stap.dicht{opacity:.42}
+.stap.dicht .inv{display:none}
+.stap.goed{border-color:#bcdcc8;background:#fbfefc}
+.stap.goed>.n{background:var(--goed)}
+.stap .inh{flex:1;min-width:0}
+.stap .vr{margin-bottom:8px}
+.rij{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input.in{font-family:var(--mono);font-size:15px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;background:#fff;min-width:0;width:220px;color:var(--inkt)}
+input.in:focus,textarea.in:focus,select.sel:focus{outline:2px solid var(--goud2);outline-offset:0;border-color:var(--goud2)}
+textarea.in{font-family:var(--sans);font-size:14.5px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;width:100%;min-height:74px;background:#fff;color:var(--inkt)}
+select.sel{border:1px solid var(--rand2);border-radius:8px;padding:7px 9px;font-size:14px;background:#fff;color:var(--inkt);font-family:inherit}
+.btn{border:0;border-radius:8px;padding:8px 15px;font-weight:600;font-size:14px;cursor:pointer;background:var(--inkt);color:#fff}
+.btn:hover{background:#45433e}
+.btn.g{background:#ebe4d4;color:var(--inkt)}
+.btn.g:hover{background:#e0d7c3}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.klein{padding:5px 11px;font-size:13px}
+.fb{margin-top:8px;padding:8px 11px;border-radius:8px;font-size:14px}
+.fb.goed{background:var(--goedbg);color:#255c3d}
+.fb.fout{background:var(--foutbg);color:#7c2c22}
+.fb.hint{background:var(--hint);color:#6b4d12}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px}
+.chip{border:1.5px solid var(--rand2);background:#fff;border-radius:999px;padding:4px 12px;font-size:14px;cursor:pointer;user-select:none;color:var(--inkt)}
+.chip:hover{border-color:#b9ad93}
+.chip.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.chip.x{padding:3px 6px 3px 12px}
+.chip.x b{margin-left:6px;font-weight:700;color:var(--grijs)}
+.opties{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.optie{border:1.5px solid var(--rand2);background:#fff;border-radius:9px;padding:8px 12px;font-size:14.5px;cursor:pointer;text-align:left;color:var(--inkt)}
+.optie:hover{border-color:#b9ad93}
+.optie.aan{border-color:var(--nacht);background:#eef2f6}
+.model{background:var(--hint);border-radius:8px;padding:8px 11px;font-size:14px;color:#5b4210;margin-top:8px}
+.model b{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.klaarbanner{background:var(--goedbg);border:1px solid #bcdcc8;color:#255c3d;border-radius:11px;padding:12px 15px;margin:4px 0 12px}
+.uitw{background:#fff;border:1px solid var(--rand);border-radius:8px;padding:8px 11px;margin-top:8px;font-size:14.5px;color:var(--inkt2)}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;line-height:1.25}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 3px}
+.frac>span:last-child{padding:0 3px}
+.simkol{background:var(--vel);border-left:1px solid var(--rand);padding:22px 22px 30px;display:flex;flex-direction:column;gap:12px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.simkop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.simkop b{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--goud)}
+.simkop span{font-size:12.5px;color:var(--grijs)}
+.doek{border:1px solid var(--rand);border-radius:12px;background:#fbf8f1;overflow:hidden}
+.doek svg{display:block;width:100%;height:auto}
+.legenda{font-size:12.5px;color:var(--grijs);line-height:1.5}
+.bouw{display:grid;gap:10px}
+.bouw .vak{background:var(--vel);border:1px solid var(--rand);border-radius:11px;padding:12px 14px}
+.bouw h4{font-size:13px;letter-spacing:1.1px;text-transform:uppercase;color:var(--grijs);margin-bottom:8px}
+.strlijst{list-style:none;margin:0!important}
+.strlijst li{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px dashed var(--rand2);font-size:14px}
+.strlijst li:first-child{border-top:0}
+.nr{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--inkt);font-size:12px;font-weight:700;margin-right:6px;flex:none}
+.stroomkeuze{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.stroomkeuze button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--rand2);background:#fff;font-weight:700;cursor:pointer;color:var(--inkt)}
+.stroomkeuze button.on{background:var(--goud2);border-color:var(--goud2)}
+.stroomkeuze button.goed{border-color:var(--goed);color:var(--goed)}
+.stroomkeuze button.fout{border-color:var(--fout);color:var(--fout)}
+body.beamer .wp{zoom:1.25}
+@media (max-width:1100px){.app{grid-template-columns:1fr}aside{position:static;height:auto}.wp{grid-template-columns:1fr}.simkol{position:static;height:auto;border-left:0;border-top:1px solid var(--rand)}.tekst{padding:24px 20px 30px}}
+@media (prefers-reduced-motion:no-preference){.nieuw{animation:verschijn .6s ease-out}@keyframes verschijn{from{opacity:0}to{opacity:1}}}
 
-/* Reactiebalk */
-.rxnbar{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.rxneq{font-family:var(--mono);font-size:1.1em;color:var(--accent);flex:1}
-.newbtn{background:transparent;border:1.5px solid var(--accent);color:var(--accent);padding:6px 14px;border-radius:5px;font-size:.82em;font-weight:700;cursor:pointer}
-.newbtn:hover{background:rgba(107,138,18,.12)}
-
-/* Scenario badge */
-.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:.78em;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
-.badge-A{background:#eaf0fa;color:#3b6bc4;border:1px solid #b7cbe8}
-.badge-B{background:#eaf5ea;color:#2f8a5b;border:1px solid #8fc98f}
-
-/* Gegeven info */
-.given-box{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin-bottom:14px;font-size:.92em;line-height:1.7}
-.given-box .hl{font-weight:700;color:var(--accent)}
-.given-box .hl2{font-weight:700;color:#3b6bc4}
-
-/* BOE tabel */
-.boe-wrap{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:14px;overflow-x:auto}
-.boe-title{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
-table.boe{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.92em}
-table.boe th,table.boe td{padding:9px 12px;border:1px solid var(--border);text-align:center}
-table.boe th{background:#f2f2ef;color:var(--muted);font-size:.8em;letter-spacing:.5px}
-table.boe th.row-lbl{text-align:left;width:80px;color:var(--accent)}
-table.boe td.row-lbl{text-align:left;font-weight:700;color:var(--accent);background:#f2f2ef}
-table.boe td.fixed{background:#f2f2ef;color:var(--text)}
-table.boe td.solid{background:#f2f2ef;color:var(--muted);font-style:italic;font-size:.82em}
-table.boe td.auto-fill{background:#eaf5ea;color:var(--ok)}
-table.boe td.input-cell{background:#f2f2ef;padding:4px 6px}
-
-/* Dropdown O-rij */
-.o-select-wrap{display:flex;align-items:center;gap:3px;justify-content:center}
-select.o-sign{background:#f2f2ef;border:1.5px solid var(--border);border-radius:4px;color:#3b6bc4;font-family:var(--mono);font-size:.88em;padding:4px 6px;cursor:pointer;outline:none;width:44px}
-select.o-coef{background:#f2f2ef;border:1.5px solid var(--border);border-radius:4px;color:#3b6bc4;font-family:var(--mono);font-size:.88em;padding:4px 6px;cursor:pointer;outline:none;width:60px}
-select.o-sign:focus,select.o-coef:focus{border-color:#3b6bc4}
-select.o-sign.ok,select.o-coef.ok{border-color:var(--ok);background:#eaf5ea}
-select.o-sign.err,select.o-coef.err{border-color:var(--err);background:#f7e9e6}
-
-/* Invoervelden */
-.num-input{background:#f2f2ef;border:1.5px solid var(--border);border-radius:5px;color:#3b6bc4;font-family:var(--mono);font-size:.88em;padding:5px 7px;outline:none;width:100%;text-align:center}
-.num-input:focus{border-color:#3b6bc4}
-.num-input.ok{border-color:var(--ok);background:#eaf5ea;color:var(--ok)}
-.num-input.err{border-color:var(--err);background:#f7e9e6;color:var(--err)}
-
-/* Knoppen */
-.check-btn{background:transparent;border:1.5px solid #3b6bc4;color:#3b6bc4;padding:8px 20px;border-radius:6px;font-size:.88em;font-weight:700;cursor:pointer;transition:background .12s;margin-top:12px}
-.check-btn:hover{background:rgba(91,141,238,.15)}
-.check-btn:disabled{opacity:.35;cursor:not-allowed}
-
-/* Feedback blokken */
-.fb{margin-top:10px;padding:12px 16px;border-radius:6px;font-size:.88em;line-height:1.6;display:none}
-.fb.ok{background:#eaf5ea;border:1px solid var(--ok);color:var(--ok)}
-.fb.err{background:#f7e9e6;border:1px solid var(--err);color:var(--err)}
-.fb.info{background:#eef1fb;border:1px solid #3b6bc4;color:#5f6469}
-.fb.warn{background:#faf3df;border:1px solid var(--warn);color:var(--warn)}
-
-/* Stap-secties */
-.step-section{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin-bottom:14px;display:none}
-.step-title{font-size:.78em;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px}
-.step-body{font-size:.92em;line-height:1.7}
-.formula-box{background:#f2f2ef;border:1px solid var(--border);border-radius:5px;padding:10px 14px;font-family:var(--mono);font-size:.92em;color:#6b8a12;margin:10px 0}
-.input-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
-.unit-lbl{font-size:.82em;color:var(--muted);font-family:var(--mono)}
-.ans-input{width:120px;background:#f2f2ef;border:1.5px solid var(--border);border-radius:5px;color:#3b6bc4;font-family:var(--mono);font-size:.9em;padding:6px 10px;outline:none}
-.ans-input:focus{border-color:#3b6bc4}
-.ans-input.ok{border-color:var(--ok);background:#eaf5ea}
-.ans-input.err{border-color:var(--err);background:#f7e9e6}
-
-/* Eenheid badge */
-.kc-unit{font-family:var(--mono);font-size:.85em;color:#5f6469}
-
-/* Voortgangsbalk */
-.progress{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
-.pstep{padding:4px 12px;border-radius:20px;font-size:.75em;font-weight:700;border:1.5px solid var(--border);color:var(--muted)}
-.pstep.active{border-color:var(--accent);color:var(--accent);background:rgba(107,138,18,.08)}
-.pstep.done{border-color:var(--ok);color:var(--ok);background:rgba(79,195,161,.08)}
-</style>
-
-<style id="theme">
-body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#ffffff;color:#1c1e1f}
-h1{color:#1F5FBF;font-size:1.45em}
-.rxnbar{background:#fff;border:2px solid #1F5FBF;}
-.rxneq{font-family:inherit;font-size:1.35em;font-weight:600;color:#1c1e1f}
-.newbtn{background:#1F5FBF;color:#ffffff;border-color:#1F5FBF}
-.newbtn:hover{opacity:.9;background:#1F5FBF}
-.badge-A,.badge-B{background:#E8F0FC;color:#1F5FBF;border:1px solid #1F5FBF}
-.pstep{background:#fff;border:1.5px solid #c9c9c9;color:#666;padding:5px 14px}
-.pstep.active{background:#1F5FBF;border-color:#1F5FBF;color:#ffffff}
-.pstep.done{background:#E4F4E8;border-color:#1A7F37;color:#1A7F37}
-.pstep.done::before{content:'✓ '}
-.given-box{background:#F3F7FD;border:1px solid #1F5FBF;border-left:6px solid #1F5FBF}
-.given-box .hl,.given-box .hl2{color:#1c1e1f;font-weight:800}
-.boe-wrap,.step-section{background:#fff;border:1px solid #d8d8d4;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.boe-title,.step-title{color:#1F5FBF}
-table.boe{font-family:inherit}
-table.boe th{background:#1F5FBF;color:#ffffff;font-size:.95em}
-table.boe th.row-lbl{color:#ffffff}
-table.boe td.row-lbl{background:#E8F0FC;color:#1F5FBF;font-size:1.05em}
-table.boe td.fixed{background:#fff;font-weight:600}
-table.boe td.auto-fill{background:#E4F4E8;color:#1A7F37;font-weight:600}
-table.boe td.input-cell{background:#fff}
-select.o-sign,select.o-coef,.num-input,.ans-input{background:#fff;border:2px solid #bdbdbd;color:#1c1e1f;font-size:1em}
-select.o-sign:focus,select.o-coef:focus,.num-input:focus,.ans-input:focus{border-color:#1F5FBF;box-shadow:0 0 0 3px #1F5FBF33}
-select.o-sign.ok,select.o-coef.ok,.num-input.ok,.ans-input.ok{border-color:#1A7F37;background:#E4F4E8;color:#1A7F37}
-select.o-sign.err,select.o-coef.err,.num-input.err,.ans-input.err{border-color:#C62828;background:#FDECEC;color:#C62828}
-.check-btn{background:#1F5FBF;color:#ffffff;border-color:#1F5FBF}
-.check-btn:hover{background:#1F5FBF;opacity:.9}
-.fb{font-size:.95em;border-width:1.5px;border-left-width:6px}
-.fb.ok{background:#E4F4E8;border-color:#1A7F37;color:#14532d}
-.fb.err{background:#FDECEC;border-color:#C62828;color:#7f1d1d}
-.fb.warn{background:#FFF6E0;border-color:#E8A33D;color:#7a4b00}
-.formula-box{background:#E8F0FC;color:#1c1e1f;font-family:inherit;font-weight:600}
-.unit-lbl,.ans-input,.num-input,select.o-sign,select.o-coef,.kc-unit{font-family:inherit}
-.unit-lbl{font-size:.95em;color:#333}
-</style>
-<style id="huisstijl">
-:root{--hs-acc:#1F5FBF;--hs-acc-d:#174a96;--hs-soft:#E8F0FC;--hs-given:#F3F7FD;--hs-ok:#1A7F37;--hs-ok-soft:#E4F4E8;
---hs-err:#C62828;--hs-err-soft:#FDECEC;--hs-key:#FFF0A0;--hs-muted:#595959;--hs-line:#D5DCE8;--hs-bg:#F6F8FB;--hs-card:#fff;
---hs-text:#1d2330;--hs-font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-html,body{background:var(--hs-bg)!important;color:var(--hs-text)}
-body{font-family:var(--hs-font)!important}
-.hs-header{display:block!important;background:var(--hs-acc)!important;color:#fff;margin-bottom:18px;padding:0!important;border:none!important;border-radius:0!important}
-.hs-header .hs-wrap{max-width:var(--hs-max,1100px);margin:0 auto;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.hs-header h1{margin:0!important;padding:0!important;font-size:1.5rem!important;font-weight:650!important;color:#fff!important;text-align:left!important;letter-spacing:.2px;font-family:var(--hs-font)!important}
-.hs-header h1{flex:1 1 auto}
-.hs-header button{flex:0 0 auto;width:auto!important;margin:0!important;box-shadow:none!important;font-weight:500!important;font-family:var(--hs-font)!important;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px!important;border:1.5px solid #fff!important;background:transparent!important;color:#fff!important}
-.hs-header button:hover{background:rgba(255,255,255,.15)}
-body.hs-beamer>*:not(.hs-header):not(.hs-own):not(script):not(.hs-nozoom){zoom:1.3}
-.hs-own{background:var(--hs-acc)!important;color:#fff!important;border:none!important}
-.hs-own h1{color:#fff!important;font-family:var(--hs-font)!important}
-.hs-own .sub,.hs-own .subtitle{color:rgba(255,255,255,.85)!important}
-.hs-own>button:last-child{font:inherit;font-size:.95rem;cursor:pointer;border-radius:7px;padding:6px 14px;border:1.5px solid #fff;background:transparent;color:#fff;margin-left:auto;flex:0 0 auto}
-.hs-own>button:last-child:hover{background:rgba(255,255,255,.15)}
-:root{--hs-max:892px}
-
-:root{--accent:#1F5FBF;--mono:var(--hs-font);--panel:#fff;--border:#D5DCE8;--ok:#1A7F37;--err:#C62828}
-body{font-size:15px}.wrap{max-width:900px}
-table.boe,.num-input,.ans-input{font-variant-numeric:tabular-nums}
+table.boe{border-collapse:collapse;font-size:15px;background:#fff;margin:6px 0}
+table.boe th,table.boe td{border:1px solid var(--rand2);padding:5px 9px;text-align:center;min-width:64px}
+table.boe th{background:#f3ead6;font-weight:600}
+table.boe td.rl{font-weight:700;background:#faf6ec;min-width:30px}
+table.boe input{width:92px;font-family:var(--mono);font-size:14px;border:1px solid var(--rand2);border-radius:6px;padding:4px 6px;text-align:center}
+table.boe td.ok{background:var(--goedbg)}
+table.boe td.leeg{color:var(--grijs)}
+.kbouw{display:grid;grid-template-columns:auto auto auto;gap:6px 10px;align-items:center;margin-bottom:8px}
+.kbouw select,.kbouw label{display:flex;gap:6px;align-items:center}
+.kbouw input{font-size:14px}
+.kbouw label{display:flex;gap:6px;align-items:center}
+.kbouw input{width:58px;font-family:var(--mono);border:1px solid var(--rand2);border-radius:6px;padding:4px 6px}
+.kform{font-family:var(--serif);font-size:20px;color:var(--inkt);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.vgl.groot{font-size:19px;text-align:center;margin:4px 0}
 </style>
 </head>
 <body>
-<div class="wrap">
-<h1>BOE-schema — Chemisch Evenwicht</h1>
-
-<div class="rxnbar">
-  <div class="rxneq" id="eq-disp">—</div>
-  <button class="newbtn" onclick="newQ()">↻ Nieuwe opgave</button>
-</div>
-
-<div id="badge-wrap"></div>
-
-<div class="progress" id="progress"></div>
-
-<div class="given-box" id="given-box"></div>
-
-<!-- BOE tabel -->
-<div class="boe-wrap">
-  <div class="boe-title">
-    <span>BOE-schema</span>
-    <span id="boe-hint" style="font-size:.82em;font-weight:400;color:#5f6469"></span>
-  </div>
-  <table class="boe" id="boe-table"></table>
-  <button class="check-btn" id="btn-check-boe" onclick="checkBOE()">Controleer BOE</button>
-  <div class="fb" id="fb-boe"></div>
-</div>
-
-<!-- Stap 2: x oplossen (scenario A) / x berekenen (scenario B) -->
-<div class="step-section" id="step-x">
-  <div class="step-title" id="step-x-title"></div>
-  <div class="step-body" id="step-x-body"></div>
-</div>
-
-<!-- Stap 3: verwaarlozing check (alleen scenario A) -->
-<div class="step-section" id="step-verw">
-  <div class="step-title">Verwaarlozing controleren</div>
-  <div class="step-body" id="step-verw-body"></div>
-</div>
-
-<!-- Stap 4: exacte oplossing (als verwaarlozing niet geldig) -->
-<div class="step-section" id="step-exact">
-  <div class="step-title">Exacte oplossing (abc-formule)</div>
-  <div class="step-body" id="step-exact-body"></div>
-</div>
-
-<!-- Stap 5: eindantwoord -->
-<div class="step-section" id="step-final">
-  <div class="step-title" id="step-final-title"></div>
-  <div class="step-body" id="step-final-body"></div>
-</div>
-
+<div class="app">
+  <aside>
+    <h1>Evenwichten</h1>
+    <div class="sub">Rekenen met het BOE-schema</div>
+    <nav id="nav"></nav>
+    <div class="voet">
+      <button data-a="beamer">Beamerstand</button>
+      <button data-a="wis">Voortgang wissen</button>
+    </div>
+  </aside>
+  <main id="main"></main>
 </div>
 <script>
-// ── Reacties ──────────────────────────────────────────────────────────────
-// co: [a,b,c,d] = stoichiometrische coëfficiënten [reactant A, reactant B, product C, product D]
-// Voor Kc: Kc = [C]^c * [D]^d / ([A]^a * [B]^b)
-// Vaste stof: solidA/solidB/solidC — niet in Kc, grijs in tabel
-// quad:false = exacte oplossing is hoger dan kwadratisch -> alleen scenario B
-// De Kc-waarden gelden bij een bepaalde temperatuur; ze worden als gegeven gepresenteerd.
-const RXNS=[
-  { eq:'N₂(g) + 3H₂(g) ⇌ 2NH₃(g)',
-    names:['N₂','H₂','NH₃',null], co:[1,3,2,0], solid:[false,false,false,false],
-    KcRef:0.20, Tref:500, quad:false },
-  { eq:'H₂(g) + I₂(g) ⇌ 2HI(g)',
-    names:['H₂','I₂','HI',null], co:[1,1,2,0], solid:[false,false,false,false],
-    KcRef:50, Tref:700 },
-  { eq:'2SO₂(g) + O₂(g) ⇌ 2SO₃(g)',
-    names:['SO₂','O₂','SO₃',null], co:[2,1,2,0], solid:[false,false,false,false],
-    KcRef:13.0, Tref:900, quad:false },
-  { eq:'N₂O₄(g) ⇌ 2NO₂(g)',
-    names:['N₂O₄',null,'NO₂',null], co:[1,0,2,0], solid:[false,false,false,false],
-    KcRef:4.5, Tref:350 },
-  { eq:'CH₃COOH(aq) + H₂O(l) ⇌ CH₃COO⁻(aq) + H₃O⁺(aq)', zuur:true,
-    names:['CH₃COOH',null,'CH₃COO⁻','H₃O⁺'], co:[1,0,1,1], solid:[false,false,false,false],
-    KcRef:1.8e-5, Tref:298 },
-  { eq:'C(s) + CO₂(g) ⇌ 2CO(g)',
-    names:['C','CO₂','CO',null], co:[1,1,2,0], solid:[true,false,false,false],
-    KcRef:1.3, Tref:1000 },
-  { eq:'H₂(g) + CO₂(g) ⇌ H₂O(g) + CO(g)',
-    names:['H₂','CO₂','H₂O','CO'], co:[1,1,1,1], solid:[false,false,false,false],
-    KcRef:0.771, Tref:1023 },
-  { eq:'PCl₅(g) ⇌ PCl₃(g) + Cl₂(g)',
-    names:['PCl₅',null,'PCl₃','Cl₂'], co:[1,0,1,1], solid:[false,false,false,false],
-    KcRef:0.041, Tref:523 },
+{
+/* ============ STOFFEN EN REACTIES ============ */
+const F={SO2:'SO₂',O2:'O₂',SO3:'SO₃',N2O4:'N₂O₄',NO2:'NO₂',CH3COOH:'CH₃COOH',H2O:'H₂O',CH3COO:'CH₃COO⁻',H3O:'H₃O⁺',C:'C',CO2:'CO₂',CO:'CO',Ag:'Ag⁺',Cl:'Cl⁻',AgCl:'AgCl',N2:'N₂',H2:'H₂',NH3:'NH₃',I2:'I₂',HI:'HI',PCl5:'PCl₅',PCl3:'PCl₃',Cl2:'Cl₂'};
+const RX={
+  so2:{L:[['SO2',2,'g'],['O2',1,'g']],R:[['SO3',2,'g']]},
+  n2o4:{L:[['N2O4',1,'g']],R:[['NO2',2,'g']]},
+  hac:{L:[['CH3COOH',1,'aq'],['H2O',1,'l']],R:[['CH3COO',1,'aq'],['H3O',1,'aq']]},
+  cco2:{L:[['C',1,'s'],['CO2',1,'g']],R:[['CO',2,'g']]},
+  agcl:{L:[['Ag',1,'aq'],['Cl',1,'aq']],R:[['AgCl',1,'s']]},
+  nh3:{L:[['N2',1,'g'],['H2',3,'g']],R:[['NH3',2,'g']]},
+  hi:{L:[['H2',1,'g'],['I2',1,'g']],R:[['HI',2,'g']]},
+  hi2:{L:[['HI',2,'g']],R:[['H2',1,'g'],['I2',1,'g']]},
+  pcl5:{L:[['PCl5',1,'g']],R:[['PCl3',1,'g'],['Cl2',1,'g']]},
+  wgs:{L:[['H2',1,'g'],['CO2',1,'g']],R:[['H2O',1,'g'],['CO',1,'g']]},
+  so3:{L:[['SO3',2,'g']],R:[['SO2',2,'g'],['O2',1,'g']]}
+};
+const side=a=>a.map(([f,c,p])=>`${c>1?c+' ':''}${F[f]}(${p})`).join(' + ');
+const vgl=r=>`${side(RX[r].L)} ⇌ ${side(RX[r].R)}`;
+const cols=r=>[...RX[r].L,...RX[r].R].filter(s=>s[2]==='g'||s[2]==='aq').map(s=>s[0]);
+const sup=n=>n>1?`<sup>${n}</sup>`:'';
+function kHTML(r){const t=RX[r].R.filter(s=>s[2]!=='s'&&s[2]!=='l').map(([f,c])=>`[${F[f]}]${sup(c)}`).join(' · ')||'1';
+  const n=RX[r].L.filter(s=>s[2]!=='s'&&s[2]!=='l').map(([f,c])=>`[${F[f]}]${sup(c)}`).join(' · ')||'1';
+  return `<span class="kform">K = <span class="frac"><span>${t}</span><span>${n}</span></span></span>`}
+const fr=(a,b)=>`<span class="frac"><span>${a}</span><span>${b}</span></span>`;
+const n=v=>String(v).replace('.',',');
+
+/* ============ WERKPLAATSEN ============ */
+// staptypes: kexpr | rij (mode waarde|x, rij B|O|E, a:[..]) | getal | keuze
+const WP=[
+{k:'K opstellen',t:'De evenwichtsvoorwaarde opstellen',
+ uitleg:`<p>Bij een evenwicht hoort een <b>evenwichtsvoorwaarde</b>: K is gelijk aan een breuk met concentraties.</p>
+ <div class="kader"><ul style="margin-bottom:0"><li>In de <b>teller</b> staan de stoffen rechts van de pijl, in de <b>noemer</b> de stoffen links.</li><li>De <b>coëfficiënt</b> wordt de <b>exponent</b>.</li><li><b>Vaste stoffen (s)</b> en <b>water als oplosmiddel (l)</b> laat je weg: hun concentratie verandert niet.</li><li>Staat er aan een kant niets over, dan staat daar 1.</li></ul></div>`,
+ vb:{r:'nh3',v:'Geef de evenwichtsvoorwaarde.',s:['Rechts staat NH₃ met coëfficiënt 2: in de teller [NH₃]<sup>2</sup>.','Links staan N₂ (coëfficiënt 1) en H₂ (coëfficiënt 3): in de noemer [N₂] · [H₂]<sup>3</sup>.','Er zijn geen vaste stoffen of water om weg te laten.',`Antwoord: ${kHTML('nh3')}`]},
+ opdr:[{r:'so2',naam:'Zwaveltrioxide',steps:[{t:'kexpr'}]},{r:'n2o4',naam:'Distikstoftetraoxide',steps:[{t:'kexpr'}]},
+  {r:'hac',naam:'Azijnzuur in water',steps:[{t:'kexpr'}]},{r:'cco2',naam:'Koolstof en koolstofdioxide',steps:[{t:'kexpr'}]},
+  {r:'agcl',naam:'Zilverchloride',ster:1,steps:[{t:'kexpr'}]}]},
+{k:'BOE met waarden',t:'Het BOE-schema met waarden',
+ uitleg:`<p>Met een <b>BOE-schema</b> houd je bij hoe de concentraties veranderen tot het evenwicht zich heeft ingesteld.</p>
+ <div class="kader"><ul style="margin-bottom:0"><li><b>B</b>egin: de concentraties (mol/L) vóór de reactie.</li><li><b>O</b>mzetting: de verandering. Wat verdwijnt krijgt een minteken, wat ontstaat een plusteken. De omzettingen verhouden zich als de <b>coëfficiënten</b> (in mol).</li><li><b>E</b>venwicht: B + O.</li></ul></div>
+ <p>Begin altijd bij de stof waarvan je de omzetting weet, en reken de andere omzettingen uit met de molverhouding.</p>`,
+ vb:{r:'hi',v:'Begin: [H₂] = [I₂] = 1,00 mol/L, geen HI. Bij evenwicht is [HI] = 1,56 mol/L. Bereken K.',s:['B-rij: 1,00 · 1,00 · 0.','O-rij: HI neemt toe met 1,56. De molverhouding H₂ : I₂ : HI = 1 : 1 : 2, dus H₂ en I₂ nemen elk af met <span class="frac"><span>1,56</span><span>2</span></span> = 0,78. O-rij: −0,78 · −0,78 · +1,56.','E-rij: 0,22 · 0,22 · 1,56.',`K = ${fr('[HI]<sup>2</sup>','[H₂] · [I₂]')} = ${fr('1,56<sup>2</sup>','0,22 × 0,22')} = 50 (de O-rij werkt hier met waarden).`]},
+ opdr:[
+  {r:'so2',naam:'Zwaveltrioxide',intro:'In een vat van 1,00 L zit bij het begin 0,600 mol SO₂ en 0,400 mol O₂. Als het evenwicht zich heeft ingesteld, is er 0,500 mol SO₃ ontstaan.',
+   steps:[{t:'rij',rij:'B',a:[0.600,0.400,0]},{t:'rij',rij:'O',a:[-0.500,-0.250,0.500]},{t:'rij',rij:'E',a:[0.100,0.150,0.500]},
+    {t:'getal',v:'Bereken K.',a:166.7,u:'',w:`K = ${fr('[SO₃]<sup>2</sup>','[SO₂]<sup>2</sup> · [O₂]')} = ${fr('0,500<sup>2</sup>','0,100<sup>2</sup> × 0,150')} = 1,67·10<sup>2</sup>`}]},
+  {r:'nh3',naam:'Ammoniak',intro:'In een vat van 2,00 L worden 2,00 mol N₂ en 6,00 mol H₂ gebracht. Bij evenwicht is er 0,800 mol NH₃ aanwezig.',
+   steps:[{t:'rij',rij:'B',a:[1.00,3.00,0],h:'Reken eerst om naar mol/L: deel door het volume.'},{t:'rij',rij:'O',a:[-0.200,-0.600,0.400],h:'[NH₃] bij evenwicht is 0,800 mol / 2,00 L.'},{t:'rij',rij:'E',a:[0.800,2.40,0.400]},
+    {t:'getal',v:'Bereken K.',a:0.01447,u:'',w:`K = ${fr('[NH₃]<sup>2</sup>','[N₂] · [H₂]<sup>3</sup>')} = ${fr('0,400<sup>2</sup>','0,800 × 2,40<sup>3</sup>')} = 1,45·10<sup>−2</sup>`}]},
+  {r:'pcl5',naam:'Fosforpentachloride',ster:1,intro:'Bij het begin is [PCl₅] = 0,500 mol/L; er is nog geen PCl₃ of Cl₂. Als het evenwicht zich heeft ingesteld, is 30,0% van het PCl₅ ontleed.',
+   steps:[{t:'rij',rij:'B',a:[0.500,0,0]},{t:'rij',rij:'O',a:[-0.150,0.150,0.150],h:'30,0% van 0,500 mol/L ontleedt.'},{t:'rij',rij:'E',a:[0.350,0.150,0.150]},
+    {t:'getal',v:'Bereken K.',a:0.06429,u:'',w:`K = ${fr('[PCl₃] · [Cl₂]','[PCl₅]')} = ${fr('0,150 × 0,150','0,350')} = 6,43·10<sup>−2</sup>`}]}]},
+{k:'BOE met x',t:'Het BOE-schema met x',
+ uitleg:`<p>Als je K weet maar de evenwichtsconcentraties niet, schrijf je de omzetting als <b>x</b>.</p>
+ <div class="kader"><ul style="margin-bottom:0"><li>Kies x zo dat de O-rij de <b>coëfficiënten</b> volgt: bij coëfficiënt 2 wordt het 2x.</li><li>De O-rij werkt dan met <b>x-termen</b> (−x, +2x), de E-rij wordt B + O (bijvoorbeeld 0,50 − x).</li><li>Vul de E-rij in de evenwichtsvoorwaarde in en los x op. Vaak kun je links en rechts de wortel trekken.</li></ul></div>
+ <p class="typtip">Typ x-termen zoals <code>-x</code>, <code>+2x</code> of <code>0,200-x</code>.</p>`,
+ vb:{r:'hi',v:'K = 49. Begin: [H₂] = [I₂] = 0,50 mol/L, geen HI. Bereken [HI] bij evenwicht.',s:['O-rij (x-termen): −x · −x · +2x.','E-rij: 0,50 − x · 0,50 − x · 2x.',`49 = ${fr('(2x)<sup>2</sup>','(0,50 − x)<sup>2</sup>')}, dus de wortel nemen: 7,0 = ${fr('2x','0,50 − x')}.`,'3,5 − 7,0x = 2x, dus x = 0,389 mol/L.','[HI] = 2x = 0,78 mol/L.']},
+ opdr:[
+  {r:'wgs',naam:'Waterstof en koolstofdioxide',intro:'K = 0,64. Bij het begin is [H₂] = [CO₂] = 0,200 mol/L; er is nog geen H₂O of CO.',
+   steps:[{t:'rij',rij:'O',mode:'x',a:['-x','-x','x','x']},{t:'rij',rij:'E',mode:'x',a:['0.200-x','0.200-x','x','x']},
+    {t:'getal',v:'Bereken x.',a:0.08889,u:'mol/L',h:'Trek links en rechts de wortel: √0,64 = 0,80.',w:`0,64 = ${fr('x<sup>2</sup>','(0,200 − x)<sup>2</sup>')} → 0,80 = ${fr('x','0,200 − x')} → 0,160 − 0,80x = x → x = 8,9·10<sup>−2</sup> mol/L`},
+    {t:'getal',v:'Bereken [H₂] bij evenwicht.',a:0.1111,u:'mol/L',w:'[H₂] = 0,200 − 0,0889 = 0,111 mol/L'}]},
+  {r:'hi2',naam:'Ontleding van waterstofjodide',intro:'K = 0,0200. Bij het begin is [HI] = 1,00 mol/L; er is nog geen H₂ of I₂.',
+   steps:[{t:'rij',rij:'O',mode:'x',a:['-2x','x','x']},{t:'rij',rij:'E',mode:'x',a:['1.00-2x','x','x']},
+    {t:'getal',v:'Bereken x.',a:0.1102,u:'mol/L',h:'Trek links en rechts de wortel.',w:`0,0200 = ${fr('x<sup>2</sup>','(1,00 − 2x)<sup>2</sup>')} → 0,1414 = ${fr('x','1,00 − 2x')} → x = 0,110 mol/L`},
+    {t:'getal',v:'Bereken [HI] bij evenwicht.',a:0.7796,u:'mol/L',w:'[HI] = 1,00 − 2 × 0,110 = 0,780 mol/L'}]},
+  {r:'n2o4',naam:'Distikstoftetraoxide',ster:1,intro:'K = 0,0050. Bij het begin is [N₂O₄] = 0,100 mol/L; er is nog geen NO₂. Hier kun je geen wortel trekken: gebruik de abc-formule.',
+   steps:[{t:'rij',rij:'O',mode:'x',a:['-x','2x']},{t:'rij',rij:'E',mode:'x',a:['0.100-x','2x']},
+    {t:'getal',v:'Bereken [NO₂] bij evenwicht.',a:0.02115,u:'mol/L',h:'Werk uit tot 4x² + 0,0050x − 0,00050 = 0 en gebruik de abc-formule (alleen de positieve x).',w:`0,0050 = ${fr('(2x)<sup>2</sup>','0,100 − x')} → 4x<sup>2</sup> + 0,0050x − 0,00050 = 0 → x = 1,06·10<sup>−2</sup> mol/L → [NO₂] = 2x = 2,1·10<sup>−2</sup> mol/L`}]}]},
+{k:'Gegeven evenwicht',t:'Een evenwichtsconcentratie is gegeven',
+ uitleg:`<p>Soms is één evenwichtsconcentratie gegeven. Dan weet je meteen hoe groot x is.</p>
+ <div class="kader"><ol style="margin-bottom:0"><li>Zet de O-rij en de E-rij op met x-termen.</li><li>Zoek de stof waarvan de evenwichtsconcentratie gegeven is, en kijk welke term in de E-rij daarbij hoort, bijvoorbeeld 2x.</li><li>Stel die term gelijk aan de gegeven waarde: 2x = 0,040, dus x = 0,020.</li><li>Reken de rest van de E-rij uit en bereken K.</li></ol></div>`,
+ vb:{r:'n2o4',v:'Begin: [N₂O₄] = 0,100 mol/L, geen NO₂. Bij evenwicht is [NO₂] = 0,040 mol/L. Bereken K.',s:['O-rij (x-termen): −x · +2x. E-rij: 0,100 − x · 2x.','[NO₂] bij evenwicht is gegeven: de term in de E-rij is 2x. Dus 2x = 0,040 en x = 0,020 mol/L.','E-rij met waarden: [N₂O₄] = 0,080 · [NO₂] = 0,040.',`K = ${fr('[NO₂]<sup>2</sup>','[N₂O₄]')} = ${fr('0,040<sup>2</sup>','0,080')} = 0,020`]},
+ opdr:[
+  {r:'so3',naam:'Ontleding van zwaveltrioxide',intro:'Bij het begin is [SO₃] = 0,500 mol/L; er is nog geen SO₂ of O₂. Bij evenwicht is [O₂] = 0,100 mol/L.',
+   steps:[{t:'rij',rij:'O',mode:'x',a:['-2x','2x','x']},{t:'keuze',v:'De E-rij volgt uit B + O. Met welke uitdrukking is de gegeven [O₂] = 0,100 mol/L gelijk?',o:['x','2x','0,500 − 2x','2x en x samen'],a:0},
+    {t:'rij',rij:'E',a:[0.300,0.200,0.100],h:'x = 0,100 mol/L. Vul nu de E-rij met waarden in.'},
+    {t:'getal',v:'Bereken K.',a:0.04444,u:'',w:`K = ${fr('[SO₂]<sup>2</sup> · [O₂]','[SO₃]<sup>2</sup>')} = ${fr('0,200<sup>2</sup> × 0,100','0,300<sup>2</sup>')} = 4,44·10<sup>−2</sup>`}]},
+  {r:'nh3',naam:'Ammoniak',intro:'Bij het begin is [N₂] = 0,500 mol/L en [H₂] = 1,500 mol/L; er is nog geen NH₃. Bij evenwicht is [NH₃] = 0,200 mol/L.',
+   steps:[{t:'rij',rij:'O',mode:'x',a:['-x','-3x','2x']},{t:'keuze',v:'De E-rij volgt uit B + O. Met welke uitdrukking is de gegeven [NH₃] = 0,200 mol/L gelijk?',o:['2x','x','3x','1,500 − 3x'],a:0},
+    {t:'rij',rij:'E',a:[0.400,1.200,0.200],h:'2x = 0,200, dus x = 0,100 mol/L.'},
+    {t:'getal',v:'Bereken K.',a:0.05787,u:'',w:`K = ${fr('[NH₃]<sup>2</sup>','[N₂] · [H₂]<sup>3</sup>')} = ${fr('0,200<sup>2</sup>','0,400 × 1,200<sup>3</sup>')} = 5,79·10<sup>−2</sup>`}]},
+  {r:'hac',naam:'Azijnzuur in water',ster:1,intro:'Bij het begin is [CH₃COOH] = 0,100 mol/L. Als het evenwicht zich heeft ingesteld, is de pH 2,88.',
+   steps:[{t:'rij',rij:'O',mode:'x',a:['-x','x','x']},
+    {t:'getal',v:'Bereken [H₃O⁺] bij evenwicht. Dit is gelijk aan x.',a:0.001318,u:'mol/L',h:'[H₃O⁺] = 10<sup>−pH</sup>.',w:'[H₃O⁺] = 10<sup>−2,88</sup> = 1,32·10<sup>−3</sup> mol/L = x'},
+    {t:'getal',v:'Bereken K.',a:1.760e-5,u:'',h:'[CH₃COOH] bij evenwicht = 0,100 − x. Water laat je weg.',w:`K = ${fr('[CH₃COO⁻] · [H₃O⁺]','[CH₃COOH]')} = ${fr('(1,32·10<sup>−3</sup>)<sup>2</sup>','0,100 − 0,00132')} = 1,76·10<sup>−5</sup>`}]}]},
+{k:'Q en K ★',t:'Is er evenwicht? Q tegenover K',
+ uitleg:`<p>Vul je concentraties die (nog) niet bij evenwicht horen in de evenwichtsvoorwaarde in, dan krijg je het <b>reactiequotiënt Q</b>.</p>
+ <div class="kader"><ul style="margin-bottom:0"><li>Q = K: er is evenwicht.</li><li>Q &lt; K: de teller is te klein. Er reageert netto stof naar rechts tot Q = K.</li><li>Q &gt; K: de teller is te groot. Er reageert netto stof naar links.</li></ul></div>`,
+ vb:{r:'n2o4',v:'K = 0,020. Op een bepaald moment is [N₂O₄] = 0,20 mol/L en [NO₂] = 0,050 mol/L. Leg uit naar welke kant het evenwicht zich instelt.',s:[`Q = ${fr('0,050<sup>2</sup>','0,20')} = 0,0125.`,'Q < K: de teller moet groter worden.','Er reageert netto N₂O₄ tot NO₂: het evenwicht stelt zich in naar rechts.']},
+ opdr:[
+  {r:'hi',naam:'Waterstofjodide',intro:'K = 50. Op een bepaald moment is [H₂] = 0,10 mol/L, [I₂] = 0,10 mol/L en [HI] = 0,50 mol/L.',
+   steps:[{t:'getal',v:'Bereken Q.',a:25,u:'',w:`Q = ${fr('0,50<sup>2</sup>','0,10 × 0,10')} = 25`},{t:'keuze',v:'Geef aan wat er gebeurt.',o:['Er reageert netto stof naar rechts (er ontstaat meer HI).','Er reageert netto stof naar links (HI ontleedt).','Er is al evenwicht.'],a:0}]},
+  {r:'n2o4',naam:'Distikstoftetraoxide',intro:'K = 0,020. Op een bepaald moment is [N₂O₄] = 0,050 mol/L en [NO₂] = 0,050 mol/L.',
+   steps:[{t:'getal',v:'Bereken Q.',a:0.05,u:'',w:`Q = ${fr('0,050<sup>2</sup>','0,050')} = 0,050`},{t:'keuze',v:'Geef aan wat er gebeurt.',o:['Er reageert netto stof naar links (NO₂ vormt N₂O₄).','Er reageert netto stof naar rechts (N₂O₄ ontleedt).','Er is al evenwicht.'],a:0}]},
+  {r:'so2',naam:'Zwaveltrioxide',ster:1,intro:'K = 1,7·10². Op een bepaald moment is [SO₂] = 0,20 mol/L, [O₂] = 0,10 mol/L en [SO₃] = 1,00 mol/L.',
+   steps:[{t:'getal',v:'Bereken Q.',a:250,u:'',w:`Q = ${fr('1,00<sup>2</sup>','0,20<sup>2</sup> × 0,10')} = 2,5·10<sup>2</sup>`},{t:'keuze',v:'Geef aan wat er gebeurt met [SO₃] totdat het evenwicht zich heeft ingesteld.',o:['[SO₃] neemt af.','[SO₃] neemt toe.','[SO₃] blijft gelijk.'],a:0}]}]}
 ];
 
-// ── State ─────────────────────────────────────────────────────────────────
-let Q={}, phase='boe'; // phases: boe → x → verw → exact → final
+/* ============ STATE ============ */
+const KEY='boe-v2';let S={wp:0,tab:'uitleg',opd:{},steps:{},prog:{}};
+try{const t=JSON.parse(localStorage.getItem(KEY));if(t&&t.prog)S=Object.assign(S,t)}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let T={};const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const W=()=>WP[S.wp];const oi=()=>Math.min(S.opd[S.wp]||0,W().opdr.length-1);const O=()=>W().opdr[oi()];const key=()=>S.wp+'-'+oi();
 
-function fmt(x,d=3){
-  if(!isFinite(x))return'—';
-  if(x!==0&&(Math.abs(x)<0.001||Math.abs(x)>=10000)){
-    const e=Math.floor(Math.log10(Math.abs(x))), m=(x/Math.pow(10,e)).toPrecision(d).replace('.',',');
-    const sup={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
-    return m+'·10'+String(e).split('').map(ch=>sup[ch]).join('');
-  }
-  return parseFloat(x.toPrecision(d)).toString().replace('.',',');
+/* ============ PARSERS ============ */
+function parseNum(txt){let t=String(txt).trim().replace(/\s/g,'').replace(/,/g,'.').replace(/−/g,'-');
+  t=t.replace(/[·×x*]10\^?/i,'e').replace(/e\+?/,'e');const v=Number(t);return t===''?NaN:v}
+function parseX(txt){let t=String(txt).trim().replace(/\s/g,'').replace(/,/g,'.').replace(/−/g,'-').toLowerCase();
+  if(!t||!/^[0-9x+\-.*()]+$/.test(t))return null;
+  t=t.replace(/(\d)x/g,'$1*x').replace(/\)x/g,')*x').replace(/x(\d)/g,'x*$1');
+  try{const f=new Function('x','return ('+t+')');const a=f(0.013),b=f(0.071);if(!isFinite(a)||!isFinite(b))return null;return f}catch(e){return null}}
+const sameX=(txt,model)=>{const f=parseX(txt),g=parseX(model);if(!f)return false;return[0.013,0.071,0.2].every(x=>Math.abs(f(x)-g(x))<1e-9)};
+
+/* ============ RENDER ============ */
+function render(){
+  $('#nav').innerHTML=WP.map((w,i)=>{const d=w.opdr.filter((_,j)=>S.prog[i+'-'+j]).length;return `<a data-a="wp" data-v="${i}" class="${S.wp===i?'on':''} ${d===w.opdr.length?'klaar':''}"><i>${d===w.opdr.length?'✓':i+1}</i><span>${w.k}<small>${d} van ${w.opdr.length} opdrachten</small></span></a>`}).join('');
+  const w=W();const done=w.opdr.filter((_,j)=>S.prog[S.wp+'-'+j]).length;
+  let t=`<div class="kicker">Werkplaats ${S.wp+1} · 5V</div><h2>${w.t}</h2><div class="tabs"><button data-a="tab" data-v="uitleg" class="${S.tab==='uitleg'?'on':''}">Uitleg en voorbeeld</button><button data-a="tab" data-v="opdr" class="${S.tab==='opdr'?'on':''}">Opdrachten<span class="tel">${done}/${w.opdr.length}</span></button></div>`;
+  let sim='';
+  if(S.tab==='uitleg'){
+    t+=w.uitleg+`<div class="vb"><div class="vbkop">Voorbeeld</div><div class="vgl">${vgl(w.vb.r)}</div><div class="vbvraag" style="margin-top:6px">${w.vb.v}</div>${w.vb.s.map((x,i)=>`<div class="vbstap"><div class="n">${i+1}</div><div class="b">${x}</div></div>`).join('')}</div><button class="btn" data-a="tab" data-v="opdr">Naar de opdrachten</button>`;
+    sim=`<div class="simkop"><b>Voorbeeld</b></div><div class="kader proces"><div class="vgl groot">${vgl(w.vb.r)}</div></div>${S.wp>0?`<div class="legenda">Evenwichtsvoorwaarde:</div>${kHTML(w.vb.r)}`:''}`;
+  } else {const r=opdr();t+=r.t;sim=r.sim}
+  $('#main').innerHTML=`<div class="wp"><div class="tekst">${t}</div><div class="simkol">${sim}</div></div>`;
 }
-function fmtKc(x){
-  const e=Math.floor(Math.log10(Math.abs(x)));
-  if(e>=-2&&e<=3) return fmt(x,3);
-  const m=(x/Math.pow(10,e)).toFixed(2).replace('.',',');
-  const sup={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
-  return m+'·10'+String(e).split('').map(ch=>sup[ch]).join('');
+function opdr(){
+  const w=W(),o=O(),k=key(),nDone=S.steps[k]||0;
+  let t=`<div class="oknop">${w.opdr.map((x,i)=>`<div class="dot ${i===oi()?'on':''} ${S.prog[S.wp+'-'+i]?'goed':''} ${x.ster?'ster':''}" data-a="opd" data-v="${i}">${i+1}</div>`).join('')}<span class="rechts">${o.ster?'★ uitdaging':''}</span></div>
+  <div class="opdkop">Opdracht ${oi()+1} ${o.ster?'<span class="st">★</span>':''} · ${esc(o.naam)}</div>`;
+  if(S.prog[k])t+=`<div class="klaarbanner">Deze opdracht is af.</div>`;
+  t+=`<div class="kader proces"><div class="vgl">${vgl(o.r)}</div>${o.intro?`<div style="margin-top:6px">${o.intro}</div>`:''}</div>`;
+  t+=o.steps.map((s,i)=>stap(s,i,nDone,o,k)).join('');
+  // rechterkolom: BOE-schema met afgeronde rijen
+  const c=cols(o.r);const rows={};o.steps.forEach((s,i)=>{if(s.t==='rij'&&i<nDone)rows[s.rij]=s});
+  const showBOE=S.wp>0;
+  let sim=`<div class="simkop"><b>${showBOE?'BOE-schema':'Evenwichtsvoorwaarde'}</b><span>${esc(o.naam)}</span></div><div class="kader proces"><div class="vgl groot">${vgl(o.r)}</div></div>`;
+  if(showBOE){
+    sim+=`<table class="boe"><tr><th></th>${c.map(f=>`<th>[${F[f]}]</th>`).join('')}</tr>${['B','O','E'].map(r=>`<tr><td class="rl">${r}</td>${c.map((f,j)=>{const s=rows[r];return s?`<td class="ok">${s.mode==='x'?fmtX(s.a[j],r):fmtV(s.a[j],r)}</td>`:'<td class="leeg">…</td>'}).join('')}</tr>`).join('')}</table>
+    <div class="legenda">Concentraties in mol/L. De rijen vullen zich zodra je ze goed hebt.${(rows.O&&rows.O.mode==='x')?' De O-rij werkt hier met x-termen.':rows.O?' De O-rij werkt hier met waarden.':''}</div>`;
+    sim+=`<div class="legenda" style="margin-top:8px">Evenwichtsvoorwaarde:</div>${kHTML(o.r)}`;
+  } else if(S.prog[k]) sim+=kHTML(o.r);
+  else sim+=`<div class="legenda">Bouw de evenwichtsvoorwaarde links op. Hier verschijnt hij als hij klopt.</div>`;
+  return {t,sim};
 }
-function fmtB(x){ return x.toFixed(2).replace('.',','); }
-function sup(n){ const m={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'}; return String(n).split('').map(c=>m[c]).join(''); }
-function num(v){ return parseFloat(String(v).trim().replace(',','.')); }
-function r3(x){ return parseFloat(x.toPrecision(3)); }
-function kLabel(rxn){ return rxn.zuur?'Kc (= Kz)':'Kc'; }
-// pogingen per stap: eerst een hint, na een tweede fout het antwoord
-const tries={};
-function wrongMsg(key,hint,answer){ tries[key]=(tries[key]||0)+1; return tries[key]>=2 ? hint+' Antwoord: '+answer : hint+' Probeer het nog eens.'; }
-function fluidReact(rxn){ return [0,1].filter(i=>rxn.names[i]&&!rxn.solid[i]&&rxn.co[i]>0); }
-
-// Eenheid van Kc: (mol/L)^(Δn) waarbij Δn = som product-exponenten - som reactant-exponenten
-function kcUnit(co){
-  const[a,b,c,d]=co;
-  const dn=(c+d)-(a+b);
-  if(dn===0) return 'dimensieloos';
-  if(dn===1) return 'mol/L';
-  if(dn===-1) return 'L/mol';
-  if(dn===2) return 'mol²/L²';
-  if(dn===-2) return 'L²/mol²';
-  return `(mol/L)^${dn}`;
+function fmtV(v,r){if(r==='O'&&v>0)return '+'+n(v);return n(v).replace('-','−')}
+function fmtX(v,r){let s=String(v).replace('.',',').replace(/-/g,' − ');if(r==='O'&&!/^\s*−/.test(s))s='+'+s;return s.trim()}
+function stap(s,i,nDone,o,k){
+  const st=i<nDone?'goed':i===nDone?'':'dicht';const tk=k+'-'+i;const cur=T[tk]||{};
+  const c=cols(o.r);
+  let title=s.t==='kexpr'?'Geef de evenwichtsvoorwaarde.':s.t==='rij'?`Vul de ${s.rij}-rij in${s.mode==='x'?' met x-termen':''}${s.rij==='B'||s.mode==='x'?'':' (in mol/L)'}.`:s.v;
+  let h=`<div class="stap ${st}"><div class="n">${i+1}</div><div class="inh"><div class="vr">${title}</div>`;
+  if(i<nDone){
+    if(s.t==='kexpr')h+=kHTML(o.r);
+    if(s.t==='rij')h+=`<div class="fb goed">${c.map((f,j)=>`[${F[f]}]: ${s.mode==='x'?fmtX(s.a[j],s.rij):fmtV(s.a[j],s.rij)}`).join(' · ')}</div>`;
+    if(s.t==='getal')h+=`<div class="uitw">${s.w}</div>`;
+    if(s.t==='keuze')h+=`<div class="fb goed">${s.o[s.a]}</div>`;
+    return h+'</div></div>';
+  }
+  h+='<div class="inv">';
+  if(s.t==='kexpr'){const all=[...RX[o.r].L,...RX[o.r].R];
+    h+=`<div class="kbouw">${all.map(([f,cf,p],j)=>`<span><b>${F[f]}</b>(${p})</span><select class="sel" id="kp-${j}"><option value="">plaats…</option><option value="t" ${cur['p'+j]==='t'?'selected':''}>teller</option><option value="n" ${cur['p'+j]==='n'?'selected':''}>noemer</option><option value="w" ${cur['p'+j]==='w'?'selected':''}>weglaten</option></select><label class="legenda">exponent <input id="ke-${j}" inputmode="numeric" value="${esc(cur['e'+j]||'')}"></label>`).join('')}</div>
+    <button class="btn" data-a="check" data-i="${i}">Controleer</button>`}
+  if(s.t==='rij'){h+=`<table class="boe"><tr><th></th>${c.map(f=>`<th>[${F[f]}]</th>`).join('')}</tr><tr><td class="rl">${s.rij}</td>${c.map((f,j)=>`<td><input id="r-${j}" value="${esc((cur.v||[])[j]||'')}" placeholder="${s.mode==='x'?(s.rij==='O'?'bijv. -2x':'bijv. 0,50-x'):''}"></td>`).join('')}</tr></table>
+    <button class="btn" data-a="check" data-i="${i}">Controleer</button>`}
+  if(s.t==='getal')h+=`<div class="rij"><input class="in" id="g-${i}" inputmode="decimal" placeholder="bijv. 1,45·10^-2" value="${esc(cur.txt||'')}">${s.u?`<span>${s.u}</span>`:''}<button class="btn" data-a="check" data-i="${i}">Controleer</button></div><div class="legenda" style="margin-top:4px">Machten van tien typ je als 1,45·10^-2 of 1,45e-2.</div>${cur.tries>=2&&!cur.showW?`<button class="btn g klein" style="margin-top:6px" data-a="showw" data-i="${i}">Toon de uitwerking</button>`:''}${cur.showW?`<div class="uitw">${s.w}</div>`:''}`;
+  if(s.t==='keuze')h+=`<div class="opties">${s.o.map((x,j)=>j).sort((a,b)=>((a*7+i*3)%5)-((b*7+i*3)%5)).map(j=>`<button class="optie ${cur.v===j?'aan':''}" data-a="kies" data-i="${i}" data-v="${j}">${s.o[j]}</button>`).join('')}</div><button class="btn" data-a="check" data-i="${i}">Controleer</button>`;
+  h+='</div>';if(cur.fb)h+=`<div class="fb ${cur.fb[0]}">${cur.fb[1]}</div>`;
+  return h+'</div></div>';
 }
-
-// Kc-expressie als string
-function kcExpr(names,co,solid){
-  const[a,b,c,d]=co;
-  const term=(name,exp,s)=>s?null:(exp===0?null:(exp===1?`[${name}]`:`[${name}]${sup(exp)}`));
-  const num=[term(names[2],c,solid[2]),term(names[3],d,solid[3])].filter(Boolean);
-  const den=[term(names[0],a,solid[0]),term(names[1],b,solid[1])].filter(Boolean);
-  const ns=num.length?num.join('·'):'1';
-  const ds=den.length?den.join('·'):'1';
-  return `Kc = ${ns} / ${ds}`;
-}
-
-// Voortgang
-function setProgress(steps,current){
-  const div=document.getElementById('progress');
-  div.innerHTML=steps.map((s,i)=>`<span class="pstep${i<current?' done':i===current?' active':''}">${s}</span>`).join('');
-}
-
-// ── Nieuwe opgave genereren ────────────────────────────────────────────────
-function newQ(){
-  const rxn=RXNS[Math.floor(Math.random()*RXNS.length)];
-  // Scenario A (Kc gegeven) of B (concentratie gegeven); hoger dan kwadratisch -> alleen B
-  const scenario=(rxn.quad===false)?'B':(Math.random()<0.5?'A':'B');
-  for(const k in tries) delete tries[k];
-  const[a,b,c,d]=rxn.co;
-
-  // Actieve stoffen (niet null, niet vaste stof die al in A-positie zit)
-  // In ons model: namen staan als [reactantA, reactantB of null, productC, productD of null]
-  // Sommige zijn vaste stof (solid[])
-  // Beginconcentraties genereren
-  const B={};
-  const activeNames=rxn.names.map((n,i)=>n?{name:n,idx:i,co:rxn.co[i],solid:rxn.solid[i]}:null).filter(Boolean);
-  const fluidActive=activeNames.filter(s=>!s.solid&&s.co>0);
-
-  // Genereer beginconcentraties EERLIJK: gewoon willekeurig binnen een realistisch bereik
-  // (0,05–3,0 mol/L), zonder enige sturing naar een "leerzame" x-fractie. De echte, opgezochte
-  // Kc-waarde bepaalt simpelweg wat x wordt — soms heel klein (verwaarlozing duidelijk terecht),
-  // soms zo groot dat verwaarlozing duidelijk faalt of er zelfs geen chemisch zinvolle oplossing
-  // bestaat bij die combinatie (dan opnieuw loten, geen doelfractie-forcering).
-  const Kc=rxn.KcRef;
-
-  function calcXverw(A0,B0){
-    const denom_val=(rxn.solid[0]?1:Math.pow(A0,a))*((b>0&&!rxn.solid[1])?Math.pow(B0,b):1);
-    const coef_prod=Math.pow(c,c)*(d>0?Math.pow(d,d):1);
-    const exponent=c+(d>0?d:0);
-    return Math.pow(Kc*denom_val/coef_prod, 1/exponent);
-  }
-  function solveXeq(A0,B0){
-    const evalKc=(xv)=>{
-      const cA=Math.max(A0-a*xv,1e-10);
-      const cB=b>0?Math.max(B0-b*xv,1e-10):1;
-      const cC=c>0?Math.max(c*xv,1e-10):1;
-      const cD=d>0?Math.max(d*xv,1e-10):1;
-      let num=1,den=1;
-      if(c>0&&!rxn.solid[2])num*=Math.pow(cC,c);
-      if(d>0&&!rxn.solid[3])num*=Math.pow(cD,d);
-      if(a>0&&!rxn.solid[0])den*=Math.pow(cA,a);
-      if(b>0&&!rxn.solid[1])den*=Math.pow(cB,b);
-      return num/den-Kc;
-    };
-    const xMax=Math.min((a>0&&!rxn.solid[0])?A0/a:Infinity, (b>0&&!rxn.solid[1]&&B0>0)?B0/b:Infinity)*0.9999;
-    if(evalKc(0)*evalKc(xMax)>0) return null;
-    let lo=0,hi=xMax;
-    for(let i=0;i<80;i++){
-      const mid=(lo+hi)/2;
-      evalKc(lo)*evalKc(mid)<0?hi=mid:lo=mid;
-    }
-    return (lo+hi)/2;
-  }
-
-  let Bvals, x_eq, x_verw, found=false;
-  for(let attempt=0; attempt<60 && !found; attempt++){
-    const A0=rxn.solid[0]?0:+(0.05+Math.random()*2.95).toFixed(2);
-    const B0=(b>0 && !rxn.solid[1]) ? +(0.05+Math.random()*2.95).toFixed(2) : 0;
-    const xe=solveXeq(A0,B0);
-    if(xe===null) continue; // chemisch onmogelijk bij deze combinatie — opnieuw loten
-    Bvals={A:A0,B:B0,C:0,D:0};
-    x_eq=xe; x_verw=calcXverw(A0,B0); found=true;
-  }
-
-  // Vangnet: in de praktijk altijd 'found' binnen 60 pogingen.
-  if(!found){
-    Bvals={A:1.00,B:rxn.co[1]>0&&!rxn.solid[1]?1.00:0,C:0,D:0};
-    x_eq=solveXeq(Bvals.A,Bvals.B)??0.05;
-    x_verw=calcXverw(Bvals.A,Bvals.B);
-  }
-
-  // Evenwichtsconcentraties
-  const E={
-    A:Bvals.A-a*x_eq, B:b>0?Bvals.B-b*x_eq:0,
-    C:Bvals.C+c*x_eq, D:d>0?Bvals.D+d*x_eq:0
-  };
-
-
-  // Scenario B: welke evenwichtsconcentratie geven we?
-  // Kies een fluïde stof met duidelijke concentratie
-  let givenEqIdx=null, givenEqVal=null;
-  let xB=null, KcB=null;
-  if(scenario==='B'){
-    const keys=['A','B','C','D'];
-    // alleen stoffen waaruit x nauwkeurig te bepalen is: producten, of beginstoffen die minstens 5 % afnemen
-    let candidates=fluidActive.filter(s=>s.idx>=2 || (s.co*x_eq)/Bvals[keys[s.idx]]>=0.05);
-    if(!candidates.length) candidates=fluidActive.filter(s=>s.idx>=2);
-    const pick=candidates[Math.floor(Math.random()*candidates.length)];
-    givenEqIdx=pick.idx; // 0=A,1=B,2=C,3=D
-    givenEqVal=parseFloat(E[keys[givenEqIdx]].toPrecision(4));
-    // alles verder rekent met het getoonde getal
-    xB = givenEqIdx<=1 ? (Bvals[keys[givenEqIdx]]-givenEqVal)/pick.co : givenEqVal/pick.co;
-    let nu=1,de=1;
-    [0,1,2,3].forEach(i=>{ if(!rxn.names[i]||rxn.solid[i]||rxn.co[i]===0) return;
-      const ce=Bvals[keys[i]]+(i<=1?-1:1)*rxn.co[i]*xB;
-      if(i>=2) nu*=Math.pow(ce,rxn.co[i]); else de*=Math.pow(ce,rxn.co[i]); });
-    KcB=nu/de;
-  }
-  // x_verw is al berekend in de generatielus hierboven (alleen relevant voor scenario A).
-
-  Q={ rxn, scenario, Bvals, E, Kc, x_eq, x_verw, givenEqIdx, givenEqVal, xB, KcB,
-      phase:'boe', boeDone:false, xDone:false, verwDone:false };
-
+function check(i){
+  const o=O(),k=key(),s=o.steps[i],tk=k+'-'+i,cur=T[tk]=T[tk]||{};let ok=false,msg='Nog niet goed.';
+  if(s.t==='kexpr'){const all=[...RX[o.r].L,...RX[o.r].R];const nL=RX[o.r].L.length;let wrong=[];
+    all.forEach(([f,cf,p],j)=>{const pos=$('#kp-'+j).value,ex=$('#ke-'+j).value.trim();cur['p'+j]=pos;cur['e'+j]=ex;
+      const want=(p==='s'||p==='l')?'w':(j<nL?'n':'t');
+      if(pos!==want)wrong.push(want==='w'?`${F[f]}(${p}) hoort niet in de evenwichtsvoorwaarde.`:`${F[f]} staat aan de verkeerde kant van de breuk.`);
+      else if(want!=='w'&&(parseInt(ex||'1')!==cf))wrong.push(`De exponent van ${F[f]} klopt niet: kijk naar de coëfficiënt.`)});
+    ok=!wrong.length;msg=wrong[0]||''}
+  if(s.t==='rij'){const c=cols(o.r);const v=c.map((_,j)=>$('#r-'+j).value);cur.v=v;
+    if(v.some(x=>!x.trim())){cur.fb=['hint','Vul alle vakjes in. Een stof die niet verandert of nog niet aanwezig is, krijgt 0.'];render();return}
+    const bad=[];c.forEach((f,j)=>{if(s.mode==='x'){if(!sameX(v[j],String(s.a[j])))bad.push(f)}else{const x=parseNum(v[j]);const a=s.a[j];
+      const okv=Math.abs(a)<1e-12?Math.abs(x)<1e-9:Math.abs(x-a)/Math.abs(a)<0.006;if(!okv)bad.push(f);
+      if(okv&&s.rij==='O'&&a<0&&!/^\s*[-−]/.test(v[j]))bad.push(f)}});
+    ok=!bad.length;
+    const signHint=s.rij==='O'&&o.steps[i].a.some((a,j)=>!sameSign(v[j],a));
+    msg=`Nog niet goed bij ${[...new Set(bad)].map(f=>'['+F[f]+']').join(', ')}.`+(signHint?' Let op het teken: wat verdwijnt krijgt een minteken.':s.rij==='O'?' Gebruik de molverhouding uit de reactievergelijking.':s.rij==='E'?' E = B + O.':'')+(s.h&&!ok?' Tip: '+s.h:'')}
+  if(s.t==='getal'){const inp=$('#g-'+i);cur.txt=inp.value;const x=parseNum(inp.value);
+    if(isNaN(x)){cur.fb=['hint','Dit getal kan ik niet lezen.'];render();return}
+    ok=Math.abs(x-s.a)/Math.abs(s.a)<=0.012;if(!ok){cur.tries=(cur.tries||0)+1;msg='Nog niet goed.'+(s.h?' Tip: '+s.h:' Controleer of je de evenwichtsvoorwaarde goed hebt ingevuld.')}}
+  if(s.t==='keuze'){if(cur.v==null){cur.fb=['hint','Kies eerst een antwoord.'];render();return}ok=cur.v===s.a;msg='Nog niet goed. Vergelijk Q met K.'}
+  if(ok){cur.fb=null;S.steps[k]=i+1;if(i+1>=o.steps.length)S.prog[k]=true;save()}else cur.fb=['fout',msg];
   render();
 }
-
-// ── Render ────────────────────────────────────────────────────────────────
-function render(){
-  const{rxn,scenario,Bvals,E,Kc,givenEqIdx,givenEqVal}=Q;
-  const[a,b,c,d]=rxn.co;
-  const names=rxn.names;
-  const solid=rxn.solid;
-
-  document.getElementById('eq-disp').textContent=rxn.eq;
-
-  // Badge
-  document.getElementById('badge-wrap').innerHTML=
-    `<div class="badge badge-${scenario}">
-      ${scenario==='A'?'📐 Scenario A — Kc gegeven, concentraties berekenen':'📊 Scenario B — Concentratie gegeven, Kc berekenen'}
-    </div>`;
-
-  // Voortgang
-  const steps=scenario==='A'
-    ?['1. BOE invullen','2. x oplossen (verwaarlozing)','3. Verwaarlozing check','4. Evenwichtsconcentraties']
-    :['1. x berekenen en BOE invullen','2. Kc berekenen'];
-  setProgress(steps,0);
-
-  // Gegeven info
-  const keyNames=['A','B','C','D'];
-  let givenHTML=`<strong>Reactievergelijking:</strong> ${rxn.eq}<br><br>`;
-  givenHTML+=`<strong>Beginconcentraties:</strong><br>`;
-  names.forEach((nm,i)=>{
-    if(!nm||solid[i]) return;
-    givenHTML+=`[${nm}]₀ = <span class="hl">${fmtB(Bvals[keyNames[i]])} mol/L</span> &nbsp;`;
-  });
-  if(scenario==='A'){
-    givenHTML+=`<br><br><strong>Gegeven:</strong> ${kLabel(rxn)} = <span class="hl">${fmtKc(Kc)}</span> (bij de temperatuur van de proef)`;
-  } else {
-    const gnm=names[givenEqIdx];
-    givenHTML+=`<br><br><strong>Gegeven evenwichtsconcentratie:</strong> [${gnm}]<sub>eq</sub> = <span class="hl">${fmt(givenEqVal,4)} mol/L</span>`;
-  }
-  document.getElementById('given-box').innerHTML=givenHTML;
-  document.getElementById('given-box').style.display='block';
-
-  // Hint
-  document.getElementById('boe-hint').textContent=
-    scenario==='A'?'Vul de O-rij in met ±nx (gebruik dropdowns), de E-rij wordt automatisch aangevuld.'
-                  :'Bereken eerst x uit de gegeven evenwichtsconcentratie. Vul daarna de O- en E-rij in.';
-
-  // BOE tabel
-  buildBOETable();
-
-  // Verberg latere stappen
-  ['step-x','step-verw','step-exact','step-final'].forEach(id=>document.getElementById(id).style.display='none');
-  document.getElementById('fb-boe').style.display='none';
-  document.getElementById('btn-check-boe').disabled=false;
+function sameSign(txt,a){if(typeof a!=='number')return true;const neg=/^\s*[-−]/.test(txt||'');return a<0?neg:!neg}
+document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el)return;const a=el.dataset.a,v=el.dataset.v;
+  switch(a){
+    case 'wp':S.wp=+v;S.tab='uitleg';T={};save();window.scrollTo(0,0);break;
+    case 'tab':S.tab=v;save();window.scrollTo(0,0);break;
+    case 'opd':S.opd[S.wp]=+v;T={};save();break;
+    case 'beamer':document.body.classList.toggle('beamer');return;
+    case 'wis':if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Zeker weten? Klik nogmaals';return}S.prog={};S.steps={};T={};save();break;
+    case 'kies':{const tk=key()+'-'+el.dataset.i;T[tk]=T[tk]||{};T[tk].v=+v;T[tk].fb=null;break}
+    case 'check':check(+el.dataset.i);return;
+    case 'showw':{const tk=key()+'-'+el.dataset.i;T[tk]=T[tk]||{};T[tk].showW=true;break}
+    default:return}
+  render()});
+render();
+window.__boe={WP,S:()=>S,check,render,parseX,sameX,cols,RX};
 }
-
-// ── BOE tabel bouwen ──────────────────────────────────────────────────────
-function buildBOETable(){
-  const{rxn,scenario,Bvals,givenEqIdx,givenEqVal}=Q;
-  const[a,b,c,d]=rxn.co;
-  const names=rxn.names;
-  const solid=rxn.solid;
-  const co=[a,b,c,d];
-  const keyNames=['A','B','C','D'];
-  // Actieve kolommen: naam aanwezig, niet vast, coëfficiënt > 0
-  const cols=names.map((nm,i)=>nm&&!solid[i]&&co[i]>0?{nm,i,co:co[i],solid:solid[i]}:null).filter(Boolean);
-
-  let html=`<tr><th class="row-lbl">Stof</th>${cols.map(col=>`<th>${col.nm}${col.solid?' (s)':''}</th>`).join('')}</tr>`;
-
-  // B-rij (altijd vast)
-  html+=`<tr><td class="row-lbl">B</td>${cols.map(col=>{
-    if(col.solid) return `<td class="solid">—</td>`;
-    return `<td class="fixed">${fmtB(Bvals[keyNames[col.i]])} mol/L</td>`;
-  }).join('')}</tr>`;
-
-  // O-rij
-  if(scenario==='A'){
-    // Dropdowns — geen vooringevulde waarde, leerling kiest zelf
-    html+=`<tr><td class="row-lbl">O</td>${cols.map(col=>{
-      if(col.solid) return `<td class="solid">—</td>`;
-      return `<td class="input-cell">
-        <div class="o-select-wrap">
-          <select class="o-sign" id="osign-${col.i}">
-            <option value="" selected>±</option>
-            <option value="-">−</option>
-            <option value="+">+</option>
-          </select>
-          <select class="o-coef" id="ocoef-${col.i}">
-            <option value="" selected>nx</option>
-            ${[1,2,3,4].map(n=>`<option value="${n}">${n}x</option>`).join('')}
-          </select>
-        </div>
-      </td>`;
-    }).join('')}</tr>`;
-  } else {
-    // Numeriek
-    html+=`<tr><td class="row-lbl">O</td>${cols.map(col=>{
-      if(col.solid) return `<td class="solid">—</td>`;
-      return `<td class="input-cell"><input type="text" inputmode="decimal" class="num-input" id="o-${col.i}" step="0.0001" placeholder="…"></td>`;
-    }).join('')}</tr>`;
-  }
-
-  // E-rij
-  if(scenario==='A'){
-    // Automatisch ingevuld na correcte O (voor nu: placeholder)
-    html+=`<tr><td class="row-lbl">E</td>${cols.map(col=>{
-      if(col.solid) return `<td class="solid">—</td>`;
-      return `<td class="auto-fill" id="e-cell-${col.i}">—</td>`;
-    }).join('')}</tr>`;
-  } else {
-    html+=`<tr><td class="row-lbl">E</td>${cols.map(col=>{
-      if(col.solid) return `<td class="solid">—</td>`;
-      // Gegeven evenwichtsconcentratie vast
-      if(col.i===givenEqIdx) return `<td class="fixed">${fmt(givenEqVal,4)} mol/L</td>`;
-      return `<td class="input-cell"><input type="text" inputmode="decimal" class="num-input" id="e-${col.i}" step="0.0001" placeholder="…"></td>`;
-    }).join('')}</tr>`;
-  }
-
-  document.getElementById('boe-table').innerHTML=html;
-}
-
-// ── BOE controleren ───────────────────────────────────────────────────────
-function checkBOE(){
-  const{rxn,scenario,Bvals,E,givenEqIdx,givenEqVal}=Q;
-  const x_eq=Q.scenario==='B'?Q.xB:Q.x_eq;
-  const[a,b,c,d]=rxn.co;
-  const names=rxn.names;
-  const solid=rxn.solid;
-  const co=[a,b,c,d];
-  const keyNames=['A','B','C','D'];
-  // Alleen stoffen met naam, niet vast, én coëfficiënt > 0
-  const cols=names.map((nm,i)=>nm&&!solid[i]&&co[i]>0?{nm,i,co:co[i],solid:solid[i]}:null).filter(Boolean);
-  const tol=0.04;
-  let allOk=true;
-
-  if(scenario==='A'){
-    // Controleer dropdowns O-rij
-    const errors=[];
-    cols.forEach(col=>{
-      const signEl=document.getElementById('osign-'+col.i);
-      const coefEl=document.getElementById('ocoef-'+col.i);
-      if(!signEl||!coefEl)return;
-      const correctSign=col.i<=1?'-':'+';
-      const correctCoef=col.co;
-      const okSign=signEl.value===correctSign;
-      const okCoef=parseInt(coefEl.value)===correctCoef;
-      signEl.classList.toggle('ok',okSign&&okCoef);
-      signEl.classList.toggle('err',!okSign);
-      coefEl.classList.toggle('ok',okSign&&okCoef);
-      coefEl.classList.toggle('err',!okCoef);
-      if(!okSign||!okCoef){
-        allOk=false;
-        errors.push(col.nm);
-        Q._boeAns=(Q._boeAns||{}); Q._boeAns[col.nm]=`${correctSign==='-'?'−':'+'}${correctCoef}x`;
-      }
-    });
-    if(allOk){
-      // Vul E-rij automatisch in
-      cols.forEach(col=>{
-        const sign=col.i<=1?-1:1;
-        const expr=`${fmtB(Bvals[keyNames[col.i]])} ${sign>0?'+':'−'} ${col.co}x`;
-        const cell=document.getElementById('e-cell-'+col.i);
-        if(cell) cell.textContent=expr;
-      });
-      showFB('fb-boe','ok',`✓ O-rij correct! De E-rij is automatisch ingevuld. Ga nu verder met stap 2.`);
-      Q.boeDone=true;
-      showStepX();
-    } else {
-      showFB('fb-boe','err','✗ '+wrongMsg('boeA',`Controleer ${errors.join(', ')}. Beginstoffen nemen af (−), producten nemen toe (+); de coëfficiënt haal je uit de reactievergelijking.`, errors.map(n=>n+': '+Q._boeAns[n]).join(' | ')));
-    }
-
-  } else {
-    // Scenario B: controleer O en E numeriek
-    const oErrors=[], eErrors=[];
-    cols.forEach(col=>{
-      const keyN=keyNames[col.i];
-      const oEl=document.getElementById('o-'+col.i);
-      const eEl=document.getElementById('e-'+col.i);
-      const sign=col.i<=1?-1:1;  // reactanten negatief, producten positief
-      const correctO=sign*col.co*x_eq;
-      const correctE=Bvals[keyN]+correctO;
-
-      if(oEl){
-        const uO=num(oEl.value);
-        const okO=!isNaN(uO)&&Math.abs(uO-correctO)/Math.max(Math.abs(correctO),1e-10)<tol;
-        oEl.classList.toggle('ok',okO);oEl.classList.toggle('err',!okO);
-        if(!okO){allOk=false;oErrors.push(`O(${col.nm}) = ${fmt(correctO)}`);}
-      }
-      if(eEl){
-        const uE=num(eEl.value);
-        const okE=!isNaN(uE)&&Math.abs(uE-correctE)/Math.max(Math.abs(correctE),1e-10)<tol;
-        eEl.classList.toggle('ok',okE);eEl.classList.toggle('err',!okE);
-        if(!okE){allOk=false;eErrors.push(`E(${col.nm}) = ${fmt(correctE)}`);}
-      }
-    });
-    if(allOk){
-      showFB('fb-boe','ok','✓ BOE-schema correct! Ga verder met stap 2: Kc berekenen.');
-      Q.boeDone=true;
-      Q.x_correct=x_eq; // x uit de getoonde evenwichtsconcentratie
-      showFinalB();
-    } else {
-      const all=[...oErrors,...eErrors];
-      showFB('fb-boe','err','✗ '+wrongMsg('boeB','Niet alles klopt (rood). Tip: x = verandering van de gegeven stof gedeeld door zijn coëfficiënt; O = ± coëfficiënt × x; E = B + O.', all.join(' | ')));
-    }
-  }
-}
-
-// ── Stap X: x bepalen ─────────────────────────────────────────────────────
-function showStepX(){
-  const{rxn,scenario,Bvals,E,Kc,x_eq,x_verw,givenEqIdx,givenEqVal}=Q;
-  const[a,b,c,d]=rxn.co;
-  const names=rxn.names;
-  const keyNames=['A','B','C','D'];
-  const sec=document.getElementById('step-x');
-  sec.style.display='block';
-
-  const steps=scenario==='A'
-    ?['1. BOE invullen','2. x oplossen (verwaarlozing)','3. Verwaarlozing check','4. Evenwichtsconcentraties']
-    :['1. BOE invullen','2. x berekenen','3. Kc berekenen'];
-  setProgress(steps,1);
-
-  if(scenario==='A'){
-    document.getElementById('step-x-title').textContent='Stap 2 — x oplossen via verwaarlozing';
-    // Kc-expressie met x
-    const expr=kcExpr(names,rxn.co,rxn.solid);
-    const Bvarsubs=names.map((nm,i)=>{
-      if(!nm||rxn.solid[i])return null;
-      const key=keyNames[i];
-      const sign=i<=1?'-':'+';
-      return `[${nm}] = ${fmtB(Bvals[key])} ${sign} ${rxn.co[i]}x`;
-    }).filter(Boolean).join('<br>');
-    document.getElementById('step-x-body').innerHTML=`
-      <div class="formula-box">${expr.replace('Kc',kLabel(rxn))} = ${fmtKc(Kc)}</div>
-      <p style="margin-bottom:8px">Vul de E-rij in:</p>
-      <div style="font-size:.95em;line-height:2;margin-bottom:12px;font-weight:600">${Bvarsubs}</div>
-      <p><strong>Verwaarlozing:</strong> stel dat er zo weinig reageert dat de beginstoffen nauwelijks afnemen, zodat:</p>
-      <div class="formula-box" id="verw-expr"></div>
-      <p style="margin-bottom:8px">Los op voor x (verwaarlozing):</p>
-      <div class="input-row">
-        <span class="unit-lbl">x ≈</span>
-        <input type="text" inputmode="decimal" class="ans-input" id="ans-xverw" step="0.00001" placeholder="…">
-        <span class="unit-lbl">mol/L</span>
-        <button class="check-btn" onclick="checkXverw()">Controleer</button>
-      </div>
-      <div class="fb" id="fb-xverw"></div>`;
-    // Vul verwaarlozing-expressie in
-    buildVerwExpr();
-  } else {
-    document.getElementById('step-x-title').textContent='Stap 2 — x berekenen uit de gegeven evenwichtsconcentratie';
-    const gnm=names[givenEqIdx];
-    const gco=rxn.co[givenEqIdx];
-    const gkey=keyNames[givenEqIdx];
-    const isReactant=givenEqIdx<=1;
-    // x = (Bvals[gkey] - givenEqVal) / gco als reactant
-    // x = (givenEqVal - Bvals[gkey]) / gco als product
-    const x_correct=isReactant
-      ?(Bvals[gkey]-givenEqVal)/gco
-      :(givenEqVal-Bvals[gkey])/gco;
-    Q.x_correct=x_correct;
-    document.getElementById('step-x-body').innerHTML=`
-      <p>Uit de gegeven evenwichtsconcentratie van ${gnm}:<br>
-      <span style="font-weight:600">[${gnm}]<sub>eq</sub> = ${fmtB(Bvals[gkey])} ${isReactant?'−':'+'}
-      ${gco}x = ${fmt(givenEqVal)}</span></p>
-      <div class="input-row">
-        <span class="unit-lbl">x =</span>
-        <input type="text" inputmode="decimal" class="ans-input" id="ans-x" step="0.00001" placeholder="…">
-        <span class="unit-lbl">mol/L</span>
-        <button class="check-btn" onclick="checkXB()">Controleer</button>
-      </div>
-      <div class="fb" id="fb-x"></div>`;
-  }
-}
-
-function buildVerwExpr(){
-  const{rxn,Bvals,Kc}=Q;
-  const[a,b,c,d]=rxn.co;
-  const solid=rxn.solid;
-  const BA=fmtB(Bvals.A), BB=b>0?fmtB(Bvals.B):'';
-  // Teller: (coef·x)^exp — coëfficiënt én exponent correct
-  const termNum=(coef,exp,isSolid)=>{
-    if(isSolid||coef===0)return null;
-    const inner=coef===1?'x':`${coef}x`;
-    return exp===1?`(${inner})`:`(${inner})${sup(exp)}`;
-  };
-  const numParts=[termNum(c,c,solid[2]),termNum(d,d,solid[3])].filter(Boolean);
-  // Noemer: [B]₀^exp
-  const termDen=(val,exp,isSolid)=>{
-    if(isSolid||exp===0)return null;
-    return exp===1?val:`${val}${sup(exp)}`;
-  };
-  const denParts=[termDen(BA,a,solid[0]),termDen(BB,b,solid[1])].filter(Boolean);
-  const num=numParts.join('·')||'1';
-  const den=denParts.join('·')||'1';
-  document.getElementById('verw-expr').textContent=`${kLabel(rxn)} ≈ ${num} / ${den} = ${fmtKc(Kc)}`;
-}
-
-function checkXverw(){
-  const{x_verw,Bvals,rxn}=Q;
-  const u=num(document.getElementById('ans-xverw').value);
-  const ok=!isNaN(u)&&Math.abs(u-x_verw)/Math.abs(x_verw)<0.05;
-  const el=document.getElementById('ans-xverw');
-  el.classList.toggle('ok',ok);el.classList.toggle('err',!ok);
-  if(ok){
-    showFB('fb-xverw','ok',`✓ Correct! x ≈ ${fmt(x_verw,4)} mol/L (via verwaarlozing)`);
-    Q.x_verw_user=x_verw;
-    showVerwCheck();
-  } else {
-    showFB('fb-xverw','err','✗ '+wrongMsg('xverw','Niet correct. Vul de verwaarloosde uitdrukking in en los x op (let op de wortel).', `x ≈ ${fmt(x_verw,4)} mol/L`));
-  }
-}
-
-function checkXB(){
-  const{x_correct}=Q;
-  const u=num(document.getElementById('ans-x').value);
-  const ok=!isNaN(u)&&Math.abs(u-x_correct)/Math.abs(x_correct)<0.05;
-  const el=document.getElementById('ans-x');
-  el.classList.toggle('ok',ok);el.classList.toggle('err',!ok);
-  if(ok){
-    showFB('fb-x','ok',`✓ Correct! x = ${fmt(x_correct,4)} mol/L`);
-    Q.xDone=true;
-    showFinalB();
-  } else {
-    showFB('fb-x','err','✗ '+wrongMsg('xB','Niet correct.', `x = ${fmt(x_correct,4)} mol/L`));
-  }
-}
-
-// ── Verwaarlozing check ───────────────────────────────────────────────────
-function showVerwCheck(){
-  const{x_verw,Bvals,rxn}=Q;
-  const sec=document.getElementById('step-verw');
-  sec.style.display='block';
-  const steps=['1. BOE invullen','2. x oplossen (verwaarlozing)','3. Verwaarlozing check','4. Evenwichtsconcentraties'];
-  setProgress(steps,2);
-
-  const fr=fluidReact(rxn);
-  let worst=fr[0], worstPct=-1;
-  fr.forEach(i=>{ const p=rxn.co[i]*x_verw/Bvals[i===0?'A':'B']*100; if(p>worstPct){worstPct=p;worst=i;} });
-  Q.pct=worstPct; Q.pctIdx=worst;
-  const coTxt=rxn.co[worst]===1?'x':rxn.co[worst]+'x';
-  document.getElementById('step-verw-body').innerHTML=`
-    <p>Controleer bij de beginstof die relatief het meest afneemt. Bereken zelf: ${coTxt} / [${rxn.names[worst]}]₀ × 100%</p>
-    <div class="input-row">
-      <input type="text" inputmode="decimal" class="ans-input" id="ans-pct" step="0.1" placeholder="…">
-      <span class="unit-lbl">%</span>
-      <button class="check-btn" onclick="checkPct()">Controleer</button>
-    </div>
-    <div class="fb" id="fb-pct"></div>`;
-}
-
-function checkPct(){
-  const{x_verw,Bvals,rxn}=Q;
-  const pct=Q.pct, wi=Q.pctIdx, wnm=rxn.names[wi], wB=Bvals[wi===0?'A':'B'], wco=rxn.co[wi];
-  const u=num(document.getElementById('ans-pct').value);
-  const ok=!isNaN(u)&&Math.abs(u-pct)<0.5; // 0.5% absolute tolerantie
-  const el=document.getElementById('ans-pct');
-  el.classList.toggle('ok',ok);el.classList.toggle('err',!ok);
-  const fb=document.getElementById('fb-pct');
-  fb.style.display='block';
-  if(ok){
-    fb.className='fb ok';
-    fb.innerHTML=`✓ Correct! ${wco===1?'':wco}x / [${wnm}]₀ × 100% = ${pct.toFixed(1)}%
-      <br><br>Welke foutmarge vind jij acceptabel?
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-        <button class="check-btn" onclick="checkMarge(1)">1%</button>
-        <button class="check-btn" onclick="checkMarge(5)">5%</button>
-        <button class="check-btn" onclick="checkMarge(10)">10%</button>
-      </div>
-      <div id="fb-marge" style="margin-top:10px"></div>`;
-  } else {
-    fb.className='fb err';
-    fb.innerHTML='✗ '+wrongMsg('pct','Niet correct.', `${wco===1?'':wco+' × '}${fmt(x_verw,4)} / ${fmtB(wB)} × 100% = ${pct.toFixed(1)}%`);
-  }
-}
-
-function checkMarge(chosen){
-  const{pct,x_verw,x_eq,Kc}=Q;
-  const valid=pct<=chosen;
-  const fb=document.getElementById('fb-marge');
-  if(!fb){showVerwCheck();return;}
-  fb.style.display='block';
-  if(valid){
-    fb.innerHTML=`<div class="fb ok" style="display:block">✓ ${pct.toFixed(1)}% ≤ ${chosen}% → verwaarlozing acceptabel.
-      <br><button class="check-btn" onclick="showFinalA()" style="margin-top:10px">Verder →</button></div>`;
-    Q.x_final=x_verw; Q.verwValid=true;
-  } else {
-    const extra = pct>100
-      ? `<br><br><em>Bij deze reactie is K relatief groot (K = ${fmtKc(Kc)}). Een grote Kc betekent dat het evenwicht ver naar de productkant ligt — er reageert dus relatief veel van de beginstof weg. De verwaarlozingsbenadering gaat er juist van uit dat er weinig wegreageert (x ≪ [A]₀), dus bij een groot Kc gaat die aanname volledig de mist in: de "benaderde" x kan dan zelfs groter uitvallen dan de beginconcentratie zelf, wat fysisch onmogelijk is. Dat is precies het signaal dat je hier niet mag verwaarlozen.</em>`
-      : '';
-    fb.innerHTML=`<div class="fb warn" style="display:block">⚠ ${pct.toFixed(1)}% > ${chosen}% → verwaarlozing niet acceptabel.
-      Bereken x exact via de onderstaande stap.${extra}
-      <br><button class="check-btn" onclick="showExact()" style="margin-top:10px">Exact oplossen →</button></div>`;
-    Q.x_final=x_eq; Q.verwValid=false;
-  }
-}
-
-// ── Exacte oplossing (leerling lost zelf op) ─────────────────────────────
-function showExact(){
-  const{rxn,Bvals,Kc,x_eq}=Q;
-  const[a,b,c,d]=rxn.co;
-  const solid=rxn.solid;
-  const sec=document.getElementById('step-exact');
-  sec.style.display='block';
-  Q.x_final=x_eq;
-
-  // Toon de Kc-uitdrukking met E-rij ingevuld als hint
-  const names=rxn.names;
-  const keyNames=['A','B','C','D'];
-  const co=[a,b,c,d];
-  const sign=(i)=>i<=1?-1:1;
-
-  // Kc-expressie met x ingevuld
-  const termExact=(nm,exp,isSolid,idx)=>{
-    if(!nm||isSolid||exp===0)return null;
-    const B=fmtB(Bvals[keyNames[idx]]);
-    const s=sign(idx)>0?'+':'-';
-    const inner=exp===1?`(${B} ${s} ${co[idx]}x)`:`(${B} ${s} ${co[idx]}x)${sup(exp)}`;
-    return inner;
-  };
-  const numTerms=[termExact(names[2],c,solid[2],2),termExact(names[3],d,solid[3],3)].filter(Boolean);
-  const denTerms=[termExact(names[0],a,solid[0],0),termExact(names[1],b,solid[1],1)].filter(Boolean);
-  const exprFull=`${kLabel(rxn)} = ${numTerms.join('·')||'1'} / ${denTerms.join('·')||'1'} = ${fmtKc(Kc)}`;
-
-  document.getElementById('step-exact-body').innerHTML=`
-    <p>Los x exact op. Gebruik de volledige Kc-uitdrukking:</p>
-    <div class="formula-box">${exprFull}</div>
-    <p style="margin-bottom:10px">Werk dit zelf uit (herschrijf als kwadratische vergelijking of gebruik de abc-formule) en vul x in:</p>
-    <div class="input-row">
-      <span class="unit-lbl">x =</span>
-      <input type="text" inputmode="decimal" class="ans-input" id="ans-xexact" step="0.00001" placeholder="…">
-      <span class="unit-lbl">mol/L</span>
-      <button class="check-btn" onclick="checkXExact()">Controleer</button>
-    </div>
-    <div class="fb" id="fb-xexact"></div>`;
-}
-
-function checkXExact(){
-  const{x_final}=Q;
-  const u=num(document.getElementById('ans-xexact').value);
-  const ok=!isNaN(u)&&Math.abs(u-x_final)/Math.abs(x_final)<0.05;
-  const el=document.getElementById('ans-xexact');
-  el.classList.toggle('ok',ok);el.classList.toggle('err',!ok);
-  if(ok){ showFB('fb-xexact','ok',`✓ Correct! x = ${fmt(x_final,5)} mol/L`); showFinalA(); }
-  else   { showFB('fb-xexact','err','✗ '+wrongMsg('xexact','Niet correct. Schrijf de vergelijking als ax² + bx + c = 0 en neem de oplossing die chemisch kan (x > 0 en geen negatieve concentraties).', `x = ${fmt(x_final,5)} mol/L`)); }
-}
-
-// ── Eindstap A: evenwichtsconcentraties ───────────────────────────────────
-function showFinalA(){
-  const{rxn,Bvals,x_final,verwValid}=Q;
-  const[a,b,c,d]=rxn.co;
-  const names=rxn.names;
-  const solid=rxn.solid;
-  const keyNames=['A','B','C','D'];
-  const co=[a,b,c,d];
-  const sec=document.getElementById('step-final');
-  sec.style.display='block';
-  document.getElementById('step-final-title').textContent='Stap 4 — Evenwichtsconcentraties berekenen';
-  const steps=['1. BOE invullen','2. x oplossen (verwaarlozing)','3. Verwaarlozing check','4. Evenwichtsconcentraties'];
-  setProgress(steps,3);
-
-  const activeFluid=names.map((nm,i)=>nm&&!solid[i]&&co[i]>0?{nm,i,co:co[i]}:null).filter(Boolean);
-  const sign=(i)=>i<=1?-1:1;
-  const correctE=(i)=>Bvals[keyNames[i]]+sign(i)*co[i]*x_final;
-
-  let inputsHTML=activeFluid.map(col=>`
-    <div class="input-row">
-      <span class="unit-lbl">[${col.nm}]<sub>eq</sub> =</span>
-      <input type="text" inputmode="decimal" class="ans-input" id="finA-${col.i}" step="0.0001" placeholder="…">
-      <span class="unit-lbl">mol/L</span>
-    </div>`).join('');
-
-  document.getElementById('step-final-body').innerHTML=`
-    <p>Gebruik x = ${fmt(x_final,5)} mol/L${!verwValid?' (exacte oplossing)':' (verwaarlozing geldig)'}.</p>
-    ${inputsHTML}
-    <button class="check-btn" onclick="checkFinalA()">Controleer</button>
-    <div class="fb" id="fb-finalA"></div>`;
-}
-
-function checkFinalA(){
-  const{rxn,Bvals,x_final}=Q;
-  const[a,b,c,d]=rxn.co;
-  const names=rxn.names;
-  const keyNames=['A','B','C','D'];
-  const co=[a,b,c,d];
-  const sign=(i)=>i<=1?-1:1;
-  const activeFluid=names.map((nm,i)=>nm&&!rxn.solid[i]&&co[i]>0?{nm,i,co:co[i]}:null).filter(Boolean);
-  let allOk=true, details=[];
-  activeFluid.forEach(col=>{
-    const correct=Bvals[keyNames[col.i]]+sign(col.i)*col.co*x_final;
-    const el=document.getElementById('finA-'+col.i);
-    const u=num(el.value);
-    const ok=!isNaN(u)&&Math.abs(u-correct)/Math.abs(correct)<0.04;
-    el.classList.toggle('ok',ok);el.classList.toggle('err',!ok);
-    if(!ok){allOk=false;details.push(`[${col.nm}]eq = ${fmt(correct,4)}`);}
-  });
-  if(allOk){
-    showFB('fb-finalA','ok','✓ Alle evenwichtsconcentraties correct! Uitstekend.');
-  } else {
-    showFB('fb-finalA','err','✗ '+wrongMsg('finA','Niet alles klopt (rood). E = B ± coëfficiënt × x.', details.join(' | ')));
-  }
-}
-
-// ── Eindstap B: Kc berekenen ──────────────────────────────────────────────
-function showFinalB(){
-  const{rxn,Bvals,Kc,x_correct,givenEqIdx}=Q;
-  const[a,b,c,d]=rxn.co;
-  const names=rxn.names;
-  const solid=rxn.solid;
-  const keyNames=['A','B','C','D'];
-  const co=[a,b,c,d];
-  const sign=(i)=>i<=1?-1:1;
-
-  const sec=document.getElementById('step-final');
-  sec.style.display='block';
-  document.getElementById('step-final-title').textContent='Stap 3 — Kc berekenen';
-  const steps=['1. BOE invullen','2. x berekenen','3. Kc berekenen'];
-  setProgress(steps,2);
-
-  // Bereken evenwichtsconcentraties
-  const Evals={};
-  names.forEach((nm,i)=>{if(nm&&!solid[i])Evals[i]=Bvals[keyNames[i]]+sign(i)*co[i]*x_correct;});
-
-  // Kc-expressie
-  const expr=kcExpr(names,rxn.co,solid).replace('Kc',kLabel(rxn));
-
-  // Numerieke invulling tonen
-  const activeFluid=names.map((nm,i)=>nm&&!solid[i]&&co[i]>0?{nm,i,co:co[i]}:null).filter(Boolean);
-  const substStr=activeFluid.map(col=>`[${col.nm}]eq = ${fmt(Evals[col.i],4)} mol/L`).join(' &nbsp;|&nbsp; ');
-
-  document.getElementById('step-final-body').innerHTML=`
-    <p>Evenwichtsconcentraties (berekend via x = ${fmt(x_correct,4)} mol/L):</p>
-    <div class="formula-box" style="font-size:.85em">${substStr}</div>
-    <p>Vul in de Kc-expressie:</p>
-    <div class="formula-box">${expr}</div>
-    <div class="input-row">
-      <span class="unit-lbl">${kLabel(rxn)} =</span>
-      <input type="text" inputmode="decimal" class="ans-input" id="ans-kc" step="0.000001" placeholder="…">
-      <button class="check-btn" onclick="checkKc()">Controleer</button>
-    </div>
-    <div class="fb" id="fb-kc"></div>`;
-}
-
-function checkKc(){
-  const Kc=Q.KcB;
-  const u=num(document.getElementById('ans-kc').value.replace(/·10\^?/,'e').replace('*10^','e'));
-  const ok=!isNaN(u)&&Math.abs(u-Kc)/Math.abs(Kc)<0.05;
-  const el=document.getElementById('ans-kc');
-  el.classList.toggle('ok',ok);el.classList.toggle('err',!ok);
-  const lbl=kLabel(Q.rxn);
-  if(ok) showFB('fb-kc','ok',`✓ Correct! ${lbl} = ${fmtKc(Kc)}`);
-  else showFB('fb-kc','err','✗ '+wrongMsg('kc','Niet correct. Vul de evenwichtsconcentraties in de K-uitdrukking in; let op de machten.', `${lbl} = ${fmtKc(Kc)}`));
-}
-
-// ── Hulpfuncties ──────────────────────────────────────────────────────────
-function showFB(id,type,msg){
-  const el=document.getElementById(id);
-  el.className=`fb ${type}`;
-  el.innerHTML=msg;
-  el.style.display='block';
-}
-
-newQ();
-</script>
-
-
-
-
-<script id="huisstijl-js">
-window.HS_CFG={};
-(function(){
-  var cfg=window.HS_CFG||{};
-  var b=document.createElement('button'); b.type='button'; b.textContent='Beamerstand'; b.title='Alles groter, voor op het digibord';
-  b.onclick=function(){document.body.classList.toggle('hs-beamer'); window.dispatchEvent(new Event('resize'));};
-  var hd;
-  if(cfg.own){ hd=document.querySelector(cfg.own); hd.classList.add('hs-own'); hd.appendChild(b); }
-  else {
-    var h=cfg.title?null:document.querySelector(cfg.sel||'h1');
-    hd=document.createElement('header'); hd.className='hs-header';
-    var w=document.createElement('div'); w.className='hs-wrap'; hd.appendChild(w);
-    var t=document.createElement('h1'); t.innerHTML=cfg.title||(h?h.innerHTML:document.title); w.appendChild(t);
-    w.appendChild(b); if(h) h.remove();
-    var cs=getComputedStyle(document.body);
-    var px=function(a,b){return '-'+(parseFloat(cs[a])+parseFloat(cs[b]))+'px';};
-    hd.style.margin=px('paddingTop','marginTop')+' '+px('paddingRight','marginRight')+' 18px '+px('paddingLeft','marginLeft');
-    document.body.insertBefore(hd, document.body.firstChild);
-  }
-  // zwevende elementen (tooltips) niet mee-zoomen in beamerstand
-  document.querySelectorAll('body *').forEach(function(e){ if(e!==hd && !hd.contains(e) && getComputedStyle(e).position==='fixed'){ e.classList.add('hs-nozoom'); document.body.appendChild(e); } });
-  // komma als decimaalteken in alles wat op het scherm komt
-  var dec=function(s){ return String(s).replace(/(\d)\.(\d)/g,'$1,$2'); };
-  var C=CanvasRenderingContext2D.prototype, ft=C.fillText, st=C.strokeText, mt=C.measureText;
-  C.fillText=function(t,x,y,m){ return m===undefined?ft.call(this,dec(t),x,y):ft.call(this,dec(t),x,y,m); };
-  C.strokeText=function(t,x,y,m){ return m===undefined?st.call(this,dec(t),x,y):st.call(this,dec(t),x,y,m); };
-  C.measureText=function(t){ return mt.call(this,dec(t)); };
-  var SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,INPUT:1};
-  var fix=function(root){ var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null), n;
-    while((n=w.nextNode())){ if(n.parentNode && SKIP[n.parentNode.nodeName]) continue; var v=n.nodeValue, d=dec(v); if(d!==v) n.nodeValue=d; } };
-  fix(document.body);
-  new MutationObserver(function(ms){ ms.forEach(function(m){ if(m.type==='characterData'){ if(!SKIP[m.target.parentNode&&m.target.parentNode.nodeName]){ var d=dec(m.target.nodeValue); if(d!==m.target.nodeValue) m.target.nodeValue=d; } } else m.addedNodes.forEach(function(a){ if(a.nodeType===3){ if(a.parentNode&&!SKIP[a.parentNode.nodeName]){ var d=dec(a.nodeValue); if(d!==a.nodeValue) a.nodeValue=d; } } else if(a.nodeType===1 && !SKIP[a.nodeName]) fix(a); }); }); })
-    .observe(document.body,{childList:true,subtree:true,characterData:true});
-  // invoer met komma accepteren
-  var pf=window.parseFloat; window.parseFloat=function(x){ return pf(typeof x==='string'?x.replace(',','.'):x); };
-})();
 </script>
 </body>
 </html>
