@@ -94,6 +94,7 @@ input.in:focus{outline:2px solid var(--goud2);outline-offset:0;border-color:var(
 .voorbeeldweergave b{color:var(--inkt);font-weight:600;font-size:15px}
 select.sel{border:1px solid var(--rand2);border-radius:8px;padding:7px 9px;font-size:14px;background:#fff;color:var(--inkt);font-family:inherit}
 .btn{border:0;border-radius:8px;padding:8px 15px;font-weight:600;font-size:14px;cursor:pointer;background:var(--inkt);color:#fff}
+a.btn{display:inline-block;text-decoration:none}
 .btn:hover{background:#45433e}
 .btn.g{background:#ebe4d4;color:var(--inkt)}
 .btn.g:hover{background:#e0d7c3}
@@ -1607,19 +1608,23 @@ async function maakCode(wpId){
   for (let i = 0; i < n; i++) delen.push(`ZI1-${chk}-${i + 1}/${n}-` + body.slice(i * MAX, (i + 1) * MAX));
   return { delen, aantal: ev.filter(e => e[5] === 'c').length };
 }
+/* inleverformulier: vaste link, of per klas via ?inleveren=<link> in de tool-link */
+const FORMS_URL = (() => { try { const u = new URLSearchParams(location.search).get('inleveren'); if (u && /^https:\/\/(forms\.office\.com|forms\.microsoft\.com|forms\.cloud\.microsoft)\//.test(u)) return u; } catch (e){} return 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=mbKMZqcyIUOtT1VfdcSH54dq5xQYCQlMvhqYcBFycOdUQkdSWUkxQ082NVlOUlFLTElaV0lZSVdUQy4u'; })();
+const heeftForms = () => /^https:\/\//.test(FORMS_URL);
 function toonInleveren(){
   SIM = null;
   $$('#nav a').forEach(a => a.classList.remove('on'));
   const opties = WPS.map(w => { const n = LOG.ev.filter(e => e[1] === w.id && e[5] === 'c').length; return `<option value="${w.id}" ${WPS[STAAT.wp].id === w.id ? 'selected' : ''}>${w.titel} (${n} antwoorden)</option>`; }).join('');
   $('#main').innerHTML = `<div class="wp"><section class="tekst inleverpaneel"><div class="kicker">Inleveren</div><h2>Je code voor de docent</h2>
-    <p>De code bevat je antwoorden in deze tool, maar geen naam. Kopieer de code en plak hem in het Forms-formulier van je docent.</p>
+    <p>De code bevat je antwoorden in deze tool, maar geen naam. Kopieer de code en plak hem in het inleverformulier${heeftForms() ? '' : ' van je docent'}.</p>
     <div class="rij"><label>Welke werkplaats? <select class="sel" id="ilwp"><option value="">alle werkplaatsen</option>${opties}</select></label><button class="btn" id="ilmaak">Maak code</button></div>
     <div id="ilcode"></div>
     <p class="klein" style="margin-top:24px;color:var(--grijs);font-size:13px">Je antwoorden worden alleen op deze laptop bewaard. <button class="btn g klein" id="ilwis">Logboek wissen</button></p></section><section class="simkol"></section></div>`;
   $('#ilmaak').onclick = async () => {
     const r = await maakCode($('#ilwp').value);
     $('#ilcode').innerHTML = (r.delen.length > 1 ? `<p><b>Je code bestaat uit ${r.delen.length} delen.</b> Plak elk deel in een eigen vak in Forms.</p>` : '') +
-      r.delen.map((d, i) => `<div class="deel"><b>${r.delen.length > 1 ? 'Deel ' + (i + 1) : 'Code'} (${r.aantal} antwoorden)</b><textarea readonly id="ilt${i}">${d}</textarea><button class="btn klein" data-kop="${i}">Kopieer</button></div>`).join('');
+      r.delen.map((d, i) => `<div class="deel"><b>${r.delen.length > 1 ? 'Deel ' + (i + 1) : 'Code'} (${r.aantal} antwoorden)</b><textarea readonly id="ilt${i}">${d}</textarea><button class="btn klein" data-kop="${i}">Kopieer</button></div>`).join('') +
+      (heeftForms() ? `<p style="margin-top:14px"><a class="btn" href="${FORMS_URL}" target="_blank" rel="noopener">Open het inleverformulier ↗</a></p>` : '');
     $$('[data-kop]').forEach(b => b.onclick = () => { const t = $('#ilt' + b.dataset.kop); t.select(); try { navigator.clipboard.writeText(t.value); } catch (e){ document.execCommand('copy'); } b.textContent = 'Gekopieerd ✓'; });
   };
   $('#ilwis').onclick = () => { if (confirm('Weet je zeker dat je je logboek wilt wissen? Lever eerst je code in.')){ LOG = nieuwLog(); bewaarLog(); for (const k in PER_WP) delete PER_WP[k]; toonInleveren(); } };
