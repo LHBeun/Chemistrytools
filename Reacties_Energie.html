@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reacties en energie</title>
+<style>
+:root{
+  --papier:#f3efe6; --vel:#fffdf8; --rand:#e3dccb; --rand2:#d6cdb8;
+  --inkt:#2b2a27; --inkt2:#3e3b35; --grijs:#7a756b; --goud:#a0701f; --goud2:#e2a84b;
+  --nacht:#24323f; --nacht2:#33475a; --nachttekst:#cfd9e2;
+  --goed:#3f8f63; --goedbg:#e5f2ea; --fout:#b4473a; --foutbg:#f8e6e2; --hint:#fbf1da;
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --sans: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Consolas, 'Liberation Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--papier);color:var(--inkt);font-size:15px;line-height:1.6}
+sub,sup{font-size:.72em;line-height:0}
+button{font-family:inherit}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
+
+/* ---------- zijbalk ---------- */
+aside{background:var(--nacht);color:var(--nachttekst);padding:26px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+aside h1{font-family:var(--serif);font-size:23px;color:#fff;font-weight:600;line-height:1.2}
+aside .sub{font-size:12.5px;color:#8aa0b3;margin:4px 0 26px}
+aside nav a{display:flex;gap:12px;align-items:center;padding:10px 10px;border-radius:9px;font-size:14.5px;margin-bottom:4px;color:#b9c7d3;cursor:pointer;user-select:none;line-height:1.3}
+aside nav a:hover{background:#2c3d4d}
+aside nav a i{font-style:normal;flex:none;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #5d7387;font-size:12.5px;font-weight:700}
+aside nav a.on{background:var(--nacht2);color:#fff}
+aside nav a.on i{background:var(--goud2);border-color:var(--goud2);color:var(--nacht)}
+aside nav a.klaar i{background:#5aa37c;border-color:#5aa37c;color:#fff}
+aside nav a small{display:block;font-size:11.5px;color:#8aa0b3}
+aside .voet{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+aside .voet button{background:transparent;border:1px solid #4b6074;color:#cfd9e2;border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer;text-align:left}
+aside .voet button:hover{background:#2c3d4d}
+aside .voet .klein{font-size:11.5px;color:#6f859a}
+aside .kc{display:flex;gap:6px}aside .kc input{flex:1;min-width:0;background:#1b2731;border:1px solid #4b6074;color:#fff;border-radius:8px;padding:7px 9px;font-size:13px;text-transform:uppercase}
+aside .kc button{flex:none}aside .kcinfo{font-size:12px;color:#e2a84b}
+aside .voet button.inlever{border-color:#e2a84b;color:#f3d08f}
+.inleverpaneel textarea{width:100%;min-height:110px;font-family:var(--mono,monospace);font-size:12.5px;border:1px solid var(--rand2);border-radius:8px;padding:8px;background:#fff;word-break:break-all}
+.inleverpaneel .deel{margin:10px 0}.inleverpaneel .deel b{display:block;margin-bottom:4px}
+.exitband{background:#fdf3dc;border:1px solid #e9cf95;border-radius:10px;padding:9px 13px;margin:0 0 12px;font-size:14.5px}
+
+/* ---------- werkplaats ---------- */
+.wp{display:grid;grid-template-columns:minmax(380px,1fr) minmax(540px,640px);min-height:100vh}
+.tekst{padding:34px 38px 60px;max-width:760px}
+.kicker{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--goud);font-weight:700}
+.tekst h2{font-family:var(--serif);font-size:31px;margin:3px 0 14px;font-weight:600;line-height:1.2}
+.tekst h3{font-family:var(--serif);font-size:19px;margin:22px 0 6px;font-weight:600}
+.tekst p{margin-bottom:10px;color:var(--inkt2)}
+.tekst ul{margin:0 0 10px 20px;color:var(--inkt2)}
+.tekst li{margin-bottom:3px}
+.kader{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--goud2);border-radius:8px;padding:10px 14px;margin:10px 0 12px;color:var(--inkt2)}
+.kader.binas{border-left-color:#5d7387}
+.f{white-space:nowrap}
+.tabs{display:flex;gap:4px;margin:20px 0 14px;border-bottom:1px solid var(--rand2)}
+.tabs button{background:none;border:0;padding:9px 14px;font-size:14px;font-weight:600;color:var(--grijs);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--inkt);border-bottom-color:var(--goud2)}
+.tabs button .tel{font-weight:500;font-size:12px;color:var(--grijs);margin-left:4px}
+
+/* voorbeeld */
+.vb{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:16px 18px;margin:4px 0 14px}
+.vb .vbkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--goud);margin-bottom:4px}
+.vb .vbvraag{font-weight:600;margin-bottom:8px}
+.vbstap{display:flex;gap:12px;padding:8px 0;border-top:1px dashed var(--rand2)}
+.vbstap .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
+.vbstap .b{color:var(--inkt2)}
+.vb .verder{margin-top:8px}
+
+/* opdrachten */
+.oknop{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.oknop .dot{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--rand2);background:var(--vel);display:grid;place-items:center;font-size:12.5px;font-weight:700;color:var(--grijs);cursor:pointer}
+.oknop .dot.on{border-color:var(--inkt);color:var(--inkt);box-shadow:0 0 0 2px var(--inkt) inset}
+.oknop .dot.goed{background:var(--goed);border-color:var(--goed);color:#fff}
+.oknop .dot.ster{border-style:dashed}
+.oknop .rechts{margin-left:auto;font-size:13px;color:var(--grijs)}
+.opdkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--grijs);margin-bottom:4px}
+.opdkop .st{color:var(--goud)}
+.opdvraag{font-size:16px;margin-bottom:12px;color:var(--inkt)}
+.stap{display:flex;gap:12px;padding:13px 15px;background:var(--vel);border:1px solid var(--rand);border-radius:11px;margin-bottom:10px}
+.stap>.n{flex:none;width:25px;height:25px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12.5px;font-weight:700;margin-top:1px}
+.stap.dicht{opacity:.42;pointer-events:none}
+.stap.dicht .inv{display:none}
+.stap.goed{border-color:#bcdcc8;background:#fbfefc}
+.stap.goed>.n{background:var(--goed)}
+.stap .inh{flex:1;min-width:0}
+.stap .vr{margin-bottom:8px}
+.rij{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input.in{font-family:var(--mono);font-size:15px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;background:#fff;min-width:0;flex:1 1 100%}
+input.in:focus{outline:2px solid var(--goud2);outline-offset:0;border-color:var(--goud2)}
+.voorbeeldweergave{font-size:13px;color:var(--grijs);min-height:20px;margin-top:4px}
+.voorbeeldweergave b{color:var(--inkt);font-weight:600;font-size:15px}
+select.sel{border:1px solid var(--rand2);border-radius:8px;padding:7px 9px;font-size:14px;background:#fff;color:var(--inkt);font-family:inherit}
+.btn{border:0;border-radius:8px;padding:8px 15px;font-weight:600;font-size:14px;cursor:pointer;background:var(--inkt);color:#fff}
+a.btn{display:inline-block;text-decoration:none}
+.btn:hover{background:#45433e}
+.btn.g{background:#ebe4d4;color:var(--inkt)}
+.btn.g:hover{background:#e0d7c3}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.klein{padding:5px 11px;font-size:13px}
+.fb{margin-top:8px;padding:8px 11px;border-radius:8px;font-size:14px;display:none}
+.fb.toon{display:block}
+.fb.goed{background:var(--goedbg);color:#255c3d}
+.fb.fout{background:var(--foutbg);color:#7c2c22}
+.fb.hint{background:var(--hint);color:#6b4d12}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1.5px solid var(--rand2);background:#fff;border-radius:999px;padding:4px 12px;font-size:14px;cursor:pointer;user-select:none;color:var(--inkt)}
+.chip:hover{border-color:#b9ad93}
+.chip.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.opties{display:flex;flex-direction:column;gap:6px}
+.optie{border:1.5px solid var(--rand2);background:#fff;border-radius:9px;padding:8px 12px;font-size:14.5px;cursor:pointer;text-align:left;color:var(--inkt)}
+.optie:hover{border-color:#b9ad93}
+.optie.aan{border-color:var(--nacht);background:#eef2f6}
+.typtip{font-size:12.5px;color:var(--grijs);margin-top:14px;line-height:1.5}
+.typtip code{font-family:var(--mono);background:#ebe4d4;border-radius:4px;padding:0 4px;font-size:12px}
+.klaarbanner{background:var(--goedbg);border:1px solid #bcdcc8;color:#255c3d;border-radius:11px;padding:12px 15px;margin:4px 0 12px}
+
+/* ---------- simulatiekolom ---------- */
+.simkol{background:var(--vel);border-left:1px solid var(--rand);padding:22px 22px 30px;display:flex;flex-direction:column;gap:12px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.simkol>*{flex-shrink:0}
+.simkop{display:flex;justify-content:space-between;align-items:baseline}
+.simkop b{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--goud)}
+.simkop span{font-size:12.5px;color:var(--grijs)}
+.ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ctrl label{font-size:13.5px;color:var(--inkt2);display:flex;gap:6px;align-items:center}
+.doek{border:1px solid var(--rand);border-radius:12px;background:#fbf8f1;position:relative;overflow:hidden}
+.doek canvas{display:block;width:100%;height:auto}
+.waarneming{font-size:14px;color:var(--inkt2);min-height:22px}
+.waarneming b{color:var(--inkt)}
+.vgl{font-family:var(--serif);font-size:19px;text-align:center;min-height:30px;color:var(--inkt)}
+.tabelkop{font-size:12px;font-weight:700;letter-spacing:1.2px;color:var(--goud);margin-bottom:6px;text-transform:uppercase}
+table.b45{border-collapse:collapse;font-size:13px;background:#fff;color:var(--inkt)}
+table.b45 th,table.b45 td{border:1px solid #6d6a62;padding:2px 0;text-align:center;width:38px}
+table.b45 th{font-weight:600;background:#fff}
+table.b45 th.hoek{width:46px;font-size:10px;font-weight:400;color:var(--grijs)}
+table.b45 td.licht{background:#f6e3bf;font-weight:700}
+table.b45 tr.licht th, table.b45 th.licht{background:#f3ead6}
+.legenda{font-size:12px;color:var(--grijs);margin-top:6px;line-height:1.45}
+.balk{display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.balk .lijn{display:flex;align-items:center;gap:8px}
+.balk .lijn span.lab{width:120px;color:var(--inkt2)}
+.balk .vak{display:flex;gap:3px;flex-wrap:wrap}
+.balk .q{width:18px;height:18px;border-radius:4px;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff}
+.balk .q.p{background:#c4822b}.balk .q.m{background:#3b6fa8}
+.uitkomst{background:#fff;border:1px solid var(--rand);border-radius:10px;padding:10px 14px;font-size:14.5px}
+.uitkomst .groot{font-family:var(--serif);font-size:22px}
+.buislog{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:12px}
+.buislog div{background:#fff;border:1px solid var(--rand);border-radius:8px;padding:5px 7px;line-height:1.35}
+.buislog div b{display:block;font-size:12.5px}
+
+/* breuken en eenheden */
+.br{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.15;margin:0 2px;font-size:.92em}
+.br>span:first-child{border-bottom:1.3px solid currentColor;padding:0 3px 1px}.br>span:last-child{padding:1px 3px 0}
+input.in.getal{flex:0 0 150px}.eenheid{font-size:15px;color:var(--inkt2)}
+.typtip .br{font-size:.85em}
+/* beamerstand */
+body.beamer{font-size:18px}
+body.beamer .tekst h2{font-size:36px}
+body.beamer .opdvraag{font-size:19px}
+body.beamer input.in{font-size:18px}
+body.beamer .optie, body.beamer .chip{font-size:17px}
+body.beamer table.b45{font-size:15px}
+
+@media (max-width:1180px){
+  .wp{grid-template-columns:1fr}
+  .simkol{position:static;height:auto;border-left:0;border-top:1px solid var(--rand)}
+}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  aside{position:static;height:auto}
+}
+@media print{aside,.simkol{display:none}.wp{display:block}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <h1>Reacties en energie</h1>
+    <div class="sub">3 vwo · hoofdstuk 4</div>
+    <nav id="nav"></nav>
+    <div class="voet">
+      <div class="kc"><input id="kcin" placeholder="klascode (optioneel)" autocomplete="off"><button id="kcknop">Gebruik</button></div>
+      <div class="kcinfo" id="kcinfo"></div>
+      <button id="inleverknop" class="inlever">Inleveren: maak je code</button>
+      <button id="beamerknop">Beamerstand</button>
+      <button id="resetknop">Voortgang wissen</button>
+      <div class="klein">L.H. Beun · rekenen met exacte atoommassa's</div>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const kies = arr => arr[Math.floor(Math.random() * arr.length)];
+function schud(arr){ const a = arr.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const ggd = (a, b) => b ? ggd(b, a % b) : a;
+function norm(s){
+  const sup = { '⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9','⁺':'+','⁻':'-' };
+  const sub = { '₀':'0','₁':'1','₂':'2','₃':'3','₄':'4','₅':'5','₆':'6','₇':'7','₈':'8','₉':'9' };
+  return s.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻]/g, c => sup[c]).replace(/[₀-₉]/g, c => sub[c])
+          .replace(/[−–—]/g, '-').replace(/→|=>|-->|⟶/g, '->').replace(/\^/g, '').replace(/\s+/g, '');
+}
+
+/* =====================================================================
+   Scheikundehulpen: formules, vergelijkingen, getallen
+   ===================================================================== */
+const AM = { H:1.008, C:12.01, N:14.01, O:16.00, S:32.06, Cl:35.45, Br:79.90, Ag:107.9, Hg:200.6, Cu:63.55, Na:22.99 };
+const ELEMENTEN = new Set(['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca','Fe','Cu','Zn','Br','Ag','I','Hg','Pb','Au','Sn','Ti','Cr','Mn','Ni','Co','Ba']);
+/* 'C2H6O' -> {C:2, H:6, O:1}; null als het geen geldige formule is */
+function telAtomen(f){
+  let i = 0;
+  function groep(){
+    const o = {};
+    while (i < f.length && f[i] !== ')'){
+      if (f[i] === '('){ i++; const g = groep(); if (f[i] !== ')') throw 0; i++; const m = f.slice(i).match(/^\d+/); const n = m ? +m[0] : 1; if (m) i += m[0].length; for (const k in g) o[k] = (o[k] || 0) + g[k] * n; continue; }
+      const m = f.slice(i).match(/^([A-Z][a-z]?)(\d*)/);
+      if (!m || !ELEMENTEN.has(m[1])) throw 0;
+      i += m[0].length; o[m[1]] = (o[m[1]] || 0) + (m[2] ? +m[2] : 1);
+    }
+    return o;
+  }
+  try { const o = groep(); return i === f.length && Object.keys(o).length ? o : null; } catch (e){ return null; }
+}
+const samenst = o => Object.keys(o).sort().map(k => k + o[k]).join('');
+const molmassa = f => Object.entries(telAtomen(f)).reduce((s, [k, n]) => s + AM[k] * n, 0);
+const fHTML = f => `<span class="f">${f.replace(/([A-Za-z)])(\d+)/g, '$1<sub>$2</sub>')}</span>`;
+const nl = (x, d = 2) => Number(x).toLocaleString('nl-NL', { minimumFractionDigits: d, maximumFractionDigits: d, useGrouping: false });
+const sig = (x, n = 3) => { if (!x) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return nl(x, d); };
+/* breuk met breukstreep (ook voor samengestelde eenheden) */
+const br = (t, n) => `<span class="br"><span>${t}</span><span>${n}</span></span>`;
+const EH = { gmol: br('g', 'mol'), molL: br('mol', 'L'), gL: br('g', 'L') };
+function amLijst(f){ return [...new Set(Object.keys(telAtomen(f)))].sort((a, b) => 'CHONS'.indexOf(a) - 'CHONS'.indexOf(b)).map(k => `${k} = ${nl(AM[k], AM[k] < 2 ? 3 : 2)}`).join(' · '); }
+
+/* ---------- reactievergelijkingen met moleculen ---------- */
+function leesMolVgl(invoer){
+  const s = norm(invoer).replace(/\((s|l|g|aq)\)/g, '');
+  if (!s.includes('->')) return { fout:'pijl' };
+  const d = s.split('->'); if (d.length !== 2) return { fout:'pijlen' };
+  const kant = t => {
+    if (!t) return { leeg:true };
+    const uit = [];
+    for (const term of t.split('+')){
+      const m = term.match(/^(\d*)([A-Z(].*)$/);
+      if (!m) return { onleesbaar: term || '+' };
+      const n = m[1] ? +m[1] : 1; if (!n) return { onleesbaar: term };
+      const o = telAtomen(m[2]); if (!o) return { onleesbaar: m[2] };
+      uit.push({ n, f:m[2], o, s: samenst(o) });
+    }
+    return uit;
+  };
+  const L = kant(d[0]), R = kant(d[1]);
+  for (const k of [L, R]){ if (k.leeg) return { fout:'leeg' }; if (k.onleesbaar) return { fout:'formule', wat:k.onleesbaar }; }
+  return { L, R };
+}
+const TWEEATOMIG = { O:'zuurstof', H:'waterstof', N:'stikstof', Cl:'chloor', Br:'broom' };
+/* verw: { L:[[n, f], ...], R:[...] }; o.alleenStoffen: coëfficiënten niet controleren */
+function checkMolVgl(invoer, verw, o = {}){
+  if (!invoer.trim()) return { ok:false, msg:'Typ eerst een vergelijking.' };
+  const v = leesMolVgl(invoer);
+  if (v.fout === 'pijl') return { ok:false, msg:'Er ontbreekt een pijl. Typ de pijl als <code>-></code>.' };
+  if (v.fout === 'pijlen') return { ok:false, msg:'Gebruik precies één pijl.' };
+  if (v.fout === 'leeg') return { ok:false, msg:'Zet aan beide kanten van de pijl stoffen.' };
+  if (v.fout === 'formule') return { ok:false, msg:`Ik kan <code>${String(v.wat).replace(/</g, '&lt;')}</code> niet lezen als formule. Let op hoofdletters en kleine letters: Co is kobalt, CO is koolstofmono-oxide.` };
+  const verwS = kant => kant.map(([n, f]) => ({ n, f, s: samenst(telAtomen(f)), o: telAtomen(f) }));
+  const EL = verwS(verw.L), ER = verwS(verw.R);
+  const set = arr => [...new Set(arr.map(x => x.s))].sort().join('|');
+  const zelfde = (a, b) => set(a) === set(b);
+  if (!zelfde(v.L, EL) || !zelfde(v.R, ER)){
+    if (zelfde(v.L, ER) && zelfde(v.R, EL)) return { ok:false, msg:'De stoffen kloppen, maar ze staan aan de verkeerde kant van de pijl.' };
+    const verwF = EL.concat(ER).map(x => x.f);
+    const hl = v.L.concat(v.R).find(x => !EL.concat(ER).some(y => y.s === x.s) && verwF.some(f => f.toUpperCase() === x.f.toUpperCase()));
+    if (hl){ const f = verwF.find(f => f.toUpperCase() === hl.f.toUpperCase()); return { ok:false, msg:`Let op hoofdletters en kleine letters: bedoel je ${fHTML(f)}? Een kleine letter hoort bij hetzelfde symbool (Co is kobalt).` }; }
+    for (const x of v.L.concat(v.R)){
+      const el = Object.keys(x.o); if (el.length === 1 && x.o[el[0]] === 1 && TWEEATOMIG[el[0]] && EL.concat(ER).some(y => y.s === el[0] + '2'))
+        return { ok:false, msg:`Schrijf ${TWEEATOMIG[el[0]]} als ${fHTML(el[0] + '2')}: de moleculen van ${TWEEATOMIG[el[0]]} zijn opgebouwd uit twee atomen.` };
+    }
+    if (o.verbranding && !v.L.some(x => x.s === 'O2')) return { ok:false, msg:'Een verbranding is een reactie met zuurstof. Zuurstof hoort dus voor de pijl.' };
+    if (o.ontleding && v.L.length > 1) return { ok:false, msg:'Bij een ontleding staat er maar één stof voor de pijl.' };
+    const mist = ER.filter(x => !v.R.some(y => y.s === x.s)), teveel = v.R.filter(x => !ER.some(y => y.s === x.s));
+    if (zelfde(v.L, EL) && teveel.length) return { ok:false, msg:`Na de pijl staat een stof die hier niet ontstaat: ${fHTML(teveel[0].f)}.` + (o.verbranding && teveel[0].s === 'O2' ? ' Zuurstof is een beginstof.' : '') };
+    if (zelfde(v.L, EL) && mist.length) return { ok:false, msg:'Na de pijl mist nog een stof.' + (o.verbranding ? ' Welke atoomsoorten zitten er in de brandstof?' : '') };
+    return { ok:false, msg:'Voor of na de pijl staan nog niet de juiste stoffen.' };
+  }
+  if (o.alleenStoffen) return { ok:true };
+  const tel = kant => { const t = {}; for (const x of kant) for (const k in x.o) t[k] = (t[k] || 0) + x.o[k] * x.n; return t; };
+  const tl = tel(v.L), tr = tel(v.R);
+  const scheef = Object.keys({ ...tl, ...tr }).filter(k => tl[k] !== tr[k]);
+  if (scheef.length) return { ok:false, msg:`Nog niet kloppend: het aantal ${scheef.map(k => k + '-atomen').join(' en het aantal ')} voor en na de pijl is nog niet gelijk.` };
+  const cs = v.L.concat(v.R).map(x => x.n), g = cs.reduce((a, b) => ggd(a, b));
+  if (g > 1) return { ok:false, msg:'De vergelijking klopt, maar gebruik de kleinst mogelijke gehele getallen als coëfficiënten.' };
+  return { ok:true };
+}
+const vglTyp = v => [v.L, v.R].map(k => k.map(([n, f]) => (n > 1 ? n + ' ' : '') + f).join(' + ')).join(' -> ');
+const vglHTML = v => [v.L, v.R].map(k => k.map(([n, f]) => (n > 1 ? n + ' ' : '') + fHTML(f)).join(' + ')).join(' → ');
+const stoffenTyp = v => [v.L, v.R].map(k => k.map(([, f]) => f).join(' + ')).join(' -> ');
+const stoffenHTML = v => [v.L, v.R].map(k => k.map(([, f]) => fHTML(f)).join(' + ')).join(' → ');
+/* invoer netjes weergeven zoals de tool hem leest */
+function mooi(invoer){
+  const t = norm(invoer);
+  return t.split('->').map(kant => kant.split('+').map(term => { const m = term.match(/^(\d*)(.*)$/); return (m[1] ? m[1] + ' ' : '') + fHTML(m[2]); }).join(' + ')).join(' → ');
+}
+/* verbranding: CxHyOzSw + b O2 -> x CO2 + y/2 H2O + w SO2 (kleinste gehele getallen) */
+function verbrandVgl(f, onvolledig = false){
+  const a0 = telAtomen(f), x = a0.C || 0, y = a0.H || 0, z = a0.O || 0, w = a0.S || 0;
+  for (let a = 1; a <= 8; a++){
+    const o2 = onvolledig ? a * (x + y / 2 - z) / 2 : a * (2 * x + y / 2 + 2 * w - z) / 2, h2o = a * y / 2;
+    if (Number.isInteger(o2) && Number.isInteger(h2o) && o2 > 0){
+      const R = []; if (x) R.push([a * x, onvolledig ? 'CO' : 'CO2']); if (y) R.push([h2o, 'H2O']); if (w) R.push([a * w, 'SO2']);
+      return { L:[[a, f], [o2, 'O2']], R };
+    }
+  }
+}
+
+/* ---------- getallen ---------- */
+function leesGetal(v){
+  const s = String(v).trim().replace(/\s/g, '').replace(',', '.').replace(/[×x·*]10\^?(-?\d+)$/i, 'e$1');
+  if (!/^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(s)) return NaN;
+  return parseFloat(s);
+}
+
+/* =====================================================================
+   Stappen
+   ===================================================================== */
+function keuzeStap(vr, opties, o = {}){
+  const opts = o.vast ? opties : schud(opties);
+  return { type:'keuze', meer: !!o.meer, vr: vr + (o.meer ? ' <i>Kies alle juiste.</i>' : ''), opties: opts, hint: o.hint || '',
+    check: v => {
+      if (!v.length) return { ok:false, msg:'Kies een antwoord.' };
+      const sel = v.map(j => opts[j]), goed = opts.filter(x => x.g);
+      if (sel.length === goed.length && sel.every(x => x.g)) return { ok:true, msg: o.goedMsg };
+      const fb = sel.find(x => !x.g && x.fb); if (fb) return { ok:false, msg: fb.fb };
+      if (o.meer && sel.every(x => x.g)) return { ok:false, msg:'Je mist er nog een.' };
+      return { ok:false, msg: o.fout || 'Nog niet goed.' };
+    },
+    antwoord: () => opts.filter(x => x.g).map(x => x.html).join('; ') + (o.uitleg ? '. ' + o.uitleg : ''), goed: () => opts.map((x, j) => x.g ? j : -1).filter(j => j >= 0) };
+}
+function chipsStap(vr, opties, o = {}){
+  const opts = o.vast ? opties : schud(opties);
+  return { type:'chips', vr, opties: opts, hint: o.hint || '',
+    check: v => {
+      if (!v.length) return { ok:false, msg:'Klik eerst de juiste antwoorden aan.' };
+      const sel = v.map(j => opts[j]);
+      const fout = sel.find(x => !x.g);
+      if (fout) return { ok:false, msg: fout.fb || o.fout || 'Er staat er een tussen die niet klopt.' };
+      if (sel.length < opts.filter(x => x.g).length) return { ok:false, msg: o.mist || 'Je mist er nog een of meer.' };
+      return { ok:true, msg:o.goedMsg };
+    },
+    antwoord: () => opts.filter(x => x.g).map(x => x.html).join(', ') + (o.uitleg ? '. ' + o.uitleg : ''), goed: () => opts.map((x, j) => x.g ? j : -1).filter(j => j >= 0) };
+}
+/* items: [{ lab, g, fb }], cats: [{ v, t }] */
+function selectsStap(vr, items, cats, o = {}){
+  return { type:'selects', vr, hint: o.hint || '', selects: items.map(x => ({ lab: x.lab, opties: cats })),
+    check: v => {
+      if (v.some(x => !x)) return { ok:false, msg:'Maak bij elke stof een keuze.' };
+      const fout = items.filter((x, j) => v[j] !== x.g);
+      if (!fout.length) return { ok:true, msg:o.goedMsg };
+      const metFb = fout.find(x => x.fb);
+      return { ok:false, msg: (fout.length === 1 ? 'Eén keuze klopt nog niet.' : fout.length + ' keuzes kloppen nog niet.') + (metFb && fout.length === 1 ? ' ' + metFb.fb : '') };
+    },
+    antwoord: () => items.map(x => `${x.lab}: ${cats.find(c => c.v === x.g).t}`).join(' · '), goed: () => items.map(x => x.g) };
+}
+/* waarde: goede antwoord; o: { eh (eenheid, html), tol, fouten:[[waarde, melding]], antw (uitwerking), hint } */
+function getalStap(vr, waarde, o = {}){
+  const tol = o.tol || 0.015;
+  const bij = (x, w) => Math.abs(x - w) <= Math.abs(w) * tol;
+  return { type:'getal', vr, eh: o.eh || '', hint: o.hint || '', ph: 'getal',
+    check: v => {
+      if (!String(v).trim()) return { ok:false, msg:'Typ eerst een getal.' };
+      const x = leesGetal(v);
+      if (isNaN(x)) return { ok:false, msg:'Typ alleen een getal, bijvoorbeeld <code>0,25</code>. De eenheid staat er al achter.' };
+      if (bij(x, waarde)) return { ok:true, msg: o.goedMsg };
+      for (const [w, m] of (o.fouten || [])) if (w && bij(x, w)) return { ok:false, msg:m };
+      if (bij(x * 1000, waarde) || bij(x / 1000, waarde)) return { ok:false, msg:'Je zit er een factor 1000 naast. Controleer de eenheden: mL of L, g of mg?' };
+      return { ok:false, msg: o.fout || 'Nog niet goed. Controleer je berekening.' };
+    },
+    antwoord: () => o.antw || sig(waarde, 3), goed: () => sig(waarde, 4) };
+}
+/* o: { check(invoer) -> {ok,msg}, antw (html), goedTyp, ph } */
+function tekstStap(vr, o){ return { type:'tekst', vr, ph: o.ph || '', hint: o.hint || '', check: o.check, antwoord: () => o.antw, goed: () => o.goedTyp }; }
+function vglStap(vr, verw, o = {}){
+  return tekstStap(vr, { ph: o.alleenStoffen ? 'bijvoorbeeld: CH4 + O2 -> CO2 + H2O' : 'bijvoorbeeld: 2 H2 + O2 -> 2 H2O', hint: o.hint,
+    check: v => checkMolVgl(v, verw, o), antw: o.alleenStoffen ? stoffenHTML(verw) : vglHTML(verw), goedTyp: o.alleenStoffen ? stoffenTyp(verw) : vglTyp(verw) });
+}
+/* stap die in de simulatie wordt uitgevoerd; test() leest de simulatie, doe() zet hem goed (voor 'toon antwoord') */
+function simStap(vr, test, o = {}){
+  return { type:'sim', vr, hint: o.hint || '', check: () => test() ? { ok:true, msg:o.goedMsg } : { ok:false, msg: o.fout || 'Nog niet goed. Stel de simulatie in zoals gevraagd.' },
+    antwoord: () => { o.doe && o.doe(); return o.antw || 'zie de simulatie'; }, doe: o.doe };
+}
+
+/* ---------- opslag ---------- */
+const OPSLAG = 'reacties-energie-v1';
+function laad(){ try { return JSON.parse(localStorage.getItem(OPSLAG)) || {}; } catch (e){ return {}; } }
+function bewaar(o){ try { localStorage.setItem(OPSLAG, JSON.stringify(o)); } catch (e){} }
+
+/* ---------- logboek (voor de docent: antwoorden en foutenanalyse) ---------- */
+const LOGKEY = 'reacties-energie-log-v1', KCKEY = 'reacties-energie-klascode';
+function nieuwLog(){ return { t0: Date.now(), ev: [], ctx: {} }; }
+let LOG = (() => { try { const l = JSON.parse(localStorage.getItem(LOGKEY)); return l && l.ev ? l : nieuwLog(); } catch (e){ return nieuwLog(); } })();
+function bewaarLog(){ if (LOG.ev.length > 4000) LOG.ev = LOG.ev.slice(-4000); try { localStorage.setItem(LOGKEY, JSON.stringify(LOG)); } catch (e){} }
+const kaal = h => String(h == null ? '' : h).replace(/<sup>(.*?)<\/sup>/g, '^$1').replace(/<span class="br"><span>(.*?)<\/span><span>(.*?)<\/span><\/span>/g, '$1/$2').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ').trim();
+/* gebeurtenis: [tijd s, werkplaats-id, serie, opdracht, stap, soort (c/h/a), invoer, goed 1/0, melding] */
+function logEv(w, p, k, soort, invoer, ok, msg){
+  LOG.ev.push([Math.round((Date.now() - LOG.t0) / 1000), w.id, p.sid, p.idx, k, soort, invoer == null ? '' : String(invoer).slice(0, 160), ok ? 1 : 0, kaal(msg).slice(0, 160)]);
+  bewaarLog();
+}
+function logSerie(w, p){
+  LOG.ctx[w.id + '|' + p.sid] = { kc: STAAT.klascode || '', x: p.exit ? 1 : 0, o: p.serie.map(o => [kaal(o.titel), kaal(o.vraag).slice(0, 220), o.ster ? 1 : 0, o.stappen.map(st => kaal(st.vr).slice(0, 140))]) };
+  bewaarLog();
+}
+/* activiteit (lezen, scrollen, simulatie): hoogstens één keer per 30 s, telt mee voor actieve tijd, niet als antwoord */
+let laatsteAct = 0;
+function logAct(){ const nu = Date.now(); if (nu - laatsteAct < 30000) return; laatsteAct = nu; const w = WPS[STAAT.wp]; LOG.ev.push([Math.round((nu - LOG.t0) / 1000), w ? w.id : '', '', -1, -1, 'x', STAAT.tab || '', 1, '']); bewaarLog(); }
+['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(t => document.addEventListener(t, logAct, { passive:true, capture:true }));
+/* zelfde serie voor iedereen met dezelfde klascode */
+function hashStr(t){ let h = 2166136261; for (const c of t){ h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function metZaad(zaad, fn){ if (!zaad) return fn(); const orig = Math.random; Math.random = mulberry(hashStr(zaad)); try { return fn(); } finally { Math.random = orig; } }
+
+/* =====================================================================
+   Tekenhulpen
+   ===================================================================== */
+function helder(hex){ const n = parseInt(hex.slice(1), 16); const r = n >> 16, g = (n >> 8) & 255, b = n & 255; return (0.299*r + 0.587*g + 0.114*b) / 255; }
+function mengKleur(hex, wit){ const n = parseInt(hex.slice(1), 16); let r = n >> 16, g = (n >> 8) & 255, b = n & 255; r = Math.round(r + (255-r)*wit); g = Math.round(g + (255-g)*wit); b = Math.round(b + (255-b)*wit); return `rgb(${r},${g},${b})`; }
+function tekenBeker(c, x, y, w, h, kleur = '#7d8a96'){
+  c.save(); c.strokeStyle = kleur; c.lineWidth = 2.4; c.lineJoin = 'round';
+  c.beginPath(); c.moveTo(x - 6, y); c.lineTo(x, y + 8); c.lineTo(x, y + h - 10); c.quadraticCurveTo(x, y + h, x + 10, y + h);
+  c.lineTo(x + w - 10, y + h); c.quadraticCurveTo(x + w, y + h, x + w, y + h - 10); c.lineTo(x + w, y); c.stroke();
+  c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 2; c.beginPath(); c.moveTo(x + 7, y + 18); c.lineTo(x + 7, y + h - 18); c.stroke();
+  c.restore();
+}
+function vloeistofVlak(c, x, y, w, h, niveau, kleur){
+  if (niveau <= 0) return;
+  c.save(); c.fillStyle = kleur;
+  c.beginPath(); c.moveTo(x + 1.5, y + h - niveau); c.lineTo(x + w - 1.5, y + h - niveau); c.lineTo(x + w - 1.5, y + h - 10);
+  c.quadraticCurveTo(x + w - 1.5, y + h - 1.5, x + w - 10, y + h - 1.5); c.lineTo(x + 10, y + h - 1.5); c.quadraticCurveTo(x + 1.5, y + h - 1.5, x + 1.5, y + h - 10); c.closePath(); c.fill();
+  c.strokeStyle = 'rgba(70,120,170,.35)'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x + 1.5, y + h - niveau); c.lineTo(x + w - 1.5, y + h - niveau); c.stroke();
+  c.restore();
+}
+function tekst(c, t, x, y, o = {}){
+  c.save(); c.font = `${o.vet ? '600 ' : ''}${o.i ? 'italic ' : ''}${o.px || 13}px ${o.serif ? 'Georgia, serif' : getComputedStyle(document.body).fontFamily}`;
+  c.fillStyle = o.kleur || '#5d5a52'; c.textAlign = o.al || 'center'; c.textBaseline = 'middle'; c.fillText(t, x, y); c.restore();
+}
+const lerp = (a, b, t) => a + (b - a) * t;
+
+/* =====================================================================
+   Algemene opbouw: zijbalk, werkplaats, voorbeeld, opdrachten in stappen
+   ===================================================================== */
+const WPS = [];
+const STAAT = { wp:0, tab:'uitleg', voortgang: laad(), klascode: (() => { try { return localStorage.getItem(KCKEY) || ''; } catch (e){ return ''; } })() };
+const PER_WP = {};             /* per werkplaats: { serie, idx, st:[{stap, goed:[], getoond, pogingen}] } */
+let SIM = null;
+
+function maakCanvas(host, w, h){
+  const c = document.createElement('canvas'), dpr = Math.max(1, window.devicePixelRatio || 1);
+  c.width = w * dpr; c.height = h * dpr; c.style.aspectRatio = w + ' / ' + h;
+  host.appendChild(c);
+  const ctx = c.getContext('2d'); ctx.scale(dpr, dpr); ctx.W = w; ctx.H = h; ctx.canvas_ = c;
+  return ctx;
+}
+
+function renderNav(){
+  $('#nav').innerHTML = WPS.map((w, i) => {
+    const klaar = STAAT.voortgang[w.id] && STAAT.voortgang[w.id].klaar;
+    return `<a data-i="${i}" class="${i === STAAT.wp ? 'on' : ''} ${klaar ? 'klaar' : ''}"><i>${klaar ? '✓' : w.ster ? '★' : i + 1}</i><span>${w.titel}<small>${w.par}</small></span></a>`;
+  }).join('');
+  $$('#nav a').forEach(a => a.onclick = () => open(+a.dataset.i));
+}
+
+function open(i){
+  STAAT.wp = i; STAAT.tab = 'uitleg';
+  const w = WPS[i];
+  if (!PER_WP[w.id]) nieuweSerie(w);
+  $('#main').innerHTML = `<div class="wp"><section class="tekst" id="tekst"></section><section class="simkol" id="simkol"></section></div>`;
+  SIM = w.sim; SIM.init($('#simkol'));
+  renderTekst(); renderNav();
+  window.scrollTo(0, 0);
+}
+
+function nieuweSerie(w){
+  const nr = ((PER_WP[w.id] && PER_WP[w.id].nr) || 0) + 1;
+  const serie = metZaad(STAAT.klascode && STAAT.klascode + '|' + w.id + '|' + nr, () => w.maakSerie());
+  PER_WP[w.id] = { serie, nr, sid: String(nr) + (STAAT.klascode ? '@' + STAAT.klascode : '') + '#' + (Date.now() % 100000).toString(36), idx:0, st: serie.map(() => ({ stap:0, getoond:false, klaar:false, pogingen:{} })) };
+  logSerie(w, PER_WP[w.id]);
+}
+/* exit-ticket: drie opdrachten, zonder hint en zonder 'toon antwoord', één poging per stap */
+function exitP(w){
+  const key = w.id + '#E';
+  if (!PER_WP[key]){
+    const volle = metZaad(STAAT.klascode && STAAT.klascode + '|' + w.id + '|exit', () => w.maakSerie());
+    const serie = volle.filter(o => !o.ster && !o.geenExit).slice(0, 3);
+    PER_WP[key] = { serie, exit:true, sid: 'E' + (STAAT.klascode ? '@' + STAAT.klascode : '') + '#' + (Date.now() % 100000).toString(36), idx:0, st: serie.map(() => ({ stap:0, getoond:false, klaar:false, pogingen:{}, fout:{} })) };
+    logSerie(w, PER_WP[key]);
+  }
+  return PER_WP[key];
+}
+const curP = w => STAAT.tab === 'exit' ? exitP(w) : PER_WP[w.id];
+
+function renderTekst(){
+  const w = WPS[STAAT.wp], p = PER_WP[w.id];
+  const pe = PER_WP[w.id + '#E'], nExit = pe ? pe.st.filter(x => x.klaar).length : 0;
+  const nGoed = p.st.filter((s, k) => s.klaar && !s.getoond && !p.serie[k].ster).length, nTot = p.serie.filter(o => !o.ster).length;
+  let h = `<div class="kicker">${w.ster ? 'Werkplaats ★ · verdieping' : 'Werkplaats ' + (STAAT.wp + 1) + ' · ' + w.par}</div><h2>${w.titel}</h2>
+    <div class="tabs"><button data-t="uitleg" class="${STAAT.tab === 'uitleg' ? 'on' : ''}">Uitleg en voorbeeld</button>
+    <button data-t="opd" class="${STAAT.tab === 'opd' ? 'on' : ''}">Opdrachten<span class="tel">${nGoed}/${nTot}</span></button>
+    <button data-t="exit" class="${STAAT.tab === 'exit' ? 'on' : ''}">Exit-ticket<span class="tel">${nExit}/3</span></button></div>`;
+  if (STAAT.tab === 'uitleg'){
+    h += w.uitleg() + renderVoorbeeld(w);
+  } else if (STAAT.tab === 'exit'){
+    h += `<div class="exitband"><b>Exit-ticket.</b> Drie opdrachten zonder hints. Je hebt per stap één poging; daarna zie je het juiste antwoord. Lever daarna je code in (knop links).</div>` + renderOpdracht(w, exitP(w));
+  } else {
+    h += renderOpdracht(w, p);
+  }
+  $('#tekst').innerHTML = h;
+  $$('#tekst .tabs button').forEach(b => b.onclick = () => { STAAT.tab = b.dataset.t; renderTekst(); if (STAAT.tab !== 'uitleg') zetOpdrachtInSim(); else SIM.opdracht && SIM.opdracht(null); });
+  if (STAAT.tab === 'uitleg') koppelVoorbeeld(w); else koppelOpdracht(w, curP(w));
+}
+
+/* ---------- uitgewerkt voorbeeld, stap voor stap ---------- */
+function renderVoorbeeld(w){
+  const vb = w.voorbeeld; if (!vb) return '';
+  const n = w._vbStap || 0;
+  let h = `<div class="vb"><div class="vbkop">Voorbeeld</div><div class="vbvraag">${vb.vraag}</div>`;
+  for (let k = 0; k < n; k++) h += `<div class="vbstap"><span class="n">${k + 1}</span><div class="b">${vb.stappen[k]}</div></div>`;
+  h += n < vb.stappen.length ? `<div class="verder"><button class="btn g klein" id="vbverder">${n ? 'Volgende stap' : 'Toon de uitwerking'} ▸</button></div>`
+                             : `<div class="verder"><button class="btn klein" id="naaropd">Naar de opdrachten ▸</button></div>`;
+  return h + '</div>';
+}
+function koppelVoorbeeld(w){
+  const b = $('#vbverder'); if (b) b.onclick = () => { w._vbStap = (w._vbStap || 0) + 1; renderTekst(); w.voorbeeld.bijStap && w.voorbeeld.bijStap(w._vbStap); };
+  const o = $('#naaropd'); if (o) o.onclick = () => { STAAT.tab = 'opd'; renderTekst(); zetOpdrachtInSim(); window.scrollTo(0, 0); };
+}
+
+/* ---------- opdrachten ---------- */
+function renderOpdracht(w, p){
+  const o = p.serie[p.idx], s = p.st[p.idx];
+  const nTot = p.serie.filter(x => !x.ster).length;
+  let h = '';
+  EXITMODUS = !!p.exit;
+  if (p.exit && p.st.every(x => x.klaar)) h += `<div class="klaarbanner"><b>Exit-ticket klaar.</b> Klik links op <b>Inleveren: maak je code</b>.</div>`;
+  else if (!p.exit && STAAT.voortgang[w.id] && STAAT.voortgang[w.id].klaar && p.st.every((x, k) => p.serie[k].ster || (x.klaar && !x.getoond)))
+    h += `<div class="klaarbanner"><b>Werkplaats afgerond.</b> Probeer ook de ★-opdrachten, of oefen met een nieuwe serie.</div>`;
+  h += `<div class="oknop">` + p.serie.map((x, k) => {
+    const st = p.st[k];
+    return `<span class="dot ${k === p.idx ? 'on' : ''} ${st.klaar && !st.getoond ? 'goed' : ''} ${x.ster ? 'ster' : ''}" data-k="${k}" title="${x.titel}">${x.ster ? '★' : k + 1}</span>`;
+  }).join('') + (p.exit ? '' : `<span class="rechts"><button class="btn g klein" id="nieuweserie">Nieuwe serie</button></span>`) + `</div>`;
+  h += `<div class="opdkop">${o.ster ? '<span class="st">★ </span>' : ''}${p.exit ? 'Exit-ticket ' : 'Opdracht '}${o.ster ? '★' : p.idx + 1}${o.ster ? '' : ' van ' + nTot} · ${o.titel}</div>`;
+  if (o.vraag) h += `<div class="opdvraag">${o.vraag}</div>`;
+  o.stappen.forEach((st, k) => {
+    const dicht = k > s.stap, goed = k < s.stap || s.klaar;
+    h += `<div class="stap ${dicht ? 'dicht' : ''} ${goed ? 'goed' : ''}" data-k="${k}">${o.stappen.length > 1 ? `<span class="n">${goed ? '✓' : k + 1}</span>` : ''}<div class="inh">
+      <div class="vr">${st.vr}</div>${goed ? `<div class="antw">${st.antwoord()}</div>` : `<div class="inv">${invoerHTML(st, k)}</div>`}
+      <div class="fb" id="fb${k}"></div></div></div>`;
+  });
+  if (s.klaar){
+    const volgende = p.idx < p.serie.length - 1;
+    h += `<div class="rij" style="margin-top:6px">${volgende ? `<button class="btn" id="volgende">Volgende opdracht ▸</button>` : ''}${o.naKlaar ? `<span class="waarneming">${o.naKlaar()}</span>` : ''}</div>`;
+  }
+  h += `<div class="typtip">${w.typtip || TYPTIP}</div>`;
+  return h;
+}
+let EXITMODUS = false;
+const TYPTIP = 'Zo typ je: <code>2 H2 + O2 -> 2 H2O</code> · getallen met een komma: <code>0,250</code>.';
+
+function invoerHTML(st, k){
+  const knoppen = `<button class="btn" data-ctl="${k}">Controleer</button>` + (EXITMODUS ? '' : `<button class="btn g" data-hint="${k}">Hint</button><button class="btn g" data-toon="${k}" style="display:none">Toon antwoord</button>`);
+  if (st.type === 'getal') return `<div class="rij"><input class="in getal" id="in${k}" autocomplete="off" spellcheck="false" inputmode="decimal" placeholder="${st.ph || ''}"><span class="eenheid">${st.eh || ''}</span>${knoppen}</div>`;
+  if (st.type === 'sim') return `<div class="rij">${knoppen}</div>`;
+  if (st.type === 'tekst') return `<div class="rij"><input class="in" id="in${k}" autocomplete="off" spellcheck="false" placeholder="${st.ph || ''}">${knoppen}</div><div class="voorbeeldweergave" id="vw${k}"></div>`;
+  if (st.type === 'chips') return `<div class="chips" id="ch${k}">${st.opties.map((x, j) => `<span class="chip" data-j="${j}">${x.html}</span>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'keuze') return `<div class="opties" id="op${k}">${st.opties.map((x, j) => `<button class="optie" data-j="${j}">${x.html}</button>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  if (st.type === 'selects') return `<div class="rij">${st.selects.map((s, j) => `<label style="font-size:14px">${s.lab} <select class="sel" id="se${k}_${j}"><option value="">kies…</option>${s.opties.map(x => `<option value="${x.v}">${x.t}</option>`).join('')}</select></label>`).join('')}</div><div class="rij" style="margin-top:9px">${knoppen}</div>`;
+  return '';
+}
+
+function koppelOpdracht(w, p){
+  const o = p.serie[p.idx], s = p.st[p.idx];
+  $$('.oknop .dot').forEach(d => d.onclick = () => { p.idx = +d.dataset.k; renderTekst(); zetOpdrachtInSim(); });
+  const ns = $('#nieuweserie'); if (ns) ns.onclick = () => { nieuweSerie(w); renderTekst(); zetOpdrachtInSim(); };
+  const v = $('#volgende'); if (v) v.onclick = () => { p.idx++; renderTekst(); zetOpdrachtInSim(); };
+  o.stappen.forEach((st, k) => {
+    if (k !== s.stap || s.klaar) return;
+    const inp = $('#in' + k);
+    if (inp){
+      inp.oninput = () => { const vw = $('#vw' + k); if (vw) vw.innerHTML = inp.value.trim() ? 'Zo lees ik het: <b>' + mooi(inp.value) + '</b>' : ''; };
+      inp.onkeydown = e => { if (e.key === 'Enter') controleer(w, p, k); };
+      setTimeout(() => inp.focus({ preventScroll:true }), 30);
+    }
+    $$(`#ch${k} .chip`).forEach(c => c.onclick = () => c.classList.toggle('aan'));
+    $$(`#op${k} .optie`).forEach(c => c.onclick = () => {
+      if (!st.meer) $$(`#op${k} .optie`).forEach(x => x !== c && x.classList.remove('aan'));
+      c.classList.toggle('aan');
+    });
+    $(`[data-ctl="${k}"]`).onclick = () => controleer(w, p, k);
+    if (p.exit) return;
+    $(`[data-hint="${k}"]`).onclick = () => { const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = st.hint; logEv(w, p, k, 'h', '', 0, ''); };
+    $(`[data-toon="${k}"]`).onclick = () => {
+      s.getoond = true; const fb = $('#fb' + k); fb.className = 'fb toon hint'; fb.innerHTML = 'Antwoord: ' + st.antwoord();
+      logEv(w, p, k, 'a', '', 0, '');
+      setTimeout(() => stapGoed(w, p, k), 1400);
+    };
+    if ((s.pogingen[k] || 0) >= 2) $(`[data-toon="${k}"]`).style.display = '';
+  });
+}
+function invoerTekst(st, v){
+  if (st.type === 'tekst' || st.type === 'getal') return v;
+  if (st.type === 'sim') return SIM && SIM.stand ? SIM.stand() : '';
+  if (st.type === 'chips' || st.type === 'keuze') return v.map(j => kaal(st.opties[j].html)).join(' | ');
+  if (st.type === 'selects') return v.map((x, j) => { const o = st.selects[j].opties.find(y => String(y.v) === String(x)); return o ? kaal(o.t) : '—'; }).join(' | ');
+  return JSON.stringify(v);
+}
+function waardeVan(st, k){
+  if (st.type === 'tekst' || st.type === 'getal') return $('#in' + k).value;
+  if (st.type === 'sim') return null;
+  if (st.type === 'chips') return $$(`#ch${k} .chip.aan`).map(c => +c.dataset.j);
+  if (st.type === 'keuze') return $$(`#op${k} .optie.aan`).map(c => +c.dataset.j);
+  if (st.type === 'selects') return st.selects.map((x, j) => $(`#se${k}_${j}`).value);
+}
+function controleer(w, p, k){
+  const o = p.serie[p.idx], s = p.st[p.idx], st = o.stappen[k];
+  const waarde = waardeVan(st, k);
+  const r = st.check(waarde);
+  const fb = $('#fb' + k);
+  /* in het exit-ticket mag je een proef in de simulatie overdoen: alleen het goede resultaat telt */
+  if (p.exit && st.type === 'sim' && !r.ok){ fb.className = 'fb toon hint'; fb.innerHTML = r.msg; return; }
+  logEv(w, p, k, 'c', invoerTekst(st, waarde), r.ok, r.ok ? '' : r.msg);
+  if (p.exit){
+    if (r.ok){ fb.className = 'fb toon goed'; fb.innerHTML = 'Goed.'; setTimeout(() => stapGoed(w, p, k), 650); }
+    else { s.fout[k] = 1; fb.className = 'fb toon fout'; fb.innerHTML = 'Niet goed. Het juiste antwoord: ' + st.antwoord(); $(`[data-ctl="${k}"]`).disabled = true; setTimeout(() => stapGoed(w, p, k), 2600); }
+    return;
+  }
+  if (r.ok){ fb.className = 'fb toon goed'; fb.innerHTML = r.msg || 'Goed!'; setTimeout(() => stapGoed(w, p, k), 650); }
+  else {
+    s.pogingen[k] = (s.pogingen[k] || 0) + 1;
+    fb.className = 'fb toon fout'; fb.innerHTML = r.msg;
+    if (s.pogingen[k] >= 2) $(`[data-toon="${k}"]`).style.display = '';
+  }
+}
+function stapGoed(w, p, k){
+  const o = p.serie[p.idx], s = p.st[p.idx];
+  if (s.stap !== k) return;
+  s.stap = k + 1;
+  if (s.stap >= o.stappen.length) s.klaar = true;
+  SIM.stapGoed && SIM.stapGoed(o, k);
+  if (s.klaar && !p.exit){
+    const nietSter = p.serie.map((x, j) => [x, p.st[j]]).filter(([x]) => !x.ster);
+    if (nietSter.every(([, y]) => y.klaar && !y.getoond)){
+      STAAT.voortgang[w.id] = { klaar:true }; bewaar(STAAT.voortgang); renderNav();
+    }
+  }
+  renderTekst();
+}
+function zetOpdrachtInSim(){
+  const w = WPS[STAAT.wp], p = curP(w), actief = STAAT.tab === 'opd' || STAAT.tab === 'exit';
+  SIM.opdracht && SIM.opdracht(actief ? p.serie[p.idx] : null, actief ? p.st[p.idx] : null);
+}
+
+
+/* lus */
+let tVorig = 0;
+function lus(t){
+  const dt = Math.min(0.05, (t - tVorig) / 1000 || 0); tVorig = t;
+  if (SIM){ SIM.update && SIM.update(dt); SIM.draw && SIM.draw(); }
+  requestAnimationFrame(lus);
+}
+
+/* =====================================================================
+   Werkplaats 1 — Verbranding (4.1)
+   ===================================================================== */
+const SIMV_STOF = {
+  aardgas:  { naam:'aardgas (methaan)', f:'CH4',    houder:'brander' },
+  ethanol:  { naam:'ethanol (spiritus)', f:'C2H6O', houder:'spiritus' },
+  waterstof:{ naam:'waterstof',          f:'H2',     houder:'brander' },
+  zwavel:   { naam:'zwavel',             f:'S',      houder:'lepel' },
+  kaars:    { naam:'kaarsvet',           f:'C25H52', houder:'kaars' }
+};
+const SIMV = {
+  init(host){
+    host.innerHTML = `<div class="simkop"><b>Verbranden en aantonen</b><span>proefopstelling</span></div>
+      <div class="ctrl"><label>Brandstof <select class="sel" id="v_stof">${Object.entries(SIMV_STOF).map(([k, s]) => `<option value="${k}">${s.naam}</option>`).join('')}</select></label>
+        <label>Luchttoevoer <input type="range" id="v_lucht" min="0" max="100" value="80" style="width:120px"> <span id="v_luchtw"></span></label></div>
+      <div class="ctrl"><button class="btn" id="v_aan">Aansteken</button><button class="btn g" id="v_stolp">Stolp erover</button><button class="btn g" id="v_water">Blussen met water</button><button class="btn g" id="v_kraan">Toevoer dicht</button><button class="btn g" id="v_reset">Opnieuw</button></div>
+      <div class="doek" id="v_doek"></div>
+      <div class="waarneming" id="v_w"></div>`;
+    this.c = maakCanvas($('#v_doek'), 600, 380);
+    $('#v_stof').onchange = e => this.kies(e.target.value);
+    $('#v_lucht').oninput = e => { this.lucht = +e.target.value / 100; this.toonLucht(); };
+    $('#v_aan').onclick = () => this.aansteken();
+    $('#v_stolp').onclick = () => { this.stolp = !this.stolp; if (this.stolp && this.brandt) this.dooft = 1.4; this.knoppen(); };
+    $('#v_water').onclick = () => { this.nat = 3; if (this.brandt) this.dooft = 0.5; this.knoppen(); };
+    $('#v_kraan').onclick = () => { this.kraan = !this.kraan; if (!this.kraan && this.brandt) this.dooft = 0.6; this.knoppen(); };
+    $('#v_reset').onclick = () => this.kies(this.stof);
+    this.lucht = 0.8; this.kies('aardgas');
+  },
+  kies(k){
+    this.stof = k; $('#v_stof').value = k;
+    Object.assign(this, { brandt:false, f:0, dooft:0, stolp:false, nat:0, kraan:true, h2o:0, co2:0, so2:0, co:0, roet:0, tijd:0, melding:'' });
+    this.toonLucht(); this.knoppen();
+  },
+  toonLucht(){ $('#v_luchtw').textContent = Math.round(this.lucht * 100) + '%'; $('#v_lucht').value = Math.round(this.lucht * 100); },
+  knoppen(){
+    $('#v_stolp').textContent = this.stolp ? 'Stolp eraf' : 'Stolp erover';
+    $('#v_kraan').textContent = this.kraan ? 'Toevoer dicht' : 'Toevoer open';
+    $('#v_aan').disabled = this.brandt;
+  },
+  aansteken(){
+    if (this.brandt) return;
+    if (!this.kraan){ this.melding = 'Er gebeurt niets: de toevoer is dicht.'; return; }
+    if (this.stolp){ this.melding = 'De lucifer gaat onder de stolp meteen uit.'; return; }
+    if (this.nat > 0){ this.melding = 'Alles is nog nat en koud: het lukt niet om aan te steken.'; return; }
+    if (this.lucht < 0.08){ this.melding = 'Er ontstaat even een vlammetje, dat meteen weer dooft.'; return; }
+    this.brandt = true; this.dooft = 0; this.melding = ''; this.knoppen();
+  },
+  opdracht(o){ if (o && o.sim && o.sim.brandstof && o.sim.brandstof !== this.stof) this.kies(o.sim.brandstof); },
+  samen(){ const a = telAtomen(SIMV_STOF[this.stof].f); return { C: !!a.C, H: !!a.H, S: !!a.S }; },
+  update(dt){
+    this.tijd += dt; if (this.nat > 0) this.nat = Math.max(0, this.nat - dt);
+    if (this.brandt && this.lucht < 0.08 && !this.dooft) this.dooft = 0.8;
+    if (this.dooft){ this.dooft -= dt; if (this.dooft <= 0){ this.brandt = false; this.dooft = 0; this.melding = 'De vlam dooft.'; this.knoppen(); } }
+    const doel = this.brandt ? (this.dooft ? 0.35 : 1) : 0;
+    this.f += (doel - this.f) * Math.min(1, dt * 4);
+    const s = this.samen(), r = 0.05 * this.f * dt;
+    const volledig = Math.min(1, this.lucht / 0.5), kaars = this.stof === 'kaars';
+    if (s.H) this.h2o = Math.min(1, this.h2o + r);
+    if (s.C) this.co2 = Math.min(1, this.co2 + r * volledig);
+    if (s.S) this.so2 = Math.min(1, this.so2 + r);
+    if (s.C) this.roet = Math.min(1, this.roet + r * 0.8 * Math.max(0, (kaars ? 0.6 : 0.4) - this.lucht) / 0.4);
+    const coNu = s.C ? this.f * (1 - volledig) : 0;
+    this.co += (coNu - this.co) * Math.min(1, dt * 2);
+    this.so2nu = (this.so2nu || 0) + ((s.S ? this.f : 0) - (this.so2nu || 0)) * Math.min(1, dt * 2);
+    this.waarneming();
+  },
+  vlamTekst(){
+    const k = this.stof, l = this.lucht;
+    if (k === 'waterstof') return 'een bijna onzichtbare, lichtblauwe vlam';
+    if (k === 'zwavel') return 'een klein, blauw vlammetje';
+    if (k === 'kaars') return l > 0.7 ? 'een gele vlam met een blauwe onderkant' : 'een gele, roetende vlam';
+    return l >= 0.5 ? 'een blauwe, ruisende vlam' : l >= 0.3 ? 'een vlam die steeds geler wordt' : 'een gele, roetende vlam';
+  },
+  waarneming(){
+    const w = [];
+    if (this.brandt) w.push('Je neemt ' + this.vlamTekst() + ' waar.');
+    else if (this.melding) w.push(this.melding);
+    if (this.h2o > 0.15) w.push('Het witte kopersulfaat kleurt blauw.');
+    if (this.co2 > 0.15) w.push('Het kalkwater wordt troebel.');
+    if (this.co > 0.12) w.push('De CO-meter slaat uit.');
+    if (this.so2nu > 0.2) w.push('De SO<sub>2</sub>-meter slaat uit.');
+    if (this.roet > 0.15) w.push('Aan de binnenkant van de trechter zit zwart roet.');
+    const t = w.join(' ');
+    if (t !== this._w){ $('#v_w').innerHTML = t || 'Steek de brandstof aan. De gassen van de vlam worden door de trechter naar de testbuizen gezogen.'; this._w = t; }
+  },
+  draw(){
+    const c = this.c; c.clearRect(0, 0, c.W, c.H);
+    const X = 120, VY = 268, st = SIMV_STOF[this.stof], tijd = performance.now() / 1000;
+    /* tafel */
+    c.fillStyle = '#e8e0cf'; c.fillRect(0, 352, 600, 28);
+    /* houder */
+    c.save(); c.strokeStyle = '#6d6a62'; c.lineWidth = 2;
+    if (st.houder === 'brander'){
+      c.fillStyle = '#b9bec4'; c.fillRect(X - 30, 342, 60, 10); c.fillRect(X - 9, VY + 2, 18, 340 - VY);
+      c.fillStyle = '#8b939b'; c.fillRect(X - 12, 318, 24, 9);
+      c.beginPath(); c.moveTo(X - 30, 335); c.lineTo(X - 70, 335); c.stroke();
+      tekst(c, 'luchtgat', X + 42, 322, { px:11, kleur:'#8a8578' });
+    } else if (st.houder === 'spiritus'){
+      c.fillStyle = 'rgba(200,220,235,.6)'; c.beginPath(); c.ellipse(X, 322, 34, 30, 0, 0, Math.PI * 2); c.fill(); c.stroke();
+      c.fillStyle = '#9a9a9a'; c.fillRect(X - 8, 284, 16, 10); c.fillStyle = '#ddd2b4'; c.fillRect(X - 3, VY + 2, 6, 20);
+    } else if (st.houder === 'kaars'){
+      c.fillStyle = '#f3ecd6'; c.fillRect(X - 16, VY + 12, 32, 340 - VY - 12); c.strokeRect(X - 16, VY + 12, 32, 340 - VY - 12);
+      c.strokeStyle = '#333'; c.beginPath(); c.moveTo(X, VY + 12); c.lineTo(X, VY + 2); c.stroke();
+    } else {
+      c.strokeStyle = '#7d7a72'; c.lineWidth = 3; c.beginPath(); c.moveTo(X + 70, 230); c.lineTo(X + 12, VY + 8); c.stroke();
+      c.fillStyle = '#9da3a8'; c.beginPath(); c.ellipse(X, VY + 10, 16, 7, 0, 0, Math.PI); c.fill();
+      c.fillStyle = '#e6cf3d'; c.beginPath(); c.ellipse(X, VY + 9, 12, 4, 0, 0, Math.PI * 2); c.fill();
+    }
+    c.restore();
+    /* vlam */
+    if (this.f > 0.02){
+      const h = (this.stof === 'zwavel' ? 34 : this.stof === 'kaars' ? 48 : 66) * this.f, w = (this.stof === 'kaars' ? 12 : 15) * Math.sqrt(this.f);
+      const geel = this.stof === 'waterstof' || this.stof === 'zwavel' ? 0 : Math.max(0, Math.min(1, (this.stof === 'kaars' ? 1.15 : 1) - this.lucht * (this.stof === 'kaars' ? 0.6 : 1.6) + 0.2));
+      const fl = 1 + Math.sin(tijd * 17) * 0.05 + Math.sin(tijd * 7.3) * 0.04;
+      c.save(); c.globalAlpha = this.stof === 'waterstof' ? 0.35 : 0.92;
+      const g = c.createLinearGradient(0, VY - h * fl, 0, VY);
+      const top = geel > 0.5 ? `rgba(255,${190 - geel * 40},60,0.95)` : 'rgba(90,140,255,0.55)';
+      g.addColorStop(0, top); g.addColorStop(0.6, geel > 0.3 ? 'rgba(255,200,80,0.9)' : 'rgba(70,120,255,0.8)'); g.addColorStop(1, 'rgba(60,110,255,0.9)');
+      c.fillStyle = g; c.beginPath(); c.moveTo(X - w, VY); c.quadraticCurveTo(X - w * 1.1, VY - h * 0.5 * fl, X, VY - h * fl); c.quadraticCurveTo(X + w * 1.1, VY - h * 0.5 * fl, X + w, VY); c.closePath(); c.fill();
+      if (geel > 0.6 && this.stof !== 'kaars'){ c.fillStyle = 'rgba(40,40,40,.35)'; for (let i = 0; i < 6; i++){ const t = (tijd * 0.8 + i / 6) % 1; c.beginPath(); c.arc(X + Math.sin(i * 3 + tijd) * 6, VY - h - t * 60, 2.5 + t * 3, 0, Math.PI * 2); c.fill(); } }
+      c.restore();
+    }
+    /* stolp */
+    if (this.stolp){ c.save(); c.strokeStyle = 'rgba(120,150,170,.9)'; c.fillStyle = 'rgba(200,225,240,.25)'; c.lineWidth = 2; c.beginPath(); c.moveTo(X - 55, 350); c.lineTo(X - 55, 200); c.quadraticCurveTo(X - 55, 160, X, 158); c.quadraticCurveTo(X + 55, 160, X + 55, 200); c.lineTo(X + 55, 350); c.fill(); c.stroke(); c.restore(); }
+    /* water */
+    if (this.nat > 0){ c.save(); c.fillStyle = 'rgba(80,140,210,.6)'; for (let i = 0; i < 14; i++){ const t = ((tijd * 1.6 + i * 0.13) % 1); c.beginPath(); c.arc(X - 40 + (i * 37) % 80, 150 + t * 200, 2.6, 0, Math.PI * 2); c.fill(); } c.restore(); }
+    /* trechter en slangen */
+    c.save(); c.strokeStyle = '#7d8a96'; c.lineWidth = 2.2;
+    c.fillStyle = `rgba(40,40,40,${0.55 * this.roet})`;
+    c.beginPath(); c.moveTo(X - 45, 175); c.lineTo(X - 7, 128); c.lineTo(X + 7, 128); c.lineTo(X + 45, 175); c.fill(); c.stroke();
+    c.lineWidth = 5; c.strokeStyle = '#b8a98a';
+    c.beginPath(); c.moveTo(X, 128); c.lineTo(X, 70); c.lineTo(300, 70); c.lineTo(300, 120); c.stroke();
+    c.beginPath(); c.moveTo(360, 120); c.lineTo(360, 70); c.lineTo(438, 70); c.lineTo(438, 210); c.stroke();
+    c.beginPath(); c.moveTo(472, 150); c.lineTo(472, 70); c.lineTo(545, 70); c.lineTo(545, 110); c.stroke();
+    c.restore();
+    /* U-buis met wit kopersulfaat */
+    c.save(); const blauw = Math.min(1, this.h2o * 1.4);
+    c.fillStyle = `rgb(${Math.round(lerp(245, 70, blauw))},${Math.round(lerp(245, 140, blauw))},${Math.round(lerp(240, 215, blauw))})`;
+    c.fillRect(293, 140, 14, 70); c.fillRect(353, 140, 14, 70); c.fillRect(293, 200, 74, 14);
+    c.strokeStyle = '#7d8a96'; c.lineWidth = 2; c.beginPath(); c.moveTo(290, 118); c.lineTo(290, 205); c.quadraticCurveTo(290, 220, 305, 220); c.lineTo(355, 220); c.quadraticCurveTo(370, 220, 370, 205); c.lineTo(370, 118); c.moveTo(310, 118); c.lineTo(310, 198); c.lineTo(350, 198); c.lineTo(350, 118); c.stroke();
+    tekst(c, 'wit kopersulfaat', 330, 240, { px:11.5, i:true });
+    /* wasfles met kalkwater */
+    const troebel = Math.min(1, this.co2 * 1.3);
+    c.fillStyle = 'rgba(205,228,240,.55)'; c.fillRect(418, 205, 74, 78);
+    if (troebel > 0){ c.fillStyle = `rgba(250,249,244,${0.92 * troebel})`; c.fillRect(418, 205, 74, 78); c.fillStyle = `rgba(200,196,185,${0.5 * troebel})`; for (let i = 0; i < 40; i++) c.fillRect(420 + (i * 37) % 70, 208 + (i * 53) % 72, 1.6, 1.6); }
+    tekenBeker(c, 416, 150, 78, 135); c.strokeStyle = '#7d8a96'; c.lineWidth = 2; c.beginPath(); c.moveTo(438, 150); c.lineTo(438, 270); c.stroke();
+    if (this.f > 0.2){ c.fillStyle = 'rgba(255,255,255,.85)'; for (let i = 0; i < 5; i++){ const t = (tijd * 1.3 + i / 5) % 1; c.beginPath(); c.arc(438 + Math.sin(i * 2 + tijd * 3) * 4, 268 - t * 60, 2.5, 0, Math.PI * 2); c.fill(); } }
+    tekst(c, 'kalkwater', 455, 300, { px:11.5, i:true });
+    /* meters */
+    const meter = (x, y, label, v) => {
+      c.fillStyle = '#fff'; c.strokeStyle = '#8a8578'; c.lineWidth = 1.5; c.beginPath(); c.roundRect(x - 34, y - 26, 68, 56, 8); c.fill(); c.stroke();
+      c.strokeStyle = '#ccc'; c.lineWidth = 4; c.beginPath(); c.arc(x, y + 14, 22, Math.PI * 1.15, Math.PI * 1.85); c.stroke();
+      c.strokeStyle = '#c0392b'; c.beginPath(); c.arc(x, y + 14, 22, Math.PI * 1.6, Math.PI * 1.85); c.stroke();
+      const a = Math.PI * (1.15 + 0.7 * Math.min(1, v)); c.strokeStyle = '#2b2a27'; c.lineWidth = 2; c.beginPath(); c.moveTo(x, y + 14); c.lineTo(x + Math.cos(a) * 20, y + 14 + Math.sin(a) * 20); c.stroke();
+      tekst(c, label, x, y + 22, { px:11, vet:true });
+    };
+    meter(545, 140, 'CO-meter', this.co * 1.2);
+    meter(545, 215, 'SO₂-meter', (this.so2nu || 0));
+    tekst(c, '→ pomp', 545, 260, { px:11, kleur:'#8a8578' });
+    tekst(c, st.naam, X, 370, { px:12, i:true });
+    c.restore();
+  }
+};
+
+const W1_BRANDSTOF = [['methaan','CH4'],['ethaan','C2H6'],['butaan','C4H10'],['pentaan','C5H12'],['hexaan','C6H14'],['octaan (in benzine)','C8H18'],['ethanol','C2H6O'],['methanol','CH4O'],['glucose','C6H12O6'],['koolstofdisulfide','CS2'],['waterstofsulfide','H2S'],['methaanthiol','CH4S'],['ethaanthiol','C2H6S']];
+const W1_SIMSTOF = { CH4:'aardgas', C2H6O:'ethanol', H2:'waterstof', S:'zwavel' };
+const W1_PRODUCTEN = [
+  ['CO2', 'Koolstofdioxide ontstaat uit de C-atomen van de brandstof.'],
+  ['H2O', 'Water ontstaat uit de H-atomen van de brandstof.'],
+  ['SO2', 'Zwaveldioxide ontstaat uit de S-atomen van de brandstof.'],
+  ['CO', 'Koolstofmono-oxide ontstaat alleen bij een onvolledige verbranding.'],
+  ['C', 'Roet (koolstof) ontstaat alleen bij een onvolledige verbranding.'],
+  ['H2', 'Waterstof verbrandt zelf ook: daar blijft niets van over.'],
+  ['O2', 'Zuurstof is geen verbrandingsproduct, maar een beginstof.'],
+  ['NO2', 'Er zitten geen N-atomen in deze brandstof.']];
+const W1_BLUS = [
+  ['Je zet een deksel op een pan met brandende olie.', 'z'],
+  ['De brandweer spuit water op een brandend houten schuurtje.', 't'],
+  ['Je draait de gaskraan van een gasbrander dicht.', 'b'],
+  ['Een brandblusser spuit een wolk koolstofdioxide over een brandende vloeistof. Het koolstofdioxide drukt de lucht weg.', 'z'],
+  ['Bij een bosbrand wordt een brede strook bos gekapt, zodat het vuur niet verder kan.', 'b'],
+  ['Iemands kleren staan in brand. Je slaat er een blusdeken omheen.', 'z'],
+  ['Je gooit een emmer zand in een brandende kachel.', 'z'],
+  ['Een kampvuur wordt gedoofd door er veel koud water op te gieten.', 't']];
+const W1_ONVOLLEDIG = [
+  ['Een geiser hangt in een kleine badkamer zonder ventilatie. Na een tijdje krijgt de geiser te weinig zuurstof. De brandstof is aardgas (methaan, CH<sub>4</sub>).', 'CH4'],
+  ['In een afgesloten tent staat een kampeerbrander op butaan (C<sub>4</sub>H<sub>10</sub>). Er komt te weinig verse lucht binnen.', 'C4H10'],
+  ['Een kachel op ethanol (C<sub>2</sub>H<sub>6</sub>O) brandt in een kleine ruimte waarvan de ramen dicht zijn.', 'C2H6O']];
+
+WPS.push({
+  id:'verbranding', titel:'Verbranding', par:'§ 4.1', sim: SIMV,
+  typtip:'Zo typ je: <code>C3H8 + O2 -> CO2 + H2O</code> · coëfficiënt ervoor: <code>5 O2</code> · toestanden mogen, hoeven niet: <code>(g)</code> <code>(l)</code> <code>(s)</code>.',
+  uitleg: () => `
+    <p>Een <b>verbranding</b> is een reactie van een stof met zuurstof, waarbij vuurverschijnselen optreden. Een verbranding is exotherm: er komt energie vrij.</p>
+    <h3>Voorwaarden en blussen</h3>
+    <p>Een verbranding is alleen mogelijk als er aan drie voorwaarden is voldaan:</p>
+    <ul><li>er is <b>brandstof</b>;</li><li>er is genoeg <b>zuurstof</b>;</li><li>de temperatuur is hoger dan de <b>ontbrandingstemperatuur</b> van de brandstof.</li></ul>
+    <p>Samen vormen ze de <b>branddriehoek</b>. Bij <b>blussen</b> neem je minstens één voorwaarde weg.</p>
+    <h3>Verbrandingsproducten</h3>
+    <p>Bij een verbranding reageren de atomen van de brandstof met zuurstof tot <b>oxiden</b>. Elke atoomsoort uit de brandstof komt terug in een verbrandingsproduct:</p>
+    <ul><li>C-atomen → koolstofdioxide, ${fHTML('CO2')}</li><li>H-atomen → water, ${fHTML('H2O')}</li><li>S-atomen → zwaveldioxide, ${fHTML('SO2')}</li></ul>
+    <p>O-atomen in de brandstof komen terecht in de verbrandingsproducten. Zuurstof schrijf je als ${fHTML('O2')}: zuurstofmoleculen zijn opgebouwd uit twee zuurstofatomen.</p>
+    <div class="kader">Bij een <b>volledige verbranding</b> is er genoeg zuurstof. Is er te weinig zuurstof, dan is de verbranding <b>onvolledig</b>. Dan ontstaan ook <b>koolstofmono-oxide</b> (${fHTML('CO')}) en <b>roet</b> (koolstof, C). De vlam is dan geel en er ontstaat roet. Koolstofmono-oxide is giftig. Bij kamertemperatuur is het een gas dat je niet kunt ruiken.</div>
+    <h3>Verbrandingsproducten aantonen</h3>
+    <ul><li><b>Koolstofdioxide</b> maakt helder kalkwater troebel.</li><li><b>Water</b> kleurt wit kopersulfaat blauw.</li></ul>
+    <p class="klein" style="font-size:13.5px;color:var(--grijs)">Bij hoge temperatuur, zoals in een automotor, reageert ook stikstof uit de lucht met zuurstof. Dan ontstaan stikstofoxiden, NO en ${fHTML('NO2')} (samen NO<sub>x</sub>).</p>`,
+  voorbeeld: {
+    vraag:`Geef de reactievergelijking van de volledige verbranding van propaan, ${fHTML('C3H8')}.`,
+    stappen:[
+      `Schrijf de stoffen op. Propaan reageert met zuurstof. Propaan is opgebouwd uit C- en H-atomen, dus er ontstaan koolstofdioxide en water:<br>${fHTML('C3H8')} + ${fHTML('O2')} → ${fHTML('CO2')} + ${fHTML('H2O')}`,
+      `Maak de C-atomen kloppend. Voor de pijl staan 3 C-atomen, dus er komt 3 voor ${fHTML('CO2')}:<br>${fHTML('C3H8')} + ${fHTML('O2')} → 3 ${fHTML('CO2')} + ${fHTML('H2O')}`,
+      `Maak de H-atomen kloppend. Voor de pijl staan 8 H-atomen. Een watermolecuul heeft er 2, dus er komt 4 voor ${fHTML('H2O')}:<br>${fHTML('C3H8')} + ${fHTML('O2')} → 3 ${fHTML('CO2')} + 4 ${fHTML('H2O')}`,
+      `Maak als laatste de O-atomen kloppend. Na de pijl staan 3 × 2 + 4 × 1 = 10 O-atomen. Een zuurstofmolecuul heeft er 2, dus er komt 5 voor ${fHTML('O2')}:<br><b>${fHTML('C3H8')} + 5 ${fHTML('O2')} → 3 ${fHTML('CO2')} + 4 ${fHTML('H2O')}</b>`,
+      `Controleer: voor en na de pijl 3 C-atomen, 8 H-atomen en 10 O-atomen.`]
+  },
+  maakSerie(){
+    const uit = [];
+    /* 1 blussen */
+    const [sit, vw] = kies(W1_BLUS);
+    uit.push({ titel:'Blussen', vraag: sit, stappen:[keuzeStap('Welke voorwaarde voor verbranding valt hier weg?', [
+      { html:'Er is geen brandstof meer.', g: vw === 'b' }, { html:'Er kan geen zuurstof meer bij het vuur.', g: vw === 'z' },
+      { html:'De temperatuur daalt onder de ontbrandingstemperatuur.', g: vw === 't' }, { html:'Er valt geen voorwaarde weg.', fb:'Het vuur gaat uit, dus er valt wel een voorwaarde weg.' }],
+      { vast:true, hint:'Bedenk wat er precies verandert: is er nog brandstof, kan er nog zuurstof bij het vuur, is het nog heet genoeg?', fout:'Nog niet goed. Wat verandert er precies bij het vuur?' })] });
+    /* 2 verbrandingsproducten */
+    const [nm2, f2] = kies(W1_BRANDSTOF.filter(x => x[1] !== 'CH4'));
+    const a2 = telAtomen(f2);
+    uit.push({ titel:'Verbrandingsproducten', vraag:`${nm2[0].toUpperCase() + nm2.slice(1)} (${fHTML(f2)}) verbrandt volledig.`, stappen:[chipsStap('Klik alle stoffen aan die bij deze verbranding ontstaan.',
+      W1_PRODUCTEN.map(([p, fb]) => ({ html: fHTML(p), g: (p === 'CO2' && a2.C) || (p === 'H2O' && a2.H) || (p === 'SO2' && a2.S), fb: (p === 'CO2' && !a2.C) ? 'Er zitten geen C-atomen in deze brandstof.' : (p === 'H2O' && !a2.H) ? 'Er zitten geen H-atomen in deze brandstof.' : (p === 'SO2' && !a2.S) ? 'Er zitten geen S-atomen in deze brandstof.' : fb })),
+      { vast:true, hint:'Kijk welke atoomsoorten in de brandstof zitten. Elke atoomsoort (behalve O) vormt met zuurstof een eigen oxide.', mist:'Je mist nog een verbrandingsproduct. Kijk naar alle atoomsoorten in de brandstof.' })] });
+    /* 3 vergelijking */
+    const [nm3, f3] = kies(W1_BRANDSTOF.filter(x => x[1] !== f2));
+    const v3 = verbrandVgl(f3);
+    uit.push({ titel:'Reactievergelijking', vraag:`${nm3[0].toUpperCase() + nm3.slice(1)} (${fHTML(f3)}) verbrandt volledig.`, sim: W1_SIMSTOF[f3] ? { brandstof: W1_SIMSTOF[f3] } : null, stappen:[
+      vglStap('Schrijf de formules van de beginstoffen en de reactieproducten op, met een pijl ertussen. Nog zonder coëfficiënten.', v3, { alleenStoffen:true, verbranding:true, hint:'Voor de pijl: de brandstof en zuurstof. Na de pijl: een oxide van elke atoomsoort uit de brandstof (behalve O).' }),
+      vglStap('Maak de vergelijking kloppend.', v3, { verbranding:true, hint:'Begin met de C-atomen, dan de H-atomen (en S-atomen). Doe de O-atomen als laatste: die tel je na de pijl op.' })] });
+    /* 4 onvolledige verbranding */
+    const [sit4, f4] = kies(W1_ONVOLLEDIG);
+    uit.push({ titel:'Onvolledige verbranding', vraag: sit4, stappen:[
+      keuzeStap('Welk gas ontstaat nu extra, en is gevaarlijk omdat je het niet kunt ruiken?', [
+        { html:'koolstofmono-oxide, ' + fHTML('CO'), g:true }, { html:'koolstofdioxide, ' + fHTML('CO2'), fb:'Koolstofdioxide ontstaat ook bij een volledige verbranding.' },
+        { html:'roet, C', fb:'Roet ontstaat wel, maar het is geen gas: je neemt het waar als zwarte deeltjes.' }, { html:'waterdamp, ' + fHTML('H2O'), fb:'Water ontstaat ook bij een volledige verbranding.' }, { html:'zuurstof, ' + fHTML('O2'), fb:'Zuurstof is juist te weinig aanwezig.' }],
+        { hint:'Bij te weinig zuurstof krijgen de C-atomen niet genoeg O-atomen mee.' }),
+      vglStap(`Neem aan dat bij deze verbranding alleen koolstofmono-oxide en water ontstaan. Geef de reactievergelijking.`, verbrandVgl(f4, true), { verbranding:true, hint:'Werk zoals bij een volledige verbranding, maar nu met CO in plaats van CO2.' })] });
+    /* 5 aantonen */
+    const co2 = Math.random() < 0.5;
+    uit.push({ titel:'Aantonen', vraag: co2 ? 'Een onbekende brandstof verbrandt. Je leidt de gassen die ontstaan door helder kalkwater. Het kalkwater wordt troebel.' : 'Een onbekende brandstof verbrandt. Je leidt de gassen die ontstaan langs wit kopersulfaat. Het kopersulfaat kleurt blauw.', stappen:[
+      keuzeStap('Welke stof heb je aangetoond?', [
+        { html:'koolstofdioxide', g: co2 }, { html:'water', g: !co2 }, { html:'zuurstof' }, { html:'koolstofmono-oxide' }, { html:'zwaveldioxide' }],
+        { hint:'Kalkwater en wit kopersulfaat zijn allebei een aantoningsreactie voor één bepaalde stof.' }),
+      chipsStap('Welke atoomsoort zat dus met zekerheid in de brandstof?', ['C','H','O','S'].map(a => ({ html:a, g: a === (co2 ? 'C' : 'H'), fb: a === 'O' ? 'Het O-atoom kan ook uit de zuurstof komen. Dan weet je niet zeker of het in de brandstof zat.' : '' })),
+        { vast:true, hint:'Welke atoomsoort zit in de aangetoonde stof en kan alleen uit de brandstof komen?' })] });
+    /* ★ atoomsoorten afleiden */
+    const sets = [['CO2','H2O'],['CO2','H2O','SO2'],['H2O','SO2'],['CO2','SO2']];
+    const prod = kies(sets);
+    const zeker = { CO2:'C', H2O:'H', SO2:'S' };
+    uit.push({ titel:'Wat zat er in de brandstof?', ster:true, vraag:`Een stof verbrandt volledig. Er ontstaan uitsluitend ${prod.map(fHTML).join(prod.length > 2 ? ', ' : ' en ').replace(/, ([^,]*)$/, ' en $1')}.`, stappen:[
+      chipsStap('Welke atoomsoorten zitten met zekerheid in de stof?', ['C','H','O','S','N'].map(a => ({ html:a, g: prod.some(p => zeker[p] === a), fb: a === 'O' ? 'De O-atomen in de producten kunnen ook uit de zuurstof komen.' : a === 'N' ? 'Er ontstaat geen stof met N-atomen.' : 'Deze atoomsoort zit in geen van de verbrandingsproducten.' })), { vast:true, hint:'Elke atoomsoort in de producten komt uit de stof of uit de zuurstof.' }),
+      keuzeStap('Kan de stof ook O-atomen bevatten?', [
+        { html:'Ja, dat kan, maar je weet het niet zeker.', g:true }, { html:'Ja, zeker: in de producten zitten O-atomen.', fb:'De O-atomen in de producten kunnen allemaal uit de zuurstof komen.' }, { html:'Nee, dat kan niet.', fb:'Ethanol (C<sub>2</sub>H<sub>6</sub>O) bevat O-atomen en geeft bij verbranding ook alleen CO<sub>2</sub> en H<sub>2</sub>O.' }], { vast:true })] });
+    return uit;
+  }
+});
+
+/* =====================================================================
+   Werkplaats 2 — Ontleding (4.2)
+   ===================================================================== */
+/* producten: hoe ze eruitzien en wat de tests laten waarnemen */
+const GASTEST = {
+  H2:  { spaan:'De gloeiende houtspaander dooft.', lucifer:'Het gas ontbrandt met een knalletje.', kalk:'Het kalkwater blijft helder.' },
+  O2:  { spaan:'De gloeiende houtspaander vlamt fel op.', lucifer:'De lucifer brandt feller.', kalk:'Het kalkwater blijft helder.' },
+  Cl2: { spaan:'De gloeiende houtspaander dooft.', lucifer:'De lucifer dooft.', kalk:'Het kalkwater blijft helder.' }
+};
+const TESTNAAM = { spaan:'gloeiende houtspaander', lucifer:'brandende lucifer', kalk:'kalkwater' };
+/* soorten stof in de simulatie; onb = onbekende stof X */
+const SIMO_STOF = {
+  water:    { naam:'water', kleur:'rgba(170,205,235,.55)', vl:true },
+  suiker:   { naam:'suiker', kleur:'#f6f3ea' },
+  agbr:     { naam:'zilverbromide', kleur:'#efe2a0' },
+  hgo:      { naam:'kwikoxide', kleur:'#d9572b' },
+  koper:    { naam:'koper', kleur:'#c7743a', metaal:true },
+  zwavel:   { naam:'zwavel', kleur:'#e6cf3d' },
+  h2o2:     { naam:'waterstofperoxide-oplossing', kleur:'rgba(190,215,235,.5)', vl:true },
+  onb:      { naam:'onbekende stof X', kleur:'#e4ded2' }
+};
+/* uitkomst van stof × energievorm */
+function ontleedUitkomst(stof, en, onb){
+  const niets = t => ({ ok:false, tekst:t });
+  if (stof === 'onb') stof = { X1:'X1', X2:'X2', X3:'X3' }[onb];
+  const U = {
+    water: { warmte: niets('Het water kookt. De damp condenseert aan de koude wand weer tot water. Er ontstaat geen nieuwe stof.'),
+             stroom: { ok:true, tekst:'(Er is een beetje zwavelzuur toegevoegd, zodat het water stroom geleidt.) Bij beide elektroden ontstaan gasbelletjes. Bij de min-pool ontstaat twee keer zoveel gas (in volume) als bij de plus-pool.', gassen:[['bij de min-pool', 'H2', 2], ['bij de plus-pool', 'O2', 1]] },
+             licht: niets('Er gebeurt niets.') },
+    suiker: { warmte: { ok:true, tekst:'De suiker smelt, wordt bruin en daarna zwart. Aan de koude wand verschijnen druppeltjes.', eind:'#1f1d1b', druppels:'water', zwart:true },
+              stroom: niets('Vaste suiker geleidt geen stroom. Er gebeurt niets.'), licht: niets('Er gebeurt niets.') },
+    agbr: { licht: { ok:true, tekst:'Het lichtgele poeder kleurt langzaam grijs tot zwart. Je ruikt een zwakke, prikkelende geur.', eind:'#3b3a38' },
+            warmte: niets('Het poeder smelt bij sterk verhitten. Na afkoelen is het weer lichtgeel.'), stroom: niets('Vast zilverbromide geleidt geen stroom. Er gebeurt niets.') },
+    hgo: { warmte: { ok:true, tekst:'Het oranjerode poeder verdwijnt langzaam. Aan de koude wand verschijnen zilverkleurige druppeltjes. Er ontstaat een kleurloos gas.', eind:'#bfc4c8', druppels:'kwik', gassen:[['uit de buis', 'O2', 1]] },
+           stroom: niets('Kwikoxide geleidt geen stroom. Er gebeurt niets.'), licht: niets('Er gebeurt niets.') },
+    koper: { warmte: niets('Het koper gloeit op, maar er ontstaat geen nieuwe stof. Na afkoelen is het weer gewoon koper. (De buis is afgesloten: er komt geen lucht bij.)'),
+             stroom: niets('Het koper geleidt de stroom, maar er ontstaat geen nieuwe stof.'), licht: niets('Er gebeurt niets.') },
+    zwavel: { warmte: niets('De zwavel smelt tot een gele vloeistof. Na afkoelen ontstaat weer gele zwavel.'), stroom: niets('Zwavel geleidt geen stroom. Er gebeurt niets.'), licht: niets('Er gebeurt niets.') },
+    h2o2: { licht: { ok:true, tekst:'Er ontstaan langzaam gasbelletjes. Er blijft een kleurloze vloeistof over.', druppels:'water', gassen:[['uit de vloeistof', 'O2', 1]] },
+            warmte: { ok:true, tekst:'Er ontstaan snel veel gasbelletjes. Er blijft een kleurloze vloeistof over.', druppels:'water', gassen:[['uit de vloeistof', 'O2', 1]] },
+            stroom: niets('De oplossing geleidt slecht. Er gebeurt bijna niets.') },
+    X1: { warmte: { ok:true, tekst:'De witte stof smelt, wordt bruin en daarna zwart. Aan de koude wand verschijnen druppeltjes.', eind:'#1f1d1b', druppels:'water', zwart:true },
+          stroom: niets('De vaste stof geleidt geen stroom. Er gebeurt niets.'), licht: niets('Er gebeurt niets.') },
+    X2: { stroom: { ok:true, tekst:'Bij beide elektroden ontstaat een gas. Het gas bij de plus-pool is geelgroen en heeft een prikkelende geur.', gassen:[['bij de min-pool', 'H2', 1], ['bij de plus-pool', 'Cl2', 1]] },
+          warmte: niets('De vloeistof kookt en verdampt. Er ontstaat geen nieuwe stof.'), licht: niets('Er gebeurt niets.') },
+    X3: { warmte: { ok:true, tekst:'Het poeder verdwijnt langzaam. Aan de koude wand verschijnen zilverkleurige druppeltjes. Er ontstaat een kleurloos gas.', eind:'#bfc4c8', druppels:'kwik', gassen:[['uit de buis', 'O2', 1]] },
+          stroom: niets('De vaste stof geleidt geen stroom. Er gebeurt niets.'), licht: niets('Er gebeurt niets.') }
+  };
+  return U[stof][en];
+}
+const ONB_KLEUR = { X1:'#f3f0e8', X2:'rgba(190,215,235,.5)', X3:'#d9572b' };
+const ONB_VL = { X2:true };
+
+const SIMO = {
+  init(host){
+    host.innerHTML = `<div class="simkop"><b>Ontleden</b><span>proefopstelling</span></div>
+      <div class="ctrl"><label>Stof <select class="sel" id="o_stof">${Object.entries(SIMO_STOF).map(([k, s]) => `<option value="${k}">${s.naam}</option>`).join('')}</select></label></div>
+      <div class="ctrl"><button class="btn" data-en="warmte">Verhitten</button><button class="btn" data-en="stroom">Stroom erdoor</button><button class="btn" data-en="licht">Belichten</button><button class="btn g" id="o_opn">Opnieuw</button></div>
+      <div class="doek" id="o_doek"></div>
+      <div class="waarneming" id="o_w"></div>
+      <div class="ctrl" id="o_tests"></div>
+      <div class="legenda" id="o_log"></div>`;
+    this.c = maakCanvas($('#o_doek'), 600, 360);
+    this.onb = this.onb || kies(['X1', 'X2', 'X3']); this.gelukt = {};
+    $('#o_stof').onchange = e => this.kies(e.target.value);
+    $$('[data-en]').forEach(b => b.onclick = () => this.start(b.dataset.en));
+    $('#o_opn').onclick = () => this.kies(this.stof);
+    this.kies(this.stof || 'water');
+  },
+  kies(k){ this.stof = k; $('#o_stof').value = k; this.en = null; this.t = 0; this.u = null; this.testlog = []; this.toon(); },
+  opdracht(o){ if (!o || !o.sim) return; if (o.sim.onb){ if (this.stof !== 'onb' || this.onb !== o.sim.onb) this.zetOnb(o.sim.onb); } else if (o.sim.stof && o.sim.stof !== this.stof) this.kies(o.sim.stof); },
+  zetOnb(id){ if (this.onb !== id){ this.onb = id; this.gelukt.onb = null; } this.kies('onb'); },
+  start(en){ this.en = en; this.t = 0; this.u = ontleedUitkomst(this.stof, en, this.onb); this.testlog = []; this.toon(); },
+  toon(){
+    const w = $('#o_w'), tb = $('#o_tests');
+    if (!this.en){ w.innerHTML = 'Kies een energievorm: verhitten, stroom erdoor of belichten.'; tb.innerHTML = ''; $('#o_log').innerHTML = ''; return; }
+    if (this.t < 1){ w.innerHTML = { warmte:'Je verhit de stof in een afgesloten reageerbuis…', stroom:'Je stuurt stroom door de stof…', licht:'Je belicht de stof met een felle lamp…' }[this.en]; tb.innerHTML = ''; return; }
+    w.innerHTML = '<b>Waarneming:</b> ' + this.u.tekst;
+    let h = '';
+    for (const [i, g] of (this.u.gassen || []).entries()) h += `<span class="klein" style="font-size:13px">Test het gas ${g[0]}:</span>` + Object.keys(TESTNAAM).map(t => `<button class="btn g klein" data-t="g${i}-${t}">${TESTNAAM[t]}</button>`).join('');
+    if (this.u.druppels) h += `<span class="klein" style="font-size:13px">Druppeltjes:</span><button class="btn g klein" data-t="d-cu">wit kopersulfaat</button>`;
+    if (this.u.zwart) h += `<span class="klein" style="font-size:13px">Zwarte stof:</span><button class="btn g klein" data-t="z-brand">verbrand en leid het gas door kalkwater</button>`;
+    tb.innerHTML = h;
+    $$('#o_tests [data-t]').forEach(b => b.onclick = () => this.test(b.dataset.t));
+    $('#o_log').innerHTML = this.testlog.map(x => '• ' + x).join('<br>');
+  },
+  test(t){
+    let r = '';
+    if (t[0] === 'g'){ const [i, soort] = t.slice(1).split('-'); const g = this.u.gassen[+i]; r = `Gas ${g[0]}, ${TESTNAAM[soort]}: ${GASTEST[g[1]][soort].replace(/^./, x => x.toLowerCase())}`; }
+    if (t === 'd-cu') r = 'Druppeltjes op wit kopersulfaat: ' + (this.u.druppels === 'water' ? 'het kopersulfaat kleurt blauw.' : 'het kopersulfaat blijft wit. De druppeltjes zijn een zilverkleurig, vloeibaar metaal.');
+    if (t === 'z-brand') r = 'De zwarte stof gloeit op en verdwijnt. Het gas maakt kalkwater troebel.';
+    if (!this.testlog.includes(r)) this.testlog.push(r);
+    this.toon();
+  },
+  update(dt){
+    if (this.en && this.t < 1){ this.t = Math.min(1, this.t + dt / 2.6); if (this.t >= 1){ if (this.u.ok) this.gelukt[this.stof] = this.stof === 'onb' ? this.onb + '|' + this.en : this.en; this.toon(); } }
+  },
+  kleur(){ return this.stof === 'onb' ? ONB_KLEUR[this.onb] : SIMO_STOF[this.stof].kleur; },
+  isVl(){ return this.stof === 'onb' ? !!ONB_VL[this.onb] : !!SIMO_STOF[this.stof].vl; },
+  draw(){
+    const c = this.c; c.clearRect(0, 0, c.W, c.H); const tijd = performance.now() / 1000;
+    c.fillStyle = '#e8e0cf'; c.fillRect(0, 336, 600, 24);
+    const u = this.u, t = this.t, ok = u && u.ok, k0 = this.kleur();
+    const kleurNu = ok && u.eind ? (t < 1 ? mengHex(k0, u.eind, t) : u.eind) : k0;
+    if (this.en === 'stroom'){
+      /* bekerglas met elektroden en opvangbuizen */
+      vloeistofVlak(c, 170, 150, 260, 180, 130, this.isVl() ? k0 : 'rgba(230,226,215,.0)');
+      if (!this.isVl()){ c.fillStyle = k0; c.fillRect(178, 290, 244, 34); }
+      tekenBeker(c, 170, 150, 260, 180);
+      const gas = ok ? u.gassen : null;
+      [[240, '−'], [360, '+']].forEach(([x, pool], i) => {
+        c.fillStyle = '#6d6a62'; c.fillRect(x - 3, 230, 6, 90);
+        c.strokeStyle = '#7d8a96'; c.lineWidth = 2; c.fillStyle = 'rgba(200,220,235,.35)';
+        c.beginPath(); c.moveTo(x - 16, 290); c.lineTo(x - 16, 80); c.quadraticCurveTo(x, 66, x + 16, 80); c.lineTo(x + 16, 290); c.fill(); c.stroke();
+        if (gas){ const g = gas[i]; const vol = g ? g[2] / 2 : 0; const h = 150 * vol * t;
+          c.fillStyle = g && g[1] === 'Cl2' ? 'rgba(200,215,90,.7)' : 'rgba(255,255,255,.95)'; c.fillRect(x - 14, 82, 28, h);
+          if (t < 1){ c.fillStyle = 'rgba(255,255,255,.9)'; for (let b = 0; b < 4; b++){ const q = (tijd * 1.5 + b / 4) % 1; c.beginPath(); c.arc(x + Math.sin(b * 2 + tijd * 4) * 4, 300 - q * 150, 2.3, 0, Math.PI * 2); c.fill(); } } }
+        tekst(c, (pool === '−' ? 'min-pool' : 'plus-pool') + ' (' + pool + ')', x, 340 + 8, { px:12, vet:true });
+      });
+      c.strokeStyle = '#444'; c.lineWidth = 2; c.beginPath(); c.moveTo(240, 230); c.lineTo(240, 40); c.lineTo(285, 40); c.moveTo(315, 40); c.lineTo(360, 40); c.lineTo(360, 230); c.stroke();
+      c.lineWidth = 3; c.beginPath(); c.moveTo(285, 28); c.lineTo(285, 52); c.moveTo(297, 34); c.lineTo(297, 46); c.stroke();
+      tekst(c, 'spanningsbron', 300, 18, { px:11, kleur:'#8a8578' });
+    } else if (this.en === 'warmte'){
+      /* afgesloten reageerbuis boven een brander */
+      const X = 300;
+      c.strokeStyle = '#7d8a96'; c.lineWidth = 2; c.fillStyle = 'rgba(220,232,240,.3)';
+      c.beginPath(); c.moveTo(X - 18, 40); c.lineTo(X - 18, 230); c.quadraticCurveTo(X, 250, X + 18, 230); c.lineTo(X + 18, 40); c.fill(); c.stroke();
+      c.fillStyle = '#b8a98a'; c.fillRect(X - 21, 30, 42, 14);
+      c.fillStyle = kleurNu; if (this.isVl()){ c.fillRect(X - 16, 190 + (u && !ok && t > 0.3 ? 12 * t : 0), 32, 50); } else { c.beginPath(); c.moveTo(X - 16, 205); c.lineTo(X + 16, 205); c.lineTo(X + 16, 230); c.quadraticCurveTo(X, 248, X - 16, 230); c.fill(); }
+      if (ok && u.druppels && t > 0.4){ c.fillStyle = u.druppels === 'kwik' ? '#c9cdd1' : 'rgba(120,170,215,.85)'; for (let i = 0; i < 9; i++){ c.beginPath(); c.arc(X - 12 + (i * 37) % 24, 66 + (i * 53) % 95, 2.4 * Math.min(1, (t - 0.4) * 2), 0, Math.PI * 2); c.fill(); } }
+      if (u && !ok && this.isVl() && t > 0.2){ c.fillStyle = 'rgba(120,170,215,.7)'; for (let i = 0; i < 6; i++){ c.beginPath(); c.arc(X - 10 + (i * 9) % 22, 80 + (i * 19) % 60, 2, 0, Math.PI * 2); c.fill(); } }
+      if (ok && u.gassen && t < 1){ c.fillStyle = 'rgba(255,255,255,.8)'; for (let i = 0; i < 5; i++){ const q = (tijd + i / 5) % 1; c.beginPath(); c.arc(X + Math.sin(i * 3) * 6, 200 - q * 120, 2.4, 0, Math.PI * 2); c.fill(); } }
+      /* brander */
+      c.fillStyle = '#b9bec4'; c.fillRect(X - 28, 326, 56, 10); c.fillRect(X - 9, 270, 18, 58);
+      const fl = 1 + Math.sin(tijd * 15) * 0.06; const g = c.createLinearGradient(0, 205, 0, 270); g.addColorStop(0, 'rgba(90,140,255,.2)'); g.addColorStop(1, 'rgba(60,110,255,.85)');
+      c.fillStyle = g; c.beginPath(); c.moveTo(X - 12, 270); c.quadraticCurveTo(X - 14, 245, X, 248 - 20 * fl); c.quadraticCurveTo(X + 14, 245, X + 12, 270); c.fill();
+      if (this.stof === 'koper' && t > 0.3){ c.fillStyle = `rgba(255,120,40,${0.4 * t})`; c.beginPath(); c.arc(X, 220, 16, 0, Math.PI * 2); c.fill(); }
+    } else {
+      /* horlogeglas (en lamp bij belichten) */
+      const X = 300, Y = 270;
+      if (this.en === 'licht'){
+        c.fillStyle = '#5b5f63'; c.beginPath(); c.moveTo(X - 50, 60); c.lineTo(X + 50, 60); c.lineTo(X + 30, 30); c.lineTo(X - 30, 30); c.fill();
+        c.fillStyle = 'rgba(255,240,150,.95)'; c.beginPath(); c.ellipse(X, 62, 40, 8, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = 'rgba(255,240,150,.22)'; c.beginPath(); c.moveTo(X - 40, 64); c.lineTo(X + 40, 64); c.lineTo(X + 110, Y - 6); c.lineTo(X - 110, Y - 6); c.fill();
+      }
+      c.fillStyle = kleurNu; c.beginPath(); c.ellipse(X, Y, 80, 14, 0, 0, Math.PI); c.fill();
+      if (!this.isVl()){ c.beginPath(); c.ellipse(X, Y + 1, 52, 9, 0, Math.PI, Math.PI * 2); c.fill(); }
+      c.strokeStyle = '#7d8a96'; c.lineWidth = 2; c.beginPath(); c.ellipse(X, Y, 100, 22, 0, 0, Math.PI); c.stroke();
+      if (ok && u.gassen && t < 1){ c.fillStyle = 'rgba(255,255,255,.9)'; for (let i = 0; i < 4; i++){ const q = (tijd * 0.6 + i / 4) % 1; c.beginPath(); c.arc(X - 40 + i * 25, Y + 4 - q * 10, 2, 0, Math.PI * 2); c.fill(); } }
+    }
+    tekst(c, SIMO_STOF[this.stof].naam, 90, 24, { px:12, i:true, al:'left' });
+  }
+};
+function mengHex(a, b, t){ const p = h => { if (h.startsWith('rgba')) return h.match(/[\d.]+/g).slice(0, 3).map(Number); const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }; const x = p(a), y = p(b); return `rgb(${x.map((v, i) => Math.round(lerp(v, y[i], t))).join(',')})`; }
+
+const W2_SOORT = [
+  ['Op fotopapier zit zilverbromide. Waar licht op het papier valt, wordt het zwart doordat er zilver ontstaat.', 'f'],
+  ['Je verhit suiker in een reageerbuis. Er blijft een zwarte stof over en aan de wand verschijnen druppeltjes.', 't'],
+  ['Je stuurt stroom door water met een beetje zwavelzuur. Bij beide elektroden ontstaan gasbelletjes.', 'e'],
+  ['Je verhit rood kwikoxide. Er ontstaan zilverkleurige druppeltjes en een kleurloos gas.', 't'],
+  ['Waterstofperoxide wordt bewaard in een bruine fles, omdat het onder invloed van licht uiteenvalt in water en zuurstof.', 'f'],
+  ['Aluminium wordt gemaakt door een stroom door gesmolten aluminiumoxide te sturen.', 'e'],
+  ['Een blokje ijs smelt in de zon.', 'g'],
+  ['Je verwarmt jodium. Er ontstaat een paarse damp, die op een koude plaat weer kristallen vormt.', 'g'],
+  ['In een fabriek wordt natriumchloride gesmolten. Daarna gaat er een stroom doorheen; er ontstaan natrium en chloor.', 'e'],
+  ['Kalksteen (calciumcarbonaat) wordt in een oven sterk verhit. Er ontstaan ongebluste kalk en koolstofdioxide.', 't']];
+const W2_EV = [
+  { lab:'zwavel', g:'e' }, { lab:'koper', g:'e' }, { lab:'ozon, ' + fHTML('O3'), g:'e', fb:'Ozon is opgebouwd uit maar één atoomsoort.' }, { lab:'stikstof', g:'e' }, { lab:'kwik', g:'e' },
+  { lab:fHTML('P4'), g:'e' }, { lab:fHTML('S8'), g:'e' }, { lab:'diamant (koolstof)', g:'e' }, { lab:fHTML('Cl2'), g:'e' },
+  { lab:'water', g:'v' }, { lab:'keukenzout', g:'v' }, { lab:'suiker', g:'v' }, { lab:fHTML('NH3'), g:'v' }, { lab:'koolstofdioxide', g:'v' }, { lab:fHTML('AgBr'), g:'v' }, { lab:fHTML('C2H6O'), g:'v' }, { lab:fHTML('HgO'), g:'v' },
+  { lab:'lucht', g:'m', fb:'Lucht is een mengsel van verschillende stoffen.' }, { lab:'zeewater', g:'m' }, { lab:'brons', g:'m' }];
+const W2_VGL = [
+  ['zilveroxide', 'Ag2O', 'zilver en zuurstof', { L:[[2,'Ag2O']], R:[[4,'Ag'],[1,'O2']] }],
+  ['kwikoxide', 'HgO', 'kwik en zuurstof', { L:[[2,'HgO']], R:[[2,'Hg'],[1,'O2']] }, 'hgo'],
+  ['waterstofperoxide', 'H2O2', 'water en zuurstof', { L:[[2,'H2O2']], R:[[2,'H2O'],[1,'O2']] }, 'h2o2'],
+  ['ammoniak', 'NH3', 'stikstof en waterstof', { L:[[2,'NH3']], R:[[1,'N2'],[3,'H2']] }],
+  ['glucose', 'C6H12O6', 'koolstof en water', { L:[[1,'C6H12O6']], R:[[6,'C'],[6,'H2O']] }],
+  ['waterstofchloride', 'HCl', 'waterstof en chloor', { L:[[2,'HCl']], R:[[1,'H2'],[1,'Cl2']] }],
+  ['zilverbromide', 'AgBr', 'zilver en broom', { L:[[2,'AgBr']], R:[[2,'Ag'],[1,'Br2']] }, 'agbr']];
+const W2_AFLEID = [
+  ['koolstof en water', ['C','H','O']], ['stikstof en waterstof', ['N','H']], ['zilver en zuurstof', ['Ag','O']],
+  ['waterstof en chloor', ['H','Cl']], ['zwavel en waterstof', ['S','H']], ['kwik en zuurstof', ['Hg','O']]];
+
+WPS.push({
+  id:'ontleding', titel:'Ontleding', par:'§ 4.2', sim: SIMO,
+  typtip:'Zo typ je: <code>H2O -> H2 + O2</code> · coëfficiënt ervoor: <code>2 H2O</code> · toestanden mogen, hoeven niet: <code>(g)</code> <code>(l)</code> <code>(s)</code>.',
+  uitleg: () => `
+    <p>Bij een <b>ontledingsreactie</b> ontstaan uit één beginstof twee of meer reactieproducten. Een ontleding kost altijd energie: ontledingsreacties zijn endotherm.</p>
+    <h3>Drie soorten ontleding</h3>
+    <ul><li><b>thermolyse</b>: ontleden met warmte;</li><li><b>elektrolyse</b>: ontleden met elektrische energie;</li><li><b>fotolyse</b>: ontleden met licht.</li></ul>
+    <div class="kader">Smelten, verdampen of sublimeren is géén ontleding. Bij een faseovergang blijft het dezelfde stof; bij een ontleding ontstaan nieuwe stoffen.</div>
+    <h3>Elementen en verbindingen</h3>
+    <p>Een <b>verbinding</b> is opgebouwd uit twee of meer atoomsoorten. Een verbinding kun je ontleden. Een <b>element</b> is opgebouwd uit maar één atoomsoort, en kun je niet ontleden. Ook een stof als ${fHTML('O3')} (ozon) is een element: één atoomsoort, al zitten er drie atomen in een molecuul.</p>
+    <p>Bij een ontleding komen <b>alle</b> atomen van de producten uit de beginstof. Uit de producten kun je dus afleiden uit welke atoomsoorten de beginstof is opgebouwd.</p>
+    <h3>Producten aantonen</h3>
+    <ul><li><b>Zuurstof</b> laat een gloeiende houtspaander opvlammen.</li><li><b>Waterstof</b> ontbrandt met een knalletje.</li><li><b>Water</b> kleurt wit kopersulfaat blauw; <b>koolstofdioxide</b> maakt kalkwater troebel.</li></ul>`,
+  voorbeeld: {
+    vraag:'Bij de elektrolyse van water ontstaan waterstof en zuurstof. Geef de reactievergelijking.',
+    bijStap: n => { if (n === 1){ SIMO.kies('water'); SIMO.start('stroom'); } },
+    stappen:[
+      `Dit is een elektrolyse: ontleden met elektrische energie. Probeer het in de simulatie: kies water en klik op <i>Stroom erdoor</i>.`,
+      `Schrijf de stoffen op. Water ontleedt in waterstof en zuurstof. Waterstof en zuurstof schrijf je als moleculen van twee atomen:<br>${fHTML('H2O')} → ${fHTML('H2')} + ${fHTML('O2')}`,
+      `Maak de O-atomen kloppend. Na de pijl staan 2 O-atomen, dus voor de pijl 2 ${fHTML('H2O')}:<br>2 ${fHTML('H2O')} → ${fHTML('H2')} + ${fHTML('O2')}`,
+      `Maak de H-atomen kloppend. Voor de pijl staan nu 4 H-atomen, dus 2 ${fHTML('H2')}:<br><b>2 ${fHTML('H2O')} → 2 ${fHTML('H2')} + ${fHTML('O2')}</b>`,
+      `Controleer met de simulatie: het volume waterstof is twee keer zo groot als het volume zuurstof. Dat klopt met de coëfficiënten: er ontstaan twee keer zoveel moleculen ${fHTML('H2')} als moleculen ${fHTML('O2')}.`]
+  },
+  maakSerie(){
+    const uit = [];
+    const SOORT = [{ v:'t', t:'thermolyse' }, { v:'e', t:'elektrolyse' }, { v:'f', t:'fotolyse' }, { v:'g', t:'geen ontleding' }];
+    /* 1 soort ontleding */
+    const [s1, g1] = kies(W2_SOORT);
+    uit.push({ titel:'Soort ontleding', vraag: s1, stappen:[keuzeStap('Welke soort reactie is dit?', SOORT.map(x => ({ html:x.t, g: x.v === g1, fb: g1 === 'g' ? 'Er ontstaat hier geen nieuwe stof: het is een faseovergang.' : x.v === 'g' ? 'Er ontstaan nieuwe stoffen, dus het is wel een ontleding.' : '' })),
+      { vast:true, hint:'Ontstaan er nieuwe stoffen? Zo ja: welke energievorm zorgt voor de ontleding?', fout:'Nog niet goed. Welke energievorm zorgt hier voor de reactie?' })] });
+    /* 2 element of verbinding */
+    const its = schud(W2_EV.filter(x => x.g === 'e')).slice(0, 3).concat(schud(W2_EV.filter(x => x.g === 'v')).slice(0, 2), Math.random() < 0.6 ? schud(W2_EV.filter(x => x.g === 'm')).slice(0, 1) : schud(W2_EV.filter(x => x.g === 'v')).slice(2, 3));
+    uit.push({ titel:'Element of verbinding', vraag:'Geef bij elke stof aan of het een element, een verbinding of een mengsel is.', stappen:[selectsStap('Maak een keuze bij elke stof.', schud(its),
+      [{ v:'e', t:'element' }, { v:'v', t:'verbinding' }, { v:'m', t:'mengsel' }], { hint:'Een element is opgebouwd uit één atoomsoort, een verbinding uit twee of meer atoomsoorten. Een mengsel bestaat uit meer dan één stof.' })] });
+    /* 3 ontledingsvergelijking */
+    const [nm3, f3, prod3, v3, simstof] = kies(W2_VGL);
+    uit.push({ titel:'Ontledingsvergelijking', vraag:`${nm3[0].toUpperCase() + nm3.slice(1)} (${fHTML(f3)}) ontleedt in ${prod3}.`, sim: simstof ? { stof: simstof } : null, stappen:[
+      vglStap('Schrijf de formules van de beginstof en de reactieproducten op, met een pijl ertussen. Nog zonder coëfficiënten.', v3, { alleenStoffen:true, ontleding:true, hint:'Elementen als zuurstof, waterstof, stikstof, chloor en broom schrijf je als moleculen van twee atomen. Metalen en koolstof schrijf je met alleen het symbool.' }),
+      vglStap('Maak de vergelijking kloppend.', v3, { ontleding:true, hint:'Begin met een atoomsoort die maar in één stof na de pijl voorkomt.' })] });
+    /* 4 afleiden */
+    const [prod4, at4] = kies(W2_AFLEID);
+    uit.push({ titel:'Wat zat erin?', vraag:`Een stof ontleedt. Er ontstaan ${prod4}.`, stappen:[
+      keuzeStap('Is de beginstof een element of een verbinding?', [{ html:'een verbinding', g:true }, { html:'een element', fb:'Een element kun je niet ontleden.' }, { html:'dat kun je niet weten', fb:'De stof is ontleed, dus je weet het wel.' }], { vast:true }),
+      chipsStap('Uit welke atoomsoorten is de beginstof opgebouwd?', ['C','H','O','N','S','Cl','Ag','Hg'].map(a => ({ html:a, g: at4.includes(a), fb:'Deze atoomsoort zit in geen van de producten.' })), { vast:true, hint:'Bij een ontleding komen alle atomen van de producten uit de beginstof. Er komt niets bij uit de lucht.', mist:'Je mist nog een atoomsoort. Kijk naar alle producten.' })] });
+    /* ★ onbekende stof onderzoeken */
+    const onb = kies(['X1', 'X2', 'X3']);
+    const AT = { X1:['C','H','O'], X2:['H','Cl'], X3:['Hg','O'] }, SRT = { X1:'t', X2:'e', X3:'t' };
+    uit.push({ titel:'Onbekende stof X', ster:true, geenExit:true, sim:{ onb }, vraag:'In de simulatie staat een onbekende stof X klaar. Onderzoek de stof: probeer de energievormen en test de producten.', stappen:[
+      simStap('Ontleed stof X in de simulatie. Klik daarna op <i>Controleer</i>.', () => SIMO.gelukt.onb && SIMO.gelukt.onb.startsWith(onb + '|'), { fout:'Stof X is nog niet ontleed. Kies <i>onbekende stof X</i> en probeer de drie energievormen.', hint:'Een stof die bij een energievorm niet verandert, kan bij een andere energievorm wel ontleden.', doe: () => { SIMO.zetOnb(onb); SIMO.start({ t:'warmte', e:'stroom' }[SRT[onb]]); SIMO.t = 1; SIMO.gelukt.onb = onb + '|x'; SIMO.toon(); }, antw:'Stof X ontleedt bij ' + ({ t:'verhitten', e:'stroom erdoor' }[SRT[onb]]) + '.' }),
+      keuzeStap('Welke soort ontleding is dit?', SOORT.slice(0, 3).map(x => ({ html:x.t, g: x.v === SRT[onb] })), { vast:true }),
+      chipsStap('Uit welke atoomsoorten is stof X opgebouwd? Gebruik je testen.', ['C','H','O','N','S','Cl','Cu','Hg'].map(a => ({ html:a, g: AT[onb].includes(a), fb:'Daar heb je geen product van aangetoond.' })), { vast:true, hint:'Welke producten heb je met de testen aangetoond? Uit welke atoomsoorten zijn die opgebouwd?', mist:'Je mist nog een atoomsoort. Heb je alle producten getest?' })] });
+    return uit;
+  }
+});
+
+/* =====================================================================
+   Werkplaats 3 — Energie en milieu (4.3)
+   ===================================================================== */
+const SIME_PRESET = {
+  eigen: null,
+  aardgas: { naam:'verbranding van aardgas', b:62, e:18, t:84 },
+  water:   { naam:'ontleding van water', b:22, e:70, t:88 },
+  fotosynthese: { naam:'fotosynthese', b:18, e:74, t:90 },
+  lucifer: { naam:'lucifer aansteken', b:55, e:25, t:90 }
+};
+const SIME = {
+  b:60, e:25, t:85, pijlen:true,
+  init(host){
+    host.innerHTML = `<div class="simkop"><b>Energiediagram</b><span>model</span></div>
+      <div class="ctrl"><label>Reactie <select class="sel" id="e_pre">${Object.entries(SIME_PRESET).map(([k, p]) => `<option value="${k}">${p ? p.naam : 'eigen diagram'}</option>`).join('')}</select></label>
+        <label><input type="checkbox" id="e_pijl" checked> pijlen</label></div>
+      <div class="doek" id="e_doek"></div>
+      <div class="ctrl" style="flex-direction:column;align-items:stretch;gap:4px">
+        <label>beginstoffen <input type="range" id="e_b" min="5" max="90" style="flex:1"></label>
+        <label>reactieproducten <input type="range" id="e_e" min="5" max="90" style="flex:1"></label>
+        <label>geactiveerde toestand <input type="range" id="e_t" min="15" max="100" style="flex:1"></label></div>
+      <div class="waarneming" id="e_w"></div>`;
+    this.c = maakCanvas($('#e_doek'), 600, 340);
+    $('#e_pre').onchange = e => { const p = SIME_PRESET[e.target.value]; if (p) this.zet(p.b, p.e, p.t); };
+    $('#e_pijl').onchange = e => { this.pijlen = e.target.checked; };
+    ['b', 'e', 't'].forEach(k => $('#e_' + k).oninput = ev => { this[k] = +ev.target.value; if (k !== 't') this.t = Math.max(this.t, Math.max(this.b, this.e) + 6); else this.t = Math.max(this.t, Math.max(this.b, this.e) + 6); $('#e_pre').value = 'eigen'; this.sync(); });
+    this.lezen = null; this.sync();
+  },
+  zet(b, e, t){ this.b = b; this.e = e; this.t = Math.max(t, Math.max(b, e) + 6); this.sync(); },
+  sync(){
+    ['b', 'e', 't'].forEach(k => { const el = $('#e_' + k); if (el){ el.value = this[k]; el.disabled = !!this.lezen; } });
+    const w = $('#e_w'); if (!w) return;
+    if (this.lezen) w.innerHTML = 'Lees het diagram af. De schuifjes staan vast.';
+    else if (this.opd) w.innerHTML = 'Stel het diagram in met de schuifjes.';
+    else w.innerHTML = this.e < this.b - 2 ? 'De reactieproducten liggen lager dan de beginstoffen: er komt energie vrij. De reactie is <b>exotherm</b>.' : this.e > this.b + 2 ? 'De reactieproducten liggen hoger dan de beginstoffen: er is energie nodig. De reactie is <b>endotherm</b>.' : 'Beginstoffen en reactieproducten liggen even hoog.';
+  },
+  opdracht(o){
+    this.opd = !!o;
+    if (o && o.sim && o.sim.lezen){ this.lezen = o.sim.lezen; this.b = o.sim.lezen.b; this.e = o.sim.lezen.e; this.t = o.sim.lezen.t; }
+    else { const was = this.lezen; this.lezen = null; if (was) this.zet(50, 50, 75); }
+    if (o && o.sim && o.sim.start) this.zet(...o.sim.start);
+    if ($('#e_pre')) $('#e_pre').value = 'eigen';
+    this.sync();
+  },
+  y(v){ return 312 - v * 2.75; },
+  draw(){
+    const c = this.c; c.clearRect(0, 0, c.W, c.H);
+    const yb = this.y(this.b), ye = this.y(this.e), yt = this.y(this.t);
+    /* assen */
+    c.strokeStyle = '#3e3b35'; c.lineWidth = 2; c.beginPath(); c.moveTo(60, 18); c.lineTo(60, 314); c.lineTo(580, 314); c.stroke();
+    c.beginPath(); c.moveTo(54, 28); c.lineTo(60, 16); c.lineTo(66, 28); c.fill();
+    c.save(); c.translate(30, 170); c.rotate(-Math.PI / 2); tekst(c, 'energie', 0, 0, { px:13, vet:true }); c.restore();
+    tekst(c, 'reactieverloop →', 500, 330, { px:12, kleur:'#7a756b' });
+    /* niveaus */
+    c.strokeStyle = '#2b2a27'; c.lineWidth = 3;
+    c.beginPath(); c.moveTo(80, yb); c.lineTo(190, yb); c.stroke();
+    c.beginPath(); c.moveTo(440, ye); c.lineTo(560, ye); c.stroke();
+    /* kromme */
+    c.strokeStyle = '#a0701f'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(190, yb);
+    c.bezierCurveTo(250, yb, 270, yt, 315, yt); c.bezierCurveTo(360, yt, 380, ye, 440, ye); c.stroke();
+    c.setLineDash([4, 4]); c.strokeStyle = '#9b9585'; c.lineWidth = 1.2;
+    c.beginPath(); c.moveTo(150, yt); c.lineTo(480, yt); c.stroke();
+    c.beginPath(); c.moveTo(190, yb); c.lineTo(560, yb); c.stroke();
+    c.setLineDash([]);
+    tekst(c, 'beginstoffen', 135, yb - 12, { px:12.5, vet:true });
+    tekst(c, 'reactieproducten', 500, ye + (ye > yb ? -12 : 16), { px:12.5, vet:true });
+    tekst(c, 'geactiveerde toestand', 315, yt - 12, { px:12, i:true, kleur:'#6b665c' });
+    const pijl = (x, y1, y2, kleur, lab) => {
+      if (Math.abs(y2 - y1) < 4) return;
+      c.strokeStyle = kleur; c.fillStyle = kleur; c.lineWidth = 2.2; c.beginPath(); c.moveTo(x, y1); c.lineTo(x, y2); c.stroke();
+      const d = y2 > y1 ? 1 : -1; c.beginPath(); c.moveTo(x, y2); c.lineTo(x - 6, y2 - 10 * d); c.lineTo(x + 6, y2 - 10 * d); c.fill();
+      if (lab) tekst(c, lab, x + 14, (y1 + y2) / 2, { px:13, vet:true, kleur, al:'left' });
+    };
+    if (this.lezen){
+      const L = this.lezen.lab;  /* { ea:'A', de:'B', terug:'C' } */
+      pijl(220, yb, yt, '#2f6fa8', L.ea); pijl(395, ye, yt, '#2f6fa8', L.terug); pijl(520, yb, ye, '#2f6fa8', L.de);
+    } else if (this.pijlen){
+      pijl(220, yb, yt, '#2f6fa8', 'activeringsenergie'); pijl(520, yb, ye, '#b4473a', 'reactie-energie');
+    }
+  }
+};
+
+const W3_EXO = [
+  ['Je mengt twee oplossingen in een bekerglas. Het bekerglas wordt warm.', 'x'],
+  ['Een koudekompres: je knakt het binnenzakje en het kompres wordt ijskoud.', 'n'],
+  ['Je verhit suiker. Er ontstaan koolstof en water. Haal je de brander weg, dan stopt de reactie.', 'n'],
+  ['Je steekt een kaars aan. Daarna blijft de kaars vanzelf branden.', 'x'],
+  ['Planten maken bij fotosynthese glucose uit koolstofdioxide en water. In het donker stopt de reactie.', 'n'],
+  ['Een handwarmer: je knikt een metalen plaatje in een zakje vloeistof. Het zakje wordt warm.', 'x'],
+  ['Bij de elektrolyse van water ontstaan alleen gasbelletjes zolang de stroom aanstaat.', 'n'],
+  ['Thermiet wordt aangestoken met een brandend magnesiumlint. Daarna reageert het heel fel en wordt het witheet.', 'x']];
+const W3_MILIEU = [
+  { lab:fHTML('CO2'), g:'b' }, { lab:fHTML('SO2'), g:'z' }, { lab:fHTML('NO2'), g:'z' }, { lab:'NO', g:'z' }, { lab:'CO', g:'g' }, { lab:'roet', g:'f' }];
+const W3_H2 = [
+  ['Bij de verbranding van waterstof ontstaat alleen water.', true],
+  ['Waterstof die uit aardgas wordt gemaakt, levert bij het maken toch koolstofdioxide op.', true],
+  ['Waterstof die wordt gemaakt door elektrolyse van water met stroom uit zon of wind, levert geen koolstofdioxide op.', true],
+  ['Bij de verbranding van waterstof ontstaat koolstofdioxide.', false, 'Waterstof is opgebouwd uit alleen H-atomen. Er kan dus geen koolstofdioxide ontstaan.'],
+  ['Waterstof is een fossiele brandstof.', false, 'Waterstof komt in de natuur bijna niet voor: het moet gemaakt worden.'],
+  ['Bij de verbranding van aardgas ontstaat alleen water.', false, 'Aardgas (methaan, CH<sub>4</sub>) bevat ook C-atomen. Er ontstaat dus ook koolstofdioxide.'],
+  ['Bij de verbranding van waterstof komt geen energie vrij.', false, 'Ook de verbranding van waterstof is exotherm: daarom is het een brandstof.']];
+const W3_REKEN = [['methaan (aardgas)', 'CH4'], ['propaan', 'C3H8'], ['butaan', 'C4H10']];
+
+WPS.push({
+  id:'energie', titel:'Energie en milieu', par:'§ 4.3', sim: SIME,
+  typtip:'Typ getallen met een komma, bijvoorbeeld <code>16,04</code>. De eenheid staat er al achter.',
+  uitleg: () => `
+    <p>Bij elke reactie verandert er chemische energie. Stoffen hebben een bepaalde hoeveelheid chemische energie. Hebben de reactieproducten minder chemische energie dan de beginstoffen, dan komt er energie vrij.</p>
+    <ul><li>Bij een <b>exotherme</b> reactie komt energie vrij, meestal als warmte. De omgeving wordt warmer. Na het starten gaat de reactie vanzelf door.</li>
+    <li>Bij een <b>endotherme</b> reactie is energie nodig. Stop je met energie toevoeren, dan stopt de reactie.</li></ul>
+    <h3>Energiediagram</h3>
+    <p>In een <b>energiediagram</b> zie je het energieniveau van de beginstoffen en van de reactieproducten. Ook een exotherme reactie moet eerst op gang komen: de beginstoffen moeten eerst naar de <b>geactiveerde toestand</b>. De energie die daarvoor nodig is, heet de <b>activeringsenergie</b>. Het verschil tussen de beginstoffen en de reactieproducten is de <b>reactie-energie</b>.</p>
+    <div class="kader">Exotherm: de reactieproducten liggen <b>lager</b> dan de beginstoffen. Endotherm: de reactieproducten liggen <b>hoger</b>. De pijl voor de activeringsenergie begint altijd bij de beginstoffen.</div>
+    <h3>Brandstoffen en het milieu</h3>
+    <p>Fossiele brandstoffen (aardgas, aardolie, steenkool) zijn opgebouwd uit vooral C- en H-atomen, met vaak een beetje S- en N-atomen. Bij het verbranden ontstaan:</p>
+    <ul><li>koolstofdioxide, dat het broeikaseffect <b>versterkt</b>;</li><li>zwaveldioxide en stikstofoxiden (NO, ${fHTML('NO2')}), die <b>zure regen</b> veroorzaken;</li><li>bij onvolledige verbranding: het <b>giftige</b> koolstofmono-oxide en roet (<b>fijnstof</b>).</li></ul>
+    <p><b>Waterstof</b> als brandstof levert bij verbranden alleen water op. Maar waterstof moet eerst gemaakt worden: nu meestal uit aardgas (dan ontstaat er toch ${fHTML('CO2')}), en steeds vaker door elektrolyse van water met stroom uit zon of wind.</p>`,
+  voorbeeld: {
+    vraag:'Teken het energiediagram van de verbranding van aardgas.',
+    bijStap: n => { if (n === 2){ SIME.zet(62, 62, 66); } if (n === 3){ SIME.zet(62, 18, 66); } if (n === 4){ SIME.zet(62, 18, 84); $('#e_pre').value = 'aardgas'; } },
+    stappen:[
+      'De verbranding van aardgas is exotherm: er komt warmte vrij. De reactieproducten liggen dus lager dan de beginstoffen.',
+      'Teken eerst het niveau van de beginstoffen: methaan en zuurstof.',
+      'Teken het niveau van de reactieproducten, koolstofdioxide en water, lager dan de beginstoffen. Het verschil is de reactie-energie.',
+      'Aardgas brandt niet vanzelf: er is een vonk of vlam nodig. Teken de geactiveerde toestand dus hoger dan de beginstoffen. De pijl van de beginstoffen naar de geactiveerde toestand is de activeringsenergie. Bekijk het resultaat in de simulatie.']
+  },
+  maakSerie(){
+    const uit = [];
+    /* 1 exo of endo */
+    const [s1, g1] = kies(W3_EXO);
+    uit.push({ titel:'Exotherm of endotherm?', vraag: s1, stappen:[
+      keuzeStap('Is deze reactie exotherm of endotherm?', [{ html:'exotherm', g: g1 === 'x' }, { html:'endotherm', g: g1 === 'n' }, { html:'dat kun je niet zeggen', fb:'De waarneming vertelt wel iets: komt er energie vrij, of is er steeds energie nodig?' }], { vast:true, hint:'Komt er energie vrij (wordt het warmer, gaat de reactie vanzelf door)? Of is er steeds energie nodig?' }),
+      keuzeStap('Waar liggen in het energiediagram de reactieproducten?', [{ html:'lager dan de beginstoffen', g: g1 === 'x' }, { html:'hoger dan de beginstoffen', g: g1 === 'n' }, { html:'even hoog als de beginstoffen' }], { vast:true })] });
+    /* 2 diagram lezen */
+    const exo = Math.random() < 0.5, letters = schud(['A', 'B', 'C']);
+    const lab = { ea: letters[0], de: letters[1], terug: letters[2] };
+    const lv = exo ? { b:60, e:22, t:86, lab } : { b:24, e:62, t:88, lab };
+    const LET = ['A', 'B', 'C'].map(x => ({ v:x, t:'pijl ' + x }));
+    uit.push({ titel:'Energiediagram lezen', vraag:'In de simulatie staat een energiediagram met drie pijlen: A, B en C.', sim:{ lezen: lv }, stappen:[
+      selectsStap('Welke pijl geeft wat weer?', [{ lab:'activeringsenergie', g: lab.ea }, { lab:'reactie-energie', g: lab.de }], LET, { hint:'De activeringsenergie begint bij de beginstoffen en gaat omhoog naar de geactiveerde toestand. De reactie-energie is het verschil tussen beginstoffen en reactieproducten.' }),
+      keuzeStap('Is deze reactie exotherm of endotherm?', [{ html:'exotherm', g: exo }, { html:'endotherm', g: !exo }], { vast:true })] });
+    /* 3 diagram instellen */
+    const v3 = kies([
+      ['een exotherme reactie waarbij de activeringsenergie groter is dan de reactie-energie', s => s.e < s.b - 5 && (s.t - s.b) > (s.b - s.e) + 3, [55, 35, 90], 'x'],
+      ['een exotherme reactie waarbij de activeringsenergie kleiner is dan de reactie-energie', s => s.e < s.b - 5 && (s.t - s.b) < (s.b - s.e) - 3, [70, 15, 85], 'x'],
+      ['een endotherme reactie', s => s.e > s.b + 5, [25, 65, 85], 'n']]);
+    uit.push({ titel:'Energiediagram instellen', vraag:`Stel in de simulatie het energiediagram in van ${v3[0]}.`, sim:{ start:[50, 50, 70] }, stappen:[
+      simStap('Stel de drie schuifjes in. Klik daarna op <i>Controleer</i>.', () => v3[1](SIME), { doe: () => SIME.zet(...v3[2]), antw:'Zie de simulatie: ' + v3[0] + '.', hint: v3[3] === 'x' ? 'Exotherm: de reactieproducten lager dan de beginstoffen. Vergelijk daarna de lengte van de twee pijlen.' : 'Endotherm: de reactieproducten hoger dan de beginstoffen.', fout:'Het diagram klopt nog niet met de beschrijving. Zet de pijlen aan en vergelijk.' }),
+      keuzeStap('Moet je bij deze reactie energie blijven toevoeren om hem te laten doorgaan?', [{ html:'ja', g: v3[3] === 'n' }, { html:'nee, na het starten gaat hij vanzelf door', g: v3[3] === 'x' }], { vast:true })] });
+    /* 4 milieu */
+    const its = schud(W3_MILIEU).slice(0, 5);
+    uit.push({ titel:'Brandstoffen en het milieu', vraag:'Bij het verbranden van fossiele brandstoffen ontstaan verschillende stoffen.', stappen:[selectsStap('Welk milieuprobleem hoort bij welke stof?', its,
+      [{ v:'b', t:'versterkt broeikaseffect' }, { v:'z', t:'zure regen' }, { v:'g', t:'giftig gas' }, { v:'f', t:'fijnstof' }], { hint:'Zwavel- en stikstofoxiden vormen met water zuren. Koolstofdioxide houdt warmte vast in de atmosfeer.' })] });
+    /* 5 waterstof */
+    const goed = schud(W3_H2.filter(x => x[1])).slice(0, 2), fout = schud(W3_H2.filter(x => !x[1])).slice(0, 3);
+    uit.push({ titel:'Waterstof of aardgas?', vraag:'Waterstof wordt genoemd als schone brandstof voor de toekomst.', stappen:[keuzeStap('Welke uitspraken zijn juist?', goed.concat(fout).map(x => ({ html:x[0], g:x[1], fb:x[2] })), { meer:true })] });
+    /* ★ rekenen */
+    const [nm, f] = kies(W3_REKEN), m = Math.round(rnd(80, 480)) / 10, vgl = verbrandVgl(f);
+    const Mb = molmassa(f), nb = m / Mb, r = vgl.R.find(x => x[1] === 'CO2')[0] / vgl.L[0][0], nc = nb * r, Mc = molmassa('CO2'), mc = nc * Mc;
+    uit.push({ titel:'Hoeveel CO₂?', ster:true, vraag:`Er verbrandt ${nl(m, 1)} g ${nm}. De reactievergelijking is: ${vglHTML(vgl)}<br>Bereken hoeveel gram ${fHTML('CO2')} er ontstaat. Gebruik: ${amLijst(f + 'O2')}.`, stappen:[
+      getalStap(`Bereken de molaire massa van ${fHTML(f)}.`, Mb, { eh: EH.gmol, antw: `${Object.entries(telAtomen(f)).map(([k, n]) => n + ' × ' + nl(AM[k], AM[k] < 2 ? 3 : 2)).join(' + ')} = ${nl(Mb, 2)} ${EH.gmol}`, hint:'Tel de massa\'s van alle atomen in het molecuul bij elkaar op.' }),
+      getalStap(`Bereken het aantal mol ${fHTML(f)}.`, nb, { eh:'mol', fouten:[[Mb / m, 'Je hebt de molaire massa door de massa gedeeld. Het aantal mol is de massa gedeeld door de molaire massa.']], antw: `${br(nl(m, 1) + ' g', nl(Mb, 2) + ' ' + EH.gmol)} = ${sig(nb, 3)} mol`, hint:'Aantal mol = massa gedeeld door molaire massa.' }),
+      getalStap(`Bereken het aantal mol ${fHTML('CO2')} dat ontstaat.`, nc, { eh:'mol', fouten: r !== 1 ? [[nb, 'Gebruik de molverhouding uit de reactievergelijking.']] : [], antw: r === 1 ? `De molverhouding ${fHTML(f)} : ${fHTML('CO2')} is 1 : 1, dus ${sig(nc, 3)} mol` : `De molverhouding ${fHTML(f)} : ${fHTML('CO2')} is 1 : ${r}, dus ${r} × ${sig(nb, 3)} = ${sig(nc, 3)} mol`, hint:'Kijk naar de coëfficiënten in de reactievergelijking.' }),
+      getalStap(`Bereken de massa van het ${fHTML('CO2')}.`, mc, { eh:'g', fouten:[[nc * Mb, 'Gebruik de molaire massa van CO<sub>2</sub>, niet die van de brandstof.']], antw: `molaire massa ${fHTML('CO2')}: 12,01 + 2 × 16,00 = 44,01 ${EH.gmol}; massa = ${sig(nc, 3)} mol × 44,01 ${EH.gmol} = ${sig(mc, 3)} g`, hint:'Massa = aantal mol × molaire massa. Reken eerst de molaire massa van CO2 uit.' })] });
+    return uit;
+  }
+});
+
+/* =====================================================================
+   Werkplaats 4 — Concentratie in mol/L (aanloop naar 4.5)
+   ===================================================================== */
+const SIMC_STOF = {
+  glucose:  { naam:'glucose', f:'C6H12O6', kl:'#d9a441' },
+  sucrose:  { naam:'sucrose (suiker)', f:'C12H22O11', kl:'#b77fc4' },
+  ureum:    { naam:'ureum', f:'CH4N2O', kl:'#5aa0c8' },
+  glycerol: { naam:'glycerol', f:'C3H8O3', kl:'#6cb37e' },
+  cafeine:  { naam:'cafeïne', f:'C8H10N4O2', kl:'#a86b4b' },
+  vitc:     { naam:'vitamine C', f:'C6H8O6', kl:'#e07b39' }
+};
+const SIMC = {
+  stof:'glucose', m:9, V:250, toon:false,
+  init(host){
+    host.innerHTML = `<div class="simkop"><b>Een oplossing maken</b><span>model</span></div>
+      <div class="ctrl"><label>Stof <select class="sel" id="c_stof">${Object.entries(SIMC_STOF).map(([k, s]) => `<option value="${k}">${s.naam}</option>`).join('')}</select></label>
+        <label>Maatkolf <select class="sel" id="c_V">${[100, 250, 500, 1000].map(v => `<option value="${v}">${v} mL</option>`).join('')}</select></label></div>
+      <div class="ctrl"><label>Massa <input type="range" id="c_m" min="0" max="40" step="0.1" style="width:220px"> <span id="c_mw"></span></label></div>
+      <div class="doek" id="c_doek"></div>
+      <div class="ctrl"><label><input type="checkbox" id="c_toon"> toon de concentratie</label></div>
+      <div class="waarneming" id="c_w"></div>`;
+    this.c = maakCanvas($('#c_doek'), 600, 330);
+    $('#c_stof').onchange = e => { this.stof = e.target.value; this.nieuw(); };
+    $('#c_V').onchange = e => { this.V = +e.target.value; this.nieuw(); };
+    $('#c_m').oninput = e => { this.m = +e.target.value; this.nieuw(); };
+    $('#c_toon').onchange = e => { this.toon = e.target.checked; this.sync(); };
+    this.nieuw();
+  },
+  cMol(){ return this.m / molmassa(SIMC_STOF[this.stof].f) / (this.V / 1000); },
+  nieuw(){
+    const N = Math.min(140, Math.round(this.cMol() * 110));
+    this.deel = Array.from({ length:N }, () => ({ x: rnd(-1, 1), y: rnd(-1, 1), a: rnd(0, 6.3), vx: rnd(-1, 1), vy: rnd(-1, 1) })).filter(d => d.x * d.x + d.y * d.y < 0.85);
+    while (this.deel.length < N){ const d = { x: rnd(-0.9, 0.9), y: rnd(-0.9, 0.9), a: rnd(0, 6.3), vx: rnd(-1, 1), vy: rnd(-1, 1) }; if (d.x * d.x + d.y * d.y < 0.85) this.deel.push(d); }
+    this.sync();
+  },
+  opdracht(o){ this.opd = !!o; if (o && o.sim){ Object.assign(this, o.sim); this.nieuw(); } this.sync(); },
+  sync(){
+    if (!$('#c_stof')) return;
+    $('#c_stof').value = this.stof; $('#c_V').value = this.V; $('#c_m').value = this.m; $('#c_mw').textContent = nl(this.m, 1) + ' g';
+    $('#c_toon').checked = this.toon && !this.opd; $('#c_toon').disabled = !!this.opd;
+    const s = SIMC_STOF[this.stof], M = molmassa(s.f), gl = this.m / (this.V / 1000);
+    let h = `${nl(this.m, 1)} g ${s.naam} (${fHTML(s.f)}), opgelost tot ${this.V} mL oplossing.`;
+    if (this.opd) h += ' <span style="color:var(--grijs)">Tijdens de opdrachten staat de concentratie verborgen.</span>';
+    else if (this.toon) h += `<br>Concentratie: <b>${sig(gl, 3)} ${EH.gL}</b> = <b>${sig(this.cMol(), 3)} ${EH.molL}</b> (molaire massa ${nl(M, 2)} ${EH.gmol}).`;
+    $('#c_w').innerHTML = h;
+  },
+  update(dt){ for (const d of this.deel || []){ d.x += d.vx * dt * 0.08; d.y += d.vy * dt * 0.08; d.a += dt; if (d.x * d.x + d.y * d.y > 0.85){ d.vx *= -1; d.vy *= -1; d.x *= 0.98; d.y *= 0.98; } } },
+  draw(){
+    const c = this.c; c.clearRect(0, 0, c.W, c.H); const s = SIMC_STOF[this.stof];
+    c.fillStyle = '#e8e0cf'; c.fillRect(0, 306, 600, 24);
+    /* weegschaal */
+    c.fillStyle = '#5b6067'; c.beginPath(); c.roundRect(40, 250, 140, 56, 8); c.fill();
+    c.fillStyle = '#c9e7c8'; c.fillRect(70, 270, 80, 24); tekst(c, nl(this.m, 1) + ' g', 110, 282, { px:14, vet:true, kleur:'#244' });
+    c.fillStyle = '#c8ccd0'; c.fillRect(60, 240, 100, 8);
+    const hoop = Math.min(30, 4 + this.m * 0.9); c.fillStyle = '#f7f5ef'; c.strokeStyle = '#c8c2b3'; c.beginPath(); c.moveTo(110 - hoop * 1.3, 240); c.quadraticCurveTo(110, 240 - hoop * 1.3, 110 + hoop * 1.3, 240); c.fill(); c.stroke();
+    tekst(c, 'weegschaal', 110, 318, { px:11.5, i:true });
+    /* maatkolf */
+    const X = 290, sc = { 100:0.62, 250:0.78, 500:0.92, 1000:1.08 }[this.V], R = 52 * sc, by = 296, hals = 26 * sc;
+    c.fillStyle = 'rgba(205,212,218,.35)'; c.beginPath(); c.arc(X, by - R, R, 0, Math.PI * 2); c.fill(); c.fillRect(X - hals / 2, by - 2 * R - 90 * sc, hals, 90 * sc + 4);
+    c.strokeStyle = '#7d8a96'; c.lineWidth = 2; c.beginPath(); c.arc(X, by - R, R, -Math.PI / 2 + 0.25, -Math.PI / 2 - 0.25 + Math.PI * 2); c.stroke();
+    c.beginPath(); c.moveTo(X - hals / 2, by - 2 * R + 3); c.lineTo(X - hals / 2, by - 2 * R - 110 * sc); c.moveTo(X + hals / 2, by - 2 * R + 3); c.lineTo(X + hals / 2, by - 2 * R - 110 * sc); c.stroke();
+    c.strokeStyle = '#2b2a27'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(X - hals / 2 - 4, by - 2 * R - 90 * sc); c.lineTo(X + hals / 2 + 4, by - 2 * R - 90 * sc); c.stroke();
+    tekst(c, this.V + ' mL', X, by + 18, { px:12, vet:true });
+    /* loep */
+    const LX = 480, LY = 150, LR = 105;
+    c.strokeStyle = '#a8a294'; c.setLineDash([3, 4]); c.beginPath(); c.moveTo(X + R * 0.6, by - R); c.lineTo(LX - LR * 0.9, LY + 40); c.stroke(); c.setLineDash([]);
+    c.save(); c.beginPath(); c.arc(LX, LY, LR, 0, Math.PI * 2); c.fillStyle = '#f2f5f7'; c.fill(); c.clip();
+    for (const d of this.deel || []){
+      const x = LX + d.x * LR, y = LY + d.y * LR;
+      c.fillStyle = s.kl; c.strokeStyle = 'rgba(40,35,30,.4)'; c.lineWidth = 1;
+      c.beginPath(); for (let i = 0; i < 6; i++){ const a = d.a + i * Math.PI / 3; c[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * 6, y + Math.sin(a) * 6); } c.closePath(); c.fill(); c.stroke();
+      if (this.stof === 'sucrose'){ c.beginPath(); c.arc(x + Math.cos(d.a) * 9, y + Math.sin(d.a) * 9, 4.5, 0, Math.PI * 2); c.fill(); c.stroke(); }
+    }
+    c.restore(); c.strokeStyle = '#5d5a52'; c.lineWidth = 4; c.beginPath(); c.arc(LX, LY, LR, 0, Math.PI * 2); c.stroke();
+    tekst(c, 'loep: een klein stukje van de oplossing', LX, LY + LR + 16, { px:11.5, i:true });
+    tekst(c, 'watermoleculen niet getekend', LX, LY + LR + 31, { px:10.5, kleur:'#8a8578' });
+  }
+};
+
+const W4_CONTEXT = [
+  ['glucose', 'sportdrank', 60], ['sucrose', 'frisdrank', 100], ['cafeine', 'energiedrank', 0.32], ['ureum', 'kunstmestoplossing', 30], ['vitc', 'vitaminedrankje', 2.0], ['glycerol', 'oplossing voor zeepbellen', 50]];
+
+WPS.push({
+  id:'concentratie', titel:'Concentratie in mol/L', par:'aanloop naar § 4.5', sim: SIMC,
+  typtip:'Typ getallen met een komma, bijvoorbeeld <code>0,250</code>. De eenheid staat er al achter.',
+  uitleg: () => `
+    <p>De <b>concentratie</b> van een oplossing geeft aan hoeveel stof er is opgelost per liter oplossing. Je kent al de concentratie in gram per liter, ${EH.gL}. In de scheikunde reken je vaak met de concentratie in mol per liter, ${EH.molL}:</p>
+    <div class="kader" style="text-align:center;font-size:17px">concentratie = ${br('aantal mol opgeloste stof', 'volume van de oplossing in L')}</div>
+    <p>Het volume moet in liter: 250 mL = ${br('250', '1000')} L = 0,250 L.</p>
+    <h3>Van massa naar mol</h3>
+    <p>Weet je de massa van de opgeloste stof? Reken dan eerst het aantal mol uit:</p>
+    <div class="kader" style="text-align:center;font-size:17px">aantal mol = ${br('massa in g', 'molaire massa in ' + EH.gmol)}</div>
+    <h3>Op deeltjesniveau</h3>
+    <p>Eén mol is altijd evenveel moleculen, welke stof het ook is. Twee oplossingen met dezelfde concentratie in ${EH.molL} bevatten dus evenveel opgeloste moleculen per liter. Bij dezelfde concentratie in ${EH.gL} zitten de meeste moleculen per liter in de oplossing van de stof met de <b>kleinste</b> molaire massa. Bekijk het met de loep in de simulatie.</p>`,
+  voorbeeld: {
+    vraag:`Je lost 9,01 g glucose (${fHTML('C6H12O6')}) op tot 250 mL oplossing. Bereken de concentratie in ${EH.molL}. Gebruik: C = 12,01 · H = 1,008 · O = 16,00.`,
+    bijStap: n => { if (n === 1){ SIMC.stof = 'glucose'; SIMC.m = 9; SIMC.V = 250; SIMC.nieuw(); } },
+    stappen:[
+      `Molaire massa van glucose: 6 × 12,01 + 12 × 1,008 + 6 × 16,00 = 180,16 ${EH.gmol}`,
+      `Aantal mol glucose: ${br('9,01 g', '180,16 ' + EH.gmol)} = 0,0500 mol`,
+      `Volume in liter: 250 mL = ${br('250', '1000')} L = 0,250 L`,
+      `Concentratie: ${br('0,0500 mol', '0,250 L')} = <b>0,200 ${EH.molL}</b>`]
+  },
+  maakSerie(){
+    const uit = [], stoffen = Object.keys(SIMC_STOF);
+    const N = k => SIMC_STOF[k].naam, F = k => SIMC_STOF[k].f, Mk = k => molmassa(F(k));
+    /* 1 g/L */
+    const s1 = kies(stoffen), m1 = Math.round(rnd(20, 180)) / 10, V1 = kies([100, 250, 500]);
+    const c1 = m1 / (V1 / 1000);
+    uit.push({ titel:'Concentratie in g/L', vraag:`Je lost ${nl(m1, 1)} g ${N(s1)} op tot ${V1} mL oplossing.`, sim:{ stof:s1, m:m1, V:V1 }, stappen:[
+      getalStap(`Bereken de concentratie in ${EH.gL}.`, c1, { eh: EH.gL, fouten:[[V1 / 1000 / m1, 'Je hebt het volume door de massa gedeeld. Het is andersom: massa gedeeld door volume.']], antw:`${br(nl(m1, 1) + ' g', nl(V1 / 1000, 3) + ' L')} = ${sig(c1, 3)} ${EH.gL}`, hint:'Reken het volume eerst om naar liter. Deel dan de massa door het volume.' })] });
+    /* 2 mol/L uit mol */
+    const s2 = kies(stoffen.filter(x => x !== s1)), n2 = Math.round(rnd(10, 150)) / 1000, V2 = kies([100, 250, 500]);
+    const c2 = n2 / (V2 / 1000);
+    uit.push({ titel:'Concentratie in mol/L', vraag:`In ${V2} mL oplossing is ${nl(n2, 3)} mol ${N(s2)} opgelost.`, sim:{ stof:s2, m: Math.round(n2 * Mk(s2) * 10) / 10, V:V2 }, stappen:[
+      getalStap(`Bereken de concentratie in ${EH.molL}.`, c2, { eh: EH.molL, fouten:[[V2 / 1000 / n2, 'Je hebt het volume door het aantal mol gedeeld. Het is andersom.']], antw:`${br(nl(n2, 3) + ' mol', nl(V2 / 1000, 3) + ' L')} = ${sig(c2, 3)} ${EH.molL}`, hint:'Concentratie = aantal mol gedeeld door het volume in liter.' })] });
+    /* 3 massa -> mol/L */
+    const s3 = kies(stoffen.filter(x => x !== 'glucose' && x !== s2)), V3 = kies([100, 250, 500]), m3 = Math.round(rnd(15, 120)) / 10;
+    const M3 = Mk(s3), n3 = m3 / M3, c3 = n3 / (V3 / 1000);
+    uit.push({ titel:'Van massa naar mol/L', vraag:`Je lost ${nl(m3, 1)} g ${N(s3)} (${fHTML(F(s3))}) op tot ${V3} mL oplossing. Gebruik: ${amLijst(F(s3))}.`, sim:{ stof:s3, m:m3, V:V3 }, stappen:[
+      getalStap(`Bereken de molaire massa van ${N(s3)}.`, M3, { eh: EH.gmol, antw:`${Object.entries(telAtomen(F(s3))).map(([k, n]) => n + ' × ' + nl(AM[k], AM[k] < 2 ? 3 : 2)).join(' + ')} = ${nl(M3, 2)} ${EH.gmol}`, hint:'Tel de massa\'s van alle atomen in het molecuul bij elkaar op.' }),
+      getalStap(`Bereken het aantal mol ${N(s3)}.`, n3, { eh:'mol', fouten:[[M3 / m3, 'Je hebt de molaire massa door de massa gedeeld. Het is andersom.'], [m3 * M3, 'Aantal mol = massa gedeeld door molaire massa, niet keer.']], antw:`${br(nl(m3, 1) + ' g', nl(M3, 2) + ' ' + EH.gmol)} = ${sig(n3, 3)} mol`, hint:'Aantal mol = massa gedeeld door molaire massa.' }),
+      getalStap(`Bereken de concentratie in ${EH.molL}.`, c3, { eh: EH.molL, antw:`${br(sig(n3, 3) + ' mol', nl(V3 / 1000, 3) + ' L')} = ${sig(c3, 3)} ${EH.molL}`, hint:'Reken het volume om naar liter.' })] });
+    /* 4 g/L -> mol/L */
+    const [s4, ctx4, g4b] = kies(W4_CONTEXT.filter(x => x[0] !== s3)); const g4 = +(g4b * rnd(0.8, 1.2)).toPrecision(2);
+    const M4 = Mk(s4), c4 = g4 / M4;
+    uit.push({ titel:'Van g/L naar mol/L', vraag:`Een ${ctx4} bevat ${nl(g4, g4 < 1 ? 2 : g4 < 10 ? 1 : 0)} ${EH.gL} ${N(s4)} (${fHTML(F(s4))}). Gebruik: ${amLijst(F(s4))}.`, stappen:[
+      getalStap(`Bereken de molaire massa van ${N(s4)}.`, M4, { eh: EH.gmol, antw:`${nl(M4, 2)} ${EH.gmol}`, hint:'Tel de massa\'s van alle atomen in het molecuul bij elkaar op.' }),
+      getalStap(`Bereken de concentratie in ${EH.molL}.`, c4, { eh: EH.molL, fouten:[[M4 / g4, 'Je hebt de molaire massa door de concentratie gedeeld. Het is andersom.'], [g4 * M4, 'Deel de massa per liter door de molaire massa.']], antw:`In 1 L zit ${nl(g4, 2)} g. Dat is ${br(nl(g4, 2) + ' g', nl(M4, 2) + ' ' + EH.gmol)} = ${sig(c4, 3)} mol, dus ${sig(c4, 3)} ${EH.molL}`, hint:'Bekijk 1 liter: hoeveel gram zit erin, en hoeveel mol is dat?' })] });
+    /* 5 terugrekenen */
+    const s5 = kies(stoffen), V5 = kies([100, 250, 500]), c5 = kies([0.100, 0.150, 0.200, 0.250, 0.500]), M5 = Mk(s5), n5 = c5 * V5 / 1000, m5 = n5 * M5;
+    uit.push({ titel:'Terugrekenen', vraag:`Je wilt ${V5} mL oplossing maken van ${nl(c5, 3)} ${EH.molL} ${N(s5)}. De molaire massa van ${N(s5)} is ${nl(M5, 2)} ${EH.gmol}.`, stappen:[
+      getalStap(`Hoeveel mol ${N(s5)} heb je nodig?`, n5, { eh:'mol', fouten:[[c5 / (V5 / 1000), 'Je hebt gedeeld door het volume. Je hebt nodig: concentratie × volume.']], antw:`${nl(c5, 3)} ${EH.molL} × ${nl(V5 / 1000, 3)} L = ${sig(n5, 3)} mol`, hint:'In 1 liter zit de concentratie aan mol. Hoeveel mol zit er dan in jouw volume?' }),
+      getalStap(`Hoeveel gram ${N(s5)} moet je afwegen?`, m5, { eh:'g', fouten:[[n5 / M5, 'Massa = aantal mol × molaire massa, niet gedeeld.']], antw:`${sig(n5, 3)} mol × ${nl(M5, 2)} ${EH.gmol} = ${sig(m5, 3)} g`, hint:'Massa = aantal mol × molaire massa.' })] });
+    /* 6 deeltjesniveau */
+    const [a, b] = schud(['glucose', 'sucrose', 'ureum', 'glycerol']).slice(0, 2), gl = kies([10, 20, 50]);
+    const klein = Mk(a) < Mk(b) ? a : b;
+    const AB = [{ html:`de oplossing van ${N(a)}`, g: klein === a }, { html:`de oplossing van ${N(b)}`, g: klein === b }, { html:'evenveel', fb:`Bij evenveel gram zijn het niet evenveel moleculen: de moleculen van ${N(a)} en ${N(b)} hebben niet dezelfde massa.` }];
+    uit.push({ titel:'Op deeltjesniveau', vraag:`Je hebt een oplossing van ${N(a)} (${fHTML(F(a))}) en een oplossing van ${N(b)} (${fHTML(F(b))}). Beide oplossingen bevatten ${gl} ${EH.gL}. Je mag de simulatie gebruiken.`, sim:{ stof:a, m: gl / 4, V:250 }, stappen:[
+      keuzeStap('In welke oplossing zitten de meeste opgeloste moleculen per liter?', AB.map(x => ({ ...x })), { vast:true, hint:'Welk molecuul heeft de kleinste massa? Van die stof gaan er de meeste in een gram.' }),
+      keuzeStap(`Welke oplossing heeft de hoogste concentratie in ${EH.molL}?`, AB.map(x => ({ ...x })), { vast:true }),
+      keuzeStap('Je laat de opgeloste stof in beide oplossingen reageren met een andere stof. In welke oplossing verwacht je de hoogste reactiesnelheid?', AB.map(x => ({ ...x, fb: x.g ? '' : 'Bij meer deeltjes per liter botsen de deeltjes vaker.' })), { vast:true, hint:'Hoe meer deeltjes per liter, hoe vaker ze botsen.' })] });
+    /* ★ verdunnen */
+    const V7 = kies([10, 20, 25]), c7 = kies([0.500, 0.400, 0.200]), V8 = kies([100, 250]), n7 = c7 * V7 / 1000, c8 = n7 / (V8 / 1000);
+    uit.push({ titel:'Verdunnen', ster:true, vraag:`Je pipetteert ${V7} mL glucose-oplossing van ${nl(c7, 3)} ${EH.molL} in een maatkolf van ${V8} mL en vult aan met water tot de streep.`, stappen:[
+      getalStap('Hoeveel mol glucose zit er in de maatkolf?', n7, { eh:'mol', antw:`${nl(c7, 3)} ${EH.molL} × ${nl(V7 / 1000, 3)} L = ${sig(n7, 3)} mol`, hint:'Bij het aanvullen met water komt er geen glucose bij.' }),
+      getalStap(`Bereken de nieuwe concentratie in ${EH.molL}.`, c8, { eh: EH.molL, fouten:[[c7, 'De concentratie blijft niet gelijk: dezelfde hoeveelheid glucose zit nu in een groter volume.']], antw:`${br(sig(n7, 3) + ' mol', nl(V8 / 1000, 3) + ' L')} = ${sig(c8, 3)} ${EH.molL}`, hint:'Deel het aantal mol door het nieuwe volume in liter.' })] });
+    return uit;
+  }
+});
+
+/* ---------- start ---------- */
+$('#beamerknop').onclick = () => document.body.classList.toggle('beamer');
+function toonKc(){ $('#kcinfo').textContent = STAAT.klascode ? 'Klascode: ' + STAAT.klascode + ' (iedereen dezelfde opdrachten)' : ''; $('#kcin').value = STAAT.klascode; }
+$('#kcknop').onclick = () => {
+  const c = $('#kcin').value.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 12);
+  if (c === STAAT.klascode) return;
+  STAAT.klascode = c; try { localStorage.setItem(KCKEY, c); } catch (e){}
+  for (const k in PER_WP) delete PER_WP[k];
+  toonKc(); open(STAAT.wp);
+};
+$('#kcin').onkeydown = e => { if (e.key === 'Enter') $('#kcknop').click(); };
+toonKc();
+
+/* ---------- inleveren: code maken ---------- */
+async function comprimeer(t){
+  const bytes = new TextEncoder().encode(t);
+  let uit = bytes, soort = 'J';
+  if (window.CompressionStream){ try { uit = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer()); soort = 'D'; } catch (e){ uit = bytes; soort = 'J'; } }
+  let s = ''; for (let i = 0; i < uit.length; i += 8192) s += String.fromCharCode.apply(null, uit.subarray(i, i + 8192));
+  return soort + btoa(s);
+}
+async function maakCode(wpId){
+  const ev = LOG.ev.filter(e => !wpId || e[1] === wpId);
+  const keys = [], ctx = [];
+  const kev = ev.map(e => { const key = e[1] + '|' + e[2]; let i = keys.indexOf(key); if (i < 0){ i = keys.length; keys.push(key); ctx.push(LOG.ctx[key] || null); } return [e[0], i, e[3], e[4], e[5], e[6], e[7], e[8]]; });
+  const pakket = { v:2, tool:'RE', tn:'Reacties en energie', wpn: Object.fromEntries(WPS.map(w => [w.id, w.titel])), kc: STAAT.klascode || '', t0: LOG.t0, keys, ctx, ev: kev };
+  const body = await comprimeer(JSON.stringify(pakket));
+  const chk = (hashStr(body) % 46656).toString(36).toUpperCase().padStart(3, '0');
+  const MAX = 3900, n = Math.max(1, Math.ceil(body.length / MAX)), delen = [];
+  for (let i = 0; i < n; i++) delen.push(`RE1-${chk}-${i + 1}/${n}-` + body.slice(i * MAX, (i + 1) * MAX));
+  return { delen, aantal: ev.filter(e => e[5] === 'c').length };
+}
+/* inleverformulier: per klas via ?inleveren=<link> in de tool-link */
+const FORMS_URL = (() => { try { const u = new URLSearchParams(location.search).get('inleveren'); if (u && /^https:\/\/(forms\.office\.com|forms\.microsoft\.com|forms\.cloud\.microsoft)\//.test(u)) return u; } catch (e){} return ''; })();
+const heeftForms = () => /^https:\/\//.test(FORMS_URL);
+function toonInleveren(){
+  SIM = null;
+  $$('#nav a').forEach(a => a.classList.remove('on'));
+  const opties = WPS.map(w => { const n = LOG.ev.filter(e => e[1] === w.id && e[5] === 'c').length; return `<option value="${w.id}" ${WPS[STAAT.wp].id === w.id ? 'selected' : ''}>${w.titel} (${n} antwoorden)</option>`; }).join('');
+  $('#main').innerHTML = `<div class="wp"><section class="tekst inleverpaneel"><div class="kicker">Inleveren</div><h2>Je code voor de docent</h2>
+    <p>De code bevat je antwoorden in deze tool, maar geen naam. Kopieer de code en plak hem in het inleverformulier${heeftForms() ? '' : ' van je docent'}.</p>
+    <div class="rij"><label>Welke werkplaats? <select class="sel" id="ilwp"><option value="">alle werkplaatsen</option>${opties}</select></label><button class="btn" id="ilmaak">Maak code</button></div>
+    <div id="ilcode"></div>
+    <p class="klein" style="margin-top:24px;color:var(--grijs);font-size:13px">Je antwoorden worden alleen op deze laptop bewaard. <button class="btn g klein" id="ilwis">Logboek wissen</button></p></section><section class="simkol"></section></div>`;
+  $('#ilwp').value = '';
+  $('#ilmaak').onclick = async () => {
+    const r = await maakCode($('#ilwp').value);
+    $('#ilcode').innerHTML = (r.delen.length > 1 ? `<p><b>Je code bestaat uit ${r.delen.length} delen.</b> Plak elk deel in een eigen vak in Forms.</p>` : '') +
+      r.delen.map((d, i) => `<div class="deel"><b>${r.delen.length > 1 ? 'Deel ' + (i + 1) : 'Code'} (${r.aantal} antwoorden)</b><textarea readonly id="ilt${i}">${d}</textarea><button class="btn klein" data-kop="${i}">Kopieer</button></div>`).join('') +
+      (heeftForms() ? `<p style="margin-top:14px"><a class="btn" href="${FORMS_URL}" target="_blank" rel="noopener">Open het inleverformulier ↗</a></p>` : '');
+    $$('[data-kop]').forEach(b => b.onclick = () => { const t = $('#ilt' + b.dataset.kop); t.select(); try { navigator.clipboard.writeText(t.value); } catch (e){ document.execCommand('copy'); } b.textContent = 'Gekopieerd ✓'; });
+  };
+  $('#ilwis').onclick = () => { if (confirm('Weet je zeker dat je je logboek wilt wissen? Lever eerst je code in.')){ LOG = nieuwLog(); bewaarLog(); for (const k in PER_WP) delete PER_WP[k]; toonInleveren(); } };
+}
+$('#inleverknop').onclick = toonInleveren;
+$('#resetknop').onclick = () => { if (confirm('Alle voortgang wissen?')){ STAAT.voortgang = {}; bewaar({}); for (const k in PER_WP) delete PER_WP[k]; open(STAAT.wp); } };
+open(0);
+requestAnimationFrame(lus);
+window.__re = { SIMV, SIMO, SIME, SIMC, controleer, stapGoed, renderTekst,  WPS, PER_WP, STAAT, LOG: () => LOG, maakCode, exitP, curP };
+</script>
+</body>
+</html>
