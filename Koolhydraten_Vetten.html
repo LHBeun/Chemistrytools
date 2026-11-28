@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Koolhydraten en vetten</title>
+<style>
+:root{
+  --papier:#f3efe6; --vel:#fffdf8; --rand:#e3dccb; --rand2:#d6cdb8;
+  --inkt:#2b2a27; --inkt2:#3e3b35; --grijs:#7a756b; --goud:#a0701f; --goud2:#e2a84b;
+  --nacht:#24323f; --nacht2:#33475a; --nachttekst:#cfd9e2;
+  --goed:#3f8f63; --goedbg:#e5f2ea; --fout:#b4473a; --foutbg:#f8e6e2; --hint:#fbf1da;
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --sans: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Consolas, 'Liberation Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--papier);color:var(--inkt);font-size:15px;line-height:1.6}
+button{font-family:inherit}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
+aside{background:var(--nacht);color:var(--nachttekst);padding:26px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
+aside h1{font-family:var(--serif);font-size:23px;color:#fff;font-weight:600;line-height:1.2}
+aside .sub{font-size:12.5px;color:#8aa0b3;margin:4px 0 18px}
+.lijn{display:flex;gap:4px;background:#1b2731;border-radius:10px;padding:4px;margin-bottom:18px}
+.lijn button{flex:1;border:0;border-radius:7px;padding:7px 6px;font-size:13.5px;font-weight:700;background:transparent;color:#9fb2c3;cursor:pointer}
+.lijn button.on{background:var(--goud2);color:var(--nacht)}
+aside nav a{display:flex;gap:12px;align-items:center;padding:10px 10px;border-radius:9px;font-size:14.5px;margin-bottom:4px;color:#b9c7d3;cursor:pointer;user-select:none;line-height:1.3}
+aside nav a:hover{background:#2c3d4d}
+aside nav a i{font-style:normal;flex:none;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #5d7387;font-size:12.5px;font-weight:700}
+aside nav a.on{background:var(--nacht2);color:#fff}
+aside nav a.on i{background:var(--goud2);border-color:var(--goud2);color:var(--nacht)}
+aside nav a.klaar i{background:#5aa37c;border-color:#5aa37c;color:#fff}
+aside nav a small{display:block;font-size:11.5px;color:#8aa0b3}
+aside .voet{margin-top:auto;padding-top:16px;display:flex;flex-direction:column;gap:8px}
+aside .voet button{background:transparent;border:1px solid #4b6074;color:#cfd9e2;border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer;text-align:left}
+aside .voet button:hover{background:#2c3d4d}
+.wp{display:grid;grid-template-columns:minmax(380px,1fr) minmax(520px,680px);min-height:100vh}
+.tekst{padding:34px 38px 60px;max-width:780px}
+.kicker{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--goud);font-weight:700}
+.tekst h2{font-family:var(--serif);font-size:31px;margin:3px 0 14px;font-weight:600;line-height:1.2}
+.tekst h3{font-family:var(--serif);font-size:19px;margin:20px 0 6px;font-weight:600}
+.tekst p{margin-bottom:10px;color:var(--inkt2)}
+.tekst ul,.tekst ol{margin:0 0 10px 20px;color:var(--inkt2)}
+.tekst li{margin-bottom:3px}
+.kader{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--goud2);border-radius:8px;padding:10px 14px;margin:10px 0 12px;color:var(--inkt2)}
+.kader.proces{border-left-color:#5d7387}
+.vgl{font-family:var(--serif);font-size:17px;margin-top:6px;color:var(--inkt)}
+.tabs{display:flex;gap:4px;margin:20px 0 14px;border-bottom:1px solid var(--rand2)}
+.tabs button{background:none;border:0;padding:9px 14px;font-size:14px;font-weight:600;color:var(--grijs);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--inkt);border-bottom-color:var(--goud2)}
+.tabs .tel{font-weight:500;font-size:12px;color:var(--grijs);margin-left:4px}
+.vb{background:var(--vel);border:1px solid var(--rand);border-radius:12px;padding:16px 18px;margin:4px 0 14px}
+.vb .vbkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--goud);margin-bottom:4px}
+.vb .vbvraag{font-weight:600;margin-bottom:8px}
+.vbstap{display:flex;gap:12px;padding:8px 0;border-top:1px dashed var(--rand2)}
+.vbstap .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
+.vbstap .b{color:var(--inkt2)}
+.oknop{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.oknop .dot{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--rand2);background:var(--vel);display:grid;place-items:center;font-size:12.5px;font-weight:700;color:var(--grijs);cursor:pointer}
+.oknop .dot.on{border-color:var(--inkt);color:var(--inkt);box-shadow:0 0 0 2px var(--inkt) inset}
+.oknop .dot.goed{background:var(--goed);border-color:var(--goed);color:#fff}
+.oknop .dot.ster{border-style:dashed}
+.oknop .rechts{margin-left:auto;font-size:13px;color:var(--grijs)}
+.opdkop{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--grijs);margin-bottom:4px}
+.opdkop .st{color:var(--goud)}
+.stap{display:flex;gap:12px;padding:13px 15px;background:var(--vel);border:1px solid var(--rand);border-radius:11px;margin-bottom:10px}
+.stap>.n{flex:none;width:25px;height:25px;border-radius:50%;background:var(--inkt);color:#fff;display:grid;place-items:center;font-size:12.5px;font-weight:700;margin-top:1px}
+.stap.dicht{opacity:.42}
+.stap.dicht .inv{display:none}
+.stap.goed{border-color:#bcdcc8;background:#fbfefc}
+.stap.goed>.n{background:var(--goed)}
+.stap .inh{flex:1;min-width:0}
+.stap .vr{margin-bottom:8px}
+.rij{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input.in{font-family:var(--mono);font-size:15px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;background:#fff;min-width:0;width:220px;color:var(--inkt)}
+input.in:focus,textarea.in:focus,select.sel:focus{outline:2px solid var(--goud2);outline-offset:0;border-color:var(--goud2)}
+textarea.in{font-family:var(--sans);font-size:14.5px;border:1px solid var(--rand2);border-radius:8px;padding:8px 10px;width:100%;min-height:74px;background:#fff;color:var(--inkt)}
+select.sel{border:1px solid var(--rand2);border-radius:8px;padding:7px 9px;font-size:14px;background:#fff;color:var(--inkt);font-family:inherit}
+.btn{border:0;border-radius:8px;padding:8px 15px;font-weight:600;font-size:14px;cursor:pointer;background:var(--inkt);color:#fff}
+.btn:hover{background:#45433e}
+.btn.g{background:#ebe4d4;color:var(--inkt)}
+.btn.g:hover{background:#e0d7c3}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.klein{padding:5px 11px;font-size:13px}
+.fb{margin-top:8px;padding:8px 11px;border-radius:8px;font-size:14px}
+.fb.goed{background:var(--goedbg);color:#255c3d}
+.fb.fout{background:var(--foutbg);color:#7c2c22}
+.fb.hint{background:var(--hint);color:#6b4d12}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px}
+.chip{border:1.5px solid var(--rand2);background:#fff;border-radius:999px;padding:4px 12px;font-size:14px;cursor:pointer;user-select:none;color:var(--inkt)}
+.chip:hover{border-color:#b9ad93}
+.chip.aan{background:var(--nacht);border-color:var(--nacht);color:#fff}
+.chip.x{padding:3px 6px 3px 12px}
+.chip.x b{margin-left:6px;font-weight:700;color:var(--grijs)}
+.opties{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.optie{border:1.5px solid var(--rand2);background:#fff;border-radius:9px;padding:8px 12px;font-size:14.5px;cursor:pointer;text-align:left;color:var(--inkt)}
+.optie:hover{border-color:#b9ad93}
+.optie.aan{border-color:var(--nacht);background:#eef2f6}
+.model{background:var(--hint);border-radius:8px;padding:8px 11px;font-size:14px;color:#5b4210;margin-top:8px}
+.model b{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.klaarbanner{background:var(--goedbg);border:1px solid #bcdcc8;color:#255c3d;border-radius:11px;padding:12px 15px;margin:4px 0 12px}
+.uitw{background:#fff;border:1px solid var(--rand);border-radius:8px;padding:8px 11px;margin-top:8px;font-size:14.5px;color:var(--inkt2)}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;line-height:1.25}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 3px}
+.frac>span:last-child{padding:0 3px}
+.simkol{background:var(--vel);border-left:1px solid var(--rand);padding:22px 22px 30px;display:flex;flex-direction:column;gap:12px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.simkop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.simkop b{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--goud)}
+.simkop span{font-size:12.5px;color:var(--grijs)}
+.doek{border:1px solid var(--rand);border-radius:12px;background:#fbf8f1;overflow:hidden}
+.doek svg{display:block;width:100%;height:auto}
+.legenda{font-size:12.5px;color:var(--grijs);line-height:1.5}
+.bouw{display:grid;gap:10px}
+.bouw .vak{background:var(--vel);border:1px solid var(--rand);border-radius:11px;padding:12px 14px}
+.bouw h4{font-size:13px;letter-spacing:1.1px;text-transform:uppercase;color:var(--grijs);margin-bottom:8px}
+.strlijst{list-style:none;margin:0!important}
+.strlijst li{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px dashed var(--rand2);font-size:14px}
+.strlijst li:first-child{border-top:0}
+.nr{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--inkt);font-size:12px;font-weight:700;margin-right:6px;flex:none}
+.stroomkeuze{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.stroomkeuze button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--rand2);background:#fff;font-weight:700;cursor:pointer;color:var(--inkt)}
+.stroomkeuze button.on{background:var(--goud2);border-color:var(--goud2)}
+.stroomkeuze button.goed{border-color:var(--goed);color:var(--goed)}
+.stroomkeuze button.fout{border-color:var(--fout);color:var(--fout)}
+body.beamer .wp{zoom:1.25}
+@media (max-width:1100px){.app{grid-template-columns:1fr}aside{position:static;height:auto}.wp{grid-template-columns:1fr}.simkol{position:static;height:auto;border-left:0;border-top:1px solid var(--rand)}.tekst{padding:24px 20px 30px}}
+@media (prefers-reduced-motion:no-preference){.nieuw{animation:verschijn .6s ease-out}@keyframes verschijn{from{opacity:0}to{opacity:1}}}
+
+.ld{background:var(--vel);border:1px solid var(--rand);border-left:4px solid var(--nacht);border-radius:8px;padding:9px 14px;margin:0 0 12px;color:var(--inkt2)}
+.ld b{display:block;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--nacht);margin-bottom:2px}
+.tek{background:#fff;border:1px solid var(--rand);border-radius:10px;padding:8px;display:flex;justify-content:center;overflow-x:auto;margin:6px 0}
+.tek svg{max-width:100%;height:auto}
+.molkeus{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-bottom:10px}
+.molkeus .optie{padding:6px;display:flex;flex-direction:column;align-items:center}
+.vk{font-family:var(--serif);font-size:18px}
+table.regels{border-collapse:collapse;font-size:14px;background:#fff;margin:4px 0}
+table.regels th,table.regels td{border:1px solid var(--rand2);padding:4px 9px;text-align:left}
+table.regels th{background:#f3ead6}
+.mol{display:block;max-width:100%;height:auto;margin:4px auto}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <h1>Koolhydraten en vetten</h1>
+    <div class="sub">Biochemie · 6V</div>
+    <nav id="nav"></nav>
+    <div class="voet">
+      <button data-a="beamer">Beamerstand</button>
+      <button data-a="wis">Voortgang wissen</button>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<script>
+{
+const VAL={C:4,O:2,N:3,Cl:1,Br:1,F:1,I:1,H:1};
+// notatie: atomen gescheiden door bindingen - = #; atoom: [v]X[u=..,d=..] (u = boven, d = onder; u==O is een =O boven)   v = knik (gaat vanaf hier omlaag)
+// zijgroepen: Cl Br F I OH NH2 =O CH3 C2H5 C3H7 OCH3 OC2H5
+function bouw(spec){
+  const atoms=[],bonds=[];const add=(el,x,y)=>{atoms.push({el,x,y});return atoms.length-1};
+  const toks=spec.match(/v?[A-Z][a-z]?(\[[^\]]*\])?|[-=#]/g);
+  let dir=[1,0],prev=null,bo=1,x=0,y=0;
+  for(const t of toks){
+    if(t==='-'||t==='='||t==='#'){bo=t==='-'?1:t==='='?2:3;continue}
+    const m=t.match(/^(v?)([A-Z][a-z]?)(?:\[([^\]]*)\])?$/);
+    if(prev!==null){if(m[1])dir=[0,1];x+=dir[0]*1.25;y+=dir[1]*1.25}
+    const i=add(m[2],x,y);if(prev!==null)bonds.push([prev,i,bo]);bo=1;
+    if(m[3])m[3].split(',').forEach(g=>{const k=g[0],v=g.slice(2);const up=[dir[1],-dir[0]];const d=k==='u'?up:[-up[0],-up[1]];zij(i,v,d)});
+    prev=i}
+  function zij(i,g,d){const p=atoms[i];let a,b2;
+    const at=(el,n)=>add(el,p.x+d[0]*n,p.y+d[1]*n);
+    if(g==='=O'){a=at('O',1);bonds.push([i,a,2]);return}
+    if(['Cl','Br','F','I'].includes(g)){a=at(g,1);bonds.push([i,a,1]);return}
+    if(g==='OH'){a=at('O',1);bonds.push([i,a,1]);return}
+    if(g==='NH2'){a=at('N',1);bonds.push([i,a,1]);return}
+    const ket={CH3:['C'],C2H5:['C','C'],C3H7:['C','C','C'],OCH3:['O','C'],OC2H5:['O','C','C']}[g];
+    let last=i;ket.forEach((el,n)=>{const j=at(el,n+1);bonds.push([last,j,1]);last=j})}
+  // H-atomen
+  const H=[];const dirs=[[0,-1],[0,1],[-1,0],[1,0]];
+  atoms.forEach((a,i)=>{if(a.el==='H')return;
+    const nb=bonds.filter(b=>b[0]===i||b[1]===i).map(b=>{const j=b[0]===i?b[1]:b[0];const dx=atoms[j].x-a.x,dy=atoms[j].y-a.y,L=Math.hypot(dx,dy);return{d:[Math.round(dx/L),Math.round(dy/L)],o:b[2]}});
+    let n=VAL[a.el]-nb.reduce((s,b)=>s+b.o,0);if(n<=0)return;
+    const bezet=d=>nb.some(b=>b.d[0]===d[0]&&b.d[1]===d[1]);
+    let pref=dirs.slice();
+    const tri=nb.find(b=>b.o===3);
+    if(tri)pref=[[-tri.d[0],-tri.d[1]],...dirs];
+    else if(a.el==='N')pref=[[-1,0],[1,0],...dirs];
+    else if(a.el!=='C'&&nb.length)pref=[[-nb[0].d[0],-nb[0].d[1]],...dirs];
+    for(const d of pref){if(n<=0)break;if(bezet(d)||H.some(h=>h.p===i&&h.d[0]===d[0]&&h.d[1]===d[1]))continue;H.push({p:i,d});n--}});
+  return{atoms,bonds,H}}
+function svg(spec,schaal){
+  const m=bouw(spec),G=(schaal||1)*52,HD=.64;
+  const pts=m.atoms.map(a=>[a.x,a.y]).concat(m.H.map(h=>[m.atoms[h.p].x+h.d[0]*HD,m.atoms[h.p].y+h.d[1]*HD]));
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);const x0=Math.min(...xs),y0=Math.min(...ys),pad=.45;
+  const W=(Math.max(...xs)-x0+2*pad)*G,Hh=(Math.max(...ys)-y0+2*pad)*G;
+  const X=x=>(x-x0+pad)*G,Y=y=>(y-y0+pad)*G;
+  const r=el=>el.length>1?13:9;
+  let s='';
+  const lijn=(ax,ay,bx,by,ra,rb,o)=>{const dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L;
+    const x1=ax+ux*ra,y1=ay+uy*ra,x2=bx-ux*rb,y2=by-uy*rb;const nx=-uy*4,ny=ux*4;
+    const off=o===1?[0]:o===2?[-1,1]:[-1.6,0,1.6];
+    return off.map(k=>`<line x1="${(x1+nx*k).toFixed(1)}" y1="${(y1+ny*k).toFixed(1)}" x2="${(x2+nx*k).toFixed(1)}" y2="${(y2+ny*k).toFixed(1)}"/>`).join('')};
+  m.bonds.forEach(([i,j,o])=>{const a=m.atoms[i],b=m.atoms[j];s+=lijn(X(a.x),Y(a.y),X(b.x),Y(b.y),r(a.el),r(b.el),o)});
+  m.H.forEach(h=>{const a=m.atoms[h.p];s+=lijn(X(a.x),Y(a.y),X(a.x+h.d[0]*HD),Y(a.y+h.d[1]*HD),r(a.el),7,1)});
+  let t='';
+  m.atoms.forEach(a=>{t+=`<text x="${X(a.x).toFixed(1)}" y="${Y(a.y).toFixed(1)}" class="${a.el==='C'?'':'het'}">${a.el}</text>`});
+  m.H.forEach(h=>{const a=m.atoms[h.p];t+=`<text x="${X(a.x+h.d[0]*HD).toFixed(1)}" y="${Y(a.y+h.d[1]*HD).toFixed(1)}" class="h">H</text>`});
+  return `<svg class="mol" viewBox="0 0 ${W.toFixed(0)} ${Hh.toFixed(0)}" width="${W.toFixed(0)}" style="max-height:${(Hh*1.15).toFixed(0)}px"><g stroke="#2b2a27" stroke-width="1.6" stroke-linecap="round">${s}</g><g font-family="Segoe UI,system-ui,sans-serif" font-size="16" text-anchor="middle" dominant-baseline="central" fill="#2b2a27">${t}</g><style>.h{font-size:14px;fill:#4a4740}.het{font-weight:600;fill:#a33b2f}</style></svg>`}
+
+
+/* ============ HAWORTH ============ */
+const F='font-family="Segoe UI,system-ui,sans-serif"';
+function lbl(x,y,t,anchor){const html=t.replace(/(\d)/g,'<tspan font-size="10" dy="3">$1</tspan><tspan dy="-3"></tspan>');return `<text x="${x}" y="${y}" ${F} font-size="13" text-anchor="${anchor||'middle'}" dominant-baseline="central" fill="#2b2a27">${html}</text>`}
+function haworth(soort,o){o=o||{};
+  const pyr=soort!=='fructose';
+  const P=pyr?{1:[150,70],2:[115,100],3:[55,100],4:[20,70],5:[50,40],O:[120,40]}:{2:[150,70],3:[120,102],4:[50,102],5:[20,70],O:[85,35]};
+  const ring=pyr?[1,2,3,4,5,'O']:[2,3,4,5,'O'];
+  let s='';
+  ring.forEach((a,i)=>{const b=ring[(i+1)%ring.length];const[x1,y1]=P[a],[x2,y2]=P[b];const dik=pyr?(a===2&&b===3)||(a===1&&b===2)||(a===3&&b===4):(a===2&&b===3)||(a===3&&b===4)||(a===4&&b===5);
+    const r1=a==='O'?9:0,r2=b==='O'?9:0;const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy);
+    s+=`<line x1="${x1+dx/L*r1}" y1="${y1+dy/L*r1}" x2="${x2-dx/L*r2}" y2="${y2-dy/L*r2}" stroke="#2b2a27" stroke-width="${dik?4.5:1.8}" stroke-linecap="round"/>`});
+  s+=lbl(P.O[0],P.O[1],'O');
+  const sub={glucose:{1:['H','OH'],2:['H','OH'],3:['OH','H'],4:['H','OH'],5:['CH2OH',null]},galactose:{1:['H','OH'],2:['H','OH'],3:['OH','H'],4:['OH','H'],5:['CH2OH',null]},
+    fructose:{2:['OH','CH2OH'],3:['OH','H'],4:['H','OH'],5:['CH2OH','H']}}[soort];
+  Object.entries(sub).forEach(([c,[up,dn]])=>{const[x,y]=P[c];
+    s+=`<line x1="${x}" y1="${y}" x2="${x}" y2="${y-24}" stroke="#2b2a27" stroke-width="1.6"/>${lbl(x,y-32,up)}`;
+    if(dn)s+=`<line x1="${x}" y1="${y}" x2="${x}" y2="${y+24}" stroke="#2b2a27" stroke-width="1.6"/>${lbl(x,y+33,dn)}`});
+  if(o.nummers)Object.entries(P).forEach(([c,[x,y]])=>{if(c!=='O')s+=`<text x="${x+(x>90?9:-9)}" y="${y+4}" ${F} font-size="10" fill="#a0701f" text-anchor="middle">${c}</text>`});
+  return `<svg viewBox="-10 0 190 150" width="${o.w||230}">${s}</svg>`}
+/* ============ SCHEMATISCHE KETENS ============ */
+const KL={glucose:'#e2a84b',galactose:'#9cc3e6',fructose:'#b7d99b'};
+function blok(namen,o){o=o||{};let x=10,s='';const y=40;
+  namen.forEach((n,i)=>{const ring6=n!=='fructose';const r=22;
+    const pts=[...Array(ring6?6:5)].map((_,j)=>{const a=-Math.PI/2+j*2*Math.PI/(ring6?6:5);return[x+r+r*Math.cos(a),y+r*Math.sin(a)]});
+    s+=`<polygon points="${pts.map(p=>p.join(',')).join(' ')}" fill="${o.grijs?'#eee':KL[n]}" stroke="#2b2a27" stroke-width="1.5"/>`;
+    s+=`<text x="${x+r}" y="${y+48}" ${F} font-size="11" text-anchor="middle" fill="#3e3b35">${o.grijs?'?':n}</text>`;
+    if(i<namen.length-1){s+=`<line x1="${x+2*r}" y1="${y}" x2="${x+2*r+30}" y2="${y}" stroke="#2b2a27" stroke-width="1.6"/>${lbl(x+2*r+15,y-1,'O').replace('<text','<text font-weight="700"').replace('fill="#2b2a27"','fill="#a33b2f"')}`;x+=2*r+30}});
+  return `<svg viewBox="0 0 ${x+2*22+12} 100" width="${Math.min(520,x+56)}">${s}</svg>`}
+/* ============ VETTEN ============ */
+const sb=t=>t.replace(/(\d+)/g,'<tspan font-size="11" dy="4">$1</tspan><tspan dy="-4"></tspan>');
+function vet(zuren){let s='';const rows=[[30,'CH2'],[100,'CH'],[170,'CH2']];
+  rows.forEach(([y,c],i)=>{s+=`<text x="40" y="${y}" ${F} font-size="16" text-anchor="middle" dominant-baseline="central">${sb(c)}</text>`;
+    if(i<2)s+=`<line x1="40" y1="${y+13}" x2="40" y2="${y+57}" stroke="#2b2a27" stroke-width="1.6"/>`;
+    s+=`<line x1="${i===1?56:62}" y1="${y}" x2="84" y2="${y}" stroke="#2b2a27" stroke-width="1.6"/><text x="94" y="${y}" ${F} font-size="16" text-anchor="middle" dominant-baseline="central" fill="#a33b2f" font-weight="600">O</text>
+    <line x1="104" y1="${y}" x2="124" y2="${y}" stroke="#2b2a27" stroke-width="1.6"/><text x="134" y="${y}" ${F} font-size="16" text-anchor="middle" dominant-baseline="central">C</text>
+    <line x1="131" y1="${y-11}" x2="131" y2="${y-27}" stroke="#2b2a27" stroke-width="1.6"/><line x1="137" y1="${y-11}" x2="137" y2="${y-27}" stroke="#2b2a27" stroke-width="1.6"/><text x="134" y="${y-36}" ${F} font-size="15" text-anchor="middle" dominant-baseline="central" fill="#a33b2f" font-weight="600">O</text>
+    <line x1="144" y1="${y}" x2="164" y2="${y}" stroke="#2b2a27" stroke-width="1.6"/><text x="168" y="${y}" ${F} font-size="16" dominant-baseline="central">${sb(zuren[i])}</text>`});
+  return `<svg viewBox="0 -10 280 200" width="280">${s}</svg>`}
+const sub=f=>f.replace(/(\d+)/g,'<sub>$1</sub>');
+const vk=f=>`<span class="vk">${sub(f)}</span>`;
+
+/* ============ WERKPLAATSEN ============ */
+const g=(v,a,o)=>Object.assign({t:'getal',v,a},o||{});
+const k=(v,o,a,h)=>({t:'keuze',v,o,a,h});
+const m=(v,o,a,h)=>({t:'multi',v,o,a,h});
+const p=(v,o,h)=>({t:'plaatje',v,o,h}); // o: [[svg,goed]]
+const WP=[
+{k:'Monosachariden',t:'Monosachariden',
+ ld:'Je kunt glucose, galactose en fructose herkennen in de Haworth-projectie, en je weet dat ze dezelfde molecuulformule hebben.',
+ uitleg:`<p><b>Koolhydraten</b> zijn opgebouwd uit C-, H- en O-atomen. De kleinste bouwstenen zijn de <b>monosachariden</b>. Glucose, galactose en fructose hebben alle drie de molecuulformule C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>: het zijn isomeren.</p>
+ <div class="kader"><ul style="margin-bottom:0"><li>In water komen ze vooral voor als <b>ring</b>. Die teken je in de <b>Haworth-projectie</b>: de ring ligt plat, de dikke rand is naar je toe, de groepen steken boven of onder de ring uit.</li><li>Glucose en galactose hebben een <b>zesring</b> (vijf C-atomen en één O-atoom). Ze verschillen alleen in de stand van de OH-groep aan C4.</li><li>Fructose heeft een <b>vijfring</b> (vier C-atomen en één O-atoom).</li></ul></div>`,
+ vb:{v:'Hoe herken je glucose in de Haworth-projectie?',svg:()=>haworth('glucose',{nummers:true}),s:['Zesring met één O-atoom: glucose of galactose.','Kijk naar C4 (links in de ring): de OH-groep staat onder de ring.','Dus: glucose. Bij galactose staat die OH-groep boven de ring.']},
+ opdr:[{naam:'Isomeren',steps:[m('Welke van deze stoffen hebben de molecuulformule C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>? Kies alle goede.',['glucose','sacharose','galactose','zetmeel','fructose','glycerol'],[0,2,4])]},
+  {naam:'Welke stof?',svg:()=>haworth('galactose'),steps:[k('Welke monosacharide is hier getekend?',['galactose','glucose','fructose'],0,'Kijk naar de stand van de OH-groep aan C4.')]},
+  {naam:'Welke stof?',svg:()=>haworth('fructose'),steps:[k('Welke monosacharide is hier getekend?',['fructose','glucose','galactose'],0,'Tel de atomen in de ring.')]},
+  {naam:'OH-groepen',svg:()=>haworth('glucose'),steps:[g('Hoeveel OH-groepen heeft een glucosemolecuul in de ringvorm?',5,{abs:0,h:'Tel ook de OH in de CH₂OH-groep.'})]},
+  {naam:'Glucose of galactose',ster:1,steps:[k('Leg uit waarin glucose en galactose van elkaar verschillen.',['Alleen in de ruimtelijke stand van de OH-groep aan C4: de molecuulformule is gelijk.','Galactose heeft een OH-groep minder.','Galactose heeft een vijfring.','Ze verschillen in het aantal C-atomen.'],0)]}]},
+{k:'Disachariden',t:'Disachariden: koppelen en splitsen',
+ ld:'Je kunt uitleggen hoe twee monosachariden koppelen tot een disacharide (condensatie) en hoe die weer splitst (hydrolyse), en je kent de bouwstenen van maltose, lactose en sacharose.',
+ uitleg:`<p>Twee monosachariden koppelen tot een <b>disacharide</b>. Daarbij reageren twee OH-groepen met elkaar: er ontstaat een C–O–C-brug (een <b>glycosidische binding</b>) en er komt een watermolecuul vrij. Dit is een <b>condensatiereactie</b>.</p>
+ <div class="kader formules">C<sub>6</sub>H<sub>12</sub>O<sub>6</sub> + C<sub>6</sub>H<sub>12</sub>O<sub>6</sub> → C<sub>12</sub>H<sub>22</sub>O<sub>11</sub> + H<sub>2</sub>O</div>
+ <p>Omgekeerd kan een disacharide met water weer splitsen: <b>hydrolyse</b>.</p>
+ <div class="kader"><table class="regels"><tr><th>disacharide</th><th>bouwstenen</th></tr><tr><td>maltose</td><td>glucose + glucose</td></tr><tr><td>lactose (melksuiker)</td><td>galactose + glucose</td></tr><tr><td>sacharose (kristalsuiker)</td><td>glucose + fructose</td></tr></table></div>`,
+ vb:{v:'Hoe ontstaat maltose?',svg:()=>blok(['glucose','glucose']),s:['Twee glucosemoleculen koppelen via een O-atoom.','Er ontstaat een glycosidische binding, en er komt één H₂O-molecuul vrij.','Maltose heeft de molecuulformule C₁₂H₂₂O₁₁.']},
+ opdr:[{naam:'Wat komt er vrij?',steps:[k('Welke stof ontstaat er naast de disacharide bij het koppelen van twee monosachariden?',['water','koolstofdioxide','glucose','zuurstof'],0)]},
+  {naam:'Molecuulformule',steps:[g('Een disacharide ontstaat uit twee moleculen C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>. Hoeveel H-atomen heeft het disacharidemolecuul?',22,{abs:0,h:'Bij de koppeling verdwijnt er één H₂O.'})]},
+  {naam:'Welke disacharide?',svg:()=>blok(['glucose','fructose']),steps:[k('Welke disacharide is hier schematisch getekend?',['sacharose','maltose','lactose'],0)]},
+  {naam:'Melksuiker splitsen',steps:[m('Welke stoffen ontstaan bij de volledige hydrolyse van lactose? Kies alle goede.',['glucose','fructose','galactose','water','maltose'],[0,2])]},
+  {naam:'Trisacharide',ster:1,steps:[g('Drie glucosemoleculen koppelen tot een trisacharide. Hoeveel H-atomen heeft dat molecuul?',32,{abs:0,h:'Bij elke koppeling verdwijnt één H₂O.'})]}]},
+{k:'Polysachariden',t:'Polysachariden',
+ ld:'Je kunt beschrijven dat zetmeel, glycogeen en cellulose polymeren van glucose zijn, en hun functie noemen.',
+ uitleg:`<p>Als heel veel glucose-eenheden koppelen, ontstaat een <b>polysacharide</b>: een polymeer. De drie belangrijkste bestaan alle drie uit glucose-eenheden, maar ze zijn anders gekoppeld en anders gebouwd.</p>
+ <div class="kader"><table class="regels"><tr><th>polysacharide</th><th>bouw</th><th>functie</th></tr><tr><td>zetmeel</td><td>lange ketens, deels vertakt</td><td>opslag van energie in planten</td></tr><tr><td>glycogeen</td><td>sterk vertakt</td><td>opslag van energie bij mens en dier (lever, spieren)</td></tr><tr><td>cellulose</td><td>lange rechte ketens die met waterstofbruggen vezels vormen</td><td>bouwstof van de celwand van planten</td></tr></table></div>
+ <p>Bij volledige hydrolyse van al deze polysachariden ontstaat glucose.</p>`,
+ vb:{v:'Waarom kun je zetmeel wel en cellulose niet verteren, terwijl ze allebei uit glucose bestaan?',svg:()=>blok(['glucose','glucose','glucose','glucose']),s:['De glucose-eenheden zijn in zetmeel en cellulose op een andere manier gekoppeld.','Enzymen zijn specifiek: onze enzymen passen wel bij de koppeling in zetmeel, maar niet bij die in cellulose.']},
+ opdr:[{naam:'Bouwsteen',steps:[m('Welke van deze stoffen zijn opgebouwd uit glucose-eenheden? Kies alle goede.',['zetmeel','eiwit','glycogeen','vet','cellulose','nylon'],[0,2,4])]},
+  {naam:'Functie',steps:[k('Welke polysacharide gebruikt je lichaam om energie op te slaan?',['glycogeen','zetmeel','cellulose'],0),k('En welke is een bouwstof in plantencellen?',['cellulose','glycogeen','zetmeel'],0)]},
+  {naam:'Hydrolyse',steps:[k('Wat ontstaat er bij de volledige hydrolyse van zetmeel?',['glucose','maltose en fructose','glycerol','koolstofdioxide en water'],0)]},
+  {naam:'Hoeveel water?',ster:1,steps:[g('Een zetmeelketen bestaat uit 500 glucose-eenheden en is niet vertakt. Hoeveel watermoleculen zijn nodig voor de volledige hydrolyse?',499,{abs:0,h:'Tel het aantal bindingen tussen de eenheden.'})]}]},
+{k:'Puzzel: de beginstof',t:'Puzzel: wat was de beginstof?',
+ ld:'Je kunt uit de hydrolyseproducten afleiden welk koolhydraat de beginstof was.',
+ uitleg:`<p>Na hydrolyse heb je alleen de losse bouwstenen nog. Werk terug:</p>
+ <div class="kader"><ol style="margin-bottom:0"><li>Welke monosachariden ontstaan er, en in welke verhouding?</li><li>Hoeveel bouwstenen waren er gekoppeld? Dan weet je ook hoeveel H<sub>2</sub>O er nodig was.</li><li>Welk koolhydraat past daarbij? Soms passen er meer.</li></ol></div>`,
+ vb:{v:'Bij hydrolyse ontstaat alleen fructose en glucose, in de verhouding 1 : 1. Er was 1 H₂O nodig per molecuul beginstof.',svg:()=>blok(['glucose','fructose']),s:['Twee bouwstenen, dus een disacharide.','Glucose + fructose: dat is sacharose.']},
+ opdr:[{naam:'Twee keer glucose',svg:()=>blok(['glucose','glucose'],{grijs:true}),intro:'Bij de hydrolyse van een disacharide ontstaat alleen glucose.',steps:[k('Wat was de beginstof?',['maltose','lactose','sacharose','zetmeel'],0)]},
+  {naam:'Melk',intro:'Bij de hydrolyse van een disacharide ontstaan glucose en galactose.',steps:[k('Wat was de beginstof?',['lactose','maltose','sacharose','glycogeen'],0)]},
+  {naam:'Heel veel glucose',intro:'Bij de volledige hydrolyse van één molecuul beginstof ontstaan duizenden glucosemoleculen en verder niets.',steps:[m('Welke beginstof(fen) zijn mogelijk? Kies alle goede.',['zetmeel','maltose','glycogeen','sacharose','cellulose','lactose'],[0,2,4],'Er zijn meer goede antwoorden.')]},
+  {naam:'Drie bouwstenen',ster:1,intro:'Bij de hydrolyse van één molecuul raffinose ontstaan één molecuul galactose, één molecuul glucose en één molecuul fructose.',steps:[g('Hoeveel watermoleculen zijn nodig voor de hydrolyse van één molecuul raffinose?',2,{abs:0}),g('Hoeveel H-atomen heeft een raffinosemolecuul?',32,{abs:0})]}]},
+{k:'Vetten',t:'Vetten: glycerol en vetzuren',
+ ld:'Je kunt beschrijven hoe een vet is opgebouwd uit glycerol en drie vetzuren, je kunt een verkorte formule van een vetzuur lezen, en je legt het verschil in smeltpunt tussen verzadigde en onverzadigde vetten uit.',
+ uitleg:`<p>Een <b>vet</b> (triglyceride) is een ester van <b>glycerol</b> en drie <b>vetzuren</b>. Bij de vorming reageren de drie OH-groepen van glycerol met de COOH-groepen van de vetzuren: er ontstaan drie esterbindingen en drie H<sub>2</sub>O-moleculen.</p>
+ <p><b>Een vetzuur lezen.</b> Vetzuren zijn lange carbonzuren. Ze worden verkort genoteerd. Neem butaanzuur, een kort vetzuur uit boter:</p>
+ <div class="tek">${svg('C-C-C-C[u==O]-O',.7)}</div>
+ <div class="kader">Verkort: ${vk('C3H7COOH')}. Het deel C<sub>3</sub>H<sub>7</sub> is de koolstofketen <i>zonder</i> het C-atoom van de carboxylgroep. Dat C-atoom hoort wel bij de keten en telt mee: butaanzuur heeft dus 3 + 1 = <b>4</b> C-atomen.</div>
+ <p>Zo heeft stearinezuur, ${vk('C17H35COOH')}, 17 + 1 = 18 C-atomen. Vanaf nu gebruiken we alleen de verkorte notatie.</p>
+ <div class="kader"><ul style="margin-bottom:0"><li><b>Verzadigd</b>: alleen enkele C–C-bindingen. De keten is dan C<sub>n</sub>H<sub>2n+1</sub>, zoals C<sub>17</sub>H<sub>35</sub>.</li><li><b>Onverzadigd</b>: één of meer C=C-bindingen. Elke C=C kost 2 H-atomen: C<sub>17</sub>H<sub>33</sub> heeft er één, C<sub>17</sub>H<sub>31</sub> twee.</li><li>Een C=C in de cis-stand geeft een <b>knik</b> in de keten. De ketens passen dan minder goed tegen elkaar, de vanderwaalsbinding is zwakker en het smeltpunt lager: onverzadigde vetten zijn bij kamertemperatuur vaak vloeibaar (olie).</li></ul></div>`,
+ vb:{v:'Een vet bestaat uit glycerol en drie moleculen stearinezuur.',svg:()=>vet(['C17H35','C17H35','C17H35']),s:['Elke OH-groep van glycerol vormt een esterbinding met een vetzuur.','Er ontstaan drie esterbindingen en drie H₂O-moleculen.','Alle ketens zijn verzadigd (C₁₇H₃₅): dit vet is bij kamertemperatuur vast.']},
+ opdr:[{naam:'C-atomen tellen',steps:[g('Hoeveel C-atomen heeft palmitinezuur, C<sub>15</sub>H<sub>31</sub>COOH?',16,{abs:0,h:'Het C-atoom van COOH telt mee.'})]},
+  {naam:'Dubbele bindingen',steps:[g('Hoeveel C=C-bindingen heeft linolzuur, C<sub>17</sub>H<sub>31</sub>COOH?',2,{abs:0,h:'Verzadigd zou C₁₇H₃₅ zijn. Elke C=C kost 2 H-atomen.'})]},
+  {naam:'Een vet vormen',steps:[g('Hoeveel watermoleculen ontstaan er bij de vorming van één vetmolecuul uit glycerol en drie vetzuren?',3,{abs:0})]},
+  {naam:'Smeltpunt',steps:[{t:'plaatje',v:'Welk vet heeft het laagste smeltpunt?',o:[[()=>vet(['C17H35','C17H35','C17H35']),0],[()=>vet(['C17H33','C17H33','C17H33']),1],[()=>vet(['C17H35','C17H33','C17H35']),0]],h:'Meer C=C-bindingen: meer knikken, zwakkere vanderwaalsbinding.'}]},
+  {naam:'Molecuulformule',ster:1,intro:'Glycerol is C<sub>3</sub>H<sub>8</sub>O<sub>3</sub>, stearinezuur is C<sub>17</sub>H<sub>35</sub>COOH.',steps:[g('Hoeveel H-atomen heeft het vet dat ontstaat uit glycerol en drie moleculen stearinezuur?',110,{abs:0,h:'Tel alle H-atomen op en trek die van de drie H₂O-moleculen eraf.'})]}]},
+{k:'Hydrolyse van vetten',t:'Hydrolyse van vetten',
+ ld:'Je kunt de hydrolyse van een vet beschrijven, ook in basisch milieu, en uit de hydrolyseproducten afleiden welk vet het was.',
+ uitleg:`<p>Bij <b>hydrolyse</b> van een vet worden de drie esterbindingen met water verbroken. Er ontstaan glycerol en drie vetzuren.</p>
+ <p>In <b>basisch milieu</b> gebeurt hetzelfde, maar daarna reageren de gevormde vetzuren met OH<sup>−</sup>: er ontstaan vetzuurionen (zoals C<sub>17</sub>H<sub>35</sub>COO<sup>−</sup>) en water. Deze hydrolyse in basisch milieu heet <b>verzeping</b>: vetzuurionen zijn de werkzame stof in zeep.</p>`,
+ vb:{v:'Wat ontstaat er bij de hydrolyse van het vet hiernaast?',svg:()=>vet(['C15H31','C17H33','C15H31']),s:['De drie esterbindingen worden met drie H₂O-moleculen verbroken.','Er ontstaan glycerol, twee moleculen C₁₅H₃₁COOH en één molecuul C₁₇H₃₃COOH.']},
+ opdr:[{naam:'Producten',steps:[m('Welke stoffen ontstaan bij de hydrolyse van een vet (niet in basisch milieu)? Kies alle goede.',['glycerol','vetzuren','glucose','aminozuren','esters'],[0,1])]},
+  {naam:'Hoeveel water?',steps:[g('Hoeveel watermoleculen zijn nodig voor de volledige hydrolyse van één vetmolecuul?',3,{abs:0})]},
+  {naam:'Basisch milieu',steps:[k('Wat gebeurt er in basisch milieu met de vetzuren die bij de hydrolyse ontstaan?',['Ze reageren met OH⁻ tot vetzuurionen en water.','Ze reageren met glycerol terug tot vet.','Ze verbranden tot CO₂ en water.','Er gebeurt niets meer mee.'],0),k('Hoe heet de hydrolyse van een vet in basisch milieu?',['verzeping','verestering','polymerisatie','oxidatie'],0)]},
+  {naam:'Welk vet was het?',ster:1,intro:'Bij de hydrolyse van een vet ontstaan glycerol, twee moleculen C<sub>17</sub>H<sub>35</sub>COOH en één molecuul C<sub>17</sub>H<sub>33</sub>COOH.',steps:[{t:'plaatje',v:'Welk(e) vet(ten) kan het zijn? Er kan meer dan één goed zijn.',o:[[()=>vet(['C17H35','C17H33','C17H35']),1],[()=>vet(['C17H33','C17H35','C17H35']),1],[()=>vet(['C17H33','C17H33','C17H35']),0],[()=>vet(['C17H35','C17H35','C17H35']),0]],multi:true,h:'De vetzuren kunnen op verschillende plekken aan glycerol zitten.'}]}]}
+];
+
+/* ============ STATE ============ */
+const KEY='koolhydratenvetten-v1';let S={wp:0,tab:'uitleg',opd:{},steps:{},prog:{}};
+try{const t=JSON.parse(localStorage.getItem(KEY));if(t&&t.prog)S=Object.assign(S,t)}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let T={};const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const W=()=>WP[S.wp];const oi=()=>Math.min(S.opd[S.wp]||0,W().opdr.length-1);const O=()=>W().opdr[oi()];const key=()=>S.wp+'-'+oi();
+const volg=(n,i)=>[...Array(n).keys()].sort((x,y)=>((x*7+i*5+3)%11)-((y*7+i*5+3)%11));
+
+function render(){
+  $('#nav').innerHTML=WP.map((w,i)=>{const d=w.opdr.filter((_,j)=>S.prog[i+'-'+j]).length;return `<a data-a="wp" data-v="${i}" class="${S.wp===i?'on':''} ${d===w.opdr.length?'klaar':''}"><i>${d===w.opdr.length?'✓':i+1}</i><span>${w.k}<small>${d} van ${w.opdr.length} opdrachten</small></span></a>`}).join('');
+  const w=W(),done=w.opdr.filter((_,j)=>S.prog[S.wp+'-'+j]).length;
+  let t=`<div class="kicker">Werkplaats ${S.wp+1} · 6V</div><h2>${w.t}</h2><div class="tabs"><button data-a="tab" data-v="uitleg" class="${S.tab==='uitleg'?'on':''}">Uitleg en voorbeeld</button><button data-a="tab" data-v="opdr" class="${S.tab==='opdr'?'on':''}">Opdrachten<span class="tel">${done}/${w.opdr.length}</span></button></div>`;
+  let sim='';
+  if(S.tab==='uitleg'){
+    t+=`<div class="ld"><b>Leerdoel</b>${w.ld}</div>${w.uitleg}<div class="vb"><div class="vbkop">Voorbeeld</div><div class="vbvraag">${w.vb.v}</div>${w.vb.s.map((x,i)=>`<div class="vbstap"><div class="n">${i+1}</div><div class="b">${x}</div></div>`).join('')}</div><button class="btn" data-a="tab" data-v="opdr">Naar de opdrachten</button>`;
+    sim=`<div class="simkop"><b>Voorbeeld</b></div><div class="tek">${w.vb.svg()}</div>`+(S.wp<4?`<div class="legenda">Glucose (Haworth-projectie) ter vergelijking:</div><div class="tek">${haworth('glucose',{nummers:true})}</div>`:'');
+  } else {const r=opdr();t+=r.t;sim=r.sim}
+  $('#main').innerHTML=`<div class="wp"><div class="tekst">${t}</div><div class="simkol">${sim}</div></div>`;
+}
+function opdr(){
+  const w=W(),o=O(),k=key(),nD=S.steps[k]||0;
+  let t=`<div class="oknop">${w.opdr.map((x,i)=>`<div class="dot ${i===oi()?'on':''} ${S.prog[S.wp+'-'+i]?'goed':''} ${x.ster?'ster':''}" data-a="opd" data-v="${i}">${i+1}</div>`).join('')}<span class="rechts">${o.ster?'★ uitdaging':''}</span></div>
+  <div class="opdkop">Opdracht ${oi()+1} ${o.ster?'<span class="st">★</span>':''} · ${o.naam}</div>`;
+  if(S.prog[k])t+=`<div class="klaarbanner">Deze opdracht is af.</div>`;
+  if(o.intro)t+=`<div class="kader proces">${o.intro}</div>`;
+  t+=o.steps.map((s,i)=>stap(s,i,nD,k)).join('');
+  let sim=o.svg?`<div class="simkop"><b>Tekening</b></div><div class="tek">${o.svg()}</div>`:'';
+  sim+=`<div class="simkop"><b>Ter vergelijking</b></div><div class="legenda">Glucose:</div><div class="tek">${haworth('glucose',{nummers:true,w:200})}</div>`;
+  if(S.wp>=4)sim=(o.svg?sim:'')+`<div class="legenda">Verzadigde keten: C<sub>n</sub>H<sub>2n+1</sub>. Elke C=C: 2 H-atomen minder.</div>`;
+  return{t,sim}}
+function stap(s,i,nD,k){
+  const st=i<nD?'goed':i===nD?'':'dicht';const tk=k+'-'+i;const cur=T[tk]||{};
+  let h=`<div class="stap ${st}"><div class="n">${i+1}</div><div class="inh"><div class="vr">${s.v}</div>`;
+  if(i<nD){
+    if(s.t==='getal')h+=`<div class="fb goed">${s.a}</div>`;
+    if(s.t==='keuze')h+=`<div class="fb goed">${s.o[s.a]}</div>`;
+    if(s.t==='multi')h+=`<div class="fb goed">${s.a.map(j=>s.o[j]).join(', ')}</div>`;
+    if(s.t==='plaatje')h+=`<div class="molkeus">${s.o.filter(x=>x[1]).map(x=>`<div class="optie aan">${x[0]()}</div>`).join('')}</div>`;
+    return h+'</div></div>'}
+  h+='<div class="inv">';
+  if(s.t==='getal')h+=`<div class="rij"><input class="in" id="g-${i}" inputmode="numeric" value="${esc(cur.txt||'')}"><button class="btn" data-a="check" data-i="${i}">Controleer</button></div>`;
+  if(s.t==='keuze')h+=`<div class="opties">${volg(s.o.length,i+oi()).map(j=>`<button class="optie ${cur.v===j?'aan':''}" data-a="kies" data-i="${i}" data-v="${j}">${s.o[j]}</button>`).join('')}</div><button class="btn" data-a="check" data-i="${i}">Controleer</button>`;
+  if(s.t==='multi')h+=`<div class="chips">${s.o.map((x,j)=>`<span class="chip ${(cur.sel||[]).includes(j)?'aan':''}" data-a="chip" data-i="${i}" data-v="${j}">${x}</span>`).join('')}</div><button class="btn" data-a="check" data-i="${i}">Controleer</button>`;
+  if(s.t==='plaatje')h+=`<div class="molkeus">${volg(s.o.length,oi()).map(j=>`<button class="optie ${(cur.sel||[]).includes(j)?'aan':''}" data-a="chip" data-i="${i}" data-v="${j}">${s.o[j][0]()}</button>`).join('')}</div><button class="btn" data-a="check" data-i="${i}">Controleer</button>`;
+  h+='</div>';if(cur.fb)h+=`<div class="fb ${cur.fb[0]}">${cur.fb[1]}</div>`;
+  return h+'</div></div>'}
+function check(i){
+  const o=O(),k=key(),s=o.steps[i],tk=k+'-'+i,cur=T[tk]=T[tk]||{};let ok=false,msg='Nog niet goed.'+(s.h?' Tip: '+s.h:'');
+  if(s.t==='getal'){const v=$('#g-'+i).value;cur.txt=v;const x=Number(v.replace(',','.'));if(!v.trim()||isNaN(x)){cur.fb=['hint','Typ een getal.'];render();return}ok=Math.abs(x-s.a)<=(s.abs||0)}
+  if(s.t==='keuze'){if(cur.v==null){cur.fb=['hint','Kies eerst een antwoord.'];render();return}ok=cur.v===s.a}
+  if(s.t==='multi'||s.t==='plaatje'){const sel=cur.sel||[];if(!sel.length){cur.fb=['hint','Kies minstens één antwoord.'];render();return}
+    const goed=s.t==='multi'?s.a:s.o.map((x,j)=>x[1]?j:-1).filter(j=>j>=0);
+    if(s.t==='plaatje'&&!s.multi&&sel.length>1){cur.fb=['hint','Kies één tekening.'];render();return}
+    const mis=goed.filter(j=>!sel.includes(j)).length,tv=sel.filter(j=>!goed.includes(j)).length;ok=!mis&&!tv;
+    if(!ok)msg=`Nog niet goed: ${tv?tv+' gekozen '+(tv===1?'antwoord is':'antwoorden zijn')+' fout':''}${tv&&mis?' en ':''}${mis?'je mist er nog '+mis:''}.`+(s.h?' Tip: '+s.h:'')}
+  if(ok){cur.fb=null;S.steps[k]=i+1;if(i+1>=o.steps.length)S.prog[k]=true;save()}else cur.fb=['fout',msg];
+  render()}
+document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el)return;const a=el.dataset.a,v=el.dataset.v;
+  switch(a){
+    case 'wp':S.wp=+v;S.tab='uitleg';T={};save();window.scrollTo(0,0);break;
+    case 'tab':S.tab=v;save();window.scrollTo(0,0);break;
+    case 'opd':S.opd[S.wp]=+v;T={};save();break;
+    case 'kies':{const tk=key()+'-'+el.dataset.i;T[tk]=T[tk]||{};T[tk].v=+v;T[tk].fb=null;break}
+    case 'chip':{const tk=key()+'-'+el.dataset.i;T[tk]=T[tk]||{};const s=T[tk].sel||[];const j=+v;const st=O().steps[+el.dataset.i];
+      T[tk].sel=st.t==='plaatje'&&!st.multi?[j]:(s.includes(j)?s.filter(x=>x!==j):[...s,j]);T[tk].fb=null;break}
+    case 'check':check(+el.dataset.i);return;
+    case 'beamer':document.body.classList.toggle('beamer');return;
+    case 'wis':if(el.dataset.c!=='1'){el.dataset.c='1';el.textContent='Zeker weten? Klik nogmaals';return}S.prog={};S.steps={};T={};save();el.dataset.c='';el.textContent='Voortgang wissen';break;
+    default:return}
+  render()});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id&&e.target.id.startsWith('g-')){const b=e.target.parentNode.querySelector('[data-a=check]');if(b)b.click()}});
+render();
+window.__kv={WP,S:()=>S,check,render};
+}
+</script>
+</body>
+</html>
